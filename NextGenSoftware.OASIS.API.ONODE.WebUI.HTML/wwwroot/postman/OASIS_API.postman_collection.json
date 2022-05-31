@@ -15,7 +15,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Mr\",\r\n    \"firstName\": \"David\",\r\n    \"lastName\": \"Ellams\",\r\n    \"email\": \"davidellams@gmail.com\",\r\n    \"password\": \"test!\",\r\n    \"confirmPassword\": \"test!\",\r\n    \"acceptTerms\": true,\r\n    \"AvatarType\": \"Wizard\"\r\n}",
+							"raw": "{\r\n    \"title\": \"Mr\",\r\n    \"firstName\": \"David\",\r\n    \"lastName\": \"Ellams\",\r\n    \"email\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password!\",\r\n    \"confirmPassword\": \"my-super-secret-password!\",\r\n    \"acceptTerms\": true,\r\n    \"AvatarType\": \"Wizard\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -31,6 +31,36 @@
 								"api",
 								"avatar",
 								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register (Provider Override Example)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Mr\",\r\n    \"firstName\": \"David\",\r\n    \"lastName\": \"Ellams\",\r\n    \"email\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password!\",\r\n    \"confirmPassword\": \"my-super-secret-password!\",\r\n    \"acceptTerms\": true,\r\n    \"AvatarType\": \"Wizard\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/register/MongoDBOASIS/false",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"register",
+								"MongoDBOASIS",
+								"false"
 							]
 						}
 					},
@@ -53,7 +83,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password\"\r\n}",
+							"raw": "{\r\n    \"username\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password!\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -76,6 +106,85 @@
 					"response": []
 				},
 				{
+					"name": "Authenticate (Provider Override Example)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/authenticate/HoloOASIS/true",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"authenticate",
+								"HoloOASIS",
+								"true"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authenticate Token (JWT Token)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/authenticate-token/gfgfg",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"authenticate-token",
+								"gfgfg"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Verify Email",
 					"request": {
 						"auth": {
@@ -85,7 +194,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"token\": \"6F1D05EFDAE0381C10C18CD0691F7CCA23291F0EC442B4FD66A932625ECF42BA803CF245EEA59D01\"\r\n}",
+							"raw": "{\r\n    \"token\": \"E5525E27B26567BD372D34ED89306346BDF82539BBAD00DD24E01AF578A7A12758A3A339E16D411C\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -176,7 +285,7 @@
 					"response": []
 				},
 				{
-					"name": "Password Reset",
+					"name": "Reset Password",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -288,7 +397,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijk2YWFlZmZkLTYyMmEtNGNjMi1iNDE5LTg0YjAyNWYyNmI1YiIsIm5iZiI6MTY0Nzg3OTgzMiwiZXhwIjoxNjQ3ODgwNzMyLCJpYXQiOjE2NDc4Nzk4MzJ9.SS5TOk-gh_L8-LZv__AOA4LrIFb0DEtJYj8Gwm3VJas",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdiNGE0ODkyLWI5MjAtNGM0Ny05NjU0LWZhMzA4YzQzNTk0MiIsIm5iZiI6MTY1MTgwMTM4MywiZXhwIjoxNjUxODAyMjgzLCJpYXQiOjE2NTE4MDEzODN9.FXoOlK5ij1kYfaCF2B5IdtzLYI-9fErUjoiqELFCtjg",
 									"type": "string"
 								}
 							]
@@ -296,15 +405,15 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetById/96aaeffd-622a-4cc2-b419-84b025f26b5b",
+							"raw": "{{host}}/api/avatar/get-by-id/7b4a4892-b920-4c47-9654-fa308c435942",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetById",
-								"96aaeffd-622a-4cc2-b419-84b025f26b5b"
+								"get-by-id",
+								"7b4a4892-b920-4c47-9654-fa308c435942"
 							]
 						}
 					},
@@ -318,7 +427,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEwOGZkOGQwLTNmMGQtNDgyMy1iMDQ3LTZlYWY2ZDM1YjkwZiIsIm5iZiI6MTY1MDIyMjU4MCwiZXhwIjoxNjUwMjIzNDgwLCJpYXQiOjE2NTAyMjI1ODB9.6aTmqMd_qbkojPlUi1tA_GBSDY0aJ78KOjcUt1HPvoU",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdiNGE0ODkyLWI5MjAtNGM0Ny05NjU0LWZhMzA4YzQzNTk0MiIsIm5iZiI6MTY1MTgwMTM4MywiZXhwIjoxNjUxODAyMjgzLCJpYXQiOjE2NTE4MDEzODN9.FXoOlK5ij1kYfaCF2B5IdtzLYI-9fErUjoiqELFCtjg",
 									"type": "string"
 								}
 							]
@@ -326,14 +435,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetByUsername/superman",
+							"raw": "{{host}}/api/avatar/get-by-username/superman",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetByUsername",
+								"get-by-username",
 								"superman"
 							]
 						}
@@ -356,15 +465,44 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetByEmail/davidellams@hotmail.com",
+							"raw": "{{host}}/api/avatar/get-by-email/davidellams@hotmail.com",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetByEmail",
+								"get-by-email",
 								"davidellams@hotmail.com"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Logged In Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdiNGE0ODkyLWI5MjAtNGM0Ny05NjU0LWZhMzA4YzQzNTk0MiIsIm5iZiI6MTY1MTc3OTgyOCwiZXhwIjoxNjUxNzgwNzI4LCJpYXQiOjE2NTE3Nzk4Mjh9.AB-Yc4kC3Hmf3A7RNP2_618EFUqbaq4ntF4l0xXMoqA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/get-logged-in-avatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"get-logged-in-avatar"
 							]
 						}
 					},
@@ -378,7 +516,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijk2YWFlZmZkLTYyMmEtNGNjMi1iNDE5LTg0YjAyNWYyNmI1YiIsIm5iZiI6MTY0Nzg3OTgzMiwiZXhwIjoxNjQ3ODgwNzMyLCJpYXQiOjE2NDc4Nzk4MzJ9.SS5TOk-gh_L8-LZv__AOA4LrIFb0DEtJYj8Gwm3VJas",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdiNGE0ODkyLWI5MjAtNGM0Ny05NjU0LWZhMzA4YzQzNTk0MiIsIm5iZiI6MTY1MTgwMDMyNSwiZXhwIjoxNjUxODAxMjI1LCJpYXQiOjE2NTE4MDAzMjV9.Ng0-7fTOgtxSKG3j3ZYlzNPf1oB2b6WKIr1TEcH-LZQ",
 									"type": "string"
 								}
 							]
@@ -386,14 +524,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetAll",
+							"raw": "{{host}}/api/avatar/get-all-avatars",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetAll"
+								"get-all-avatars"
 							]
 						}
 					},
@@ -415,14 +553,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetAvatarDetail/45b7334c-0948-4371-a6f8-b44c5be19ecf",
+							"raw": "{{host}}/api/avatar/get-avatar-detail-by-id/45b7334c-0948-4371-a6f8-b44c5be19ecf",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetAvatarDetail",
+								"get-avatar-detail-by-id",
 								"45b7334c-0948-4371-a6f8-b44c5be19ecf"
 							]
 						}
@@ -445,14 +583,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetAvatarDetailByEmail/davidellams@hotmail.com",
+							"raw": "{{host}}/api/avatar/get-avatar-detail-by-email/davidellams@hotmail.com",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetAvatarDetailByEmail",
+								"get-avatar-detail-by-email",
 								"davidellams@hotmail.com"
 							]
 						}
@@ -475,14 +613,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetAvatarDetailByUsername/superman",
+							"raw": "{{host}}/api/avatar/get-avatar-detail-by-username/superman",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetAvatarDetailByUsername",
+								"get-avatar-detail-by-username",
 								"superman"
 							]
 						}
@@ -497,7 +635,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyOTg2MSwiZXhwIjoxNjUwMzMwNzYxLCJpYXQiOjE2NTAzMjk4NjF9.cRufFcN4sNXl63Gc9MgiHIEsPBUBkig1YG7QubgkEYk",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdiNGE0ODkyLWI5MjAtNGM0Ny05NjU0LWZhMzA4YzQzNTk0MiIsIm5iZiI6MTY1MTgwMDU5MywiZXhwIjoxNjUxODAxNDkzLCJpYXQiOjE2NTE4MDA1OTN9.-FSPE0g1-eGvXdpkvyluRnm70Ctr0PTvKHZrn5V9dYg",
 									"type": "string"
 								}
 							]
@@ -505,14 +643,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetAllAvatarDetails",
+							"raw": "{{host}}/api/avatar/get-all-avatar-details",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetAllAvatarDetails"
+								"get-all-avatar-details"
 							]
 						}
 					},
@@ -543,14 +681,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/Update/f20be161-4867-483e-9529-d2f1cdcbf440",
+							"raw": "{{host}}/api/avatar/update/f20be161-4867-483e-9529-d2f1cdcbf440",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"Update",
+								"update",
 								"f20be161-4867-483e-9529-d2f1cdcbf440"
 							]
 						}
@@ -582,14 +720,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/UpdateByEmail/davidellams@hotmail.com",
+							"raw": "{{host}}/api/avatar/update-by-email/davidellams@hotmail.com",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"UpdateByEmail",
+								"update-by-email",
 								"davidellams@hotmail.com"
 							]
 						}
@@ -621,14 +759,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/UpdateByUsername/superman22",
+							"raw": "{{host}}/api/avatar/update-by-username/superman22",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"UpdateByUsername",
+								"update-by-username",
 								"superman22"
 							]
 						}
@@ -643,7 +781,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMzMjU2MCwiZXhwIjoxNjUwMzMzNDYwLCJpYXQiOjE2NTAzMzI1NjB9.iuOU9fxdF6LJwVPMnABrjsl8TaEszdF3pm0JskRtJwY",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImU0YmI5YTVhLTAzYmYtNGMyNy05ZGJlLTY2YWM2NGEwOGQ3MSIsIm5iZiI6MTY1MDc1MTAzOSwiZXhwIjoxNjUwNzUxOTM5LCJpYXQiOjE2NTA3NTEwMzl9.i6UN3zgu3mvr3-mQnZctVTowBV5U528iPlYxYhPAHIE",
 									"type": "string"
 								}
 							]
@@ -660,15 +798,15 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/UpdateAvatarDetail/f20be161-4867-483e-9529-d2f1cdcbf440",
+							"raw": "{{host}}/api/avatar/update-avatar-detail-by-id/e4bb9a5a-03bf-4c27-9dbe-66ac64a08d71",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"UpdateAvatarDetail",
-								"f20be161-4867-483e-9529-d2f1cdcbf440"
+								"update-avatar-detail-by-id",
+								"e4bb9a5a-03bf-4c27-9dbe-66ac64a08d71"
 							]
 						}
 					},
@@ -682,7 +820,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyOTg2MSwiZXhwIjoxNjUwMzMwNzYxLCJpYXQiOjE2NTAzMjk4NjF9.cRufFcN4sNXl63Gc9MgiHIEsPBUBkig1YG7QubgkEYk",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFhZjZjMTJhLTM0MGItNGIyOS1hOTAxLTBjOTdhZTA3MjAzNSIsIm5iZiI6MTY1MDg0MjMyNywiZXhwIjoxNjUwODQzMjI3LCJpYXQiOjE2NTA4NDIzMjd9.AtLNb6VDpQ9-TSUFwuvWBW0PWGDxqtUMmUmUsVhg_yQ",
 									"type": "string"
 								}
 							]
@@ -699,15 +837,15 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/UpdateAvatarDetail/f20be161-4867-483e-9529-d2f1cdcbf440",
+							"raw": "{{host}}/api/avatar/update-avatar-detail-by-email/davidellams@hotmail.com",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"UpdateAvatarDetail",
-								"f20be161-4867-483e-9529-d2f1cdcbf440"
+								"update-avatar-detail-by-email",
+								"davidellams@hotmail.com"
 							]
 						}
 					},
@@ -721,7 +859,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyOTg2MSwiZXhwIjoxNjUwMzMwNzYxLCJpYXQiOjE2NTAzMjk4NjF9.cRufFcN4sNXl63Gc9MgiHIEsPBUBkig1YG7QubgkEYk",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFhZjZjMTJhLTM0MGItNGIyOS1hOTAxLTBjOTdhZTA3MjAzNSIsIm5iZiI6MTY1MDg0MzA2OSwiZXhwIjoxNjUwODQzOTY5LCJpYXQiOjE2NTA4NDMwNjl9.Kc7SIK9OVig-5F9p3uTucINxP0GnofBhFHy2GrSe1IE",
 									"type": "string"
 								}
 							]
@@ -730,7 +868,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"firstName\": \"Frank2\",\r\n    \"lastName\": \"Murphy2222\",\r\n    \"title\": \"Dr\",\r\n    \"username\": \"superman\",\r\n    \"email\": \"davidellams@gmail.com\"\r\n}",
+							"raw": "{\r\n    \"firstName\": \"Frank2\",\r\n    \"lastName\": \"Murphy2222\",\r\n    \"title\": \"Dr\",\r\n    \"username\": \"superman22\",\r\n    \"email\": \"davidellams@gmail.com\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -738,15 +876,15 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/UpdateAvatarDetail/f20be161-4867-483e-9529-d2f1cdcbf440",
+							"raw": "{{host}}/api/avatar/update-avatar-detail-by-username/superman",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"UpdateAvatarDetail",
-								"f20be161-4867-483e-9529-d2f1cdcbf440"
+								"update-avatar-detail-by-username",
+								"superman"
 							]
 						}
 					},
@@ -760,7 +898,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFkY2NmNTY1LTlmNjQtNDllNi1iZjIwLTBhYWYxNDcwYjQ1MyIsIm5iZiI6MTYwMTU2Mzg4NiwiZXhwIjoxNjAxNTY0Nzg2LCJpYXQiOjE2MDE1NjM4ODZ9.6NZovBY5sxNyyoFH_jzWMezEHnfzUJkPhxrUs5LB-Ew",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFhZjZjMTJhLTM0MGItNGIyOS1hOTAxLTBjOTdhZTA3MjAzNSIsIm5iZiI6MTY1MDkyNzAwMSwiZXhwIjoxNjUwOTI3OTAxLCJpYXQiOjE2NTA5MjcwMDF9.w7nDmt8XiKQHvzOMlJHJ2sme32jdv3PJtBWSbfah_6o",
 									"type": "string"
 								}
 							]
@@ -768,14 +906,14 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/1dccf565-9f64-49e6-bf20-0aaf1470b453",
+							"raw": "{{host}}/api/avatar/aaf6c12a-340b-4b29-a901-0c97ae072035",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"1dccf565-9f64-49e6-bf20-0aaf1470b453"
+								"aaf6c12a-340b-4b29-a901-0c97ae072035"
 							]
 						}
 					},
@@ -789,7 +927,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFkY2NmNTY1LTlmNjQtNDllNi1iZjIwLTBhYWYxNDcwYjQ1MyIsIm5iZiI6MTYwMTU2Mzg4NiwiZXhwIjoxNjAxNTY0Nzg2LCJpYXQiOjE2MDE1NjM4ODZ9.6NZovBY5sxNyyoFH_jzWMezEHnfzUJkPhxrUs5LB-Ew",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFhZjZjMTJhLTM0MGItNGIyOS1hOTAxLTBjOTdhZTA3MjAzNSIsIm5iZiI6MTY1MDkyNzAwMSwiZXhwIjoxNjUwOTI3OTAxLCJpYXQiOjE2NTA5MjcwMDF9.w7nDmt8XiKQHvzOMlJHJ2sme32jdv3PJtBWSbfah_6o",
 									"type": "string"
 								}
 							]
@@ -797,14 +935,15 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/davidellams@hotmail.com",
+							"raw": "{{host}}/api/avatar/delete-by-email/davidellams@gmail.com",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"davidellams@hotmail.com"
+								"delete-by-email",
+								"davidellams@gmail.com"
 							]
 						}
 					},
@@ -818,7 +957,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFkY2NmNTY1LTlmNjQtNDllNi1iZjIwLTBhYWYxNDcwYjQ1MyIsIm5iZiI6MTYwMTU2Mzg4NiwiZXhwIjoxNjAxNTY0Nzg2LCJpYXQiOjE2MDE1NjM4ODZ9.6NZovBY5sxNyyoFH_jzWMezEHnfzUJkPhxrUs5LB-Ew",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFhZjZjMTJhLTM0MGItNGIyOS1hOTAxLTBjOTdhZTA3MjAzNSIsIm5iZiI6MTY1MDkyNzAwMSwiZXhwIjoxNjUwOTI3OTAxLCJpYXQiOjE2NTA5MjcwMDF9.w7nDmt8XiKQHvzOMlJHJ2sme32jdv3PJtBWSbfah_6o",
 									"type": "string"
 								}
 							]
@@ -826,14 +965,15 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/superman",
+							"raw": "{{host}}/api/avatar/delete-by-username/superman22",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"superman"
+								"delete-by-username",
+								"superman22"
 							]
 						}
 					},
@@ -864,14 +1004,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/AddKarmaToAvatar/96aaeffd-622a-4cc2-b419-84b025f26b5b",
+							"raw": "{{host}}/api/avatar/add-karma-to-avatar/96aaeffd-622a-4cc2-b419-84b025f26b5b",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"AddKarmaToAvatar",
+								"add-karma-to-avatar",
 								"96aaeffd-622a-4cc2-b419-84b025f26b5b"
 							]
 						}
@@ -903,14 +1043,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/RemoveKarmaFromAvatar/108fd8d0-3f0d-4823-b047-6eaf6d35b90f",
+							"raw": "{{host}}/api/avatar/remove-karma-from-avatar/108fd8d0-3f0d-4823-b047-6eaf6d35b90f",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"RemoveKarmaFromAvatar",
+								"remove-karma-from-avatar",
 								"108fd8d0-3f0d-4823-b047-6eaf6d35b90f"
 							]
 						}
@@ -918,7 +1058,7 @@
 					"response": []
 				},
 				{
-					"name": "Get Avatar Image (Id)",
+					"name": "Get Avatar Portrait (Id)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -933,14 +1073,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetAvatarImage/45b7334c-0948-4371-a6f8-b44c5be19ecf",
+							"raw": "{{host}}/api/avatar/get-avatar-portrait/45b7334c-0948-4371-a6f8-b44c5be19ecf",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetAvatarImage",
+								"get-avatar-portrait",
 								"45b7334c-0948-4371-a6f8-b44c5be19ecf"
 							]
 						}
@@ -948,7 +1088,7 @@
 					"response": []
 				},
 				{
-					"name": "Get Avatar Image (Username)",
+					"name": "Get Avatar Portrait  (Username)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -963,14 +1103,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetAvatarImageByUsername/superman",
+							"raw": "{{host}}/api/avatar/get-avatar-portrait-by-username/superman",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetAvatarImageByUsername",
+								"get-avatar-portrait-by-username",
 								"superman"
 							]
 						}
@@ -978,7 +1118,7 @@
 					"response": []
 				},
 				{
-					"name": "Get Avatar Image (Email)",
+					"name": "Get Avatar Portrait  (Email)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -993,14 +1133,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetAvatarImageByEmail/davidellams@hotmail.com",
+							"raw": "{{host}}/api/avatar/get-avatar-portrait-by-email/davidellams@hotmail.com",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetAvatarImageByEmail",
+								"get-avatar-portrait-by-email",
 								"davidellams@hotmail.com"
 							]
 						}
@@ -1008,7 +1148,7 @@
 					"response": []
 				},
 				{
-					"name": "Upload 2D Avatar Image (Id)",
+					"name": "Upload Avatar Portrait  (Id)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1032,21 +1172,21 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/Upload2DAvatarImage",
+							"raw": "{{host}}/api/avatar/upload-avatar-portrait",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"Upload2DAvatarImage"
+								"upload-avatar-portrait"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Upload 2D Avatar Image (Email)",
+					"name": "Upload Avatar Portrait (Email)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1070,21 +1210,21 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/Upload2DAvatarImage",
+							"raw": "{{host}}/api/avatar/upload-avatar-portrait",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"Upload2DAvatarImage"
+								"upload-avatar-portrait"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Upload 2D Avatar Image (Username)",
+					"name": "Upload Avatar Portrait  (Username)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1108,14 +1248,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/Upload2DAvatarImage",
+							"raw": "{{host}}/api/avatar/upload-avatar-portrait",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"Upload2DAvatarImage"
+								"upload-avatar-portrait"
 							]
 						}
 					},
@@ -1137,14 +1277,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetUmaJsonById/45b7334c-0948-4371-a6f8-b44c5be19ecf",
+							"raw": "{{host}}/api/avatar/get-uma-json-by-id/45b7334c-0948-4371-a6f8-b44c5be19ecf",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetUmaJsonById",
+								"get-uma-json-by-id",
 								"45b7334c-0948-4371-a6f8-b44c5be19ecf"
 							]
 						}
@@ -1159,7 +1299,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyOTg2MSwiZXhwIjoxNjUwMzMwNzYxLCJpYXQiOjE2NTAzMjk4NjF9.cRufFcN4sNXl63Gc9MgiHIEsPBUBkig1YG7QubgkEYk",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMzMDgxMSwiZXhwIjoxNjUwMzMxNzExLCJpYXQiOjE2NTAzMzA4MTF9.nINxevRhYNosqNb7N9bpZ6ZdD9AWcYSz_WT3iS70pjo",
 									"type": "string"
 								}
 							]
@@ -1167,14 +1307,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetUmaJsonByEmail/davidellams@hotmail.com",
+							"raw": "{{host}}/api/avatar/get-uma-json-by-email/davidellams@hotmail.com",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetUmaJsonByEmail",
+								"get-uma-json-by-email",
 								"davidellams@hotmail.com"
 							]
 						}
@@ -1197,15 +1337,43 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/GetUmaJsonByUsername/superman",
+							"raw": "{{host}}/api/avatar/get-uma-json-by-username/superman",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"GetUmaJsonByUsername",
+								"get-uma-json-by-username",
 								"superman"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"SearchQuery\": \"test\",\r\n    \"SearchAllProviders\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/search",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"search"
 							]
 						}
 					},
@@ -1217,14 +1385,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/getterms/",
+							"raw": "{{host}}/api/avatar/get-terms/",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"getterms",
+								"get-terms",
 								""
 							]
 						}

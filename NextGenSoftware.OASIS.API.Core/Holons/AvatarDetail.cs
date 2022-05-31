@@ -71,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public string Mobile { get; set; }
         public string Landline { get; set; }
         public string UmaJson { get; set; }
-        public string Image2D { get; set; }
+        public string Portrait { get; set; }
         public string Model3D { get; set; }
         public List<HeartRateEntry> HeartRateData { get; set; }
        

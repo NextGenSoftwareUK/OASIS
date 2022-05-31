@@ -23,50 +23,60 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<Avatar> AddAsync(Avatar avatar)
+        public async Task<OASISResult<Avatar>> AddAsync(Avatar avatar)
         {
+            OASISResult<Avatar> result = new OASISResult<Avatar>();
+
             try
             {
                 if (avatar.HolonId == Guid.Empty)
                     avatar.HolonId = Guid.NewGuid();
 
-                avatar.CreatedProviderType = new Core.Helpers.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
+                avatar.CreatedProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 await _dbContext.Avatar.InsertOneAsync(avatar);
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
                 
                 await UpdateAsync(avatar);
-                return avatar;
+                result.Result = avatar;
             }
             catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in AddAsync method in AvatarRepository creating Avatar. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public async Task<AvatarDetail> AddAsync(AvatarDetail avatar)
+        public async Task<OASISResult<AvatarDetail>> AddAsync(AvatarDetail avatar)
         {
+            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
+
             try
             {
                 if (avatar.HolonId == Guid.Empty)
                     avatar.HolonId = Guid.NewGuid();
 
-                avatar.CreatedProviderType = new Core.Helpers.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
+                avatar.CreatedProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 await _dbContext.AvatarDetail.InsertOneAsync(avatar);
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
 
                 await UpdateAsync(avatar);
-                return avatar;
+                result.Result = avatar;
             }
             catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in AddAsync method in AvatarRepository creating Avatar. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public Avatar Add(Avatar avatar)
+        public OASISResult<Avatar> Add(Avatar avatar)
         {
+            OASISResult<Avatar> result = new OASISResult<Avatar>();
+
             try
             {
                 if (avatar.HolonId == Guid.Empty)
@@ -78,59 +88,73 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
 
                 Update(avatar);
-                return avatar;
+                result.Result = avatar;
             }
             catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in Add method in AvatarRepository creating Avatar. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public AvatarDetail Add(AvatarDetail avatar)
+        public OASISResult<AvatarDetail> Add(AvatarDetail avatar)
         {
+            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
+
             try
             {
                 if (avatar.HolonId == Guid.Empty)
                     avatar.HolonId = Guid.NewGuid();
 
-                avatar.CreatedProviderType = new Core.Helpers.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
+                avatar.CreatedProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 _dbContext.AvatarDetail.InsertOne(avatar);
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
 
                 Update(avatar);
-                return avatar;
+                result.Result = avatar;
             }
             catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in Add method in AvatarRepository loading Avatar. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public async Task<Avatar> GetAvatarAsync(Guid id)
+        public async Task<OASISResult<Avatar>> GetAvatarAsync(Guid id)
         {
+            OASISResult<Avatar> result = new OASISResult<Avatar>();
+
             try
             {
                 FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
-                return await _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefaultAsync();
+                result.Result = await _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefaultAsync();
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public Avatar GetAvatar(Guid id)
+        public OASISResult<Avatar> GetAvatar(Guid id)
         {
+            OASISResult<Avatar> result = new OASISResult<Avatar>();
+
             try
             {
                 FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
-                return _dbContext.Avatar.Find(filter).FirstOrDefault();
+                result.Result = _dbContext.Avatar.Find(filter).FirstOrDefault();
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}");
             }
+
+            return result;
         }
 
         public OASISResult<Avatar> GetAvatar(Expression<Func<Avatar, bool>> expression)
@@ -150,16 +174,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
         
-        public async Task<Avatar> GetAvatarAsync(Expression<Func<Avatar, bool>> expression)
+        public async Task<OASISResult<Avatar>> GetAvatarAsync(Expression<Func<Avatar, bool>> expression)
         {
-            var filter = Builders<Avatar>.Filter.Where(expression);
-            var findResult = await _dbContext.Avatar.FindAsync(filter);
-            return await findResult.FirstOrDefaultAsync();
+            OASISResult<Avatar> result = new OASISResult<Avatar>();
+
+            try
+            {
+                var filter = Builders<Avatar>.Filter.Where(expression);
+                result.Result = _dbContext.Avatar.Find(filter).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}");
+            }
+
+            return result;
         }
         
         //TODO: Upgrade all methods to OASISResult ASAP.
-        public async Task<Avatar> GetAvatarAsync(string username)
+        public async Task<OASISResult<Avatar>> GetAvatarAsync(string username)
         {
+            OASISResult<Avatar> result = new OASISResult<Avatar>();
+
             try
             {
                 //TODO: Find out how mongo sorts descending by date! It works for non async fine (below)!
@@ -173,31 +209,37 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 avatars.Reverse();
 
                 if (avatars.Count > 0)
-                    return avatars[0];
-                else
-                    return null;
+                    result.Result = avatars[0];
             }
             catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public Avatar GetAvatar(string username)
+        public OASISResult<Avatar> GetAvatar(string username)
         {
+            OASISResult<Avatar> result = new OASISResult<Avatar>();
+
             try
             {
                 FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.Username == username);
-                return _dbContext.Avatar.Find(filter).SortByDescending(x => x.CreatedDate).FirstOrDefault();
+                result.Result = _dbContext.Avatar.Find(filter).SortByDescending(x => x.CreatedDate).FirstOrDefault();
             }
             catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public async Task<Avatar> GetAvatarAsync(string username, string password)
+        public async Task<OASISResult<Avatar>> GetAvatarAsync(string username, string password)
         {
+            OASISResult<Avatar> result = new OASISResult<Avatar>();
+
             try
             {
                 FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.Username == username);
@@ -205,81 +247,101 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                 if (avatar != null && password != avatar.Password)
                     return null;
-
-                return avatar;
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public Avatar GetAvatar(string username, string password)
+        //public OASISResult<Avatar> GetAvatar(string username, string password)
+        //{
+        //    OASISResult<Avatar> result = new OASISResult<Avatar>();
+
+        //    try
+        //    {
+        //        FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.Username == username);
+        //        Avatar avatar = _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefault();
+
+        //        if (avatar != null && password != avatar.Password)
+        //            ErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: Avatar Password Is Incorrect.");
+        //        else
+        //            result.Result = avatar;
+        //    }
+        //    catch
+        //    {
+        //        ErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}");
+        //    }
+
+        //    return result;
+        //}
+
+        public async Task<OASISResult<IEnumerable<Avatar>>> GetAvatarsAsync()
         {
+            OASISResult<IEnumerable<Avatar>> result = new OASISResult<IEnumerable<Avatar>>();
+
             try
             {
-                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.Username == username);
-                Avatar avatar = _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefault();
-
-                if (avatar != null && password != avatar.Password)
-                    return null;
-
-                return avatar;
+                result.Result = await _dbContext.Avatar.FindAsync(_ => true).Result.ToListAsync();
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in GetAvatarsAsync method in AvatarRepository in MongoDBOASIS Provider loading avatars. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public async Task<List<Avatar>> GetAvatarsAsync()
+        public OASISResult<IEnumerable<Avatar>> GetAvatars()
         {
+            OASISResult<IEnumerable<Avatar>> result = new OASISResult<IEnumerable<Avatar>>();
+
             try
             {
-                return await _dbContext.Avatar.FindAsync(_ => true).Result.ToListAsync();
+                result.Result = _dbContext.Avatar.Find(_ => true).ToList();
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in GetAvatars method in AvatarRepository in MongoDBOASIS Provider loading avatars. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public List<Avatar> GetAvatars()
+        public async Task<OASISResult<Avatar>> UpdateAsync(Avatar avatar)
         {
-            try
-            {
-                return _dbContext.Avatar.Find(_ => true).ToList();
-            }
-            catch
-            {
-                throw;
-            }
-        }
+            OASISResult<Avatar> result = new OASISResult<Avatar>();
 
-        public async Task<Avatar> UpdateAsync(Avatar avatar)
-        {
             try
             {
                 await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                return avatar;
+                result.Result = avatar;
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in UpdateAsync method in AvatarRepository updating Avatar. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public async Task<AvatarDetail> UpdateAsync(AvatarDetail avatar)
+        public async Task<OASISResult<AvatarDetail>> UpdateAsync(AvatarDetail avatar)
         {
+            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
+
             try
             {
                 await _dbContext.AvatarDetail.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                return avatar;
+                result.Result = avatar;
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in UpdateAsync method in AvatarRepository updating Avatar. Reason: {ex}");
             }
+
+            return result;
         }
 
         public OASISResult<AvatarDetail> GetAvatarDetail(Expression<Func<AvatarDetail, bool>> expression)
@@ -355,55 +417,71 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public async Task<IEnumerable<AvatarDetail>> GetAvatarDetailsAsync()
+        public async Task<OASISResult<IEnumerable<AvatarDetail>>> GetAvatarDetailsAsync()
         {
-            var cursor = await _dbContext.AvatarDetail.FindAsync(_ => true);
-            return cursor.ToEnumerable();
+            OASISResult<IEnumerable<AvatarDetail>> result = new OASISResult<IEnumerable<AvatarDetail>>();
+
+            try
+            {
+                var cursor = await _dbContext.AvatarDetail.FindAsync(_ => true);
+                result.Result = cursor.ToEnumerable();
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Error in GetAvatarDetailsAsync method in AvatarRepository in MongoDBOASIS Provider loading Avatar Details. Reason: {ex}");
+            }
+
+            return result;
         }
 
-        public IEnumerable<AvatarDetail> GetAvatarDetails()
+        public OASISResult<IEnumerable<AvatarDetail>> GetAvatarDetails()
         {
-            return _dbContext.AvatarDetail.Find(_ => true).ToEnumerable();
+            OASISResult<IEnumerable<AvatarDetail>> result = new OASISResult<IEnumerable<AvatarDetail>>();
+
+            try
+            {
+                result.Result = _dbContext.AvatarDetail.Find(_ => true).ToEnumerable();
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Error in GetAvatarDetails method in AvatarRepository in MongoDBOASIS Provider loading Avatar Details. Reason: {ex}");
+            }
+
+            return result;
         }
 
-        //public async Task<AvatarThumbnail> GetAvatarThumbnailByIdAsync(Guid id)
-        //{
-        //    var filter = Builders<AvatarThumbnail>.Filter.Where(x => x.Id == id);
-        //    var findResult = await _dbContext.AvatarThumbnail.FindAsync(filter);
-        //    var detailEntity = await findResult.FirstOrDefaultAsync();
-        //    return detailEntity;
-        //}
-
-        //public AvatarThumbnail GetAvatarThumbnailById(Guid id)
-        //{            
-        //    var filter = Builders<AvatarThumbnail>.Filter.Where(x => x.Id == id);
-        //    return _dbContext.AvatarThumbnail.Find(filter).FirstOrDefault();
-        //}
-
-        public Avatar Update(Avatar avatar)
+        public OASISResult<Avatar> Update(Avatar avatar)
         {
+            OASISResult<Avatar> result = new OASISResult<Avatar>();
+
             try
             {
                 _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                return avatar;
+                result.Result = avatar;
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in Update method in AvatarRepository updating Avatar. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public AvatarDetail Update(AvatarDetail avatar)
+        public OASISResult<AvatarDetail> Update(AvatarDetail avatar)
         {
+            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
+
             try
             {
                 _dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                return avatar;
+                result.Result = avatar;
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                ErrorHandling.HandleError(ref result, $"Error in Update method in AvatarRepository updating Avatar. Reason: {ex}");
             }
+
+            return result;
         }
 
         public async Task<OASISResult<bool>> DeleteAsync(Guid id, bool softDelete = true)
@@ -411,116 +489,66 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             OASISResult<bool> result = new OASISResult<bool>();
             string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in MongoDBOASIS Provider.";
 
-            try
+            using (var session = await _dbContext.MongoClient.StartSessionAsync())
             {
-                if (softDelete)
-                {
-                    Avatar avatar = await GetAvatarAsync(id);
+                // Begin transaction
+                session.StartTransaction();
 
-                    if (avatar == null)
+                try
+                {
+                    if (softDelete)
                     {
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
-                        return result;
+                        OASISResult<Avatar> avatarResult = await GetAvatarAsync(id);
+
+                        if (!avatarResult.IsError && avatarResult.Result != null)
+                        {
+                            if (avatarResult.Result.DeletedDate != DateTime.MinValue)
+                                ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                            else
+                            {
+                                if (AvatarManager.LoggedInAvatar != null)
+                                    avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                                avatarResult.Result.DeletedDate = DateTime.Now;
+                                await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
+
+                                OASISResult<AvatarDetail> avatarDetailResult = await GetAvatarDetailAsync(avatarResult.Result.Username);
+
+                                if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                                {
+                                    if (AvatarManager.LoggedInAvatar != null)
+                                        avatarDetailResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                                    avatarDetailResult.Result.DeletedDate = DateTime.Now;
+                                    await _dbContext.AvatarDetail.ReplaceOneAsync(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
+                                    result.Result = true;
+                                }
+                                else
+                                    ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            }
+                        }
+                        else
+                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
                     }
-
-                    if (AvatarManager.LoggedInAvatar != null)
-                        avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                    avatar.DeletedDate = DateTime.Now;
-                    await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                    result.Result = true;
-                }
-                else
-                {
-                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
-                    await _dbContext.Avatar.DeleteOneAsync(data);
-                    result.Result = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex.ToString()}");
-            }
-
-            return result;
-        }
-        
-        public OASISResult<bool> Delete(Expression<Func<Avatar, bool>> expression, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in Delete method in AvatarRepository in MongoDBOASIS Provider.";
-
-            try
-            {
-                if (softDelete)
-                {
-                    Avatar avatar = GetAvatar(expression).Result;
-
-                    if (avatar == null)
+                    else
                     {
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
-                        return result;
+                        FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
+                        _dbContext.Avatar.DeleteOne(data);
+
+                        FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
+                        _dbContext.AvatarDetail.DeleteOne(dataDetail);
+                        result.Result = true;
                     }
-
-                    if (AvatarManager.LoggedInAvatar != null)
-                        avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                    avatar.DeletedDate = DateTime.Now;
-                    _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                    result.Result = true;
                 }
+                catch (Exception ex)
+                {
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                }
+
+                if (result.IsError)
+                    session.AbortTransaction();
                 else
-                {
-                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(expression);
-                    _dbContext.Avatar.DeleteOne(data);
-                    result.Result = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex.ToString()}");
-            }
-
-            return result;
-        }
-        
-        public async Task<OASISResult<bool>> DeleteAsync(Expression<Func<Avatar, bool>> expression, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in Delete method in AvatarRepository in MongoDBOASIS Provider.";
-
-            try
-            {
-                if (softDelete)
-                {
-                    Avatar avatar = await GetAvatarAsync(expression);
-
-                    if (avatar == null)
-                    {
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
-                        return result;
-                    }
-
-                    if (AvatarManager.LoggedInAvatar != null)
-                        avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                    avatar.DeletedDate = DateTime.Now;
-                    await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                    result.Result = true;
-                }
-                else
-                {
-                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(expression);
-                    await _dbContext.Avatar.DeleteOneAsync(data);
-                    result.Result = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex.ToString()}");
+                    session.CommitTransaction();
             }
 
             return result;
@@ -529,43 +557,222 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         public OASISResult<bool> Delete(Guid id, bool softDelete = true)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in Delete method in AvatarRepository in MongoDBOASIS Provider.";
+            string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in MongoDBOASIS Provider.";
 
-            try
+            using (var session = _dbContext.MongoClient.StartSession())
             {
-                if (softDelete)
+                // Begin transaction
+                session.StartTransaction();
+
+                try
                 {
-                    Avatar avatar = GetAvatar(id);
-
-                    if (avatar == null)
+                    if (softDelete)
                     {
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
-                        return result;
-                    }
+                        OASISResult<Avatar> avatarResult = GetAvatar(id);
 
-                    if (avatar.DeletedDate != DateTime.MinValue)
+                        if (!avatarResult.IsError && avatarResult.Result != null)
+                        {
+                            if (avatarResult.Result.DeletedDate != DateTime.MinValue)
+                                ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                            else
+                            {
+                                if (AvatarManager.LoggedInAvatar != null)
+                                    avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                                avatarResult.Result.DeletedDate = DateTime.Now;
+                                _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
+
+                                OASISResult<AvatarDetail> avatarDetailResult = GetAvatarDetail(avatarResult.Result.Username);
+
+                                if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                                {
+                                    if (AvatarManager.LoggedInAvatar != null)
+                                        avatarDetailResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                                    avatarDetailResult.Result.DeletedDate = DateTime.Now;
+                                    _dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
+                                    result.Result = true;
+                                }
+                                else
+                                    ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            }
+                        }
+                        else
+                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
+                    }
+                    else
                     {
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was already soft deleted on {avatar.DeletedDate} by avatar with id {avatar.DeletedByAvatarId}.");
-                        return result;
+                        FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
+                        _dbContext.Avatar.DeleteOne(data);
+
+                        FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
+                        _dbContext.AvatarDetail.DeleteOne(dataDetail);
+                        result.Result = true;
                     }
-
-                    if (AvatarManager.LoggedInAvatar != null)
-                        avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                    avatar.DeletedDate = DateTime.Now;
-                    _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                    result.Result = true;
                 }
-                else{
-                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
-                    _dbContext.Avatar.DeleteOne(data);
-                    result.Result = true;
+                catch (Exception ex)
+                {
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
                 }
+
+                if (result.IsError)
+                    session.AbortTransaction();
+                else
+                    session.CommitTransaction();
             }
-            catch (Exception ex)
+
+            return result;
+        }
+
+        public OASISResult<bool> Delete(Expression<Func<Avatar, bool>> expression, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in MongoDBOASIS Provider.";
+
+            using (var session = _dbContext.MongoClient.StartSession())
             {
-                result.Exception = ex;
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex.ToString()}");
+                // Begin transaction
+                session.StartTransaction();
+
+                try
+                {
+                    if (softDelete)
+                    {
+                        OASISResult<Avatar> avatarResult = GetAvatar(expression);
+
+                        if (avatarResult.IsError || avatarResult.Result == null)
+                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
+                        else
+                        {
+                            if (avatarResult.Result.DeletedDate != DateTime.MinValue)
+                                ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                            else
+                            {
+                                if (AvatarManager.LoggedInAvatar != null)
+                                    avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                                avatarResult.Result.DeletedDate = DateTime.Now;
+                                _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
+
+                                OASISResult<AvatarDetail> avatarDetailResult = GetAvatarDetail(avatarResult.Result.Username);
+
+                                if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                                {
+                                    if (AvatarManager.LoggedInAvatar != null)
+                                        avatarDetailResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                                    avatarDetailResult.Result.DeletedDate = DateTime.Now;
+                                    _dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
+                                    result.Result = true;
+                                }
+                                else
+                                    ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        OASISResult<Avatar> avatarResult = GetAvatar(expression);
+
+                        FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(expression);
+                        _dbContext.Avatar.DeleteOne(data);
+
+                        if (avatarResult.Result == null)
+                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
+                        else
+                        {
+                            FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                            _dbContext.AvatarDetail.DeleteOne(dataDetail);
+                            result.Result = true;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                }
+
+                if (result.IsError)
+                    session.AbortTransaction();
+                else
+                    session.CommitTransaction();
+            }
+
+            return result;
+        }
+        
+        public async Task<OASISResult<bool>> DeleteAsync(Expression<Func<Avatar, bool>> expression, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in MongoDBOASIS Provider.";
+
+            using (var session = await _dbContext.MongoClient.StartSessionAsync())
+            {
+                // Begin transaction
+                session.StartTransaction();
+
+                try
+                {
+                    if (softDelete)
+                    {
+                        OASISResult<Avatar> avatarResult = await GetAvatarAsync(expression);
+
+                        if (avatarResult.Result == null || avatarResult.IsError)
+                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
+                        else
+                        {
+                            if (avatarResult.Result.DeletedDate != DateTime.MinValue)
+                                ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                            else
+                            {
+                                if (AvatarManager.LoggedInAvatar != null)
+                                    avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                                avatarResult.Result.DeletedDate = DateTime.Now;
+                                await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
+
+                                OASISResult<AvatarDetail> avatarDetailResult = await GetAvatarDetailAsync(avatarResult.Result.Username);
+
+                                if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                                {
+                                    if (AvatarManager.LoggedInAvatar != null)
+                                        avatarDetailResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                                    avatarDetailResult.Result.DeletedDate = DateTime.Now;
+                                    await _dbContext.AvatarDetail.ReplaceOneAsync(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
+                                    result.Result = true;
+                                }
+                                else
+                                    ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarDetailResult.Result.Username} was not found.");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        OASISResult<Avatar> avatarResult = await GetAvatarAsync(expression);
+
+                        FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(expression);
+                        await _dbContext.Avatar.DeleteOneAsync(data);
+
+                        if (avatarResult.Result == null)
+                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
+                        else
+                        {
+                            FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                            await _dbContext.AvatarDetail.DeleteOneAsync(dataDetail);
+                            result.Result = true;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                }
+
+                if (result.IsError)
+                    await session.AbortTransactionAsync();
+                else
+                    await session.CommitTransactionAsync();
             }
 
             return result;
@@ -576,36 +783,73 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             OASISResult<bool> result = new OASISResult<bool>();
             string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in MongoDBOASIS Provider.";
 
-            try
+            using (var session = await _dbContext.MongoClient.StartSessionAsync())
             {
-                if (softDelete)
-                {
-                    Avatar avatar = await GetAvatarAsync(providerKey);
+                // Begin transaction
+                session.StartTransaction();
 
-                    if (avatar == null)
+                try
+                {
+                    if (softDelete)
                     {
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
-                        return result;
+                        OASISResult<Avatar> avatarResult = await GetAvatarAsync(providerKey);
+
+                        if (avatarResult.Result == null || avatarResult.IsError)
+                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
+                        else
+                        {
+                            if (avatarResult.Result.DeletedDate != DateTime.MinValue)
+                                ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                            else
+                            {
+                                if (AvatarManager.LoggedInAvatar != null)
+                                    avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                                avatarResult.Result.DeletedDate = DateTime.Now;
+                                await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
+
+                                OASISResult<AvatarDetail> avatarDetailResult = await GetAvatarDetailAsync(avatarResult.Result.Username);
+
+                                if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                                {
+                                    if (AvatarManager.LoggedInAvatar != null)
+                                        avatarDetailResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                                    avatarDetailResult.Result.DeletedDate = DateTime.Now;
+                                    await _dbContext.AvatarDetail.ReplaceOneAsync(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
+                                    result.Result = true;
+                                }
+                                else
+                                    ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarDetailResult.Result.Username} was not found.");
+                            }
+                        }
                     }
+                    else
+                    {
+                        OASISResult<Avatar> avatarResult = await GetAvatarAsync(providerKey);
 
-                    if (AvatarManager.LoggedInAvatar != null)
-                        avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+                        FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] == providerKey);
+                        await _dbContext.Avatar.DeleteOneAsync(data);
 
-                    avatar.DeletedDate = DateTime.Now;
-                    await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                    result.Result = true;
+                        if (avatarResult.Result == null || avatarResult.IsError)
+                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
+                        else
+                        {
+                            FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                            await _dbContext.AvatarDetail.DeleteOneAsync(dataDetail);
+                            result.Result = true;
+                        }
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] == providerKey);
-                    await _dbContext.Avatar.DeleteOneAsync(data);
-                    result.Result = true;
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
                 }
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex.ToString()}");
+
+                if (result.IsError)
+                    await session.AbortTransactionAsync();
+                else
+                    await session.CommitTransactionAsync();
             }
 
             return result;
@@ -614,38 +858,75 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         public OASISResult<bool> Delete(string providerKey, bool softDelete = true)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in Delete method in AvatarRepository in MongoDBOASIS Provider.";
+            string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in MongoDBOASIS Provider.";
 
-            try
+            using (var session = _dbContext.MongoClient.StartSession())
             {
-                if (softDelete)
-                {
-                    Avatar avatar = GetAvatar(providerKey);
+                // Begin transaction
+                session.StartTransaction();
 
-                    if (avatar == null)
+                try
+                {
+                    if (softDelete)
                     {
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
-                        return result;
+                        OASISResult<Avatar> avatarResult = GetAvatar(providerKey);
+
+                        if (!avatarResult.IsError && avatarResult.Result != null)
+                        {
+                            if (avatarResult.Result.DeletedDate != DateTime.MinValue)
+                                ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                            else
+                            {
+                                if (AvatarManager.LoggedInAvatar != null)
+                                    avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                                avatarResult.Result.DeletedDate = DateTime.Now;
+                                _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
+
+                                OASISResult<AvatarDetail> avatarDetailResult = GetAvatarDetail(avatarResult.Result.Username);
+
+                                if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                                {
+                                    if (AvatarManager.LoggedInAvatar != null)
+                                        avatarDetailResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                                    avatarDetailResult.Result.DeletedDate = DateTime.Now;
+                                    _dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
+                                    result.Result = true;
+                                }
+                                else
+                                    ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            }
+                        }
+                        else
+                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
                     }
+                    else
+                    {
+                        OASISResult<Avatar> avatarResult = GetAvatar(providerKey);
 
-                    if (AvatarManager.LoggedInAvatar != null)
-                        avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+                        FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] == providerKey);
+                        _dbContext.Avatar.DeleteOne(data);
 
-                    avatar.DeletedDate = DateTime.Now;
-                    _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                    result.Result = true;
+                        if (!avatarResult.IsError && avatarResult.Result != null)
+                        {
+                            FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                            _dbContext.AvatarDetail.DeleteOne(dataDetail);
+                            result.Result = true;
+                        }
+                        else
+                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] == providerKey);
-                    _dbContext.Avatar.DeleteOne(data);
-                    result.Result = true;
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
                 }
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex.ToString()}");
+
+                if (result.IsError)
+                    session.AbortTransaction();
+                else
+                    session.CommitTransaction();
             }
 
             return result;

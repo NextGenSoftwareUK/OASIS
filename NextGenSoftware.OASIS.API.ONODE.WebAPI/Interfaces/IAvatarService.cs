@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -27,10 +25,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<string>> ValidateResetToken(ValidateResetTokenRequest model);
         Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model);
         //Task<OASISResult<IEnumerable<IAvatar>>> GetAll();
-        Task<OASISResult<AvatarImage>> GetAvatarImageById(Guid id);
-        Task<OASISResult<AvatarImage>> GetAvatarImageByUsername(string userName);
-        Task<OASISResult<AvatarImage>> GetAvatarImageByEmail(string email);
-        Task<OASISResult<bool>> Upload2DAvatarImage(AvatarImage avatarImage);
+        Task<OASISResult<AvatarPortrait>> GetAvatarPortraitById(Guid id);
+        Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByUsername(string userName);
+        Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByEmail(string email);
+        Task<OASISResult<bool>> UploadAvatarPortrait(AvatarPortrait avatarImage);
         //Task<OASISResult<IAvatar>> GetById(Guid id);
         //Task<OASISResult<IAvatar>> GetByUsername(string userName);
         //Task<OASISResult<IAvatar>> GetByEmail(string email);
@@ -48,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<string>> GetAvatarUmaJsonById(Guid id);
         Task<OASISResult<string>> GetAvatarUmaJsonByUsername(string username);
         Task<OASISResult<string>> GetAvatarUmaJsonByEmail(string mail);
-        Task<OASISResult<IAvatar>> GetAvatarByJwt();
+        Task<OASISResult<IAvatar>> GetLoggedInAvatar();
         Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams);
         //Task<OASISResult<bool>> LinkProviderKeyToAvatar(Guid avatarId, ProviderType providerType, string key);
         //Task<OASISResult<bool>> LinkPrivateProviderKeyToAvatar(Guid avatarId, ProviderType providerType, string key);

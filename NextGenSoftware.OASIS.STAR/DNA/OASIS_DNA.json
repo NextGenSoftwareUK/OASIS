@@ -26,11 +26,13 @@
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",
+        "Rijndael256Key": "",
         "QuantumEncryptionEnabled": "true"
       },
       "OASISProviderPrivateKeys": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",
+        "Rijndael256Key": "",
         "QuantumEncryptionEnabled": "true"
       }
     },

@@ -46,6 +46,7 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public bool BCryptEncryptionEnabled { get; set; }
         public bool Rijndael256EncryptionEnabled { get; set; }
+        public string Rijndael256Key { get; set; }
         public bool QuantumEncryptionEnabled { get; set; }
     }
 
@@ -133,11 +134,9 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class EthereumOASISProviderSettings : ProviderSettingsBase
     {
-        public string Abi { get; set; }
-        public string AbiByteCode { get; set; }
-        public string ProjectId { get; set; }
-        public string Password { get; set; }
-        public string SenderAddress { get; set; }
+        public string ChainPrivateKey { get; set; }
+        public long ChainId { get; set; }
+        public string ContractAddress { get; set; }
     }
 
     public class SQLLiteDBOASISSettings : ProviderSettingsBase

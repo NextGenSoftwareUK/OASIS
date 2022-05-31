@@ -61,15 +61,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+        //public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+        //public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
         {

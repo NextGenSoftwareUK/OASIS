@@ -183,6 +183,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             return null;
         }
 
+        /*
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
         {
             await _taskCompletionSourceGetInstance.Task;
@@ -221,7 +222,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             }
 
             return null;
-        }
+        }*/
 
 
 

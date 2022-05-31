@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
     public class AvatarDetail : Holon
     {
         public string UmaJson { get; set; }
-        public string Image2D { get; set; }
+        public string Portrait { get; set; }
         //public string Title { get; set; }
         //public string FirstName { get; set; }
         //public string LastName { get; set; }
