@@ -41,7 +41,12 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
                         // We could re-use the TelosOASIS Provider but it could have a different connection string to SEEDSOASIS so they need to be seperate.
                         // TODO: The only other way is to share it and have to keep disconnecting and re-connecting with the different connections (SEEDS or EOSIO may even work with any EOSIO node end point? NEED TO TEST... if so then we can use the commented out line below).
                         //_SEEDS = new SEEDSOASIS(Telos); 
-                        _SEEDS = new SEEDSOASIS(new TelosOASIS(_OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString));
+                        _SEEDS = new SEEDSOASIS(new TelosOASIS(
+                            _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
+                            _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
+                            _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
+                            _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey
+                            ));
                         ProviderManager.RegisterProvider(_SEEDS);
                     }
                 }

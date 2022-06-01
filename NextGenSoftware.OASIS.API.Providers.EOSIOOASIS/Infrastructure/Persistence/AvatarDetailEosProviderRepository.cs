@@ -1,56 +1,83 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using EosSharp;
+using EosSharp.Core;
+using EosSharp.Core.Api.v1;
+using EosSharp.Core.Providers;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Utilities;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiJsonToBin;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetTableRows;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Repository;
+using Action = EosSharp.Core.Api.v1.Action;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persistence
 {
     /// <summary>
-    /// Repository contains CRUD methods for AvatarDetail entity.
+    ///     Repository contains CRUD methods for AvatarDetail entity.
     /// </summary>
     public class AvatarDetailEosProviderRepository : IEosProviderRepository<AvatarDetailDto>
     {
+        private static readonly string _avatarDetailTable = "avatardetail";
+        private readonly Eos _eos;
+        private readonly string _eosAccountName;
         private readonly IEosClient _eosClient;
-        private readonly string _eosOasisAccountCode;
-        private static string _avatarDetailTable = "avatardetail";
 
-        public AvatarDetailEosProviderRepository(IEosClient eosClient, string eosOasisAccountCode)
+        public AvatarDetailEosProviderRepository(IEosClient eosClient, string eosAccountName, string eosChainUrl,
+            string eosChainId, string eosAccountPk)
         {
             _eosClient = eosClient ?? throw new ArgumentNullException(nameof(eosClient));
-            _eosOasisAccountCode = eosOasisAccountCode;
+            _eosAccountName = eosAccountName;
+
+            _eos = new Eos(new EosConfigurator
+            {
+                HttpEndpoint = eosChainUrl,
+                ChainId = eosChainId,
+                ExpireSeconds = 60,
+                SignProvider = new DefaultSignProvider(eosAccountPk)
+            });
         }
-        
-        // TODO: Implement Send/Push transaction within AbiJsonToBin
+
         public async Task Create(AvatarDetailDto entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
-            
-            var abiJsonToBinResponseDto = await _eosClient.AbiJsonToBin(new AbiJsonToBinRequestDto()
+
+            var pushTransactionResult = await _eos.CreateTransaction(new Transaction
             {
-                Action = "adddetail",
-                Args = new
+                actions = new List<Action>
                 {
-                    entityId = entity.EntityId,
-                    avatarId = entity.AvatarId,
-                    info = entity.Info
-                },
-                Code = _eosOasisAccountCode
+                    new()
+                    {
+                        account = _eosAccountName,
+                        authorization = new List<PermissionLevel>
+                        {
+                            new()
+                            {
+                                actor = _eosAccountName,
+                                permission = "active"
+                            }
+                        },
+                        name = "adddetail",
+                        data = new
+                        {
+                            entityId = entity.EntityId,
+                            holonId = entity.AvatarId,
+                            info = entity.Info
+                        }
+                    }
+                }
             });
-            
+
             LoggingManager.Log(
                 "Avatar detail request was sent. " +
-                $"Received BinArgs response: {abiJsonToBinResponseDto.BinArgs}. " +
+                $"Received transaction hash response: {pushTransactionResult}. " +
                 $"Request sent: {JsonConvert.SerializeObject(entity)}", LogType.Info);
         }
 
@@ -58,28 +85,29 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
-            
+
             var avatarDetailId = HashUtility.GetNumericHash(id);
-            var avatarDetailTableRows = await _eosClient.GetTableRows<AvatarDetailDto>(new GetTableRowsRequestDto()
+            var avatarDetailTableRows = await _eosClient.GetTableRows<AvatarDetailDto>(new GetTableRowsRequestDto
             {
-                Code = _eosOasisAccountCode,
-                Scope = _eosOasisAccountCode,
+                Code = _eosAccountName,
+                Scope = _eosAccountName,
                 Table = _avatarDetailTable
             });
-            return avatarDetailTableRows.Rows.FirstOrDefault(avatarDetailDto => avatarDetailDto.EntityId == avatarDetailId);
+            return avatarDetailTableRows.Rows.FirstOrDefault(avatarDetailDto =>
+                avatarDetailDto.EntityId == avatarDetailId);
         }
 
         public async Task<ImmutableArray<AvatarDetailDto>> ReadAll()
         {
-            var avatarDetailTableRows = await _eosClient.GetTableRows<AvatarDetailDto>(new GetTableRowsRequestDto()
+            var avatarDetailTableRows = await _eosClient.GetTableRows<AvatarDetailDto>(new GetTableRowsRequestDto
             {
-                Code = _eosOasisAccountCode,
-                Scope = _eosOasisAccountCode,
+                Code = _eosAccountName,
+                Scope = _eosAccountName,
                 Table = _avatarDetailTable
             });
             return avatarDetailTableRows.Rows.ToImmutableArray();
         }
-        
+
         // Update method not supported for avatar detail entity
         public async Task Update(AvatarDetailDto entity, Guid id)
         {
@@ -98,16 +126,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             throw new NotImplementedException();
         }
 
-        // Release http connections, to avoid socket descriptor leak.
-        private void ReleaseUnmanagedResources()
-        {
-            _eosClient.Dispose();
-        }
-
         public void Dispose()
         {
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
+        }
+
+        // Release http connections, to avoid socket descriptor leak.
+        private void ReleaseUnmanagedResources()
+        {
+            _eosClient.Dispose();
         }
 
         ~AvatarDetailEosProviderRepository()

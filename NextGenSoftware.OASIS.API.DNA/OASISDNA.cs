@@ -116,6 +116,9 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class EOSIOASISProviderSettings : ProviderSettingsBase
     {
+        public string AccountName { get; set; }
+        public string AccountPrivateKey { get; set; }
+        public string ChainId { get; set; }
     }
 
     public class TelosOASISProviderSettings : ProviderSettingsBase
