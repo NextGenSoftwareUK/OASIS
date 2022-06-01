@@ -9,7 +9,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 using BC = BCrypt.Net.BCrypt;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -20,10 +19,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public class AvatarManager : OASISManager
     {
-        public static IAvatar LoggedInAvatar { get; set; }
+        private static AvatarManager _instance = null;
         private ProviderManagerConfig _config;
 
-        public List<IOASISStorageProvider> OASISStorageProviders { get; set; }
+        public static IAvatar LoggedInAvatar { get; set; }
+        //public List<IOASISStorageProvider> OASISStorageProviders { get; set; }
+
+        //TODO Implement this singleton pattern for other Managers...
+        public static AvatarManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new AvatarManager(ProviderManager.CurrentStorageProvider);
+
+                return _instance;
+            }
+        }
 
         public ProviderManagerConfig Config
         {
@@ -43,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             AutoReplication
         }
 
-        public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
+        //public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
         //TODO: Not sure we want to pass the OASISDNA here?
         public AvatarManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
@@ -1423,6 +1435,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
                 int removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
+                Dictionary<ProviderType, List<IProviderWallet>> wallets = CopyProviderWallets(avatar.ProviderWallets);
 
                 result = SaveAvatarForProvider(avatar, result, SaveMode.FirstSaveAttempt, providerType);
                 previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -1433,6 +1446,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                         {
+                            avatar.ProviderWallets = CopyProviderWallets(wallets);
                             result = SaveAvatarForProvider(avatar, result, SaveMode.AutoFailOver, type.Value);
 
                             if (!result.IsError && result.Result != null)
@@ -1462,6 +1476,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
                         {
+                            avatar.ProviderWallets = CopyProviderWallets(wallets);
+
                             if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                                 result = SaveAvatarForProvider(avatar, result, SaveMode.AutoReplication, type.Value);
                         }
@@ -2641,6 +2657,78 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        public OASISResult<bool> SaveProviderWallets(IAvatar avatar, ProviderType providerType = ProviderType.Default)
+        {
+            return SaveProviderWallets(avatar.ProviderWallets, providerType);
+        }
+
+        public OASISResult<bool> SaveProviderWallets(Dictionary<ProviderType, List<IProviderWallet>> wallets, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessageTemplate = "Error in SaveProviderWallets method in AvatarManager saving wallets for provider {0}. Reason: ";
+            string errorMessage = string.Format(errorMessageTemplate, providerType);
+
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                errorMessage = string.Format(errorMessageTemplate, ProviderManager.CurrentStorageProviderType.Name);
+
+                if (!providerResult.IsError && providerResult.Result != null)
+                {
+                    //Make sure private keys are ONLY stored locally.
+                    if (ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocal && ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocalAndNetwork)
+                    {
+                        foreach (ProviderType proType in wallets.Keys)
+                        {
+                            foreach (IProviderWallet wallet in wallets[proType])
+                                wallet.PrivateKey = null;
+                        }
+                    }
+                    else
+                    {
+                        //TODO: Was going to load the private keys from the local storage and then restore any missing private keys before saving (in case they had been removed before saving to a non-local storage provider) but then there will be no way of knowing if the keys have been removed by the user (if they were then this would then incorrectly restore them again!).
+                        //Commented out code was an alternative to saving the private keys seperatley as the next block below does...
+                        //(result, IAvatar originalAvatar) = OASISResultHelper<IAvatar, IAvatar>.UnWrapOASISResult(ref result, LoadAvatar(avatar.Id, true, providerType), String.Concat(errorMessage, "Error loading avatar. Reason: {0}"));
+
+                        //if (!result.IsError)
+                        //{
+
+                        //}
+
+
+                        //We need to save the wallets (with private keys) seperatley to the local storage provider otherwise the next time a non local provider replicates to local it will overwrite the wallets and private keys (will be blank).
+                        //TODO: The PrivateKeys are already encrypted but I want to add an extra layer of protection to encrypt the full wallet! ;-)
+                        //TODO: Soon will also add a 3rd level of protection by quantum encrypting the keys/wallets... :)
+
+
+                        var walletsTask = Task.Run(() => ((IOASISLocalStorageProvider)providerResult.Result).SaveProviderWallets(wallets));
+
+                        if (walletsTask.Wait(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)))
+                        {
+                            if (walletsTask.Result.IsError || !walletsTask.Result.Result)
+                            {
+                                if (string.IsNullOrEmpty(walletsTask.Result.Message))
+                                    walletsTask.Result.Message = "Unknown error occured saving provider wallets.";
+
+                                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, walletsTask.Result.Message), walletsTask.Result.DetailedMessage);
+                            }
+                        }
+                        else
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured saving provider wallets."));
+                    }
+
+                }
+                else
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
         //public bool CheckIfEmailIsAlreadyInUse(string email)
         //{
         //    OASISResult<IAvatar> result = LoadAvatarByEmail(email);
@@ -3110,7 +3198,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         else
                         {
                             result.Result = task.Result.Result;
-                            result.IsLoaded = true;
+
+                            //If we are loading from a local storge provider then load the provider wallets (including their private keys stored ONLY on local storage).
+                            if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
+                                result = await LoadProviderWalletsAsync(providerResult.Result, result, errorMessage);
+                            else
+                                result.IsLoaded = true;
                         }
                     }
                     else
@@ -3159,7 +3252,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         else
                         {
                             result.Result = task.Result.Result;
-                            result.IsLoaded = true;
+
+                            //If we are loading from a local storge provider then load the provider wallets (including their private keys stored ONLY on local storage).
+                            if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal)
+                                result = await LoadProviderWalletsAsync(providerResult.Result, result, errorMessage);
+                            else
+                                result.IsLoaded = true;
                         }
                     }
                     else
@@ -3175,59 +3273,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
-
-        /*
-        private OASISResult<IAvatar> LoadAvatarForProvider(string username, string password, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            return LoadAvatarForProviderAsync(username, password, result).Result;
-        }
-
-        private async Task<OASISResult<IAvatar>> LoadAvatarForProviderAsync(string username, string password, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            //string errorMessage = $"Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {username} for provider {providerType}. Reason: ";
-            string errorMessageTemplate = "Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {0} for provider {1}. Reason: ";
-            string errorMessage = string.Format(errorMessageTemplate, username, providerType);
-
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-                errorMessage = string.Format(errorMessageTemplate, username, ProviderManager.CurrentStorageProviderType.Name);
-
-                if (!providerResult.IsError && providerResult.Result != null)
-                {
-                    var task = providerResult.Result.LoadAvatarAsync(username, password, version);
-
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
-                    {
-                        result = task.Result;
-
-                        if (task.Result.IsError || task.Result.Result == null)
-                        {
-                            if (string.IsNullOrEmpty(task.Result.Message))
-                                task.Result.Message = "Avatar Not Found.";
-
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
-                        }
-                        else
-                        {
-                            result.IsLoaded = true;
-                            result.Result = task.Result.Result;
-                        }
-                    }
-                    else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
-                }
-                else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
-
-            return result;
-        }*/
-
+       
         private OASISResult<IAvatar> LoadAvatarByEmailForProvider(string email, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             return LoadAvatarByEmailForProviderAsync(email, result, providerType, version).Result;
@@ -3258,8 +3304,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
                         else
                         {
-                            result.IsLoaded = true;
                             result.Result = task.Result.Result;
+
+                            //If we are loading from a local storge provider then load the provider wallets (including their private keys stored ONLY on local storage).
+                            if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal)
+                                result = await LoadProviderWalletsAsync(providerResult.Result, result, errorMessage);
+                            else
+                                result.IsLoaded = true;
                         }
                     }
                     else
@@ -3528,6 +3579,37 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
+                    //Make sure private keys are ONLY stored locally.
+                    if (ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocal && ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocalAndNetwork)
+                    {
+                        foreach (ProviderType proType in avatar.ProviderWallets.Keys)
+                        {
+                            foreach (IProviderWallet wallet in avatar.ProviderWallets[proType])
+                                wallet.PrivateKey = null;
+                        }
+                    }
+                    else
+                    {
+                        //We need to save the wallets (with private keys) seperatley to the local storage provider otherwise the next time a non local provider replicates to local it will overwrite the wallets and private keys (will be blank).
+                        //TODO: The PrivateKeys are already encrypted but I want to add an extra layer of protection to encrypt the full wallet! ;-)
+                        //TODO: Soon will also add a 3rd level of protection by quantum encrypting the keys/wallets... :)
+
+                        var walletsTask = Task.Run(() => ((IOASISLocalStorageProvider)providerResult.Result).SaveProviderWalletsAsync(avatar.ProviderWallets));
+
+                        if (await Task.WhenAny(walletsTask, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == walletsTask)
+                        {
+                            if (walletsTask.Result.IsError || !walletsTask.Result.Result)
+                            {
+                                if (string.IsNullOrEmpty(walletsTask.Result.Message) && saveMode != SaveMode.AutoReplication)
+                                    walletsTask.Result.Message = "Unknown error occured saving provider wallets.";
+
+                                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, walletsTask.Result.Message), walletsTask.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                            }
+                        }
+                        else
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured saving provider wallets."), saveMode == SaveMode.AutoReplication);
+                    }
+
                     var task = providerResult.Result.SaveAvatarAsync(avatar);
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
@@ -3559,9 +3641,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IAvatar> SaveAvatarForProvider(IAvatar avatar, OASISResult<IAvatar> result, SaveMode saveMode, ProviderType providerType = ProviderType.Default)
+        private OASISResult<IAvatar> SaveAvatarForProvider(IAvatar avatar, OASISResult<IAvatar> result, SaveMode saveMode, ProviderType providerType = ProviderType.Default)
         {
-            string errorMessageTemplate = "Error in SaveAvatarForProvider method in AvatarManager saving avatar detail with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
+            string errorMessageTemplate = "Error in SaveAvatarForProvider method in AvatarManager saving avatar with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, providerType, Enum.GetName(typeof(SaveMode), saveMode));
 
             try
@@ -3571,9 +3653,51 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
+                    //Make sure private keys are ONLY stored locally.
+                    if (ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocal && ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocalAndNetwork)
+                    {
+                        foreach (ProviderType proType in avatar.ProviderWallets.Keys)
+                        {
+                            foreach (IProviderWallet wallet in avatar.ProviderWallets[proType])
+                                wallet.PrivateKey = null;
+                        }
+                    }
+                    else
+                    {
+                        //TODO: Was going to load the private keys from the local storage and then restore any missing private keys before saving (in case they had been removed before saving to a non-local storage provider) but then there will be no way of knowing if the keys have been removed by the user (if they were then this would then incorrectly restore them again!).
+                        //Commented out code was an alternative to saving the private keys seperatley as the next block below does...
+                        //(result, IAvatar originalAvatar) = OASISResultHelper<IAvatar, IAvatar>.UnWrapOASISResult(ref result, LoadAvatar(avatar.Id, true, providerType), String.Concat(errorMessage, "Error loading avatar. Reason: {0}"));
+
+                        //if (!result.IsError)
+                        //{
+
+                        //}
+
+
+                        //We need to save the wallets (with private keys) seperatley to the local storage provider otherwise the next time a non local provider replicates to local it will overwrite the wallets and private keys (will be blank).
+                        //TODO: The PrivateKeys are already encrypted but I want to add an extra layer of protection to encrypt the full wallet! ;-)
+                        //TODO: Soon will also add a 3rd level of protection by quantum encrypting the keys/wallets... :)
+
+                        
+                        var walletsTask = Task.Run(() => ((IOASISLocalStorageProvider)providerResult.Result).SaveProviderWallets(avatar.ProviderWallets));
+
+                        if (walletsTask.Wait(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)))
+                        {
+                            if (walletsTask.Result.IsError || !walletsTask.Result.Result)
+                            {
+                                if (string.IsNullOrEmpty(walletsTask.Result.Message) && saveMode != SaveMode.AutoReplication)
+                                    walletsTask.Result.Message = "Unknown error occured saving provider wallets.";
+
+                                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, walletsTask.Result.Message), walletsTask.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                            }
+                        }
+                        else
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured saving provider wallets."), saveMode == SaveMode.AutoReplication);
+                    }
+
                     var task = Task.Run(() => providerResult.Result.SaveAvatar(avatar));
 
-                    if (task.Wait(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)))
+                    if (task.Wait(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)))
                     {
                         if (task.Result.IsError || task.Result.Result == null)
                         {
@@ -4109,6 +4233,98 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 ErrorHandling.HandleError(ref result, $"{errorMessage}{result.Message}", result.DetailedMessage);
 
             return result;
+        }
+
+        private async Task<OASISResult<IAvatar>> LoadProviderWalletsAsync(IOASISStorageProvider provider, OASISResult<IAvatar> result, string errorMessage)
+        {
+            //If we are loading from a local storge provider then load the provider wallets (including their private keys stored ONLY on local storage).
+            if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
+            {
+                var walletTask = ((IOASISLocalStorageProvider)provider).LoadProviderWalletsAsync();
+
+                if (await Task.WhenAny(walletTask, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == walletTask)
+                {
+                    if (walletTask.Result.IsError || walletTask.Result.Result == null)
+                    {
+                        if (string.IsNullOrEmpty(walletTask.Result.Message))
+                            walletTask.Result.Message = "Error loading avatar wallets.";
+
+                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, walletTask.Result.Message), walletTask.Result.DetailedMessage);
+                    }
+                    else
+                    {
+                        result.Result.ProviderWallets = walletTask.Result.Result;
+                        result.IsLoaded = true;
+                    }
+                }
+                else
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured loading provider wallets."));
+            }
+
+            return result;
+        }
+
+        private OASISResult<IAvatar> LoadProviderWallets(IOASISStorageProvider provider, OASISResult<IAvatar> result, string errorMessage)
+        {
+            return LoadProviderWalletsAsync(provider, result, errorMessage).Result;
+
+            /*
+            //If we are loading from a local storge provider then load the provider wallets (including their private keys stored ONLY on local storage).
+            if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal)
+            {
+                var walletTask = ((IOASISLocalStorageProvider)provider).LoadProviderWallets();
+
+                if (Task.WhenAny(walletTask, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == walletTask)
+                {
+                    if (walletTask.Result.IsError || walletTask.Result.Result == null)
+                    {
+                        if (string.IsNullOrEmpty(walletTask.Result.Message))
+                            walletTask.Result.Message = "Error loading avatar wallets.";
+
+                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, walletTask.Result.Message), walletTask.Result.DetailedMessage);
+                    }
+                    else
+                    {
+                        result.Result.ProviderWallets = walletTask.Result.Result;
+                        result.IsLoaded = true;
+                    }
+                }
+                else
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured loading provider wallets."));
+            }
+
+            return result;*/
+        }
+
+        private Dictionary<ProviderType, List<IProviderWallet>> CopyProviderWallets(Dictionary<ProviderType, List<IProviderWallet>> wallets)
+        {
+            Dictionary<ProviderType, List<IProviderWallet>> walletsCopy = new Dictionary<ProviderType, List<IProviderWallet>>();
+
+            foreach (ProviderType pType in wallets.Keys)
+            {
+                foreach (IProviderWallet wallet in wallets[pType])
+                {
+                    if (!walletsCopy.ContainsKey(pType))
+                        walletsCopy[pType] = new List<IProviderWallet>();
+
+                    walletsCopy[pType].Add(new ProviderWallet()
+                    {
+                        PublicKey = wallet.PublicKey,
+                        PrivateKey = wallet.PrivateKey,
+                        WalletAddress = wallet.WalletAddress,
+                        Id = wallet.Id,
+                        CreatedByAvatarId = wallet.CreatedByAvatarId,
+                        CreatedDate = wallet.CreatedDate,
+                        ModifiedByAvatarId = wallet.ModifiedByAvatarId,
+                        ModifiedDate = wallet.ModifiedDate,
+                        Version = wallet.Version
+                    });
+
+                    //wallets[pType].Add(wallet);
+                }
+            }
+
+            return walletsCopy;
         }
 
 

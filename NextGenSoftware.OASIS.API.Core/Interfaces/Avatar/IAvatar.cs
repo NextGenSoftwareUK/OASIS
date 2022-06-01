@@ -41,7 +41,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         //int Level { get; }
         //int XP { get; set; }
         bool OwnsToken(string token);
-        OASISResult<IAvatar> Save();
-        Task<OASISResult<IAvatar>> SaveAsync();
+        OASISResult<IAvatar> Save(ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IAvatar>> SaveAsync(ProviderType providerType = ProviderType.Default);
+        //OASISResult<bool> SaveProviderWallets(ProviderType providerType = ProviderType.Default);
+        //Task<OASISResult<bool>> SaveProviderWalletsAsync(ProviderType providerType = ProviderType.Default);
     }
 }

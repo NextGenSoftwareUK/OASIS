@@ -19,7 +19,7 @@ using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
-
+using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 
 namespace NextGenSoftware.OASIS.OASISBootLoader
 {
@@ -367,6 +367,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         registeredProvider = ThreeFoldOASIS;
                     }
                         break;
+
+                    case ProviderType.LocalFileOASIS:
+                        {
+                            LocalFileOASIS localFileOASIS = new LocalFileOASIS(OASISDNA.OASIS.StorageProviders.LocalFileOASIS.FilePath);
+                            localFileOASIS.StorageProviderError += LocalFileOASIS_StorageProviderError;
+                            registeredProvider = localFileOASIS;
+                        }break;
                 }
 
                 if (registeredProvider != null)
@@ -382,17 +389,22 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return registeredProvider;
         }
 
-        private static void ThreeFoldOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        private static void LocalFileOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             throw new NotImplementedException();
         }
 
-        private static void EthereumOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        private static void ThreeFoldOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             throw new NotImplementedException();
         }
 
-        private static void TelosOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        private static void EthereumOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void TelosOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             throw new NotImplementedException();
         }
@@ -534,49 +546,51 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             ProviderManager.SetAutoFailOverForProviders(true,
                 GetProviderTypesFromDNA("AutoFailOverProviders",
                     OASISDNA.OASIS.StorageProviders.AutoFailOverProviders));
+
             ProviderManager.SetAutoLoadBalanceForProviders(true,
                 GetProviderTypesFromDNA("AutoLoadBalanceProviders",
                     OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders));
+
             ProviderManager.SetAutoReplicationForProviders(true,
                 GetProviderTypesFromDNA("AutoReplicationProviders",
                     OASISDNA.OASIS.StorageProviders.AutoReplicationProviders));
         }
 
-        private static void IPFSOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        private static void IPFSOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             throw new NotImplementedException();
         }
 
-        private static void Neo4jOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        private static void Neo4jOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             throw new NotImplementedException();
         }
 
-        private static void SQLLiteDBOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        private static void SQLLiteDBOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
             //  throw new Exception(string.Concat("ERROR: MongoOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
-        private static void EOSIOOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        private static void EOSIOOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
             // throw new Exception(string.Concat("ERROR: EOSIOOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
-        private static void MongoOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        private static void MongoOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
             //  throw new Exception(string.Concat("ERROR: MongoOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
-        private static void SolanaOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        private static void SolanaOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
             //  throw new Exception(string.Concat("ERROR: MongoOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
-        private static void HoloOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        private static void HoloOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
             //  throw new Exception(string.Concat("ERROR: HoloOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));

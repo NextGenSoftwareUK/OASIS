@@ -1,5 +1,4 @@
-﻿
-using NextGenSoftware.OASIS.API.Core.Enums;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces

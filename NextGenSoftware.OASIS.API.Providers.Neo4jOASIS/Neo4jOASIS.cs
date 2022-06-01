@@ -449,6 +449,31 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             throw new NotImplementedException();
         }
 
+        public override Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
         //public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         //{
         //    throw new NotImplementedException();

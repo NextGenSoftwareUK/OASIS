@@ -39,13 +39,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private static Dictionary<string, IAvatar> _providerUniqueStorageKeyToAvatarLookup = new Dictionary<string, IAvatar>();
         private static Dictionary<string, IAvatar> _providerPublicKeyToAvatarLookup = new Dictionary<string, IAvatar>();
         private static Dictionary<string, IAvatar> _providerPrivateKeyToAvatarLookup = new Dictionary<string, IAvatar>();
+        private static KeyManager _instance = null;
+
+        public static KeyManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new KeyManager(ProviderManager.CurrentStorageProvider, AvatarManager.Instance);
+
+                return _instance;
+            }
+        }
 
         public WifUtility WifUtility { get; set; } = new WifUtility();
         public AvatarManager AvatarManager { get; set; }
 
-        public List<IOASISStorageProvider> OASISStorageProviders { get; set; }
+        //public List<IOASISStorageProvider> OASISStorageProviders { get; set; }
 
-        public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
+        //public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
         public KeyManager(IOASISStorageProvider OASISStorageProvider, AvatarManager avatarManager, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
@@ -534,7 +546,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (wallet != null)
                         {
-                            wallet.PrivateKey = providerPrivateKey;
+                            wallet.PrivateKey = Rijndael.Encrypt(providerPrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
                             result.Result = wallet.Id;
                         }
                         else
@@ -550,37 +562,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
-                //if (!avatar.ProviderWallets[providerTypeToLinkTo].Any(x => x.PublicKey == providerPrivateKey))
-                //{
-                //    if (walletId == Guid.Empty)
-                //    {
-                //        ProviderWallet newWallet = new ProviderWallet() { PrivateKey = providerPrivateKey };
-                //        result.Result = newWallet.Id;
-                //        avatar.ProviderWallets[providerTypeToLinkTo].Add(newWallet);
-                //    }
-                //    else
-                //    {
-                //        IProviderWallet wallet = avatar.ProviderWallets[providerTypeToLinkTo].FirstOrDefault(x => x.PrivateKey == providerPrivateKey);
-
-                //        if (wallet != null)
-                //        {
-                //            wallet.PrivateKey = providerPrivateKey;
-                //            result.Result = wallet.Id;
-                //        }
-                //        else
-                //        {
-                //            ErrorHandling.HandleError(ref result, $"The Wallet with ID {walletId} was not found. Please pass in a valid ID or leave empty if you wish to create a new wallet for this provider key.");
-                //            return result;
-                //        }
-                //    }
-                //}
-                //else
-                //{
-                //    ErrorHandling.HandleError(ref result, $"The Private ProviderKey is already linked to the avatar {avatar.Id} {avatar.Username}. The ProviderKey must be unique per provider.");
-                //    return result;
-                //}
-
+                //Will save private keys (along with the rest of the wallet) to local storage providers only and wallets minus the private keys to the other non local storage providers.
+                //This way the private keys (and rest of the wallet) can be auto-replicated to other local storage providers and the wallets minus the private keys will be auto-replicated to other non storage providers.
                 OASISResult<IAvatar> avatarResult = avatar.Save();
+
+                // Could save the wallets without having to save the full avatar but then would need to add additional looping code to go through all providers looking for only local storage ones.
+                // But we STILL need to save the wallets (without private keys) for all non-local storage providers so not much point doing it seperatley and just call the Save method above... ;-)
+                //avatar.SaveProviderWallets();
+
+                //The only issue is when a avatar is loaded from a non local storage provider how it will know the difference between that and if the user had deleted the private keys?
+                //We 
+
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {

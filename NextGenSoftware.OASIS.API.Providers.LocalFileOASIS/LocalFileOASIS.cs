@@ -1,21 +1,93 @@
-﻿using NextGenSoftware.OASIS.API.Core;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+﻿using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
-namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
+namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 {
-    public class PLANOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
+    public class LocalFileOASIS : OASISStorageProviderBase, IOASISLocalStorageProvider
     {
-        public PLANOASIS()
+        private string _filePath = "wallets.json";
+
+        public LocalFileOASIS(string filePath)
         {
-            this.ProviderName = "PLANOASIS";
-            this.ProviderDescription = "PLAN Provider";
-            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.PLANOASIS);
-            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderName = "LocalFileOASIS";
+            this.ProviderDescription = "LocalFile Provider";
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LocalFileOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocal);
+
+            if (!string.IsNullOrEmpty(filePath))
+                _filePath = filePath;
+        }
+
+        public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWallets()
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+
+            try
+            {
+                string json = File.ReadAllText(_filePath);
+                result.Result = JsonSerializer.Deserialize<Dictionary<ProviderType, List<IProviderWallet>>>(json);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsAsync()
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+
+            try
+            {
+                using FileStream openStream = File.OpenRead(_filePath);
+                result.Result = await JsonSerializer.DeserializeAsync<Dictionary<ProviderType, List<IProviderWallet>>>(openStream);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWalletsAsync method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        public OASISResult<bool> SaveProviderWallets(Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                string jsonString = JsonSerializer.Serialize(providerWallets);
+                File.WriteAllText(_filePath, jsonString);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<bool>> SaveProviderWalletsAsync(Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                using FileStream createStream = File.Create(_filePath);
+                await JsonSerializer.SerializeAsync(createStream, providerWallets);
+                await createStream.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
@@ -78,41 +150,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
-        {
-            throw new NotImplementedException();
-        }
-
-        public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons)
-        {
-            throw new NotImplementedException();
-        }
-
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
             throw new NotImplementedException();
@@ -148,11 +185,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
-        //public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
         public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
         {
             throw new NotImplementedException();
@@ -162,11 +194,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         {
             throw new NotImplementedException();
         }
-
-        //public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
-        //{
-        //    throw new NotImplementedException();
-        //}
 
         public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
         {
@@ -314,6 +341,31 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
 
         public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
         {
             throw new NotImplementedException();
         }

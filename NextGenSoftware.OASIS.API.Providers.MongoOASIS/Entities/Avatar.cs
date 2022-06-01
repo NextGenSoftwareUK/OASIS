@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
     public class Avatar : HolonBase
     {
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
-        public Dictionary<ProviderType, List<IProviderWallet>> ProviderWallets { get; set; } = new Dictionary<ProviderType, List<IProviderWallet>>();
+        public Dictionary<ProviderType, List<ProviderWallet>> ProviderWallets { get; set; } = new Dictionary<ProviderType, List<ProviderWallet>>();
 
         //[BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
         //public Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } = new Dictionary<ProviderType, string>();  //Unique private key used by each provider (part of private/public key pair).
