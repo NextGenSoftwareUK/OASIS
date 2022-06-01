@@ -17,4 +17,8 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="eos-sharp" Version="2.2.0" />
+  </ItemGroup>
+
 </Project>

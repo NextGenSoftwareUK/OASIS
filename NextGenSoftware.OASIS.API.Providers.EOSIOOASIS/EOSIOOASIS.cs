@@ -1,23 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using EOSNewYork.EOSCore;
-using EOSNewYork.EOSCore.Utilities;
 using EOSNewYork.EOSCore.Response.API;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Security;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Utilities;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persistence;
@@ -25,66 +19,70 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Repository;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
-    public class EOSIOOASIS : OASISStorageProviderBase, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISNETProvider, IOASISSuperStar
+    public class EOSIOOASIS : OASISStorageProviderBase, IOASISBlockchainStorageProvider, IOASISSmartContractProvider,
+        IOASISNFTProvider, IOASISNETProvider, IOASISSuperStar
     {
-        private static Dictionary<Guid, Account> _avatarIdToEOSIOAccountLookup = new Dictionary<Guid, Account>();
-        private AvatarManager _avatarManager = null;
-        private KeyManager _keyManager = null;
+        private static readonly Dictionary<Guid, Account> _avatarIdToEOSIOAccountLookup = new();
+        private readonly IEosProviderRepository<AvatarDetailDto> _avatarDetailRepository;
+        private readonly IEosProviderRepository<AvatarDto> _avatarRepository;
+
+        private readonly IEosClient _eosClient;
+        private readonly IEosProviderRepository<HolonDto> _holonRepository;
+        private AvatarManager _avatarManager;
+        private KeyManager _keyManager;
+
+        public EOSIOOASIS(string hostUri, string eosAccountName, string eosChainId, string eosAccountPk)
+        {
+            if (string.IsNullOrEmpty(hostUri))
+                throw new ArgumentNullException(nameof(hostUri));
+
+            ProviderName = "EOSIOOASIS";
+            ProviderDescription = "EOSIO Provider";
+            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EOSIOOASIS);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+
+            _eosClient = new EosClient(new Uri(hostUri));
+            _holonRepository = new HolonEosProviderRepository(_eosClient, eosAccountName, hostUri, eosChainId, eosAccountPk);
+            _avatarDetailRepository = new AvatarDetailEosProviderRepository(_eosClient, eosAccountName,hostUri, eosChainId, eosAccountPk);
+            _avatarRepository = new AvatarEosProviderRepository(_eosClient, eosAccountName, hostUri, eosChainId, eosAccountPk);
+        }
+
         private AvatarManager AvatarManager
         {
             get
             {
                 if (_avatarManager == null)
-                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), AvatarManager.OASISDNA);
-                    //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+                    _avatarManager =
+                        new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS),
+                            AvatarManager.OASISDNA);
+                //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
 
                 return _avatarManager;
             }
         }
+
         private KeyManager KeyManager
         {
             get
             {
                 if (_keyManager == null)
-                    _keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), AvatarManager);
-                    //_keyManager = new KeyManager(this, AvatarManager); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+                    _keyManager =
+                        new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS),
+                            AvatarManager);
+                //_keyManager = new KeyManager(this, AvatarManager); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
 
                 return _keyManager;
             }
-        }
-
-        private readonly IEosClient _eosClient;
-        private readonly IEosProviderRepository<HolonDto> _holonRepository;
-        private readonly IEosProviderRepository<AvatarDetailDto> _avatarDetailRepository;
-        private readonly IEosProviderRepository<AvatarDto> _avatarRepository;
-
-        public EOSIOOASIS(string hostUri, string eosAccountCode)
-        {
-            if (string.IsNullOrEmpty(hostUri))
-                throw new ArgumentNullException(nameof(hostUri));
-            
-            this.ProviderName = "EOSIOOASIS";
-            this.ProviderDescription = "EOSIO Provider";
-            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EOSIOOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-
-            _eosClient = new EosClient(new Uri(hostUri));
-            _holonRepository = new HolonEosProviderRepository(_eosClient, eosAccountCode);
-            _avatarDetailRepository = new AvatarDetailEosProviderRepository(_eosClient, eosAccountCode);
-            _avatarRepository = new AvatarEosProviderRepository(_eosClient, eosAccountCode);
         }
 
         public override OASISResult<bool> ActivateProvider()
         {
             // Get server state. Just need to receive correct response, otherwise exception would be thrown.
             var nodeInfo = _eosClient.GetNodeInfo().Result;
-            
+
             // Response was received, but payload was incorrect.
-            if (nodeInfo == null || !nodeInfo.IsNodeInfoCorrect())
-            {
-                return new OASISResult<bool>(false);
-            }
-            
+            if (nodeInfo == null || !nodeInfo.IsNodeInfoCorrect()) return new OASISResult<bool>(false);
+
             return base.ActivateProvider();
         }
 
@@ -103,21 +101,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 if (allAvatarsDTOs.IsEmpty)
                     return result;
 
-                result.Result = 
+                result.Result =
                     allAvatarsDTOs
                         .Select(avatarDto => avatarDto.GetBaseAvatar())
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsLoaded = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -133,21 +131,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 if (allAvatarsDTOs.IsEmpty)
                     return result;
 
-                result.Result = 
+                result.Result =
                     allAvatarsDTOs
                         .Select(avatarDto => avatarDto.GetBaseAvatar())
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsLoaded = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -163,7 +161,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             if (Id == null)
                 throw new ArgumentNullException(nameof(Id));
-            
+
             var result = new OASISResult<IAvatar>();
             try
             {
@@ -176,19 +174,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     result.Message = "Avatar with such ID, not found!";
                     return result;
                 }
-                
+
                 result.Result = avatarEntity;
                 result.IsLoaded = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsLoaded = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -219,19 +217,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     result.Message = "Avatar with such ID, not found!";
                     return result;
                 }
-                
+
                 result.Result = avatarEntity;
                 result.IsLoaded = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsSaved = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -272,7 +270,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey,
+            int version = 0)
         {
             throw new NotImplementedException();
         }
@@ -286,7 +285,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
-            
+
             var result = new OASISResult<IAvatarDetail>();
             try
             {
@@ -299,19 +298,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     result.Message = "Avatar Detail with such ID, not found!";
                     return result;
                 }
-                
+
                 result.Result = avatarDetailEntity;
                 result.IsLoaded = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsLoaded = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -332,7 +331,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
-            
+
             var result = new OASISResult<IAvatarDetail>();
             try
             {
@@ -345,31 +344,33 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     result.Message = "Avatar Detail with such ID, not found!";
                     return result;
                 }
-                
+
                 result.Result = avatarDetailEntity;
                 result.IsLoaded = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsLoaded = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
         }
 
-        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername,
+            int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail,
+            int version = 0)
         {
             throw new NotImplementedException();
         }
@@ -383,21 +384,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 if (allAvatarDetailsDTOs.IsEmpty)
                     return result;
 
-                result.Result = 
+                result.Result =
                     allAvatarDetailsDTOs
                         .Select(avatarDetailDto => avatarDetailDto.GetBaseAvatarDetail())
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsLoaded = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -413,21 +414,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 if (allAvatarDetailsDTOs.IsEmpty)
                     return result;
 
-                result.Result = 
+                result.Result =
                     allAvatarDetailsDTOs
                         .Select(avatarDetailDto => avatarDetailDto.GetBaseAvatarDetail())
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsLoaded = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -438,17 +439,17 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             if (Avatar == null)
                 throw new ArgumentNullException(nameof(Avatar));
-            
+
             var result = new OASISResult<IAvatar>();
             try
             {
                 var avatarInfo = JsonConvert.SerializeObject(Avatar);
-                
+
                 // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
                 var existAvatar = _avatarRepository.Read(Avatar.Id).Result;
                 if (existAvatar != null)
                 {
-                    _avatarRepository.Update(new AvatarDto()
+                    _avatarRepository.Update(new AvatarDto
                     {
                         Info = avatarInfo
                     }, Avatar.Id).Wait();
@@ -457,27 +458,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 {
                     var avatarEntityId = HashUtility.GetNumericHash(Avatar.Id);
 
-                    _avatarRepository.Create(new AvatarDto()
+                    _avatarRepository.Create(new AvatarDto
                     {
                         Info = avatarInfo,
                         AvatarId = Avatar.Id.ToString(),
                         IsDeleted = false,
                         EntityId = avatarEntityId
-                    }).Wait();   
+                    }).Wait();
                 }
 
                 result.Result = Avatar;
                 result.IsSaved = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsSaved = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -488,7 +489,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             if (Avatar == null)
                 throw new ArgumentNullException(nameof(Avatar));
-            
+
             var result = new OASISResult<IAvatar>();
             try
             {
@@ -498,7 +499,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var existAvatar = await _avatarRepository.Read(Avatar.Id);
                 if (existAvatar != null)
                 {
-                    await _avatarRepository.Update(new AvatarDto()
+                    await _avatarRepository.Update(new AvatarDto
                     {
                         Info = avatarInfo
                     }, Avatar.Id);
@@ -506,27 +507,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 else
                 {
                     var avatarEntityId = HashUtility.GetNumericHash(Avatar.Id);
-                    await _avatarRepository.Create(new AvatarDto()
+                    await _avatarRepository.Create(new AvatarDto
                     {
                         Info = avatarInfo,
                         AvatarId = Avatar.Id.ToString(),
                         IsDeleted = false,
                         EntityId = avatarEntityId
-                    });   
+                    });
                 }
 
                 result.Result = Avatar;
                 result.IsSaved = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsSaved = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -537,7 +538,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             if (Avatar == null)
                 throw new ArgumentNullException(nameof(Avatar));
-            
+
             var result = new OASISResult<IAvatarDetail>();
             try
             {
@@ -547,7 +548,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var existAvatarDetail = _avatarDetailRepository.Read(Avatar.Id).Result;
                 if (existAvatarDetail != null)
                 {
-                    _avatarRepository.Update(new AvatarDto()
+                    _avatarRepository.Update(new AvatarDto
                     {
                         Info = avatarDetailInfo
                     }, Avatar.Id).Wait();
@@ -555,7 +556,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 else
                 {
                     var avatarDetailEntityId = HashUtility.GetNumericHash(Avatar.Id);
-                    _avatarDetailRepository.Create(new AvatarDetailDto()
+                    _avatarDetailRepository.Create(new AvatarDetailDto
                     {
                         Info = avatarDetailInfo,
                         AvatarId = Avatar.Id.ToString(),
@@ -567,14 +568,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 result.IsSaved = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsSaved = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -585,7 +586,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             if (Avatar == null)
                 throw new ArgumentNullException(nameof(Avatar));
-            
+
             var result = new OASISResult<IAvatarDetail>();
             try
             {
@@ -595,7 +596,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var existAvatarDetail = await _avatarDetailRepository.Read(Avatar.Id);
                 if (existAvatarDetail != null)
                 {
-                    await _avatarRepository.Update(new AvatarDto()
+                    await _avatarRepository.Update(new AvatarDto
                     {
                         Info = avatarDetailInfo
                     }, Avatar.Id);
@@ -603,7 +604,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 else
                 {
                     var avatarDetailEntityId = HashUtility.GetNumericHash(Avatar.Id);
-                    await _avatarDetailRepository.Create(new AvatarDetailDto()
+                    await _avatarDetailRepository.Create(new AvatarDetailDto
                     {
                         Info = avatarDetailInfo,
                         AvatarId = Avatar.Id.ToString(),
@@ -615,14 +616,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 result.IsSaved = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsSaved = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -633,7 +634,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
-            
+
             var result = new OASISResult<bool>();
             try
             {
@@ -646,14 +647,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 result.IsSaved = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsSaved = false;
                 result.Result = false;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -674,7 +675,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
-            
+
             var result = new OASISResult<bool>();
             try
             {
@@ -687,14 +688,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 result.IsSaved = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsSaved = false;
                 result.Result = false;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -706,7 +707,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername,
+            bool softDelete = true)
         {
             throw new NotImplementedException();
         }
@@ -721,16 +723,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams,
+            bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
+            int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true,
+            int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
-            
+
             var result = new OASISResult<IHolon>();
             try
             {
@@ -743,30 +748,31 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     result.Message = "Holon with such ID, not found!";
                     return result;
                 }
-                
+
                 result.Result = holonEntity;
                 result.IsLoaded = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsLoaded = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true,
+            bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
-            
+
             var result = new OASISResult<IHolon>();
             try
             {
@@ -779,56 +785,68 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     result.Message = "Holon with such ID, not found!";
                     return result;
                 }
-                
+
                 result.Result = holonEntity;
                 result.IsLoaded = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsLoaded = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
         }
 
-        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true,
+            bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true,
+            bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All,
+            bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
+            bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id,
+            HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
+            int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey,
+            HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
+            int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey,
+            HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
+            int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All,
+            bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
+            bool continueOnError = true, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
@@ -837,28 +855,30 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 if (allHolonDTOs.IsEmpty)
                     return result;
 
-                result.Result = 
+                result.Result =
                     allHolonDTOs
                         .Select(holonDto => holonDto.GetBaseHolon())
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsLoaded = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All,
+            bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
+            bool continueOnError = true, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
@@ -867,28 +887,29 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 if (allHolonDTOs.IsEmpty)
                     return result;
 
-                result.Result = 
+                result.Result =
                     allHolonDTOs
                         .Select(holonDto => holonDto.GetBaseHolon())
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsLoaded = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
         }
 
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true,
+            int maxChildDepth = 0, bool continueOnError = true)
         {
             if (holon == null)
                 throw new ArgumentNullException(nameof(holon));
@@ -902,7 +923,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var existAvatar = _holonRepository.Read(holon.Id).Result;
                 if (existAvatar != null)
                 {
-                    _holonRepository.Update(new HolonDto()
+                    _holonRepository.Update(new HolonDto
                     {
                         Info = holonInfo
                     }, holon.Id).Wait();
@@ -911,38 +932,39 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 {
                     var holonEntityId = HashUtility.GetNumericHash(holon.Id);
 
-                    _holonRepository.Create(new HolonDto()
+                    _holonRepository.Create(new HolonDto
                     {
                         Info = holonInfo,
                         HolonId = holon.Id.ToString(),
                         EntityId = holonEntityId,
                         IsDeleted = false
-                    }).Wait();   
+                    }).Wait();
                 }
 
                 result.Result = holon;
                 result.IsSaved = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsSaved = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
         }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true,
+            bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             if (holon == null)
                 throw new ArgumentNullException(nameof(holon));
-            
+
             var result = new OASISResult<IHolon>();
             try
             {
@@ -952,7 +974,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var existAvatar = await _holonRepository.Read(holon.Id);
                 if (existAvatar != null)
                 {
-                    await _holonRepository.Update(new HolonDto()
+                    await _holonRepository.Update(new HolonDto
                     {
                         Info = holonInfo
                     }, holon.Id);
@@ -960,34 +982,36 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 else
                 {
                     var holonEntityId = HashUtility.GetNumericHash(holon.Id);
-                    await _holonRepository.Create(new HolonDto()
+                    await _holonRepository.Create(new HolonDto
                     {
                         Info = holonInfo,
                         HolonId = holon.Id.ToString(),
                         EntityId = holonEntityId,
                         IsDeleted = false
-                    });   
+                    });
                 }
 
                 result.Result = holon;
                 result.IsSaved = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsSaved = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons,
+            bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
+            bool continueOnError = true)
         {
             if (holons == null)
                 throw new ArgumentNullException(nameof(holons));
@@ -1003,7 +1027,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     var existAvatar = _holonRepository.Read(holon.Id).Result;
                     if (existAvatar != null)
                     {
-                        _holonRepository.Update(new HolonDto()
+                        _holonRepository.Update(new HolonDto
                         {
                             Info = holonInfo
                         }, holon.Id).Wait();
@@ -1012,13 +1036,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     {
                         var holonEntityId = HashUtility.GetNumericHash(holon.Id);
 
-                        _holonRepository.Create(new HolonDto()
+                        _holonRepository.Create(new HolonDto
                         {
                             Info = holonInfo,
                             HolonId = holon.Id.ToString(),
                             EntityId = holonEntityId,
                             IsDeleted = false
-                        }).Wait();   
+                        }).Wait();
                     }
                 }
 
@@ -1026,25 +1050,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 result.IsSaved = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsSaved = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,
+            bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
+            bool continueOnError = true)
         {
             if (holons == null)
                 throw new ArgumentNullException(nameof(holons));
-            
+
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
@@ -1056,7 +1082,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     var existAvatar = _holonRepository.Read(holon.Id).Result;
                     if (existAvatar != null)
                     {
-                        await _holonRepository.Update(new HolonDto()
+                        await _holonRepository.Update(new HolonDto
                         {
                             Info = holonInfo
                         }, holon.Id);
@@ -1065,28 +1091,28 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     {
                         var holonEntityId = HashUtility.GetNumericHash(holon.Id);
 
-                        await _holonRepository.Create(new HolonDto()
+                        await _holonRepository.Create(new HolonDto
                         {
                             Info = holonInfo,
                             HolonId = holon.Id.ToString(),
                             EntityId = holonEntityId,
                             IsDeleted = false
-                        });   
-                    }   
+                        });
+                    }
                 }
 
                 result.Result = holons;
                 result.IsSaved = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsSaved = false;
                 result.Result = null;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1110,14 +1136,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 result.IsSaved = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsSaved = false;
                 result.Result = false;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1128,7 +1154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
-            
+
             var result = new OASISResult<bool>();
             try
             {
@@ -1141,14 +1167,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 result.IsSaved = true;
                 result.IsError = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
                 result.IsSaved = false;
                 result.Result = false;
-                
+
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1237,13 +1263,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         public Guid GetAvatarIdForEOSIOAccountName(string eosioAccountName)
         {
             //TODO: Handle OASISResult Properly.
-            return KeyManager.GetAvatarIdForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS).Result;
+            return KeyManager.GetAvatarIdForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS)
+                .Result;
         }
 
         public IAvatar GetAvatarForEOSIOAccountName(string eosioAccountName)
         {
             //TODO: Handle OASISResult Properly.
-            return KeyManager.GetAvatarForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS).Result;
+            return KeyManager.GetAvatarForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS)
+                .Result;
         }
     }
 }

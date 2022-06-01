@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiBinToJson;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiJsonToBin;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetBlock;
@@ -64,13 +63,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
 
         public async Task<string> SendTransaction(PerformTransactionRequestDto performTransactionRequestDto)
         {
-            return await SendRequest<string, PerformTransactionRequestDto>(performTransactionRequestDto, HttpMethod.Post,
+            return await SendRequest<string, PerformTransactionRequestDto>(performTransactionRequestDto,
+                HttpMethod.Post,
                 new Uri(_eosHostNodeUri + "v1/chain/send_transaction"));
         }
 
         public async Task<string> PushTransaction(PerformTransactionRequestDto performTransactionRequestDto)
         {
-            return await SendRequest<string, PerformTransactionRequestDto>(performTransactionRequestDto, HttpMethod.Post,
+            return await SendRequest<string, PerformTransactionRequestDto>(performTransactionRequestDto,
+                HttpMethod.Post,
                 new Uri(_eosHostNodeUri + "v1/chain/push_transactions"));
         }
 
@@ -88,7 +89,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
 
         public async Task<GetBlockHeaderStateResponseDto> GetBlockHeaderState(GetBlockRequestDto getBlockRequestDto)
         {
-            return await SendRequest<GetBlockHeaderStateResponseDto, GetBlockRequestDto>(getBlockRequestDto, HttpMethod.Post,
+            return await SendRequest<GetBlockHeaderStateResponseDto, GetBlockRequestDto>(getBlockRequestDto,
+                HttpMethod.Post,
                 new Uri(_eosHostNodeUri + "v1/chain/get_block_header_state"));
         }
 
@@ -121,7 +123,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                 var httpRequestMessage = new HttpRequestMessage
                 {
                     Method = httpMethod,
-                    RequestUri = uri,
+                    RequestUri = uri
                 };
 
                 if (request != null)
@@ -129,7 +131,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                     _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
                     httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(request));
                 }
-                
+
                 // Send request into EOS-node endpoint
                 var httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage);
                 if (!httpResponseMessage.IsSuccessStatusCode)

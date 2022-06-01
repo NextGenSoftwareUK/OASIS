@@ -1,20 +1,30 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using EosSharp;
+using EosSharp.Core;
+using EosSharp.Core.Api.v1;
+using EosSharp.Core.Providers;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities;
+using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetTableRows;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient;
+using Action = EosSharp.Core.Api.v1.Action;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
 {
     internal static class Program
     {
-        private static string _chainUrl = "http://localhost:8888";
-        private static string _oasisEosAccount = "berd22";
-        private static string _avatarTable = "avatar";
-        private static string _holonTable = "holon";
-        private static string _avatarDetailTable = "avatardetail";
+        private static readonly string _chainUrl = "http://localhost:8888";
+        private static readonly string _chainId = "8a34ec7df1b8cd06ff4a8abbaa7cc50300823350cadc59ab296cb00d104d2b8f";
+        private static readonly string _accountPk = "5KUm4te3kPbR6Fmrmr5WwCw3pfkymVxdh44x1b9QFYhm66uwYsP";
+
+        private static readonly string _oasisEosAccount = "oasis";
+        private static readonly string _avatarTable = "avatar";
+        private static readonly string _holonTable = "holon";
+        private static readonly string _avatarDetailTable = "avatardetail";
 
         #region Avatar Examples
 
@@ -23,14 +33,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
             IEosClient eosClient = new EosClient(new Uri(_chainUrl));
 
             Console.WriteLine("Requesting avatar table rows...");
-            
-            var avatarsTableDto = await eosClient.GetTableRows<AvatarDto>(new GetTableRowsRequestDto()
+
+            var avatarsTableDto = await eosClient.GetTableRows<AvatarDto>(new GetTableRowsRequestDto
             {
                 Code = _oasisEosAccount,
                 Table = _avatarTable,
                 Scope = _oasisEosAccount
             });
-            
+
             foreach (var avatarItem in avatarsTableDto.Rows)
             {
                 Console.WriteLine(new string('-', 10));
@@ -40,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
                 Console.WriteLine("IsDeleted: " + avatarItem.IsDeleted);
                 Console.WriteLine(new string('-', 10));
             }
-            
+
             Console.WriteLine("Requesting avatar table rows completed successfully...");
 
             eosClient.Dispose();
@@ -48,21 +58,172 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
 
         #endregion
 
+        #region Avatar Detail
+
+        private static async Task Run_GetAvatarDetailsTableRows()
+        {
+            IEosClient eosClient = new EosClient(new Uri(_chainUrl));
+
+            Console.WriteLine("Requesting avatar detail table rows...");
+
+            var avatarDetailsTableDto = await eosClient.GetTableRows<AvatarDetailDto>(new GetTableRowsRequestDto
+            {
+                Code = _oasisEosAccount,
+                Table = _avatarDetailTable,
+                Scope = _oasisEosAccount
+            });
+
+            foreach (var avatarDetailItem in avatarDetailsTableDto.Rows)
+            {
+                Console.WriteLine(new string('-', 10));
+                Console.WriteLine("Info: " + avatarDetailItem.Info);
+                Console.WriteLine("AvatarId: " + avatarDetailItem.AvatarId);
+                Console.WriteLine("EntityId: " + avatarDetailItem.EntityId);
+                Console.WriteLine(new string('-', 10));
+            }
+
+            Console.WriteLine("Requesting avatar detail table rows completed successfully...");
+
+            eosClient.Dispose();
+        }
+
+        #endregion
+
+        public static async Task Main()
+        {
+            // Avatar Examples
+            await Run_GetAvatarTableRows();
+
+            // Avatar Detail Examples
+            await Run_GetAvatarDetailsTableRows();
+
+            // Holon Examples
+            await Run_GetAllHolon();
+            await Run_SaveAndGetHolonById();
+            await Run_SoftAndHardDeleteHolonById();
+            await Run_EosSharp_HolonPushTransaction();
+            await Run_GetHolonTableRows();
+        }
+
         #region Holon Example
+
+        /// <summary>
+        ///     Runtime Error :(
+        /// </summary>
+        private static async Task Run_EOSNewYork_HolonPushTransaction()
+        {
+            // var chainApi = new ChainAPI(_chainUrl);
+            // var pushTransactionResult = await chainApi.PushTransactionAsync(
+            //     new Action[]
+            //     {
+            //         new Action()
+            //         {
+            //             account = new AccountName()
+            //             {
+            //                 value = _oasisEosAccount
+            //             },
+            //             authorization = new []
+            //             { 
+            //                 new Authorization()
+            //                 {
+            //                     actor = new AccountName()
+            //                     {
+            //                         value = _oasisEosAccount
+            //                     },
+            //                     permission = new PermissionName()
+            //                     {
+            //                         value = "active"
+            //                     }
+            //                 }
+            //             },
+            //             name = new ActionName()
+            //             {
+            //                 value = "addholon"
+            //             },
+            //             data = new BinaryString()
+            //             {
+            //                 value = "[123, \"test_holon_from_testharness\", \"test_holon_from_testharness2\"]"
+            //             }
+            //         }
+            //     }, 
+            //     new List<string>()
+            //     {
+            //         "5KUm4te3kPbR6Fmrmr5WwCw3pfkymVxdh44x1b9QFYhm66uwYsP"
+            //     });
+        }
+
+        private static async Task Run_EosSharp_HolonPushTransaction()
+        {
+            var eos = new Eos(new EosConfigurator
+            {
+                HttpEndpoint = _chainUrl,
+                ChainId = _chainId,
+                ExpireSeconds = 60,
+                SignProvider = new DefaultSignProvider(_accountPk)
+            });
+
+            Console.WriteLine("Requesting chain info...");
+
+            var chainInfo = await eos.GetInfo();
+            Console.WriteLine("EOS local-environment chain id: " + chainInfo.chain_id);
+            Console.WriteLine("EOS local-environment server version: " + chainInfo.server_version);
+
+            var holon = new Holon
+            {
+                Id = Guid.NewGuid(),
+                Name = "OASIS",
+                Version = 1,
+                IsActive = true,
+                Description = "EOS transaction creating."
+            };
+
+            var entityId = HashUtility.GetNumericHash(holon.Id);
+            var holonInfo = JsonConvert.SerializeObject(holon);
+
+            Console.WriteLine("Requesting transaction creating...");
+            var pushTransactionResult = await eos.CreateTransaction(new Transaction
+            {
+                actions = new List<Action>
+                {
+                    new()
+                    {
+                        account = _oasisEosAccount,
+                        authorization = new List<PermissionLevel>
+                        {
+                            new()
+                            {
+                                actor = _oasisEosAccount,
+                                permission = "active"
+                            }
+                        },
+                        name = "addholon",
+                        data = new
+                        {
+                            entityId,
+                            holonId = holon.Id.ToString(),
+                            info = holonInfo
+                        }
+                    }
+                }
+            });
+
+            Console.WriteLine("Transaction completed...");
+            Console.WriteLine($"Transaction hash: {pushTransactionResult}");
+        }
 
         private static async Task Run_GetHolonTableRows()
         {
             IEosClient eosClient = new EosClient(new Uri(_chainUrl));
 
             Console.WriteLine("Requesting holon table rows...");
-            
-            var holonTableRows = await eosClient.GetTableRows<HolonDto>(new GetTableRowsRequestDto()
+
+            var holonTableRows = await eosClient.GetTableRows<HolonDto>(new GetTableRowsRequestDto
             {
                 Code = _oasisEosAccount,
                 Table = _holonTable,
                 Scope = _oasisEosAccount
             });
-            
+
             foreach (var holonDto in holonTableRows.Rows)
             {
                 Console.WriteLine(new string('-', 10));
@@ -72,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
                 Console.WriteLine("IsDeleted: " + holonDto.IsDeleted);
                 Console.WriteLine(new string('-', 10));
             }
-            
+
             Console.WriteLine("Requesting holon table rows completed successfully...");
 
             eosClient.Dispose();
@@ -80,8 +241,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
 
         private static async Task Run_GetAllHolon()
         {
-            EOSIOOASIS eosioOasis = new EOSIOOASIS(_chainUrl, _oasisEosAccount);
-            
+            var eosioOasis = new EOSIOOASIS(_chainUrl, _oasisEosAccount, _chainId, _accountPk);
+
             Console.WriteLine("Run_GetAllHolon-->ActivateProvider()");
             eosioOasis.ActivateProvider();
 
@@ -104,16 +265,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
             Console.WriteLine("Run_GetAllHolon-->DeActivateProvider()");
             eosioOasis.DeActivateProvider();
         }
-        
+
         private static async Task Run_SaveAndGetHolonById()
         {
-            EOSIOOASIS eosioOasis = new EOSIOOASIS(_chainUrl, _oasisEosAccount);
-            
+            var eosioOasis = new EOSIOOASIS(_chainUrl, _oasisEosAccount, _chainId, _accountPk);
+
             Console.WriteLine("Run_SaveAndGetHolonById-->ActivateProvider()");
             eosioOasis.ActivateProvider();
 
             var entityId = Guid.NewGuid();
-            Holon entity = new Holon()
+            var entity = new Holon
             {
                 Name = "Bob",
                 Id = entityId
@@ -133,23 +294,23 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
                 Console.WriteLine(saveResult.Message);
                 return;
             }
-            
+
             Console.WriteLine("Holon Id: " + loadedEntityResult.Result.Id);
             Console.WriteLine("Holon Name: " + loadedEntityResult.Result.Name);
 
             Console.WriteLine("Run_SaveAndGetHolonById-->DeActivateProvider()");
             eosioOasis.DeActivateProvider();
         }
-        
+
         private static async Task Run_SoftAndHardDeleteHolonById()
         {
-            EOSIOOASIS eosioOasis = new EOSIOOASIS(_chainUrl, _oasisEosAccount);
-            
+            var eosioOasis = new EOSIOOASIS(_chainUrl, _oasisEosAccount, _chainId, _accountPk);
+
             Console.WriteLine("Run_SoftAndHardDeleteHolonById-->ActivateProvider()");
             eosioOasis.ActivateProvider();
-            
+
             var entityId = Guid.NewGuid();
-            Holon entity = new Holon()
+            var entity = new Holon
             {
                 Name = "Bob",
                 Id = entityId
@@ -163,15 +324,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
             }
 
             Console.WriteLine("Run_SoftAndHardDeleteHolonById-->DeleteHolonAsync()");
-            var softDeleteResult = await eosioOasis.DeleteHolonAsync(entityId, softDelete: true);
+            var softDeleteResult = await eosioOasis.DeleteHolonAsync(entityId);
             if (!softDeleteResult.IsSaved)
             {
                 Console.WriteLine(softDeleteResult.Message);
                 return;
             }
-            
+
             var entityId2 = Guid.NewGuid();
-            Holon entity2 = new Holon()
+            var entity2 = new Holon
             {
                 Name = "Bob",
                 Id = entityId2
@@ -183,9 +344,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
                 Console.WriteLine(saveResult.Message);
                 return;
             }
-            
+
             Console.WriteLine("Run_SoftAndHardDeleteHolonById-->DeleteHolonAsync()");
-            var hardDeleteResult = await eosioOasis.DeleteHolonAsync(entityId2, softDelete: false);
+            var hardDeleteResult = await eosioOasis.DeleteHolonAsync(entityId2, false);
             if (!hardDeleteResult.IsSaved)
             {
                 Console.WriteLine(hardDeleteResult.Message);
@@ -197,51 +358,5 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
         }
 
         #endregion
-
-        #region Avatar Detail
-
-        private static async Task Run_GetAvatarDetailsTableRows()
-        {
-            IEosClient eosClient = new EosClient(new Uri(_chainUrl));
-
-            Console.WriteLine("Requesting avatar detail table rows...");
-            
-            var avatarDetailsTableDto = await eosClient.GetTableRows<AvatarDetailDto>(new GetTableRowsRequestDto()
-            {
-                Code = _oasisEosAccount,
-                Table = _avatarDetailTable,
-                Scope = _oasisEosAccount
-            });
-            
-            foreach (var avatarDetailItem in avatarDetailsTableDto.Rows)
-            {
-                Console.WriteLine(new string('-', 10));
-                Console.WriteLine("Info: " + avatarDetailItem.Info);
-                Console.WriteLine("AvatarId: " + avatarDetailItem.AvatarId);
-                Console.WriteLine("EntityId: " + avatarDetailItem.EntityId);
-                Console.WriteLine(new string('-', 10));
-            }
-            
-            Console.WriteLine("Requesting avatar detail table rows completed successfully...");
-
-            eosClient.Dispose();
-        }
-
-        #endregion
-
-        public static async Task Main()
-        {
-            // Avatar Examples
-            await Run_GetAvatarTableRows();
-            
-            // Avatar Detail Examples
-            await Run_GetAvatarDetailsTableRows();
-            
-            // Holon Examples
-            await Run_GetHolonTableRows();
-            await Run_GetAllHolon();
-            await Run_SaveAndGetHolonById();
-            await Run_SoftAndHardDeleteHolonById();
-        }
     }
 }
