@@ -1,20 +1,24 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
-
+import '../../../assets/scss/coming-soon.scss';
+import InfoIcon from '../../../assets/images/icon-info.svg'
 class ComingSoon extends React.Component {
     render() {
         return (
             <Modal
-                size="xl"
+                size="sm"
                 show={this.props.show}
                 dialogClassName="modal-90w"
                 onHide={this.props.toggleScreenPopup}
             >
-                <Modal.Header closeButton>
-                    <Modal.Title>Coming Soon</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <h1>Coming Soon</h1>
+                <Modal.Body className="text-center coming-soon">
+                    <img
+                        src={InfoIcon}
+                        alt="icon"
+                    />
+                    <h2>Coming Soon</h2>
+                    <p>UI is coming soon...</p>
+                    <button onClick={this.props.toggleScreenPopup}>OK</button>
                 </Modal.Body>
             </Modal>
         );
