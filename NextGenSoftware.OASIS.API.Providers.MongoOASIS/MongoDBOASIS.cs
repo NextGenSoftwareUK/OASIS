@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
 using AvatarDetail = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail;
 using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -586,9 +587,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             result.Result.IsNewHolon = false;
             result.Result.Id = avatarResult.Result.HolonId;
             result.Result.ProviderUniqueStorageKey = avatarResult.Result.ProviderUniqueStorageKey;
-            result.Result.ProviderWallets = avatarResult.Result.ProviderWallets;
-           // result.Result.ProviderPrivateKey = avatarResult.Result.ProviderPrivateKey;
-           // result.Result.ProviderPublicKey = avatarResult.Result.ProviderPublicKey;
+            //result.Result.ProviderWallets = avatarResult.Result.ProviderWallets;
+
+            List<IProviderWallet> wallets;
+            foreach (ProviderType providerType in avatarResult.Result.ProviderWallets.Keys)
+            {
+                wallets = new List<IProviderWallet>();
+
+                foreach (IProviderWallet wallet in avatarResult.Result.ProviderWallets[providerType])
+                    wallets.Add(wallet);
+
+                result.Result.ProviderWallets[providerType] = wallets;
+            }
+
+            // result.Result.ProviderPrivateKey = avatarResult.Result.ProviderPrivateKey;
+            // result.Result.ProviderPublicKey = avatarResult.Result.ProviderPublicKey;
             result.Result.ProviderUsername = avatarResult.Result.ProviderUsername;
            // result.Result.ProviderWalletAddress = avatarResult.Result.ProviderWalletAddress;
             result.Result.PreviousVersionId = avatarResult.Result.PreviousVersionId;
@@ -763,7 +776,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.HolonId = avatar.Id;
             // mongoAvatar.AvatarId = avatar.Id;
             mongoAvatar.ProviderUniqueStorageKey = avatar.ProviderUniqueStorageKey;
-            mongoAvatar.ProviderWallets = avatar.ProviderWallets;
+
+            foreach (ProviderType providerType in avatar.ProviderWallets.Keys)
+            {
+                foreach (IProviderWallet wallet in avatar.ProviderWallets[providerType])
+                {
+                    if (!mongoAvatar.ProviderWallets.ContainsKey(providerType))
+                        mongoAvatar.ProviderWallets[providerType] = new List<ProviderWallet>();
+                    
+                    mongoAvatar.ProviderWallets[providerType].Add((ProviderWallet)wallet);
+                }
+            }
+
+            //mongoAvatar.ProviderWallets = avatar.ProviderWallets;
             // mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
             //mongoAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
             mongoAvatar.ProviderUsername = avatar.ProviderUsername;
@@ -1137,6 +1162,31 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         }
 
         OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
         {
             throw new NotImplementedException();
         }
