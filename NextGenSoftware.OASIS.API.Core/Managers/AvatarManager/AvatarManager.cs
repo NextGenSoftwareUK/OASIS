@@ -3254,7 +3254,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             result.Result = task.Result.Result;
 
                             //If we are loading from a local storge provider then load the provider wallets (including their private keys stored ONLY on local storage).
-                            if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal)
+                            if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
                                 result = await LoadProviderWalletsAsync(providerResult.Result, result, errorMessage);
                             else
                                 result.IsLoaded = true;
@@ -3307,7 +3307,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             result.Result = task.Result.Result;
 
                             //If we are loading from a local storge provider then load the provider wallets (including their private keys stored ONLY on local storage).
-                            if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal)
+                            if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
                                 result = await LoadProviderWalletsAsync(providerResult.Result, result, errorMessage);
                             else
                                 result.IsLoaded = true;
