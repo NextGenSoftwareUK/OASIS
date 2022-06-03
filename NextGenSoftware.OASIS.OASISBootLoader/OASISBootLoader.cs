@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
@@ -18,7 +19,6 @@ using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
-using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 
 namespace NextGenSoftware.OASIS.OASISBootLoader
@@ -378,7 +378,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                 if (registeredProvider != null)
                     ProviderManager.RegisterProvider(registeredProvider);
-                ;
             }
             else
                 registeredProvider = (IOASISStorageProvider) ProviderManager.GetProvider(providerType);

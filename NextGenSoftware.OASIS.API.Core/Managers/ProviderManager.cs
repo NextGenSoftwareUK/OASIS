@@ -117,6 +117,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return true;
         }
 
+        public static ProviderCategory GetProviderCategory(ProviderType providerType)
+        {
+            foreach (IOASISProvider provider in _registeredProviders)
+            {
+                if (provider.ProviderType.Value == providerType)
+                    return provider.ProviderCategory.Value;
+            }
+
+            return ProviderCategory.None;
+        }
+
         public static List<IOASISProvider> GetAllRegisteredProviders()
         {
             return _registeredProviders;
@@ -307,7 +318,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (provider == null)
                     throw new InvalidOperationException(string.Concat(Enum.GetName(typeof(ProviderType), providerType), " ProviderType is not registered. Please call RegisterProvider() method to register the provider before calling this method."));
 
-                if (provider != null && (provider.ProviderCategory.Value == ProviderCategory.Storage || provider.ProviderCategory.Value == ProviderCategory.StorageAndNetwork))
+                if (provider != null && (provider.ProviderCategory.Value == ProviderCategory.Storage 
+                    || provider.ProviderCategory.Value == ProviderCategory.StorageAndNetwork 
+                    || provider.ProviderCategory.Value == ProviderCategory.StorageLocal 
+                    || provider.ProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork))
                 {
                     if (CurrentStorageProvider != null)
                     {
