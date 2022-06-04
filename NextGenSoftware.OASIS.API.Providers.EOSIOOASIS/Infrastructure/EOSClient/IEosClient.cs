@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiBinToJson;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiJsonToBin;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.CurrencyBalance;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetBlock;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetInfo;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetRawAbi;
@@ -16,6 +17,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
     {
         public Task<GetNodeInfoResponseDto> GetNodeInfo();
         public Task<GetTableRowsResponseDto<T>> GetTableRows<T>(GetTableRowsRequestDto getTableRowsRequest);
+        public Task<string[]> GetCurrencyBalance(GetCurrencyBalanceRequestDto getCurrencyBalanceRequestDto);
+        public Task<GetAccountResponseDto> GetAccount(GetAccountDtoRequest getAccountDtoRequest);
         public Task<AbiJsonToBinResponseDto> AbiJsonToBin(AbiJsonToBinRequestDto abiJsonToBinRequestDto);
         public Task<string> AbiBinToJson(AbiBinToJsonRequestDto abiJsonToBinRequestDto);
         public Task<string> SendTransaction(PerformTransactionRequestDto performTransactionRequestDto);

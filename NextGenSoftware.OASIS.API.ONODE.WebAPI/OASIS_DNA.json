@@ -75,7 +75,10 @@
         "ConnectionString": "Data Source=OASISSQLLiteDB.db"
       },
       "EOSIOOASIS": {
-        "ConnectionString": "https://node.hypha.earth"
+        "ConnectionString": "http://localhost:8888",
+        "AccountName": "oasis",
+        "AccountPrivateKey": "5KUm4te3kPbR6Fmrmr5WwCw3pfkymVxdh44x1b9QFYhm66uwYsP",
+        "ChainId": "8a34ec7df1b8cd06ff4a8abbaa7cc50300823350cadc59ab296cb00d104d2b8f"
       },
       "TelosOASIS": {
         "ConnectionString": "https://node.hypha.earth"
