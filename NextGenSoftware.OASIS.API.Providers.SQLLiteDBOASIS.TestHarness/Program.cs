@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories;
 
 
-SQLLiteDBOASIS sQLLiteOASIS = new SQLLiteDBOASIS();
+SQLLiteDBOASIS sQLLiteOASIS = new SQLLiteDBOASIS("");
 
 
 //Console.WriteLine("Deleting Holon...");
@@ -108,23 +108,25 @@ await sQLLiteOASIS.SaveHolonAsync(h1);
 h1.Id = Guid.NewGuid();
 var resHolonAsync = await sQLLiteOASIS.SaveHolonAsync(h1);
 
-//if (resHolonAsync.IsSaved)
-//{
-//    Console.WriteLine("Holon ID:{0}", resHolonAsync.Message);
-//    Console.WriteLine("Holon Created.");
-//}
-//else
-//{
-//    Console.WriteLine("Error Message:{0}", resHolonAsync.Message);
-//}
+if (resHolonAsync.IsSaved)
+{
+    Console.WriteLine("Holon ID:{0}", resHolonAsync.Message);
+    Console.WriteLine("Holon Created.");
+}
+else
+{
+    Console.WriteLine("Error Message:{0}", resHolonAsync.Message);
+}
 
-//Console.WriteLine("Deleting Avatar...");
-//var resultDeleteAsync = await sQLLiteOASIS.DeleteAvatarAsync("dce55d0b-f62d-4694-9c5b-2f95bb8fc611");
-//Console.WriteLine(resultDeleteAsync.Message);
+Console.WriteLine("Deleting Avatar...");
+Guid Aid = new Guid("4F224576-4F40-4AF7-85FA-84C38C76FBF0");
+var resultDeleteAsync = await sQLLiteOASIS.DeleteAvatarAsync(Aid);
+Console.WriteLine(resultDeleteAsync.Message);
 
-//Console.WriteLine("Deleting Avatar...");
-//var resultDelete = sQLLiteOASIS.DeleteAvatar("dce55d0b-f62d-4694-9c5b-2f95bb8fc611");
-//Console.WriteLine(resultDelete.Message);
+Console.WriteLine("Deleting Avatar...");
+Guid id = new Guid("4F224576-4F40-4AF7-85FA-84C38C76FBF0");
+var resultDelete = sQLLiteOASIS.DeleteAvatar(id);
+Console.WriteLine(resultDelete.Message);
 
 
 Console.WriteLine("Loading Avatar Details..");
@@ -245,8 +247,8 @@ AvatarDetailEntity avatar = new AvatarDetailEntity()
 {
     Country = "India 14324",
     Address = "India 234254",
-    Email = "venketesh@gmail.com",
-    Username = "venketesh@gmail.com",
+    Email = "Iyer@gmail.com",
+    Username = "Iyer@gmail.com",
 };
 
 var resAvatar = sQLLiteOASIS.SaveAvatarDetail(avatar);
@@ -261,8 +263,8 @@ else
     Console.WriteLine("Error Message:{0}", resAvatar.Message);
 }
 
-Guid id = new Guid("76B778E6-DD47-40EA-B164-80945FE5452E");
-var avatarGUId = sQLLiteOASIS.LoadAvatar(id);
+Guid GuidID = new Guid("76B778E6-DD47-40EA-B164-80945FE5452E");
+var avatarGUId = sQLLiteOASIS.LoadAvatar(GuidID);
 if (avatarGUId.IsLoaded)
 {
     Console.WriteLine(avatarGUId.Message);

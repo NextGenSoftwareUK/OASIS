@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using static NextGenSoftware.OASIS.API.Core.Managers.AvatarManager;
+using static NextGenSoftware.OASIS.API.Core.Managers.OASISManager;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
@@ -22,8 +22,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0);
         OASISResult<IAvatar> LoadAvatar(string username, int version = 0);
         Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0);
-        //OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0);
-        //Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0);
         OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0);
         Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0);
         OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0);
@@ -75,16 +73,15 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true);
 
         //TODO: Implement these methods ASAP - this is how we can share data across silos, then merge, aggregate, sense-make, perform actions on the full internet data, etc...
-        //Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons); //Imports all data into the OASIS from a given provider (will then be auto-replicated to all providers). NOTE: The Provider will need to convert the providers raw data into a list of holons (holonize the data).
-        //Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0); //Exports all data for a given avatar and provider. Version = 0 - Latest version. Version = -1 All versions.
-        //Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0); //Exports all data for a given avatar and provider. Version = 0 - Latest version. Version = -1 All versions.
-        //Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0); //Exports all data for a given avatar and provider. Version = 0 - Latest version. Version = -1 All versions.
-        //Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0); //Exports all data for a given provider. Version = 0 - Latest version. Version = -1 All versions.
+        Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons); //Imports all data into the OASIS from a given provider (will then be auto-replicated to all providers). NOTE: The Provider will need to convert the providers raw data into a list of holons (holonize the data).
+        Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0); //Exports all data for a given avatar and provider. Version = 0 - Latest version. Version = -1 All versions.
+        Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0); //Exports all data for a given avatar and provider. Version = 0 - Latest version. Version = -1 All versions.
+        Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0); //Exports all data for a given avatar and provider. Version = 0 - Latest version. Version = -1 All versions.
+        Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0); //Exports all data for a given provider. Version = 0 - Latest version. Version = -1 All versions.
 
         Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
 
-        event StorageProviderError StorageProviderError;
-
+        public event StorageProviderError StorageProviderError;
         //TODO: Lots more to come! ;-)
     }
 }

@@ -9,12 +9,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IAvatar : IHolonBase
     {
-        Dictionary<ProviderType, string> ProviderPrivateKey { get; set; }
-        //Dictionary<ProviderType, string> ProviderPublicKey { get; set; }
-        Dictionary<ProviderType, List<string>> ProviderPublicKey { get; set; }
+        Dictionary<ProviderType, List<IProviderWallet>> ProviderWallets { get; set; }
+       // Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } //TODO: Want to replace this with ProviderWallets above ASAP...
+       // Dictionary<ProviderType, List<string>> ProviderPublicKey { get; set; } //TODO: Want to replace this with ProviderWallets above ASAP...
         Dictionary<ProviderType, string> ProviderUsername { get; set; }
-        //Dictionary<ProviderType, string> ProviderWalletAddress { get; set; }
-        Dictionary<ProviderType, List<string>> ProviderWalletAddress { get; set; }
+       // Dictionary<ProviderType, List<string>> ProviderWalletAddress { get; set; } //TODO: Want to replace this with ProviderWallets above ASAP...
         Guid AvatarId { get; set; }
         string Title { get; set; }
         string FirstName { get; set; }
@@ -42,7 +41,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         //int Level { get; }
         //int XP { get; set; }
         bool OwnsToken(string token);
-        OASISResult<IAvatar> Save();
-        Task<OASISResult<IAvatar>> SaveAsync();
+        OASISResult<IAvatar> Save(ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IAvatar>> SaveAsync(ProviderType providerType = ProviderType.Default);
+        //OASISResult<bool> SaveProviderWallets(ProviderType providerType = ProviderType.Default);
+        //Task<OASISResult<bool>> SaveProviderWalletsAsync(ProviderType providerType = ProviderType.Default);
     }
 }

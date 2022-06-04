@@ -9,22 +9,33 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 using BC = BCrypt.Net.BCrypt;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using AutoMapper;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public class AvatarManager : OASISManager
     {
-        public static IAvatar LoggedInAvatar { get; set; }
+        private static AvatarManager _instance = null;
         private ProviderManagerConfig _config;
 
-        public List<IOASISStorageProvider> OASISStorageProviders { get; set; }
+        public static IAvatar LoggedInAvatar { get; set; }
+        //public List<IOASISStorageProvider> OASISStorageProviders { get; set; }
+
+        //TODO Implement this singleton pattern for other Managers...
+        public static AvatarManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new AvatarManager(ProviderManager.CurrentStorageProvider);
+
+                return _instance;
+            }
+        }
 
         public ProviderManagerConfig Config
         {
@@ -44,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             AutoReplication
         }
 
-        public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
+        //public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
         //TODO: Not sure we want to pass the OASISDNA here?
         public AvatarManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
@@ -65,22 +76,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             try
             {
                 //First try by username...
-                result = LoadAvatar(username, false);
+                result = LoadAvatar(username, false, false);
 
                 if (result.Result == null)
                 {
                     //Now try by email...
-                    result = LoadAvatarByEmail(username, false);
+                    result = LoadAvatarByEmail(username, false, false);
 
                     if (result.Result == null)
                     {
                         //Finally by Public Key...
+                        //TODO: Make this more efficient so we do not need to load all avatars!
                         OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars();
 
                         if (!avatarsResult.IsError && avatarsResult.Result != null)
                         {
-                            if (avatarsResult.Result.Any(x => x.ProviderPublicKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value)))
-                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderPublicKey[ProviderManager.CurrentStorageProviderType.Value].Contains(username));
+                            if (avatarsResult.Result.Any(x => x.ProviderWallets.ContainsKey(ProviderManager.CurrentStorageProviderType.Value)))
+                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderWallets[ProviderManager.CurrentStorageProviderType.Value].Any( x=> x.PublicKey == username));
                         }
                     }
                 }
@@ -140,12 +152,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             try
             {
                 //First try by username...
-                result = await LoadAvatarAsync(username, false);
+                result = await LoadAvatarAsync(username, false, false);
 
                 if (result.Result == null)
                 {
                     //Now try by email...
-                    result = await LoadAvatarByEmailAsync(username, false);
+                    result = await LoadAvatarByEmailAsync(username, false, false);
 
                     if (result.Result == null)
                     {
@@ -154,8 +166,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (!avatarsResult.IsError && avatarsResult.Result != null)
                         {
-                            if (avatarsResult.Result.Any(x => x.ProviderPublicKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value)))
-                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderPublicKey[ProviderManager.CurrentStorageProviderType.Value].Contains(username));
+                            if (avatarsResult.Result.Any(x => x.ProviderWallets.ContainsKey(ProviderManager.CurrentStorageProviderType.Value)))
+                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderWallets[ProviderManager.CurrentStorageProviderType.Value].Any(x => x.PublicKey == username));
                         }
                     }
                 }
@@ -428,7 +440,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return response;
         }*/
 
-        public OASISResult<IAvatar> LoadAvatar(Guid id, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        public OASISResult<IAvatar> LoadAvatar(Guid id, bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -457,12 +469,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Mostly likely reason is the avatar does not exist. Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), "."), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
-                    result.IsLoaded = true;
-
                     if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar ", id, " loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), "."), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar ", id, " loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                         result.Message = "Avatar Successfully Loaded.";
+
+                    if (loadPrivateKeys)
+                        result = LoadProviderWallets(result);
+                    else
+                        result.IsLoaded = true;
 
                     if (hideAuthDetails)
                         result.Result = HideAuthDetails(result.Result);
@@ -480,7 +495,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -509,12 +524,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Mostly likely reason is the avatar does not exist. Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
-                    result.IsLoaded = true;
-
                     if (result.WarningCount > 0)
                         ErrorHandling.HandleWarning(ref result, string.Concat("The avatar ", id, " loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                         result.Message = "Avatar Successfully Loaded.";
+
+                    if (loadPrivateKeys)
+                        result = await LoadProviderWalletsAsync(result);
+                    else
+                        result.IsLoaded = true;
 
                     if (hideAuthDetails)
                         result.Result = HideAuthDetails(result.Result);
@@ -638,7 +656,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }*/
 
         //TODO: Replicate Auto-Fail over and Auto-Replication code for all Avatar, HolonManager methods etc...
-        public OASISResult<IAvatar> LoadAvatar(string username, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        public OASISResult<IAvatar> LoadAvatar(string username, bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -667,12 +685,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Mostly likely reason is the avatar does not exist. Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
-                    result.IsLoaded = true;
-
                     if (result.WarningCount > 0)
                         ErrorHandling.HandleWarning(ref result, string.Concat("The avatar ", username, " loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                         result.Message = "Avatar Successfully Loaded.";
+
+                    if (loadPrivateKeys)
+                        result = LoadProviderWallets(result);
+                    else
+                        result.IsLoaded = true;
 
                     if (hideAuthDetails)
                         result.Result = HideAuthDetails(result.Result);
@@ -690,7 +711,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -720,12 +741,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     //ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
-                    result.IsLoaded = true;
-
                     if (result.WarningCount > 0)
                         ErrorHandling.HandleWarning(ref result, string.Concat("The avatar ", username, " loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                         result.Message = "Avatar Successfully Loaded.";
+
+                    if (loadPrivateKeys)
+                        result = await LoadProviderWalletsAsync(result);
+                    else
+                        result.IsLoaded = true;
 
                     if (hideAuthDetails)
                         result.Result = HideAuthDetails(result.Result);
@@ -743,7 +767,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IAvatar> LoadAvatarByEmail(string email, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        public OASISResult<IAvatar> LoadAvatarByEmail(string email, bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -772,12 +796,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar with email ", email, ". Mostly likely reason is the avatar does not exist. Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
-                    result.IsLoaded = true;
-
                     if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar ", email, " loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                         result.Message = "Avatar Successfully Loaded.";
+
+                    if (loadPrivateKeys)
+                        result = LoadProviderWallets(result);
+                    else
+                        result.IsLoaded = true;
 
                     if (hideAuthDetails)
                         result.Result = HideAuthDetails(result.Result);
@@ -795,7 +822,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -824,12 +851,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar with email ", email, ". Mostly likely reason is the avatar does not exist. Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
-                    result.IsLoaded = true;
-
                     if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar ", email, " loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                         result.Message = "Avatar Successfully Loaded.";
+
+                    if (loadPrivateKeys)
+                        result = await LoadProviderWalletsAsync(result);
+                    else
+                        result.IsLoaded = true;
 
                     if (hideAuthDetails)
                         result.Result = HideAuthDetails(result.Result);
@@ -1141,7 +1171,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        public OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -1170,12 +1200,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all avatars. Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
-                    result.IsLoaded = true;
-
                     if (result.WarningCount > 0)
                         ErrorHandling.HandleWarning(ref result, string.Concat("All avatars loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                         result.Message = "Avatars Successfully Loaded.";
+
+                    if (loadPrivateKeys)
+                        result = LoadProviderWalletsForAllAvatars(result);
+                    else
+                        result.IsLoaded = true;
 
                     if (hideAuthDetails)
                         result.Result = HideAuthDetails(result.Result);
@@ -1193,7 +1226,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        public async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -1222,12 +1255,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all avatars. Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
-                    result.IsLoaded = true;
-
                     if (result.WarningCount > 0)
                         ErrorHandling.HandleWarning(ref result, string.Concat("All avatars loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                         result.Message = "Avatars Successfully Loaded.";
+                    
+                    if (loadPrivateKeys)
+                        result = await LoadProviderWalletsForAllAvatarsAsync(result);
+                    else
+                        result.IsLoaded = true;
 
                     if (hideAuthDetails)
                         result.Result = HideAuthDetails(result.Result);
@@ -1424,6 +1460,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
                 int removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
+                //Dictionary<ProviderType, List<IProviderWallet>> wallets = WalletManager.Instance.CopyProviderWallets(avatar.ProviderWallets);
 
                 result = SaveAvatarForProvider(avatar, result, SaveMode.FirstSaveAttempt, providerType);
                 previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -1434,6 +1471,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                         {
+                            //avatar.ProviderWallets = WalletManager.Instance.CopyProviderWallets(wallets);
                             result = SaveAvatarForProvider(avatar, result, SaveMode.AutoFailOver, type.Value);
 
                             if (!result.IsError && result.Result != null)
@@ -1463,6 +1501,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
                         {
+                            //avatar.ProviderWallets = WalletManager.Instance.CopyProviderWallets(wallets);
+
                             if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                                 result = SaveAvatarForProvider(avatar, result, SaveMode.AutoReplication, type.Value);
                         }
@@ -1670,7 +1710,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = LoadAvatar(id, true, providerType);
+                OASISResult<IAvatar> avatarResult = LoadAvatar(id, false, true, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -1748,7 +1788,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(id, true, providerType);
+                OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(id, false, true, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -1826,7 +1866,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(userName, true, providerType);
+                OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(userName, false, true, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -1904,7 +1944,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = LoadAvatar(userName, true, providerType);
+                OASISResult<IAvatar> avatarResult = LoadAvatar(userName, false, true, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -1982,7 +2022,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = await LoadAvatarByEmailAsync(email, true, providerType);
+                OASISResult<IAvatar> avatarResult = await LoadAvatarByEmailAsync(email, false, true, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -2060,7 +2100,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = LoadAvatarByEmail(email, true, providerType);
+                OASISResult<IAvatar> avatarResult = LoadAvatarByEmail(email, false, true, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -2782,7 +2822,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatar.Password = null;
 
             if (hidePrivateKeys)
-                avatar.ProviderPrivateKey = null;
+            {
+                foreach (ProviderType providerType in avatar.ProviderWallets.Keys)
+                {
+                    foreach (ProviderWallet wallet in avatar.ProviderWallets[providerType])
+                        wallet.PrivateKey = null;
+                }
+            }
 
             if (OASISDNA.OASIS.Security.HideRefreshTokens || hideRefreshTokens)
                 avatar.RefreshTokens = null;
@@ -3105,7 +3151,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         else
                         {
                             result.Result = task.Result.Result;
-                            result.IsLoaded = true;
+
+                            //If we are loading from a local storge provider then load the provider wallets (including their private keys stored ONLY on local storage).
+                            //if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
+                            //    result = await LoadProviderWalletsAsync(providerResult.Result, result, errorMessage);
+                            //else
+                            //    result.IsLoaded = true;
                         }
                     }
                     else
@@ -3154,7 +3205,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         else
                         {
                             result.Result = task.Result.Result;
-                            result.IsLoaded = true;
+
+                            //If we are loading from a local storge provider then load the provider wallets (including their private keys stored ONLY on local storage).
+                            //if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
+                            //    result = await LoadProviderWalletsAsync(providerResult.Result, result, errorMessage);
+                            //else
+                            //    result.IsLoaded = true;
                         }
                     }
                     else
@@ -3170,59 +3226,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
-
-        /*
-        private OASISResult<IAvatar> LoadAvatarForProvider(string username, string password, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            return LoadAvatarForProviderAsync(username, password, result).Result;
-        }
-
-        private async Task<OASISResult<IAvatar>> LoadAvatarForProviderAsync(string username, string password, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            //string errorMessage = $"Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {username} for provider {providerType}. Reason: ";
-            string errorMessageTemplate = "Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {0} for provider {1}. Reason: ";
-            string errorMessage = string.Format(errorMessageTemplate, username, providerType);
-
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-                errorMessage = string.Format(errorMessageTemplate, username, ProviderManager.CurrentStorageProviderType.Name);
-
-                if (!providerResult.IsError && providerResult.Result != null)
-                {
-                    var task = providerResult.Result.LoadAvatarAsync(username, password, version);
-
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
-                    {
-                        result = task.Result;
-
-                        if (task.Result.IsError || task.Result.Result == null)
-                        {
-                            if (string.IsNullOrEmpty(task.Result.Message))
-                                task.Result.Message = "Avatar Not Found.";
-
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
-                        }
-                        else
-                        {
-                            result.IsLoaded = true;
-                            result.Result = task.Result.Result;
-                        }
-                    }
-                    else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
-                }
-                else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
-
-            return result;
-        }*/
-
+       
         private OASISResult<IAvatar> LoadAvatarByEmailForProvider(string email, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             return LoadAvatarByEmailForProviderAsync(email, result, providerType, version).Result;
@@ -3253,8 +3257,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
                         else
                         {
-                            result.IsLoaded = true;
                             result.Result = task.Result.Result;
+
+                            ////If we are loading from a local storge provider then load the provider wallets (including their private keys stored ONLY on local storage).
+                            //if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
+                            //    result = await LoadProviderWalletsAsync(providerResult.Result, result, errorMessage);
+                            //else
+                            //    result.IsLoaded = true;
                         }
                     }
                     else
@@ -3523,6 +3532,34 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
+                    //Make sure private keys are ONLY stored locally.
+                    if (ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocal && ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocalAndNetwork)
+                    {
+                        foreach (ProviderType proType in avatar.ProviderWallets.Keys)
+                        {
+                            foreach (IProviderWallet wallet in avatar.ProviderWallets[proType])
+                                wallet.PrivateKey = null;
+                        }
+                    }
+                    else
+                    {
+                        //We need to save the wallets (with private keys) seperatley to the local storage provider otherwise the next time a non local provider replicates to local it will overwrite the wallets and private keys (will be blank).
+                        //TODO: The PrivateKeys are already encrypted but I want to add an extra layer of protection to encrypt the full wallet! ;-)
+                        //TODO: Soon will also add a 3rd level of protection by quantum encrypting the keys/wallets... :)
+                        /*
+                        OASISResult<bool> walletsResult = await WalletManager.Instance.SaveProviderWalletsForAvatarByIdAsync(avatar.Id, avatar.ProviderWallets, providerType);
+
+                        if (walletsResult.IsError || !walletsResult.Result)
+                        {
+                            if (string.IsNullOrEmpty(walletsResult.Message) && saveMode != SaveMode.AutoReplication)
+                                walletsResult.Message = "Unknown error occured saving provider wallets.";
+
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, walletsResult.Message), walletsResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                        }
+                        */
+
+                    }
+
                     var task = providerResult.Result.SaveAvatarAsync(avatar);
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
@@ -3554,9 +3591,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IAvatar> SaveAvatarForProvider(IAvatar avatar, OASISResult<IAvatar> result, SaveMode saveMode, ProviderType providerType = ProviderType.Default)
+        private OASISResult<IAvatar> SaveAvatarForProvider(IAvatar avatar, OASISResult<IAvatar> result, SaveMode saveMode, ProviderType providerType = ProviderType.Default)
         {
-            string errorMessageTemplate = "Error in SaveAvatarForProvider method in AvatarManager saving avatar detail with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
+            string errorMessageTemplate = "Error in SaveAvatarForProvider method in AvatarManager saving avatar with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, providerType, Enum.GetName(typeof(SaveMode), saveMode));
 
             try
@@ -3566,9 +3603,45 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
+                    //Make sure private keys are ONLY stored locally.
+                    if (ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocal && ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocalAndNetwork)
+                    {
+                        foreach (ProviderType proType in avatar.ProviderWallets.Keys)
+                        {
+                            foreach (IProviderWallet wallet in avatar.ProviderWallets[proType])
+                                wallet.PrivateKey = null;
+                        }
+                    }
+                    else
+                    {
+                        //TODO: Was going to load the private keys from the local storage and then restore any missing private keys before saving (in case they had been removed before saving to a non-local storage provider) but then there will be no way of knowing if the keys have been removed by the user (if they were then this would then incorrectly restore them again!).
+                        //Commented out code was an alternative to saving the private keys seperatley as the next block below does...
+                        //(result, IAvatar originalAvatar) = OASISResultHelper<IAvatar, IAvatar>.UnWrapOASISResult(ref result, LoadAvatar(avatar.Id, true, providerType), String.Concat(errorMessage, "Error loading avatar. Reason: {0}"));
+
+                        //if (!result.IsError)
+                        //{
+
+                        //}
+
+
+                        //We need to save the wallets (with private keys) seperatley to the local storage provider otherwise the next time a non local provider replicates to local it will overwrite the wallets and private keys (will be blank).
+                        //TODO: The PrivateKeys are already encrypted but I want to add an extra layer of protection to encrypt the full wallet! ;-)
+                        //TODO: Soon will also add a 3rd level of protection by quantum encrypting the keys/wallets... :)
+
+                        //OASISResult<bool> walletsResult = WalletManager.Instance.SaveProviderWalletsForAvatarById(avatar.Id, avatar.ProviderWallets, providerType);
+
+                        //if (walletsResult.IsError || !walletsResult.Result)
+                        //{
+                        //    if (string.IsNullOrEmpty(walletsResult.Message) && saveMode != SaveMode.AutoReplication)
+                        //        walletsResult.Message = "Unknown error occured saving provider wallets.";
+
+                        //    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, walletsResult.Message), walletsResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                        //}
+                    }
+
                     var task = Task.Run(() => providerResult.Result.SaveAvatar(avatar));
 
-                    if (task.Wait(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)))
+                    if (task.Wait(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)))
                     {
                         if (task.Result.IsError || task.Result.Result == null)
                         {
@@ -4106,6 +4179,144 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        private async Task<OASISResult<IAvatar>> LoadProviderWalletsAsync(OASISResult<IAvatar> result)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = null;
+
+            foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+            {
+                walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(result.Result.Id, type.Value);
+
+                if (!walletsResult.IsError && walletsResult.Result != null)
+                {
+                    result.Result.ProviderWallets = walletsResult.Result;
+                    break;
+                }
+                else
+                    ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsAsync in AvatarManager loading wallets for provider {type.Name}. Reason: {walletsResult.Message}");
+            }
+
+            if (walletsResult.IsError)
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", result.Result.Id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+            else
+                result.IsLoaded = true;
+
+            return result;
+        }
+
+        //private OASISResult<IAvatar> LoadProviderWallets(OASISResult<IAvatar> result)
+        //{
+        //    OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = null;
+
+        //    foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+        //    {
+        //        walletsResult = WalletManager.Instance.LoadProviderWalletsForAvatarById(result.Result.Id, type.Value);
+
+        //        if (!walletsResult.IsError && walletsResult.Result != null)
+        //        {
+        //            result.Result.ProviderWallets = walletsResult.Result;
+        //            break;
+        //        }
+        //        else
+        //            ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWallets in AvatarManager loading wallets for provider {type.Name}. Reason: {walletsResult.Message}");
+        //    }
+
+        //    if (walletsResult.IsError)
+        //        ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", result.Result.Id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+        //    else
+        //        result.IsLoaded = true;
+
+        //    return result;
+        //}
+
+        private OASISResult<IAvatar> LoadProviderWallets(OASISResult<IAvatar> result)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = 
+                WalletManager.Instance.LoadProviderWalletsForAvatarById(result.Result.Id);
+
+            if (walletsResult.IsError)
+                ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in AvatarManager loading wallets for avatar {result.Result.Id}. Reason: {walletsResult.Message}");
+            else
+                result.IsLoaded = true;
+
+            result.InnerMessages.AddRange(walletsResult.InnerMessages);
+            return result;
+        }
+
+        private async Task<OASISResult<IEnumerable<IAvatar>>> LoadProviderWalletsForAllAvatarsAsync(OASISResult<IEnumerable<IAvatar>> result)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = null;
+            bool errored = false;
+
+            foreach (IAvatar avatar in result.Result)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(avatar.Id, type.Value);
+
+                    if (!walletsResult.IsError && walletsResult.Result != null)
+                    {
+                        avatar.ProviderWallets = walletsResult.Result;
+                        break;
+                    }
+                    else
+                        ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAllAvatarsAsync in AvatarManager loading wallets for avatar {avatar.Id} for provider {type.Name}. Reason: {walletsResult.Message}");
+                }
+
+                if (walletsResult.IsError)
+                {
+                    errored = true;
+                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", avatar.Id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                }
+            }
+
+            if (!errored)
+            {
+                result.IsLoaded = true;
+
+                if (result.WarningCount > 0)
+                    ErrorHandling.HandleWarning(ref result, string.Concat("All avatar wallets loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                else
+                    result.Message = "Avatars Successfully Loaded.";
+            }
+            else
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all avatar wallets. Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+
+            return result;
+        }
+
+        private OASISResult<IEnumerable<IAvatar>> LoadProviderWalletsForAllAvatars(OASISResult<IEnumerable<IAvatar>> result)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = null;
+            bool errored = false;
+
+            foreach (IAvatar avatar in result.Result)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    walletsResult = WalletManager.Instance.LoadProviderWalletsForAvatarById(avatar.Id, type.Value);
+
+                    if (!walletsResult.IsError && walletsResult.Result != null)
+                    {
+                        avatar.ProviderWallets = walletsResult.Result;
+                        break;
+                    }
+                    else
+                        ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAllAvatars in AvatarManager loading wallets for avatar {avatar.Id} for provider {type.Name}. Reason: {walletsResult.Message}");
+                }
+
+                if (walletsResult.IsError)
+                {
+                    errored = true;
+                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", avatar.Id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                }
+            }
+
+            if (!errored)
+                result.IsLoaded = true;
+
+            return result;
+        }
 
         //private OASISResult<IAvatar> ProcessAvatarLogin(OASISResult<IAvatar> result, string username, string password, string ipAddress, Func<IAvatar, OASISResult<IAvatar>> saveFunc)
         //

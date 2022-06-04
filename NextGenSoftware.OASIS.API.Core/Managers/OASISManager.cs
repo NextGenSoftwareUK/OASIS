@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Events;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+﻿using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 
@@ -40,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //TODO: Need to unsubscribe events to stop memory leaks...
         }
 
-        private void OASISStorageProvider_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        private void OASISStorageProvider_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             OnOASISManagerError?.Invoke(this, new OASISErrorEventArgs() { Exception = e.Exception, Reason = e.Reason });
         }

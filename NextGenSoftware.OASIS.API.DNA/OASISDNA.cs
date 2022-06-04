@@ -46,6 +46,7 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public bool BCryptEncryptionEnabled { get; set; }
         public bool Rijndael256EncryptionEnabled { get; set; }
+        public string Rijndael256Key { get; set; }
         public bool QuantumEncryptionEnabled { get; set; }
     }
 
@@ -73,6 +74,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public Neo4jOASISSettings Neo4jOASIS { get; set; }
         public SolanaOASISSettings SolanaOASIS { get; set; }
         public CargoOASISSettings CargoOASIS { get; set; }
+        public LocalFileOASISSettings LocalFileOASIS { get; set; }
     }
 
     public class EmailSettings
@@ -154,5 +156,10 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public string Username { get; set; }
         public string Password { get; set; }
+    }
+
+    public class LocalFileOASISSettings
+    {
+        public string FilePath { get; set; }
     }
 }
