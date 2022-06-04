@@ -15,6 +15,12 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         //Central Storage/DB's by default can update the same record, if this flag is set below then they will act more like a Blockchain and store a new copy of the record and link to the previous version.
         //public bool IsVersionControlEnabled { get; set; } //You cannot turn VersionControl off for Blockchains because it is built in.
 
+
+        public OASISResult<bool> SendTrasaction(IWalletTransaction transation);
+        public Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransaction transation);
+        //public OASISResult<bool> SendNFT(IWalletTransaction transation);
+        //public Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation);
+
         //TODO: More specefic Blockchain options will appear here soon... ;-)
     }
 }

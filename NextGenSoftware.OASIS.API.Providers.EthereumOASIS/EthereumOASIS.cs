@@ -27,11 +27,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EthereumOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
 
-            var account = new Account(chainPrivateKey, chainId);
-            var web3 = new Web3(account, hostUri);
-            
-            _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(web3, contractAddress);
+            if (!string.IsNullOrEmpty(hostUri) && !string.IsNullOrEmpty(chainPrivateKey) && chainId > 0)
+            {
+                var account = new Account(chainPrivateKey, chainId);
+                var web3 = new Web3(account, hostUri);
 
+                _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(web3, contractAddress);
+            }
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
@@ -1096,6 +1098,31 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         }
 
         public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
         {
             throw new NotImplementedException();
         }

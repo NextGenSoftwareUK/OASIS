@@ -187,7 +187,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public DateTime ModifiedDate { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public Avatar DeletedByAvatar { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public Guid DeletedByAvatarId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public DateTime DeletedDate { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        //public DateTime DeletedDate { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public DateTime DeletedDate { get; set; }
         public EnumValue<ProviderType> CreatedProviderType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public EnumValue<OASISType> CreatedOASISType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 

@@ -93,6 +93,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public bool IsBeamedIn { get; set; }
         public Guid HolonId { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+        public Dictionary<ProviderType, List<IProviderWallet>> ProviderWallets { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         // public string Image2D { get; set; }
 
         /*
@@ -135,12 +137,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             return (ProviderManager.CurrentStorageProvider).SaveAvatar(this).Result;
         }
 
-        OASISResult<IAvatar> IAvatar.Save()
+        public OASISResult<IAvatar> Save(ProviderType providerType = ProviderType.Default)
         {
             throw new NotImplementedException();
         }
 
-        Task<OASISResult<IAvatar>> IAvatar.SaveAsync()
+        public Task<OASISResult<IAvatar>> SaveAsync(ProviderType providerType = ProviderType.Default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<bool> SaveProviderWallets(ProviderType providerType = ProviderType.Default)
         {
             throw new NotImplementedException();
         }

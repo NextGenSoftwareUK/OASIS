@@ -13,61 +13,15 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public abstract class OASISStorageProviderBase : OASISProvider, IOASISStorageProvider
     {
-        public OASISDNA OASISDNA { get; set; }
-        public string OASISDNAPath { get; set; }
+        public OASISStorageProviderBase() : base() { }
 
-        public event AvatarManager.StorageProviderError StorageProviderError;
+        public OASISStorageProviderBase(string OASISDNAPath) : base(OASISDNAPath) { }
 
-        public OASISStorageProviderBase()
-        {
-            OASISDNAManager.LoadDNA();
-            this.OASISDNA = OASISDNAManager.OASISDNA;
-            this.OASISDNAPath = OASISDNAManager.OASISDNAPath;
-        }
+        public OASISStorageProviderBase(OASISDNA OASISDNA) : base (OASISDNA) { }
 
-        public OASISStorageProviderBase(string OASISDNAPath)
-        {
-            this.OASISDNAPath = OASISDNAPath;
-            OASISDNAManager.LoadDNA(OASISDNAPath);
-            this.OASISDNA = OASISDNAManager.OASISDNA;
-        }
+        public OASISStorageProviderBase(OASISDNA OASISDNA, string OASISDNAPath) : base (OASISDNA, OASISDNAPath) { }
 
-        public OASISStorageProviderBase(OASISDNA OASISDNA)
-        {
-            this.OASISDNA = OASISDNA;
-            this.OASISDNAPath = OASISDNAManager.OASISDNAPath;
-        }
-
-        public OASISStorageProviderBase(OASISDNA OASISDNA, string OASISDNAPath)
-        {
-            this.OASISDNA = OASISDNA;
-            this.OASISDNAPath = OASISDNAPath;
-        }
-
-        //event StorageProviderError IOASISStorageProvider.StorageProviderError
-        //{
-        //    add
-        //    {
-        //        throw new NotImplementedException();
-        //    }
-
-        //    remove
-        //    {
-        //        throw new NotImplementedException();
-        //    }
-        //}
-
-        //TODO: COme back to this...
-        //public List<Avatar> LoadAvatarsWithoutPasswords(IEnumerable<Avatar> avatars)
-        //{
-        //    return avatars.Select(x => x.WithoutPassword());
-        //}
-
-        //public Avatar WithoutPassword(this Avatar user)
-        //{
-        //    user.Password = null;
-        //    return user;
-        //}
+        public event OASISManager.StorageProviderError StorageProviderError;
 
         public Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
@@ -91,68 +45,8 @@ namespace NextGenSoftware.OASIS.API.Core
 
         protected void OnStorageProviderError(string endPoint, string reason, Exception errorDetails)
         {
-            StorageProviderError?.Invoke(this, new AvatarManagerErrorEventArgs { EndPoint = endPoint, Reason = reason, Exception = errorDetails });
+            StorageProviderError?.Invoke(this, new OASISErrorEventArgs { EndPoint = endPoint, Reason = reason, Exception = errorDetails });
         }
-
-        /*
-        public abstract Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync();
-        public abstract IEnumerable<IAvatar> LoadAllAvatars();
-        public abstract IAvatar LoadAvatarByUsername(string avatarUsername);
-        public abstract Task<IAvatar> LoadAvatarAsync(Guid Id);
-        public abstract Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail);
-        public abstract Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername);
-        public abstract IAvatar LoadAvatar(Guid Id);
-        public abstract IAvatar LoadAvatarByEmail(string avatarEmail);
-        public abstract Task<IAvatar> LoadAvatarAsync(string username, string password);
-        public abstract IAvatar LoadAvatar(string username, string password);
-        public abstract IAvatar LoadAvatar(string username);
-        public abstract Task<IAvatar> LoadAvatarAsync(string username);
-        public abstract Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey);
-        public abstract IAvatar LoadAvatarForProviderKey(string providerKey);
-        // public abstract Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id);
-        //  public abstract IAvatarThumbnail LoadAvatarThumbnail(Guid id);
-        public abstract IAvatarDetail LoadAvatarDetail(Guid id);
-        public abstract IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail);
-        public abstract IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername);
-        public abstract Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id);
-        public abstract Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername);
-        public abstract Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail);
-        public abstract IEnumerable<IAvatarDetail> LoadAllAvatarDetails();
-        public abstract Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync();
-        public abstract IAvatar SaveAvatar(IAvatar Avatar);
-        public abstract Task<IAvatar> SaveAvatarAsync(IAvatar Avatar);
-        public abstract IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar);
-        public abstract Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar);
-        public abstract OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true);
-        public abstract OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true);
-        public abstract OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true);
-        public abstract Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true);
-        public abstract Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true);
-        public abstract Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true);
-        public abstract OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true);
-        public abstract Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true);
-        public abstract Task<ISearchResults> SearchAsync(ISearchParams searchParams);
-        public abstract IHolon LoadHolon(Guid id);
-        public abstract Task<IHolon> LoadHolonAsync(Guid id);
-        public abstract IHolon LoadHolon(string providerKey);
-        public abstract Task<IHolon> LoadHolonAsync(string providerKey);
-        public abstract IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All);
-        public abstract Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All);
-        public abstract IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All);
-        public abstract Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All);
-        public abstract IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.All);
-        public abstract Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.All);
-
-        //TODO: We need to migrate ALL OASIS methods to use the OASISResult Pattern ASAP! Thankyou! :)
-        public abstract OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true);
-        public abstract Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true);
-        public abstract OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true);
-        public abstract Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true);
-        public abstract bool DeleteHolon(Guid id, bool softDelete = true);
-        public abstract Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true);
-        public abstract bool DeleteHolon(string providerKey, bool softDelete = true);
-        public abstract Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true);
-        */
 
         public abstract Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0);
         public abstract OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0);
@@ -162,14 +56,10 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0);
         public abstract OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0);
         public abstract OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0);
-        //public abstract Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0);
-        //public abstract OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0);
         public abstract OASISResult<IAvatar> LoadAvatar(string username, int version = 0);
         public abstract Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0);
         public abstract Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0);
         public abstract OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0);
-        // public abstract Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id);
-        //  public abstract IAvatarThumbnail LoadAvatarThumbnail(Guid id);
         public abstract OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0);
         public abstract OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0);
         public abstract OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0);
@@ -202,7 +92,6 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0);
         public abstract Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0);
 
-        //TODO: We need to migrate ALL OASIS methods to use the OASISResult Pattern ASAP! Thankyou! :)
         public abstract OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
         public abstract Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
         public abstract OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true);
@@ -211,5 +100,15 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true);
         public abstract OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true);
         public abstract Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true);
+
+        public abstract Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons);
+
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0);
+
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0);
+
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0);
+
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0);
     }
 }

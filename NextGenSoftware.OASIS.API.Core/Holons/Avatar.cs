@@ -19,13 +19,13 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             this.HolonType = HolonType.Avatar;
         }
 
-        //TODO: Think best to encrypt these?
-        public Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } = new Dictionary<ProviderType, string>();  //Unique private key used by each provider (part of private/public key pair).
-        //public Dictionary<ProviderType, string> ProviderPublicKey { get; set; } = new Dictionary<ProviderType, string>();
-        public Dictionary<ProviderType, List<string>> ProviderPublicKey { get; set; } = new Dictionary<ProviderType, List<string>>();
+        public Dictionary<ProviderType, List<IProviderWallet>> ProviderWallets { get; set; } = new Dictionary<ProviderType, List<IProviderWallet>>();
+
+        //TODO: Want to replace this with ProviderWallets above ASAP...
+        //public Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } = new Dictionary<ProviderType, string>();  //Unique private key used by each provider (part of private/public key pair).
+        //public Dictionary<ProviderType, List<string>> ProviderPublicKey { get; set; } = new Dictionary<ProviderType, List<string>>();
         public Dictionary<ProviderType, string> ProviderUsername { get; set; } = new Dictionary<ProviderType, string>();  // This is only really needed when we need to store BOTH a id and username for a provider (ProviderUniqueStorageKey on Holon already stores either id/username etc).                                                                                                            // public Dictionary<ProviderType, string> ProviderId { get; set; } = new Dictionary<ProviderType, string>(); // The ProviderUniqueStorageKey property on the base Holon object can store ids, usernames, etc that uniqueliy identity that holon in the provider (although the Guid is globally unique we still need to map the Holons the unique id/username/etc for each provider).
-        //public Dictionary<ProviderType, string> ProviderWalletAddress { get; set; } = new Dictionary<ProviderType, string>();
-        public Dictionary<ProviderType, List<string>> ProviderWalletAddress { get; set; } = new Dictionary<ProviderType, List<string>>();
+       // public Dictionary<ProviderType, List<string>> ProviderWalletAddress { get; set; } = new Dictionary<ProviderType, List<string>>();
 
 
         //public new Guid Id 
@@ -124,15 +124,25 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return this.RefreshTokens?.Find(x => x.Token == token) != null;
         }
 
-        public async Task<OASISResult<IAvatar>> SaveAsync()
+        public async Task<OASISResult<IAvatar>> SaveAsync(ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IAvatar> result = await (ProviderManager.CurrentStorageProvider).SaveAvatarAsync(this);
-            return result;
+            return await AvatarManager.Instance.SaveAvatarAsync(this, providerType);
         }
-        public OASISResult<IAvatar> Save()
+        public OASISResult<IAvatar> Save(ProviderType providerType = ProviderType.Default)
         {
-            return (ProviderManager.CurrentStorageProvider).SaveAvatar(this);
+            return AvatarManager.Instance.SaveAvatar(this, providerType);
         }
+
+        //public OASISResult<bool> SaveProviderWallets(ProviderType providerType = ProviderType.Default)
+        //{
+        //    return AvatarManager.Instance.SaveProviderWallets(this, providerType);
+        //}
+
+        //TODO: Implement async version ASAP...
+        //public Task<OASISResult<bool>> SaveProviderWalletsAsync(ProviderType providerType = ProviderType.Default)
+        //{
+        //    return await AvatarManager.Instance.SaveProviderWalletsAsync(this, providerType);
+        //}
 
         /*
         private int GetKarmaForType(KarmaTypePositive karmaType)
