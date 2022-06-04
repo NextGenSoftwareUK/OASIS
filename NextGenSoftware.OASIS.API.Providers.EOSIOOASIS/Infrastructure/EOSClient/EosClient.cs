@@ -6,6 +6,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiBinToJson;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiJsonToBin;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.CurrencyBalance;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetBlock;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetInfo;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetRawAbi;
@@ -47,6 +49,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         {
             return await SendRequest<GetTableRowsResponseDto<T>, GetTableRowsRequestDto>(getTableRowsRequest,
                 HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+        }
+
+        public async Task<string[]> GetCurrencyBalance(GetCurrencyBalanceRequestDto getCurrencyBalanceRequestDto)
+        {
+            return await SendRequest<string[], GetCurrencyBalanceRequestDto>(getCurrencyBalanceRequestDto,
+                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_currency_balance"));
+        }
+
+        public async Task<GetAccountResponseDto> GetAccount(GetAccountDtoRequest getAccountDtoRequest)
+        {
+            return await SendRequest<GetAccountResponseDto, GetAccountDtoRequest>(getAccountDtoRequest,
+                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_account"));
         }
 
         public async Task<AbiJsonToBinResponseDto> AbiJsonToBin(AbiJsonToBinRequestDto abiJsonToBinRequestDto)

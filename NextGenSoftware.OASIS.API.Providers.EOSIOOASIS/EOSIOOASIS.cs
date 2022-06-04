@@ -12,6 +12,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Utilities;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.CurrencyBalance;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persistence;
@@ -22,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
     public class EOSIOOASIS : OASISStorageProviderBase, IOASISBlockchainStorageProvider, IOASISSmartContractProvider,
         IOASISNFTProvider, IOASISNETProvider, IOASISSuperStar
     {
-        private static readonly Dictionary<Guid, Account> _avatarIdToEOSIOAccountLookup = new();
+        private static readonly Dictionary<Guid, GetAccountResponseDto> _avatarIdToEOSIOAccountLookup = new();
         private readonly IEosProviderRepository<AvatarDetailDto> _avatarDetailRepository;
         private readonly IEosProviderRepository<AvatarDto> _avatarRepository;
 
@@ -1206,30 +1208,92 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        // public async Task<Account> GetEOSIOAccountAsync(string eosioAccountName)
-        // {
-        //     var account = await ChainAPI.GetAccountAsync(eosioAccountName);
-        //     return account;
-        // }
-        //
-        // public Account GetEOSIOAccount(string eosioAccountName)
-        // {
-        //     var account = ChainAPI.GetAccount(eosioAccountName);
-        //     return account;
-        // }
+        public async Task<GetAccountResponseDto> GetEOSIOAccountAsync(string eosioAccountName)
+        {
+            var accountResult = new OASISResult<GetAccountResponseDto>();
+            try
+            {
+                var accountResponseDto = await _eosClient.GetAccount(new GetAccountDtoRequest()
+                {
+                    AccountName = eosioAccountName
+                });
+                accountResult.Result = accountResponseDto;
+            }
+            catch (Exception e)
+            {
+                accountResult.Result = null;
+                
+                ErrorHandling.HandleError(ref accountResult, e.Message);
+            }
+
+            return accountResult.Result;
+        }
+        
+        public GetAccountResponseDto GetEOSIOAccount(string eosioAccountName)
+        {
+            var accountResult = new OASISResult<GetAccountResponseDto>();
+            try
+            {
+                var accountResponseDto = _eosClient.GetAccount(new GetAccountDtoRequest()
+                {
+                    AccountName = eosioAccountName
+                }).Result;
+                accountResult.Result = accountResponseDto;
+            }
+            catch (Exception e)
+            {
+                accountResult.Result = null;
+                
+                ErrorHandling.HandleError(ref accountResult, e.Message);
+            }
+
+            return accountResult.Result;
+        }
 
         public async Task<string> GetBalanceAsync(string eosioAccountName, string code, string symbol)
         {
-            // var currencyBalance = await ChainAPI.GetCurrencyBalanceAsync(eosioAccountName, code, symbol);
-            // return currencyBalance.balances[0];
-            throw new NotImplementedException();
+            var balanceResult = new OASISResult<string>();
+            try
+            {
+                var currencyBalances = await _eosClient.GetCurrencyBalance(new GetCurrencyBalanceRequestDto()
+                {
+                    Account = eosioAccountName,
+                    Code = code,
+                    Symbol = symbol
+                });
+                balanceResult.Result = currencyBalances != null ? currencyBalances[0] : string.Empty;
+            }
+            catch (Exception e)
+            {
+                balanceResult.Result = string.Empty;
+                
+                ErrorHandling.HandleError(ref balanceResult, e.Message);
+            }
+
+            return balanceResult.Result;
         }
 
         public string GetBalanceForEOSIOAccount(string eosioAccountName, string code, string symbol)
         {
-            // var currencyBalance = ChainAPI.GetCurrencyBalance(eosioAccountName, code, symbol);
-            // return currencyBalance.balances[0];
-            throw new NotImplementedException();
+            var balanceResult = new OASISResult<string>();
+            try
+            {
+                var currencyBalances = _eosClient.GetCurrencyBalance(new GetCurrencyBalanceRequestDto()
+                {
+                    Account = eosioAccountName,
+                    Code = code,
+                    Symbol = symbol
+                }).Result;
+                balanceResult.Result = currencyBalances != null ? currencyBalances[0] : string.Empty;
+            }
+            catch (Exception e)
+            {
+                balanceResult.Result = string.Empty;
+                
+                ErrorHandling.HandleError(ref balanceResult, e.Message);
+            }
+
+            return balanceResult.Result;
         }
 
         public string GetBalanceForAvatar(Guid avatarId, string code, string symbol)
@@ -1250,7 +1314,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return KeyManager.GetProviderPrivateKeyForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result;
         }
 
-        public Account GetEOSIOAccountForAvatar(Guid avatarId)
+        public GetAccountResponseDto GetEOSIOAccountForAvatar(Guid avatarId)
         {
             //TODO: Do we need to cache this?
             // if (!_avatarIdToEOSIOAccountLookup.ContainsKey(avatarId))

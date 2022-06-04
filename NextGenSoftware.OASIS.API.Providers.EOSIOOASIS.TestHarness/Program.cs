@@ -26,6 +26,75 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
         private static readonly string _holonTable = "holon";
         private static readonly string _avatarDetailTable = "avatardetail";
 
+        public static async Task Main()
+        {
+            // Account Examples
+            await Run_GetEOSIOAccountAsync();
+            await Run_GetBalanceForEOSIOAccount();
+            // Avatar Examples
+            await Run_GetAvatarTableRows();
+            
+            // Avatar Detail Examples
+            await Run_GetAvatarDetailsTableRows();
+            
+            // Holon Examples
+            await Run_GetAllHolon();
+            await Run_SaveAndGetHolonById();
+            await Run_SoftAndHardDeleteHolonById();
+            await Run_EosSharp_HolonPushTransaction();
+            await Run_GetHolonTableRows();
+        }
+
+        #region Eos Account Examples
+
+        public static async Task Run_GetEOSIOAccountAsync()
+        {
+            var eosioOasis = new EOSIOOASIS(_chainUrl, _oasisEosAccount, _chainId, _accountPk);
+
+            Console.WriteLine("Run_GetEOSIOAccountAsync-->ActivateProvider()");
+            eosioOasis.ActivateProvider();
+
+            Console.WriteLine("Requesting account...");
+            var eosAccount = await eosioOasis.GetEOSIOAccountAsync(_oasisEosAccount);
+            if (eosAccount == null)
+            {
+                Console.WriteLine("Account requesting error...");
+                eosioOasis.DeActivateProvider();
+                
+                return;
+            }
+            
+            Console.WriteLine("Account Name: " + eosAccount.AccountName);
+            Console.WriteLine("Account Parent Permission: " + eosAccount.Permissions[0].Parent);
+            
+            Console.WriteLine("Run_GetEOSIOAccountAsync-->ActivateProvider()");
+            eosioOasis.DeActivateProvider();
+        }
+
+        public static async Task Run_GetBalanceForEOSIOAccount()
+        {
+            var eosioOasis = new EOSIOOASIS(_chainUrl, _oasisEosAccount, _chainId, _accountPk);
+
+            Console.WriteLine("Run_GetBalanceForEOSIOAccount-->ActivateProvider()");
+            eosioOasis.ActivateProvider();
+
+            var accountBalance = eosioOasis.GetBalanceForEOSIOAccount(_oasisEosAccount, _oasisEosAccount, _oasisEosAccount);
+            if (string.IsNullOrEmpty(accountBalance))
+            {
+                Console.WriteLine("Balance requesting error...");
+                eosioOasis.DeActivateProvider();
+                
+                return;
+            }
+            
+            Console.WriteLine("Account Balance: " + accountBalance);
+
+            Console.WriteLine("Run_GetBalanceForEOSIOAccount-->ActivateProvider()");
+            eosioOasis.DeActivateProvider();
+        }
+
+        #endregion
+        
         #region Avatar Examples
 
         private static async Task Run_GetAvatarTableRows()
@@ -88,22 +157,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
         }
 
         #endregion
-
-        public static async Task Main()
-        {
-            // Avatar Examples
-            await Run_GetAvatarTableRows();
-
-            // Avatar Detail Examples
-            await Run_GetAvatarDetailsTableRows();
-
-            // Holon Examples
-            await Run_GetAllHolon();
-            await Run_SaveAndGetHolonById();
-            await Run_SoftAndHardDeleteHolonById();
-            await Run_EosSharp_HolonPushTransaction();
-            await Run_GetHolonTableRows();
-        }
 
         #region Holon Example
 
