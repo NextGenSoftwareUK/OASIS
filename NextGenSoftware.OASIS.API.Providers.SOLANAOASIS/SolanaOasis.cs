@@ -26,6 +26,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
         {
+            result.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
+
             OASISResult<Avatar> holonResult = await _solanaRepository.GetAsync<Avatar>(providerKey);
             OASISResult<IAvatar> result = new OASISResult<IAvatar>(holonResult.Result);
             OASISResultHolonToHolonHelper<Avatar, IAvatar>.CopyResult(holonResult, result);
