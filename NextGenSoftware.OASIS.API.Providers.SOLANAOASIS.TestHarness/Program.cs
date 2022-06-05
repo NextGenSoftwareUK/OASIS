@@ -2,8 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Entities;
-using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Entities.Models;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
 using Solnet.Programs;
 using Solnet.Rpc;
 using Solnet.Rpc.Builders;
@@ -29,11 +28,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness
 
             var avatar = new SolanaAvatarDto()
             {
-                Description = "Example bob avatar!",
                 Id = Guid.NewGuid(),
                 UserName = "@bob",
-                FirstName = "Bob",
-                LastName = "Foo",
                 AvatarId = Guid.NewGuid()
             };
             string avatarInfo = JsonConvert.SerializeObject(avatar);
@@ -63,11 +59,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness
 
             var avatar = new SolanaAvatarDto()
             {
-                Description = "Example bob avatar!",
                 Id = Guid.NewGuid(),
                 UserName = "@bob",
-                FirstName = "Bob",
-                LastName = "Foo",
                 AvatarId = Guid.NewGuid()
             };
             string avatarInfo = JsonConvert.SerializeObject(avatar);
