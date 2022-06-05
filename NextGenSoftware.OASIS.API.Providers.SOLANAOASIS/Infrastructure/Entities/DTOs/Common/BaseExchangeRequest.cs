@@ -1,4 +1,4 @@
-﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Common
+﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Entities.DTOs.Common
 {
     public abstract class BaseExchangeRequest
     {
