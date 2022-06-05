@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
             _rpcClient = ClientFactory.GetClient(Cluster.MainNet);
         }
 
-        public async Task<T> CreateAsync<T>(T entity) 
+        public async Task<string> CreateAsync<T>(T entity) 
             where T : SolanaBaseDto, new()
         {
             var walletAccount = _wallet.Account;
@@ -40,14 +40,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
 
             var transactionResult = await _rpcClient.SendTransactionAsync(entityTransactionBytes);
             if (!transactionResult.WasSuccessful || transactionResult.HttpStatusCode != HttpStatusCode.OK)
-                throw new Exception(transactionResult.RawRpcResponse);
+                throw new Exception($"{transactionResult.RawRpcResponse} Reason: Transaction processing failed, entity Id: {entity.Id}");
 
             // Wait for transaction creating is done on provider side...
             await Task.Delay(3000);
-            return entity;
+            return transactionResult.Result;
         }
 
-        public async Task<T> UpdateAsync<T>(T entity) 
+        public async Task<string> UpdateAsync<T>(T entity) 
             where T : SolanaBaseDto, new()
         {
             var walletAccount = _wallet.Account;
@@ -65,11 +65,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
 
             var transactionResult = await _rpcClient.SendTransactionAsync(entityUpdateTransactionBytes);
             if (!transactionResult.WasSuccessful || transactionResult.HttpStatusCode != HttpStatusCode.OK)
-                throw new Exception(transactionResult.RawRpcResponse);
+                throw new Exception($"{transactionResult.RawRpcResponse} Reason: Transaction processing failed, updating entity Id: {entity.Id}");
             
             // Wait for transaction creating is done on provider side...
             await Task.Delay(3000);
-            return entity;
+            return transactionResult.Result;
         }
 
         public async Task<bool> DeleteAsync(string transactionHashReference)
@@ -91,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
             var transactionContent = Encoding.UTF8.GetString(transactionDataBuffer);
             var deserializedEntity = JsonConvert.DeserializeObject<SolanaAvatarDto>(transactionContent);
             if (deserializedEntity == null)
-                return false;
+                throw new Exception($"{entityTransactionQueryResult.RawRpcResponse} Reason: No content found for hash {transactionHashReference}.");
 
             deserializedEntity.IsDeleted = true;
             deserializedEntity.Version++;
@@ -106,7 +106,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
 
             var transactionResult = await _rpcClient.SendTransactionAsync(entityDeleteUpdateTransactionBytes);
             if (!transactionResult.WasSuccessful || transactionResult.HttpStatusCode != HttpStatusCode.OK)
-                throw new Exception(transactionResult.RawRpcResponse);
+                throw new Exception($"{transactionResult.RawRpcResponse} Reason: transaction processing failed, entity Id: {deserializedEntity.Id}");
             
             // Wait for transaction creating is done on provider side...
             await Task.Delay(3000);
