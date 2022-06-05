@@ -2,6 +2,8 @@
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
 using Solnet.Programs;
 using Solnet.Rpc;
@@ -96,11 +98,60 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness
 
         #endregion
 
+        #region Solana Provider Example
+
+        private static async Task Run_SaveAndLoadAvatar()
+        {
+            SolanaOASIS solanaOasis = new SolanaOASIS(_mnemonicWords);
+            Console.WriteLine("Run_SaveAndLoadAvatar()->ActivateProvider()");
+            solanaOasis.ActivateProvider();
+
+            Console.WriteLine("Run_SaveAndLoadAvatar()->SaveAvatarAsync()");
+            var saveAvatarResult = await solanaOasis.SaveAvatarAsync(new Avatar()
+            {
+                Username = "@bob",
+                Password = "P@ssw0rd!",
+                Email = "bob@mail.ru",
+                Id = Guid.NewGuid(),
+                AvatarId = Guid.NewGuid()
+            });
+
+            if (saveAvatarResult.IsError)
+            {
+                Console.WriteLine(saveAvatarResult.Message);
+                return;
+            }
+
+            Console.WriteLine("Run_SaveAndLoadAvatar()->LoadAvatarAsync()");
+            var transactionHashProviderKey = saveAvatarResult.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS];
+            var loadAvatarResult = await solanaOasis.LoadAvatarForProviderKeyAsync(transactionHashProviderKey);
+            
+            if (loadAvatarResult.IsError)
+            {
+                Console.WriteLine(loadAvatarResult.Message);
+                return;
+            }
+            
+            Console.WriteLine("Avatar UserName: " + loadAvatarResult.Result.Username);
+            Console.WriteLine("Avatar Password: " + loadAvatarResult.Result.Password);
+            Console.WriteLine("Avatar Email: " + loadAvatarResult.Result.Email);
+            Console.WriteLine("Avatar Id: " + loadAvatarResult.Result.Id);
+            Console.WriteLine("Avatar AvatarId: " + loadAvatarResult.Result.AvatarId);
+
+            Console.WriteLine("Run_SaveAndLoadAvatar()->DeActivateProvider()");
+            solanaOasis.DeActivateProvider();
+        }
+
+        #endregion
+
         private static async Task Main(string[] args)
         {
+            //Solana Provider Examples
+            await Run_SaveAndLoadAvatar();
+            
             // Raw entity example
-            await Run_RawEntityCreation();
-            await Run_RawCreateAndQueryEntity();
+            // await Run_RawEntityCreation();
+            // await Run_RawCreateAndQueryEntity();
         }
     }
 }
