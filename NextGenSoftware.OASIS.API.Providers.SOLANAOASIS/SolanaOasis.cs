@@ -164,19 +164,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
+                string transactionHash;
                 // Update if avatar if transaction hash exist
                 if (avatar.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
                     avatar.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS, out var avatarSolanaHash))
                 {
                     var solanaAvatarDto = await _solanaRepository.GetAsync<SolanaAvatarDto>(avatarSolanaHash);
-                    await _solanaRepository.UpdateAsync(solanaAvatarDto);
+                    transactionHash = await _solanaRepository.UpdateAsync(solanaAvatarDto);
+                    
                 }
                 // Create avatar if transaction hash not exist
                 else
                 {
                     var solanaAvatarDto = avatar.GetSolanaAvatarDto();
-                    await _solanaRepository.CreateAsync(solanaAvatarDto);
+                    transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDto);
                 }
+
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
 
                 result.IsSaved = true;
                 result.IsError = false;
@@ -205,19 +209,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
+                string transactionHash;
                 // Update if avatar if transaction hash exist
                 if (avatar.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
                     avatar.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS, out var avatarDetailSolanaHash))
                 {
                     var solanaAvatarDetailDto = await _solanaRepository.GetAsync<SolanaAvatarDetailDto>(avatarDetailSolanaHash);
-                    await _solanaRepository.UpdateAsync(solanaAvatarDetailDto);
+                    transactionHash = await _solanaRepository.UpdateAsync(solanaAvatarDetailDto);
                 }
                 // Create avatar if transaction hash not exist
                 else
                 {
                     var solanaAvatarDetailDto = avatar.GetSolanaAvatarDetailDto();
-                    await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
+                    transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
                 }
+                
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
 
                 result.IsSaved = true;
                 result.IsError = false;
@@ -375,19 +382,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
             try
             {
+                string transactionHash;
                 // Update if avatar if transaction hash exist
                 if (holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
                     holon.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS, out var avatarDetailSolanaHash))
                 {
                     var solanaAvatarDetailDto = await _solanaRepository.GetAsync<SolanaAvatarDetailDto>(avatarDetailSolanaHash);
-                    await _solanaRepository.UpdateAsync(solanaAvatarDetailDto);
+                    transactionHash = await _solanaRepository.UpdateAsync(solanaAvatarDetailDto);
                 }
                 // Create avatar if transaction hash not exist
                 else
                 {
                     var solanaAvatarDetailDto = holon.GetSolanaHolonDto();
-                    await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
+                    transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
                 }
+                
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
 
                 if (saveChildren)
                 {
@@ -445,6 +455,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                         transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
                     }
                     
+                    holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
+
                     if(string.IsNullOrEmpty(transactionHash))
                     {
                         ErrorHandling.HandleWarning(ref result, $"{errorMessage} saving {LoggingHelper.GetHolonInfoForLogging(holon)}. Reason: transaction processing failed!");
