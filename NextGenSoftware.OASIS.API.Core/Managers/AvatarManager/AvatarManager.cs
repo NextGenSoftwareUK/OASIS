@@ -325,7 +325,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             try
             {
                 //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false);
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false, false);
 
                 if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {
@@ -4193,7 +4193,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     break;
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsAsync in AvatarManager loading wallets for provider {type.Name}. Reason: {walletsResult.Message}");
+                    ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsAsync in AvatarManager loading wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
             }
 
             if (walletsResult.IsError)
@@ -4234,12 +4234,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = 
                 WalletManager.Instance.LoadProviderWalletsForAvatarById(result.Result.Id);
 
-            if (walletsResult.IsError)
-                ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in AvatarManager loading wallets for avatar {result.Result.Id}. Reason: {walletsResult.Message}");
+            //This use to be HandleError but if the local wallets could not be loaded for whatever reason such as it was not found (because this is a new avatar for example), then it should just continue and then a new one will be created.
+            if (walletsResult.IsError || walletsResult.Result == null)
+                ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWallets method in AvatarManager loading wallets for avatar {result.Result.Id}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage, walletsResult);
             else
+            {
+                result.Result.ProviderWallets = walletsResult.Result;
                 result.IsLoaded = true;
 
-            result.InnerMessages.AddRange(walletsResult.InnerMessages);
+                if (walletsResult.WarningCount > 0)
+                {
+                    result.InnerMessages.Add(walletsResult.Message);
+                    result.InnerMessages.AddRange(walletsResult.InnerMessages);
+                    result.IsWarning = true;
+                    result.WarningCount += walletsResult.WarningCount;
+                }
+            }
+
             return result;
         }
 
@@ -4260,7 +4271,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         break;
                     }
                     else
-                        ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAllAvatarsAsync in AvatarManager loading wallets for avatar {avatar.Id} for provider {type.Name}. Reason: {walletsResult.Message}");
+                        ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAllAvatarsAsync in AvatarManager loading wallets for avatar {avatar.Id} for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
                 }
 
                 if (walletsResult.IsError)
@@ -4302,7 +4313,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         break;
                     }
                     else
-                        ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAllAvatars in AvatarManager loading wallets for avatar {avatar.Id} for provider {type.Name}. Reason: {walletsResult.Message}");
+                        ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAllAvatars in AvatarManager loading wallets for avatar {avatar.Id} for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
                 }
 
                 if (walletsResult.IsError)
