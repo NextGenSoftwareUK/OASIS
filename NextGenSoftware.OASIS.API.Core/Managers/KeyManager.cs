@@ -1484,8 +1484,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.Result[provider] = avatarResult.Result.ProviderWallets[provider].Select(x => x.PublicKey).ToList();
 
                         // Decrypt the keys only for this return object (there are not stored in memory or storage unenrypted).
-                        for (int i= 0; i < result.Result[provider].Count; i++)
-                            result.Result[provider][i] = Rijndael.Decrypt(result.Result[provider][i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                        for (int i = 0; i < result.Result[provider].Count; i++)
+                        {
+                            if (result.Result[provider][i] != null)
+                                result.Result[provider][i] = Rijndael.Decrypt(result.Result[provider][i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                        }
                     }
                 }
                 else
