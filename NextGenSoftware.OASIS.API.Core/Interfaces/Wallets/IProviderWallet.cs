@@ -1,6 +1,7 @@
 ﻿
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 
     public interface IProviderWallet : IHolonBase
     {
+        public Guid WalletId { get; set; }
         public string PrivateKey { get; set; }
         public string PublicKey { get; set; }
         public string WalletAddress { get; set; } //Hash of Public Key (shorter version).

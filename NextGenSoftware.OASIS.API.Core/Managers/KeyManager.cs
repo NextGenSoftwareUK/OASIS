@@ -6,11 +6,9 @@ using BC = BCrypt.Net.BCrypt;
 using Rijndael256;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Security;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
@@ -20,25 +18,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     {
         private static Dictionary<string, string> _avatarIdToProviderUniqueStorageKeyLookup = new Dictionary<string, string>();
         private static Dictionary<string, List<string>> _avatarIdToProviderPublicKeysLookup = new Dictionary<string, List<string>>();
-        private static Dictionary<string, List<string>> _avatarIdToProviderPrivateKeyLookup = new Dictionary<string, List<string>>();
+        //private static Dictionary<string, List<string>> _avatarIdToProviderPrivateKeyLookup = new Dictionary<string, List<string>>();
         private static Dictionary<string, string> _avatarUsernameToProviderUniqueStorageKeyLookup = new Dictionary<string, string>();
         private static Dictionary<string, List<string>> _avatarUsernameToProviderPublicKeysLookup = new Dictionary<string, List<string>>();
-        private static Dictionary<string, List<string>> _avatarUsernameToProviderPrivateKeyLookup = new Dictionary<string, List<string>>();
+        //private static Dictionary<string, List<string>> _avatarUsernameToProviderPrivateKeyLookup = new Dictionary<string, List<string>>();
         private static Dictionary<string, string> _avatarEmailToProviderUniqueStorageKeyLookup = new Dictionary<string, string>();
         private static Dictionary<string, List<string>> _avatarEmailToProviderPublicKeysLookup = new Dictionary<string, List<string>>();
-        private static Dictionary<string, List<string>> _avatarEmailToProviderPrivateKeyLookup = new Dictionary<string, List<string>>();
+        //private static Dictionary<string, List<string>> _avatarEmailToProviderPrivateKeyLookup = new Dictionary<string, List<string>>();
         private static Dictionary<string, Guid> _providerUniqueStorageKeyToAvatarIdLookup = new Dictionary<string, Guid>();
         private static Dictionary<string, Guid> _providerPublicKeyToAvatarIdLookup = new Dictionary<string, Guid>();
-        private static Dictionary<string, Guid> _providerPrivateKeyToAvatarIdLookup = new Dictionary<string, Guid>();
+        //private static Dictionary<string, Guid> _providerPrivateKeyToAvatarIdLookup = new Dictionary<string, Guid>();
         private static Dictionary<string, string> _providerUniqueStorageKeyToAvatarUsernameLookup = new Dictionary<string, string>();
         private static Dictionary<string, string> _providerPublicKeyToAvatarUsernameLookup = new Dictionary<string, string>();
-        private static Dictionary<string, string> _providerPrivateKeyToAvatarUsernameLookup = new Dictionary<string, string>();
+        //private static Dictionary<string, string> _providerPrivateKeyToAvatarUsernameLookup = new Dictionary<string, string>();
         private static Dictionary<string, string> _providerUniqueStorageKeyToAvatarEmailLookup = new Dictionary<string, string>();
         private static Dictionary<string, string> _providerPublicKeyToAvatarEmailLookup = new Dictionary<string, string>();
-        private static Dictionary<string, string> _providerPrivateKeyToAvatarEmailLookup = new Dictionary<string, string>();
+        //private static Dictionary<string, string> _providerPrivateKeyToAvatarEmailLookup = new Dictionary<string, string>();
         private static Dictionary<string, IAvatar> _providerUniqueStorageKeyToAvatarLookup = new Dictionary<string, IAvatar>();
         private static Dictionary<string, IAvatar> _providerPublicKeyToAvatarLookup = new Dictionary<string, IAvatar>();
-        private static Dictionary<string, IAvatar> _providerPrivateKeyToAvatarLookup = new Dictionary<string, IAvatar>();
+        //private static Dictionary<string, IAvatar> _providerPrivateKeyToAvatarLookup = new Dictionary<string, IAvatar>();
         private static KeyManager _instance = null;
 
         public static KeyManager Instance
@@ -118,25 +116,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             _avatarIdToProviderUniqueStorageKeyLookup.Clear();
             _avatarIdToProviderPublicKeysLookup.Clear();
-            _avatarIdToProviderPrivateKeyLookup.Clear();
+            //_avatarIdToProviderPrivateKeyLookup.Clear();
             _avatarUsernameToProviderUniqueStorageKeyLookup.Clear();
             _avatarUsernameToProviderPublicKeysLookup.Clear();
-            _avatarUsernameToProviderPrivateKeyLookup.Clear();
+           // _avatarUsernameToProviderPrivateKeyLookup.Clear();
             _avatarEmailToProviderUniqueStorageKeyLookup.Clear();
             _avatarEmailToProviderPublicKeysLookup.Clear();
-            _avatarEmailToProviderPrivateKeyLookup.Clear();
+           // _avatarEmailToProviderPrivateKeyLookup.Clear();
             _providerUniqueStorageKeyToAvatarIdLookup.Clear();
             _providerPublicKeyToAvatarIdLookup.Clear();
-            _providerPrivateKeyToAvatarIdLookup.Clear();
+            //_providerPrivateKeyToAvatarIdLookup.Clear();
             _providerUniqueStorageKeyToAvatarUsernameLookup.Clear();
             _providerPublicKeyToAvatarUsernameLookup.Clear();
-            _providerPrivateKeyToAvatarUsernameLookup.Clear();
+           // _providerPrivateKeyToAvatarUsernameLookup.Clear();
             _providerUniqueStorageKeyToAvatarEmailLookup.Clear();
             _providerPublicKeyToAvatarEmailLookup.Clear();
-            _providerPrivateKeyToAvatarEmailLookup.Clear();
+            //_providerPrivateKeyToAvatarEmailLookup.Clear();
             _providerUniqueStorageKeyToAvatarLookup.Clear();
             _providerPublicKeyToAvatarLookup.Clear();
-            _providerPrivateKeyToAvatarLookup.Clear();
+            //_providerPrivateKeyToAvatarLookup.Clear();
 
             return new OASISResult<bool>(true) { Message = "Cache Cleared."};
         }
@@ -176,7 +174,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, false, false, providerToLoadAvatarFrom);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, true, false, providerToLoadAvatarFrom);
 
                 //TODO Apply same fix in ALL other methods.
                 if (!avatarResult.IsError && avatarResult.Result != null)
@@ -199,7 +197,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, false, false, providerToLoadAvatarFrom);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, true, false, providerToLoadAvatarFrom);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = LinkProviderPublicKeyToAvatar(walletId, avatarResult.Result, providerTypeToLinkTo, providerKey, providerToLoadAvatarFrom);
@@ -220,7 +218,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatarByEmail(email, false, false, providerToLoadAvatarFrom);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatarByEmail(email, true, false, providerToLoadAvatarFrom);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = LinkProviderPublicKeyToAvatar(walletId, avatarResult.Result, providerTypeToLinkTo, providerKey, providerToLoadAvatarFrom);
@@ -281,8 +279,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     if (walletId == Guid.Empty)
                     {
-                        ProviderWallet newWallet = new ProviderWallet() { PublicKey = providerKey };
-                        result.Result = newWallet.Id;
+                        ProviderWallet newWallet = new ProviderWallet() 
+                        { 
+                            WalletId = Guid.NewGuid(),
+                            AvatarId = avatar.Id,
+                            CreatedByAvatarId = avatar.Id,
+                            CreatedDate = DateTime.Now,
+                            PublicKey = providerKey
+                        };
+
+                        result.Result = newWallet.WalletId;
                         avatar.ProviderWallets[providerTypeToLinkTo].Add(newWallet);
                     }
                     else
@@ -292,7 +298,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         if (wallet != null)
                         {
                             wallet.PublicKey = providerKey;
-                            result.Result = wallet.Id;
+                            wallet.ModifiedByAvatarId = avatar.Id;
+                            wallet.ModifiedDate = DateTime.Now;
+                            result.Result = wallet.WalletId;
                         }
                         else
                         {
@@ -307,15 +315,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
-                OASISResult<IAvatar> avatarResult = avatar.Save();
+                OASISResult<bool> walletsResult = WalletManager.Instance.SaveProviderWalletsForAvatarById(avatar.Id, avatar.ProviderWallets);
 
-                if (!avatarResult.IsError && avatarResult.Result != null)
+                if (!walletsResult.IsError && walletsResult.Result)
                 {
-                    result.IsSaved = true;
-                    result.Message = $"Public key {providerKey} was successfully linked to wallet {result.Result} and avatar {avatar.Id} - {avatar.Username} for provider {Enum.GetName(typeof(ProviderType), providerTypeToLinkTo)}";
+                    OASISResult<IAvatar> avatarResult = avatar.Save();
+
+                    if (!avatarResult.IsError && avatarResult.Result != null)
+                    {
+                        result.IsSaved = true;
+                        result.Message = $"Public key {providerKey} was successfully linked to wallet {result.Result} and avatar {avatar.Id} - {avatar.Username} for provider {Enum.GetName(typeof(ProviderType), providerTypeToLinkTo)}";
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"Error occured in LinkProviderPublicKeyToAvatar saving avatar {avatar.Id} - {avatar.Username} for providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)} and key {providerKey}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in LinkProviderPublicKeyToAvatar saving avatar {avatar.Id} - {avatar.Username} for providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)} and key {providerKey}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    ErrorHandling.HandleError(ref result, $"Error occured in LinkProviderPublicKeyToAvatar saving avatar wallets for avatar {avatar.Id} - {avatar.Username} and key {providerKey}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -514,14 +529,42 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatar.ProviderWallets.ContainsKey(providerTypeToLinkTo))
                     avatar.ProviderWallets.Add(providerTypeToLinkTo, new List<IProviderWallet>());
 
+               // providerPrivateKey = Rijndael.Encrypt(providerPrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+
+                foreach (ProviderType proType in avatar.ProviderWallets.Keys)
+                {
+                    foreach (IProviderWallet proWallet in avatar.ProviderWallets[proType])
+                    {
+                        if (proWallet != null && !string.IsNullOrEmpty(proWallet.PrivateKey))
+                            proWallet.PrivateKey = Rijndael.Decrypt(proWallet.PrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                    }
+                }
+
                 IProviderWallet wallet = avatar.ProviderWallets[providerTypeToLinkTo].FirstOrDefault(x => x.PrivateKey == providerPrivateKey);
+
+                foreach (ProviderType proType in avatar.ProviderWallets.Keys)
+                {
+                    foreach (IProviderWallet proWallet in avatar.ProviderWallets[proType])
+                    {
+                        if (proWallet != null && !string.IsNullOrEmpty(proWallet.PrivateKey))
+                            proWallet.PrivateKey = Rijndael.Encrypt(proWallet.PrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                    }
+                }
 
                 if (wallet == null)
                 {
                     if (walletId == Guid.Empty)
                     {
-                        ProviderWallet newWallet = new ProviderWallet() { PrivateKey = Rijndael.Encrypt(providerPrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256) };
-                        result.Result = newWallet.Id;
+                        ProviderWallet newWallet = new ProviderWallet()
+                        {
+                            WalletId = Guid.NewGuid(),
+                            AvatarId = avatar.Id,
+                            CreatedByAvatarId = avatar.Id,
+                            CreatedDate = DateTime.Now,
+                            PrivateKey = Rijndael.Encrypt(providerPrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256) 
+                        };
+
+                        result.Result = newWallet.WalletId;
                         avatar.ProviderWallets[providerTypeToLinkTo].Add(newWallet);
                     }
                     else
@@ -530,8 +573,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (wallet != null)
                         {
-                            wallet.PrivateKey = Rijndael.Encrypt(providerPrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
-                            result.Result = wallet.Id;
+                            wallet.PrivateKey = providerPrivateKey;
+                            wallet.ModifiedByAvatarId = avatar.Id;
+                            wallet.ModifiedDate = DateTime.Now;
+                            result.Result = wallet.WalletId;
                         }
                         else
                         {
@@ -546,29 +591,34 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
-                //Will save private keys (along with the rest of the wallet) to local storage providers only and wallets minus the private keys to the other non local storage providers.
-                //This way the private keys (and rest of the wallet) can be auto-replicated to other local storage providers and the wallets minus the private keys will be auto-replicated to other non storage providers.
-                OASISResult<IAvatar> avatarResult = avatar.Save();
-
                 // Could save the wallets without having to save the full avatar but then would need to add additional looping code to go through all providers looking for only local storage ones.
                 // But we STILL need to save the wallets (without private keys) for all non-local storage providers so not much point doing it seperatley and just call the Save method above... ;-)
                 // UPDATE: BUT the Save method above currently does not save private keys to local storage if Auto-Replicate is switched off so better to manually save them below just in case... :)
                 // Was considering moving this method into the Save above but then it would do extra un-necessary processing/logic EVERY time the avatar is saved even when the keys have not changed so best to just manually save when we KNOW they have changed (here). ;-)
                 // UPDATE: Auto-replicate in Save above NO longer saves to local storage in case the private kets get blanked out by a avatar object loaded from a non local provider.
                 // TODO: So now we need to add auto-replicate to all local storage providers for method below... DONE ;-)
-                WalletManager.Instance.SaveProviderWalletsForAvatarById(avatar.Id, avatar.ProviderWallets);
+                OASISResult<bool> walletsResult = WalletManager.Instance.SaveProviderWalletsForAvatarById(avatar.Id, avatar.ProviderWallets);
 
                 //The only issue is when a avatar is loaded from a non local storage provider how it will know the difference between that and if the user had deleted the private keys?
                 //TODO: COME BACK TO THE LINE ABOVE... AS I RECALL I WORKED OUT THERE WAS NO WAY IT WOULD WORK WITHOUT SAVING THE WALLETS (WITH PRIVATE KEYS) TO A LOCAL STORAGE PROVIDER OUTSIDE OF THE AVATAR OBJECT AS IT CURRENTLY DOES...
                 //The Wallet Save/Load needs to be de-coupled from the Avatar Save/Load as it currently is. Well actually the Save will save wallets locally during auto-replication only BUT will load wallets from localStorage on Avatar load if loadPrivateKeys param is set to true.
 
-                if (!avatarResult.IsError && avatarResult.Result != null)
+                if (!walletsResult.IsError && walletsResult.Result)
                 {
-                    result.IsSaved = true;
-                    result.Message = $"Private key was successfully linked to wallet {result.Result} and avatar {avatar.Id} - {avatar.Username} for provider {Enum.GetName(typeof(ProviderType), providerTypeToLinkTo)}";
+                    //Will save private keys (along with the rest of the wallet) to local storage providers only and wallets minus the private keys to the other non local storage providers.
+                    //This way the private keys (and rest of the wallet) can be auto-replicated to other local storage providers and the wallets minus the private keys will be auto-replicated to other non storage providers.
+                    OASISResult<IAvatar> avatarResult = avatar.Save();
+
+                    if (!avatarResult.IsError && avatarResult.Result != null)
+                    {
+                        result.IsSaved = true;
+                        result.Message = $"Private key was successfully linked to wallet {result.Result} and avatar {avatar.Id} - {avatar.Username} for provider {Enum.GetName(typeof(ProviderType), providerTypeToLinkTo)}";
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"Error occured in LinkProviderPrivateKeyToAvatar saving avatar {avatar.Id} - {avatar.Username} for providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in LinkProviderPrivateKeyToAvatar saving avatar {avatar.Id} - {avatar.Username} for providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    ErrorHandling.HandleError(ref result, $"Error occured in LinkProviderPrivateKeyToAvatar saving wallets to local storage for avatar {avatar.Id} - {avatar.Username}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -712,6 +762,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        /*
         public OASISResult<List<string>> GetProviderPrivateKeysForAvatarById(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<List<string>> result = new OASISResult<List<string>>();
@@ -775,6 +826,73 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else
                     ErrorHandling.HandleError(ref result, $"Error occured in GetProviderPrivateKeysForAvatarByUsername loading avatar with username {avatarUsername}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
+
+            return result;
+        }*/
+
+        public OASISResult<List<string>> GetProviderPrivateKeysForAvatarById(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<List<string>> result = new OASISResult<List<string>>();
+            //string key = string.Concat(Enum.GetName(providerType), avatarId);
+
+            if (AvatarManager.LoggedInAvatar.Id != avatarId)
+            {
+                result.IsError = true;
+                result.Message = "You cannot retreive the private key for another person's avatar. Please login to this account and try again.";
+            }
+
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = WalletManager.Instance.LoadProviderWalletsForAvatarById(avatarId);
+
+            //We use to cache the private keys but for security we no longer do this and instead load them from local storage each time they are needed (since they are local storage not much need to cache anyway).
+            if (!walletsResult.IsError && walletsResult.Result != null)
+            {
+                if (walletsResult.Result.ContainsKey(providerType))
+                {
+                    result.Result = walletsResult.Result[providerType].Select(x => x.PrivateKey).ToList();
+
+                    for (int i = 0; i < result.Result.Count; i++)
+                    {
+                        if (result.Result[i] != null)
+                            result.Result[i] = Rijndael.Decrypt(result.Result[i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                    }
+                }
+                else
+                    ErrorHandling.HandleError(ref result, string.Concat("The avatar with id ", avatarId, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in GetProviderPrivateKeysForAvatarById loading avatar wallets with id {avatarId}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
+
+            return result;
+        }
+
+        public OASISResult<List<string>> GetProviderPrivateKeysForAvatarByUsername(string avatarUsername, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<List<string>> result = new OASISResult<List<string>>();
+            //string key = string.Concat(Enum.GetName(providerType), avatarUsername);
+
+            if (AvatarManager.LoggedInAvatar.Username != avatarUsername)
+                ErrorHandling.HandleError(ref result, "Error occured in GetProviderPrivateKeysForAvatarByUsername. You cannot retreive the private key for another person's avatar. Please login to this account and try again.");
+
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = WalletManager.Instance.LoadProviderWalletsForAvatarByUsername(avatarUsername);
+
+            //We use to cache the private keys but for security we no longer do this and instead load them from local storage each time they are needed (since they are local storage not much need to cache anyway).
+            if (!walletsResult.IsError && walletsResult.Result != null)
+            {
+                if (walletsResult.Result.ContainsKey(providerType))
+                {
+                    result.Result = walletsResult.Result[providerType].Select(x => x.PrivateKey).ToList();
+
+                    for (int i = 0; i < result.Result.Count; i++)
+                    {
+                        if (result.Result[i] != null)
+                            result.Result[i] = Rijndael.Decrypt(result.Result[i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                    }
+                }
+                else
+                    ErrorHandling.HandleError(ref result, string.Concat("The avatar with username ", avatarUsername, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in GetProviderPrivateKeysForAvatarByUsername loading avatar wallets with username {avatarUsername}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
 
             return result;
         }
@@ -1050,6 +1168,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        /*
         public OASISResult<Guid> GetAvatarIdForProviderPrivateKey(string providerKey, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Guid> result = new OASISResult<Guid>();
@@ -1160,6 +1279,98 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             
             return result;
         }
+        */
+
+        /*
+        public OASISResult<Guid> GetAvatarIdForProviderPrivateKey(string providerKey, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<Guid> result = new OASISResult<Guid>();
+
+            // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
+            // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
+
+           // string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+            OASISResult<IAvatar> avatarResult = GetAvatarForProviderPrivateKey(providerKey, providerType);
+
+            if (!avatarResult.IsError && avatarResult.Result != null)
+                result.Result = avatarResult.Result.Id;
+            else
+                ErrorHandling.HandleError(ref result, string.Concat("Error occured in GetAvatarIdForProviderPrivateKey. The provider public Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
+            
+            return result;
+        }
+
+        public OASISResult<string> GetAvatarUsernameForProviderPrivateKey(string providerKey, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<string> result = new OASISResult<string>();
+            // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
+            // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
+
+           // string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+            OASISResult<IAvatar> avatarResult = GetAvatarForProviderPrivateKey(providerKey, providerType);
+
+            if (!avatarResult.IsError && avatarResult.Result != null)
+                result.Result = avatarResult.Result.Username;
+            else
+                ErrorHandling.HandleError(ref result, string.Concat("Error occured in GetAvatarUsernameForProviderPrivateKey for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
+
+            return result;
+        }
+
+        public OASISResult<string> GetAvatarEmailForProviderPrivateKey(string providerKey, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<string> result = new OASISResult<string>();
+            // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
+            // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
+
+           // string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+            OASISResult<IAvatar> avatarResult = GetAvatarForProviderPrivateKey(providerKey, providerType);
+
+            if (!avatarResult.IsError && avatarResult.Result != null)
+                result.Result = avatarResult.Result.Email;
+            else
+                ErrorHandling.HandleError(ref result, string.Concat("Error occured in GetAvatarEmailForProviderPrivateKey for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
+            
+            return result;
+        }
+
+        
+        public OASISResult<IAvatar> GetAvatarForProviderPrivateKey(string providerKey, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+
+            //TODO: Fix the StringCipher below or find the strongest encryption, maybe the Qunatum Encryption? :)
+            //string key = string.Concat(Enum.GetName(providerType), StringCipher.Encrypt(providerKey));
+            //string key = string.Concat(Enum.GetName(providerType), BC.HashPassword(providerKey));
+            //string key = string.Concat(Enum.GetName(providerType), Rijndael.Encrypt(providerKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256));
+
+
+            //TODO: Ideally need a new overload for LoadAvatarDetail that takes the public provider key.
+            //TODO: In the meantime should we cache the full list of AvatarDetails? Could take up a LOT of memory so probably not good idea?
+
+
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = WalletManager.Instance.LoadAllProviderWallets(providerKey);
+
+            if (!avatarsResult.IsError && avatarsResult.Result != null)
+            {
+                IAvatar avatar = avatarsResult.Result.FirstOrDefault(x => x.ProviderWallets.ContainsKey(providerType) && x.ProviderWallets[providerType].Any(x => x.PrivateKey == providerKey));
+
+                if (avatar != null)
+                {
+                    result.Result = avatar;
+                }
+                else
+                    ErrorHandling.HandleError(ref result, string.Concat("The provider private Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
+            }
+            else
+                ErrorHandling.HandleError(ref result, string.Concat("Error in GetAvatarForProviderPrivateKey for the provider private Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType. There was an error loading all avatars. Reason: ", avatarsResult.Message));
+
+            return result;
+        }*/
+
 
         public OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatarById(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
@@ -1300,11 +1511,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     foreach (ProviderType provider in avatarResult.Result.ProviderWallets.Keys)
                     {
-                        result.Result[provider] = avatarResult.Result.ProviderWallets[provider].Select(x => x.PublicKey).ToList();
+                        result.Result[provider] = avatarResult.Result.ProviderWallets[provider].Select(x => x.PrivateKey).ToList();
 
                         // Decrypt the keys only for this return object (there are not stored in memory or storage unenrypted).
                         for (int i = 0; i < result.Result[provider].Count; i++)
-                            result.Result[provider][i] = Rijndael.Decrypt(result.Result[provider][i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                        {
+                            if (result.Result[provider][i] != null)
+                                result.Result[provider][i] = Rijndael.Decrypt(result.Result[provider][i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                        }
                     }
                 }
                 else

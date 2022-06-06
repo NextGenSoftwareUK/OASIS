@@ -94,11 +94,6 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
         //    return result;
         //}
 
-        private string GetWalletFilePath(Guid id)
-        {
-            return string.Concat(_filePath, "wallets_", id.ToString(), ".json");
-        }
-
         public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarById(Guid id)
         {
             OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = 
@@ -107,24 +102,30 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             try
             {
                 Dictionary<ProviderType, List<ProviderWallet>> wallets = new Dictionary<ProviderType, List<ProviderWallet>>();
-                string json = File.ReadAllText(GetWalletFilePath(id));
-                wallets = JsonSerializer.Deserialize<Dictionary<ProviderType, List<ProviderWallet>>>(json);
 
-                if (wallets != null)
+                if (File.Exists(GetWalletFilePath(id)))
                 {
-                    foreach (ProviderType providerType in wallets.Keys)
-                    {
-                        foreach (ProviderWallet wallet in wallets[providerType])
-                        {
-                            if (!result.Result.ContainsKey(providerType))
-                                result.Result[providerType] = new List<IProviderWallet>();
+                    string json = File.ReadAllText(GetWalletFilePath(id));
+                    wallets = JsonSerializer.Deserialize<Dictionary<ProviderType, List<ProviderWallet>>>(json);
 
-                            result.Result[providerType].Add(wallet);
+                    if (wallets != null)
+                    {
+                        foreach (ProviderType providerType in wallets.Keys)
+                        {
+                            foreach (ProviderWallet wallet in wallets[providerType])
+                            {
+                                if (!result.Result.ContainsKey(providerType))
+                                    result.Result[providerType] = new List<IProviderWallet>();
+
+                                result.Result[providerType].Add(wallet);
+                            }
                         }
                     }
+                    else
+                        ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: Error deserializing data.");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: Error deserializing data.");
+                    ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: Error wallets json file not found: {GetWalletFilePath(id)}");
             }
             catch (Exception ex)
             {
@@ -141,25 +142,30 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 
             try
             {
-                Dictionary<ProviderType, List<ProviderWallet>> wallets = new Dictionary<ProviderType, List<ProviderWallet>>();
-                using FileStream openStream = File.OpenRead(GetWalletFilePath(id));
-                wallets = await JsonSerializer.DeserializeAsync<Dictionary<ProviderType, List<ProviderWallet>>>(openStream);
-
-                if (wallets != null)
+                if (File.Exists(GetWalletFilePath(id)))
                 {
-                    foreach (ProviderType providerType in wallets.Keys)
-                    {
-                        foreach (ProviderWallet wallet in wallets[providerType])
-                        {
-                            if (!result.Result.ContainsKey(providerType))
-                                result.Result[providerType] = new List<IProviderWallet>();
+                    Dictionary<ProviderType, List<ProviderWallet>> wallets = new Dictionary<ProviderType, List<ProviderWallet>>();
+                    using FileStream openStream = File.OpenRead(GetWalletFilePath(id));
+                    wallets = await JsonSerializer.DeserializeAsync<Dictionary<ProviderType, List<ProviderWallet>>>(openStream);
 
-                            result.Result[providerType].Add(wallet);
+                    if (wallets != null)
+                    {
+                        foreach (ProviderType providerType in wallets.Keys)
+                        {
+                            foreach (ProviderWallet wallet in wallets[providerType])
+                            {
+                                if (!result.Result.ContainsKey(providerType))
+                                    result.Result[providerType] = new List<IProviderWallet>();
+
+                                result.Result[providerType].Add(wallet);
+                            }
                         }
                     }
+                    else
+                        ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWalletsForAvatarByIdAsync method in LocalFileOASIS Provider loading wallets. Reason: Error deserializing data.");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWalletsForAvatarByIdAsync method in LocalFileOASIS Provider loading wallets. Reason: Error deserializing data.");
+                    ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: Error wallets json file not found: {GetWalletFilePath(id)}");
             }
             catch (Exception ex)
             {
@@ -244,7 +250,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 
             try
             {
-                string jsonString = JsonSerializer.Serialize(providerWallets);
+                string jsonString = JsonSerializer.Serialize<object>(providerWallets);
+                //string jsonString = JsonSerializer.Serialize<ProviderWallet>(providerWallets);
                 File.WriteAllText(GetWalletFilePath(id), jsonString);
                 result.Result = true;
             }
@@ -263,7 +270,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             try
             {
                 using FileStream createStream = File.Create(GetWalletFilePath(id));
-                await JsonSerializer.SerializeAsync(createStream, providerWallets);
+                await JsonSerializer.SerializeAsync<object>(createStream, providerWallets);
                 await createStream.DisposeAsync();
                 result.Result = true;
             }
@@ -628,6 +635,11 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
         public override Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
         {
             throw new NotImplementedException();
+        }
+
+        private string GetWalletFilePath(Guid id)
+        {
+            return string.Concat(_filePath, "wallets_", id.ToString(), ".json");
         }
     }
 }

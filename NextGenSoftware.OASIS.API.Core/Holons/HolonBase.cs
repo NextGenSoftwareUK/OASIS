@@ -15,13 +15,13 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public HolonBase()
         {
             IsNewHolon = true;
-            Id = Guid.NewGuid(); //TODO: Not sure if to have this or not?
+            //Id = Guid.NewGuid(); //TODO: Not sure if to have this or not?
         }
 
         public HolonBase(HolonType holonType)
         {
             IsNewHolon = true;
-            Id = Guid.NewGuid(); //TODO: Not sure if to have this or not?
+            //Id = Guid.NewGuid(); //TODO: Not sure if to have this or not?
             HolonType = holonType;
         }
 
