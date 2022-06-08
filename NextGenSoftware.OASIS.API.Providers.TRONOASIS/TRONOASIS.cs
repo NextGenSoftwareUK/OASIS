@@ -328,12 +328,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             throw new NotImplementedException();
         }
 
-        public OASISResult<bool> SendTrasaction(IWalletTransaction transation)
+        public OASISResult<bool> SendTransaction(IWalletTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransaction transation)
+        public Task<OASISResult<bool>> SendTransactionAsync(IWalletTransaction transation)
         {
             throw new NotImplementedException();
         }

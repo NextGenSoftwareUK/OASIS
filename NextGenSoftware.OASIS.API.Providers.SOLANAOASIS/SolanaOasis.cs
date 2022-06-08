@@ -6,13 +6,18 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Entities.DTOs.Common;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Entities.DTOs.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 {
     public class SolanaOASIS : OASISStorageProviderBase, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISNETProvider
     {
         private readonly ISolanaRepository _solanaRepository;
+        private readonly ISolanaService _solanaService;
+        
         public SolanaOASIS(string mnemonicWords)
         {
             this.ProviderName = nameof(SolanaOASIS);
@@ -21,6 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             _solanaRepository = new SolanaRepository(mnemonicWords);
+            _solanaService = new SolanaService();
         }
 
 
@@ -531,24 +537,104 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             throw new NotImplementedException();
         }
 
-        public OASISResult<bool> SendTrasaction(IWalletTransaction transation)
+        public OASISResult<bool> SendTransaction(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            return SendTransactionAsync(transation).Result;
         }
 
-        public Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransaction transation)
+        public async Task<OASISResult<bool>> SendTransactionAsync(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            if (transation == null)
+                throw new ArgumentNullException(nameof(transation));
+            var result = new OASISResult<bool>();
+            try
+            {
+                var solanaTransactionResult = await _solanaService.SendTransaction(new SendTransactionRequest()
+                {
+                    Amount = (ulong) transation.Amount,
+                    FromAccount = new BaseAccountRequest()
+                    {
+                        PublicKey = transation.FromWalletAddress
+                    },
+                    ToAccount = new BaseAccountRequest()
+                    {
+                        PublicKey = transation.ToWalletAddress
+                    }
+                });
+
+                if (solanaTransactionResult.IsError ||
+                    string.IsNullOrEmpty(solanaTransactionResult.Result.TransactionHash))
+                {
+                    ErrorHandling.HandleError(ref result, solanaTransactionResult.Message);
+
+                    result.Result = false;
+                    result.Message = $"Transaction performing failed! Reason: {solanaTransactionResult.Message}";
+                    return result;
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (Exception e)
+            {
+                ErrorHandling.HandleError(ref result, e.Message);
+
+                result.Result = false;
+                result.Message = "Transaction performing failed! Please try again later!";
+            }
+
+            return result;
         }
 
         public OASISResult<bool> SendNFT(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            return SendNFTAsync(transation).Result;
         }
 
-        public Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
+        public async Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            if (transation == null)
+                throw new ArgumentNullException(nameof(transation));
+            var result = new OASISResult<bool>();
+            try
+            {
+                var solanaNftTransactionResult = await _solanaService.MintNft(new MintNftRequest()
+                {
+                    Amount = (ulong) transation.Amount,
+                    FromAccount = new BaseAccountRequest()
+                    {
+                        PublicKey = transation.FromWalletAddress
+                    },
+                    ToAccount = new BaseAccountRequest()
+                    {
+                        PublicKey = transation.ToWalletAddress
+                    }
+                });
+
+                if (solanaNftTransactionResult.IsError ||
+                    string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
+                {
+                    ErrorHandling.HandleError(ref result, solanaNftTransactionResult.Message);
+
+                    result.Result = false;
+                    result.Message = $"NFT transaction performing failed! Reason: {solanaNftTransactionResult.Message}";
+                    return result;
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (Exception e)
+            {
+                ErrorHandling.HandleError(ref result, e.Message);
+
+                result.Result = false;
+                result.Message = "NFT transaction performing failed! Please try again later!";
+            }
+
+            return result;
         }
     }
 }
