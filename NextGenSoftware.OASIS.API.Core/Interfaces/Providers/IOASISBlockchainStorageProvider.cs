@@ -16,8 +16,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         //public bool IsVersionControlEnabled { get; set; } //You cannot turn VersionControl off for Blockchains because it is built in.
 
 
-        public OASISResult<bool> SendTrasaction(IWalletTransaction transation);
-        public Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransaction transation);
+        public OASISResult<bool> SendTransaction(IWalletTransaction transation);
+        public Task<OASISResult<bool>> SendTransactionAsync(IWalletTransaction transation);
         //public OASISResult<bool> SendNFT(IWalletTransaction transation);
         //public Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation);
 
