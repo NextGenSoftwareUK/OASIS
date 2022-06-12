@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Nethereum.JsonRpc.Client;
@@ -13,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Utilities;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
@@ -21,7 +23,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         private readonly NextGenSoftwareOASISService _nextGenSoftwareOasisService;
         private readonly Account _oasisAccount;
         private readonly Web3 _web3Client;
+        private KeyManager _keyManager;
 
+        private KeyManager KeyManager
+        {
+            get
+            {
+                if (_keyManager == null)
+                    _keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.EthereumOASIS));
+
+                return _keyManager;
+            }
+        }
+        
         public EthereumOASIS(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
         {
             this.ProviderName = "EthereumOASIS";
@@ -1129,25 +1143,178 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             throw new NotImplementedException();
         }
 
-        public OASISResult<bool> SendTransaction(IWalletTransaction transation)
+        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            return SendTransactionAsync(transation).Result;
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<bool>> SendTransactionAsync(IWalletTransaction transation)
+        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            var result = new OASISResult<bool>();
-            try
+            var result = new OASISResult<string>();
+
+            var senderAvatarPrivateKeysResult = KeyManager.GetProviderPrivateKeysForAvatarById(fromAvatarId, Core.Enums.ProviderType.EthereumOASIS);
+            var receiverAvatarAddressesResult = KeyManager.GetProviderPublicKeysForAvatarById(toAvatarId, Core.Enums.ProviderType.EthereumOASIS);
+
+            if (senderAvatarPrivateKeysResult.IsError || receiverAvatarAddressesResult.IsError)
             {
-                var transaction = await _web3Client.Eth.GetEtherTransferService()
-                    .TransferEtherAndWaitForReceiptAsync(transation.ToWalletAddress, 1.11m);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
+                result.Message = "Loading private/public keys failed!";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = string.Empty;
+            
+                ErrorHandling.HandleError(ref result, result.Message);
+                return result;
             }
 
+            var senderAvatarPrivateKey = senderAvatarPrivateKeysResult.Result[0];
+            var receiverAvatarAddress = receiverAvatarAddressesResult.Result[0];
+            return await SendEthereumTransaction(senderAvatarPrivateKey, receiverAvatarAddress, amount);
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            var result = new OASISResult<string>();
+            var senderAvatarPrivateKeysResult = KeyManager.GetProviderPrivateKeysForAvatarByUsername(fromAvatarUsername, Core.Enums.ProviderType.EthereumOASIS);
+            var receiverAvatarAddressesResult = KeyManager.GetProviderPublicKeysForAvatarByUsername(toAvatarUsername, Core.Enums.ProviderType.EthereumOASIS);
+
+            if (senderAvatarPrivateKeysResult.IsError || receiverAvatarAddressesResult.IsError)
+            {
+                result.Message = "Loading private/public keys failed!";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = string.Empty;
+        
+                ErrorHandling.HandleError(ref result, result.Message);
+                return result;
+            }
+
+            var senderAvatarPrivateKey = senderAvatarPrivateKeysResult.Result[0];
+            var receiverAvatarAddress = receiverAvatarAddressesResult.Result[0];
+            return await SendEthereumTransaction(senderAvatarPrivateKey, receiverAvatarAddress, amount);
+        }
+
+        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            var result = new OASISResult<string>();
+        
+            var senderAvatarPrivateKeysResult = KeyManager.GetProviderUniqueStorageKeyForAvatarByEmail(fromAvatarEmail, Core.Enums.ProviderType.EthereumOASIS);
+            var receiverAvatarAddressesResult = KeyManager.GetProviderPublicKeysForAvatarByEmail(toAvatarEmail, Core.Enums.ProviderType.EthereumOASIS);
+            if (senderAvatarPrivateKeysResult.IsError || receiverAvatarAddressesResult.IsError)
+            {
+                result.Message = "Loading private/public keys failed!";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = string.Empty;
+        
+                ErrorHandling.HandleError(ref result, result.Message);
+                return result;
+            }
+
+            var senderAvatarPrivateKey = senderAvatarPrivateKeysResult.Result;
+            var receiverAvatarAddress = receiverAvatarAddressesResult.Result[0];
+            return await SendEthereumTransaction(senderAvatarPrivateKey, receiverAvatarAddress, amount);
+        }
+
+        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
+        }
+        
+        public OASISResult<string> SendTransaction(IWalletTransaction transaction)
+        {
+            return SendTransactionAsync(transaction).Result;
+        }
+        
+        public async Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transaction)
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                var transactionResult = await _web3Client.Eth.GetEtherTransferService()
+                    .TransferEtherAndWaitForReceiptAsync(transaction.ToWalletAddress, transaction.Amount);
+
+                if (transactionResult.HasErrors() is true)
+                {
+                    result.Message = "Ethereum transaction performing failed! " +
+                                     $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {transaction.Amount}." +
+                                     $"Reason: {transactionResult.Logs}";
+                    result.IsError = true;
+                    result.IsSaved = false;
+                    result.Result = string.Empty;
+                
+                    ErrorHandling.HandleError(ref result, result.Message);
+                    return result;
+                }
+                
+                result.IsError = false;
+                result.IsSaved = true;
+                result.Result = transactionResult.TransactionHash;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Ethereum side error while performing transaction!";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = string.Empty;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                result.Message = ex.Message;
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = string.Empty;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+
+            return result;
+        }
+        
+        private async Task<OASISResult<string>> SendEthereumTransaction(string senderAccountPrivateKey, string receiverAccountAddress, decimal amount)
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                var senderEthAccount = new Account(senderAccountPrivateKey);
+                var web3Client = new Web3(senderEthAccount);
+                
+                var transactionResult = await web3Client.Eth.GetEtherTransferService()
+                    .TransferEtherAndWaitForReceiptAsync(receiverAccountAddress, amount);
+                
+                if (transactionResult.HasErrors() is true)
+                {
+                    result.Message = "Ethereum transaction performing failed!";
+                    result.IsError = true;
+                    result.IsSaved = false;
+                    result.Result = string.Empty;
+                
+                    ErrorHandling.HandleError(ref result, result.Message);
+                    return result;
+                }
+
+                result.IsError = false;
+                result.IsSaved = true;
+                result.Result = transactionResult.TransactionHash;
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                result.Message = ex.Message;
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = string.Empty;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
             return result;
         }
     }
