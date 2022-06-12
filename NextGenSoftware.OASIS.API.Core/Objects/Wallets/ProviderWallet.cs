@@ -31,6 +31,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public List<IWalletTransaction> Transactions {get;set;}
         public ProviderType ProviderType { get; set; }
         public int Balance { get; set; }
+        public bool IsDefaultWallet { get; set; }
 
         public OASISResult<bool> SendNFT(IWalletTransaction transation)
         {
