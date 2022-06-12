@@ -16,9 +16,11 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
-    public class EthereumOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar
+    public class EthereumOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider
     {
         private readonly NextGenSoftwareOASISService _nextGenSoftwareOasisService;
+        private readonly Account _oasisAccount;
+        private readonly Web3 _web3Client;
 
         public EthereumOASIS(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
         {
@@ -29,10 +31,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             if (!string.IsNullOrEmpty(hostUri) && !string.IsNullOrEmpty(chainPrivateKey) && chainId > 0)
             {
-                var account = new Account(chainPrivateKey, chainId);
-                var web3 = new Web3(account, hostUri);
+                _oasisAccount = new Account(chainPrivateKey, chainId);
+                _web3Client = new Web3(_oasisAccount, hostUri);
 
-                _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(web3, contractAddress);
+                _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(_web3Client, contractAddress);
             }
         }
 
@@ -1125,6 +1127,28 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         public override Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
         {
             throw new NotImplementedException();
+        }
+
+        public OASISResult<bool> SendTransaction(IWalletTransaction transation)
+        {
+            return SendTransactionAsync(transation).Result;
+        }
+
+        public async Task<OASISResult<bool>> SendTransactionAsync(IWalletTransaction transation)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                var transaction = await _web3Client.Eth.GetEtherTransferService()
+                    .TransferEtherAndWaitForReceiptAsync(transation.ToWalletAddress, 1.11m);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
+            return result;
         }
     }
 }
