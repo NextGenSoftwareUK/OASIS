@@ -1,6 +1,6 @@
 ﻿using Solnet.Metaplex;
 
-namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Entities.DTOs.Responses
+namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses
 {
     public sealed class NftCreatorMedataResult
     {
