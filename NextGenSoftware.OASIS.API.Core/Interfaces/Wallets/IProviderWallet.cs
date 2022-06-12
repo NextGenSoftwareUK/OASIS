@@ -1,6 +1,9 @@
 ﻿
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
@@ -13,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 
     public interface IProviderWallet : IHolonBase
     {
+        public Guid WalletId { get; set; }
         public string PrivateKey { get; set; }
         public string PublicKey { get; set; }
         public string WalletAddress { get; set; } //Hash of Public Key (shorter version).
@@ -20,5 +24,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public List<IWalletTransaction> Transactions {get;set;}
         public ProviderType ProviderType { get; set; }
         public int Balance { get; set; }
+
+        public OASISResult<bool> SendTrasaction(IWalletTransaction transation);
+        public Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransaction transation);
+        public OASISResult<bool> SendNFT(IWalletTransaction transation);
+        public Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation);
     }
 }

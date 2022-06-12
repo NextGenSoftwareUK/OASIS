@@ -7,8 +7,8 @@
   "AllowedHosts": "*",
   "OASIS": {
     "Terms": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n",
-    "CurrentStagingVersion": "v0.19.1",
-    "CurrentLiveVersion": "v0.19.1",
+    "CurrentStagingVersion": "v2.2.0",
+    "CurrentLiveVersion": "v2.1.0",
     "Logging": {
       "LoggingFramework": "NLog"
     },
@@ -51,9 +51,9 @@
       "AutoLoadBalanceReadPollIntervalMins": "10",
       "AutoLoadBalanceWritePollIntervalMins": "10",
       "ProviderMethodCallTimeOutSeconds": "10",
-      "AutoReplicationProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
-      "AutoFailOverProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
-      "AutoLoadBalanceProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoReplicationProviders": "MongoDBOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoFailOverProviders": "MongoDBOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoLoadBalanceProviders": "MongoDBOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
 
       //Can be:
       //Cold (will only register and activate (connect, etc) each provider when you fist make a call into it - fastest initial OASIS boot but slowest initial call into each OASIS Provider as it is registered and activated. Has the smallest initial memory footprint.
@@ -100,6 +100,19 @@
       "IPFSOASIS": {
         "ConnectionString": "http://localhost:5001",
         "LookUpIPFSAddress": ""
+      },
+      "SolanaOASIS": {
+        "WalletMnemonicWords": "bullet nothing diamond universe detail east dinner code plunge charge poem ball cable clog spray purpose renew above clay brand control shallow turtle similar",
+        "ConnectionString": "https://api.mainnet-beta.solana.com"
+      },
+      "CargoOASIS": {
+        "ConnectionString": "",
+        "SingingMessage": "",
+        "PrivateKey": "",
+        "HostUrl": ""
+      },
+      "LocalFileOASIS": {
+        "FilePath": "wallets.json"
       }
     }
   }

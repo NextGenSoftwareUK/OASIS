@@ -74,6 +74,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public Neo4jOASISSettings Neo4jOASIS { get; set; }
         public SolanaOASISSettings SolanaOASIS { get; set; }
         public CargoOASISSettings CargoOASIS { get; set; }
+        public LocalFileOASISSettings LocalFileOASIS { get; set; }
     }
 
     public class EmailSettings
@@ -152,5 +153,10 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public string Username { get; set; }
         public string Password { get; set; }
+    }
+
+    public class LocalFileOASISSettings
+    {
+        public string FilePath { get; set; }
     }
 }

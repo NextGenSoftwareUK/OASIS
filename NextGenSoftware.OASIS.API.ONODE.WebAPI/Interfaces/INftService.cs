@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
-using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Requests;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Entities.DTOs.Requests;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
 {

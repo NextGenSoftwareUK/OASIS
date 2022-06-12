@@ -124,15 +124,25 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return this.RefreshTokens?.Find(x => x.Token == token) != null;
         }
 
-        public async Task<OASISResult<IAvatar>> SaveAsync()
+        public async Task<OASISResult<IAvatar>> SaveAsync(ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IAvatar> result = await (ProviderManager.CurrentStorageProvider).SaveAvatarAsync(this);
-            return result;
+            return await AvatarManager.Instance.SaveAvatarAsync(this, providerType);
         }
-        public OASISResult<IAvatar> Save()
+        public OASISResult<IAvatar> Save(ProviderType providerType = ProviderType.Default)
         {
-            return (ProviderManager.CurrentStorageProvider).SaveAvatar(this);
+            return AvatarManager.Instance.SaveAvatar(this, providerType);
         }
+
+        //public OASISResult<bool> SaveProviderWallets(ProviderType providerType = ProviderType.Default)
+        //{
+        //    return AvatarManager.Instance.SaveProviderWallets(this, providerType);
+        //}
+
+        //TODO: Implement async version ASAP...
+        //public Task<OASISResult<bool>> SaveProviderWalletsAsync(ProviderType providerType = ProviderType.Default)
+        //{
+        //    return await AvatarManager.Instance.SaveProviderWalletsAsync(this, providerType);
+        //}
 
         /*
         private int GetKarmaForType(KarmaTypePositive karmaType)

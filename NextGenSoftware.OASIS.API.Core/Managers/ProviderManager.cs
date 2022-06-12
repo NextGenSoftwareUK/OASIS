@@ -18,6 +18,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private static bool _setProviderGlobally = false;
 
         public static EnumValue<ProviderType> CurrentStorageProviderType { get; private set; } = new EnumValue<ProviderType>(ProviderType.Default);
+        public static EnumValue<ProviderCategory> CurrentStorageProviderCategory { get; private set; } = new EnumValue<ProviderCategory>(ProviderCategory.None);
         public static OASISProviderBootType OASISProviderBootType { get; set; } = OASISProviderBootType.Hot;
 
         public static bool IsAutoReplicationEnabled { get; set; } = true;
@@ -116,6 +117,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return true;
         }
 
+        public static ProviderCategory GetProviderCategory(ProviderType providerType)
+        {
+            foreach (IOASISProvider provider in _registeredProviders)
+            {
+                if (provider.ProviderType.Value == providerType)
+                    return provider.ProviderCategory.Value;
+            }
+
+            return ProviderCategory.None;
+        }
+
         public static List<IOASISProvider> GetAllRegisteredProviders()
         {
             return _registeredProviders;
@@ -140,7 +152,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             List<IOASISStorageProvider> storageProviders = new List<IOASISStorageProvider>();
 
-            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory.Value == ProviderCategory.Storage || x.ProviderCategory.Value == ProviderCategory.StorageAndNetwork).ToList())
+            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory.Value == ProviderCategory.Storage || x.ProviderCategory.Value == ProviderCategory.StorageAndNetwork || x.ProviderCategory.Value == ProviderCategory.StorageLocal || x.ProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork).ToList())
                 storageProviders.Add((IOASISStorageProvider)provider);  
 
             return storageProviders;
@@ -156,7 +168,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             List<IOASISNETProvider> networkProviders = new List<IOASISNETProvider>();
 
-            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory.Value == ProviderCategory.Network || x.ProviderCategory.Value == ProviderCategory.StorageAndNetwork).ToList())
+            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory.Value == ProviderCategory.Network || x.ProviderCategory.Value == ProviderCategory.StorageAndNetwork || x.ProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork).ToList())
                 networkProviders.Add((IOASISNETProvider)provider);
 
             return networkProviders;
@@ -201,17 +213,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static IOASISStorageProvider GetStorageProvider(ProviderType type)
         {
-            return (IOASISStorageProvider)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Storage);
+            return (IOASISStorageProvider)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type);
+            //return (IOASISStorageProvider)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Storage);
         }
 
         public static IOASISNETProvider GetNetworkProvider(ProviderType type)
         {
-            return (IOASISNETProvider)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Network);
+            return (IOASISNETProvider)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type);
+            //return (IOASISNETProvider)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Network);
         }
 
         public static IOASISRenderer GetRendererProvider(ProviderType type)
         {
-            return (IOASISRenderer)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Renderer);
+            return (IOASISRenderer)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type);
+            //return (IOASISRenderer)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Renderer);
         }
 
         public static bool IsProviderRegistered(IOASISProvider provider)
@@ -303,7 +318,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (provider == null)
                     throw new InvalidOperationException(string.Concat(Enum.GetName(typeof(ProviderType), providerType), " ProviderType is not registered. Please call RegisterProvider() method to register the provider before calling this method."));
 
-                if (provider != null && (provider.ProviderCategory.Value == ProviderCategory.Storage || provider.ProviderCategory.Value == ProviderCategory.StorageAndNetwork))
+                if (provider != null && (provider.ProviderCategory.Value == ProviderCategory.Storage 
+                    || provider.ProviderCategory.Value == ProviderCategory.StorageAndNetwork 
+                    || provider.ProviderCategory.Value == ProviderCategory.StorageLocal 
+                    || provider.ProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork))
                 {
                     if (CurrentStorageProvider != null)
                     {
@@ -315,7 +333,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             result.Message = deactivateProviderResult.Message;
                         }
                     }
-                   
+
+                    CurrentStorageProviderCategory = provider.ProviderCategory;
                     CurrentStorageProviderType.Value = providerType;
                     CurrentStorageProvider = (IOASISStorageProvider)provider;
 
