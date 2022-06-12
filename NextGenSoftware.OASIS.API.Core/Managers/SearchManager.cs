@@ -9,7 +9,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public class SearchManager : OASISManager
     {
+        private static SearchManager _instance = null;
+
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
+
+        public static SearchManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new SearchManager(ProviderManager.CurrentStorageProvider);
+
+                return _instance;
+            }
+        }
 
         public SearchManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {

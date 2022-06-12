@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     if (result.IsError)
                         ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
 
-                    _keyManager = new KeyManager(result.Result, Program.AvatarManager);
+                    _keyManager = new KeyManager(result.Result);
                 }
 
                 return _keyManager;

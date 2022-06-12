@@ -45,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             get
             {
                 if (_keyManager == null)
-                    _keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), AvatarManager);
+                    _keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
                     //_keyManager = new KeyManager(this, AvatarManager); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
 
                 return _keyManager;
@@ -385,6 +385,51 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         }
 
         public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<bool> SendTrasaction(IWalletTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<bool> SendNFT(IWalletTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
         {
             throw new NotImplementedException();
         }

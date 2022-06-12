@@ -137,12 +137,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             return (ProviderManager.CurrentStorageProvider).SaveAvatar(this).Result;
         }
 
-        OASISResult<IAvatar> IAvatar.Save()
+        public OASISResult<IAvatar> Save(ProviderType providerType = ProviderType.Default)
         {
             throw new NotImplementedException();
         }
 
-        Task<OASISResult<IAvatar>> IAvatar.SaveAsync()
+        public Task<OASISResult<IAvatar>> SaveAsync(ProviderType providerType = ProviderType.Default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<bool> SaveProviderWallets(ProviderType providerType = ProviderType.Default)
         {
             throw new NotImplementedException();
         }

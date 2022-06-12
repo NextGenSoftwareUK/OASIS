@@ -79,12 +79,37 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
         public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
         {
             throw new NotImplementedException();
         }
 
         public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons)
         {
             throw new NotImplementedException();
         }
@@ -290,6 +315,26 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
 
         public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<bool> SendNFT(IWalletTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<bool> SendTrasaction(IWalletTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransaction transation)
         {
             throw new NotImplementedException();
         }

@@ -84,12 +84,37 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
             throw new NotImplementedException();
         }
 
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
         public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
         {
             throw new NotImplementedException();
         }
 
         public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons)
         {
             throw new NotImplementedException();
         }

@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     if (result.IsError)
                         ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
 
-                    _keyManager = new KeyManager(result.Result, Program.AvatarManager);
+                    _keyManager = new KeyManager(result.Result);
                 }
 
                 return _keyManager;
@@ -646,6 +646,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return KeyManager.GetAvatarForProviderPublicKey(providerKey);
         }
 
+        /*
         /// <summary>
         ///     Get's the avatar id for a given private key.
         /// </summary>
@@ -693,6 +694,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             return KeyManager.GetAvatarForProviderPrivateKey(providerKey);
         }
+        */
 
         /// <summary>
         ///     Generate's a new unique private/public keypair for a given provider type.

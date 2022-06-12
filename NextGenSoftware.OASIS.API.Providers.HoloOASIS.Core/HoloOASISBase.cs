@@ -13,7 +13,7 @@ using NextGenSoftware.WebSocket;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 {
-    public abstract class HoloOASISBase : OASISStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
+    public abstract class HoloOASISBase : OASISStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISLocalStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private const string OURWORLD_ZOME = "our_world_core";
         private const string LOAD_Avatar_FUNC = "load_Avatar";
@@ -51,8 +51,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         {
             this.ProviderName = "HoloOASIS";
             this.ProviderDescription = "Holochain Provider";
-            this.ProviderType = new API.Core.Helpers.EnumValue<ProviderType>(API.Core.Enums.ProviderType.HoloOASIS);
-            this.ProviderCategory = new API.Core.Helpers.EnumValue<ProviderCategory>(API.Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderType = new EnumValue<ProviderType>(API.Core.Enums.ProviderType.HoloOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(API.Core.Enums.ProviderCategory.StorageLocalAndNetwork);
             this.HoloNETClient = holoNETClient;
           //  _holochainURI = holochainURI;
             Initialize();
@@ -624,6 +624,147 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         }
 
         public bool NativeCodeGenesis(ICelestialBody celestialBody)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<bool> SendTrasaction(IWalletTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<bool> SendNFT(IWalletTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWallets()
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+
+            //TODO: Finish Implementing.
+
+            return result;
+        }
+
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsAsync()
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+
+            //TODO: Finish Implementing.
+
+            return result;
+        }
+
+        public OASISResult<bool> SaveProviderWallets(Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            //TODO: Finish Implementing.
+
+            return result;
+        }
+
+        public async Task<OASISResult<bool>> SaveProviderWalletsAsync(Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            
+            //TODO: Finish Implementing.
+            
+            return result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarById(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarByUsername(string username)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByUsernameAsync(string username)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarByEmail(string email)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByEmailAsync(string email)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<bool> SaveProviderWalletsForAvatarById(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<bool> SaveProviderWalletsForAvatarByUsername(string username, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByUsernameAsync(string username, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<bool> SaveProviderWalletsForAvatarByEmail(string email, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByEmailAsync(string email, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
             throw new NotImplementedException();
         }

@@ -2,6 +2,9 @@
 {
     public enum ProviderType
     {
+        None,
+        All,
+        Default,
         SolanaOASIS,
         HoloOASIS,
         EthereumOASIS,
@@ -31,9 +34,7 @@
         HoloWebOASIS,
         TRONOASIS,
         Neo4jOASIS,
-        All,
-        None,
-        Default,
         CosmosBlockChainOASIS,
+        LocalFileOASIS
     }
 }
