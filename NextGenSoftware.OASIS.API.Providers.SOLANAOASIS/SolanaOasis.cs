@@ -687,6 +687,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         private async Task<OASISResult<string>> SendSolanaTransaction(string fromAddress, string toAddress, decimal amount)
         {
             var result = new OASISResult<string>();
+            var errorMessageTemplate = "Error was occured in SendSolanaTransaction method in SolanaOASIS while sending transaction. Reason: ";
             try
             {
                 var solanaTransactionResult = await _solanaService.SendTransaction(new SendTransactionRequest()
@@ -705,10 +706,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 if (solanaTransactionResult.IsError ||
                     string.IsNullOrEmpty(solanaTransactionResult.Result.TransactionHash))
                 {
-                    ErrorHandling.HandleError(ref result, solanaTransactionResult.Message);
-
-                    result.Result = string.Empty;
-                    result.Message = $"Transaction performing failed! Reason: {solanaTransactionResult.Message}";
+                    ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, solanaTransactionResult.Message), solanaTransactionResult.Exception);
                     return result;
                 }
 
@@ -718,10 +716,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, e.Message);
-
-                result.Result = string.Empty;
-                result.Message = "Transaction performing failed! Please try again later!";
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, e.Message), e);
             }
 
             return result;
@@ -737,6 +732,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             if (transation == null)
                 throw new ArgumentNullException(nameof(transation));
             var result = new OASISResult<bool>();
+            var errorMessageTemplate = "Error was occured in SendNFTAsync in SolanaOASIS sending nft. Reason: ";
+            
             try
             {
                 var solanaNftTransactionResult = await _solanaService.MintNft(new MintNftRequest()
@@ -755,10 +752,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 if (solanaNftTransactionResult.IsError ||
                     string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
                 {
-                    ErrorHandling.HandleError(ref result, solanaNftTransactionResult.Message);
-
-                    result.Result = false;
-                    result.Message = $"NFT transaction performing failed! Reason: {solanaNftTransactionResult.Message}";
+                    ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, solanaNftTransactionResult.Message), solanaNftTransactionResult.Exception);
                     return result;
                 }
 
@@ -768,10 +762,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, e.Message);
-
-                result.Result = false;
-                result.Message = "NFT transaction performing failed! Please try again later!";
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, e.Message), e);
             }
 
             return result;
