@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Entities.DTOs.Common;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Entities.DTOs.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories;
@@ -17,6 +18,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
     {
         private readonly ISolanaRepository _solanaRepository;
         private readonly ISolanaService _solanaService;
+        private KeyManager _keyManager;
+
+        private KeyManager KeyManager
+        {
+            get
+            {
+                if (_keyManager == null)
+                    _keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.SolanaOASIS));
+
+                return _keyManager;
+            }
+        }
         
         public SolanaOASIS(string mnemonicWords)
         {
@@ -537,28 +550,28 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             throw new NotImplementedException();
         }
 
-        public OASISResult<bool> SendTransaction(IWalletTransaction transation)
+        public OASISResult<string> SendTransaction(IWalletTransaction transaction)
         {
-            return SendTransactionAsync(transation).Result;
+            return SendTransactionAsync(transaction).Result;
         }
 
-        public async Task<OASISResult<bool>> SendTransactionAsync(IWalletTransaction transation)
+        public async Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transaction)
         {
-            if (transation == null)
-                throw new ArgumentNullException(nameof(transation));
-            var result = new OASISResult<bool>();
+            if (transaction == null)
+                throw new ArgumentNullException(nameof(transaction));
+            var result = new OASISResult<string>();
             try
             {
                 var solanaTransactionResult = await _solanaService.SendTransaction(new SendTransactionRequest()
                 {
-                    Amount = (ulong) transation.Amount,
+                    Amount = (ulong) transaction.Amount,
                     FromAccount = new BaseAccountRequest()
                     {
-                        PublicKey = transation.FromWalletAddress
+                        PublicKey = transaction.FromWalletAddress
                     },
                     ToAccount = new BaseAccountRequest()
                     {
-                        PublicKey = transation.ToWalletAddress
+                        PublicKey = transaction.ToWalletAddress
                     }
                 });
 
@@ -567,12 +580,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 {
                     ErrorHandling.HandleError(ref result, solanaTransactionResult.Message);
 
-                    result.Result = false;
+                    result.Result = string.Empty;
                     result.Message = $"Transaction performing failed! Reason: {solanaTransactionResult.Message}";
                     return result;
                 }
 
-                result.Result = true;
+                result.Result = solanaTransactionResult.Result.TransactionHash;
                 result.IsError = false;
                 result.IsSaved = true;
             }
@@ -580,7 +593,134 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             {
                 ErrorHandling.HandleError(ref result, e.Message);
 
-                result.Result = false;
+                result.Result = string.Empty;
+                result.Message = "Transaction performing failed! Please try again later!";
+            }
+
+            return result;
+        }
+
+        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            var result = new OASISResult<string>();
+
+            var senderAvatarPublicKeyResult = KeyManager.GetProviderPublicKeysForAvatarById(fromAvatarId, Core.Enums.ProviderType.SolanaOASIS);
+            var receiverAvatarPublicKeyResult = KeyManager.GetProviderPublicKeysForAvatarById(toAvatarId, Core.Enums.ProviderType.SolanaOASIS);
+
+            if (senderAvatarPublicKeyResult.IsError || receiverAvatarPublicKeyResult.IsError)
+            {
+                result.Message = "Loading public keys failed!";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = string.Empty;
+            
+                ErrorHandling.HandleError(ref result, result.Message);
+                return result;
+            }
+
+            var senderAvatarPublicKey = senderAvatarPublicKeyResult.Result[0];
+            var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result[0];
+            return await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount);
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            var result = new OASISResult<string>();
+
+            var senderAvatarPublicKeyResult = KeyManager.GetProviderPublicKeysForAvatarByUsername(fromAvatarUsername, Core.Enums.ProviderType.SolanaOASIS);
+            var receiverAvatarPublicKeyResult = KeyManager.GetProviderPublicKeysForAvatarByUsername(toAvatarUsername, Core.Enums.ProviderType.SolanaOASIS);
+
+            if (senderAvatarPublicKeyResult.IsError || receiverAvatarPublicKeyResult.IsError)
+            {
+                result.Message = "Loading public keys failed!";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = string.Empty;
+            
+                ErrorHandling.HandleError(ref result, result.Message);
+                return result;
+            }
+
+            var senderAvatarPublicKey = senderAvatarPublicKeyResult.Result[0];
+            var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result[0];
+            return await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
+        }
+
+        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            var result = new OASISResult<string>();
+
+            var senderAvatarPublicKeysResult = KeyManager.GetProviderPublicKeysForAvatarByEmail(fromAvatarEmail, Core.Enums.ProviderType.SolanaOASIS);
+            var receiverAvatarPublicKeyResult = KeyManager.GetProviderPublicKeysForAvatarByEmail(toAvatarEmail, Core.Enums.ProviderType.SolanaOASIS);
+
+            if (senderAvatarPublicKeysResult.IsError || receiverAvatarPublicKeyResult.IsError)
+            {
+                result.Message = "Loading private/public keys failed!";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = string.Empty;
+            
+                ErrorHandling.HandleError(ref result, result.Message);
+                return result;
+            }
+
+            var senderAvatarPublicKey = senderAvatarPublicKeysResult.Result[0];
+            var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result[0];
+            return await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
+        }
+
+        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
+        }
+
+        private async Task<OASISResult<string>> SendSolanaTransaction(string fromAddress, string toAddress, decimal amount)
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                var solanaTransactionResult = await _solanaService.SendTransaction(new SendTransactionRequest()
+                {
+                    Amount = (ulong)amount,
+                    FromAccount = new BaseAccountRequest()
+                    {
+                        PublicKey = fromAddress
+                    },
+                    ToAccount = new BaseAccountRequest()
+                    {
+                        PublicKey = toAddress
+                    }
+                });
+
+                if (solanaTransactionResult.IsError ||
+                    string.IsNullOrEmpty(solanaTransactionResult.Result.TransactionHash))
+                {
+                    ErrorHandling.HandleError(ref result, solanaTransactionResult.Message);
+
+                    result.Result = string.Empty;
+                    result.Message = $"Transaction performing failed! Reason: {solanaTransactionResult.Message}";
+                    return result;
+                }
+
+                result.Result = solanaTransactionResult.Result.TransactionHash;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (Exception e)
+            {
+                ErrorHandling.HandleError(ref result, e.Message);
+
+                result.Result = string.Empty;
                 result.Message = "Transaction performing failed! Please try again later!";
             }
 
