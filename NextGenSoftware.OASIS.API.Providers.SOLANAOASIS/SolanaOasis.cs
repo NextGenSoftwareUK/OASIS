@@ -56,12 +56,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                result.Exception = e;
-                result.Message = e.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, e.Message);
             }
             return result;
@@ -206,12 +200,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                result.Exception = e;
-                result.Message = e.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, e.Message);
             }
             return result;
@@ -250,12 +238,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                result.Exception = e;
-                result.Message = e.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, e.Message);
             }
             return result;
@@ -309,12 +291,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                result.Exception = e;
-                result.Message = e.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = false;
-
                 ErrorHandling.HandleError(ref result, e.Message);
             }
             return result;
@@ -338,12 +314,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                result.Exception = e;
-                result.Message = e.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, e.Message);
             }
             return result;
@@ -433,11 +403,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -503,7 +468,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
                 ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}");
             }
 
@@ -543,12 +507,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                result.Exception = e;
-                result.Message = e.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = false;
-
                 ErrorHandling.HandleError(ref result, e.Message);
             }
             return result;
@@ -618,9 +576,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                     string.IsNullOrEmpty(solanaTransactionResult.Result.TransactionHash))
                 {
                     ErrorHandling.HandleError(ref result, solanaTransactionResult.Message);
-
-                    result.Result = string.Empty;
-                    result.Message = $"Transaction performing failed! Reason: {solanaTransactionResult.Message}";
                     return result;
                 }
 
@@ -630,10 +585,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, e.Message);
-
-                result.Result = string.Empty;
-                result.Message = "Transaction performing failed! Please try again later!";
+                ErrorHandling.HandleError(ref result, e.Message, e);
             }
 
             return result;
@@ -647,47 +599,63 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             var result = new OASISResult<string>();
+            var errorMessageTemplate = "Error was occured in SendTransactionByIdAsync method in SolanaOASIS while sending transaction. Reason: ";
 
             var senderAvatarPublicKeyResult = KeyManager.GetProviderPublicKeysForAvatarById(fromAvatarId, Core.Enums.ProviderType.SolanaOASIS);
             var receiverAvatarPublicKeyResult = KeyManager.GetProviderPublicKeysForAvatarById(toAvatarId, Core.Enums.ProviderType.SolanaOASIS);
 
-            if (senderAvatarPublicKeyResult.IsError || receiverAvatarPublicKeyResult.IsError)
+            if (senderAvatarPublicKeyResult.IsError)
             {
-                result.Message = "Loading public keys failed!";
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = string.Empty;
-            
-                ErrorHandling.HandleError(ref result, result.Message);
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, senderAvatarPublicKeyResult.Message),
+                    senderAvatarPublicKeyResult.Exception);
+                return result;
+            }
+
+            if (receiverAvatarPublicKeyResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
+                    receiverAvatarPublicKeyResult.Exception);
                 return result;
             }
 
             var senderAvatarPublicKey = senderAvatarPublicKeyResult.Result[0];
             var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result[0];
-            return await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount);
+            result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
+            if(result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
+            
+            return result;
         }
 
         public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
             var result = new OASISResult<string>();
+            var errorMessageTemplate = "Error was occured in SendTransactionByUsernameAsync method in SolanaOASIS while sending transaction. Reason: ";
 
             var senderAvatarPublicKeyResult = KeyManager.GetProviderPublicKeysForAvatarByUsername(fromAvatarUsername, Core.Enums.ProviderType.SolanaOASIS);
             var receiverAvatarPublicKeyResult = KeyManager.GetProviderPublicKeysForAvatarByUsername(toAvatarUsername, Core.Enums.ProviderType.SolanaOASIS);
 
-            if (senderAvatarPublicKeyResult.IsError || receiverAvatarPublicKeyResult.IsError)
+            if (senderAvatarPublicKeyResult.IsError)
             {
-                result.Message = "Loading public keys failed!";
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = string.Empty;
-            
-                ErrorHandling.HandleError(ref result, result.Message);
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, senderAvatarPublicKeyResult.Message),
+                    senderAvatarPublicKeyResult.Exception);
+                return result;
+            }
+
+            if (receiverAvatarPublicKeyResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
+                    receiverAvatarPublicKeyResult.Exception);
                 return result;
             }
 
             var senderAvatarPublicKey = senderAvatarPublicKeyResult.Result[0];
             var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result[0];
-            return await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
+            result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
+            if(result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
+            
+            return result;
         }
 
         public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
@@ -698,24 +666,32 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
             var result = new OASISResult<string>();
+            var errorMessageTemplate = "Error was occured in SendTransactionByEmailAsync method in SolanaOASIS while sending transaction. Reason: ";
 
             var senderAvatarPublicKeysResult = KeyManager.GetProviderPublicKeysForAvatarByEmail(fromAvatarEmail, Core.Enums.ProviderType.SolanaOASIS);
             var receiverAvatarPublicKeyResult = KeyManager.GetProviderPublicKeysForAvatarByEmail(toAvatarEmail, Core.Enums.ProviderType.SolanaOASIS);
 
-            if (senderAvatarPublicKeysResult.IsError || receiverAvatarPublicKeyResult.IsError)
+            if (senderAvatarPublicKeysResult.IsError)
             {
-                result.Message = "Loading private/public keys failed!";
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = string.Empty;
-            
-                ErrorHandling.HandleError(ref result, result.Message);
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, senderAvatarPublicKeysResult.Message),
+                    senderAvatarPublicKeysResult.Exception);
+                return result;
+            }
+
+            if (receiverAvatarPublicKeyResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
+                    receiverAvatarPublicKeyResult.Exception);
                 return result;
             }
 
             var senderAvatarPublicKey = senderAvatarPublicKeysResult.Result[0];
             var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result[0];
-            return await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
+            result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
+            if(result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
+            
+            return result;
         }
 
         public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
