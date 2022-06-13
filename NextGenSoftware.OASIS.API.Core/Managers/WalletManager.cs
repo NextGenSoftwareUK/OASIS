@@ -940,6 +940,36 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return KeyManager.Instance.LinkProviderPublicKeyToAvatarByEmail(Guid.Empty, email, providerToImportTo, key);
         }
 
+        public OASISResult<IProviderWallet> GetAvatarDefaultWalletById(Guid avatarId, ProviderType providerType)
+        {
+            
+        }
+
+        public OASISResult<IProviderWallet> GetAvatarDefaultWalletByUsername(string avatarUsername, ProviderType providerType)
+        {
+            
+        }
+
+        public OASISResult<IProviderWallet> GetAvatarDefaultWalletByEmail(string email, ProviderType providerType)
+        {
+            
+        }
+        
+        public OASISResult<IProviderWallet> SetAvatarDefaultWalletById(Guid avatarId, Guid walletId, ProviderType providerType)
+        {
+            
+        }
+
+        public OASISResult<IProviderWallet> SetAvatarDefaultWalletByUsername(string avatarUsername, Guid walletId, ProviderType providerType)
+        {
+            
+        }
+
+        public OASISResult<IProviderWallet> SetAvatarDefaultWalletByEmail(string email, Guid walletId, ProviderType providerType)
+        {
+            
+        }
+
         //TODO: Lots more coming soon! ;-)
     }
 }
