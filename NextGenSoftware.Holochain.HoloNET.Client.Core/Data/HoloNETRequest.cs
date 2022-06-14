@@ -7,13 +7,13 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
     //[Serializable]
     public class HoloNETRequest
     {
-        [Key(0)]
+        [Key("id")]
         public ulong id { get; set; }
 
-        [Key(1)]
+        [Key("type")]
         public string type { get; set; }
 
-        [Key(2)]
+        [Key("data")]
         //public HoloNETData data { get; set; }
         public byte[] data { get; set; }
 
