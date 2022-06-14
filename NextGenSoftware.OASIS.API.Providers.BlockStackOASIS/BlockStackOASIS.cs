@@ -367,5 +367,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         {
             throw new NotImplementedException();
         }
+
+        public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

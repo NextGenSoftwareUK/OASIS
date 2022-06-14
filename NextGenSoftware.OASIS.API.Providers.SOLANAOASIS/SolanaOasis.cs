@@ -20,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         private readonly ISolanaRepository _solanaRepository;
         private readonly ISolanaService _solanaService;
         private KeyManager _keyManager;
+        private WalletManager _walletManager;
 
         private KeyManager KeyManager
         {
@@ -29,6 +30,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                     _keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.SolanaOASIS));
 
                 return _keyManager;
+            }
+        }
+        
+        private WalletManager WalletManager
+        {
+            get
+            {
+                if (_walletManager == null)
+                    _walletManager = new WalletManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.SolanaOASIS));
+
+                return _walletManager;
             }
         }
         
@@ -697,6 +709,42 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
+        }
+
+        public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            var result = new OASISResult<string>();
+            var errorMessageTemplate = "Error was occured in SendTransactionByDefaultWallet method in SolanaOASIS while sending transaction. Reason: ";
+
+            var senderAvatarPublicKeysResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.SolanaOASIS);
+            var receiverAvatarPublicKeyResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.SolanaOASIS);
+
+            if (senderAvatarPublicKeysResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, senderAvatarPublicKeysResult.Message),
+                    senderAvatarPublicKeysResult.Exception);
+                return result;
+            }
+
+            if (receiverAvatarPublicKeyResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
+                    receiverAvatarPublicKeyResult.Exception);
+                return result;
+            }
+
+            var senderAvatarPublicKey = senderAvatarPublicKeysResult.Result.PublicKey;
+            var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result.PublicKey;
+            result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
+            if(result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
+            
+            return result;
         }
 
         private async Task<OASISResult<string>> SendSolanaTransaction(string fromAddress, string toAddress, decimal amount)
