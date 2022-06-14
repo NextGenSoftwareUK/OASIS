@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount);
         public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount);
 
-        public OASISResult<string> SendTransactionByWallets(Guid fromWalletId, Guid toWalletId, decimal amount);
-        public Task<OASISResult<string>> SendTransactionByWalletsAsync(Guid fromWalletId, Guid toWalletId, decimal amount);
+        public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount);
+        public Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount);
     }
 }

@@ -24,6 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         private readonly Account _oasisAccount;
         private readonly Web3 _web3Client;
         private KeyManager _keyManager;
+        private WalletManager _walletManager;
 
         private KeyManager KeyManager
         {
@@ -33,6 +34,17 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     _keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.EthereumOASIS));
 
                 return _keyManager;
+            }
+        }
+
+        private WalletManager WalletManager
+        {
+            get
+            {
+                if (_walletManager == null)
+                    _walletManager = new WalletManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.EthereumOASIS));
+
+                return _walletManager;
             }
         }
         
@@ -1039,7 +1051,44 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         {
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
-        
+
+        public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            var result = new OASISResult<string>();
+            string errorMessage = "Error in SendTransactionByDefaultWalletAsync method in EthereumOASIS sending transaction. Reason: ";
+
+            var senderAvatarPrivateKeysResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.EthereumOASIS);
+            var receiverAvatarAddressesResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.EthereumOASIS);
+            
+            if (senderAvatarPrivateKeysResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
+                    senderAvatarPrivateKeysResult.Exception);
+                return result;
+            }
+
+            if (receiverAvatarAddressesResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
+                    receiverAvatarAddressesResult.Exception);
+                return result;
+            }
+
+            var senderAvatarPrivateKey = senderAvatarPrivateKeysResult.Result.PrivateKey;
+            var receiverAvatarAddress = receiverAvatarAddressesResult.Result.WalletAddress;
+            result = await SendEthereumTransaction(senderAvatarPrivateKey, receiverAvatarAddress, amount);
+            
+            if(result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+            
+            return result;
+        }
+
         public OASISResult<string> SendTransaction(IWalletTransaction transaction)
         {
             return SendTransactionAsync(transaction).Result;

@@ -941,7 +941,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return KeyManager.Instance.LinkProviderPublicKeyToAvatarByEmail(Guid.Empty, email, providerToImportTo, key);
         }
 
-        public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletById(Guid avatarId, ProviderType providerType)
+        public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByIdAsync(Guid avatarId, ProviderType providerType)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             string errorMessage = "Error occured in GetAvatarDefaultWalletById method in WalletManager. Reason: ";
@@ -976,7 +976,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByUsername(string avatarUsername, ProviderType providerType)
+        public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByUsernameAsync(string avatarUsername, ProviderType providerType)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             string errorMessage = "Error occured in GetAvatarDefaultWalletByUsername method in WalletManager. Reason: ";
@@ -1011,7 +1011,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByEmail(string email, ProviderType providerType)
+        public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByEmailAsync(string email, ProviderType providerType)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             string errorMessage = "Error occured in GetAvatarDefaultWalletByEmail method in WalletManager. Reason: ";
@@ -1087,7 +1087,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<bool>> SetAvatarDefaultWalletByUsername(string avatarUsername, Guid walletId, ProviderType providerType)
+        public async Task<OASISResult<bool>> SetAvatarDefaultWalletByUsernameAsync(string avatarUsername, Guid walletId, ProviderType providerType)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             string errorMessage = "Error occured in SetAvatarDefaultWalletByUsername method in WalletManager. Reason: ";
@@ -1128,7 +1128,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<bool>> SetAvatarDefaultWalletByEmail(string email, Guid walletId, ProviderType providerType)
+        public async Task<OASISResult<bool>> SetAvatarDefaultWalletByEmailAsync(string email, Guid walletId, ProviderType providerType)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             string errorMessage = "Error occured in SetAvatarDefaultWalletByEmail method in WalletManager. Reason: ";
