@@ -124,13 +124,13 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return this.RefreshTokens?.Find(x => x.Token == token) != null;
         }
 
-        public async Task<OASISResult<IAvatar>> SaveAsync(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IAvatar>> SaveAsync(AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
-            return await AvatarManager.Instance.SaveAvatarAsync(this, providerType);
+            return await AvatarManager.Instance.SaveAvatarAsync(this, autoReplicationMode, autoFailOverMode, waitForAutoReplicationResult, providerType);
         }
-        public OASISResult<IAvatar> Save(ProviderType providerType = ProviderType.Default)
+        public OASISResult<IAvatar> Save(AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
-            return AvatarManager.Instance.SaveAvatar(this, providerType);
+            return AvatarManager.Instance.SaveAvatar(this, autoReplicationMode, autoFailOverMode, waitForAutoReplicationResult, providerType);
         }
 
         //public OASISResult<bool> SaveProviderWallets(ProviderType providerType = ProviderType.Default)
