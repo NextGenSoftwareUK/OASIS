@@ -72,7 +72,7 @@ class ViewAvatar extends React.Component {
                     karma: karmaRes.data.result,
                     sex: user.title === 'Mr' ? 'Male':'Female',
                     created: 'Now',
-                    last: 'Now',
+                    last: 'Now ',
                     online: user.isBeamedIn
                 }
                 avatars.push(temp)

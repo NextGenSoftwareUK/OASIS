@@ -12,5 +12,12 @@ namespace NextGenSoftware.OASIS.API.Core.Utilities
             var hashedValue = md5Hasher.ComputeHash(Encoding.UTF8.GetBytes(value));
             return Math.Abs(BitConverter.ToInt32(hashedValue, 0));
         }
+        
+        public static int GetNumericHash(Guid value)
+        {
+            var md5Hasher = MD5.Create();
+            var hashedValue = md5Hasher.ComputeHash(Encoding.UTF8.GetBytes(value.ToString()));
+            return Math.Abs(BitConverter.ToInt32(hashedValue, 0));
+        }
     }
 }

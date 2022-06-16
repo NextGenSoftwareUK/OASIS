@@ -31,7 +31,7 @@ class Avatar {
 
     const config = {
       method: "get",
-      url: "https://api.oasisplatform.world/api/avatar/GetAll",
+      url: "https://api.oasisplatform.world/api/avatar/get-all-avatars",
       headers: {
         Authorization: `Bearer ${token.jwtToken}`,
         Cookie: `refreshToken=${token.refresh}`,
@@ -61,7 +61,7 @@ class Avatar {
 
     const config = {
       method: "get",
-      url: `https://api.oasisplatform.world/api/avatar/GetById/${id}`,
+      url: `https://api.oasisplatform.world/api/avatar/get-avatar-detail-by-id/${id}`,
       headers: {
         Authorization: `Bearer ${token.jwtToken}`,
         Cookie: `refreshToken=${token.refresh}`,
@@ -91,7 +91,7 @@ class Avatar {
 
     const config = {
       method: "post",
-      url: `https://api.oasisplatform.world/api/avatar/Update/${id}`,
+      url: `https://api.oasisplatform.world/api/avatar/update-by-id/${id}`,
       headers: {
         Authorization: `Bearer ${token.jwtToken}`,
         Cookie: `refreshToken=${token.refresh}`,
@@ -158,7 +158,7 @@ class Avatar {
 
     const config = {
       method: "post",
-      url: `https://api.oasisplatform.world/api/avatar/AddKarmaToAvatar/${id}`,
+      url: `https://api.oasisplatform.world/api/avatar/add-karma-to-avatar/${id}`,
       headers: {
         Authorization: `Bearer ${token.jwtToken}`,
         "Content-Type": "application/json",
@@ -196,7 +196,7 @@ class Avatar {
 
     const config = {
       method: "post",
-      url: `https://api.oasisplatform.world/api/avatar/RemoveKarmaFromAvatar/${id}`,
+      url: `https://api.oasisplatform.world/api/avatar/remove-karma-from-avatar/${id}`,
       headers: {
         Authorization: `Bearer ${token.jwtToken}`,
         Cookie: `refreshToken=${token.refresh}`,

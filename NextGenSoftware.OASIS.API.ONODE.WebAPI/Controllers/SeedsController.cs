@@ -37,7 +37,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     // If that is the case then uncomment the bottom line and comment the top line.
 
                    // _SEEDSOASIS = new SEEDSOASIS((TelosOASIS)result.Result);
-                    _SEEDSOASIS = new SEEDSOASIS(new TelosOASIS(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString));
+                    _SEEDSOASIS = new SEEDSOASIS(new TelosOASIS(
+                        OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
+                        OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
+                        OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
+                        OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey
+                        ));
                 }
 
                 return _SEEDSOASIS;
