@@ -1,6 +1,6 @@
-﻿using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Common;
+﻿using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
 
-namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Requests
+namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests
 {
     public sealed class MintNftRequest : BaseExchangeRequest
     {

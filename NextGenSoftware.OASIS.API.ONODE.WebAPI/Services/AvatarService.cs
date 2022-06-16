@@ -649,7 +649,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             try
             {
-                response = await AvatarManager.LoadAvatarAsync(id, false);
+                response = await AvatarManager.LoadAvatarAsync(id, false, false);
 
                 if (response.IsError || response.Result == null)
                     ErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
@@ -671,7 +671,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             try
             {
-                response = await AvatarManager.LoadAvatarByEmailAsync(email, false);
+                response = await AvatarManager.LoadAvatarByEmailAsync(email, false, false);
 
                 if (response.IsError || response.Result == null)
                     ErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
@@ -693,7 +693,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             try
             {
-                response = await AvatarManager.LoadAvatarAsync(username, false);
+                response = await AvatarManager.LoadAvatarAsync(username, false, false);
 
                 if (response.IsError || response.Result == null)
                     ErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
@@ -1217,7 +1217,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     avatar.AvatarType = null;
 
                 if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != originalAvatar.Email &&
-                    (await AvatarManager.LoadAvatarByEmailAsync(avatar.Email)).Result != null)
+                    (await AvatarManager.LoadAvatarByEmailAsync(avatar.Email, false, false)).Result != null)
                 {
                     ErrorHandling.HandleError(ref response, $"Email '{avatar.Email}' is already taken");
                     return response;

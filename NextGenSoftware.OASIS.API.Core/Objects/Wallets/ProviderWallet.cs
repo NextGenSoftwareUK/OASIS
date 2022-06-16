@@ -1,8 +1,8 @@
-﻿
-using NextGenSoftware.OASIS.API.Core.Enums;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,6 +11,19 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
     //TODO: Need to research how other web3 wallets work and then improve upon them in OASIS style! ;-)
     public class ProviderWallet : HolonBase, IProviderWallet
     {
+        public Guid WalletId 
+        { 
+            get 
+            {
+                return base.Id;
+            } 
+            set
+            {
+                base.Id = value;
+            }
+        }
+
+        public Guid AvatarId { get; set; }
         public string PrivateKey { get; set; }
         public string PublicKey { get; set; }
         public string WalletAddress { get; set; } //Hash of Public Key (shorter version).
