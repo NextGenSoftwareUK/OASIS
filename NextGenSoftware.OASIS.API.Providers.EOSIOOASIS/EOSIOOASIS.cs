@@ -110,12 +110,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -140,12 +134,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -181,12 +169,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -224,12 +206,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -305,12 +281,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -351,12 +321,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -393,12 +357,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -423,12 +381,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -473,12 +425,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -522,12 +468,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -570,12 +510,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -618,12 +552,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -649,12 +577,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = false;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -690,12 +612,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = false;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -760,12 +676,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -797,12 +707,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -869,12 +773,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -901,12 +799,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -952,12 +844,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1002,12 +888,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1057,12 +937,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1112,12 +986,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1143,12 +1011,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = false;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1174,12 +1036,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = false;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
