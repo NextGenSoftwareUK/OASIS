@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -90,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetEOSIOAccount")]
-        public OASISResult<Account> GetEOSIOAccount(string eosioAccountName)
+        public OASISResult<GetAccountResponseDto> GetEOSIOAccount(string eosioAccountName)
         {
             return new(EOSIOOASIS.GetEOSIOAccount(eosioAccountName));
         }
@@ -102,7 +103,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetEOSIOAccountForAvatar")]
-        public OASISResult<Account> GetEOSIOAccountForAvatar(Guid avatarId)
+        public OASISResult<GetAccountResponseDto> GetEOSIOAccountForAvatar(Guid avatarId)
         {
             return new(EOSIOOASIS.GetEOSIOAccountForAvatar(avatarId));
         }

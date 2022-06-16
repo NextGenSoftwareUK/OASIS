@@ -194,4 +194,4 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 
 - KeyManager API.
 - EthereumOASIS Provider.
-
+- EOSIO Provider.
