@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Solnet.Metaplex;
 
-namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Responses
+namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses
 {
     public sealed class GetNftMetadataResult
     {

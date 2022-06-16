@@ -5,8 +5,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
     public class HoloNETConfig
     {
-        public string AgentPubKey { get; set; } = "uhC0kTMixTG0lNZCF4SZfQMGozf2WfjQht7E06_wy3h29-zPpWxPQ";
-        public string HoloHash { get; set; } = "uhCAkt_cNGyYJZIp08b2ZzxoE6EqPndRPb_WwjVkM_mOBcFyq7zCw";
+        public string AgentPubKey { get; set; } = "uhCAk3R-gBvP0KUclYxiHo-j0g29Kv3D-mF3aE7LNKhj5Lyf4qchy";
+        public string HoloHash { get; set; } = "uhC0kVlEK-_3ODBfCW7p2uz9RCp_lfqBlJn7eEvJVIeInBJSI5sfR";
         public string FullPathToExternalHolochainConductor { get; set; }
         public string FullPathToHolochainAppDNA { get; set; }
         public int SecondsToWaitForHolochainConductorToStart { get; set; } = 5;

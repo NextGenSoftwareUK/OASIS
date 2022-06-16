@@ -151,5 +151,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         {
             throw new NotImplementedException();
         }
+
+        public async Task<OASISResult<IAvatar>> SaveAsync(AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
+        {
+            return await AvatarManager.Instance.SaveAvatarAsync(this, autoReplicationMode, autoFailOverMode, waitForAutoReplicationResult, providerType);
+        }
+
+        public OASISResult<IAvatar> Save(AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
+        {
+            return AvatarManager.Instance.SaveAvatar(this, autoReplicationMode, autoFailOverMode, waitForAutoReplicationResult, providerType);
+        }
     }
 }

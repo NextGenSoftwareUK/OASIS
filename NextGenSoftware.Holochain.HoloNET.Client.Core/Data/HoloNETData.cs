@@ -7,22 +7,22 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
    // [Serializable]
     public struct HoloNETDataZomeCall
     {
-        [Key(0)]
+        [Key("cell_id")]
         public byte[][] cell_id { get; set; }
       
-        [Key(1)]
+        [Key("zome_name")]
         public string zome_name { get; set; }
 
-        [Key(2)]
+        [Key("fn_name")]
         public string fn_name { get; set; }
 
-        [Key(3)]
+        [Key("payload")]
         public byte[] payload { get; set; } 
 
-        [Key(4)]
+        [Key("cap")]
         public byte[] cap { get; set; } //CapSecret | null = string
 
-        [Key(5)]
+        [Key("provenance")]
         public byte[] provenance { get; set; } //AgentPubKey = string
     }
 
@@ -30,10 +30,10 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
     //[Serializable]
     public class HoloNETData
     {
-        [Key(0)]
+        [Key("type")]
         public string type { get; set; }
 
-        [Key(1)]
+        [Key("data")]
         public HoloNETDataZomeCall data { get; set; }
     }
 }
