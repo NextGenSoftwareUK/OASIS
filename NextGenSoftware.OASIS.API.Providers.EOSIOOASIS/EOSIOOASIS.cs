@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using EOSNewYork.EOSCore.Response.API;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -1378,6 +1377,56 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         }
 
         public async Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransaction(IWalletTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             throw new NotImplementedException();
         }

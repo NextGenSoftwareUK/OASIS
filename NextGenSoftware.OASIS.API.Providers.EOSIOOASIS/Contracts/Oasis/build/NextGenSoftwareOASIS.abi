@@ -1,0 +1,277 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.2",
+    "types": [],
+    "structs": [
+        {
+            "name": "addavatar",
+            "base": "",
+            "fields": [
+                {
+                    "name": "entityId",
+                    "type": "int32"
+                },
+                {
+                    "name": "avatarId",
+                    "type": "string"
+                },
+                {
+                    "name": "info",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "adddetail",
+            "base": "",
+            "fields": [
+                {
+                    "name": "entityId",
+                    "type": "int32"
+                },
+                {
+                    "name": "avatarId",
+                    "type": "string"
+                },
+                {
+                    "name": "info",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "addholon",
+            "base": "",
+            "fields": [
+                {
+                    "name": "entityId",
+                    "type": "int32"
+                },
+                {
+                    "name": "holonId",
+                    "type": "string"
+                },
+                {
+                    "name": "info",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "avatar",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "uint64"
+                },
+                {
+                    "name": "entityId",
+                    "type": "uint64"
+                },
+                {
+                    "name": "avatarId",
+                    "type": "string"
+                },
+                {
+                    "name": "info",
+                    "type": "string"
+                },
+                {
+                    "name": "isDeleted",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "avatardetail",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "uint64"
+                },
+                {
+                    "name": "entityId",
+                    "type": "uint64"
+                },
+                {
+                    "name": "avatarId",
+                    "type": "string"
+                },
+                {
+                    "name": "info",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "hardavatar",
+            "base": "",
+            "fields": [
+                {
+                    "name": "entityId",
+                    "type": "int32"
+                }
+            ]
+        },
+        {
+            "name": "hardholon",
+            "base": "",
+            "fields": [
+                {
+                    "name": "entityId",
+                    "type": "int32"
+                }
+            ]
+        },
+        {
+            "name": "holon",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "uint64"
+                },
+                {
+                    "name": "entityId",
+                    "type": "uint64"
+                },
+                {
+                    "name": "holonId",
+                    "type": "string"
+                },
+                {
+                    "name": "info",
+                    "type": "string"
+                },
+                {
+                    "name": "isDeleted",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "setavatar",
+            "base": "",
+            "fields": [
+                {
+                    "name": "entityId",
+                    "type": "int32"
+                },
+                {
+                    "name": "info",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "setholon",
+            "base": "",
+            "fields": [
+                {
+                    "name": "entityId",
+                    "type": "int32"
+                },
+                {
+                    "name": "info",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "softavatar",
+            "base": "",
+            "fields": [
+                {
+                    "name": "entityId",
+                    "type": "int32"
+                }
+            ]
+        },
+        {
+            "name": "softholon",
+            "base": "",
+            "fields": [
+                {
+                    "name": "entityId",
+                    "type": "int32"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "addavatar",
+            "type": "addavatar",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "adddetail",
+            "type": "adddetail",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "addholon",
+            "type": "addholon",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "hardavatar",
+            "type": "hardavatar",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "hardholon",
+            "type": "hardholon",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setavatar",
+            "type": "setavatar",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setholon",
+            "type": "setholon",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "softavatar",
+            "type": "softavatar",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "softholon",
+            "type": "softholon",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "avatar",
+            "type": "avatar",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "avatardetail",
+            "type": "avatardetail",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "holon",
+            "type": "holon",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "kv_tables": {},
+    "ricardian_clauses": [],
+    "variants": [],
+    "action_results": []
+}
