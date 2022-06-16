@@ -24,13 +24,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         IOASISNFTProvider, IOASISNETProvider, IOASISSuperStar
     {
         private static readonly Dictionary<Guid, GetAccountResponseDto> _avatarIdToEOSIOAccountLookup = new();
+        private readonly IEosClient _eosClient;
         private readonly IEosProviderRepository<AvatarDetailDto> _avatarDetailRepository;
         private readonly IEosProviderRepository<AvatarDto> _avatarRepository;
-
-        private readonly IEosClient _eosClient;
         private readonly IEosProviderRepository<HolonDto> _holonRepository;
+        private readonly IEosTransactionRepository _transactionRepository;
         private AvatarManager _avatarManager;
         private KeyManager _keyManager;
+        private WalletManager _walletManager;
 
         public EOSIOOASIS(string hostUri, string eosAccountName, string eosChainId, string eosAccountPk)
         {
@@ -46,6 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             _holonRepository = new HolonEosProviderRepository(_eosClient, eosAccountName, hostUri, eosChainId, eosAccountPk);
             _avatarDetailRepository = new AvatarDetailEosProviderRepository(_eosClient, eosAccountName,hostUri, eosChainId, eosAccountPk);
             _avatarRepository = new AvatarEosProviderRepository(_eosClient, eosAccountName, hostUri, eosChainId, eosAccountPk);
+            _transactionRepository = new EosTransactionRepository(eosAccountName, hostUri, eosChainId, eosAccountPk);
         }
 
         private AvatarManager AvatarManager
@@ -59,6 +61,17 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
 
                 return _avatarManager;
+            }
+        }
+
+        private WalletManager WalletManager
+        {
+            get
+            {
+                if (_walletManager == null)
+                    _walletManager = new WalletManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS),
+                        AvatarManager.OASISDNA);
+                return _walletManager;
             }
         }
 
@@ -1216,17 +1229,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return KeyManager.GetAvatarForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS)
                 .Result;
         }
-
-        public OASISResult<bool> SendTrasaction(IWalletTransaction transation)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransaction transation)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public OASISResult<bool> SendNFT(IWalletTransaction transation)
         {
             throw new NotImplementedException();
@@ -1239,52 +1242,178 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public OASISResult<string> SendTransaction(IWalletTransaction transaction)
         {
-            throw new NotImplementedException();
+            return SendTransactionAsync(transaction).Result;
         }
 
         public async Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transaction)
         {
-            throw new NotImplementedException();
+            return await _transactionRepository.SendTransaction(
+                transaction.FromWalletAddress, transaction.ToWalletAddress, transaction.Amount);
         }
 
         public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
         public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            string errorMessage = "Error in SendTransactionByIdAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromAvatarResult = await AvatarManager.LoadAvatarAsync(fromAvatarId);
+            var toAvatarResult = await AvatarManager.LoadAvatarAsync(toAvatarId);
+                
+            if (fromAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                    fromAvatarResult.Exception);
+                return result;
+            }
+
+            if (toAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                    toAvatarResult.Exception);
+                return result;
+            }
+
+            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            result = await _transactionRepository.SendTransaction(senderAvatarAccountName, receiverAvatarAccountName, amount);
+            
+            if(result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+            
+            return result;
         }
 
         public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            string errorMessage = "Error in SendTransactionByUsernameAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromAvatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(fromAvatarUsername);
+            var toAvatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(toAvatarUsername);
+            
+            if (fromAvatarDetailResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarDetailResult.Message),
+                    fromAvatarDetailResult.Exception);
+                return result;
+            }
+
+            if (toAvatarDetailResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarDetailResult.Message),
+                    toAvatarDetailResult.Exception);
+                return result;
+            }
+            
+            var fromAvatarResult = await AvatarManager.LoadAvatarAsync(fromAvatarDetailResult.Result.Id);
+            var toAvatarResult = await AvatarManager.LoadAvatarAsync(toAvatarDetailResult.Result.Id);
+
+            if (fromAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                    fromAvatarResult.Exception);
+                return result;
+            }
+
+            if (toAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                    toAvatarResult.Exception);
+                return result;
+            }
+            
+            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            result = await _transactionRepository.SendTransaction(senderAvatarAccountName, receiverAvatarAccountName, amount);
+            
+            if(result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+            
+            return result;
         }
 
         public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
         }
 
         public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            string errorMessage = "Error in SendTransactionByEmailAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromAvatarResult = await AvatarManager.LoadAvatarByEmailAsync(fromAvatarEmail);
+            var toAvatarResult = await AvatarManager.LoadAvatarByEmailAsync(toAvatarEmail);
+                
+            if (fromAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                    fromAvatarResult.Exception);
+                return result;
+            }
+
+            if (toAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                    toAvatarResult.Exception);
+                return result;
+            }
+
+            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            result = await _transactionRepository.SendTransaction(senderAvatarAccountName, receiverAvatarAccountName, amount);
+            
+            if(result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+            
+            return result;
         }
 
         public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
         public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
         public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            string errorMessage = "Error in SendTransactionByDefaultWalletAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromWalletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
+            var toWalletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
+                
+            if (fromWalletResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message),
+                    fromWalletResult.Exception);
+                return result;
+            }
+
+            if (toWalletResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message),
+                    toWalletResult.Exception);
+                return result;
+            }
+
+            var senderAvatarAccountName = fromWalletResult.Result.Name;
+            var receiverAvatarAccountName = toWalletResult.Result.Name;
+            result = await _transactionRepository.SendTransaction(senderAvatarAccountName, receiverAvatarAccountName, amount);
+            
+            if(result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+            
+            return result;
         }
     }
 }

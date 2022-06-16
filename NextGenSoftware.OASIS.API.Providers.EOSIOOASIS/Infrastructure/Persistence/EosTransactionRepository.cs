@@ -65,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                         }
                     }
                 });
-
+                result.Result = pushTransactionResult;
                 LoggingManager.Log(
                     "Transferring token request was sent. " +
                     $"Received transaction hash response: {pushTransactionResult}. " +
