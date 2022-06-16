@@ -1305,13 +1305,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         public List<string> GetEOSIOAccountNamesForAvatar(Guid avatarId)
         {
             //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPublicKeysForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result;
+            return KeyManager.GetProviderPublicKeysForAvatarById(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result;
         }
 
         public string GetEOSIOAccountPrivateKeyForAvatar(Guid avatarId)
         {
             //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPrivateKeyForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result;
+            return KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result[0];
         }
 
         public GetAccountResponseDto GetEOSIOAccountForAvatar(Guid avatarId)
