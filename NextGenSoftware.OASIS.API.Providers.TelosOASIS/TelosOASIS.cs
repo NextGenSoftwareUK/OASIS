@@ -18,14 +18,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public EOSIOOASIS.EOSIOOASIS EOSIOOASIS { get; set; }
 
-        public TelosOASIS(string host)
+        public TelosOASIS(string host, string eosAccountName, string eosChainId, string eosAccountPk)
         {
             this.ProviderName = "TelosOASIS";
             this.ProviderDescription = "Telos Provider";
             this.ProviderType = new API.Core.Helpers.EnumValue<ProviderType>(API.Core.Enums.ProviderType.TelosOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(host);
+            EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(host, eosAccountName, eosChainId, eosAccountPk);
         }
 
         private AvatarManager AvatarManager
@@ -52,16 +52,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             }
         }
 
+        // TODO: Implement GetAccountAsync in EOS provider
         public async Task<Account> GetTelosAccountAsync(string telosAccountName)
         {
-            var account = await EOSIOOASIS.ChainAPI.GetAccountAsync(telosAccountName);
-            return account;
+            // var account = await EOSIOOASIS.ChainAPI.GetAccountAsync(telosAccountName);
+            return new Account();
         }
 
+        // TODO: Implement GetAccount in EOS provider
         public Account GetTelosAccount(string telosAccountName)
         {
-            var account = EOSIOOASIS.ChainAPI.GetAccount(telosAccountName);
-            return account;
+            // var account = EOSIOOASIS.ChainAPI.GetAccount(telosAccountName);
+            return new Account();
         }
 
         public async Task<string> GetBalanceAsync(string telosAccountName, string code, string symbol)

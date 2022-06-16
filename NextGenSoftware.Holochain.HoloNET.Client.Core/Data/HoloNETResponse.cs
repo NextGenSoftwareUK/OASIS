@@ -8,13 +8,13 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
     //[Serializable]
     public class HoloNETResponse
     {
-        [Key(0)]
+        [Key("id")]
         public string id { get; set; }
 
-        [Key(1)]
+        [Key("type")]
         public string type { get; set; }
 
-        [Key(2)]
+        [Key("data")]
         public byte[] data { get; set; }
     }
 }
