@@ -18,8 +18,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
 {
     public class DataContext : DbContext
     {
-        private string _connectionString = "";
-        private string DbPath = "";
+        private readonly string _connectionString;
+        private readonly string _dbPath = "";
 
         public DataContext(string connectionString)
         {
@@ -34,14 +34,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             var path = Environment.GetFolderPath(folder);
 
             //Default DB Path if no connectionstring is passed in.
-            DbPath = $"{path}{System.IO.Path.DirectorySeparatorChar}Database{System.IO.Path.DirectorySeparatorChar}SQLLiteDBOASIS.sqlite";
+            _dbPath = $"{path}{System.IO.Path.DirectorySeparatorChar}Database{System.IO.Path.DirectorySeparatorChar}SQLLiteDBOASIS.sqlite";
 
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             // connect to sqlite database
             if (string.IsNullOrEmpty(_connectionString))
-                optionsBuilder.UseSqlite($"Data Source={DbPath}");
+                optionsBuilder.UseSqlite($"Data Source={_dbPath}");
             else
                 optionsBuilder.UseSqlite(_connectionString);
 
