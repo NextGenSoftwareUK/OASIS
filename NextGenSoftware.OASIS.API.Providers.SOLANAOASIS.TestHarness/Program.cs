@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
 using Solnet.Programs;
 using Solnet.Rpc;
@@ -142,16 +143,76 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness
             solanaOasis.DeActivateProvider();
         }
 
+        private static async Task Run_SendNftAsync()
+        {
+            SolanaOASIS solanaOasis = new SolanaOASIS(_mnemonicWords);
+            Console.WriteLine("Run_SendNftAsync()->ActivateProvider()");
+            solanaOasis.ActivateProvider();
+            
+            var sendNftRequest = new WalletTransaction()
+            {
+                Amount = 0.001m,
+                Date = DateTime.Now,
+                ProviderType = ProviderType.EOSIOOASIS,
+                FromWalletAddress = "",
+                ToWalletAddress = ""
+            };
+            Console.WriteLine("Run_SendNftAsync-->SendNFTAsync()-->Sending...");
+            var sendNftResult = await solanaOasis.SendNFTAsync(sendNftRequest);
+            if (sendNftResult.IsError)
+            {
+                Console.WriteLine("Run_SendNftAsync-->SendNFTAsync()-->Failed...");
+                Console.WriteLine(sendNftResult.Message);
+                return;
+            }
+            Console.WriteLine("Run_SendNftAsync-->SendNFTAsync()-->Completed...");
+
+            Console.WriteLine("Run_SendNftAsync()->DeActivateProvider()");
+            solanaOasis.DeActivateProvider();
+        }
+
+        private static async Task Run_SendTransactionAsync()
+        {
+            SolanaOASIS solanaOasis = new SolanaOASIS(_mnemonicWords);
+            Console.WriteLine("Run_SendTransactionAsync()->ActivateProvider()");
+            solanaOasis.ActivateProvider();
+
+            var walletTransaction = new WalletTransaction()
+            {
+                Amount = 0.001m,
+                Date = DateTime.Now,
+                ProviderType = ProviderType.EOSIOOASIS,
+                FromWalletAddress = "",
+                ToWalletAddress = ""
+            };
+            Console.WriteLine("Run_SendTransactionAsync-->SendTransactionAsync()-->Sending...");
+            var sendTransactionResult = await solanaOasis.SendTransactionAsync(walletTransaction);
+            if (sendTransactionResult.IsError)
+            {
+                Console.WriteLine("Run_SendTransactionAsync-->SendTransactionAsync()-->Failed...");
+                Console.WriteLine(sendTransactionResult.Message);
+                return;
+            }
+            Console.WriteLine("Run_SendTransactionAsync-->SendTransactionAsync()-->Completed...");
+
+            Console.WriteLine("Run_SendTransactionAsync()->DeActivateProvider()");
+            solanaOasis.DeActivateProvider();
+        }
+        
         #endregion
 
         private static async Task Main(string[] args)
         {
-            //Solana Provider Examples
+            // Transferring Examples
+            await Run_SendNftAsync();
+            await Run_SendTransactionAsync();
+            
+            // Solana Provider Examples
             await Run_SaveAndLoadAvatar();
             
             // Raw entity example
-            // await Run_RawEntityCreation();
-            // await Run_RawCreateAndQueryEntity();
+            await Run_RawEntityCreation();
+            await Run_RawCreateAndQueryEntity();
         }
     }
 }
