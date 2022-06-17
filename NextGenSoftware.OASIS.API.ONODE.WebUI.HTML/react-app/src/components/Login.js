@@ -59,6 +59,7 @@ export default class Login extends React.Component {
                 }
              
                 toast.success(response.data.message);
+                console.log(response.data.message)
                 this.setState({user: response.data.result})
 
                 this.props.setUserStateData(response.data.result);
