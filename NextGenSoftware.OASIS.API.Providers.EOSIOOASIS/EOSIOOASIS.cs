@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using EOSNewYork.EOSCore;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -13,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.CurrencyBalance;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetTableRows;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persistence;
@@ -32,6 +34,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         private AvatarManager _avatarManager;
         private KeyManager _keyManager;
         private WalletManager _walletManager;
+
+        public ChainAPI ChainAPI => new ChainAPI();
 
         public EOSIOOASIS(string hostUri, string eosAccountName, string eosChainId, string eosAccountPk)
         {
@@ -55,11 +59,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             get
             {
                 if (_avatarManager == null)
-                    _avatarManager =
-                        new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS),
-                            AvatarManager.OASISDNA);
+                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), OASISDNA);
                 //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
-
                 return _avatarManager;
             }
         }
@@ -1388,14 +1389,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId,
+            decimal amount)
         {
             var result = new OASISResult<string>();
-            string errorMessage = "Error in SendTransactionByDefaultWalletAsync method in EosioOasis sending transaction. Reason: ";
+            string errorMessage =
+                "Error in SendTransactionByDefaultWalletAsync method in EosioOasis sending transaction. Reason: ";
 
-            var fromWalletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
-            var toWalletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
-                
+            var fromWalletResult =
+                await WalletManager.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
+            var toWalletResult =
+                await WalletManager.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
+
             if (fromWalletResult.IsError)
             {
                 ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message),
@@ -1412,11 +1417,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             var senderAvatarAccountName = fromWalletResult.Result.Name;
             var receiverAvatarAccountName = toWalletResult.Result.Name;
-            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
-            
-            if(result.IsError)
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName,
+                amount);
+
+            if (result.IsError)
                 ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
-            
+
             return result;
         }
     }

@@ -7,12 +7,13 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 
 namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 {
     public class TelosOASIS : OASISStorageProviderBase, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISNETProvider
     {
-        private static Dictionary<Guid, Account> _avatarIdToTelosAccountLookup = new Dictionary<Guid, Account>();
+        private static Dictionary<Guid, GetAccountResponseDto> _avatarIdToTelosAccountLookup = new Dictionary<Guid, GetAccountResponseDto>();
         private AvatarManager _avatarManager = null;
         private KeyManager _keyManager = null;
 
@@ -60,10 +61,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         }
 
         // TODO: Implement GetAccount in EOS provider
-        public Account GetTelosAccount(string telosAccountName)
-        {
-            // var account = EOSIOOASIS.ChainAPI.GetAccount(telosAccountName);
-            return new Account();
+        public GetAccountResponseDto GetTelosAccount(string telosAccountName)
+        { 
+            return EOSIOOASIS.GetEOSIOAccount(telosAccountName);
         }
 
         public async Task<string> GetBalanceAsync(string telosAccountName, string code, string symbol)
@@ -93,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.TelosOASIS).Result[0];
         }
 
-        public Account GetTelosAccountForAvatar(Guid avatarId)
+        public GetAccountResponseDto GetTelosAccountForAvatar(Guid avatarId)
         {
             //TODO: Do we need to cache this?
             if (!_avatarIdToTelosAccountLookup.ContainsKey(avatarId))
