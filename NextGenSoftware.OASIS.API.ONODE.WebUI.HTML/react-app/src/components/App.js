@@ -26,7 +26,6 @@ class App extends React.Component {
     showSignup: false,
     showForgetPassword: false,
     user: null,
-
     sidebarMenuOption: [
       {
         data: {
@@ -70,10 +69,9 @@ class App extends React.Component {
   };
 
   componentDidMount() {
-    localStorage.getItem("user");
-
-    if (localStorage.getItem("user")) {
-      this.setState({ user: JSON.parse(localStorage.getItem("user")) });
+    let user = localStorage.getItem('user');
+    if(user === 'undefined' || !user) {
+      this.setState({ user: localStorage.getItem("user") });
     }
 }
 

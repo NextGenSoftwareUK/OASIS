@@ -7,7 +7,7 @@ class Navbar extends React.Component {
 
     handleLogoClicked = (showLogin) => {
         let user = localStorage.getItem('user');
-        if(!user) {
+        if(user === 'undefined' || !user) {
             showLogin();
         }
     }
