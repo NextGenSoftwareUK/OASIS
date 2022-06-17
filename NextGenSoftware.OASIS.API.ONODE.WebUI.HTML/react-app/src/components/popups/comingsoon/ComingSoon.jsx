@@ -17,7 +17,7 @@ class ComingSoon extends React.Component {
                         alt="icon"
                     />
                     <h2>Coming Soon</h2>
-                    <p>UI is coming soon...</p>
+                    <p>This module is coming soon...</p>
                     <button onClick={this.props.toggleScreenPopup}>OK</button>
                 </Modal.Body>
             </Modal>
