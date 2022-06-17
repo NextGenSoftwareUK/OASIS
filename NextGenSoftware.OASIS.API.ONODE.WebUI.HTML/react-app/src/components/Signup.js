@@ -84,7 +84,7 @@ export default class Signup extends React.Component {
                         toast.success("Avatar is created successfully");
                     }
                 }).catch(error => {
-                    console.log(JSON.parse(error))
+                    // console.log(JSON.parse(error))
                     console.log(error)
                     this.setState({ loading: false })
                     toast.error(error.data.message);
@@ -255,7 +255,6 @@ export default class Signup extends React.Component {
                                               display: "flex",
                                               justifyContent: "space-around",
                                               cursor: "progress",
-                                              width: '10rem'
                                             }}
                                           >
                                             Submitting
@@ -271,7 +270,6 @@ export default class Signup extends React.Component {
                                             type="submit"
                                             className="submit-button"
                                             disabled={false}
-                                            style={{width: '10rem'}}
                                           >Submit</button>
                                         )}
                                     </div>

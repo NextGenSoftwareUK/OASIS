@@ -261,6 +261,7 @@ option {
         width: 60%;
         transition: all 200ms ease-in;
         margin: 0 auto;
+        grid-column: 1/3;
         @media screen and (min-width:320px) and (max-width:767px) {
             width: 100%;
         }
