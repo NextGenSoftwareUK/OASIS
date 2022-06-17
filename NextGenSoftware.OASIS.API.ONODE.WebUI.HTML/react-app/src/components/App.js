@@ -145,7 +145,7 @@ class App extends React.Component {
         console.log(menuOption);
         console.log(menuName)
         let sidebarMenuOption = [...this.state.sidebarMenuOption];
-        if (!menuName) {
+        if (!menuName && menuOption !== 'the oasis') {
             sidebarMenuOption[5].comingSoon = !sidebarMenuOption[5].comingSoon
         } else {
             sidebarMenuOption.map((item) => {
