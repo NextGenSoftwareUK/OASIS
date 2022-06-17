@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         private readonly IEosProviderRepository<AvatarDetailDto> _avatarDetailRepository;
         private readonly IEosProviderRepository<AvatarDto> _avatarRepository;
         private readonly IEosProviderRepository<HolonDto> _holonRepository;
-        private readonly IEosTransactionRepository _transactionRepository;
+        private readonly IEosTransferRepository _transferRepository;
         private AvatarManager _avatarManager;
         private KeyManager _keyManager;
         private WalletManager _walletManager;
@@ -47,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             _holonRepository = new HolonEosProviderRepository(_eosClient, eosAccountName, hostUri, eosChainId, eosAccountPk);
             _avatarDetailRepository = new AvatarDetailEosProviderRepository(_eosClient, eosAccountName,hostUri, eosChainId, eosAccountPk);
             _avatarRepository = new AvatarEosProviderRepository(_eosClient, eosAccountName, hostUri, eosChainId, eosAccountPk);
-            _transactionRepository = new EosTransactionRepository(eosAccountName, hostUri, eosChainId, eosAccountPk);
+            _transferRepository = new EosTransferRepository(eosAccountName, hostUri, eosChainId, eosAccountPk);
         }
 
         private AvatarManager AvatarManager
@@ -1232,12 +1232,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         
         public OASISResult<bool> SendNFT(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            return SendNFTAsync(transation).Result;
         }
 
         public async Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            return await _transferRepository.TransferEosNft(
+                transation.FromWalletAddress,
+                transation.ToWalletAddress,
+                transation.Amount,
+                "SYS");
         }
 
         public OASISResult<string> SendTransaction(IWalletTransaction transaction)
@@ -1247,7 +1251,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public async Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transaction)
         {
-            return await _transactionRepository.SendTransaction(
+            return await _transferRepository.TransferEosToken(
                 transaction.FromWalletAddress, transaction.ToWalletAddress, transaction.Amount);
         }
 
@@ -1280,7 +1284,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
             var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
-            result = await _transactionRepository.SendTransaction(senderAvatarAccountName, receiverAvatarAccountName, amount);
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
             
             if(result.IsError)
                 ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
@@ -1329,7 +1333,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             
             var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
             var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
-            result = await _transactionRepository.SendTransaction(senderAvatarAccountName, receiverAvatarAccountName, amount);
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
             
             if(result.IsError)
                 ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
@@ -1366,7 +1370,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
             var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
-            result = await _transactionRepository.SendTransaction(senderAvatarAccountName, receiverAvatarAccountName, amount);
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
             
             if(result.IsError)
                 ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
@@ -1408,7 +1412,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             var senderAvatarAccountName = fromWalletResult.Result.Name;
             var receiverAvatarAccountName = toWalletResult.Result.Name;
-            result = await _transactionRepository.SendTransaction(senderAvatarAccountName, receiverAvatarAccountName, amount);
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
             
             if(result.IsError)
                 ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
