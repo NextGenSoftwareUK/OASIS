@@ -81,7 +81,7 @@ export default class Signup extends React.Component {
                         return
                     } else if(!response.error) {
                         this.props.hide()
-                        toast.success("Avatar is created successfully");
+                        toast.success(response.data.message);
                     }
                 }).catch(error => {
                     // console.log(JSON.parse(error))
