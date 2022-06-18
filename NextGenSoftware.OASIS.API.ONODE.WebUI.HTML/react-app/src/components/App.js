@@ -19,6 +19,10 @@ import Seeds from "./popups/seeds";
 import ForgotPassword from "./forgotPassword";
 import ComingSoon from "./popups/comingsoon/ComingSoon";
 
+import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+
+import VerifyToken from "./VerifyToken";
+
 class App extends React.Component {
   state = {
     showSidebar: false,
@@ -68,12 +72,12 @@ class App extends React.Component {
     ],
   };
 
-  componentDidMount() {
-    let user = localStorage.getItem('user');
-    if(user === 'undefined' || !user) {
-      this.setState({ user: localStorage.getItem("user") });
+    componentDidMount() {
+        let user = localStorage.getItem('user');
+        if(user === 'undefined' || !user) {
+            this.setState({ user: localStorage.getItem("user") });
+        }
     }
-}
 
     setUserData = (data) => {
         this.setState({
@@ -162,72 +166,80 @@ class App extends React.Component {
 
     render() {
         return (
-            <div className="main-container">
-                <header>
-                    <Navbar
-                        showSidebar={this.state.showSidebar}
-                        toggleSidebar={this.toggleSidebar}
-                        showLogin={this.showLogin}
-                        showSignup={this.showSignup}
-                        handleLogout={this.handleLogout}
-                        user={this.state.user}
+            <Router>
+                <Switch>
+                    <Route exact path='/avatar/verify-email' component={VerifyToken} />
+                </Switch>
+
+                <div className="main-container">
+                    <header>
+                        <Navbar
+                            showSidebar={this.state.showSidebar}
+                            toggleSidebar={this.toggleSidebar}
+                            showLogin={this.showLogin}
+                            showSignup={this.showSignup}
+                            handleLogout={this.handleLogout}
+                            user={this.state.user}
+                        />
+                        
+                        <Sidebar
+                            showSidebar={this.state.showSidebar}
+                            toggleSidebar={this.toggleSidebar}
+                            toggleScreenPopup={this.toggleScreenPopup}
+                        />
+                    </header>
+
+                    <Login
+                        className="custom-form"
+                        show={this.state.showLogin}
+                        hide={this.hideLogin}
+                        change={this.showSignup}
+                        setUserStateData={this.setUserData}
                     />
-                    
-                    <Sidebar
-                        showSidebar={this.state.showSidebar}
-                        toggleSidebar={this.toggleSidebar}
+
+                    <Signup
+                        className="custom-form"
+                        show={this.state.showSignup}
+                        hide={this.hideSignup}
+                        change={this.showLogin}
+                    />
+
+                    <DataScreen
+                        data={this.state.sidebarMenuOption[0].data}
                         toggleScreenPopup={this.toggleScreenPopup}
                     />
-                </header>
 
-                <Login
-                    className="custom-form"
-                    show={this.state.showLogin}
-                    hide={this.hideLogin}
-                    change={this.showSignup}
-                    setUserStateData={this.setUserData}
-                />
+                    <Solana
+                        show={this.state.sidebarMenuOption[1].nft.solana}
+                        hide={this.toggleScreenPopup}
+                    />
 
-                <Signup
-                    className="custom-form"
-                    show={this.state.showSignup}
-                    hide={this.hideSignup}
-                    change={this.showLogin}
-                />
+                    <ContactPopup
+                        show={this.state.sidebarMenuOption[1].nft.contactPopup}
+                        hide={this.toggleScreenPopup}
+                    />
 
-                <DataScreen
-                    data={this.state.sidebarMenuOption[0].data}
-                    toggleScreenPopup={this.toggleScreenPopup}
-                />
+                    <Seeds
+                        seeds={this.state.sidebarMenuOption[2].seeds}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    />
+                    
+                    <Avatar
+                        avatar={this.state.sidebarMenuOption[3].avatar}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    />
 
-                <Solana
-                    show={this.state.sidebarMenuOption[1].nft.solana}
-                    hide={this.toggleScreenPopup}
-                />
+                    <Karma 
+                        karma={this.state.sidebarMenuOption[4].karma}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    />
 
-                <ContactPopup
-                    show={this.state.sidebarMenuOption[1].nft.contactPopup}
-                    hide={this.toggleScreenPopup}
-                />
-                <Seeds
-                    seeds={this.state.sidebarMenuOption[2].seeds}
-                    toggleScreenPopup={this.toggleScreenPopup}
-                />
-                <Avatar
-                    avatar={this.state.sidebarMenuOption[3].avatar}
-                    toggleScreenPopup={this.toggleScreenPopup}
-                />
-
-                <Karma 
-                    karma={this.state.sidebarMenuOption[4].karma}
-                    toggleScreenPopup={this.toggleScreenPopup}
-                />
-
-                <ComingSoon
-                    show={this.state.sidebarMenuOption[5].comingSoon}
-                    toggleScreenPopup={this.toggleScreenPopup}
-                />
-            </div>
+                    <ComingSoon
+                        show={this.state.sidebarMenuOption[5].comingSoon}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    />
+                </div>
+            </Router>
         );
     }
 
