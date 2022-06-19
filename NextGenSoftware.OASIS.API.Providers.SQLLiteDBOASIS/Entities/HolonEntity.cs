@@ -121,5 +121,35 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
 
         [Column("deleted_by_avatar_id", TypeName = "NVARCHAR(64)")]
         private Guid DeletedByAvatarId { get; set; }
+
+        [Column("created_date", TypeName = "DATETIME")]
+        public DateTime CreatedDate { get; set; }
+        
+        [Column("deleted_date", TypeName = "DATETIME")]
+        public DateTime DeletedDate { get; set; }
+        
+        [Column("description", TypeName = "NVARCHAR(300)")]
+        public string Description { get; set; }
+        
+        [Column("id", TypeName = "NVARCHAR(64)")]
+        public Guid Id { get; set; }
+        
+        [Column("is_active", TypeName = "BOOLEAN")]
+        public bool IsActive { get; set; }
+        
+        [Column("is_changed", TypeName = "BOOLEAN")]
+        public bool IsChanged { get; set; }
+        
+        [Column("modified_date", TypeName = "DATETIME")]
+        public DateTime ModifiedDate { get; set; }
+        
+        [Column("name", TypeName = "NVARCHAR(100)")]
+        public string Name { get; set; }
+
+        [Column("previous_version_id", TypeName = "NVARCHAR(64)")]
+        public Guid PreviousVersionId { get; set; }        
+        
+        [Column("version", TypeName = "INTEGER")]
+        public int Version { get; set; }
     }
 }
