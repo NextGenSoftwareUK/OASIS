@@ -5,12 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
     [Table("HeartRateEntry")]
-    public class HeartRateEntryModel : HeartRateEntry{
+    public class HeartRateEntryModel : HeartRateEntry
+    {
 
         [Required, Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id{ set; get; }
-        
-        public string AvatarId{ set; get; }
+        public long Id { set; get; }
+
+        [ForeignKey("AvatarId")] 
+        public AvatarDetailModel AvatarDetail { set; get; }
+        public string AvatarId { get; set; }
 
         public HeartRateEntryModel(){}
         public HeartRateEntryModel(HeartRateEntry source){

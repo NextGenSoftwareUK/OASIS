@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
@@ -27,6 +28,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public int Progress { get; set; }
         public int XP { get; set; }
 
+        [ForeignKey("AvatarId")] 
+        public AvatarDetailModel AvatarDetail { get; set; }
         public string AvatarId { get; set; }
 
         public List<AvatarGiftModel> GiftsUnlocked { get; set; } = new List<AvatarGiftModel>();

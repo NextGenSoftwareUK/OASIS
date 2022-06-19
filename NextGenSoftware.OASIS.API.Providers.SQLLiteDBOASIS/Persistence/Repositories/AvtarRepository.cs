@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            OASISResult<AvatarEntity> avatarResult = new();
+            OASISResult<AvatarModel> avatarResult = new();
             var avatar = _dbContext.Avatars.FirstOrDefault(p => p.Id == id.ToString());
             if (avatar != null)
             {
@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
                             //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
 
-                            OASISResult<AvatarDetailEntity?> avatarDetailResult = new();
+                            OASISResult<AvatarDetailModel?> avatarDetailResult = new();
                             avatarDetailResult.IsError = true;
                             avatarDetailResult.Result =
                                 _dbContext.AvatarDetails.FirstOrDefault(p =>
@@ -73,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                                 avatarDetailResult.Result.DeletedDate = DateTime.Now;
                                 //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
-                                _dbContext.Avatars.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                                _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
                                 result.Result = true;
                             }
                             else
@@ -121,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            OASISResult<AvatarEntity> avatarResult = new();
+            OASISResult<AvatarModel> avatarResult = new();
             var avatar = _dbContext.Avatars.FirstOrDefault(p => p.Email == avatarEmail);
             if (avatar != null)
             {
@@ -157,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
                             //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
 
-                            OASISResult<AvatarDetailEntity?> avatarDetailResult = new();
+                            OASISResult<AvatarDetailModel?> avatarDetailResult = new();
                             avatarDetailResult.IsError = true;
                             avatarDetailResult.Result =
                                 _dbContext.AvatarDetails.FirstOrDefault(p =>
@@ -170,7 +170,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                                 avatarDetailResult.Result.DeletedDate = DateTime.Now;
                                 //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
-                                _dbContext.Avatars.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                                _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
                                 result.Result = true;
                             }
                             else
@@ -219,7 +219,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            OASISResult<AvatarEntity> avatarResult = new();
+            OASISResult<AvatarModel> avatarResult = new();
             var avatar = _dbContext.Avatars.FirstOrDefault(p => p.Username == avatarUsername);
             if (avatar != null)
             {
@@ -255,7 +255,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
                             //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
 
-                            OASISResult<AvatarDetailEntity?> avatarDetailResult = new();
+                            OASISResult<AvatarDetailModel?> avatarDetailResult = new();
                             avatarDetailResult.IsError = true;
                             avatarDetailResult.Result =
                                 _dbContext.AvatarDetails.FirstOrDefault(p =>
@@ -268,7 +268,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                                 avatarDetailResult.Result.DeletedDate = DateTime.Now;
                                 //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
-                                _dbContext.Avatars.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                                _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
                                 result.Result = true;
                             }
                             else
@@ -317,7 +317,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            OASISResult<AvatarEntity> avatarResult = new();
+            OASISResult<AvatarModel> avatarResult = new();
             var avatar = _dbContext.Avatars.FirstOrDefault(p => p.Username == avatarUsername);
             if (avatar != null)
             {
@@ -353,7 +353,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
                             //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
 
-                            OASISResult<AvatarDetailEntity?> avatarDetailResult = new();
+                            OASISResult<AvatarDetailModel?> avatarDetailResult = new();
                             avatarDetailResult.IsError = true;
                             avatarDetailResult.Result =
                                 _dbContext.AvatarDetails.FirstOrDefault(p =>
@@ -366,7 +366,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                                 avatarDetailResult.Result.DeletedDate = DateTime.Now;
                                 //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
-                                _dbContext.Avatars.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                                _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
                                 result.Result = true;
                             }
                             else
@@ -420,7 +420,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            OASISResult<AvatarEntity> avatarResult = new();
+            OASISResult<AvatarModel> avatarResult = new();
             var avatar = _dbContext.Avatars.FirstOrDefault(p => p.Id == id.ToString());
             if (avatar != null)
             {
@@ -456,7 +456,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
                             //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
 
-                            OASISResult<AvatarDetailEntity> avatarDetailResult = new();
+                            OASISResult<AvatarDetailModel> avatarDetailResult = new();
                             avatarDetailResult.IsError = true;
                             avatarDetailResult.Result = _dbContext.AvatarDetails
                                 .Where(p => p.Username == avatarResult.Result.Username).FirstOrDefault();
@@ -468,7 +468,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                                 avatarDetailResult.Result.DeletedDate = DateTime.Now;
                                 //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
-                                _dbContext.Avatars.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                                _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
                                 result.Result = true;
                             }
                             else
@@ -516,7 +516,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            OASISResult<AvatarEntity> avatarResult = new();
+            OASISResult<AvatarModel> avatarResult = new();
             var Avatar = _dbContext.Avatars
                 .Where(p => p.Email == avatarEmail)
                 .FirstOrDefault();
@@ -554,7 +554,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
                             //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
 
-                            OASISResult<AvatarDetailEntity?> avatarDetailResult = new();
+                            OASISResult<AvatarDetailModel?> avatarDetailResult = new();
                             avatarDetailResult.IsError = true;
                             avatarDetailResult.Result =
                                 _dbContext.AvatarDetails.FirstOrDefault(p =>
@@ -567,7 +567,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                                 avatarDetailResult.Result.DeletedDate = DateTime.Now;
                                 //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
-                                _dbContext.Avatars.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                                _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
                                 result.Result = true;
                             }
                             else
@@ -1033,7 +1033,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                AvatarEntity avatarEntity = CreateAvatarModel(avatar);
+                AvatarModel avatarEntity = CreateAvatarModel(avatar);
                 _dbContext.Avatars.Add(avatarEntity);
                 _dbContext.SaveChangesAsync();
                 return new OASISResult<IAvatar>
@@ -1058,7 +1058,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                AvatarEntity avatarEntity = CreateAvatarModel(avatar);
+                AvatarModel avatarEntity = CreateAvatarModel(avatar);
                 _dbContext.Avatars.Add(avatarEntity);
                 await _dbContext.SaveChangesAsync();
                 //return Avatar;
@@ -1081,7 +1081,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
         }
 
-        public AvatarEntity CreateAvatarModel(IAvatar avatar)
+        public AvatarModel CreateAvatarModel(IAvatar avatar)
         {
             return new()
             {
@@ -1089,10 +1089,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Email = avatar.Email,
                 FirstName = avatar.FirstName,
                 Id = avatar.Id.ToString(),
-                IsBeamedIn = avatar.IsBeamedIn,
                 JwtToken = avatar.JwtToken,
-                LastBeamedIn = avatar.LastBeamedIn,
-                LastBeamedOut = avatar.LastBeamedOut,
                 LastName = avatar.LastName,
                 Name = avatar.FullName,
                 Password = avatar.Password,
@@ -1104,12 +1101,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Username = avatar.Username,
                 VerificationToken = avatar.VerificationToken,
                 Verified = avatar.Verified,
-                AvatarId = avatar.AvatarId.ToString(),
                 AvatarType = avatar.AvatarType.Value
             };
         }
 
-        private IAvatar GetAvatarFromEntity(AvatarEntity avatar)
+        private IAvatar GetAvatarFromEntity(AvatarModel avatar)
         {
             return new Avatar
             {
@@ -1117,10 +1113,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Email = avatar.Email,
                 FirstName = avatar.FirstName,
                 Id = Guid.Parse(avatar.Id),
-                IsBeamedIn = avatar.IsBeamedIn,
                 JwtToken = avatar.JwtToken,
-                LastBeamedIn = avatar.LastBeamedIn,
-                LastBeamedOut = avatar.LastBeamedOut,
                 LastName = avatar.LastName,
                 Password = avatar.Password,
                 PasswordReset = avatar.PasswordReset,
@@ -1131,7 +1124,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Username = avatar.Username,
                 VerificationToken = avatar.VerificationToken,
                 Verified = avatar.Verified,
-                AvatarId = Guid.Parse(avatar.AvatarId),
+                AvatarId = Guid.Parse(avatar.Id),
                 AvatarType = new EnumValue<AvatarType>(avatar.AvatarType)
             };
         }

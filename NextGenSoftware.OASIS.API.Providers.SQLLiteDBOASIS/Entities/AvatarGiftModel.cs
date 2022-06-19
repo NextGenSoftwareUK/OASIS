@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
@@ -20,8 +21,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public string WebLink { get; set; }
         public KarmaSourceType KarmaSource { get; set; }
         public ProviderType Provider { get; set; }
-
+        
+        [ForeignKey("AvatarId")]
+        public AvatarDetailModel AvatarDetail { get; set; }
         public string AvatarId { get; set; }
+        
         public long AvatarChakraId { set; get; } = 0;
 
         public AvatarGiftModel(){}

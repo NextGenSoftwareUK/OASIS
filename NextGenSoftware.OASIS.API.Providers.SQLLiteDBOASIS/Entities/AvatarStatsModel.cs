@@ -7,9 +7,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
     [Table("AvatarStats")]
     public class AvatarStatsModel {
 
-        [Required, Key]
-        public string AvatarId{ set; get; }
+        [Required, Key] 
+        public string Id { get; set; }
 
+        [ForeignKey("AvatarId")] 
+        public AvatarDetailModel AvatarDetail { get; set; }
+        public string AvatarId { get; set; }
+        
         public int HP_Current{ set; get; }
         public int HP_Max{ set; get; }
 
