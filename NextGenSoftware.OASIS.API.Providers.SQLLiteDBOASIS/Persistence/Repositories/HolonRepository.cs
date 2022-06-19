@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntity = _dbContext.HolonEntities.FirstOrDefault(p => p.Id == id && p.Version == version);
+                var holonEntity = _dbContext.Holons.FirstOrDefault(p => p.Id == id && p.Version == version);
                 if (holonEntity == null)
                     return new OASISResult<IHolon>
                     {
@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntity = await _dbContext.HolonEntities.Where(p => p.Id == id && p.Version == version)
+                var holonEntity = await _dbContext.Holons.Where(p => p.Id == id && p.Version == version)
                     .FirstOrDefaultAsync();
                 if (holonEntity == null)
                     return new OASISResult<IHolon>
@@ -91,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntities = _dbContext.HolonEntities.FirstOrDefault(p => p.Version == version);
+                var holonEntities = _dbContext.Holons.FirstOrDefault(p => p.Version == version);
                 return new OASISResult<IHolon>
                 {
                     IsLoaded = true,
@@ -116,7 +116,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntity = _dbContext.HolonEntities.FirstOrDefault(p => p.Version == version);
+                var holonEntity = _dbContext.Holons.FirstOrDefault(p => p.Version == version);
                 return new OASISResult<IHolon>
                 {
                     IsLoaded = true,
@@ -143,7 +143,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 List<HolonEntity> holonEntities =
-                    _dbContext.HolonEntities.Where(p => p.Id == id && p.Version == version).ToList();
+                    _dbContext.Holons.Where(p => p.Id == id && p.Version == version).ToList();
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsLoaded = true,
@@ -169,7 +169,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntities = await _dbContext.HolonEntities.Where(p => p.Id == id && p.Version == version)
+                var holonEntities = await _dbContext.Holons.Where(p => p.Id == id && p.Version == version)
                     .ToListAsync();
                 return new OASISResult<IEnumerable<IHolon>>
                 {
@@ -196,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntities = _dbContext.HolonEntities.Where(p => p.Version == version).ToList();
+                var holonEntities = _dbContext.Holons.Where(p => p.Version == version).ToList();
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsLoaded = true,
@@ -222,7 +222,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntities = await _dbContext.HolonEntities.Where(p => p.Version == version).ToListAsync();
+                var holonEntities = await _dbContext.Holons.Where(p => p.Version == version).ToListAsync();
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsLoaded = true,
@@ -248,7 +248,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntities = _dbContext.HolonEntities.Where(p => p.Version == version).ToList();
+                var holonEntities = _dbContext.Holons.Where(p => p.Version == version).ToList();
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsLoaded = true,
@@ -274,7 +274,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntities = await _dbContext.HolonEntities.Where(p => p.Version == version).ToListAsync();
+                var holonEntities = await _dbContext.Holons.Where(p => p.Version == version).ToListAsync();
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsLoaded = true,
@@ -300,7 +300,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 HolonEntity holonEntity = CreateHolonModel(holon);
-                _dbContext.HolonEntities.Add(holonEntity);
+                _dbContext.Holons.Add(holonEntity);
                 _dbContext.SaveChangesAsync();
                 return new OASISResult<IHolon>
                     {IsError = false, Result = holonEntity, IsSaved = true};
@@ -322,7 +322,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 HolonEntity holonEntity = CreateHolonModel(holon);
-                _dbContext.HolonEntities.Add(holonEntity);
+                _dbContext.Holons.Add(holonEntity);
                 await _dbContext.SaveChangesAsync();
                 return new OASISResult<IHolon>
                     {IsError = false, Result = holonEntity, IsSaved = true};
@@ -347,7 +347,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 foreach (var holonModel in holons)
                 {
                     holonEntity = CreateHolonModel(holonModel);
-                    _dbContext.HolonEntities.Add(holonEntity);
+                    _dbContext.Holons.Add(holonEntity);
                     _dbContext.SaveChangesAsync();
                 }
 
@@ -375,7 +375,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 foreach (var holonModel in holons)
                 {
                     holonEntity = CreateHolonModel(holonModel);
-                    _dbContext.HolonEntities.Add(holonEntity);
+                    _dbContext.Holons.Add(holonEntity);
                     await _dbContext.SaveChangesAsync();
                 }
 
@@ -397,17 +397,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holon = _dbContext.HolonEntities.FirstOrDefault(p => p.Id == id);
+                var holon = _dbContext.Holons.FirstOrDefault(p => p.Id == id);
                 if (holon != null)
                 {
                     if (softDelete)
                     {
                         holon.IsActive = false;
-                        _dbContext.HolonEntities.Update(holon);
+                        _dbContext.Holons.Update(holon);
                     }
                     else
                     {
-                        _dbContext.HolonEntities.Remove(holon);
+                        _dbContext.Holons.Remove(holon);
                     }
 
                     _dbContext.SaveChangesAsync();
@@ -441,17 +441,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holon = await _dbContext.HolonEntities.Where(p => p.Id == id).FirstOrDefaultAsync();
+                var holon = await _dbContext.Holons.Where(p => p.Id == id).FirstOrDefaultAsync();
                 if (holon != null)
                 {
                     if (softDelete)
                     {
                         holon.IsActive = false;
-                        _dbContext.HolonEntities.Update(holon);
+                        _dbContext.Holons.Update(holon);
                     }
                     else
                     {
-                        _dbContext.HolonEntities.Remove(holon);
+                        _dbContext.Holons.Remove(holon);
                     }
 
                     await _dbContext.SaveChangesAsync();
