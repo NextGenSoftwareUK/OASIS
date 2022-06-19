@@ -127,7 +127,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = await _dbContext.AvatarDetails.Where(x => x.Id == id && x.Version == version)
+                var obj = await _dbContext.AvatarDetails
+                    .Where(x => x.Id == id.ToString() && x.Version == version)
                     .FirstOrDefaultAsync();
                 if (obj == null)
                     return new OASISResult<IAvatarDetail>
@@ -283,7 +284,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                AvatarDetailEntity avatarDetail = CreateAvatarDetailModel(avatarDetailEntity);
+                var avatarDetail = CreateAvatarDetailModel(avatarDetailEntity);
                 _dbContext.AvatarDetails.Add(avatarDetail);
                 _dbContext.SaveChanges();
                 return new OASISResult<IAvatarDetail>
@@ -308,7 +309,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                AvatarDetailEntity avatarDetail = CreateAvatarDetailModel(AvatarDetailEntity);
+                var avatarDetail = CreateAvatarDetailModel(AvatarDetailEntity);
                 _dbContext.AvatarDetails.Add(avatarDetail);
                 await _dbContext.SaveChangesAsync();
                 return new OASISResult<IAvatarDetail>
@@ -329,7 +330,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
         }
 
-        private IAvatarDetail GetAvatarDetailFromEntity(AvatarDetailEntity avatarDetailEntity) =>
+        private IAvatarDetail GetAvatarDetailFromEntity(AvatarDetailModel avatarDetailEntity) =>
             new AvatarDetail()
             {
                 Address = avatarDetailEntity.Address,
@@ -337,59 +338,31 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Description = "",
                 DOB = avatarDetailEntity.DOB,
                 Email = avatarDetailEntity.Email,
-                Id = avatarDetailEntity.Id,
-                Portrait = avatarDetailEntity.Portrait,
+                Id = Guid.Parse(avatarDetailEntity.Id),
                 Karma = avatarDetailEntity.Karma,
                 Landline = avatarDetailEntity.Landline,
-                DimensionLevel = avatarDetailEntity.DimensionLevel,
                 Mobile = avatarDetailEntity.Mobile,
                 Postcode = avatarDetailEntity.Postcode,
                 Town = avatarDetailEntity.Town,
-                UmaJson = avatarDetailEntity.UmaJson,
                 Username = avatarDetailEntity.Username,
                 XP = avatarDetailEntity.XP,
-                CreatedByAvatarId = avatarDetailEntity.CreatedByAvatarId,
+                CreatedByAvatarId = Guid.Parse(avatarDetailEntity.CreatedByAvatarId),
                 CreatedDate = avatarDetailEntity.CreatedDate,
-                DeletedByAvatarId = avatarDetailEntity.DeletedByAvatarId,
+                DeletedByAvatarId = Guid.Parse(avatarDetailEntity.DeletedByAvatarId),
                 DeletedDate = avatarDetailEntity.DeletedDate,
                 FavouriteColour = avatarDetailEntity.FavouriteColour,
                 IsActive = avatarDetailEntity.IsActive,
                 IsChanged = avatarDetailEntity.IsChanged,
-                ModifiedByAvatarId = avatarDetailEntity.ModifiedByAvatarId,
+                ModifiedByAvatarId = Guid.Parse(avatarDetailEntity.ModifiedByAvatarId),
                 ModifiedDate = avatarDetailEntity.ModifiedDate,
-                ParentCelestialBodyId = avatarDetailEntity.ParentCelestialBodyId,
-                ParentCelestialSpaceId = avatarDetailEntity.ParentCelestialSpaceId,
-                ParentDimensionId = avatarDetailEntity.ParentDimensionId,
-                ParentGalaxyClusterId = avatarDetailEntity.ParentGalaxyClusterId,
-                ParentGalaxyId = avatarDetailEntity.ParentGalaxyId,
-                ParentGrandSuperStarId = avatarDetailEntity.ParentGrandSuperStarId,
-                ParentGreatGrandSuperStarId = avatarDetailEntity.ParentGreatGrandSuperStarId,
-                ParentHolonId = avatarDetailEntity.ParentHolonId,
-                ParentMoonId = avatarDetailEntity.ParentMoonId,
-                ParentMultiverseId = avatarDetailEntity.ParentMultiverseId,
-                ParentOmniverseId = avatarDetailEntity.ParentOmniverseId,
-                ParentPlanetId = avatarDetailEntity.ParentPlanetId,
-                ParentSolarSystemId = avatarDetailEntity.ParentSolarSystemId,
-                ParentStarId = avatarDetailEntity.ParentStarId,
-                ParentSuperStarId = avatarDetailEntity.ParentSuperStarId,
-                ParentUniverseId = avatarDetailEntity.ParentUniverseId,
-                ParentZomeId = avatarDetailEntity.ParentZomeId,
-                PreviousVersionId = avatarDetailEntity.PreviousVersionId,
                 STARCLIColour = avatarDetailEntity.STARCLIColour,
                 Version = avatarDetailEntity.Version,
-                Achievements = avatarDetailEntity.Achievements,
                 Attributes = avatarDetailEntity.Attributes,
                 Aura = avatarDetailEntity.Aura,
-                Chakras = avatarDetailEntity.Chakras,
-                Children = avatarDetailEntity.Children,
                 County = avatarDetailEntity.County,
-                Gifts = avatarDetailEntity.Gifts,
-                Inventory = avatarDetailEntity.Inventory,
-                Nodes = avatarDetailEntity.Nodes,
-                Omniverse = avatarDetailEntity.Omniverse
             };
 
-        private AvatarDetailEntity CreateAvatarDetailModel(IAvatarDetail avatarDetail)
+        private AvatarDetailModel CreateAvatarDetailModel(IAvatarDetail avatarDetail)
         {
             return new()
             {
@@ -398,56 +371,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Description = "",
                 DOB = avatarDetail.DOB,
                 Email = avatarDetail.Email,
-                Id = avatarDetail.Id,
-                Portrait = avatarDetail.Portrait,
+                Id = avatarDetail.Id.ToString(),
                 Karma = avatarDetail.Karma,
                 Landline = avatarDetail.Landline,
                 Level = 1,
                 Mobile = avatarDetail.Mobile,
                 Postcode = avatarDetail.Postcode,
                 Town = avatarDetail.Town,
-                UmaJson = avatarDetail.UmaJson,
                 Username = avatarDetail.Username,
                 XP = avatarDetail.XP,
-                CreatedByAvatarId = avatarDetail.CreatedByAvatarId,
+                CreatedByAvatarId = avatarDetail.CreatedByAvatarId.ToString(),
                 CreatedDate = avatarDetail.CreatedDate,
-                DeletedByAvatarId = avatarDetail.DeletedByAvatarId,
+                DeletedByAvatarId = avatarDetail.DeletedByAvatarId.ToString(),
                 DeletedDate = avatarDetail.DeletedDate,
                 FavouriteColour = avatarDetail.FavouriteColour,
                 IsActive = avatarDetail.IsActive,
                 IsChanged = avatarDetail.IsChanged,
-                ModifiedByAvatarId = avatarDetail.ModifiedByAvatarId,
+                ModifiedByAvatarId = avatarDetail.ModifiedByAvatarId.ToString(),
                 ModifiedDate = avatarDetail.ModifiedDate,
-                ParentCelestialBodyId = avatarDetail.ParentCelestialBodyId,
-                ParentCelestialSpaceId = avatarDetail.ParentCelestialSpaceId,
-                ParentDimensionId = avatarDetail.ParentDimensionId,
-                ParentGalaxyClusterId = avatarDetail.ParentGalaxyClusterId,
-                ParentGalaxyId = avatarDetail.ParentGalaxyId,
-                ParentGrandSuperStarId = avatarDetail.ParentGrandSuperStarId,
-                ParentGreatGrandSuperStarId = avatarDetail.ParentGreatGrandSuperStarId,
-                ParentHolonId = avatarDetail.ParentHolonId,
-                ParentMoonId = avatarDetail.ParentMoonId,
-                ParentMultiverseId = avatarDetail.ParentMultiverseId,
-                ParentOmniverseId = avatarDetail.ParentOmniverseId,
-                ParentPlanetId = avatarDetail.ParentPlanetId,
-                ParentSolarSystemId = avatarDetail.ParentSolarSystemId,
-                ParentStarId = avatarDetail.ParentStarId,
-                ParentSuperStarId = avatarDetail.ParentSuperStarId,
-                ParentUniverseId = avatarDetail.ParentUniverseId,
-                ParentZomeId = avatarDetail.ParentZomeId,
-                PreviousVersionId = avatarDetail.PreviousVersionId,
                 STARCLIColour = avatarDetail.STARCLIColour,
                 Version = avatarDetail.Version,
-                Achievements = avatarDetail.Achievements,
-                Attributes = avatarDetail.Attributes,
-                Aura = avatarDetail.Aura,
-                Chakras = avatarDetail.Chakras,
-                Children = avatarDetail.Children,
-                County = avatarDetail.County,
-                Gifts = avatarDetail.Gifts,
-                Inventory = avatarDetail.Inventory,
-                Nodes = avatarDetail.Nodes,
-                Omniverse = avatarDetail.Omniverse
+                County = avatarDetail.County
             };
         }
     }

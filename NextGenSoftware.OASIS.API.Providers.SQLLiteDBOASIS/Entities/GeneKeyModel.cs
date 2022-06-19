@@ -10,7 +10,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         [Required, Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id{ set; get; }
 
-        public string AvatarId{ set; get; }
+        [ForeignKey("AvatarId")] 
+        public AvatarDetailModel AvatarDetail { get; set; }
+        public string AvatarId { get; set; }
 
         public GeneKeyModel(){}
         public GeneKeyModel(GeneKey source){

@@ -8,7 +8,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
     public class AvatarHumanDesignModel
     {
         [Required, Key]
-        public string AvatarId{ set; get; }
+        public string Id{ set; get; }
+        
+        [ForeignKey("AvatarId")] 
+        public AvatarDetailModel AvatarDetail { get; set; }
+        public string AvatarId { get; set; }
 
         public string Type { get; set; }
 

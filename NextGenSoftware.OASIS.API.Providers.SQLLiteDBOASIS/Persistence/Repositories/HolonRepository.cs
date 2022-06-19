@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntity = await _dbContext.Holons
-                    .Where(p => p.Id == id && p.Version == version)
+                    .Where(p => p.Id == id.ToString() && p.Version == version)
                     .Select(x => GetHolonFromEntity(x))
                     .FirstOrDefaultAsync();
                 if (holonEntity == null)
@@ -153,7 +153,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 var holonEntities =
                     _dbContext.Holons
-                        .Where(p => p.Id == id && p.Version == version)
+                        .Where(p => p.Id == id.ToString() && p.Version == version)
                         .Select(x => GetHolonFromEntity(x))
                         .ToList();
                 return new OASISResult<IEnumerable<IHolon>>
@@ -182,7 +182,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntities = await _dbContext.Holons
-                    .Where(p => p.Id == id && p.Version == version)
+                    .Where(p => p.Id == id.ToString() && p.Version == version)
                     .Select(x => GetHolonFromEntity(x))
                     .ToListAsync();
                 return new OASISResult<IEnumerable<IHolon>>
@@ -325,7 +325,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                HolonEntity holonEntity = CreateHolonModel(holon);
+                HolonModel holonEntity = CreateHolonModel(holon);
                 _dbContext.Holons.Add(holonEntity);
                 _dbContext.SaveChangesAsync();
                 return new OASISResult<IHolon>
@@ -347,7 +347,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                HolonEntity holonEntity = CreateHolonModel(holon);
+                HolonModel holonEntity = CreateHolonModel(holon);
                 _dbContext.Holons.Add(holonEntity);
                 await _dbContext.SaveChangesAsync();
                 return new OASISResult<IHolon>
@@ -369,7 +369,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                HolonEntity holonEntity = new();
+                HolonModel holonEntity = new();
                 foreach (var holonModel in holons)
                 {
                     holonEntity = CreateHolonModel(holonModel);
@@ -397,7 +397,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                HolonEntity holonEntity = new();
+                HolonModel holonEntity = new();
                 foreach (var holonModel in holons)
                 {
                     holonEntity = CreateHolonModel(holonModel);
@@ -423,7 +423,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holon = _dbContext.Holons.FirstOrDefault(p => p.Id == id);
+                var holon = _dbContext.Holons.FirstOrDefault(p => p.Id == id.ToString());
                 if (holon != null)
                 {
                     if (softDelete)
@@ -467,7 +467,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holon = await _dbContext.Holons.Where(p => p.Id == id).FirstOrDefaultAsync();
+                var holon = await _dbContext.Holons.Where(p => p.Id == id.ToString()).FirstOrDefaultAsync();
                 if (holon != null)
                 {
                     if (softDelete)
@@ -576,67 +576,34 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             throw new NotImplementedException();
         }
 
-        public IHolon GetHolonFromEntity(HolonEntity holonEntity) =>
+        public IHolon GetHolonFromEntity(HolonModel holonEntity) =>
             new Holon()
             {
                 CreatedDate = holonEntity.CreatedDate,
                 DeletedDate = holonEntity.DeletedDate,
                 Description = holonEntity.Description,
-                ParentHolonId = holonEntity.ParentHolonId,
-                Id = holonEntity.Id,
+                ParentHolonId = Guid.Parse(holonEntity.ParentHolonId),
+                Id = Guid.Parse(holonEntity.Id),
                 IsActive = holonEntity.IsActive,
                 IsChanged = holonEntity.IsChanged,
                 ModifiedDate = holonEntity.ModifiedDate,
                 Name = holonEntity.Name,
-                ParentCelestialBodyId = holonEntity.ParentCelestialBodyId,
-                ParentCelestialSpaceId = holonEntity.ParentCelestialSpaceId,
-                ParentDimensionId = holonEntity.ParentDimensionId,
-                ParentGalaxyClusterId = holonEntity.ParentGalaxyClusterId,
-                ParentGalaxyId = holonEntity.ParentGalaxyId,
-                ParentGrandSuperStarId = holonEntity.ParentGreatGrandSuperStarId,
-                ParentMoonId = holonEntity.ParentMoonId,
-                ParentMultiverseId = holonEntity.ParentMultiverseId,
-                ParentOmniverseId = holonEntity.ParentOmniverseId,
-                ParentPlanetId = holonEntity.ParentPlanetId,
-                ParentSolarSystemId = holonEntity.ParentSolarSystemId,
-                ParentStarId = holonEntity.ParentStarId,
-                ParentSuperStarId = holonEntity.ParentSuperStarId,
-                ParentUniverseId = holonEntity.ParentUniverseId,
-                ParentZomeId = holonEntity.ParentZomeId,
-                PreviousVersionId = holonEntity.PreviousVersionId,
                 Version = holonEntity.Version
             };
 
-        private HolonEntity CreateHolonModel(IHolon holon)
+        private HolonModel CreateHolonModel(IHolon holon)
         {
             return new()
             {
                 CreatedDate = holon.CreatedDate,
                 DeletedDate = holon.DeletedDate,
                 Description = holon.Description,
-                ParentHolonId = holon.ParentHolonId,
-                Id = holon.Id,
-                HolonId = Guid.NewGuid(),
+                ParentHolonId = holon.ParentHolonId.ToString(),
+                Id = holon.Id.ToString(),
                 IsActive = holon.IsActive,
                 IsChanged = holon.IsChanged,
                 ModifiedDate = holon.ModifiedDate,
                 Name = holon.Name,
-                ParentCelestialBodyId = holon.ParentCelestialBodyId,
-                ParentCelestialSpaceId = holon.ParentCelestialSpaceId,
-                ParentDimensionId = holon.ParentDimensionId,
-                ParentGalaxyClusterId = holon.ParentGalaxyClusterId,
-                ParentGalaxyId = holon.ParentGalaxyId,
-                ParentGrandSuperStarId = holon.ParentGreatGrandSuperStarId,
-                ParentMoonId = holon.ParentMoonId,
-                ParentMultiverseId = holon.ParentMultiverseId,
-                ParentOmniverseId = holon.ParentOmniverseId,
-                ParentPlanetId = holon.ParentPlanetId,
-                ParentSolarSystemId = holon.ParentSolarSystemId,
-                ParentStarId = holon.ParentStarId,
-                ParentSuperStarId = holon.ParentSuperStarId,
-                ParentUniverseId = holon.ParentUniverseId,
-                ParentZomeId = holon.ParentZomeId,
-                PreviousVersionId = holon.PreviousVersionId,
                 Version = holon.Version
             };
         }
