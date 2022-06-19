@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
 
 #nullable disable
@@ -15,386 +16,500 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.3");
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.6");
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("id");
 
                     b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("address");
 
                     b.Property<string>("Country")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("country");
 
-                    b.Property<string>("CreatedByAvatarId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<string>("County")
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("county");
+
+                    b.Property<Guid>("CreatedByAvatarId")
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("created_by_avatar_id");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("created_date");
+
+                    b.Property<OASISType>("CreatedOASISType")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("created_oasis_type");
+
+                    b.Property<ProviderType>("CreatedProviderType")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("created_provider_type");
 
                     b.Property<DateTime>("DOB")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("dob");
 
-                    b.Property<string>("DeletedByAvatarId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<Guid>("DeletedByAvatarId")
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("deleted_by_avatar_id");
 
                     b.Property<DateTime>("DeletedDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("deleted_date");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(300)")
+                        .HasColumnName("description");
+
+                    b.Property<DimensionLevel>("DimensionLevel")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("dimension_level");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("email");
 
-                    b.Property<Guid>("HolonId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Image2D")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<ConsoleColor>("FavouriteColour")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("favourite_colour");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("BOOLEAN")
+                        .HasColumnName("is_active");
 
                     b.Property<bool>("IsChanged")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("BOOLEAN")
+                        .HasColumnName("is_changed");
+
+                    b.Property<bool>("IsNewHolon")
+                        .HasColumnType("BOOLEAN")
+                        .HasColumnName("is_new_holon");
+
+                    b.Property<bool>("IsSaving")
+                        .HasColumnType("BOOLEAN")
+                        .HasColumnName("is_saving");
 
                     b.Property<int>("Karma")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("karma");
 
                     b.Property<string>("Landline")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("landline");
 
                     b.Property<int>("Level")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("level");
 
                     b.Property<string>("Mobile")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("mobile");
 
-                    b.Property<string>("ModifiedByAvatarId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<string>("Model3D")
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("model_3d");
+
+                    b.Property<Guid>("ModifiedByAvatarId")
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("modified_by_avatar_id");
 
                     b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("modified_date");
 
                     b.Property<Guid>("ParentCelestialBodyId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_celestial_body_id");
 
                     b.Property<Guid>("ParentCelestialSpaceId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_celestial_space_id");
 
                     b.Property<Guid>("ParentDimensionId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_dimension_id");
 
                     b.Property<Guid>("ParentGalaxyClusterId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_galaxy_cluster_id");
 
                     b.Property<Guid>("ParentGalaxyId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_galaxy_id");
 
                     b.Property<Guid>("ParentGrandSuperStarId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_grand_super_star_id");
 
                     b.Property<Guid>("ParentGreatGrandSuperStarId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_great_grand_super_star_id");
 
                     b.Property<Guid>("ParentHolonId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_holon_id");
 
                     b.Property<Guid>("ParentMoonId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_moon_id");
 
                     b.Property<Guid>("ParentMultiverseId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_multiverse_id");
 
                     b.Property<Guid>("ParentOmniverseId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_omniverse_id");
 
                     b.Property<Guid>("ParentPlanetId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_planet_id");
 
                     b.Property<Guid>("ParentSolarSystemId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_solar_system_id");
 
                     b.Property<Guid>("ParentStarId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_star_id");
 
                     b.Property<Guid>("ParentSuperStarId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_super_star_id");
 
                     b.Property<Guid>("ParentUniverseId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_universe_id");
 
                     b.Property<Guid>("ParentZomeId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_zome_Id");
+
+                    b.Property<string>("Portrait")
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("portrait");
 
                     b.Property<string>("Postcode")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("postcode");
 
                     b.Property<Guid>("PreviousVersionId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("previous_version_id");
+
+                    b.Property<ConsoleColor>("STARCLIColour")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("star_cli_colour");
+
+                    b.Property<SubDimensionLevel>("SubDimensionLevel")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("sub_dimension_level");
 
                     b.Property<string>("Town")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("town");
 
                     b.Property<string>("UmaJson")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("uma_json");
 
                     b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("username");
 
                     b.Property<int>("Version")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("version");
+
+                    b.Property<Guid>("VersionId")
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("version_id");
 
                     b.Property<int>("XP")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("xp");
 
                     b.HasKey("Id");
 
-                    b.ToTable("AvatarDetailEntities");
+                    b.HasIndex("Id", "Email")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "Id" }, "idx_avatar_dtl_id");
+
+                    b.ToTable("avatar_details");
                 });
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarEntity", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                    b.Property<string>("Id")
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("avatar_id");
 
                     b.Property<bool>("AcceptTerms")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("BOOLEAN")
+                        .HasColumnName("accept_terms");
 
-                    b.Property<string>("CreatedByAvatarId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<AvatarType>("AvatarType")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("avatar_type");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DeletedByAvatarId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<Guid>("DeletedByAvatarId")
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("deleted_by_avatar_id");
 
                     b.Property<DateTime>("DeletedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("deleted_date");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(20)")
+                        .HasColumnName("email");
 
                     b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(50)")
+                        .HasColumnName("first_name");
 
                     b.Property<Guid>("HolonId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("holon_id");
 
                     b.Property<bool>("IsBeamedIn")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsChanged")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("BOOLEAN")
+                        .HasColumnName("is_beamed_in");
 
                     b.Property<string>("JwtToken")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("jwt_token");
 
                     b.Property<DateTime?>("LastBeamedIn")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("last_beamed_in");
 
                     b.Property<DateTime?>("LastBeamedOut")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("last_beamed_out");
 
                     b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ModifiedByAvatarId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(50)")
+                        .HasColumnName("last_name");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("name");
 
                     b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("password");
 
                     b.Property<DateTime?>("PasswordReset")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("PreviousVersionId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("password_reset");
 
                     b.Property<string>("RefreshToken")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("refresh_token");
 
                     b.Property<string>("ResetToken")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("reset_token");
 
                     b.Property<DateTime?>("ResetTokenExpires")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("reset_token_expires");
 
                     b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(200)")
+                        .HasColumnName("title");
 
                     b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("username");
 
                     b.Property<string>("VerificationToken")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("verification_token");
 
                     b.Property<DateTime?>("Verified")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("verified");
 
                     b.Property<int>("Version")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("version");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id", "AvatarId");
 
-                    b.ToTable("AvatarEntities");
+                    b.HasIndex("Id", "AvatarId", "Email")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "Id" }, "idx_avatar_id");
+
+                    b.ToTable("avatars");
                 });
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonEntity", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("HolonId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CreatedByAvatarId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("holon_id");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("created_date");
 
-                    b.Property<string>("DeletedByAvatarId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<OASISType>("CreatedOASISType")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("created_oasis_type");
+
+                    b.Property<ProviderType>("CreatedProviderType")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("created_provider_type");
 
                     b.Property<DateTime>("DeletedDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("deleted_date");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(300)")
+                        .HasColumnName("description");
 
-                    b.Property<Guid>("HolonId")
-                        .HasColumnType("TEXT");
+                    b.Property<DimensionLevel>("DimensionLevel")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("dimension_level");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("id");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("BOOLEAN")
+                        .HasColumnName("is_active");
 
                     b.Property<bool>("IsChanged")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("BOOLEAN")
+                        .HasColumnName("is_changed");
 
-                    b.Property<string>("ModifiedByAvatarId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<bool>("IsNewHolon")
+                        .HasColumnType("BOOLEAN")
+                        .HasColumnName("is_new_holon");
+
+                    b.Property<bool>("IsSaving")
+                        .HasColumnType("BOOLEAN")
+                        .HasColumnName("is_saving");
 
                     b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("modified_date");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(100)")
+                        .HasColumnName("name");
 
                     b.Property<Guid>("ParentCelestialBodyId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_celestial_body_id");
 
                     b.Property<Guid>("ParentCelestialSpaceId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_celestial_space_id");
 
                     b.Property<Guid>("ParentDimensionId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_dimension_id");
 
                     b.Property<Guid>("ParentGalaxyClusterId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_galaxy_cluster_id");
 
                     b.Property<Guid>("ParentGalaxyId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_galaxy_id");
 
                     b.Property<Guid>("ParentGrandSuperStarId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_grand_super_star_id");
 
                     b.Property<Guid>("ParentGreatGrandSuperStarId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_great_grand_super_star_id");
 
                     b.Property<Guid>("ParentHolonId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_holon_id");
 
                     b.Property<Guid>("ParentMoonId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_moon_id");
 
                     b.Property<Guid>("ParentMultiverseId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_multiverse_id");
 
                     b.Property<Guid>("ParentOmniverseId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_omniverse_id");
 
                     b.Property<Guid>("ParentPlanetId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_planet_id");
 
                     b.Property<Guid>("ParentSolarSystemId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_solar_system_id");
 
                     b.Property<Guid>("ParentStarId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_star_id");
 
                     b.Property<Guid>("ParentSuperStarId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_super_star_id");
 
                     b.Property<Guid>("ParentUniverseId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_universe_id");
 
                     b.Property<Guid>("ParentZomeId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("parent_zome_id");
 
                     b.Property<Guid>("PreviousVersionId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("previous_version_id");
+
+                    b.Property<SubDimensionLevel>("SubDimensionLevel")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("sub_dimension_level");
 
                     b.Property<int>("Version")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("version");
 
-                    b.HasKey("Id");
+                    b.Property<Guid>("VersionId")
+                        .HasColumnType("NVARCHAR(64)")
+                        .HasColumnName("version_id");
 
-                    b.ToTable("HolonEntities");
+                    b.HasKey("HolonId");
+
+                    b.HasIndex("HolonId")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "HolonId" }, "idx_holon_id");
+
+                    b.ToTable("holons");
                 });
 #pragma warning restore 612, 618
         }
