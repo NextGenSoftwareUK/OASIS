@@ -1,25 +1,12 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using Microsoft.Extensions.DependencyInjection;
-using NextGenSoftware.OASIS.API.Core.Enums;
+
+using System;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities;
-using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces;
-using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
-using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories;
-
 
 SQLLiteDBOASIS sQLLiteOASIS = new SQLLiteDBOASIS("");
-
-
-//Console.WriteLine("Deleting Holon...");
-//var resultHolon = sQLLiteOASIS.DeleteHolon("5208DD86-1853-40EA-A83D-A8F702DDA300");
-//Console.WriteLine(resultHolon.Message);
-
-//Console.WriteLine("Deleting Holon...");
-//var resultHolonasync = await sQLLiteOASIS.DeleteHolonAsync("44549561-FD7A-4473-97AE-1FC1902FEBC2");
-//Console.WriteLine(resultHolonasync.Message);
-
+sQLLiteOASIS.ActivateProvider();
 
 Console.WriteLine("Loading Holon Details..");
 
@@ -97,7 +84,7 @@ if (holonIdasync.IsLoaded)
 else
     Console.WriteLine(holonIdasync.Message);
 
-HolonEntity h1 = new HolonEntity();
+IHolon h1 = new Holon();
 h1.Description = "My Holon Async";
 h1.Name = "Holon Desc Async";
 h1.Version = 1;
@@ -222,7 +209,7 @@ else
     Console.WriteLine(avatarDetailGUId.Message);
 
 
-HolonEntity h = new HolonEntity();
+IHolon h = new Holon();
 h.Description = "My Holon";
 h.Name = "Holon Desc";
 h.Version = 1;
@@ -243,10 +230,8 @@ else
     Console.WriteLine("Error Message:{0}", resHolon.Message);
 }
 
-AvatarDetailEntity avatar = new AvatarDetailEntity()
+IAvatarDetail avatar = new AvatarDetail()
 {
-    Country = "India 14324",
-    Address = "India 234254",
     Email = "Iyer@gmail.com",
     Username = "Iyer@gmail.com",
 };
@@ -287,7 +272,7 @@ if (AvatarList1.IsLoaded)
 }
 Console.WriteLine("Creating New Avatar...");
 
-AvatarEntity avatar12 = new AvatarEntity()
+Avatar avatar12 = new Avatar()
 {
     Title = "Shreyas1",
     FirstName = "Shreyas1",

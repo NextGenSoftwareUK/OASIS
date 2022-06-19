@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -33,6 +34,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             _holonRepository = new HolonRepository(_appDataContext);
         }
         public bool IsVersionControlEnabled { get; set; } = false;
+
+        public override OASISResult<bool> ActivateProvider()
+        {
+            _appDataContext.Database.EnsureDeletedAsync();
+            _appDataContext.Database.MigrateAsync();
+            
+            return base.ActivateProvider();
+        }
+
+        public override OASISResult<bool> DeActivateProvider()
+        {
+            _appDataContext.Dispose();
+            
+            return base.DeActivateProvider();
+        }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
