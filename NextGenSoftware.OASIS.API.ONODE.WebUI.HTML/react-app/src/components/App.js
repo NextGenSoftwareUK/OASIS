@@ -22,6 +22,11 @@ import ComingSoon from "./popups/comingsoon/ComingSoon";
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 
 import VerifyToken from "./VerifyToken";
+import Game from "./popups/game";
+import Eggs from "./popups/eggs";
+import Mission from "./popups/mission";
+import Quest from "./popups/quest";
+import OAPP from "./popups/oapp";
 
 class App extends React.Component {
   state = {
@@ -38,6 +43,7 @@ class App extends React.Component {
           manageData: false,
           offChainManagement: false,
           crossChainManagement: false,
+          searchData: false,
         },
       },
       {
@@ -48,23 +54,72 @@ class App extends React.Component {
       },
       {
         seeds: {
-          acceptInvite: false,
-          payWithSeeds: false,
-          donateSeeds: false,
-          sendInvite: false,
-          rewardSeeds: false,
+            payWithSeeds: false,
+            donateSeeds: false,
+            rewardSeeds: false,
+            sendInvite: false,
+            viewSeeds: false,
+            viewOrganizations: false,
+            manageSeeds: false,
+            searchSeeds: false,
         },
       },
       {
         avatar: {
-          avatarWallet: false,
-          viewAvatar: false,
+            viewAvatar: false,
+            editAvatar: false,
+            searchAvatar: false,
+            avatarWallet: false,
         },
       },
       {
         karma: {
-          viewKarma: false,
+            viewKarma: false,
+            voteKarma: false,
+            viewAvatarKarma: false,
+            searchKarma: false
         },
+      },
+      {
+        game: {
+            viewLeagues: false,
+            viewTournaments: false,
+            viewAchievements: false,
+            searchProfiles: false
+        },
+      },
+      {
+        eggs: {
+            viewEggs: false,
+            manageEggs: false,
+            searchEggs: false
+        },
+      },
+      {
+        mission: {
+            viewMission: false,
+            manageMission: false,
+            searchMission: false
+        },
+      },
+      {
+        quest: {
+            viewQuest: false,
+            manageQuest: false,
+            searchQuest: false
+        },
+      },
+      {
+        oapp: {
+            installOAPP: false,
+            manageOAPP: false,
+            createOAPP: false,
+            deployOAPP: false,
+            editOAPP: false,
+            launchOAPP: false,
+            searchOAPP: false,
+            downloadOurWorld: false,
+        }
       },
       {
         comingSoon: false,
@@ -146,18 +201,15 @@ class App extends React.Component {
     };
 
     toggleScreenPopup = (menuOption, menuName) => {
-        console.log(menuOption);
+        console.log('popup is clicked')
+        console.log(menuOption)
         console.log(menuName)
         let sidebarMenuOption = [...this.state.sidebarMenuOption];
-        if (!menuName && menuOption !== 'the oasis') {
-            sidebarMenuOption[5].comingSoon = !sidebarMenuOption[5].comingSoon
-        } else {
-            sidebarMenuOption.map((item) => {
-                if (item[menuOption]) {
-                    item[menuOption][menuName] = !item[menuOption][menuName];
-                }
-            })
-        }
+        sidebarMenuOption.map((item) => {
+            if (item[menuOption]) {
+                item[menuOption][menuName] = !item[menuOption][menuName];
+            }
+        })
 
         this.setState({
             sidebarMenuOption
@@ -234,10 +286,35 @@ class App extends React.Component {
                         toggleScreenPopup={this.toggleScreenPopup}
                     />
 
-                    <ComingSoon
-                        show={this.state.sidebarMenuOption[5].comingSoon}
+                    <Game 
+                        game={this.state.sidebarMenuOption[5].game}
                         toggleScreenPopup={this.toggleScreenPopup}
                     />
+
+                    <Eggs 
+                        eggs={this.state.sidebarMenuOption[6].eggs}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    />
+
+                    <Mission 
+                        mission={this.state.sidebarMenuOption[7].mission}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    />
+
+                    <Quest 
+                        quest={this.state.sidebarMenuOption[8].quest}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    />
+
+                    <OAPP 
+                        oapp={this.state.sidebarMenuOption[9].oapp}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    />
+
+                    {/* <ComingSoon
+                        show={this.state.sidebarMenuOption[5].comingSoon}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    /> */}
                 </div>
             </Router>
         );
