@@ -2,7 +2,6 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Prototypes;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
