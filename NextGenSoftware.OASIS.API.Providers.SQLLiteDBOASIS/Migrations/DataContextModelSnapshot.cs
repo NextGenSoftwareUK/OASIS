@@ -3,7 +3,6 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
 
 #nullable disable
@@ -18,498 +17,2856 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.6");
 
-            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailEntity", b =>
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AchievementModel", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("id");
+                        .HasColumnType("INTEGER");
 
-                    b.Property<string>("Address")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("address");
+                    b.Property<DateTime>("AchievementEarnt")
+                        .HasColumnType("TEXT");
 
-                    b.Property<string>("Country")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("country");
+                    b.Property<int>("AchievementType")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<string>("County")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("county");
-
-                    b.Property<Guid>("CreatedByAvatarId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("created_by_avatar_id");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("created_date");
-
-                    b.Property<OASISType>("CreatedOASISType")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("created_oasis_type");
-
-                    b.Property<ProviderType>("CreatedProviderType")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("created_provider_type");
-
-                    b.Property<DateTime>("DOB")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("dob");
-
-                    b.Property<Guid>("DeletedByAvatarId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("deleted_by_avatar_id");
-
-                    b.Property<DateTime>("DeletedDate")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("deleted_date");
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
-                        .HasColumnType("NVARCHAR(300)")
-                        .HasColumnName("description");
+                        .HasColumnType("TEXT");
 
-                    b.Property<DimensionLevel>("DimensionLevel")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("dimension_level");
+                    b.Property<int>("KarmaSource")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<string>("Email")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("email");
+                    b.Property<string>("KarmaSourceDesc")
+                        .HasColumnType("TEXT");
 
-                    b.Property<ConsoleColor>("FavouriteColour")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("favourite_colour");
+                    b.Property<string>("KarmaSourceTitle")
+                        .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("BOOLEAN")
-                        .HasColumnName("is_active");
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsChanged")
-                        .HasColumnType("BOOLEAN")
-                        .HasColumnName("is_changed");
+                    b.Property<int>("Provider")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsNewHolon")
-                        .HasColumnType("BOOLEAN")
-                        .HasColumnName("is_new_holon");
-
-                    b.Property<bool>("IsSaving")
-                        .HasColumnType("BOOLEAN")
-                        .HasColumnName("is_saving");
-
-                    b.Property<int>("Karma")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("karma");
-
-                    b.Property<string>("Landline")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("landline");
-
-                    b.Property<int>("Level")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("level");
-
-                    b.Property<string>("Mobile")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("mobile");
-
-                    b.Property<string>("Model3D")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("model_3d");
-
-                    b.Property<Guid>("ModifiedByAvatarId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("modified_by_avatar_id");
-
-                    b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("modified_date");
-
-                    b.Property<Guid>("ParentCelestialBodyId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_celestial_body_id");
-
-                    b.Property<Guid>("ParentCelestialSpaceId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_celestial_space_id");
-
-                    b.Property<Guid>("ParentDimensionId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_dimension_id");
-
-                    b.Property<Guid>("ParentGalaxyClusterId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_galaxy_cluster_id");
-
-                    b.Property<Guid>("ParentGalaxyId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_galaxy_id");
-
-                    b.Property<Guid>("ParentGrandSuperStarId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_grand_super_star_id");
-
-                    b.Property<Guid>("ParentGreatGrandSuperStarId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_great_grand_super_star_id");
-
-                    b.Property<Guid>("ParentHolonId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_holon_id");
-
-                    b.Property<Guid>("ParentMoonId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_moon_id");
-
-                    b.Property<Guid>("ParentMultiverseId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_multiverse_id");
-
-                    b.Property<Guid>("ParentOmniverseId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_omniverse_id");
-
-                    b.Property<Guid>("ParentPlanetId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_planet_id");
-
-                    b.Property<Guid>("ParentSolarSystemId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_solar_system_id");
-
-                    b.Property<Guid>("ParentStarId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_star_id");
-
-                    b.Property<Guid>("ParentSuperStarId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_super_star_id");
-
-                    b.Property<Guid>("ParentUniverseId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_universe_id");
-
-                    b.Property<Guid>("ParentZomeId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_zome_Id");
-
-                    b.Property<string>("Portrait")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("portrait");
-
-                    b.Property<string>("Postcode")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("postcode");
-
-                    b.Property<Guid>("PreviousVersionId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("previous_version_id");
-
-                    b.Property<ConsoleColor>("STARCLIColour")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("star_cli_colour");
-
-                    b.Property<SubDimensionLevel>("SubDimensionLevel")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("sub_dimension_level");
-
-                    b.Property<string>("Town")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("town");
-
-                    b.Property<string>("UmaJson")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("uma_json");
-
-                    b.Property<string>("Username")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("username");
-
-                    b.Property<int>("Version")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("version");
-
-                    b.Property<Guid>("VersionId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("version_id");
-
-                    b.Property<int>("XP")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("xp");
+                    b.Property<string>("WebLink")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id", "Email")
-                        .IsUnique();
+                    b.HasIndex("AvatarId");
 
-                    b.HasIndex(new[] { "Id" }, "idx_avatar_dtl_id");
-
-                    b.ToTable("avatar_details");
+                    b.ToTable("AvatarAchievements");
                 });
 
-            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarEntity", b =>
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AsteroidModel", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("id");
+                    b.Property<string>("AsteroidId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Age")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CurrentOrbitAngleOfParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DistanceFromParentStarInMetres")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("EclipticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EclipticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("GalaxyClusterId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GalaxyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("GenesisType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GravitaionalPull")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("HorizontalLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("HorizontalLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberRegisteredAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NunmerActiveAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrbitPositionFromParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Radius")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RotationSpeed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SolarSystemId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SpaceQuadrant")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceSector")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("SuperGalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("SuperGalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Temperature")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TiltAngle")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UniverseId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("AsteroidId");
+
+                    b.HasIndex("GalaxyClusterId");
+
+                    b.HasIndex("GalaxyId");
+
+                    b.HasIndex("SolarSystemId");
+
+                    b.HasIndex("UniverseId");
+
+                    b.ToTable("Asteroid");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarAttributesModel", b =>
+                {
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Dexterity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Endurance")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Intelligence")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Magic")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Speed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Strength")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Toughness")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Vitality")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Wisdom")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("AvatarId");
+
+                    b.ToTable("AvatarAttributes");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarAuraModel", b =>
+                {
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Brightness")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ColourBlue")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ColourGreen")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ColourRed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Progress")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("AvatarId");
+
+                    b.ToTable("AvatarAura");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarChakraModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AvatarDetailId")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("AvatarId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("avatar_id");
-
-                    b.Property<bool>("AcceptTerms")
-                        .HasColumnType("BOOLEAN")
-                        .HasColumnName("accept_terms");
-
-                    b.Property<AvatarType>("AvatarType")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("avatar_type");
-
-                    b.Property<Guid>("DeletedByAvatarId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("deleted_by_avatar_id");
-
-                    b.Property<DateTime>("DeletedDate")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("deleted_date");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("NVARCHAR(20)")
-                        .HasColumnName("email");
-
-                    b.Property<string>("FirstName")
-                        .HasColumnType("NVARCHAR(50)")
-                        .HasColumnName("first_name");
-
-                    b.Property<Guid>("HolonId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("holon_id");
-
-                    b.Property<bool>("IsBeamedIn")
-                        .HasColumnType("BOOLEAN")
-                        .HasColumnName("is_beamed_in");
-
-                    b.Property<string>("JwtToken")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("jwt_token");
-
-                    b.Property<DateTime?>("LastBeamedIn")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("last_beamed_in");
-
-                    b.Property<DateTime?>("LastBeamedOut")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("last_beamed_out");
-
-                    b.Property<string>("LastName")
-                        .HasColumnType("NVARCHAR(50)")
-                        .HasColumnName("last_name");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("name");
-
-                    b.Property<string>("Password")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("password");
-
-                    b.Property<DateTime?>("PasswordReset")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("password_reset");
-
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("refresh_token");
-
-                    b.Property<string>("ResetToken")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("reset_token");
-
-                    b.Property<DateTime?>("ResetTokenExpires")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("reset_token_expires");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("NVARCHAR(200)")
-                        .HasColumnName("title");
-
-                    b.Property<string>("Username")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("username");
-
-                    b.Property<string>("VerificationToken")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("verification_token");
-
-                    b.Property<DateTime?>("Verified")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("verified");
-
-                    b.Property<int>("Version")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("version");
-
-                    b.HasKey("Id", "AvatarId");
-
-                    b.HasIndex("Id", "AvatarId", "Email")
-                        .IsUnique();
-
-                    b.HasIndex(new[] { "Id" }, "idx_avatar_id");
-
-                    b.ToTable("avatars");
-                });
-
-            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonEntity", b =>
-                {
-                    b.Property<Guid>("HolonId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("holon_id");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("created_date");
-
-                    b.Property<OASISType>("CreatedOASISType")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("created_oasis_type");
-
-                    b.Property<ProviderType>("CreatedProviderType")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("created_provider_type");
-
-                    b.Property<DateTime>("DeletedDate")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("deleted_date");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
-                        .HasColumnType("NVARCHAR(300)")
-                        .HasColumnName("description");
+                        .HasColumnType("TEXT");
 
-                    b.Property<DimensionLevel>("DimensionLevel")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("dimension_level");
+                    b.Property<int>("Element")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("Id")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("id");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("BOOLEAN")
-                        .HasColumnName("is_active");
-
-                    b.Property<bool>("IsChanged")
-                        .HasColumnType("BOOLEAN")
-                        .HasColumnName("is_changed");
-
-                    b.Property<bool>("IsNewHolon")
-                        .HasColumnType("BOOLEAN")
-                        .HasColumnName("is_new_holon");
-
-                    b.Property<bool>("IsSaving")
-                        .HasColumnType("BOOLEAN")
-                        .HasColumnName("is_saving");
-
-                    b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("modified_date");
+                    b.Property<int>("Level")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
-                        .HasColumnType("NVARCHAR(100)")
-                        .HasColumnName("name");
+                        .HasColumnType("TEXT");
 
-                    b.Property<Guid>("ParentCelestialBodyId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_celestial_body_id");
+                    b.Property<int>("Progress")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("ParentCelestialSpaceId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_celestial_space_id");
+                    b.Property<string>("SanskritName")
+                        .HasColumnType("TEXT");
 
-                    b.Property<Guid>("ParentDimensionId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_dimension_id");
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("ParentGalaxyClusterId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_galaxy_cluster_id");
+                    b.Property<string>("WhatItControls")
+                        .HasColumnType("TEXT");
 
-                    b.Property<Guid>("ParentGalaxyId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_galaxy_id");
+                    b.Property<string>("WhenItDevelops")
+                        .HasColumnType("TEXT");
 
-                    b.Property<Guid>("ParentGrandSuperStarId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_grand_super_star_id");
+                    b.Property<int>("XP")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("ParentGreatGrandSuperStarId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_great_grand_super_star_id");
+                    b.Property<int>("YogaPose")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("ParentHolonId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_holon_id");
+                    b.HasKey("Id");
 
-                    b.Property<Guid>("ParentMoonId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_moon_id");
+                    b.HasIndex("AvatarDetailId");
 
-                    b.Property<Guid>("ParentMultiverseId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_multiverse_id");
+                    b.HasIndex("AvatarId");
 
-                    b.Property<Guid>("ParentOmniverseId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_omniverse_id");
+                    b.ToTable("AvatarChakras");
+                });
 
-                    b.Property<Guid>("ParentPlanetId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_planet_id");
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
 
-                    b.Property<Guid>("ParentSolarSystemId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_solar_system_id");
+                    b.Property<string>("Address")
+                        .HasColumnType("TEXT");
 
-                    b.Property<Guid>("ParentStarId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_star_id");
+                    b.Property<int>("AvatarType")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("ParentSuperStarId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_super_star_id");
+                    b.Property<string>("Country")
+                        .HasColumnType("TEXT");
 
-                    b.Property<Guid>("ParentUniverseId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_universe_id");
+                    b.Property<string>("County")
+                        .HasColumnType("TEXT");
 
-                    b.Property<Guid>("ParentZomeId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("parent_zome_id");
+                    b.Property<string>("CreatedByAvatarId")
+                        .HasColumnType("TEXT");
 
-                    b.Property<Guid>("PreviousVersionId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("previous_version_id");
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
 
-                    b.Property<SubDimensionLevel>("SubDimensionLevel")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("sub_dimension_level");
+                    b.Property<int>("CreatedOASISType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CreatedProviderType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DOB")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DeletedByAvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("FavouriteColour")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FirstName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("HolonType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Image2D")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsChanged")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsNewHolon")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Karma")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Landline")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Mobile")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Model3D")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ModifiedByAvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Postcode")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("STARCLIColour")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Town")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Version")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("version");
+                        .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("VersionId")
-                        .HasColumnType("NVARCHAR(64)")
-                        .HasColumnName("version_id");
+                    b.Property<int>("XP")
+                        .HasColumnType("INTEGER");
 
-                    b.HasKey("HolonId");
+                    b.HasKey("Id");
 
-                    b.HasIndex("HolonId")
+                    b.ToTable("AvatarDetail");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarGiftModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("AvatarChakraId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AvatarDetailId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("GiftEarnt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("GiftType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("KarmaSource")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("KarmaSourceDesc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("KarmaSourceTitle")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Provider")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("WebLink")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AvatarChakraId");
+
+                    b.HasIndex("AvatarDetailId");
+
+                    b.HasIndex("AvatarId");
+
+                    b.ToTable("AvatarGifts");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarHumanDesignModel", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AvatarDetailId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AvatarDetailId");
+
+                    b.HasIndex("AvatarId")
                         .IsUnique();
 
-                    b.HasIndex(new[] { "HolonId" }, "idx_holon_id");
+                    b.ToTable("AvatarHumanDesign");
+                });
 
-                    b.ToTable("holons");
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("AcceptTerms")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AvatarType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CreatedByAvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatedOASISType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CreatedProviderType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DeletedByAvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FirstName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("HolonType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Image2D")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsChanged")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsNewHolon")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("JwtToken")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Karma")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ModifiedByAvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("PasswordReset")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ResetToken")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ResetTokenExpires")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("VerificationToken")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("Verified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("XP")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Avatar");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarSkillsModel", b =>
+                {
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Computers")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Engineering")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Farming")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("FireStarting")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Fishing")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Languages")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Meditation")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MelleeCombat")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mindfulness")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Negotiating")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RangeCombat")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Research")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Science")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpellCasting")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Translating")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Yoga")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("AvatarId");
+
+                    b.ToTable("AvatarSkills");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarStatsModel", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AvatarDetailId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Energy_Current")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Energy_Max")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("HP_Current")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("HP_Max")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mana_Current")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mana_Max")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Staminia_Current")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Staminia_Max")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AvatarDetailId");
+
+                    b.HasIndex("AvatarId")
+                        .IsUnique();
+
+                    b.ToTable("AvatarStats");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarSuperPowersModel", b =>
+                {
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("AstralProjection")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BioLocatation")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Flight")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("FreezeBreath")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("HeatVision")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Invulerability")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RemoteViewing")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SuperSpeed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SuperStrength")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Telekineseis")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Telepathy")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Teleportation")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("XRayVision")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("AvatarId");
+
+                    b.ToTable("AvatarSuperPowers");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.CometModel", b =>
+                {
+                    b.Property<string>("CometId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Age")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CurrentOrbitAngleOfParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DistanceFromParentStarInMetres")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("EclipticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EclipticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("GalaxyClusterId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GalaxyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("GenesisType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GravitaionalPull")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("HorizontalLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("HorizontalLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberRegisteredAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NunmerActiveAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrbitPositionFromParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Radius")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RotationSpeed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SolarSystemId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SpaceQuadrant")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceSector")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("SuperGalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("SuperGalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Temperature")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TiltAngle")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UniverseId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("CometId");
+
+                    b.HasIndex("GalaxyClusterId");
+
+                    b.HasIndex("GalaxyId");
+
+                    b.HasIndex("SolarSystemId");
+
+                    b.HasIndex("UniverseId");
+
+                    b.ToTable("Comet");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.CrystalModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AmplifyicationLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("AvatarChakraId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CleansingLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("EnergisingLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GroundingLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Name")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProtectionLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AvatarChakraId")
+                        .IsUnique();
+
+                    b.ToTable("Crystal");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.DimensionModel", b =>
+                {
+                    b.Property<string>("DimesionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DimensionLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("DimesionId");
+
+                    b.ToTable("Dimension");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyClusterModel", b =>
+                {
+                    b.Property<string>("GalaxyClusterId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UniverseId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("GalaxyClusterId");
+
+                    b.HasIndex("UniverseId");
+
+                    b.ToTable("GalaxyCluster");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyModel", b =>
+                {
+                    b.Property<string>("GalaxyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GalaxyClusterId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SuperStarStarId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("GalaxyId");
+
+                    b.HasIndex("GalaxyClusterId");
+
+                    b.HasIndex("SuperStarStarId");
+
+                    b.ToTable("Galaxy");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GeneKeyModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AvatarDetailId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Gift")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Shadow")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Sidhi")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AvatarDetailId");
+
+                    b.HasIndex("AvatarId");
+
+                    b.ToTable("GeneKeys");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GrandSuperStarModel", b =>
+                {
+                    b.Property<string>("StarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Age")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CurrentOrbitAngleOfParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DistanceFromParentStarInMetres")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("EclipticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EclipticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("GenesisType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GravitaionalPull")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("HorizontalLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("HorizontalLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Luminosity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberRegisteredAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NunmerActiveAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrbitPositionFromParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Radius")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RotationSpeed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceQuadrant")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceSector")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StarBinaryType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StarClassification")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StarType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("SuperGalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("SuperGalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Temperature")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TiltAngle")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("StarId");
+
+                    b.ToTable("GrandSuperStar");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GreatGrandSuperStarModel", b =>
+                {
+                    b.Property<string>("StarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Age")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CurrentOrbitAngleOfParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DistanceFromParentStarInMetres")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("EclipticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EclipticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("GenesisType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GravitaionalPull")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("HorizontalLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("HorizontalLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Luminosity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberRegisteredAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NunmerActiveAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrbitPositionFromParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Radius")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RotationSpeed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceQuadrant")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceSector")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StarBinaryType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StarClassification")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StarType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("SuperGalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("SuperGalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Temperature")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TiltAngle")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("StarId");
+
+                    b.ToTable("GreatGrandSuperStar");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HeartRateEntryModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AvatarDetailId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("HeartRateValue")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AvatarDetailId");
+
+                    b.HasIndex("AvatarId");
+
+                    b.ToTable("HeartRateEntry");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedByAvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatedOASISType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CreatedProviderType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DeletedByAvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DimensionLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HolonModelId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("HolonType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsChanged")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsNewHolon")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ModifiedByAvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParentDimensionDimesionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParentGalaxyClusterGalaxyClusterId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParentGalaxyGalaxyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParentGrandSuperStarStarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParentGreatGrandSuperStarStarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParentHolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParentMoonMoonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParentPlanetPlanetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParentSolarSystemSolarSystemId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParentStarStarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParentSuperStarStarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParentUniverseUniverseId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SubDimensionLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HolonModelId");
+
+                    b.HasIndex("ParentDimensionDimesionId");
+
+                    b.HasIndex("ParentGalaxyClusterGalaxyClusterId");
+
+                    b.HasIndex("ParentGalaxyGalaxyId");
+
+                    b.HasIndex("ParentGrandSuperStarStarId");
+
+                    b.HasIndex("ParentGreatGrandSuperStarStarId");
+
+                    b.HasIndex("ParentMoonMoonId");
+
+                    b.HasIndex("ParentPlanetPlanetId");
+
+                    b.HasIndex("ParentSolarSystemSolarSystemId");
+
+                    b.HasIndex("ParentStarStarId");
+
+                    b.HasIndex("ParentSuperStarStarId");
+
+                    b.HasIndex("ParentUniverseUniverseId");
+
+                    b.ToTable("Holon");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.InventoryItemModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AvatarId");
+
+                    b.ToTable("AvatarInventory");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.KarmaAkashicRecordModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Karma")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("KarmaEarntOrLost")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("KarmaSource")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("KarmaSourceDesc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("KarmaSourceTitle")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("KarmaTypeNegative")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("KarmaTypePositive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Provider")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TotalKarma")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("WebLink")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AvatarId");
+
+                    b.ToTable("KarmaAkashicRecord");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.MetaDataModel", b =>
+                {
+                    b.Property<string>("Property")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AvatarModelId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HolonModelId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OwnerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Property");
+
+                    b.HasIndex("AvatarModelId");
+
+                    b.HasIndex("HolonModelId");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("MetaData");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.MeteroidModel", b =>
+                {
+                    b.Property<string>("MeteroidId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Age")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CurrentOrbitAngleOfParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DistanceFromParentStarInMetres")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("EclipticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EclipticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("GalaxyClusterId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GalaxyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("GenesisType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GravitaionalPull")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("HorizontalLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("HorizontalLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberRegisteredAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NunmerActiveAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrbitPositionFromParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Radius")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RotationSpeed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SolarSystemId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SpaceQuadrant")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceSector")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("SuperGalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("SuperGalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Temperature")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TiltAngle")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UniverseId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("MeteroidId");
+
+                    b.HasIndex("GalaxyClusterId");
+
+                    b.HasIndex("GalaxyId");
+
+                    b.HasIndex("SolarSystemId");
+
+                    b.HasIndex("UniverseId");
+
+                    b.ToTable("Meteroid");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.MoonModel", b =>
+                {
+                    b.Property<string>("MoonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Age")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CurrentOrbitAngleOfParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DistanceFromParentStarInMetres")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("EclipticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EclipticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("GenesisType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GravitaionalPull")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("HorizontalLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("HorizontalLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberRegisteredAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NunmerActiveAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrbitPositionFromParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ParentPlanetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Radius")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RotationSpeed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceQuadrant")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceSector")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("SuperGalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("SuperGalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Temperature")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TiltAngle")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("MoonId");
+
+                    b.HasIndex("ParentPlanetId");
+
+                    b.ToTable("Moon");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.NebulaModel", b =>
+                {
+                    b.Property<string>("NebulaId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GalaxyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UniverseId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("NebulaId");
+
+                    b.HasIndex("GalaxyId");
+
+                    b.HasIndex("UniverseId");
+
+                    b.ToTable("Nebula");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.PlanetModel", b =>
+                {
+                    b.Property<string>("PlanetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Age")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CurrentOrbitAngleOfParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DistanceFromParentStarInMetres")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("EclipticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EclipticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("GalaxyClusterId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GalaxyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("GenesisType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GravitaionalPull")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("HorizontalLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("HorizontalLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberRegisteredAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NunmerActiveAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrbitPositionFromParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Radius")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RotationSpeed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SolarSystemId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SpaceQuadrant")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceSector")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("SuperGalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("SuperGalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Temperature")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TiltAngle")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UniverseId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PlanetId");
+
+                    b.HasIndex("GalaxyClusterId");
+
+                    b.HasIndex("GalaxyId");
+
+                    b.HasIndex("SolarSystemId");
+
+                    b.HasIndex("UniverseId");
+
+                    b.ToTable("Planet");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderKeyModel", b =>
+                {
+                    b.Property<int>("ProviderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AvatarDetailModelId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HolonModelId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OwnerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ProviderId");
+
+                    b.HasIndex("AvatarDetailModelId");
+
+                    b.HasIndex("HolonModelId");
+
+                    b.ToTable("ProviderKey");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderMetaData", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HolonModelId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OwnerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Property")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ProviderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HolonModelId");
+
+                    b.ToTable("ProviderMetaData");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderPrivateKeyModel", b =>
+                {
+                    b.Property<int>("ProviderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("OwnerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ProviderId");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("ProviderPrivateKey");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderPublicKeyModel", b =>
+                {
+                    b.Property<int>("ProviderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("OwnerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ProviderId");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("ProviderPublicKey");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderWalletAddressModel", b =>
+                {
+                    b.Property<int>("ProviderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("OwnerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ProviderId");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("ProviderWalletAddress");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.RefreshTokenModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AvatarModelId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Expires")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsExpired")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ReplacedByToken")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("Revoked")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RevokedByIp")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Token")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AvatarModelId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SolarSystemModel", b =>
+                {
+                    b.Property<string>("SolarSystemId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GalaxyClusterId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GalaxyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UniverseId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("SolarSystemId");
+
+                    b.HasIndex("GalaxyClusterId");
+
+                    b.HasIndex("GalaxyId");
+
+                    b.HasIndex("StarId");
+
+                    b.HasIndex("UniverseId");
+
+                    b.ToTable("SolarSystem");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SpellModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("FireDamage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("HealingPower")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("IceDamage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LightningDamage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PoisonDamage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("WaterDamage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("WindDamage")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AvatarId");
+
+                    b.ToTable("AvatarSpells");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.StarModel", b =>
+                {
+                    b.Property<string>("StarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Age")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CurrentOrbitAngleOfParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DistanceFromParentStarInMetres")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("EclipticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EclipticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("GalaxyClusterId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GalaxyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("GenesisType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GravitaionalPull")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("HorizontalLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("HorizontalLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Luminosity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberRegisteredAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NunmerActiveAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrbitPositionFromParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Radius")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RotationSpeed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceQuadrant")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceSector")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StarBinaryType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StarClassification")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StarType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("SuperGalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("SuperGalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Temperature")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TiltAngle")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UniverseId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("StarId");
+
+                    b.HasIndex("GalaxyClusterId");
+
+                    b.HasIndex("GalaxyId");
+
+                    b.HasIndex("UniverseId");
+
+                    b.ToTable("Star");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SuperStarModel", b =>
+                {
+                    b.Property<string>("StarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Age")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CurrentOrbitAngleOfParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DistanceFromParentStarInMetres")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("EclipticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EclipticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("EquatorialLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("GalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("GenesisType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GravitaionalPull")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("HorizontalLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("HorizontalLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Luminosity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberRegisteredAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NunmerActiveAvatars")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrbitPositionFromParentStar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Radius")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RotationSpeed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceQuadrant")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpaceSector")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StarBinaryType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StarClassification")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StarType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("SuperGalacticLatitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("SuperGalacticLongitute")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Temperature")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TiltAngle")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("StarId");
+
+                    b.ToTable("SuperStar");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.UniverseModel", b =>
+                {
+                    b.Property<string>("UniverseId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HolonId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("UniverseId");
+
+                    b.ToTable("Universe");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AchievementModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithMany("Achievements")
+                        .HasForeignKey("AvatarId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AsteroidModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyClusterModel", null)
+                        .WithMany("Asteroids")
+                        .HasForeignKey("GalaxyClusterId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyModel", null)
+                        .WithMany("Asteroids")
+                        .HasForeignKey("GalaxyId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SolarSystemModel", null)
+                        .WithMany("Asteroids")
+                        .HasForeignKey("SolarSystemId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.UniverseModel", null)
+                        .WithMany("Asteroids")
+                        .HasForeignKey("UniverseId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarAttributesModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithOne("Attributes")
+                        .HasForeignKey("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarAttributesModel", "AvatarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarAuraModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithOne("Aura")
+                        .HasForeignKey("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarAuraModel", "AvatarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarChakraModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", "AvatarDetail")
+                        .WithMany()
+                        .HasForeignKey("AvatarDetailId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithMany("AvatarChakras")
+                        .HasForeignKey("AvatarId");
+
+                    b.Navigation("AvatarDetail");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarGiftModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarChakraModel", null)
+                        .WithMany("GiftsUnlocked")
+                        .HasForeignKey("AvatarChakraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", "AvatarDetail")
+                        .WithMany()
+                        .HasForeignKey("AvatarDetailId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithMany("Gifts")
+                        .HasForeignKey("AvatarId");
+
+                    b.Navigation("AvatarDetail");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarHumanDesignModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", "AvatarDetail")
+                        .WithMany()
+                        .HasForeignKey("AvatarDetailId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithOne("HumanDesign")
+                        .HasForeignKey("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarHumanDesignModel", "AvatarId");
+
+                    b.Navigation("AvatarDetail");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarSkillsModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithOne("Skills")
+                        .HasForeignKey("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarSkillsModel", "AvatarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarStatsModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", "AvatarDetail")
+                        .WithMany()
+                        .HasForeignKey("AvatarDetailId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithOne("Stats")
+                        .HasForeignKey("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarStatsModel", "AvatarId");
+
+                    b.Navigation("AvatarDetail");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarSuperPowersModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithOne("SuperPowers")
+                        .HasForeignKey("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarSuperPowersModel", "AvatarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.CometModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyClusterModel", null)
+                        .WithMany("Comets")
+                        .HasForeignKey("GalaxyClusterId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyModel", null)
+                        .WithMany("Comets")
+                        .HasForeignKey("GalaxyId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SolarSystemModel", null)
+                        .WithMany("Comets")
+                        .HasForeignKey("SolarSystemId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.UniverseModel", null)
+                        .WithMany("Comets")
+                        .HasForeignKey("UniverseId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.CrystalModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarChakraModel", null)
+                        .WithOne("Crystal")
+                        .HasForeignKey("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.CrystalModel", "AvatarChakraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyClusterModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.UniverseModel", null)
+                        .WithMany("GalaxyClusters")
+                        .HasForeignKey("UniverseId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyClusterModel", null)
+                        .WithMany("Galaxies")
+                        .HasForeignKey("GalaxyClusterId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SuperStarModel", "SuperStar")
+                        .WithMany()
+                        .HasForeignKey("SuperStarStarId");
+
+                    b.Navigation("SuperStar");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GeneKeyModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", "AvatarDetail")
+                        .WithMany()
+                        .HasForeignKey("AvatarDetailId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithMany("GeneKeys")
+                        .HasForeignKey("AvatarId");
+
+                    b.Navigation("AvatarDetail");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HeartRateEntryModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", "AvatarDetail")
+                        .WithMany()
+                        .HasForeignKey("AvatarDetailId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithMany("HeartRates")
+                        .HasForeignKey("AvatarId");
+
+                    b.Navigation("AvatarDetail");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel", null)
+                        .WithMany("Childrens")
+                        .HasForeignKey("HolonModelId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.DimensionModel", "ParentDimension")
+                        .WithMany()
+                        .HasForeignKey("ParentDimensionDimesionId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyClusterModel", "ParentGalaxyCluster")
+                        .WithMany()
+                        .HasForeignKey("ParentGalaxyClusterGalaxyClusterId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyModel", "ParentGalaxy")
+                        .WithMany()
+                        .HasForeignKey("ParentGalaxyGalaxyId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GrandSuperStarModel", "ParentGrandSuperStar")
+                        .WithMany()
+                        .HasForeignKey("ParentGrandSuperStarStarId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GreatGrandSuperStarModel", "ParentGreatGrandSuperStar")
+                        .WithMany()
+                        .HasForeignKey("ParentGreatGrandSuperStarStarId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.MoonModel", "ParentMoon")
+                        .WithMany()
+                        .HasForeignKey("ParentMoonMoonId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.PlanetModel", "ParentPlanet")
+                        .WithMany()
+                        .HasForeignKey("ParentPlanetPlanetId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SolarSystemModel", "ParentSolarSystem")
+                        .WithMany()
+                        .HasForeignKey("ParentSolarSystemSolarSystemId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.StarModel", "ParentStar")
+                        .WithMany()
+                        .HasForeignKey("ParentStarStarId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SuperStarModel", "ParentSuperStar")
+                        .WithMany()
+                        .HasForeignKey("ParentSuperStarStarId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.UniverseModel", "ParentUniverse")
+                        .WithMany()
+                        .HasForeignKey("ParentUniverseUniverseId");
+
+                    b.Navigation("ParentDimension");
+
+                    b.Navigation("ParentGalaxy");
+
+                    b.Navigation("ParentGalaxyCluster");
+
+                    b.Navigation("ParentGrandSuperStar");
+
+                    b.Navigation("ParentGreatGrandSuperStar");
+
+                    b.Navigation("ParentMoon");
+
+                    b.Navigation("ParentPlanet");
+
+                    b.Navigation("ParentSolarSystem");
+
+                    b.Navigation("ParentStar");
+
+                    b.Navigation("ParentSuperStar");
+
+                    b.Navigation("ParentUniverse");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.InventoryItemModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithMany("InventoryItems")
+                        .HasForeignKey("AvatarId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.KarmaAkashicRecordModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithMany("KarmaAkashicRecords")
+                        .HasForeignKey("AvatarId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.MetaDataModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", null)
+                        .WithMany("MetaData")
+                        .HasForeignKey("AvatarModelId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel", null)
+                        .WithMany("MetaData")
+                        .HasForeignKey("HolonModelId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithMany("MetaData")
+                        .HasForeignKey("OwnerId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.MeteroidModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyClusterModel", null)
+                        .WithMany("Meteroids")
+                        .HasForeignKey("GalaxyClusterId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyModel", null)
+                        .WithMany("Meteroids")
+                        .HasForeignKey("GalaxyId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SolarSystemModel", null)
+                        .WithMany("Meteroids")
+                        .HasForeignKey("SolarSystemId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.UniverseModel", null)
+                        .WithMany("Meteroids")
+                        .HasForeignKey("UniverseId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.MoonModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.PlanetModel", null)
+                        .WithMany("Moons")
+                        .HasForeignKey("ParentPlanetId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.NebulaModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyModel", null)
+                        .WithMany("Nebulas")
+                        .HasForeignKey("GalaxyId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.UniverseModel", null)
+                        .WithMany("Nebulas")
+                        .HasForeignKey("UniverseId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.PlanetModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyClusterModel", null)
+                        .WithMany("Planets")
+                        .HasForeignKey("GalaxyClusterId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyModel", null)
+                        .WithMany("Planets")
+                        .HasForeignKey("GalaxyId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SolarSystemModel", null)
+                        .WithMany("Planets")
+                        .HasForeignKey("SolarSystemId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.UniverseModel", null)
+                        .WithMany("Planets")
+                        .HasForeignKey("UniverseId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderKeyModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithMany("ProviderKey")
+                        .HasForeignKey("AvatarDetailModelId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel", null)
+                        .WithMany("ProviderKey")
+                        .HasForeignKey("HolonModelId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderMetaData", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel", null)
+                        .WithMany("ProviderMetaData")
+                        .HasForeignKey("HolonModelId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderPrivateKeyModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithMany("ProviderPrivateKey")
+                        .HasForeignKey("OwnerId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderPublicKeyModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithMany("ProviderPublicKey")
+                        .HasForeignKey("OwnerId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderWalletAddressModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithMany("ProviderWalletAddress")
+                        .HasForeignKey("OwnerId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.RefreshTokenModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", null)
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("AvatarModelId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SolarSystemModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyClusterModel", null)
+                        .WithMany("SolarSystems")
+                        .HasForeignKey("GalaxyClusterId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyModel", null)
+                        .WithMany("SolarSystems")
+                        .HasForeignKey("GalaxyId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.StarModel", "Star")
+                        .WithMany()
+                        .HasForeignKey("StarId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.UniverseModel", null)
+                        .WithMany("SolarSystems")
+                        .HasForeignKey("UniverseId");
+
+                    b.Navigation("Star");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SpellModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
+                        .WithMany("Spells")
+                        .HasForeignKey("AvatarId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.StarModel", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyClusterModel", null)
+                        .WithMany("Stars")
+                        .HasForeignKey("GalaxyClusterId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyModel", null)
+                        .WithMany("Stars")
+                        .HasForeignKey("GalaxyId");
+
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.UniverseModel", null)
+                        .WithMany("Stars")
+                        .HasForeignKey("UniverseId");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarChakraModel", b =>
+                {
+                    b.Navigation("Crystal");
+
+                    b.Navigation("GiftsUnlocked");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", b =>
+                {
+                    b.Navigation("Achievements");
+
+                    b.Navigation("Attributes");
+
+                    b.Navigation("Aura");
+
+                    b.Navigation("AvatarChakras");
+
+                    b.Navigation("GeneKeys");
+
+                    b.Navigation("Gifts");
+
+                    b.Navigation("HeartRates");
+
+                    b.Navigation("HumanDesign");
+
+                    b.Navigation("InventoryItems");
+
+                    b.Navigation("KarmaAkashicRecords");
+
+                    b.Navigation("MetaData");
+
+                    b.Navigation("ProviderKey");
+
+                    b.Navigation("ProviderPrivateKey");
+
+                    b.Navigation("ProviderPublicKey");
+
+                    b.Navigation("ProviderWalletAddress");
+
+                    b.Navigation("Skills");
+
+                    b.Navigation("Spells");
+
+                    b.Navigation("Stats");
+
+                    b.Navigation("SuperPowers");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", b =>
+                {
+                    b.Navigation("MetaData");
+
+                    b.Navigation("RefreshTokens");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyClusterModel", b =>
+                {
+                    b.Navigation("Asteroids");
+
+                    b.Navigation("Comets");
+
+                    b.Navigation("Galaxies");
+
+                    b.Navigation("Meteroids");
+
+                    b.Navigation("Planets");
+
+                    b.Navigation("SolarSystems");
+
+                    b.Navigation("Stars");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.GalaxyModel", b =>
+                {
+                    b.Navigation("Asteroids");
+
+                    b.Navigation("Comets");
+
+                    b.Navigation("Meteroids");
+
+                    b.Navigation("Nebulas");
+
+                    b.Navigation("Planets");
+
+                    b.Navigation("SolarSystems");
+
+                    b.Navigation("Stars");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel", b =>
+                {
+                    b.Navigation("Childrens");
+
+                    b.Navigation("MetaData");
+
+                    b.Navigation("ProviderKey");
+
+                    b.Navigation("ProviderMetaData");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.PlanetModel", b =>
+                {
+                    b.Navigation("Moons");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SolarSystemModel", b =>
+                {
+                    b.Navigation("Asteroids");
+
+                    b.Navigation("Comets");
+
+                    b.Navigation("Meteroids");
+
+                    b.Navigation("Planets");
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.UniverseModel", b =>
+                {
+                    b.Navigation("Asteroids");
+
+                    b.Navigation("Comets");
+
+                    b.Navigation("GalaxyClusters");
+
+                    b.Navigation("Meteroids");
+
+                    b.Navigation("Nebulas");
+
+                    b.Navigation("Planets");
+
+                    b.Navigation("SolarSystems");
+
+                    b.Navigation("Stars");
                 });
 #pragma warning restore 612, 618
         }

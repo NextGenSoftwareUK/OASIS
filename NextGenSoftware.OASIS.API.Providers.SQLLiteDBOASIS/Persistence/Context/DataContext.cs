@@ -11,16 +11,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
         public DbSet<AvatarDetailModel> AvatarDetails { get; set; }
         public DbSet<HolonModel> Holons { get; set; }
 
-        private string GetDefaultDbPath()
-        {
-            var folder = Environment.SpecialFolder.LocalApplicationData;
-            var path = Environment.GetFolderPath(folder);
-            return Path.Join(path, "OASISSqlLiteDb.db");
-        }
+        private string _defaultDbPath => "OASISSqlLiteDb.db";
 
         private string GetDefaultDbConnectionString()
         {
-            return $"Data Source={GetDefaultDbPath()}";
+            return $"Data Source={_defaultDbPath}";
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
