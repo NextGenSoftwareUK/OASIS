@@ -187,94 +187,118 @@ const SidebarData = [
         name: "provider",
         subMenu: [
             {
+                id: 1,
+                name: "View Providers",
+                popupName: "viewProviders",
+                disabled: false
+            },
+            {
                 id: 2,
                 name: "Manage Providers",
+                popupName: 'manageProviders',
                 disabled: false
             },
 
             {
                 id: 3,
                 name: "Manage Auto-Replication",
+                popupName: "manageAutoReplicaton",
                 disabled: false
             },
             {
                 id: 4,
                 name: "Manage Auto-Fail-Over",
+                popupName: "manageAutoFailOver",
                 disabled: false
             },
             {
                 id: 5,
                 name: "Manage Load Balancing",
+                popupName: "manageLoadBalancing",
                 disabled: false
             },
             {
                 id: 6,
                 name: "View Provider Stats",
+                popupName: "viewProviderStats",
                 disabled: false
             },
             {
                 id: 7,
                 name: "Compare Provider Speeds",
+                popupName: "compareProviderSpeeds",
                 disabled: false
             },
             {
                 id: 8,
                 name: "Search Providers",
+                popupName: "searchProviders",
                 disabled: false
             },
             {
                 id: 9,
                 name: "Holochain",
+                popupName: "holochain",
                 disabled: false
             },
             {
                 id: 10,
                 name: "SEEDS",
+                popupName: "seeds",
                 disabled: false
             },
             {
                 id: 11,
                 name: "EOSIO",
+                popupName: "eosio",
                 disabled: false
             },
             {
                 id: 12,
                 name: "Ethereum",
+                popupName: "ethereum",
                 disabled: false
             },
             {
                 id: 13,
                 name: "IPFS",
+                popupName: "ipfs",
                 disabled: false
             },
             {
                 id: 14,
                 name: "ThreeFold",
+                popupName: "threeFold",
                 disabled: false
             },
             {
                 id: 15,
                 name: "SOLID",
+                popupName: "solid",
                 disabled: false
             },
             {
                 id: 16,
                 name: "Activity Pub",
+                popupName: "activityPub",
                 disabled: false
             },
             {
                 id: 17,
                 name: "Mongo DB",
+                popupName: "mongoDb",
                 disabled: false
             },
             {
                 id: 18,
                 name: "SQLLite",
+                popupName: "sqlLite",
                 disabled: false
             },
             {
                 id: 19,
                 name: "Neo4j",
+                popupName: "neo4j",
                 disabled: false
             },
         ],
@@ -285,22 +309,108 @@ const SidebarData = [
         subMenu: [
             {
                 id: 1,
+                name: "View OASIS NFTs",
+                popupName: 'viewOasisNft',
+                disabled: false
+            },
+            {
+                id: 2,
+                name: "Manage OASIS NFTs",
+                popupName: 'manageOasisNft',
+                disabled: false
+            },
+            {
+                id: 3,
+                name: "Search OASIS NFTs",
+                popupName: 'searchOasisNft',
+                disabled: false
+            },
+            {
+                id: 4,
+                name: "Purchase OASIS NFT",
+                popupName: 'purchaseOasisNft',
+                disabled: false
+            },
+            {
+                id: 5,
+                name: "Purchase OASIS Virtual Land NFT",
+                popupName: 'PurchaseOasisVirtualLandNft',
+                disabled: false
+            },
+            {
+                id: 6,
                 name: "Solana",
                 popupName: 'solana',
                 disabled: false
             },
             {
-                id: 2,
+                id: 7,
                 name: "Contact Popup",
                 popupName: 'contactPopup',
                 disabled: false
-            }
+            },
         ],
     },
     {
         id: 8,
         name: "map",
-        subMenu: [],
+        subMenu: [
+            {
+                id: 1,
+                name: "View Global 3D Map",
+                popupName: 'viewGlobal3dMap'
+            },
+            {
+                id: 2,
+                name: "Mange Map",
+                popupName: 'manageMap'
+            },
+            {
+                id: 3,
+                name: "Add Quest To Map",
+                popupName: 'addQuestToMap'
+            },
+            {
+                id: 4,
+                name: "Add 2D Object To Map",
+                popupName: 'add2dObjectMap'
+            },
+            {
+                id: 5,
+                name: "Add 3D Object To Map",
+                popupName: 'add3dObjectMap'
+            },
+            {
+                id: 6,
+                name: "Plot Route On Map",
+                popupName: 'plotRouteOnMap'
+            },
+            {
+                id: 7,
+                name: "View OAPP's On Map",
+                popupName: 'viewOappOnMap'
+            },
+            {
+                id: 8,
+                name: "View Holons On Map",
+                popupName: 'viewHalonsOnMap'
+            },
+            {
+                id: 9,
+                name: "View Quests On Map",
+                popupName: 'viewQuestOnMap'
+            },
+            {
+                id: 10,
+                name: "Search Map",
+                popupName: 'searchMap'
+            },
+            {
+                id: 11,
+                name: "Download Our World",
+                popupName: 'downloadOurWorld'
+            },
+        ],
     },
     {
         id: 9,
