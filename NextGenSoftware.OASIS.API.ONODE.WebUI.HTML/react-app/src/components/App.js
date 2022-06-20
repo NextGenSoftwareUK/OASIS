@@ -27,6 +27,10 @@ import Eggs from "./popups/eggs";
 import Mission from "./popups/mission";
 import Quest from "./popups/quest";
 import OAPP from "./popups/oapp";
+import Map from "./popups/map";
+import Provider from "./popups/provider";
+import Nft from "./popups/nft";
+import NFT from "oasis-api/nft/nft";
 
 class App extends React.Component {
   state = {
@@ -120,6 +124,53 @@ class App extends React.Component {
             searchOAPP: false,
             downloadOurWorld: false,
         }
+      },
+      {
+        map: {
+            viewGlobal3dMap: false,
+            manageMap: false,
+            addQuestToMap: false,
+            add2dObjectMap: false,
+            add3dObjectMap: false,
+            plotRouteOnMap: false,
+            viewOappOnMap: false,
+            viewHalonsOnMap: false,
+            viewQuestOnMap: false,
+            searchMap: false,
+            downloadOurWorld: false,
+        }
+      },
+      {
+        provider: {
+            viewProviders: false,
+            manageProviders: false,
+            manageAutoReplicaton: false,
+            manageAutoFailOver: false,
+            manageLoadBalancing: false,
+            viewProviderStats: false,
+            compareProviderSpeeds: false,
+            searchProviders: false,
+            holochain: false,
+            seeds: false,
+            eosio: false,
+            ethereum: false,
+            ipfs: false,
+            threeFold: false,
+            solid: false,
+            activityPub: false,
+            mongoDb: false,
+            sqlLite: false,
+            neo4j: false
+        }
+      },
+      {
+        nft: {
+            manageOasisNft: false,
+            purchaseOasisNft: false,
+            purchaseOasisVirtualLandNft: false,
+            searchOasisNft: false,
+            viewOasisNft: false
+        },
       },
       {
         comingSoon: false,
@@ -308,6 +359,21 @@ class App extends React.Component {
 
                     <OAPP 
                         oapp={this.state.sidebarMenuOption[9].oapp}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    />
+
+                    <Map 
+                        map={this.state.sidebarMenuOption[10].map}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    />
+
+                    <Provider 
+                        provider={this.state.sidebarMenuOption[11].provider}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    />
+
+                    <Nft
+                        nft={this.state.sidebarMenuOption[12].nft}
                         toggleScreenPopup={this.toggleScreenPopup}
                     />
 
