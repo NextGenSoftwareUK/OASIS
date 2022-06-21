@@ -55,6 +55,5 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
         OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0);
         OASISResult<IAvatar> SaveAvatar(IAvatar avatar);
         Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar);
-        AvatarEntity CreateAvatarModel(IAvatar Avatar);
     }
 }
