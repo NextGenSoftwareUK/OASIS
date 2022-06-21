@@ -60,6 +60,7 @@ class PayWithSeeds extends React.Component {
                                 <h1 className="single-heading">
                                     Pay with Seeds
                                 </h1>
+
                                 <div className="form-container">
                                     <form onSubmit={this.handleSubmit}>
                                         <p className="single-form-row">
@@ -72,6 +73,7 @@ class PayWithSeeds extends React.Component {
                                                 />
                                                 Avatar
                                             </label>
+
                                             <input 
                                                 type="text" 
                                                 placeholder="username" 
@@ -81,6 +83,8 @@ class PayWithSeeds extends React.Component {
                                                 disabled={this.state.group === "username_section"} 
                                             />
                                         </p>
+
+                                        <h3>OR</h3>
 
                                         <p className="single-form-row">
                                             <label className="single-radio-btn">
