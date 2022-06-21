@@ -289,6 +289,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         };
 
                         result.Result = newWallet.WalletId;
+                        
+                        // If any default wallet exist in avatar provider wallet? if not, make current/first one wallet as default
+                        if (!avatar.ProviderWallets[providerTypeToLinkTo].Any(x => x.IsDefaultWallet) && avatar.ProviderWallets[providerTypeToLinkTo].Count == 0)
+                        {
+                            newWallet.IsDefaultWallet = true;
+                        }
                         avatar.ProviderWallets[providerTypeToLinkTo].Add(newWallet);
                     }
                     else
@@ -565,6 +571,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         };
 
                         result.Result = newWallet.WalletId;
+
+                        // If any default wallet exist in avatar provider wallet? if not, make current/first one wallet as default
+                        if (!avatar.ProviderWallets[providerTypeToLinkTo].Any(x => x.IsDefaultWallet) && avatar.ProviderWallets[providerTypeToLinkTo].Count == 0)
+                        {
+                            newWallet.IsDefaultWallet = true;
+                        }
                         avatar.ProviderWallets[providerTypeToLinkTo].Add(newWallet);
                     }
                     else

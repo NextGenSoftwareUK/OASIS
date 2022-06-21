@@ -6,7 +6,9 @@ using EosSharp.Core;
 using EosSharp.Core.Api.v1;
 using EosSharp.Core.Providers;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetTableRows;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models;
@@ -22,15 +24,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
         private static readonly string _accountPk = "5KUm4te3kPbR6Fmrmr5WwCw3pfkymVxdh44x1b9QFYhm66uwYsP";
 
         private static readonly string _oasisEosAccount = "oasis";
+        private static readonly string _oasisEosAccount2 = "oasis22";
         private static readonly string _avatarTable = "avatar";
         private static readonly string _holonTable = "holon";
         private static readonly string _avatarDetailTable = "avatardetail";
 
         public static async Task Main()
         {
+            // Transferring
+            await Run_SendTransactionAsync();
+            await Run_SendNftAsync();
+            
             // Account Examples
             await Run_GetEOSIOAccountAsync();
             await Run_GetBalanceForEOSIOAccount();
+            
             // Avatar Examples
             await Run_GetAvatarTableRows();
             
@@ -407,6 +415,68 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
             }
 
             Console.WriteLine("Run_SoftAndHardDeleteHolonById-->DeActivateProvider()");
+            eosioOasis.DeActivateProvider();
+        }
+
+        #endregion
+
+        #region Transfer Example
+
+        private static async Task Run_SendNftAsync()
+        {
+            var eosioOasis = new EOSIOOASIS(_chainUrl, _oasisEosAccount, _chainId, _accountPk);
+
+            Console.WriteLine("Run_SendNftAsync-->ActivateProvider()");
+            eosioOasis.ActivateProvider();
+
+            var sendNftRequest = new WalletTransaction()
+            {
+                Amount = 0.001m,
+                Date = DateTime.Now,
+                ProviderType = ProviderType.EOSIOOASIS,
+                FromWalletAddress = _oasisEosAccount,
+                ToWalletAddress = _oasisEosAccount2
+            };
+            Console.WriteLine("Run_SendNftAsync-->SendNFTAsync()-->Sending...");
+            var sendNftResult = await eosioOasis.SendNFTAsync(sendNftRequest);
+            if (sendNftResult.IsError)
+            {
+                Console.WriteLine("Run_SendNftAsync-->SendNFTAsync()-->Failed...");
+                Console.WriteLine(sendNftResult.Message);
+                return;
+            }
+            Console.WriteLine("Run_SendNftAsync-->SendNFTAsync()-->Completed...");
+
+            Console.WriteLine("Run_SendNftAsync-->ActivateProvider()");
+            eosioOasis.DeActivateProvider();
+        }
+
+        private static async Task Run_SendTransactionAsync()
+        {
+            var eosioOasis = new EOSIOOASIS(_chainUrl, _oasisEosAccount, _chainId, _accountPk);
+
+            Console.WriteLine("Run_SendTransactionAsync-->ActivateProvider()");
+            eosioOasis.ActivateProvider();
+
+            var walletTransaction = new WalletTransaction()
+            {
+                Amount = 0.001m,
+                Date = DateTime.Now,
+                ProviderType = ProviderType.EOSIOOASIS,
+                FromWalletAddress = _oasisEosAccount,
+                ToWalletAddress = _oasisEosAccount2
+            };
+            Console.WriteLine("Run_SendTransactionAsync-->SendTransactionAsync()-->Sending...");
+            var sendTransactionResult = await eosioOasis.SendTransactionAsync(walletTransaction);
+            if (sendTransactionResult.IsError)
+            {
+                Console.WriteLine("Run_SendTransactionAsync-->SendTransactionAsync()-->Failed...");
+                Console.WriteLine(sendTransactionResult.Message);
+                return;
+            }
+            Console.WriteLine("Run_SendTransactionAsync-->SendTransactionAsync()-->Completed...");
+            
+            Console.WriteLine("Run_SendTransactionAsync-->ActivateProvider()");
             eosioOasis.DeActivateProvider();
         }
 
