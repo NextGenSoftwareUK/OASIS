@@ -61,10 +61,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntity = await _dbContext.Holons
-                    .Where(p => p.Id == id.ToString() && p.Version == version)
-                    .Select(x => GetHolonFromEntity(x))
-                    .FirstOrDefaultAsync();
+                var holonEntity = _dbContext.Holons
+                    .ToList()
+                    .Where(p => p.Id == id.ToString())
+                    .Select(GetHolonFromEntity)
+                    .FirstOrDefault();
                 if (holonEntity == null)
                     return new OASISResult<IHolon>
                     {
