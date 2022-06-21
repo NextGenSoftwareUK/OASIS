@@ -7,6 +7,10 @@ import RewardSeeds from './components/RewardSeeds';
 import SendInvite from './components/SendInvite';
 
 import '../../../assets/scss/seeds-popup.scss';
+import ViewSeeds from './components/ViewSeeds';
+import ManageSeeds from './components/ManageSeeds';
+import SearchSeeds from './components/SearchSeeds';
+import ViewOrganizations from './components/ViewOrganizations';
 
 class Seeds extends React.Component {
 
@@ -36,6 +40,26 @@ class Seeds extends React.Component {
 
                 <SendInvite
                     show={props.seeds.sendInvite}
+                    hide={props.toggleScreenPopup}
+                />
+
+                <SearchSeeds
+                    show={props.seeds.searchSeeds}
+                    hide={props.toggleScreenPopup}
+                />
+
+                <ManageSeeds
+                    show={props.seeds.manageSeeds}
+                    hide={props.toggleScreenPopup}
+                />
+
+                <ViewOrganizations
+                    show={props.seeds.viewOrganizations}
+                    hide={props.toggleScreenPopup}
+                />
+
+                <ViewSeeds
+                    show={props.seeds.viewSeeds}
                     hide={props.toggleScreenPopup}
                 />
             </>
