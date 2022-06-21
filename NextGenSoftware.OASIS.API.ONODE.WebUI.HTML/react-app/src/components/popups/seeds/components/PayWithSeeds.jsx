@@ -76,7 +76,7 @@ class PayWithSeeds extends React.Component {
 
                                             <input 
                                                 type="text" 
-                                                placeholder="username" 
+                                                placeholder="Avatar" 
                                                 name="avatar" 
                                                 value={this.state.avatar} 
                                                 onChange={this.handleChange}
@@ -102,7 +102,7 @@ class PayWithSeeds extends React.Component {
                                                 name="seedUser" 
                                                 value={this.state.username} 
                                                 onChange={this.handleChange} 
-                                                placeholder="username"
+                                                placeholder="Seed Username"
                                                 disabled={this.state.group === "avatar_section"} 
                                             />
                                         </p>
@@ -114,6 +114,7 @@ class PayWithSeeds extends React.Component {
                                                 name="amount" 
                                                 value={this.state.amount} 
                                                 onChange={this.handleChange}
+                                                placeholder="Amount"
                                                 disabled={this.state.group === "avatar_section"}  
                                             />
                                         </p>
@@ -125,6 +126,7 @@ class PayWithSeeds extends React.Component {
                                                 name="note" 
                                                 value={this.state.note} 
                                                 onChange={this.handleChange}
+                                                placeholder="Note"
                                                 disabled={this.state.group === "avatar_section"}  
                                             />
                                         </p>
