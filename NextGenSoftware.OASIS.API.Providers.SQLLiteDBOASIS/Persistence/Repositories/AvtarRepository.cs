@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -624,7 +623,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarEntities = _dbContext.Avatars
-                    .Select(x => GetAvatarFromEntity(x))
+                    .ToList()
+                    .Select(GetAvatarFromEntity)
                     .FirstOrDefault(p => p.Username == username && p.Password == password && p.Version == version);
                 return new OASISResult<IAvatar>
                 {
@@ -651,7 +651,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 var avatarEntities =
                     _dbContext.Avatars
-                        .Select(x => GetAvatarFromEntity(x))
+                        .ToList()
+                        .Select(GetAvatarFromEntity)
                         .FirstOrDefault(p => p.Username == username && p.Version == version);
                 return new OASISResult<IAvatar>
                 {
@@ -676,10 +677,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarEntity = await _dbContext.Avatars
+                var avatarEntity = _dbContext.Avatars
+                    .ToList()
                     .Where(p => p.Username == username && p.Version == version)
-                    .Select(x => GetAvatarFromEntity(x))
-                    .FirstOrDefaultAsync();
+                    .Select(GetAvatarFromEntity)
+                    .FirstOrDefault();
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
@@ -711,10 +713,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarEntities = await _dbContext.Avatars
+                var avatarEntities = _dbContext.Avatars
+                    .ToList()
                     .Where(p => p.Version == version)
-                    .Select(x => GetAvatarFromEntity(x))
-                    .ToListAsync();
+                    .Select(GetAvatarFromEntity)
+                    .ToList();
                 return new OASISResult<IEnumerable<IAvatar>>
                 {
                     IsLoaded = true,
@@ -739,8 +742,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarEntities = _dbContext.Avatars
+                    .ToList()
                     .Where(p => p.Version == version)
-                    .Select(x => GetAvatarFromEntity(x))
+                    .Select(GetAvatarFromEntity)
                     .ToList();
                 return new OASISResult<IEnumerable<IAvatar>>
                 {
@@ -766,7 +770,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarEntity = _dbContext.Avatars
-                    .Select(x => GetAvatarFromEntity(x))
+                    .ToList()
+                    .Select(GetAvatarFromEntity)
                     .FirstOrDefault(p => p.Username == avatarUsername);
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
@@ -834,10 +839,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarEntity = await _dbContext.Avatars
+                var avatarEntity = _dbContext.Avatars
+                    .ToList()
                     .Where(p => p.Email == avatarEmail && p.Version == version)
-                    .Select(x => GetAvatarFromEntity(x))
-                    .FirstOrDefaultAsync();
+                    .Select(GetAvatarFromEntity)
+                    .FirstOrDefault();
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
@@ -869,10 +875,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarEntity = await _dbContext.Avatars
+                var avatarEntity = _dbContext.Avatars
+                    .ToList()
                     .Where(p => p.Username == avatarUsername && p.Version == version)
-                    .Select(x => GetAvatarFromEntity(x))
-                    .FirstOrDefaultAsync();
+                    .Select(GetAvatarFromEntity)
+                    .FirstOrDefault();
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
@@ -905,7 +912,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarEntity = _dbContext.Avatars
-                    .Select(x => GetAvatarFromEntity(x))
+                    .ToList()
+                    .Select(GetAvatarFromEntity)
                     .FirstOrDefault(p => p.Id == Id && p.Version == version);
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
@@ -940,7 +948,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 var avatarEntity =
                     _dbContext.Avatars
-                        .Select(x => GetAvatarFromEntity(x))
+                        .ToList()
+                        .Select(GetAvatarFromEntity)
                         .FirstOrDefault(p => p.Email == avatarEmail && p.Version == version);
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
@@ -973,10 +982,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarEntity = await _dbContext.Avatars
+                var avatarEntity = _dbContext.Avatars
+                    .ToList()
                     .Where(p => p.Username == username && p.Version == version)
-                    .Select(x => GetAvatarFromEntity(x))
-                    .FirstOrDefaultAsync();
+                    .Select(GetAvatarFromEntity)
+                    .FirstOrDefault();
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {

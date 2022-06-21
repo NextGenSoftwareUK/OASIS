@@ -82,11 +82,45 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness
             Console.WriteLine("Run_SaveAvatarAndLoadAvatar_Example-->DeActivateProvider()");
             sqlLiteDbOasis.DeActivateProvider();
         }
+
+        private static async Task Run_SaveAvatarDetailAndLoadAvatarDetail_Example()
+        {
+            var sqlLiteDbOasis = new SQLLiteDBOASIS(string.Empty);
+            
+            Console.WriteLine("Run_SaveAvatarDetailAndLoadAvatarDetail_Example-->ActivateProvider()");
+            sqlLiteDbOasis.ActivateProvider();
+
+            var avatarDetailEntity = new AvatarDetail()
+            {
+                Id = Guid.NewGuid(),
+                Description = "Bob in SqlLite Provider :)"
+            };
+            Console.WriteLine("Run_SaveAvatarDetailAndLoadAvatarDetail_Example-->SaveAvatarDetailAsync()");
+            var saveAvatarDetailResult = await sqlLiteDbOasis.SaveAvatarDetailAsync(avatarDetailEntity);
+            if (saveAvatarDetailResult.IsError)
+            {
+                Console.WriteLine("Saving failed! Reason: " + saveAvatarDetailResult.Message);
+                return;
+            }
+
+            var loadAvatarDetailResult = await sqlLiteDbOasis.LoadAvatarDetailAsync(avatarDetailEntity.Id);
+            if (loadAvatarDetailResult.IsError)
+            {
+                Console.WriteLine("Loading failed! Reason: " + loadAvatarDetailResult.Message);
+                return;
+            }
+            
+            Console.WriteLine("Description: " + loadAvatarDetailResult.Result.Description);
+
+            Console.WriteLine("Run_SaveAvatarDetailAndLoadAvatarDetail_Example-->DeActivateProvider()");
+            sqlLiteDbOasis.DeActivateProvider();
+        }
         
         public static async Task Main(string[] args)
         {
             await Run_SaveHolonAndLoadHolon_Example();
             await Run_SaveAvatarAndLoadAvatar_Example();
+            await Run_SaveAvatarDetailAndLoadAvatarDetail_Example();
         }
     }
 }
