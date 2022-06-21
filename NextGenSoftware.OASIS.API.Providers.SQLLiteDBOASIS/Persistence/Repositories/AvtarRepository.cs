@@ -800,7 +800,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarEntities = _dbContext.Avatars
-                    .Select(x => GetAvatarFromEntity(x))
+                    .ToList()
+                    .Select(GetAvatarFromEntity)
                     .FirstOrDefault(p => p.Id == Id && p.Version == version);
                 if (avatarEntities == null)
                     return new OASISResult<IAvatar>
@@ -1101,7 +1102,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Username = avatar.Username,
                 VerificationToken = avatar.VerificationToken,
                 Verified = avatar.Verified,
-                AvatarType = avatar.AvatarType.Value
+                AvatarType = avatar.AvatarType.Value,
+                Description = avatar.Description
             };
         }
 
@@ -1125,7 +1127,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 VerificationToken = avatar.VerificationToken,
                 Verified = avatar.Verified,
                 AvatarId = Guid.Parse(avatar.Id),
-                AvatarType = new EnumValue<AvatarType>(avatar.AvatarType)
+                AvatarType = new EnumValue<AvatarType>(avatar.AvatarType),
+                Description = avatar.Description
             };
         }
     }
