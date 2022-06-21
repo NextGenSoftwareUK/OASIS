@@ -3,8 +3,6 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness
 {
