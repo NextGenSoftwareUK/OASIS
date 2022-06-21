@@ -60,6 +60,7 @@ class PayWithSeeds extends React.Component {
                                 <h1 className="single-heading">
                                     Pay with Seeds
                                 </h1>
+
                                 <div className="form-container">
                                     <form onSubmit={this.handleSubmit}>
                                         <p className="single-form-row">
@@ -72,15 +73,18 @@ class PayWithSeeds extends React.Component {
                                                 />
                                                 Avatar
                                             </label>
+
                                             <input 
                                                 type="text" 
-                                                placeholder="username" 
+                                                placeholder="Avatar" 
                                                 name="avatar" 
                                                 value={this.state.avatar} 
                                                 onChange={this.handleChange}
                                                 disabled={this.state.group === "username_section"} 
                                             />
                                         </p>
+
+                                        <h3>OR</h3>
 
                                         <p className="single-form-row">
                                             <label className="single-radio-btn">
@@ -98,7 +102,7 @@ class PayWithSeeds extends React.Component {
                                                 name="seedUser" 
                                                 value={this.state.username} 
                                                 onChange={this.handleChange} 
-                                                placeholder="username"
+                                                placeholder="Seed Username"
                                                 disabled={this.state.group === "avatar_section"} 
                                             />
                                         </p>
@@ -110,6 +114,7 @@ class PayWithSeeds extends React.Component {
                                                 name="amount" 
                                                 value={this.state.amount} 
                                                 onChange={this.handleChange}
+                                                placeholder="Amount"
                                                 disabled={this.state.group === "avatar_section"}  
                                             />
                                         </p>
@@ -121,6 +126,7 @@ class PayWithSeeds extends React.Component {
                                                 name="note" 
                                                 value={this.state.note} 
                                                 onChange={this.handleChange}
+                                                placeholder="Note"
                                                 disabled={this.state.group === "avatar_section"}  
                                             />
                                         </p>

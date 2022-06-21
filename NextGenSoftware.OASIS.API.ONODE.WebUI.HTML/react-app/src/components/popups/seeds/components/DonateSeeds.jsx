@@ -82,6 +82,8 @@ class DonateSeeds extends React.Component {
                                             />
                                         </p>
 
+                                        <h3>OR</h3>
+
                                         <p className="single-form-row">
                                             <label className="single-radio-btn">
                                                 <input 
