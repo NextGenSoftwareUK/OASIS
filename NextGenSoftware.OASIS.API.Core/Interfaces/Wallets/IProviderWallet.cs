@@ -24,6 +24,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public List<IWalletTransaction> Transactions {get;set;}
         public ProviderType ProviderType { get; set; }
         public int Balance { get; set; }
+        public bool IsDefaultWallet { get; set; }
 
         public OASISResult<bool> SendTrasaction(IWalletTransaction transation);
         public Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransaction transation);
