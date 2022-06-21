@@ -16,10 +16,10 @@ class VerifyToken extends React.Component {
         axios.get('https://api.oasisplatform.world/api/avatar/verify-email?token='+token)
             .then(response => {
                 console.log(response)
-                if(response.data.isError) {
-                    toast.error(response.data.message)
+                if(response.data.result.isError) {
+                    toast.error(response.data.result.message)
                 } else {
-                    toast.success(response.data.message)
+                    toast.success(response.data.result.message)
                 }
                 this.props.history.goBack()
                 console.log(this.props) 
