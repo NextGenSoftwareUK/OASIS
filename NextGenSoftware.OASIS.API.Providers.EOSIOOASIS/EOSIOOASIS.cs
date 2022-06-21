@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using EOSNewYork.EOSCore.Response.API;
+using EOSNewYork.EOSCore;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.CurrencyBalance;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetTableRows;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persistence;
@@ -25,13 +26,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         IOASISNFTProvider, IOASISNETProvider, IOASISSuperStar
     {
         private static readonly Dictionary<Guid, GetAccountResponseDto> _avatarIdToEOSIOAccountLookup = new();
+        private readonly IEosClient _eosClient;
         private readonly IEosProviderRepository<AvatarDetailDto> _avatarDetailRepository;
         private readonly IEosProviderRepository<AvatarDto> _avatarRepository;
-
-        private readonly IEosClient _eosClient;
         private readonly IEosProviderRepository<HolonDto> _holonRepository;
+        private readonly IEosTransferRepository _transferRepository;
         private AvatarManager _avatarManager;
         private KeyManager _keyManager;
+        private WalletManager _walletManager;
+
+        public ChainAPI ChainAPI => new ChainAPI();
 
         public EOSIOOASIS(string hostUri, string eosAccountName, string eosChainId, string eosAccountPk)
         {
@@ -47,6 +51,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             _holonRepository = new HolonEosProviderRepository(_eosClient, eosAccountName, hostUri, eosChainId, eosAccountPk);
             _avatarDetailRepository = new AvatarDetailEosProviderRepository(_eosClient, eosAccountName,hostUri, eosChainId, eosAccountPk);
             _avatarRepository = new AvatarEosProviderRepository(_eosClient, eosAccountName, hostUri, eosChainId, eosAccountPk);
+            _transferRepository = new EosTransferRepository(eosAccountName, hostUri, eosChainId, eosAccountPk);
         }
 
         private AvatarManager AvatarManager
@@ -54,12 +59,20 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             get
             {
                 if (_avatarManager == null)
-                    _avatarManager =
-                        new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS),
-                            AvatarManager.OASISDNA);
+                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), OASISDNA);
                 //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
-
                 return _avatarManager;
+            }
+        }
+
+        private WalletManager WalletManager
+        {
+            get
+            {
+                if (_walletManager == null)
+                    _walletManager = new WalletManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS),
+                        AvatarManager.OASISDNA);
+                return _walletManager;
             }
         }
 
@@ -111,12 +124,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -141,12 +148,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -182,12 +183,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -225,12 +220,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -306,12 +295,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -352,12 +335,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -394,12 +371,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -424,12 +395,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -474,12 +439,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -523,12 +482,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -571,12 +524,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -619,12 +566,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -650,12 +591,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = false;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -691,12 +626,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = false;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -761,12 +690,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -798,12 +721,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -870,12 +787,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -902,12 +813,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsLoaded = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -953,12 +858,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1003,12 +902,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1058,12 +951,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1113,12 +1000,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = null;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1144,12 +1025,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = false;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1175,12 +1050,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                result.Message = ex.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                result.Result = false;
-
                 ErrorHandling.HandleError(ref result, ex.Message);
             }
 
@@ -1361,25 +1230,200 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return KeyManager.GetAvatarForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS)
                 .Result;
         }
-
-        public OASISResult<bool> SendTrasaction(IWalletTransaction transation)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransaction transation)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public OASISResult<bool> SendNFT(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            return SendNFTAsync(transation).Result;
         }
 
         public async Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            return await _transferRepository.TransferEosNft(
+                transation.FromWalletAddress,
+                transation.ToWalletAddress,
+                transation.Amount,
+                "SYS");
+        }
+
+        public OASISResult<string> SendTransaction(IWalletTransaction transaction)
+        {
+            return SendTransactionAsync(transaction).Result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transaction)
+        {
+            return await _transferRepository.TransferEosToken(
+                transaction.FromWalletAddress, transaction.ToWalletAddress, transaction.Amount);
+        }
+
+        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            var result = new OASISResult<string>();
+            string errorMessage = "Error in SendTransactionByIdAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromAvatarResult = await AvatarManager.LoadAvatarAsync(fromAvatarId);
+            var toAvatarResult = await AvatarManager.LoadAvatarAsync(toAvatarId);
+                
+            if (fromAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                    fromAvatarResult.Exception);
+                return result;
+            }
+
+            if (toAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                    toAvatarResult.Exception);
+                return result;
+            }
+
+            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
+            
+            if(result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+            
+            return result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            var result = new OASISResult<string>();
+            string errorMessage = "Error in SendTransactionByUsernameAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromAvatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(fromAvatarUsername);
+            var toAvatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(toAvatarUsername);
+            
+            if (fromAvatarDetailResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarDetailResult.Message),
+                    fromAvatarDetailResult.Exception);
+                return result;
+            }
+
+            if (toAvatarDetailResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarDetailResult.Message),
+                    toAvatarDetailResult.Exception);
+                return result;
+            }
+            
+            var fromAvatarResult = await AvatarManager.LoadAvatarAsync(fromAvatarDetailResult.Result.Id);
+            var toAvatarResult = await AvatarManager.LoadAvatarAsync(toAvatarDetailResult.Result.Id);
+
+            if (fromAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                    fromAvatarResult.Exception);
+                return result;
+            }
+
+            if (toAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                    toAvatarResult.Exception);
+                return result;
+            }
+            
+            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
+            
+            if(result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+            
+            return result;
+        }
+
+        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            var result = new OASISResult<string>();
+            string errorMessage = "Error in SendTransactionByEmailAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromAvatarResult = await AvatarManager.LoadAvatarByEmailAsync(fromAvatarEmail);
+            var toAvatarResult = await AvatarManager.LoadAvatarByEmailAsync(toAvatarEmail);
+                
+            if (fromAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                    fromAvatarResult.Exception);
+                return result;
+            }
+
+            if (toAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                    toAvatarResult.Exception);
+                return result;
+            }
+
+            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
+            
+            if(result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+            
+            return result;
+        }
+
+        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
+        }
+
+        public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId,
+            decimal amount)
+        {
+            var result = new OASISResult<string>();
+            string errorMessage =
+                "Error in SendTransactionByDefaultWalletAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromWalletResult =
+                await WalletManager.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
+            var toWalletResult =
+                await WalletManager.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
+
+            if (fromWalletResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message),
+                    fromWalletResult.Exception);
+                return result;
+            }
+
+            if (toWalletResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message),
+                    toWalletResult.Exception);
+                return result;
+            }
+
+            var senderAvatarAccountName = fromWalletResult.Result.Name;
+            var receiverAvatarAccountName = toWalletResult.Result.Name;
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName,
+                amount);
+
+            if (result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+
+            return result;
         }
     }
 }
