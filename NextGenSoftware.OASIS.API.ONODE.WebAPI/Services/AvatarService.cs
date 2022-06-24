@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -228,10 +227,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             if (!result.IsError)
             {
-                origin = GetOrigin(origin);
+                //origin = GetOrigin(origin);
 
                 result = await AvatarManager.RegisterAsync(model.Title, model.FirstName, model.LastName, model.Email, model.Password,
-                    (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), origin, model.CreatedOASISType);
+                    (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), model.CreatedOASISType);
             }
 
             return result;
@@ -243,22 +242,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             if (!result.IsError)
             {
-                origin = GetOrigin(origin);
+                //origin = GetOrigin(origin);
 
                 result = AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password,
-                    (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), origin, model.CreatedOASISType);
+                    (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), model.CreatedOASISType);
             }
 
             return result;
         }
 
-        private string GetOrigin(string origin)
-        {
-            if (string.IsNullOrEmpty(origin))
-                origin = Program.CURRENT_OASISAPI;
+        //private string GetOrigin(string origin)
+        //{
+        //    if (string.IsNullOrEmpty(origin))
+        //        origin = Program.CURRENT_OASISAPI;
 
-            return origin;
-        }
+        //    return origin;
+        //}
 
         private OASISResult<IAvatar> PrepareToRegister(RegisterRequest model)
         {
@@ -284,45 +283,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return await Task.Run(() => AvatarManager.VerifyEmail(token));
         }
 
-        public async Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model, string origin)
-        {
-            var response = new OASISResult<string>();
-
-            try
-            {
-                OASISResult<IAvatar> avatarResult = await AvatarManager.LoadAvatarByEmailAsync(model.Email, false);
-
-                // always return ok response to prevent email enumeration
-                if (avatarResult.IsError || avatarResult.Result == null)
-                {
-                    ErrorHandling.HandleError(ref response, $"Error occured loading avatar in ForgotPassword, avatar not found. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
-                    return response;
-                }
-
-                // create reset token that expires after 1 day
-                avatarResult.Result.ResetToken = RandomTokenString();
-                avatarResult.Result.ResetTokenExpires = DateTime.UtcNow.AddDays(24);
-
-                var saveAvatar = AvatarManager.SaveAvatar(avatarResult.Result);
-
-                if (saveAvatar.IsError)
-                {
-                    ErrorHandling.HandleError(ref response, $"An error occured saving the avatar in ForgotPassword method in AvatarService. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
-                    return response;
-                }
-
-                // send email
-                SendPasswordResetEmail(avatarResult.Result, origin);
-                response.Message = "Please check your email for password reset instructions";
-            }
-            catch (Exception e)
-            {
-                response.Exception = e;
-                ErrorHandling.HandleError(ref response, $"An error occured in ForgotPassword method in AvatarService. Reason: {e.Message}");
-            }
-
-            return response;
-        }
+        
 
         public async Task<OASISResult<string>> ValidateResetToken(ValidateResetTokenRequest model)
         {
@@ -358,7 +319,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             try
             {
-                OASISResult<IEnumerable<IAvatar>> avatarsResult = await AvatarManager.LoadAllAvatarsAsync(false);
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = await AvatarManager.LoadAllAvatarsAsync(false, false);
 
                 if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {
@@ -1273,7 +1234,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             OASISResult<RefreshToken> result = new OASISResult<RefreshToken>();
 
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list
-            OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.LoadAllAvatars(false);
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.LoadAllAvatars(false, false);
 
             if (!avatarsResult.IsError && avatarsResult.Result != null)
             {
@@ -1323,7 +1284,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             return new()
             {
-                Token = RandomTokenString(),
+                Token = AvatarManager.RandomTokenString(),
                 Expires = DateTime.UtcNow.AddDays(7),
                 Created = DateTime.UtcNow,
                 CreatedByIp = ipAddress
@@ -1337,44 +1298,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         //    return avatar;
         //}
 
-        private string RandomTokenString()
-        {
-            using var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
-            var randomBytes = new byte[40];
-            rngCryptoServiceProvider.GetBytes(randomBytes);
-            // convert random bytes to hex string
-            return BitConverter.ToString(randomBytes).Replace("-", "");
-        }
-
-        private void SendPasswordResetEmail(IAvatar avatar, string origin)
-        {
-            if (string.IsNullOrEmpty(origin))
-                origin = Program.CURRENT_OASISAPI;
-
-            string message;
-            if (!string.IsNullOrEmpty(origin))
-            {
-                var resetUrl = $"{origin}/avatar/reset-password?token={avatar.ResetToken}";
-                message =
-                    $@"<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
-                             <p><a href=""{resetUrl}"">{resetUrl}</a></p>";
-            }
-            else
-            {
-                message =
-                    $@"<p>Please use the below token to reset your password with the <code>/avatar/reset-password</code> api route:</p>
-                             <p><code>{avatar.ResetToken}</code></p>";
-            }
-
-            if (!EmailManager.IsInitialized)
-                EmailManager.Initialize(_OASISDNA);
-
-            EmailManager.Send(
-                avatar.Email,
-                "OASIS - Reset Password",
-                $@"<h4>Reset Password</h4>
-                         {message}"
-            );
-        }
+        //private string RandomTokenString()
+        //{
+        //    using var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
+        //    var randomBytes = new byte[40];
+        //    rngCryptoServiceProvider.GetBytes(randomBytes);
+        //    // convert random bytes to hex string
+        //    return BitConverter.ToString(randomBytes).Replace("-", "");
+        //}
     }
 }

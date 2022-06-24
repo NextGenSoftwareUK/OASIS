@@ -5,14 +5,29 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
     public static class OASISResultHelper
     {
-        public static string BuildInnerMessageError(List<string> innerMessages)
+        public static string BuildInnerMessageError(List<string> innerMessages, string seperator = "\n\n", bool addAmpersandAtEnd = false)
         {
             string result = "";
-            foreach (string innerMessage in innerMessages)
-                result = string.Concat(result, innerMessage, "\n\n");
+            for (int i = 0; i < innerMessages.Count; i++)
+            {
+                if (i == innerMessages.Count - 1 && addAmpersandAtEnd && innerMessages.Count > 1)
+                    result = string.Concat(result, " & ");
+
+                result = string.Concat(result, innerMessages[i]);
+
+                if (i < innerMessages.Count - 2 && addAmpersandAtEnd)
+                    result = string.Concat(result, seperator);
+
+                else if(!addAmpersandAtEnd)
+                    result = string.Concat(result, seperator);
+            }
+
+            if (addAmpersandAtEnd)
+                result = result.Substring(0, result.Length - seperator.Length);
 
             return result;
         }
+
 
         //public static T UnWrapOASISResult(OASISResult<T> result)
         //{

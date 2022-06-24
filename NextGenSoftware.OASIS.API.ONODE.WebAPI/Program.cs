@@ -12,21 +12,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
     {
         private static AvatarManager _avatarManager;
 
-        public static bool IsDevEnviroment = false;
-        public static string LIVE_OASISAPI = "https://api.oasisplatform.world/api";
-        public static string DEV_OASISAPI = "http://localhost:5000/api";
-        
-        public static string CURRENT_OASISAPI
-        {
-            get
-            {
-                if (IsDevEnviroment)
-                    return DEV_OASISAPI;
-                else
-                    return LIVE_OASISAPI;
-            }
-        }
+        //public static bool IsDevEnviroment = false;
+        //public static string LIVE_OASISAPI = "https://oasisplatform.world"; //"https://api.oasisplatform.world/api";
+        //public static string DEV_OASISAPI = "https://localhost:3000"; //"http://localhost:5000/api";
 
+        //public static string CURRENT_OASISAPI
+        //{
+        //    get
+        //    {
+        //        if (IsDevEnviroment)
+        //            return DEV_OASISAPI;
+        //        else
+        //            return LIVE_OASISAPI;
+        //    }
+        //}
+
+        //TODO: MOVE THE CODE OUT OF HERE ASAP!
         public static AvatarManager AvatarManager
         {
             get

@@ -10,6 +10,7 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public string CurrentLiveVersion { get; set; }
         public string CurrentStagingVersion { get; set; }
+        public string OASISVersion { get; set; }
         public string Terms { get; set; }
         public Logging Logging { get; set; }
         public ErrorHandlingSettings ErrorHandling { get; set; }
@@ -86,6 +87,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string SmtpPass { get; set; }
         public bool DisableAllEmails { get; set; } //This overrides the SendVerificationEmail setting below. MAKE SURE THIS IS FALSE FOR LIVE!
         public bool SendVerificationEmail { get; set; }
+        public string OASISWebSiteURL { get; set; }
     }
 
     public class ProviderSettingsBase

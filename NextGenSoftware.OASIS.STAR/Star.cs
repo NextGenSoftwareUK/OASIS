@@ -378,7 +378,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsStarIgnited)
                 IgniteStar();
 
-            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "https://api.oasisplatform.world/api", OASISType.STARCLI, cliColour, favColour);
+            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
         }
 
         public static async Task<OASISResult<IAvatar>> CreateAvatarAsync(string title, string firstName, string lastName, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
@@ -387,7 +387,7 @@ namespace NextGenSoftware.OASIS.STAR
                 IgniteStar();
 
             //TODO: Implement Async version of Register and call instead of below:
-            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "https://api.oasisplatform.world/api", OASISType.STARCLI, cliColour, favColour);
+            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
         }
 
         public static OASISResult<IAvatar> BeamIn(string username, string password)
