@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -938,6 +939,234 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<Guid> ImportWalletUsingPublicKeyByEmail(string email, string key, ProviderType providerToImportTo)
         {
             return KeyManager.Instance.LinkProviderPublicKeyToAvatarByEmail(Guid.Empty, email, providerToImportTo, key);
+        }
+
+        public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByIdAsync(Guid avatarId, ProviderType providerType)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in GetAvatarDefaultWalletById method in WalletManager. Reason: ";
+
+            try
+            {
+                var allAvatarWalletsByProvider = await LoadProviderWalletsForAvatarByIdAsync(avatarId, providerType);
+                if (allAvatarWalletsByProvider.IsError)
+                {
+                    ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
+                }
+                else
+                {
+                    var defaultAvatarWallet = allAvatarWalletsByProvider.Result[providerType].FirstOrDefault(x => x.IsDefaultWallet);
+                    if (defaultAvatarWallet == null)
+                    {
+                        ErrorHandling.HandleWarning(ref result, $"{errorMessage}Avatar doesn't have a default wallet!");
+                    }
+                    else
+                    {
+                        result.Result = defaultAvatarWallet;
+                        result.IsLoaded = true;
+                        result.IsError = false;
+                    }   
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByUsernameAsync(string avatarUsername, ProviderType providerType)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in GetAvatarDefaultWalletByUsername method in WalletManager. Reason: ";
+
+            try
+            {
+                var allAvatarWalletsByProvider = await LoadProviderWalletsForAvatarByUsernameAsync(avatarUsername, providerType);
+                if (allAvatarWalletsByProvider.IsError)
+                {
+                    ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
+                }
+                else
+                {
+                    var defaultAvatarWallet = allAvatarWalletsByProvider.Result[providerType].FirstOrDefault(x => x.IsDefaultWallet);
+                    if (defaultAvatarWallet == null)
+                    {
+                        ErrorHandling.HandleWarning(ref result, $"{errorMessage}Avatar doesn't have a default wallet!");
+                    }
+                    else
+                    {
+                        result.Result = defaultAvatarWallet;
+                        result.IsLoaded = true;
+                        result.IsError = false;
+                    }   
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByEmailAsync(string email, ProviderType providerType)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in GetAvatarDefaultWalletByEmail method in WalletManager. Reason: ";
+
+            try
+            {
+                var allAvatarWalletsByProvider = await LoadProviderWalletsForAvatarByEmailAsync(email, providerType);
+                if (allAvatarWalletsByProvider.IsError)
+                {
+                    ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
+                }
+                else
+                {
+                    var defaultAvatarWallet = allAvatarWalletsByProvider.Result[providerType].FirstOrDefault(x => x.IsDefaultWallet);
+                    if (defaultAvatarWallet == null)
+                    {
+                        ErrorHandling.HandleWarning(ref result, $"{errorMessage}Avatar doesn't have a default wallet!");
+                    }
+                    else
+                    {
+                        result.Result = defaultAvatarWallet;
+                        result.IsLoaded = true;
+                        result.IsError = false;
+                    }   
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+        
+        public async Task<OASISResult<bool>> SetAvatarDefaultWalletByIdAsync(Guid avatarId, Guid walletId, ProviderType providerType)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occured in SetAvatarDefaultWalletById method in WalletManager. Reason: ";
+
+            try
+            {
+                var allAvatarWalletsByProvider = await LoadProviderWalletsForAvatarByIdAsync(avatarId, providerType);
+                if (allAvatarWalletsByProvider.IsError)
+                {
+                    ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
+                }
+                else
+                {
+                    if (allAvatarWalletsByProvider.Result[providerType].Any(x => x.IsDefaultWallet))
+                    {
+                        ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar already have default wallet!");
+                    }
+                    else
+                    {
+                        var avatarWallet = allAvatarWalletsByProvider.Result[providerType].FirstOrDefault(x => x.WalletId == walletId && x.IsDefaultWallet == false);
+                        if (avatarWallet == null)
+                        {
+                            ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallet with id {walletId} Not found!");
+                        }
+                        else
+                        {
+                            avatarWallet.IsDefaultWallet = true;
+                            result = await SaveProviderWalletsForAvatarByIdAsync(avatarId, allAvatarWalletsByProvider.Result, providerType);
+                        }   
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<bool>> SetAvatarDefaultWalletByUsernameAsync(string avatarUsername, Guid walletId, ProviderType providerType)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occured in SetAvatarDefaultWalletByUsername method in WalletManager. Reason: ";
+
+            try
+            {
+                var allAvatarWalletsByProvider = await LoadProviderWalletsForAvatarByUsernameAsync(avatarUsername, providerType);
+                if (allAvatarWalletsByProvider.IsError)
+                {
+                    ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
+                }
+                else
+                {
+                    if (allAvatarWalletsByProvider.Result[providerType].Any(x => x.IsDefaultWallet))
+                    {
+                        ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar already have default wallet!");
+                    }
+                    else
+                    {
+                        var avatarWallet = allAvatarWalletsByProvider.Result[providerType].FirstOrDefault(x => x.WalletId == walletId && x.IsDefaultWallet == false);
+                        if (avatarWallet == null)
+                        {
+                            ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallet with id {walletId} Not found!");
+                        }
+                        else
+                        {
+                            avatarWallet.IsDefaultWallet = true;
+                            result = await SaveProviderWalletsForAvatarByUsernameAsync(avatarUsername, allAvatarWalletsByProvider.Result, providerType);
+                        }   
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<bool>> SetAvatarDefaultWalletByEmailAsync(string email, Guid walletId, ProviderType providerType)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occured in SetAvatarDefaultWalletByEmail method in WalletManager. Reason: ";
+
+            try
+            {
+                var allAvatarWalletsByProvider = await LoadProviderWalletsForAvatarByEmailAsync(email, providerType);
+                if (allAvatarWalletsByProvider.IsError)
+                {
+                    ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
+                }
+                else
+                {
+                    if (allAvatarWalletsByProvider.Result[providerType].Any(x => x.IsDefaultWallet))
+                    {
+                        ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar already have default wallet!");
+                    }
+                    else
+                    {
+                        var avatarWallet = allAvatarWalletsByProvider.Result[providerType].FirstOrDefault(x => x.WalletId == walletId && x.IsDefaultWallet == false);
+                        if (avatarWallet == null)
+                        {
+                            ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallet with id {walletId} Not found!");
+                        }
+                        else
+                        {
+                            avatarWallet.IsDefaultWallet = true;
+                            result = await SaveProviderWalletsForAvatarByEmailAsync(email, allAvatarWalletsByProvider.Result, providerType);
+                        }   
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
         }
 
         //TODO: Lots more coming soon! ;-)

@@ -6,6 +6,7 @@ using Nethereum.Web3.Accounts;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS.ContractDefinition;
 using Avatar = NextGenSoftware.OASIS.API.Core.Holons.Avatar;
@@ -19,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness
         private static readonly string _chainUrl = "http://testchain.nethereum.com:8545";
         private static readonly string _chainPrivateKey = "0x7580e7fb49df1c861f0050fae31c2224c6aba908e116b8da44ee8cd927b990b0";
         private static readonly BigInteger _chainId = 444444444500;
+        private static string _contractAddress = "0x06a2dabf7fec27d27f9283cb2de1cd328685510c";
 
         /// <summary>
         /// Execute that example to see, how does Avatar Entity CRUD works via ethereum smart contract
@@ -492,6 +494,29 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness
 
             #endregion
         }
+
+        private static async Task ExecuteSendTransaction(string contractAddress)
+        {
+            var ethereumOasis = new EthereumOASIS(_chainUrl, _chainPrivateKey, _chainId, contractAddress);
+
+            var walletTransactionRequest = new WalletTransaction()
+            {
+                ToWalletAddress = "0x13f022d72158410433cbd66f5dd8bf6d2d129924",
+                Amount = 0.01m,
+                ProviderType = ProviderType.EthereumOASIS,
+                Date = DateTime.Now
+            };
+            
+            Console.WriteLine("Sending transaction started...");
+            var sendTransactionResult = await ethereumOasis.SendTransactionAsync(walletTransactionRequest);
+            if (sendTransactionResult.IsError)
+            {
+                Console.WriteLine($"Transaction performing failed! Reason: {sendTransactionResult.Message}");
+                return;
+            }
+            
+            Console.WriteLine($"Transaction completed successfully! Transaction hash: {sendTransactionResult.Result}");
+        }
         
         private static async Task Main(string[] args)
         {
@@ -500,20 +525,25 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness
             // Setting up ethereum account and web3 protocol
             var account = new Account(_chainPrivateKey, _chainId);
             var web3 = new Web3(account, _chainUrl);
-            
-            // Deploying contract
-            Console.WriteLine("Deploying ethereum provider contract...");
-            var contractDeployment = new NextGenSoftwareOASISDeployment();
-            var contractDeploymentReceipt = await NextGenSoftwareOASISService.DeployContractAndWaitForReceiptAsync(web3, contractDeployment);
-            Console.WriteLine($"Ethereum provider contract deployed, address: {contractDeploymentReceipt.ContractAddress}");
-            
+
+            if (string.IsNullOrEmpty(_contractAddress))
+            {
+                // Deploying contract
+                Console.WriteLine("Deploying ethereum provider contract...");
+                var contractDeployment = new NextGenSoftwareOASISDeployment();
+                var contractDeploymentReceipt = await NextGenSoftwareOASISService.DeployContractAndWaitForReceiptAsync(web3, contractDeployment);
+                Console.WriteLine($"Ethereum provider contract deployed, address: {contractDeploymentReceipt.ContractAddress}");
+
+                _contractAddress = contractDeploymentReceipt.ContractAddress;
+            }
+
             // TODO: Uncomment one of example method to start testing ethereum provider CRUD
-            // await ExecuteAvatarRawExample(web3, contractDeploymentReceipt.ContractAddress);
-            // await ExecuteAvatarDetailRawExample(web3, contractDeploymentReceipt.ContractAddress);
-            // await ExecuteHolonRawExample(web3, contractDeploymentReceipt.ContractAddress);
-            await ExecuteAvatarProviderExample(contractDeploymentReceipt.ContractAddress);
-            await ExecuteHolonProviderExample(contractDeploymentReceipt.ContractAddress);
-            await ExecuteAvatarDetailProviderExample(contractDeploymentReceipt.ContractAddress);
+            // await ExecuteAvatarRawExample(web3, _contractAddress);
+            // await ExecuteAvatarDetailRawExample(web3, _contractAddress);
+            // await ExecuteHolonRawExample(web3, _contractAddress);
+            // await ExecuteAvatarProviderExample(_contractAddress);
+            // await ExecuteHolonProviderExample(_contractAddress);
+            await ExecuteSendTransaction(_contractAddress);
         }
     }
 }

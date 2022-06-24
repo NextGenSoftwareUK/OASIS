@@ -285,9 +285,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                     case ProviderType.EOSIOOASIS:
                     {
-                        EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(overrideConnectionString == null
-                            ? OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString
-                            : overrideConnectionString);
+                        EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(
+                            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
+                            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
+                            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
+                            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
                         EOSIOOASIS.StorageProviderError += EOSIOOASIS_StorageProviderError;
                         registeredProvider = EOSIOOASIS;
                     }
@@ -295,9 +297,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                     case ProviderType.TelosOASIS:
                     {
-                        TelosOASIS TelosOASIS = new TelosOASIS(overrideConnectionString == null
-                            ? OASISDNA.OASIS.StorageProviders.TelosOASIS.ConnectionString
-                            : overrideConnectionString);
+                        TelosOASIS TelosOASIS = new TelosOASIS(                            
+                            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
+                            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
+                            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
+                            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
                         TelosOASIS.StorageProviderError += TelosOASIS_StorageProviderError;
                         registeredProvider = TelosOASIS;
                     }

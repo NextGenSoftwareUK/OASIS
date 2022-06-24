@@ -1,40 +1,44 @@
-﻿
-using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
-using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories
 {
     public class AvatarRepository : IAvatarRepository
     {
-        private readonly DataContext eFContext;
+        private readonly DataContext _dbContext;
 
-        public AvatarRepository(DataContext eFContext)
+        public AvatarRepository(DataContext dbContext)
         {
-            this.eFContext = eFContext;
+            _dbContext = dbContext;
         }
 
         public OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            OASISResult<AvatarEntity> avatarResult = new OASISResult<AvatarEntity>();
-            var Avatar = this.eFContext.AvatarEntities.Where(p => p.Id == id).FirstOrDefault();
-            if(Avatar!=null)
+            OASISResult<AvatarModel> avatarResult = new();
+            var avatar = _dbContext.Avatars.FirstOrDefault(p => p.Id == id.ToString());
+            if (avatar != null)
             {
                 avatarResult.IsError = false;
-                avatarResult.Result = Avatar;
+                avatarResult.Result = avatar;
             }
             else
             {
                 avatarResult.IsError = true;
-                avatarResult.Result = Avatar;
+                avatarResult.Result = avatar;
             }
-            OASISResult<bool> result = new OASISResult<bool>();
+
+            OASISResult<bool> result = new();
             string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in Sqllite Provider.";
-            var dbContextTransaction = this.eFContext.Database.BeginTransaction();
+            var dbContextTransaction = _dbContext.Database.BeginTransaction();
             try
             {
                 if (softDelete)
@@ -42,97 +46,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     if (!avatarResult.IsError && avatarResult.Result != null)
                     {
                         if (avatarResult.Result.DeletedDate != DateTime.MinValue)
-                            ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
-                        else
                         {
-                            //if (AvatarManager.LoggedInAvatar != null)
-                                //avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-
-                            avatarResult.Result.DeletedDate = DateTime.Now;
-                            //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
-                            //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
-
-                            OASISResult<AvatarDetailEntity> avatarDetailResult = new OASISResult<AvatarDetailEntity>();
-                            avatarDetailResult.IsError = true;
-                            avatarDetailResult.Result = this.eFContext.AvatarDetailEntities.Where(p => p.Username == avatarResult.Result.Username.ToString()).FirstOrDefault();
-                            if (avatarDetailResult.Result != null)
-                            {
-                                avatarDetailResult.IsError = false;
-                            }
-                            if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
-                            {
-                                //if (AvatarManager.LoggedInAvatar != null)
-                                //    avatarDetailResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-
-                                avatarDetailResult.Result.DeletedDate = DateTime.Now;
-                                //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
-                                this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
-                                result.Result = true;
-                            }
-                            else
-                                ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            ErrorHandling.HandleError(ref result,
+                                $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                         }
-                    }
-                    else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
-                }
-                else
-                {
-                    //FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
-                    //_dbContext.Avatar.DeleteOne(data);
-
-                    //FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
-                    //_dbContext.AvatarDetail.DeleteOne(dataDetail);
-                    var data = this.eFContext.AvatarEntities.Where(x => x.Id == id).FirstOrDefault();
-                    if (data != null)
-                    {
-                        this.eFContext.Remove(data);
-                        var dataDetail = this.eFContext.AvatarDetailEntities.Where(x => x.Username == data.Username);
-                        if(dataDetail != null)
-                        {
-                            this.eFContext.Remove(dataDetail);
-                        }
-                        result.Result = true;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
-            }
-            if (result.IsError)
-                dbContextTransaction.Rollback();
-            else
-                dbContextTransaction.Commit();
-            
-            return result;
-        }
-
-        public OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
-        {
-            OASISResult<AvatarEntity> avatarResult = new OASISResult<AvatarEntity>();
-            var Avatar = this.eFContext.AvatarEntities.Where(p => p.Email == avatarEmail).FirstOrDefault();
-            if (Avatar != null)
-            {
-                avatarResult.IsError = false;
-                avatarResult.Result = Avatar;
-            }
-            else
-            {
-                avatarResult.IsError = true;
-                avatarResult.Result = Avatar;
-            }
-            OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in Sqllite Provider.";
-            var dbContextTransaction = this.eFContext.Database.BeginTransaction();
-            try
-            {
-                if (softDelete)
-                {
-                    if (!avatarResult.IsError && avatarResult.Result != null)
-                    {
-                        if (avatarResult.Result.DeletedDate != DateTime.MinValue)
-                            ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                         else
                         {
                             //if (AvatarManager.LoggedInAvatar != null)
@@ -142,13 +59,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
                             //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
 
-                            OASISResult<AvatarDetailEntity> avatarDetailResult = new OASISResult<AvatarDetailEntity>();
+                            OASISResult<AvatarDetailModel?> avatarDetailResult = new();
                             avatarDetailResult.IsError = true;
-                            avatarDetailResult.Result = this.eFContext.AvatarDetailEntities.Where(p => p.Username == avatarResult.Result.Username.ToString()).FirstOrDefault();
-                            if (avatarDetailResult.Result != null)
-                            {
-                                avatarDetailResult.IsError = false;
-                            }
+                            avatarDetailResult.Result =
+                                _dbContext.AvatarDetails.FirstOrDefault(p =>
+                                    p.Username == avatarResult.Result.Username);
+                            if (avatarDetailResult.Result != null) avatarDetailResult.IsError = false;
                             if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
                             {
                                 //if (AvatarManager.LoggedInAvatar != null)
@@ -156,15 +72,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                                 avatarDetailResult.Result.DeletedDate = DateTime.Now;
                                 //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
-                                this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                                _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
                                 result.Result = true;
                             }
                             else
-                                ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            {
+                                ErrorHandling.HandleError(ref result,
+                                    $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            }
                         }
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with Email {avatarEmail} was not found.");
+                    {
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
+                    }
                 }
                 else
                 {
@@ -173,23 +94,120 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                     //FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
                     //_dbContext.AvatarDetail.DeleteOne(dataDetail);
-                    var data = this.eFContext.AvatarEntities.Where(x => x.Email == avatarEmail).FirstOrDefault();
+                    var data = _dbContext.Avatars.Where(x => x.Id == id.ToString()).FirstOrDefault();
                     if (data != null)
                     {
-                        this.eFContext.Remove(data);
-                        var dataDetail = this.eFContext.AvatarDetailEntities.Where(x => x.Username == data.Username);
-                        if (dataDetail != null)
-                        {
-                            this.eFContext.Remove(dataDetail);
-                        }
+                        _dbContext.Remove(data);
+                        var dataDetail = _dbContext.AvatarDetails.Where(x => x.Username == data.Username);
+                        if (dataDetail != null) _dbContext.Remove(dataDetail);
                         result.Result = true;
                     }
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
+                    ex);
             }
+
+            if (result.IsError)
+                dbContextTransaction.Rollback();
+            else
+                dbContextTransaction.Commit();
+
+            return result;
+        }
+
+        public OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            OASISResult<AvatarModel> avatarResult = new();
+            var avatar = _dbContext.Avatars.FirstOrDefault(p => p.Email == avatarEmail);
+            if (avatar != null)
+            {
+                avatarResult.IsError = false;
+                avatarResult.Result = avatar;
+            }
+            else
+            {
+                avatarResult.IsError = true;
+                avatarResult.Result = avatar;
+            }
+
+            OASISResult<bool> result = new();
+            string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in Sqllite Provider.";
+            var dbContextTransaction = _dbContext.Database.BeginTransaction();
+            try
+            {
+                if (softDelete)
+                {
+                    if (!avatarResult.IsError && avatarResult.Result != null)
+                    {
+                        if (avatarResult.Result.DeletedDate != DateTime.MinValue)
+                        {
+                            ErrorHandling.HandleError(ref result,
+                                $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        }
+                        else
+                        {
+                            //if (AvatarManager.LoggedInAvatar != null)
+                            //avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+
+                            avatarResult.Result.DeletedDate = DateTime.Now;
+                            //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
+                            //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
+
+                            OASISResult<AvatarDetailModel?> avatarDetailResult = new();
+                            avatarDetailResult.IsError = true;
+                            avatarDetailResult.Result =
+                                _dbContext.AvatarDetails.FirstOrDefault(p =>
+                                    p.Username == avatarResult.Result.Username);
+                            if (avatarDetailResult.Result != null) avatarDetailResult.IsError = false;
+                            if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                            {
+                                //if (AvatarManager.LoggedInAvatar != null)
+                                //    avatarDetailResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+
+                                avatarDetailResult.Result.DeletedDate = DateTime.Now;
+                                //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
+                                _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
+                                result.Result = true;
+                            }
+                            else
+                            {
+                                ErrorHandling.HandleError(ref result,
+                                    $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ErrorHandling.HandleError(ref result,
+                            $"{errorMessage} The avatar with Email {avatarEmail} was not found.");
+                    }
+                }
+                else
+                {
+                    //FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
+                    //_dbContext.Avatar.DeleteOne(data);
+
+                    //FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
+                    //_dbContext.AvatarDetail.DeleteOne(dataDetail);
+                    var data = _dbContext.Avatars.Where(x => x.Email == avatarEmail).FirstOrDefault();
+                    if (data != null)
+                    {
+                        _dbContext.Remove(data);
+                        var dataDetail = _dbContext.AvatarDetails.Where(x => x.Username == data.Username);
+                        if (dataDetail != null) _dbContext.Remove(dataDetail);
+                        result.Result = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
+                    ex);
+            }
+
             if (result.IsError)
                 dbContextTransaction.Rollback();
             else
@@ -200,21 +218,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            OASISResult<AvatarEntity> avatarResult = new OASISResult<AvatarEntity>();
-            var Avatar = this.eFContext.AvatarEntities.Where(p => p.Username == avatarUsername).FirstOrDefault();
-            if (Avatar != null)
+            OASISResult<AvatarModel> avatarResult = new();
+            var avatar = _dbContext.Avatars.FirstOrDefault(p => p.Username == avatarUsername);
+            if (avatar != null)
             {
                 avatarResult.IsError = false;
-                avatarResult.Result = Avatar;
+                avatarResult.Result = avatar;
             }
             else
             {
                 avatarResult.IsError = true;
-                avatarResult.Result = Avatar;
+                avatarResult.Result = avatar;
             }
-            OASISResult<bool> result = new OASISResult<bool>();
+
+            OASISResult<bool> result = new();
             string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in Sqllite Provider.";
-            var dbContextTransaction = this.eFContext.Database.BeginTransaction();
+            var dbContextTransaction = _dbContext.Database.BeginTransaction();
             try
             {
                 if (softDelete)
@@ -222,7 +241,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     if (!avatarResult.IsError && avatarResult.Result != null)
                     {
                         if (avatarResult.Result.DeletedDate != DateTime.MinValue)
-                            ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        {
+                            ErrorHandling.HandleError(ref result,
+                                $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        }
                         else
                         {
                             //if (AvatarManager.LoggedInAvatar != null)
@@ -232,13 +254,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
                             //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
 
-                            OASISResult<AvatarDetailEntity> avatarDetailResult = new OASISResult<AvatarDetailEntity>();
+                            OASISResult<AvatarDetailModel?> avatarDetailResult = new();
                             avatarDetailResult.IsError = true;
-                            avatarDetailResult.Result = this.eFContext.AvatarDetailEntities.Where(p => p.Username == avatarResult.Result.Username.ToString()).FirstOrDefault();
-                            if (avatarDetailResult.Result != null)
-                            {
-                                avatarDetailResult.IsError = false;
-                            }
+                            avatarDetailResult.Result =
+                                _dbContext.AvatarDetails.FirstOrDefault(p =>
+                                    p.Username == avatarResult.Result.Username);
+                            if (avatarDetailResult.Result != null) avatarDetailResult.IsError = false;
                             if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
                             {
                                 //if (AvatarManager.LoggedInAvatar != null)
@@ -246,15 +267,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                                 avatarDetailResult.Result.DeletedDate = DateTime.Now;
                                 //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
-                                this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                                _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
                                 result.Result = true;
                             }
                             else
-                                ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            {
+                                ErrorHandling.HandleError(ref result,
+                                    $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            }
                         }
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with Username {avatarUsername} was not found.");
+                    {
+                        ErrorHandling.HandleError(ref result,
+                            $"{errorMessage} The avatar with Username {avatarUsername} was not found.");
+                    }
                 }
                 else
                 {
@@ -263,23 +290,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                     //FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
                     //_dbContext.AvatarDetail.DeleteOne(dataDetail);
-                    var data = this.eFContext.AvatarEntities.Where(x => x.Username == avatarUsername).FirstOrDefault();
+                    var data = _dbContext.Avatars.Where(x => x.Username == avatarUsername).FirstOrDefault();
                     if (data != null)
                     {
-                        this.eFContext.Remove(data);
-                        var dataDetail = this.eFContext.AvatarDetailEntities.Where(x => x.Username == data.Username);
-                        if (dataDetail != null)
-                        {
-                            this.eFContext.Remove(dataDetail);
-                        }
+                        _dbContext.Remove(data);
+                        var dataDetail = _dbContext.AvatarDetails.Where(x => x.Username == data.Username);
+                        if (dataDetail != null) _dbContext.Remove(dataDetail);
                         result.Result = true;
                     }
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
+                    ex);
             }
+
             if (result.IsError)
                 dbContextTransaction.Rollback();
             else
@@ -287,23 +313,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
             return result;
         }
+
         public async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            OASISResult<AvatarEntity> avatarResult = new OASISResult<AvatarEntity>();
-            var Avatar = this.eFContext.AvatarEntities.Where(p => p.Username == avatarUsername).FirstOrDefault();
-            if (Avatar != null)
+            OASISResult<AvatarModel> avatarResult = new();
+            var avatar = _dbContext.Avatars.FirstOrDefault(p => p.Username == avatarUsername);
+            if (avatar != null)
             {
                 avatarResult.IsError = false;
-                avatarResult.Result = Avatar;
+                avatarResult.Result = avatar;
             }
             else
             {
                 avatarResult.IsError = true;
-                avatarResult.Result = Avatar;
+                avatarResult.Result = avatar;
             }
-            OASISResult<bool> result = new OASISResult<bool>();
+
+            OASISResult<bool> result = new();
             string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in Sqllite Provider.";
-            var dbContextTransaction = this.eFContext.Database.BeginTransaction();
+            var dbContextTransaction = _dbContext.Database.BeginTransaction();
             try
             {
                 if (softDelete)
@@ -311,7 +339,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     if (!avatarResult.IsError && avatarResult.Result != null)
                     {
                         if (avatarResult.Result.DeletedDate != DateTime.MinValue)
-                            ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        {
+                            ErrorHandling.HandleError(ref result,
+                                $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        }
                         else
                         {
                             //if (AvatarManager.LoggedInAvatar != null)
@@ -321,13 +352,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
                             //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
 
-                            OASISResult<AvatarDetailEntity> avatarDetailResult = new OASISResult<AvatarDetailEntity>();
+                            OASISResult<AvatarDetailModel?> avatarDetailResult = new();
                             avatarDetailResult.IsError = true;
-                            avatarDetailResult.Result = this.eFContext.AvatarDetailEntities.Where(p => p.Username == avatarResult.Result.Username.ToString()).FirstOrDefault();
-                            if (avatarDetailResult.Result != null)
-                            {
-                                avatarDetailResult.IsError = false;
-                            }
+                            avatarDetailResult.Result =
+                                _dbContext.AvatarDetails.FirstOrDefault(p =>
+                                    p.Username == avatarResult.Result.Username);
+                            if (avatarDetailResult.Result != null) avatarDetailResult.IsError = false;
                             if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
                             {
                                 //if (AvatarManager.LoggedInAvatar != null)
@@ -335,15 +365,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                                 avatarDetailResult.Result.DeletedDate = DateTime.Now;
                                 //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
-                                this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                                _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
                                 result.Result = true;
                             }
                             else
-                                ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            {
+                                ErrorHandling.HandleError(ref result,
+                                    $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            }
                         }
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with Username {avatarUsername} was not found.");
+                    {
+                        ErrorHandling.HandleError(ref result,
+                            $"{errorMessage} The avatar with Username {avatarUsername} was not found.");
+                    }
                 }
                 else
                 {
@@ -352,23 +388,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                     //FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
                     //_dbContext.AvatarDetail.DeleteOne(dataDetail);
-                    var data = this.eFContext.AvatarEntities.Where(x => x.Username == avatarUsername).FirstOrDefault();
+                    var data = _dbContext.Avatars.Where(x => x.Username == avatarUsername).FirstOrDefault();
                     if (data != null)
                     {
-                        this.eFContext.Remove(data);
-                        var dataDetail = this.eFContext.AvatarDetailEntities.Where(x => x.Username == data.Username);
-                        if (dataDetail != null)
-                        {
-                            this.eFContext.Remove(dataDetail);
-                        }
+                        _dbContext.Remove(data);
+                        var dataDetail = _dbContext.AvatarDetails.Where(x => x.Username == data.Username);
+                        if (dataDetail != null) _dbContext.Remove(dataDetail);
                         result.Result = true;
                     }
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
+                    ex);
             }
+
             if (result.IsError)
                 dbContextTransaction.Rollback();
             else
@@ -384,21 +419,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            OASISResult<AvatarEntity> avatarResult = new OASISResult<AvatarEntity>();
-            var Avatar = this.eFContext.AvatarEntities.Where(p => p.Id == id).FirstOrDefault();
-            if (Avatar != null)
+            OASISResult<AvatarModel> avatarResult = new();
+            var avatar = _dbContext.Avatars.FirstOrDefault(p => p.Id == id.ToString());
+            if (avatar != null)
             {
                 avatarResult.IsError = false;
-                avatarResult.Result = Avatar;
+                avatarResult.Result = avatar;
             }
             else
             {
                 avatarResult.IsError = true;
-                avatarResult.Result = Avatar;
+                avatarResult.Result = avatar;
             }
-            OASISResult<bool> result = new OASISResult<bool>();
+
+            OASISResult<bool> result = new();
             string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in Sqllite Provider.";
-            var dbContextTransaction = this.eFContext.Database.BeginTransaction();
+            var dbContextTransaction = _dbContext.Database.BeginTransaction();
             try
             {
                 if (softDelete)
@@ -406,7 +442,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     if (!avatarResult.IsError && avatarResult.Result != null)
                     {
                         if (avatarResult.Result.DeletedDate != DateTime.MinValue)
-                            ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        {
+                            ErrorHandling.HandleError(ref result,
+                                $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        }
                         else
                         {
                             //if (AvatarManager.LoggedInAvatar != null)
@@ -416,13 +455,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
                             //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
 
-                            OASISResult<AvatarDetailEntity> avatarDetailResult = new OASISResult<AvatarDetailEntity>();
+                            OASISResult<AvatarDetailModel> avatarDetailResult = new();
                             avatarDetailResult.IsError = true;
-                            avatarDetailResult.Result = this.eFContext.AvatarDetailEntities.Where(p => p.Username == avatarResult.Result.Username.ToString()).FirstOrDefault();
-                            if (avatarDetailResult.Result != null)
-                            {
-                                avatarDetailResult.IsError = false;
-                            }
+                            avatarDetailResult.Result = _dbContext.AvatarDetails
+                                .Where(p => p.Username == avatarResult.Result.Username).FirstOrDefault();
+                            if (avatarDetailResult.Result != null) avatarDetailResult.IsError = false;
                             if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
                             {
                                 //if (AvatarManager.LoggedInAvatar != null)
@@ -430,15 +467,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                                 avatarDetailResult.Result.DeletedDate = DateTime.Now;
                                 //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
-                                this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                                _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
                                 result.Result = true;
                             }
                             else
-                                ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            {
+                                ErrorHandling.HandleError(ref result,
+                                    $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            }
                         }
                     }
                     else
+                    {
                         ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
+                    }
                 }
                 else
                 {
@@ -447,23 +489,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                     //FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
                     //_dbContext.AvatarDetail.DeleteOne(dataDetail);
-                    var data = this.eFContext.AvatarEntities.Where(x => x.Id == id).FirstOrDefault();
+                    var data = _dbContext.Avatars.Where(x => x.Id == id.ToString()).FirstOrDefault();
                     if (data != null)
                     {
-                        this.eFContext.Remove(data);
-                        var dataDetail = this.eFContext.AvatarDetailEntities.Where(x => x.Username == data.Username);
-                        if (dataDetail != null)
-                        {
-                            this.eFContext.Remove(dataDetail);
-                        }
+                        _dbContext.Remove(data);
+                        var dataDetail = _dbContext.AvatarDetails.Where(x => x.Username == data.Username);
+                        if (dataDetail != null) _dbContext.Remove(dataDetail);
                         result.Result = true;
                     }
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
+                    ex);
             }
+
             if (result.IsError)
                 dbContextTransaction.Rollback();
             else
@@ -474,8 +515,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            OASISResult<AvatarEntity> avatarResult = new OASISResult<AvatarEntity>();
-            var Avatar = this.eFContext.AvatarEntities.Where(p => p.Email == avatarEmail).FirstOrDefault();
+            OASISResult<AvatarModel> avatarResult = new();
+            var Avatar = _dbContext.Avatars
+                .Where(p => p.Email == avatarEmail)
+                .FirstOrDefault();
             if (Avatar != null)
             {
                 avatarResult.IsError = false;
@@ -486,9 +529,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 avatarResult.IsError = true;
                 avatarResult.Result = Avatar;
             }
-            OASISResult<bool> result = new OASISResult<bool>();
+
+            OASISResult<bool> result = new();
             string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in Sqllite Provider.";
-            var dbContextTransaction = this.eFContext.Database.BeginTransaction();
+            var dbContextTransaction = _dbContext.Database.BeginTransaction();
             try
             {
                 if (softDelete)
@@ -496,7 +540,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     if (!avatarResult.IsError && avatarResult.Result != null)
                     {
                         if (avatarResult.Result.DeletedDate != DateTime.MinValue)
-                            ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        {
+                            ErrorHandling.HandleError(ref result,
+                                $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        }
                         else
                         {
                             //if (AvatarManager.LoggedInAvatar != null)
@@ -506,13 +553,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
                             //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
 
-                            OASISResult<AvatarDetailEntity> avatarDetailResult = new OASISResult<AvatarDetailEntity>();
+                            OASISResult<AvatarDetailModel?> avatarDetailResult = new();
                             avatarDetailResult.IsError = true;
-                            avatarDetailResult.Result = this.eFContext.AvatarDetailEntities.Where(p => p.Username == avatarResult.Result.Username.ToString()).FirstOrDefault();
-                            if (avatarDetailResult.Result != null)
-                            {
-                                avatarDetailResult.IsError = false;
-                            }
+                            avatarDetailResult.Result =
+                                _dbContext.AvatarDetails.FirstOrDefault(p =>
+                                    p.Username == avatarResult.Result.Username);
+                            if (avatarDetailResult.Result != null) avatarDetailResult.IsError = false;
                             if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
                             {
                                 //if (AvatarManager.LoggedInAvatar != null)
@@ -520,15 +566,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                                 avatarDetailResult.Result.DeletedDate = DateTime.Now;
                                 //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
-                                this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
+                                _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
                                 result.Result = true;
                             }
                             else
-                                ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            {
+                                ErrorHandling.HandleError(ref result,
+                                    $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                            }
                         }
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with email {avatarEmail} was not found.");
+                    {
+                        ErrorHandling.HandleError(ref result,
+                            $"{errorMessage} The avatar with email {avatarEmail} was not found.");
+                    }
                 }
                 else
                 {
@@ -537,23 +589,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                     //FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
                     //_dbContext.AvatarDetail.DeleteOne(dataDetail);
-                    var data = this.eFContext.AvatarEntities.Where(x => x.Email == avatarEmail).FirstOrDefault();
+                    var data = _dbContext.Avatars.Where(x => x.Email == avatarEmail).FirstOrDefault();
                     if (data != null)
                     {
-                        this.eFContext.Remove(data);
-                        var dataDetail = this.eFContext.AvatarDetailEntities.Where(x => x.Username == data.Username);
-                        if (dataDetail != null)
-                        {
-                            this.eFContext.Remove(dataDetail);
-                        }
+                        _dbContext.Remove(data);
+                        var dataDetail = _dbContext.AvatarDetails.Where(x => x.Username == data.Username);
+                        if (dataDetail != null) _dbContext.Remove(dataDetail);
                         result.Result = true;
                     }
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
+                    ex);
             }
+
             if (result.IsError)
                 dbContextTransaction.Rollback();
             else
@@ -571,13 +622,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = this.eFContext.AvatarEntities.Where(p => p.Username == username && p.Password == password && p.Version == version).ToList();
+                var avatarEntities = _dbContext.Avatars
+                    .ToList()
+                    .Select(GetAvatarFromEntity)
+                    .FirstOrDefault(p => p.Username == username && p.Password == password && p.Version == version);
                 return new OASISResult<IAvatar>
                 {
                     IsLoaded = true,
                     IsError = false,
                     Message = "Avatar Loaded Successfully",
-                    Result = (IAvatar)obj
+                    Result = avatarEntities
                 };
             }
             catch (Exception ex)
@@ -586,7 +640,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
@@ -595,13 +649,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = this.eFContext.AvatarEntities.Where(p => p.Username == username && p.Version == version).ToList();
+                var avatarEntities =
+                    _dbContext.Avatars
+                        .ToList()
+                        .Select(GetAvatarFromEntity)
+                        .FirstOrDefault(p => p.Username == username && p.Version == version);
                 return new OASISResult<IAvatar>
                 {
                     IsLoaded = true,
                     IsError = false,
                     Message = "Avatar Loaded Successfully",
-                    Result = (IAvatar)obj
+                    Result = avatarEntities
                 };
             }
             catch (Exception ex)
@@ -610,7 +668,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
@@ -619,28 +677,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = await this.eFContext.AvatarEntities.Where(p => p.Username == username && p.Version == version).FirstOrDefaultAsync();
-                if (obj == null)
-                {
-
+                var avatarEntity = _dbContext.Avatars
+                    .ToList()
+                    .Where(p => p.Username == username && p.Version == version)
+                    .Select(GetAvatarFromEntity)
+                    .FirstOrDefault();
+                if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
                         IsLoaded = false,
                         IsError = false,
-                        Message = "No Avatar Found",
+                        Message = "No Avatar Found"
                     };
-                }
-                else
-                {
 
-                    return new OASISResult<IAvatar>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Loaded Successfully",
-                        Result = (IAvatar)obj
-                    };
-                }
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Avatar Loaded Successfully",
+                    Result = avatarEntity
+                };
             }
             catch (Exception ex)
             {
@@ -648,7 +704,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
@@ -657,13 +713,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = await this.eFContext.AvatarEntities.Where(p => p.Version == version).ToListAsync();
+                var avatarEntities = _dbContext.Avatars
+                    .ToList()
+                    .Where(p => p.Version == version)
+                    .Select(GetAvatarFromEntity)
+                    .ToList();
                 return new OASISResult<IEnumerable<IAvatar>>
                 {
                     IsLoaded = true,
                     IsError = false,
                     Message = "Avatar Loaded Successfully",
-                    Result = (IEnumerable<IAvatar>)obj
+                    Result = avatarEntities
                 };
             }
             catch (Exception ex)
@@ -672,7 +732,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
@@ -681,13 +741,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = this.eFContext.AvatarEntities.Where(p => p.Version == version).ToList();
+                var avatarEntities = _dbContext.Avatars
+                    .ToList()
+                    .Where(p => p.Version == version)
+                    .Select(GetAvatarFromEntity)
+                    .ToList();
                 return new OASISResult<IEnumerable<IAvatar>>
                 {
                     IsLoaded = true,
                     IsError = false,
                     Message = "Avatar Loaded Successfully",
-                    Result = (IEnumerable<IAvatar>)obj
+                    Result = avatarEntities
                 };
             }
             catch (Exception ex)
@@ -696,7 +760,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
@@ -705,26 +769,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = this.eFContext.AvatarEntities.Where(p => p.Username == avatarUsername).FirstOrDefault();
-                if (obj == null)
-                {
+                var avatarEntity = _dbContext.Avatars
+                    .ToList()
+                    .Select(GetAvatarFromEntity)
+                    .FirstOrDefault(p => p.Username == avatarUsername);
+                if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
                         IsLoaded = false,
                         IsError = false,
-                        Message = "No Avatar found",
+                        Message = "No Avatar found"
                     };
-                }
-                else
+
+                return new OASISResult<IAvatar>
                 {
-                    return new OASISResult<IAvatar>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Loaded Successfully",
-                        Result = (IAvatar)obj
-                    };
-                }
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Avatar Loaded Successfully",
+                    Result = avatarEntity
+                };
             }
             catch (Exception ex)
             {
@@ -732,7 +795,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
@@ -741,28 +804,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = await this.eFContext.AvatarEntities.Where(p => p.Id == Id && p.Version == version).ToListAsync();
-                if (obj == null)
-                {
-
+                var avatarEntities = _dbContext.Avatars
+                    .ToList()
+                    .Select(GetAvatarFromEntity)
+                    .FirstOrDefault(p => p.Id == Id && p.Version == version);
+                if (avatarEntities == null)
                     return new OASISResult<IAvatar>
                     {
                         IsLoaded = true,
                         IsError = false,
-                        Message = "No Avatar Found",
+                        Message = "No Avatar Found"
                     };
-                }
-                else
-                {
 
-                    return new OASISResult<IAvatar>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Loaded Successfully",
-                        Result = (IAvatar)obj
-                    };
-                }
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Avatar Loaded Successfully",
+                    Result = avatarEntities
+                };
             }
             catch (Exception ex)
             {
@@ -770,7 +830,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
@@ -779,26 +839,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = await this.eFContext.AvatarEntities.Where(p => p.Email == avatarEmail && p.Version == version).FirstOrDefaultAsync();
-                if (obj == null)
-                {
+                var avatarEntity = _dbContext.Avatars
+                    .ToList()
+                    .Where(p => p.Email == avatarEmail && p.Version == version)
+                    .Select(GetAvatarFromEntity)
+                    .FirstOrDefault();
+                if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
                         IsLoaded = false,
                         IsError = false,
-                        Message = "No Avatar found",
+                        Message = "No Avatar found"
                     };
-                }
-                else
+
+                return new OASISResult<IAvatar>
                 {
-                    return new OASISResult<IAvatar>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Loaded Successfully",
-                        Result = (IAvatar)obj
-                    };
-                }
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Avatar Loaded Successfully",
+                    Result = avatarEntity
+                };
             }
             catch (Exception ex)
             {
@@ -806,7 +866,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
@@ -815,26 +875,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = await this.eFContext.AvatarEntities.Where(p => p.Username == avatarUsername && p.Version == version).FirstOrDefaultAsync();
-                if (obj == null)
-                {
+                var avatarEntity = _dbContext.Avatars
+                    .ToList()
+                    .Where(p => p.Username == avatarUsername && p.Version == version)
+                    .Select(GetAvatarFromEntity)
+                    .FirstOrDefault();
+                if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
                         IsLoaded = false,
                         IsError = false,
-                        Message = "No Avatar found",
+                        Message = "No Avatar found"
                     };
-                }
-                else
+
+                return new OASISResult<IAvatar>
                 {
-                    return new OASISResult<IAvatar>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Loaded Successfully",
-                        Result = (IAvatar)obj
-                    };
-                }
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Avatar Loaded Successfully",
+                    Result = avatarEntity
+                };
             }
             catch (Exception ex)
             {
@@ -842,7 +902,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
@@ -851,26 +911,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = this.eFContext.AvatarEntities.Where(p => p.Id == Id && p.Version == version).FirstOrDefault();
-                if (obj == null)
-                {
+                var avatarEntity = _dbContext.Avatars
+                    .ToList()
+                    .Select(GetAvatarFromEntity)
+                    .FirstOrDefault(p => p.Id == Id && p.Version == version);
+                if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
                         IsLoaded = false,
                         IsError = false,
-                        Message = "No Avatar found",
+                        Message = "No Avatar found"
                     };
-                }
-                else
+
+                return new OASISResult<IAvatar>
                 {
-                    return new OASISResult<IAvatar>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Loaded Successfully",
-                        Result = (IAvatar)obj
-                    };
-                }
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Avatar Loaded Successfully",
+                    Result = avatarEntity
+                };
             }
             catch (Exception ex)
             {
@@ -878,7 +937,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
@@ -887,26 +946,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = this.eFContext.AvatarEntities.Where(p => p.Email == avatarEmail && p.Version == version).FirstOrDefault();
-                if (obj == null)
-                {
+                var avatarEntity =
+                    _dbContext.Avatars
+                        .ToList()
+                        .Select(GetAvatarFromEntity)
+                        .FirstOrDefault(p => p.Email == avatarEmail && p.Version == version);
+                if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
                         IsLoaded = false,
                         IsError = false,
-                        Message = "No Avatar found",
+                        Message = "No Avatar found"
                     };
-                }
-                else
+
+                return new OASISResult<IAvatar>
                 {
-                    return new OASISResult<IAvatar>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Loaded Successfully",
-                        Result = (IAvatar)obj
-                    };
-                }
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Avatar Loaded Successfully",
+                    Result = avatarEntity
+                };
             }
             catch (Exception ex)
             {
@@ -914,7 +973,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
@@ -923,26 +982,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = await this.eFContext.AvatarEntities.Where(p => p.Username == username && p.Version == version).FirstOrDefaultAsync();
-                if (obj == null)
-                {
+                var avatarEntity = _dbContext.Avatars
+                    .ToList()
+                    .Where(p => p.Username == username && p.Version == version)
+                    .Select(GetAvatarFromEntity)
+                    .FirstOrDefault();
+                if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
                         IsLoaded = false,
                         IsError = false,
-                        Message = "No Avatar found",
+                        Message = "No Avatar found"
                     };
-                }
-                else
+
+                return new OASISResult<IAvatar>
                 {
-                    return new OASISResult<IAvatar>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Loaded Successfully",
-                        Result = (IAvatar)obj
-                    };
-                }
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Avatar Loaded Successfully",
+                    Result = avatarEntity
+                };
             }
             catch (Exception ex)
             {
@@ -950,7 +1009,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
@@ -985,14 +1044,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                AvatarEntity avatarEntity = CreateAvatarModel(avatar);
-                this.eFContext.AvatarEntities.Add(avatarEntity);
-                this.eFContext.SaveChangesAsync();
+                AvatarModel avatarEntity = CreateAvatarModel(avatar);
+                _dbContext.Avatars.Add(avatarEntity);
+                _dbContext.SaveChangesAsync();
                 return new OASISResult<IAvatar>
                 {
                     IsSaved = true,
                     IsError = false,
-                    Message = avatarEntity.FirstName + " Record saved successfully",
+                    Message = avatarEntity.FirstName + " Record saved successfully"
                 };
             }
             catch (Exception ex)
@@ -1001,25 +1060,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsSaved = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
 
-        public async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
+        public async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
             try
             {
-                AvatarEntity avatarEntity = CreateAvatarModel(Avatar);
-                this.eFContext.AvatarEntities.Add(avatarEntity);
-                await this.eFContext.SaveChangesAsync();
+                AvatarModel avatarEntity = CreateAvatarModel(avatar);
+                _dbContext.Avatars.Add(avatarEntity);
+                await _dbContext.SaveChangesAsync();
                 //return Avatar;
                 return new OASISResult<IAvatar>
                 {
                     IsSaved = true,
                     IsError = false,
-                    Message = Avatar.FirstName + " Record saved successfully",
-                    Result = Avatar
+                    Message = avatar.FirstName + " Record saved successfully",
+                    Result = avatar
                 };
             }
             catch (Exception ex)
@@ -1028,48 +1087,59 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsSaved = false,
                     IsError = true,
-                    Message = ex.ToString(),
+                    Message = ex.ToString()
                 };
             }
         }
 
-        public AvatarEntity CreateAvatarModel(IAvatar Avatar)
+        public AvatarModel CreateAvatarModel(IAvatar avatar)
         {
-            AvatarEntity avatar = new AvatarEntity();
-            avatar.AcceptTerms = Avatar.AcceptTerms;
-            //avatar.CreatedByAvatarId = Convert.ToString(Avatar.CreatedByAvatarId);
-            avatar.CreatedDate = Avatar.CreatedDate;
-            //avatar.DeletedByAvatarId = Convert.ToString(Avatar.DeletedByAvatarId);
-            avatar.DeletedDate = Avatar.DeletedDate;
-            avatar.Description = Avatar.Description == null ? "" : Avatar.Description;
-            avatar.Email = Avatar.Email == null ? "" : Avatar.Email;
-            avatar.FirstName = Avatar.FirstName == null ? "" : Avatar.FirstName;
-            //avatar.FullName = Avatar.FullName;
-            //avatar.HolonId = Avatar.HolonId;
-            avatar.Id = Avatar.Id;
-            avatar.IsActive = Avatar.IsActive;
-            avatar.IsBeamedIn = Avatar.IsBeamedIn;
-            avatar.IsChanged = Avatar.IsChanged;
-            //avatar.IsVerified = Avatar.IsVerified;
-            avatar.JwtToken = Avatar.JwtToken == null ? "" : Avatar.JwtToken;
-            avatar.LastBeamedIn = Avatar.LastBeamedIn;
-            avatar.LastBeamedOut = Avatar.LastBeamedOut;
-            avatar.LastName = Avatar.LastName;
-            //avatar.ModifiedByAvatarId = Convert.ToString(Avatar.ModifiedByAvatarId);
-            //avatar.ModifiedDate = Avatar.ModifiedDate;
-            avatar.Name = Avatar.FullName;
-            avatar.Password = Avatar.Password == null ? "" : Avatar.Password;
-            avatar.PasswordReset = Avatar.PasswordReset;
-            avatar.PreviousVersionId = Avatar.PreviousVersionId == Guid.Empty ? Guid.NewGuid() : Avatar.PreviousVersionId;
-            avatar.RefreshToken = Avatar.RefreshToken == null ? "" : Avatar.RefreshToken;
-            avatar.ResetToken = Avatar.ResetToken == null ? "" : Avatar.ResetToken;
-            avatar.ResetTokenExpires = Avatar.ResetTokenExpires;
-            avatar.Title = Avatar.Title == null ? "" : Avatar.Title;
-            avatar.Username = Avatar.Username == null ? "" : Avatar.Username;
-            avatar.VerificationToken = Avatar.VerificationToken == null ? "" : Avatar.VerificationToken;
-            avatar.Verified = Avatar.Verified;
-            avatar.Version = Avatar.Version;
-            return avatar;
+            return new()
+            {
+                AcceptTerms = avatar.AcceptTerms,
+                Email = avatar.Email,
+                FirstName = avatar.FirstName,
+                Id = avatar.Id.ToString(),
+                JwtToken = avatar.JwtToken,
+                LastName = avatar.LastName,
+                Name = avatar.FullName,
+                Password = avatar.Password,
+                PasswordReset = avatar.PasswordReset,
+                RefreshToken = avatar.RefreshToken,
+                ResetToken = avatar.ResetToken,
+                ResetTokenExpires = avatar.ResetTokenExpires,
+                Title = avatar.Title,
+                Username = avatar.Username,
+                VerificationToken = avatar.VerificationToken,
+                Verified = avatar.Verified,
+                AvatarType = avatar.AvatarType.Value,
+                Description = avatar.Description
+            };
+        }
+
+        private IAvatar GetAvatarFromEntity(AvatarModel avatar)
+        {
+            return new Avatar
+            {
+                AcceptTerms = avatar.AcceptTerms,
+                Email = avatar.Email,
+                FirstName = avatar.FirstName,
+                Id = Guid.Parse(avatar.Id),
+                JwtToken = avatar.JwtToken,
+                LastName = avatar.LastName,
+                Password = avatar.Password,
+                PasswordReset = avatar.PasswordReset,
+                RefreshToken = avatar.RefreshToken,
+                ResetToken = avatar.ResetToken,
+                ResetTokenExpires = avatar.ResetTokenExpires,
+                Title = avatar.Title,
+                Username = avatar.Username,
+                VerificationToken = avatar.VerificationToken,
+                Verified = avatar.Verified,
+                AvatarId = Guid.Parse(avatar.Id),
+                AvatarType = new EnumValue<AvatarType>(avatar.AvatarType),
+                Description = avatar.Description
+            };
         }
     }
 }

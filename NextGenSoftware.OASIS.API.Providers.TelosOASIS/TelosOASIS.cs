@@ -7,25 +7,26 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 
 namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 {
     public class TelosOASIS : OASISStorageProviderBase, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISNETProvider
     {
-        private static Dictionary<Guid, Account> _avatarIdToTelosAccountLookup = new Dictionary<Guid, Account>();
+        private static Dictionary<Guid, GetAccountResponseDto> _avatarIdToTelosAccountLookup = new Dictionary<Guid, GetAccountResponseDto>();
         private AvatarManager _avatarManager = null;
         private KeyManager _keyManager = null;
 
         public EOSIOOASIS.EOSIOOASIS EOSIOOASIS { get; set; }
 
-        public TelosOASIS(string host)
+        public TelosOASIS(string host, string eosAccountName, string eosChainId, string eosAccountPk)
         {
             this.ProviderName = "TelosOASIS";
             this.ProviderDescription = "Telos Provider";
             this.ProviderType = new API.Core.Helpers.EnumValue<ProviderType>(API.Core.Enums.ProviderType.TelosOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(host);
+            EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(host, eosAccountName, eosChainId, eosAccountPk);
         }
 
         private AvatarManager AvatarManager
@@ -52,16 +53,17 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             }
         }
 
+        // TODO: Implement GetAccountAsync in EOS provider
         public async Task<Account> GetTelosAccountAsync(string telosAccountName)
         {
-            var account = await EOSIOOASIS.ChainAPI.GetAccountAsync(telosAccountName);
-            return account;
+            // var account = await EOSIOOASIS.ChainAPI.GetAccountAsync(telosAccountName);
+            return new Account();
         }
 
-        public Account GetTelosAccount(string telosAccountName)
-        {
-            var account = EOSIOOASIS.ChainAPI.GetAccount(telosAccountName);
-            return account;
+        // TODO: Implement GetAccount in EOS provider
+        public GetAccountResponseDto GetTelosAccount(string telosAccountName)
+        { 
+            return EOSIOOASIS.GetEOSIOAccount(telosAccountName);
         }
 
         public async Task<string> GetBalanceAsync(string telosAccountName, string code, string symbol)
@@ -91,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.TelosOASIS).Result[0];
         }
 
-        public Account GetTelosAccountForAvatar(Guid avatarId)
+        public GetAccountResponseDto GetTelosAccountForAvatar(Guid avatarId)
         {
             //TODO: Do we need to cache this?
             if (!_avatarIdToTelosAccountLookup.ContainsKey(avatarId))
@@ -389,12 +391,52 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             throw new NotImplementedException();
         }
 
-        public OASISResult<bool> SendTrasaction(IWalletTransaction transation)
+        public OASISResult<string> SendTransaction(IWalletTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransaction transation)
+        public Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             throw new NotImplementedException();
         }

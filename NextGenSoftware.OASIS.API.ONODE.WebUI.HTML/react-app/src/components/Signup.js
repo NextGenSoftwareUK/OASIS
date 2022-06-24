@@ -77,17 +77,17 @@ export default class Signup extends React.Component {
                 .then(response => {
                     console.log(response)
                     if(response.error) {
-                        toast.error(response.data.message)
+                        toast.error(response.result.message)
                         return
                     } else if(!response.error) {
                         this.props.hide()
-                        toast.success("Avatar is created successfully");
+                        toast.success(response.result.message);
                     }
                 }).catch(error => {
-                    console.log(JSON.parse(error))
+                    // console.log(JSON.parse(error))
                     console.log(error)
                     this.setState({ loading: false })
-                    toast.error(error.data.message);
+                    toast.error(error.result.message);
                 }).finally(()=>{
                     this.setState({loading: false})
                 });
@@ -255,7 +255,6 @@ export default class Signup extends React.Component {
                                               display: "flex",
                                               justifyContent: "space-around",
                                               cursor: "progress",
-                                              width: '10rem'
                                             }}
                                           >
                                             Submitting
@@ -271,7 +270,6 @@ export default class Signup extends React.Component {
                                             type="submit"
                                             className="submit-button"
                                             disabled={false}
-                                            style={{width: '10rem'}}
                                           >Submit</button>
                                         )}
                                     </div>

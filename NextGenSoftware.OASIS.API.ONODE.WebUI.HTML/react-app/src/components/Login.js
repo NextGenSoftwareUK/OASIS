@@ -52,23 +52,30 @@ export default class Login extends React.Component {
         auth.login(data)
             .then(response => {
                 console.log(response)
-                this.setState({loading: false})
-                if (response.data.isError) {
+                if(response.error) {
                     toast.error(response.data.message);
+                    return;
+                };
+
+                this.setState({loading: false})
+                if (response.result?.isError) {
+                    toast.error(response.result.message);
                     return;
                 }
              
-                toast.success(response.data.message);
-                this.setState({user: response.data.result})
+                toast.success(response.result.message);
+                console.log(response.result.message)
+                this.setState({user: response.result.result})
 
-                this.props.setUserStateData(response.data.result);
+                this.props.setUserStateData(response.result.result);
 
                 this.props.hide();
             })
             .catch((err) => {
+                console.log(err)
                 console.error("There was an error!");
                 this.setState({ loading: false });
-                toast.error(err.data.message);
+                toast.error(err.result.message);
             })
     }
 
