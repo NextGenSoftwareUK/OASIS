@@ -6,6 +6,8 @@ import OffChainManagement from './components/OffChainManagement';
 import CrossChainManagement from './components/CrossChainManagement';
 
 import "../../../assets/scss/data-screen.scss";
+import SearchData from './components/SearchData';
+import ManageData from './components/ManageData';
 
 class DataScreen extends React.Component {
 
@@ -23,6 +25,11 @@ class DataScreen extends React.Component {
                     hide={props.toggleScreenPopup}
                 />
 
+                <ManageData
+                    show={props.data.manageData}
+                    hide={props.toggleScreenPopup}
+                />
+
                 <OffChainManagement
                     show={props.data.offChainManagement}
                     hide={props.toggleScreenPopup}
@@ -30,6 +37,11 @@ class DataScreen extends React.Component {
 
                 <CrossChainManagement
                     show={props.data.crossChainManagement}
+                    hide={props.toggleScreenPopup}
+                />
+
+                <SearchData
+                    show={props.data.searchData}
                     hide={props.toggleScreenPopup}
                 />
             </>

@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -37,7 +38,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     // If that is the case then uncomment the bottom line and comment the top line.
 
                    // _SEEDSOASIS = new SEEDSOASIS((TelosOASIS)result.Result);
-                    _SEEDSOASIS = new SEEDSOASIS(new TelosOASIS(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString));
+                    _SEEDSOASIS = new SEEDSOASIS(new TelosOASIS(
+                        OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
+                        OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
+                        OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
+                        OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey
+                        ));
                 }
 
                 return _SEEDSOASIS;
@@ -211,7 +217,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetTelosAccount")]
-        public OASISResult<Account> GetTelosAccount(string telosAccountName)
+        public OASISResult<GetAccountResponseDto> GetTelosAccount(string telosAccountName)
         {
             return new(SEEDSOASIS.TelosOASIS.GetTelosAccount(telosAccountName));
         }
@@ -223,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetTelosAccountForAvatar")]
-        public OASISResult<Account> GetTelosAccountForAvatar(Guid avatarId)
+        public OASISResult<GetAccountResponseDto> GetTelosAccountForAvatar(Guid avatarId)
         {
             return new(SEEDSOASIS.TelosOASIS.GetTelosAccountForAvatar(avatarId));
         }

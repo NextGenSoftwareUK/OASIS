@@ -97,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                 var minBalanceForExemptionAcc = (await _rpcClient.GetMinimumBalanceForRentExemptionAsync(TokenProgram.TokenAccountDataSize)).Result;
                 var minBalanceForExemptionMint =(await _rpcClient.GetMinimumBalanceForRentExemptionAsync(TokenProgram.MintAccountDataSize)).Result;
 
-                var mintAccount = new PublicKey(mintNftRequest.MintAccount.PublicKey);
+                var mintAccount = _wallet.Account;
                 var ownerAccount = new PublicKey(mintNftRequest.FromAccount.PublicKey);
                 var initialAccount = new PublicKey(mintNftRequest.ToAccount.PublicKey);
                 
@@ -151,7 +151,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             }
             return response;
         }
-
+        
         public async Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest)
         {
             var response = new OASISResult<SendTransactionResult>();
