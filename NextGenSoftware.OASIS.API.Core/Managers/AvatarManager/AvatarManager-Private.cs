@@ -17,15 +17,62 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class AvatarManager : OASISManager
     {
+        private const string LIVE_OASISSITE = "https://oasisplatform.world";
 
-        private void sendAlreadyRegisteredEmail(string email, string origin)
+        private string OASISWebSiteURL
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(OASISDNA.OASIS.Email.OASISWebSiteURL))
+                    OASISDNA.OASIS.Email.OASISWebSiteURL = LIVE_OASISSITE;
+
+                return OASISDNA.OASIS.Email.OASISWebSiteURL;
+            }
+        }
+
+        private void SendPasswordResetEmail(IAvatar avatar)
         {
             string message;
 
-            if (!string.IsNullOrEmpty(origin))
-                message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
-            else
-                message = "<p>If you don't know your password you can reset it via the <code>/avatar/forgot-password</code> api route.</p>";
+            var resetUrl = $"{OASISWebSiteURL}/avatar/reset-password?token={avatar.ResetToken}";
+            message =
+                $@"<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
+                             <p><a href=""{resetUrl}"">{resetUrl}</a></p>";
+
+
+            //if (!string.IsNullOrEmpty(origin))
+            //{
+            //    var resetUrl = $"{OASISDNA.OASIS.Email.VerificationWebSiteURL}/avatar/reset-password?token={avatar.ResetToken}";
+            //    message =
+            //        $@"<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
+            //                 <p><a href=""{resetUrl}"">{resetUrl}</a></p>";
+            //}
+            //else
+            //{
+            //    message =
+            //        $@"<p>Please use the below token to reset your password with the <code>/avatar/reset-password</code> api route:</p>
+            //                 <p><code>{avatar.ResetToken}</code></p>";
+            //}
+
+            if (!EmailManager.IsInitialized)
+                EmailManager.Initialize(OASISDNA);
+
+            EmailManager.Send(
+                avatar.Email,
+                "OASIS - Reset Password",
+                $@"<h4>Reset Password</h4>
+                         {message}"
+            );
+        }
+
+        private void sendAlreadyRegisteredEmail(string email)
+        {
+            string message = $@"<p>If you don't know your password please visit the <a href=""{OASISWebSiteURL}/avatar/forgot-password"">forgot password</a> page.</p>";
+
+            //if (!string.IsNullOrEmpty(origin))
+            //    message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
+            //else
+            //    message = "<p>If you don't know your password you can reset it via the <code>/avatar/forgot-password</code> api route.</p>";
 
             if (!EmailManager.IsInitialized)
                 EmailManager.Initialize(OASISDNA);
@@ -39,21 +86,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             );
         }
 
-        private void sendVerificationEmail(IAvatar avatar, string origin)
+        private void sendVerificationEmail(IAvatar avatar)
         {
-            string message;
-
-            if (!string.IsNullOrEmpty(origin))
-            {
-                var verifyUrl = $"{origin}/avatar/verify-email?token={avatar.VerificationToken}";
-                message = $@"<p>Please click the below link to verify your email address:</p>
+            var verifyUrl = $"{OASISWebSiteURL}/avatar/verify-email?token={avatar.VerificationToken}";
+            string message = $@"<p>Please click the below link to verify your email address:</p>
                              <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
-            }
-            else
-            {
-                message = $@"<p>Please use the below token to verify your email address with the <code>/avatar/verify-email</code> api route:</p>
-                             <p><code>{avatar.VerificationToken}</code></p>";
-            }
+
+            //if (!string.IsNullOrEmpty(OASISDNA.OASIS.Email.VerificationWebSiteURL))
+            //{
+            //    var verifyUrl = $"{OASISDNA.OASIS.Email.VerificationWebSiteURL}/avatar/verify-email?token={avatar.VerificationToken}";
+            //    message = $@"<p>Please click the below link to verify your email address:</p>
+            //                 <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
+            //}
+            //else
+            //{
+            //    message = $@"<p>Please use the below token to verify your email address with the <code>/avatar/verify-email</code> api route:</p>
+            //                 <p><code>{avatar.VerificationToken}</code></p>";
+            //}
 
             if (!EmailManager.IsInitialized)
                 EmailManager.Initialize(OASISDNA);
@@ -70,7 +119,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             );
         }
 
-        private OASISResult<IAvatar> PrepareToRegisterAvatar(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, string origin, OASISType createdOASISType)
+        private OASISResult<IAvatar> PrepareToRegisterAvatar(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, OASISType createdOASISType)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
 
@@ -88,13 +137,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 //If the avatar has previously been deleted (soft deleted) then allow them to create a new avatar with the same email address.
                 if (existingAvatarResult.Result.DeletedDate != DateTime.MinValue)
                 {
-                    sendAlreadyRegisteredEmail(email, origin);
+                    sendAlreadyRegisteredEmail(email);
                     ErrorHandling.HandleError(ref result, $"This avatar was deleted on {existingAvatarResult.Result.DeletedDate} by avatar with id {existingAvatarResult.Result.DeletedByAvatarId}, please contact support (to either restore your old avatar or permanently delete your old avatar so you can then re-use your old email address to create a new avatar) or create a new avatar with a new email address.");
                     return result;
                 }
                 else
                 {
-                    sendAlreadyRegisteredEmail(email, origin);
+                    sendAlreadyRegisteredEmail(email);
                     ErrorHandling.HandleError(ref result, "Avatar Already Registered.");
                     return result;
                 }
@@ -201,10 +250,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result, string origin)
+        private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result)
         {
             if (OASISDNA.OASIS.Email.SendVerificationEmail)
-                sendVerificationEmail(result.Result, origin);
+                sendVerificationEmail(result.Result);
 
             result.Result = HideAuthDetails(result.Result);
             result.IsSaved = true;
@@ -1092,7 +1141,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (!result.IsError && result.Result != null)
             {
-                OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(result.Result.Id, false);
+                OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(result.Result.Id, false, false);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -1278,6 +1327,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
+
 
         //private OASISResult<IAvatar> ProcessAvatarLogin(OASISResult<IAvatar> result, string username, string password, string ipAddress, Func<IAvatar, OASISResult<IAvatar>> saveFunc)
         //

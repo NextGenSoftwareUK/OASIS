@@ -134,7 +134,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     }
                 }
 
-                //TODO: Double check this code when I am not half asleep! ;-) lol
                 foreach (EnumValue<ProviderType> providerType in ProviderManager.GetProviderAutoFailOverList())
                 {
                     OASISResult<IOASISStorageProvider> providerManagerResult = GetAndActivateProvider(providerType.Value);

@@ -933,7 +933,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (result.WarningCount > 0)
                         ErrorHandling.HandleWarning(ref result, string.Concat("All avatar details loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
-                        result.Message = "Avatar Details Successfully Saved";
+                        result.Message = "Avatar Details Successfully Loaded";
                 }
 
                 // Set the current provider back to the original provider.

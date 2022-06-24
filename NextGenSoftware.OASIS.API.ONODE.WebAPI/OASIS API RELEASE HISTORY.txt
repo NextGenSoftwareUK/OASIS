@@ -192,6 +192,14 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 ----------------------------------------------------------------------------------------------------------------------------
 2.2
 
-- KeyManager API.
+- Keys API.
 - EthereumOASIS Provider.
+- EOS Provider.
+- All Avatar API calls are now wrapped in a HttpResponseMessage so follow HTTP/REST best practices.
 
+----------------------------------------------------------------------------------------------------------------------------
+2.2.1
+
+All API responses now also include a new OASISVersion property so you always know the API version you are using. It is a version number followed by the current enviroment, e.g. v2.2.1 LIVE.
+
+----------------------------------------------------------------------------------------------------------------------------

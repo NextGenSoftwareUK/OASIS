@@ -2,6 +2,7 @@
 {
     public enum AutoReplicationMode
     {
+        NotSet,
         UseGlobalDefaultInOASISDNA,
         True,
         False

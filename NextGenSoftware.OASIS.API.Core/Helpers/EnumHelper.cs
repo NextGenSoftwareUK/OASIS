@@ -1,5 +1,6 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
 using System;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
@@ -41,6 +42,30 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             }
 
             return enumValues;
+        }
+
+        public static OASISResult<IEnumerable<EnumValue<T>>> ConvertToEnumValueList<T>(IEnumerable<T> list)
+        {
+            OASISResult<IEnumerable<EnumValue<T>>> result = new OASISResult<IEnumerable<EnumValue<T>>>();
+            List<EnumValue<T>> enumList = new List<EnumValue<T>>();
+
+            foreach (T item in list)
+                enumList.Add(new EnumValue<T>(item));
+
+            result.Result = enumList;
+            return result;
+        }
+
+        public static OASISResult<IEnumerable<T>> ConvertFromEnumValueList<T>(IEnumerable<EnumValue<T>> enumList)
+        {
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            List<T> list = new List<T>();
+
+            foreach (EnumValue<T> item in enumList)
+                list.Add(item.Value);
+
+            result.Result = list;
+            return result;
         }
     }
 }
