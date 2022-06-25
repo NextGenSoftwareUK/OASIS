@@ -31,7 +31,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             get
             {
                 if (_keyManager == null)
-                    _keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.EthereumOASIS));
+                    _keyManager = new KeyManager(this);
+                 //_keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.EthereumOASIS));
 
                 return _keyManager;
             }
@@ -42,7 +43,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             get
             {
                 if (_walletManager == null)
-                    _walletManager = new WalletManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.EthereumOASIS));
+                    _walletManager = new WalletManager(this);
+                    //_walletManager = new WalletManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.EthereumOASIS));
 
                 return _walletManager;
             }
