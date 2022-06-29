@@ -1,6 +1,7 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
@@ -9,7 +10,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
     {
         public HolonManager Data { get; set; }
 
-        public OASISManager()
+        public OASISManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null)
+        {
+            Data = new HolonManager(OASISStorageProvider, OASISDNA);
+        }
+
+        public OASISManager(OASISDNA OASISDNA = null)
         {
             OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
 

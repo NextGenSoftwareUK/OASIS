@@ -254,21 +254,5 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
-
-        //public bool CheckIfEmailIsAlreadyInUse(string email)
-        //{
-        //    OASISResult<IAvatar> result = LoadAvatarByEmail(email);
-
-        //    if (!result.IsError && result.Result != null)
-        //    {
-        //        //If the avatar has previously been deleted (soft deleted) then allow them to create a new avatar with the same email address.
-        //       // if (result.Result.DeletedDate == DateTime.MinValue)
-        //            return true;
-        //      //  else
-        //     //       return false;
-        //    }
-        //    else
-        //        return false;
-        //}
     }
 }

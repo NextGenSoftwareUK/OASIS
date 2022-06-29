@@ -476,21 +476,33 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return response;
         }*/
 
-        //public bool CheckIfEmailIsAlreadyInUse(string email)
-        //{
-        //    OASISResult<IAvatar> result = LoadAvatarByEmail(email);
+        public OASISResult<bool> CheckIfEmailIsAlreadyInUse(string email, bool sendMail = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IAvatar> existingAvatarResult = LoadAvatarByEmail(email);
 
-        //    if (!result.IsError && result.Result != null)
-        //    {
-        //        //If the avatar has previously been deleted (soft deleted) then allow them to create a new avatar with the same email address.
-        //       // if (result.Result.DeletedDate == DateTime.MinValue)
-        //            return true;
-        //      //  else
-        //     //       return false;
-        //    }
-        //    else
-        //        return false;
-        //}
+            if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
+            {
+                //If the avatar has previously been deleted (soft deleted) then allow them to create a new avatar with the same email address.
+                if (existingAvatarResult.Result.DeletedDate != DateTime.MinValue)
+                {
+                    result.Result = true;
+                    ErrorHandling.HandleError(ref result, $"The avatar using email {email} was deleted on {existingAvatarResult.Result.DeletedDate} by avatar with id {existingAvatarResult.Result.DeletedByAvatarId}, please contact support (to either restore your old avatar or permanently delete your old avatar so you can then re-use your old email address to create a new avatar) or create a new avatar with a new email address.");
+                }
+                else
+                {
+                    result.Result = true;
+                    ErrorHandling.HandleError(ref result, $"Sorry, the email {email} is already in use, please use another one.");
+                }
+            }
+            else
+                result.Message = $"Email {email} not in use.";
+
+            if (result.Result && sendMail)
+                SendAlreadyRegisteredEmail(email, result.Message);
+
+            return result;
+        }
 
         public IAvatar HideAuthDetails(IAvatar avatar, bool hidePassword = true, bool hidePrivateKeys = true, bool hideVerificationToken = true, bool hideRefreshTokens = true)
         {

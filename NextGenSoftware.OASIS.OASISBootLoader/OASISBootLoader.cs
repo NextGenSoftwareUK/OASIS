@@ -269,7 +269,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             new MongoDBOASIS(
                                 overrideConnectionString == null
                                     ? OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString
-                                    : overrideConnectionString, OASISDNA.OASIS.StorageProviders.MongoDBOASIS.DBName);
+                                    : overrideConnectionString, OASISDNA.OASIS.StorageProviders.MongoDBOASIS.DBName, OASISDNA);
                         mongoOASIS.StorageProviderError += MongoOASIS_StorageProviderError;
                         registeredProvider = mongoOASIS;
                     }

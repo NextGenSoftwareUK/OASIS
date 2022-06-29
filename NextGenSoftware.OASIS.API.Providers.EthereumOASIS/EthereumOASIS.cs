@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Nethereum.JsonRpc.Client;
@@ -20,9 +19,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
     public class EthereumOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider
     {
+        public readonly Web3 Web3Client;
         private readonly NextGenSoftwareOASISService _nextGenSoftwareOasisService;
         private readonly Account _oasisAccount;
-        private readonly Web3 _web3Client;
         private KeyManager _keyManager;
         private WalletManager _walletManager;
 
@@ -60,9 +59,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             if (!string.IsNullOrEmpty(hostUri) && !string.IsNullOrEmpty(chainPrivateKey) && chainId > 0)
             {
                 _oasisAccount = new Account(chainPrivateKey, chainId);
-                _web3Client = new Web3(_oasisAccount, hostUri);
+                Web3Client = new Web3(_oasisAccount, hostUri);
 
-                _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(_web3Client, contractAddress);
+                _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(Web3Client, contractAddress);
             }
         }
 
@@ -1103,7 +1102,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             
             try
             {
-                var transactionResult = await _web3Client.Eth.GetEtherTransferService()
+                var transactionResult = await Web3Client.Eth.GetEtherTransferService()
                     .TransferEtherAndWaitForReceiptAsync(transaction.ToWalletAddress, transaction.Amount);
 
                 if (transactionResult.HasErrors() is true)
