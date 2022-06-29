@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <Content Include="DNA\OASIS_DNA.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
@@ -73,6 +73,7 @@
   <ItemGroup>
     <PackageReference Include="MappingGenerator" Version="1.22.3" />
     <PackageReference Include="Mapster" Version="7.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.6" />
   </ItemGroup>
 
 </Project>

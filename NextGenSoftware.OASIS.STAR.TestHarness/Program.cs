@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using EOSNewYork.EOSCore.Response.API;
 using Nethereum.Contracts;
 using Console = System.Console;
 //using Spectre.Console;
@@ -20,6 +19,8 @@ using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.STAR.Zomes;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
+using Ipfs;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
@@ -284,7 +285,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowErrorMessage($"Error occured loading avatars. Reason: {avatarsResult.Message}");
 
             ShowWorkingMessage("Loading All Avatars Only For The MongoDBOASIS Provider...");
-            avatarsResult = STAR.OASISAPI.Avatar.LoadAllAvatars(true, ProviderType.MongoDBOASIS); // Only loads from MongoDB.
+            avatarsResult = STAR.OASISAPI.Avatar.LoadAllAvatars(false, true, ProviderType.MongoDBOASIS); // Only loads from MongoDB.
 
             if (!avatarsResult.IsError && avatarsResult.Result != null)
                 ShowSuccessMessage($"{avatarsResult.Result.Count()} Avatars Loaded.");
@@ -292,7 +293,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowErrorMessage($"Error occured loading avatars. Reason: {avatarsResult.Message}");
 
             ShowWorkingMessage("Loading Avatar Only For The HoloOASIS Provider...");
-            OASISResult<IAvatar> avatarResult = STAR.OASISAPI.Avatar.LoadAvatar(STAR.LoggedInAvatar.Id, true, ProviderType.HoloOASIS); // Only loads from Holochain.
+            OASISResult<IAvatar> avatarResult = STAR.OASISAPI.Avatar.LoadAvatar(STAR.LoggedInAvatar.Id, false, true, ProviderType.HoloOASIS); // Only loads from Holochain.
 
             if (!avatarResult.IsError && avatarResult.Result != null) 
             {
@@ -364,122 +365,225 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.Config.AgentPubKey, "our_world_core", "load_holons", null);
 
             // IPFS Support
-            ShowWorkingMessage("Initiating IPFS Tests...");
-            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
-            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.AddFileAsync("");
-            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Swarm.PeersAsync();
-            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.KeyChainAsync();
-            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dns.ResolveAsync("test");
-            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dag.GetAsync(new Ipfs.Cid() { Hash = "" });
-            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dag.PutAsync(new Ipfs.Cid() { Hash = "" });
+            try
+            {
+                ShowWorkingMessage("Initiating IPFS Tests...");
+
+                if (!STAR.OASISAPI.Providers.IPFS.ProviderActivated)
+                {
+                    ShowWorkingMessage("Activating IPFS Provider...");
+                    STAR.OASISAPI.Providers.IPFS.ActivateProvider();
+                    ShowSuccessMessage("IPFS Provider Activated.");
+                }
+
+                IFileSystemNode result = await STAR.OASISAPI.Providers.IPFS.IPFSClient.FileSystem.AddTextAsync("TEST");
+                ShowMessage($"Id of IPFS Write Test: {result.Id}");
+                ShowMessage($"Data Writen for IPFS Write Test: {result.DataBytes.Length} bytes");
+
+                string ipfsResult = await STAR.OASISAPI.Providers.IPFS.IPFSClient.FileSystem.ReadAllTextAsync(result.Id);
+                ShowMessage($"IPFS Read Result: {ipfsResult}");
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error occured during IPFS Tests: {ex.Message}");
+            }
 
             // Ethereum Support
-            ShowWorkingMessage("Initiating Ethereum Tests...");
-            await STAR.OASISAPI.Providers.Ethereum.Web3.Client.SendRequestAsync(new Nethereum.JsonRpc.Client.RpcRequest("id", "test"));
-            await STAR.OASISAPI.Providers.Ethereum.Web3.Eth.Blocks.GetBlockNumber.SendRequestAsync("");
-            Contract contract = STAR.OASISAPI.Providers.Ethereum.Web3.Eth.GetContract("abi", "contractAddress");
+            try
+            {
+                ShowWorkingMessage("Initiating Ethereum Tests...");
+
+                if (!STAR.OASISAPI.Providers.Ethereum.ProviderActivated)
+                {
+                    ShowWorkingMessage("Activating Ethereum Provider...");
+                    STAR.OASISAPI.Providers.Ethereum.ActivateProvider();
+                    ShowSuccessMessage("Ethereum Provider Activated.");
+                }
+
+                await STAR.OASISAPI.Providers.Ethereum.Web3Client.Client.SendRequestAsync(new Nethereum.JsonRpc.Client.RpcRequest("id", "test"));
+                await STAR.OASISAPI.Providers.Ethereum.Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync("");
+                Contract contract = STAR.OASISAPI.Providers.Ethereum.Web3Client.Eth.GetContract("abi", "contractAddress");
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error occured during Ethereum Tests: {ex.Message}");
+            }
 
             // EOSIO Support
-            ShowWorkingMessage("Initiating EOSIO Tests...");
-            STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetTableRows("accounts", "accounts", "users", "true", 0, 0, 1, 3);
-            STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetBlock("block");
-            STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetAccount("test.account");
-            STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
+            try
+            {
+                ShowWorkingMessage("Initiating EOSIO Tests...");
+
+                if (!STAR.OASISAPI.Providers.EOSIO.ProviderActivated)
+                {
+                    ShowWorkingMessage("Activating EOSIO Provider...");
+                    STAR.OASISAPI.Providers.EOSIO.ActivateProvider();
+                    ShowSuccessMessage("EOSIO Provider Activated.");
+                }
+
+                STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetTableRows("accounts", "accounts", "users", "true", 0, 0, 1, 3);
+                STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetBlock("block");
+                STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetAccount("test.account");
+                STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error occured during EOSIO Tests: {ex.Message}");
+            }
 
             // Graph DB Support
-            ShowWorkingMessage("Initiating Neo4j Tests...");
-            ShowWorkingMessage("Executing Graph Cypher Test...");
-            await STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
-            Avatar newAvatar = STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
+            try
+            {
+                ShowWorkingMessage("Initiating Neo4j (Graph DB) Tests...");
+
+                if (!STAR.OASISAPI.Providers.Neo4j.ProviderActivated)
+                {
+                    ShowWorkingMessage("Activating Neo4j Provider...");
+                    STAR.OASISAPI.Providers.Neo4j.ActivateProvider();
+                    ShowSuccessMessage("Neo4j Provider Activated.");
+                }
+
+                ShowWorkingMessage("Executing Graph Cypher Test...");
+                await STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
+                Avatar newAvatar = STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error occured during Neo4j Tests: {ex.Message}");
+            }
 
             // Document/Object DB Support
-            ShowWorkingMessage("Initiating MongoDB Tests...");
-            STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.ListCollectionNames();
-            STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("Avatar");
+            try
+            {
+                ShowWorkingMessage("Initiating MongoDB Tests...");
+
+                if (!STAR.OASISAPI.Providers.MongoDB.ProviderActivated)
+                {
+                    ShowWorkingMessage("Activating MongoDB Provider...");
+                    STAR.OASISAPI.Providers.MongoDB.ActivateProvider();
+                    ShowSuccessMessage("MongoDB Provider Activated.");
+                }
+
+                STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.ListCollectionNames();
+                STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("Avatar");
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error occured during MongoDB Tests: {ex.Message}");
+            }
 
             // SEEDS Support
-            ShowWorkingMessage("Initiating SEEDS Tests...");
-            ShowWorkingMessage("Getting Balance for account davidsellams...");
-            string balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
-            ShowSuccessMessage(string.Concat("Balance: ", balance));
-
-            ShowWorkingMessage("Getting Balance for account nextgenworld...");
-            balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
-            ShowSuccessMessage(string.Concat("Balance: ", balance));
-
-            ShowWorkingMessage("Getting Account for account davidsellams...");
-            Account account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("davidsellams");
-            ShowSuccessMessage(string.Concat("Account.account_name: ", account.account_name));
-            ShowSuccessMessage(string.Concat("Account.created: ", account.created_datetime.ToString()));
-
-            ShowWorkingMessage("Getting Account for account nextgenworld...");
-            account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("nextgenworld");
-            ShowSuccessMessage(string.Concat("Account.account_name: ", account.account_name));
-            ShowSuccessMessage(string.Concat("Account.created: ", account.created_datetime.ToString()));
-
-            // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
-            if (!STAR.LoggedInAvatar.ProviderUniqueStorageKey.ContainsKey(ProviderType.TelosOASIS))
+            try
             {
-                ShowWorkingMessage("Linking Telos Account to Avatar...");
-                OASISResult<bool> result = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatar(STAR.LoggedInAvatar.Id, ProviderType.TelosOASIS, "davidsellams");
+                ShowWorkingMessage("Initiating SEEDS Tests...");
 
-                if (!result.IsError && result.Result)
-                    ShowSuccessMessage("Telos Account Successfully Linked to Avatar.");
+                if (!STAR.OASISAPI.Providers.SEEDS.ProviderActivated)
+                {
+                    ShowWorkingMessage("Activating SEEDS Provider...");
+                    STAR.OASISAPI.Providers.SEEDS.ActivateProvider();
+                    ShowSuccessMessage("SEEDS Provider Activated.");
+                }
+
+                ShowWorkingMessage("Getting Balance for account davidsellams...");
+                string balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
+                ShowSuccessMessage(string.Concat("Balance: ", balance));
+
+                ShowWorkingMessage("Getting Balance for account nextgenworld...");
+                balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
+                ShowSuccessMessage(string.Concat("Balance: ", balance));
+
+                ShowWorkingMessage("Getting Account for account davidsellams...");
+                GetAccountResponseDto account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("davidsellams");
+
+                if (account != null)
+                {
+                    ShowSuccessMessage(string.Concat("Account.account_name: ", account.AccountName));
+                    ShowSuccessMessage(string.Concat("Account.created: ", account.Created.ToString()));
+                }
                 else
-                    ShowErrorMessage("Error occured Whilst Linking Telos Account To Avatar.");
+                    ShowErrorMessage("Account not found.");
+
+                ShowWorkingMessage("Getting Account for account nextgenworld...");
+                account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("nextgenworld");
+
+                if (account != null)
+                {
+                    ShowSuccessMessage(string.Concat("Account.account_name: ", account.AccountName));
+                    ShowSuccessMessage(string.Concat("Account.created: ", account.Created.ToString()));
+                }
+                else
+                    ShowErrorMessage("Account not found.");
+
+                // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
+                if (!STAR.LoggedInAvatar.ProviderUniqueStorageKey.ContainsKey(ProviderType.TelosOASIS))
+                {
+                    ShowWorkingMessage("Linking Telos Account to Avatar...");
+                    OASISResult<Guid> linkKeyResult = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarById(Guid.Empty, STAR.LoggedInAvatar.Id, ProviderType.TelosOASIS, "davidsellams");
+
+                    if (!linkKeyResult.IsError && linkKeyResult.Result != Guid.Empty)
+                        ShowSuccessMessage("Telos Account Successfully Linked to Avatar.");
+                    else
+                        ShowErrorMessage("Error occured Whilst Linking Telos Account To Avatar.");
+                }
+
+                ShowWorkingMessage("Sending SEEDS from nextgenworld to davidsellams...");
+                OASISResult<string> payWithSeedsResult = STAR.OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("davidsellams", _privateKey, "nextgenworld", 1, KarmaSourceType.API, "test", "test", "test", "test memo");
+                ShowSuccessMessage(string.Concat("Success: ", payWithSeedsResult.IsError ? "false" : "true"));
+
+                if (payWithSeedsResult.IsError)
+                    ShowErrorMessage(string.Concat("Error Message: ", payWithSeedsResult.Message));
+
+                ShowSuccessMessage(string.Concat("Result: ", payWithSeedsResult.Result));
+
+                ShowWorkingMessage("Getting Balance for account davidsellams...");
+                balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
+                ShowSuccessMessage(string.Concat("Balance: ", balance));
+
+                ShowWorkingMessage("Getting Balance for account nextgenworld...");
+                balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
+                ShowSuccessMessage(string.Concat("Balance: ", balance));
+
+                ShowWorkingMessage("Getting Organsiations...");
+                string orgs = STAR.OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
+                ShowSuccessMessage(string.Concat("Organisations: ", orgs));
+
+                //ShowMessage("Getting nextgenworld organsiation...");
+                //string org = OASISAPI.Providers.SEEDS.GetOrganisation("nextgenworld");
+                //ShowMessage(string.Concat("nextgenworld org: ", org));
+
+                ShowWorkingMessage("Generating QR Code for davidsellams...");
+                string qrCode = STAR.OASISAPI.Providers.SEEDS.GenerateSignInQRCode("davidsellams");
+                ShowSuccessMessage(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
+
+                ShowWorkingMessage("Sending invite to davidsellams...");
+                OASISResult<SendInviteResult> sendInviteResult = STAR.OASISAPI.Providers.SEEDS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", _privateKey, "davidsellams", 1, 1, KarmaSourceType.API, "test", "test", "test");
+                ShowSuccessMessage(string.Concat("Success: ", sendInviteResult.IsError ? "false" : "true"));
+
+                if (sendInviteResult.IsError)
+                    ShowErrorMessage(string.Concat("Error Message: ", sendInviteResult.Message));
+                else
+                {
+                    ShowSuccessMessage(string.Concat("Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
+
+                    ShowWorkingMessage("Accepting invite to davidsellams...");
+                    OASISResult<string> acceptInviteResult = STAR.OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeedsUsingTelosAccount("davidsellams", sendInviteResult.Result.InviteSecret, KarmaSourceType.API, "test", "test", "test");
+                    ShowSuccessMessage(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
+
+                    if (acceptInviteResult.IsError)
+                        ShowErrorMessage(string.Concat("Error Message: ", acceptInviteResult.Message));
+                    else
+                        ShowSuccessMessage(string.Concat("Invite Accepted To Join SEEDS. Transction ID: ", acceptInviteResult.Result));
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error occured during SEEDS Tests: {ex.Message}");
             }
 
-            ShowWorkingMessage("Sending SEEDS from nextgenworld to davidsellams...");
-            OASISResult<string> payWithSeedsResult = STAR.OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("davidsellams", _privateKey, "nextgenworld", 1, KarmaSourceType.API, "test", "test", "test", "test memo");
-            ShowSuccessMessage(string.Concat("Success: ", payWithSeedsResult.IsError ? "false" : "true"));
 
-            if (payWithSeedsResult.IsError)
-                ShowErrorMessage(string.Concat("Error Message: ", payWithSeedsResult.Message));
-
-            ShowSuccessMessage(string.Concat("Result: ", payWithSeedsResult.Result));
-
-            ShowWorkingMessage("Getting Balance for account davidsellams...");
-            balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
-            ShowSuccessMessage(string.Concat("Balance: ", balance));
-
-            ShowWorkingMessage("Getting Balance for account nextgenworld...");
-            balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
-            ShowSuccessMessage(string.Concat("Balance: ", balance));
-
-            ShowWorkingMessage("Getting Organsiations...");
-            string orgs = STAR.OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
-            ShowSuccessMessage(string.Concat("Organisations: ", orgs));
-
-            //ShowMessage("Getting nextgenworld organsiation...");
-            //string org = OASISAPI.Providers.SEEDS.GetOrganisation("nextgenworld");
-            //ShowMessage(string.Concat("nextgenworld org: ", org));
-
-            ShowWorkingMessage("Generating QR Code for davidsellams...");
-            string qrCode = STAR.OASISAPI.Providers.SEEDS.GenerateSignInQRCode("davidsellams");
-            ShowSuccessMessage(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
-
-            ShowWorkingMessage("Sending invite to davidsellams...");
-            OASISResult<SendInviteResult> sendInviteResult = STAR.OASISAPI.Providers.SEEDS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", _privateKey, "davidsellams", 1, 1, KarmaSourceType.API, "test", "test", "test");
-            ShowSuccessMessage(string.Concat("Success: ", sendInviteResult.IsError ? "false" : "true"));
-
-            if (sendInviteResult.IsError)
-                ShowErrorMessage(string.Concat("Error Message: ", sendInviteResult.Message));
-            else
-            {
-                ShowSuccessMessage(string.Concat("Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
-
-                ShowWorkingMessage("Accepting invite to davidsellams...");
-                OASISResult<string> acceptInviteResult = STAR.OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeedsUsingTelosAccount("davidsellams", sendInviteResult.Result.InviteSecret, KarmaSourceType.API, "test", "test", "test");
-                ShowSuccessMessage(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
-
-                if (acceptInviteResult.IsError)
-                    ShowErrorMessage(string.Concat("Error Message: ", acceptInviteResult.Message));
-                else
-                    ShowSuccessMessage(string.Concat("Invite Accepted To Join SEEDS. Transction ID: ", acceptInviteResult.Result));
-            }
             // ThreeFold, AcivityPub, SOLID, Cross/Off Chain, Smart Contract Interoperability & lots more coming soon! :)
 
-            ShowMessage("OASIS API TESTS COMPLETE.");
+            ShowSuccessMessage("OASIS API TESTS COMPLETE.");
             // END OASIS API DEMO ***********************************************************************************
         }
 
@@ -603,12 +707,15 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             foreach (IHolon holon in holons)
             {
                 Console.WriteLine("");
-                Console.WriteLine(string.Concat("   Holon Name: ", holon.Name, " Holon Id: ", holon.Id, " containing ", holon.Nodes.Count(), " node(s): "));
+                Console.WriteLine(string.Concat("   Holon Name: ", holon.Name, " Holon Id: ", holon.Id, " containing ", holon.Nodes != null ? holon.Nodes.Count() : 0, " node(s): "));
 
-                foreach (INode node in holon.Nodes)
+                if (holon.Nodes != null)
                 {
-                    Console.WriteLine("");
-                    Console.WriteLine(string.Concat("    Node Name: ", node.NodeName, " Node Id: ", node.Id, " Node Type: ", Enum.GetName(node.NodeType)));
+                    foreach (INode node in holon.Nodes)
+                    {
+                        Console.WriteLine("");
+                        Console.WriteLine(string.Concat("    Node Name: ", node.NodeName, " Node Id: ", node.Id, " Node Type: ", Enum.GetName(node.NodeType)));
+                    }
                 }
             }
         }
@@ -810,8 +917,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 {
                     ShowWorkingMessage("Checking if email already in use...");
 
-                    if (STAR.OASISAPI.Avatar.CheckIfEmailIsAlreadyInUse(email))
-                        ShowErrorMessage("Sorry, that email is already in use, please use another one.");
+                    OASISResult<bool> checkIfEmailAlreadyInUseResult = STAR.OASISAPI.Avatar.CheckIfEmailIsAlreadyInUse(email);
+
+                    if (checkIfEmailAlreadyInUseResult.Result)
+                        ShowErrorMessage(checkIfEmailAlreadyInUseResult.Message);
                     else
                     {
                         emailValid = true;

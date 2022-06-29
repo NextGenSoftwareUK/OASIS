@@ -65,9 +65,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             );
         }
 
-        private void sendAlreadyRegisteredEmail(string email)
+        private void SendAlreadyRegisteredEmail(string email, string message)
         {
-            string message = $@"<p>If you don't know your password please visit the <a href=""{OASISWebSiteURL}/avatar/forgot-password"">forgot password</a> page.</p>";
+            message = String.Concat($"<p>{message}</p>", $@"<p>If you don't know your password please visit the <a href=""{OASISWebSiteURL}/avatar/forgot-password"">forgot password</a> page.</p>");
 
             //if (!string.IsNullOrEmpty(origin))
             //    message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
@@ -80,13 +80,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             EmailManager.Send(
                 to: email,
                 subject: "OASIS Sign-up Verification - Email Already Registered",
-                html: $@"<h4>Email Already Registered</h4>
-                         <p>Your email <strong>{email}</strong> is already registered.</p>
-                         {message}"
+                html: $@"<h4>Email Already Registered</h4>{message}"
+                //html: $@"<h4>Email Already Registered</h4>
+                //         <p>Your email <strong>{email}</strong> is already registered.</p>
+                //         {message}"
             );
         }
 
-        private void sendVerificationEmail(IAvatar avatar)
+        private void SendVerificationEmail(IAvatar avatar)
         {
             var verifyUrl = $"{OASISWebSiteURL}/avatar/verify-email?token={avatar.VerificationToken}";
             string message = $@"<p>Please click the below link to verify your email address:</p>
@@ -130,34 +131,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 return result;
             }
 
-            OASISResult<IAvatar> existingAvatarResult = LoadAvatarByEmail(email);
-
-            if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
-            {
-                //If the avatar has previously been deleted (soft deleted) then allow them to create a new avatar with the same email address.
-                if (existingAvatarResult.Result.DeletedDate != DateTime.MinValue)
-                {
-                    sendAlreadyRegisteredEmail(email);
-                    ErrorHandling.HandleError(ref result, $"This avatar was deleted on {existingAvatarResult.Result.DeletedDate} by avatar with id {existingAvatarResult.Result.DeletedByAvatarId}, please contact support (to either restore your old avatar or permanently delete your old avatar so you can then re-use your old email address to create a new avatar) or create a new avatar with a new email address.");
-                    return result;
-                }
-                else
-                {
-                    sendAlreadyRegisteredEmail(email);
-                    ErrorHandling.HandleError(ref result, "Avatar Already Registered.");
-                    return result;
-                }
-            }
-
             //TODO: {PERFORMANCE} Add this method to the providers so more efficient.
-            //if (CheckIfEmailIsAlreadyInUse(email))
-            //{
-            //    // send already registered error in email to prevent account enumeration
-            //    sendAlreadyRegisteredEmail(email, origin);
-            //    result.IsError = true;
-            //    result.Message = "Avatar Already Registered.";
-            //    return result;
-            //}
+            OASISResult<bool> checkIfEmailExistsResult = CheckIfEmailIsAlreadyInUse(email);
+            
+            if (checkIfEmailExistsResult.Result)
+            {
+                result.IsError = true;
+                result.Message = checkIfEmailExistsResult.Message;
+                return result;
+            }
 
             result.Result = new Avatar() { Id = Guid.NewGuid(), IsNewHolon = true, FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), CreatedOASISType = new EnumValue<OASISType>(createdOASISType) };
             result.Result.Username = result.Result.Email; //Default the username to their email (they can change this later in Avatar Profile screen).
@@ -253,7 +235,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result)
         {
             if (OASISDNA.OASIS.Email.SendVerificationEmail)
-                sendVerificationEmail(result.Result);
+                SendVerificationEmail(result.Result);
 
             result.Result = HideAuthDetails(result.Result);
             result.IsSaved = true;

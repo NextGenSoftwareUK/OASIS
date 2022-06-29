@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
     public class IPFSOASIS : OASISStorageProviderBase, IOASISNETProvider
     {
         public IpfsClient IPFSClient;
-        public IpfsEngine IPFSEngine; //= new IpfsEngine();
+        //public IpfsEngine IPFSEngine; //= new IpfsEngine();
 
         private List<IAvatarDetail> AvatarsDetailsList;
         private string avatarDetailsFileAddress;

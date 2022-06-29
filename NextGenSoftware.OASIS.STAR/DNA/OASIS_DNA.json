@@ -23,28 +23,28 @@
     "Security": {
       "HideVerificationToken": "true",
       "HideRefreshTokens": "true",
-      "SecretKey": "",
+      "SecretKey": "71DA7E48-B13B-428D-AF3C-6429B6B29367A6EDF84F-BDD0-443D-B9CA-C24B0EDEB882",
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",
-        "Rijndael256Key": "",
+        "Rijndael256Key": "yNV4Q+Pccu6??2B&agdhn-6",
         "QuantumEncryptionEnabled": "true"
       },
       "OASISProviderPrivateKeys": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",
-        "Rijndael256Key": "",
+        "Rijndael256Key": "yNV4Q+Pccu6??2B&agdhn-6",
         "QuantumEncryptionEnabled": "true"
       }
     },
     "Email": {
-      "EmailFrom": "",
-      "SmtpHost": "",
+      "EmailFrom": "anorak@theoasisplatform.world",
+      "SmtpHost": "mailuk2.promailserver.com",
       // "SmtpPort": 587,
       "SmtpPort": 25,
-      "SmtpUser": "",
-      "SmtpPass": "",
-      "DisableAllEmails": "true", //This overrides the SendVerificationEmail setting below. MAKE SURE THIS IS FALSE FOR LIVE!
+      "SmtpUser": "anorak@oasisplatform.world",
+      "SmtpPass": "wrhm3gvuxcj]qpsknibdolyfta6:ze",
+      "DisableAllEmails": "false", //This overrides the SendVerificationEmail setting below. MAKE SURE THIS IS FALSE FOR LIVE!
       "SendVerificationEmail": "true",
       "OASISWebSiteURL": "https://staging.oasisplatform.world"
     },
@@ -71,7 +71,12 @@
       },
       "MongoDBOASIS": {
         "ConnectionString": "mongodb://localhost:27017",
-        "DBName": "OASISAPI_DEV"
+        //"ConnectionString": "mongodb+srv://dbadmin:V1K51w9DrfNEoFca@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        //"ConnectionString": "mongodb+srv://oasisadmin:4ABeZIUHwTVbiFWn@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        //"ConnectionString": "mongodb+srv://dbadmin:ZDVxEMHJJTfdtJ0S@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        // "ConnectionString": "mongodb+srv://oasisuser:EHPpjGAmW74lg8qS@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+
+         "DBName": "OASISAPI_DEV"
         //"DBName": "OASISAPI_TEST"
         //"DBName": "OASISAPI_LIVE"
       },
@@ -79,7 +84,10 @@
         "ConnectionString": "Data Source=OASISSQLLiteDB.db"
       },
       "EOSIOOASIS": {
-        "ConnectionString": "https://node.hypha.earth"
+        "ConnectionString": "http://localhost:8888",
+        "AccountName": "oasis",
+        "AccountPrivateKey": "5KUm4te3kPbR6Fmrmr5WwCw3pfkymVxdh44x1b9QFYhm66uwYsP",
+        "ChainId": "8a34ec7df1b8cd06ff4a8abbaa7cc50300823350cadc59ab296cb00d104d2b8f"
       },
       "TelosOASIS": {
         "ConnectionString": "https://node.hypha.earth"
@@ -98,8 +106,8 @@
       },
       "Neo4JOASIS": {
         "ConnectionString": "http://localhost:7474",
-        "Username": "",
-        "Password": ""
+        "Username": "neo4j",
+        "Password": "letthereb@light!"
       },
       "IPFSOASIS": {
         "ConnectionString": "http://localhost:5001",
@@ -116,7 +124,7 @@
         "HostUrl": ""
       },
       "LocalFileOASIS": {
-        "FilePath": "wallets.json"
+        "FilePath": "wallets.json" //TEMP FOR TESTING - NEVER USE LOCAL ON LIVE SERVER!
       }
     }
   }

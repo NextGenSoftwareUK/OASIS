@@ -2,6 +2,7 @@
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
+using System.IO;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
@@ -21,16 +22,22 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public OASISProvider()
         {
-            OASISDNAManager.LoadDNA();
-            this.OASISDNA = OASISDNAManager.OASISDNA;
-            this.OASISDNAPath = OASISDNAManager.OASISDNAPath;
+            if (OASISDNAManager.OASISDNA == null)
+            {
+                OASISDNAManager.LoadDNA();
+                this.OASISDNA = OASISDNAManager.OASISDNA;
+                this.OASISDNAPath = OASISDNAManager.OASISDNAPath;
+            }
         }
 
         public OASISProvider(string OASISDNAPath)
         {
-            this.OASISDNAPath = OASISDNAPath;
-            OASISDNAManager.LoadDNA(OASISDNAPath);
-            this.OASISDNA = OASISDNAManager.OASISDNA;
+            if (OASISDNAManager.OASISDNA == null || File.Exists(OASISDNAPath))
+            {
+                this.OASISDNAPath = OASISDNAPath;
+                OASISDNAManager.LoadDNA(OASISDNAPath);
+                this.OASISDNA = OASISDNAManager.OASISDNA;
+            }
         }
 
         public OASISProvider(OASISDNA OASISDNA)

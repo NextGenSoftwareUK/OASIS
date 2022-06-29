@@ -17,6 +17,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public bool IsChanged { get; set; }
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
+        public Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos, id in MongoDB etc).    
+
+        [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
@@ -30,10 +33,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
       //  public ProviderType CreatedProviderType { get; set; }
         public EnumValue<ProviderType> CreatedProviderType { get; set; } // The primary provider that this holon was originally saved with (it can then be auto-replicated to other providers to give maximum redundancy/speed via auto-load balancing etc).
         public EnumValue<OASISType> CreatedOASISType { get; set; }
-
-        //public string ProviderUniqueStorageKey { get; set; }
-        [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
-        public Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>();
 
         [BsonRepresentation(BsonType.DateTime)]
         public DateTime CreatedDate { get; set; }

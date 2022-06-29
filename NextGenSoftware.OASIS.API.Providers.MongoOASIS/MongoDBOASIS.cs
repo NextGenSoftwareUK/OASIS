@@ -12,6 +12,7 @@ using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
 using AvatarDetail = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail;
 using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -27,7 +28,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public string DBName { get; set; }
         public bool IsVersionControlEnabled { get; set; }
 
-        public MongoDBOASIS(string connectionString, string dbName)
+        public MongoDBOASIS(string connectionString, string dbName) : base()
+        {
+            Init(connectionString, dbName);
+        }
+
+        //TODO: Need to implement these OASISDNA overloads for ALL Providers ASAP! :)
+        public MongoDBOASIS(string connectionString, string dbName, OASISDNA OASISDNA, string OASISDNAPath = "OASIS_DNA.json") : base(OASISDNA, OASISDNAPath)
+        {
+            Init(connectionString, dbName);
+        }
+
+        public MongoDBOASIS(string connectionString, string dbName, OASISDNA OASISDNA) : base(OASISDNA)
+        {
+            Init(connectionString, dbName);
+        }
+
+        public MongoDBOASIS(string connectionString, string dbName, string OASISDNAPath = "OASIS_DNA.json") : base (OASISDNAPath)
+        {
+            Init(connectionString, dbName);
+        }
+
+        private void Init(string connectionString, string dbName)
         {
             ConnectionString = connectionString;
             DBName = dbName;

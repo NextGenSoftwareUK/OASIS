@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
 using NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces;
 
@@ -7,7 +9,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 {
     public class QuestManager : OASISManager, IQuestManager
     {
-        public QuestManager() : base()
+        public QuestManager(OASISDNA OASISDNA = null) : base(OASISDNA)
+        {
+
+        }
+
+        public QuestManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
 
         }
