@@ -21,13 +21,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await _scmsRepository.GetAllLinks();
         }
 
-        [HttpGet("GetAllLinksForSequenceAndPhase/{sequenceNo}/{phaseNo}/{loadPhase}/{loadFile}")]
+        [HttpGet("get-all-links-for-sequence-and-phase/{sequenceNo}/{phaseNo}/{loadPhase}/{loadFile}")]
         public async Task<OASISResult<IEnumerable<Drawing>>> GetAllLinksForSequenceAndPhase(int SequenceNo, int PhaseNo, bool loadPhase = false, bool loadFile = true)
         {
             return await _scmsRepository.GetAllDrawings(SequenceNo, PhaseNo, loadPhase, loadFile);
         }
 
-        [HttpGet("GetAllLinksForSequenceAndPhase/{sequenceNo}/{phaseNo}")]
+        [HttpGet("get-all-links-for-sequence-and-phase/{sequenceNo}/{phaseNo}")]
         public async Task<OASISResult<IEnumerable<Drawing>>> GetAllLinksForSequenceAndPhase(int SequenceNo, int PhaseNo)
         {
             return await _scmsRepository.GetAllDrawings(SequenceNo, PhaseNo);

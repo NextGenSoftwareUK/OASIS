@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("StartNewChatSession")]
+        [HttpGet("start-new-chat-session")]
         public OASISResult<bool> StartNewChatSession()
         {
             // TODO: Finish implementing.
