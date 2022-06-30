@@ -161,7 +161,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                if (holonType != HolonType.All)
+                if (holonType == HolonType.All)
                 {
                     return _dbContext.Holon.Find(_ => true).ToList();
                 }
@@ -171,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     return _dbContext.Holon.Find(filter).ToList();
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 throw;
             }

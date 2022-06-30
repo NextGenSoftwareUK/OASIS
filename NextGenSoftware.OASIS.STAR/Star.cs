@@ -1455,7 +1455,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (currentHolon.Nodes == null)
                 currentHolon.Nodes = new ObservableCollection<INode>(); //new List<INode>();
 
-            currentHolon.Nodes.Add(new Node { NodeName = fieldName.ToPascalCase(), NodeType = nodeType, ParentId = currentHolon.Id });
+            currentHolon.Nodes.Add(new Node { Id = Guid.NewGuid(), NodeName = fieldName.ToPascalCase(), NodeType = nodeType, ParentId = currentHolon.Id });
         }
        
         private static OASISResult<bool> BootOASIS(string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
