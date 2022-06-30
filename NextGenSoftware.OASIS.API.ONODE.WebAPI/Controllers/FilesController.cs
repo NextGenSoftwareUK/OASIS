@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetAllFilesStoredForCurrentLoggedInAvatar")]
+        [HttpGet("get-all-files-stored-for-current-logged-in-avatar")]
         public async Task<OASISResult<bool>> GetAllFilesStoredForCurrentLoggedInAvatar()
         {
             // TODO: Finish implementing.
