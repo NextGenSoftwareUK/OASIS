@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class AvatarManager : OASISManager
     {
-        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailAsync(Guid id, IAvatarDetail avatarDetail)
+        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailAsync(Guid id, IAvatarDetail avatarDetail, bool appendChildObjects = false)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             string errorMessage = $"Error in UpdateAvatarDetailAsync method in AvatarManager for id {id}. Reason: ";
@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailByEmailAsync(string email, IAvatarDetail avatarDetail)
+        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailByEmailAsync(string email, IAvatarDetail avatarDetail, bool appendChildObjects = false)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             string errorMessage = $"Error in UpdateAvatarDetailByEmailAsync method in AvatarManager updating for email {email}. Reason: ";
@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailByUsernameAsync(string username, IAvatarDetail avatarDetail)
+        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailByUsernameAsync(string username, IAvatarDetail avatarDetail, bool appendChildObjects = false)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             string errorMessage = $"Error in UpdateAvatarDetailByUsernameAsync method in AvatarManager updating for username {username}. Reason: ";

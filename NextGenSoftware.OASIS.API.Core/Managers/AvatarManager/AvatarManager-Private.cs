@@ -1045,7 +1045,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailAsync(IAvatarDetail avatarDetailOriginal, IAvatarDetail avatarDetailToUpdate, string errorMessage)
+        private async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailAsync(IAvatarDetail avatarDetailOriginal, IAvatarDetail avatarDetailToUpdate, string errorMessage, bool appendChildObjects = false)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
 
@@ -1117,10 +1117,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (avatarDetailOriginal.DimensionLevel != avatarDetailToUpdate.DimensionLevel)
                 avatarDetailOriginal.DimensionLevel = avatarDetailToUpdate.DimensionLevel;
 
-            //foreach (Achievement achievement in avatarDetailToUpdate.Achievements)
-            //{
+            if (avatarDetailToUpdate.Achievements.Count > 0)
+            {
+                if (!appendChildObjects)
+                    avatarDetailOriginal.Achievements.Clear();
 
-            //}
+                avatarDetailOriginal.Achievements.AddRange(avatarDetailToUpdate.Achievements);
+            }
+
 
             //TODO: Apply to all other properties. Use AutoMapper here instead! ;-)
 
