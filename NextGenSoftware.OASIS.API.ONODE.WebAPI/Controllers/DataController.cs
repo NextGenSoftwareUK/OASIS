@@ -47,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("LoadHolon/{id}")]
+        [HttpGet("load-holon/{id}")]
         public async Task<OASISResult<IHolon>> LoadHolon(Guid id)
         { 
             return await HolonManager.LoadHolonAsync(id);
@@ -61,7 +61,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("LoadHolon/{id}/{providerType}/{setGlobally}")]
+        [HttpGet("load-holon/{id}/{providerType}/{setGlobally}")]
         public async Task<OASISResult<IHolon>> LoadHolon(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             // TODO: Finish implementing (will tie into the HDK/ODK/Star project)
@@ -72,10 +72,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Load's all holons
         /// </summary>
-        /// <param name="id"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("LoadAllHolons")]
+        [HttpGet("load-all-holons")]
         public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolons()
         {
             return await HolonManager.LoadAllHolonsAsync();
@@ -88,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("LoadAllHolons/{providerType}/{setGlobally}")]
+        [HttpGet("load-all-holons/{providerType}/{setGlobally}")]
         public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolons(ProviderType providerType, bool setGlobally = false)
         {
             return await LoadAllHolons();
@@ -101,7 +100,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="holonType"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("LoadAllHolonsForParent/{id}/{holonType}")]
+        [HttpGet("load-all-holons-for-parent/{id}/{holonType}")]
         public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsForParent(Guid id, HolonType holonType = HolonType.All)
         {
             return await HolonManager.LoadHolonsForParentAsync(id, holonType);
@@ -116,7 +115,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("LoadAllHolonsForParent/{id}/{holonType}/{providerType}/{setGlobally}")]
+        [HttpGet("load-all-holons-for-parent/{id}/{holonType}/{providerType}/{setGlobally}")]
         public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsForParent(Guid id, HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
@@ -130,7 +129,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="holonType"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("LoadAllHolonsForParent/{providerKey}/{holonType}")]
+        [HttpGet("load-all-holons-for-parent/{providerKey}/{holonType}")]
         public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsForParent(string providerKey, HolonType holonType = HolonType.All)
         {
             return await HolonManager.LoadHolonsForParentAsync(providerKey, holonType);
@@ -145,7 +144,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("LoadAllHolonsForParent/{providerKey}/{holonType}/{providerType}/{setGlobally}")]
+        [HttpGet("load-all-holons-for-parent/{providerKey}/{holonType}/{providerType}/{setGlobally}")]
         public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsForParent(string providerKey, HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
@@ -158,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="holon"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("SaveHolon")]
+        [HttpPost("save-holon")]
         public async Task<OASISResult<IHolon>> SaveHolon(IHolon holon)
         {
             return await HolonManager.SaveHolonAsync(holon); 
@@ -172,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("SaveHolon/{providerType}/{setGlobally}")]
+        [HttpPost("save-holon/{providerType}/{setGlobally}")]
         public async Task<OASISResult<IHolon>> SaveHolon(Holon holon, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
@@ -187,7 +186,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="onChainProviderType"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("SaveHolonOffChain/{holon}/{offChainProviderType}/{onChainProviderType}")]
+        [HttpPost("save-holon-off-chain/{holon}/{offChainProviderType}/{onChainProviderType}")]
         public async Task<OASISResult<IHolon>> SaveHolon(Holon holon, ProviderType offChainProviderType, ProviderType onChainProviderType)
         {
             // TODO: Finish implementing (will tie into the HDK/ODK/Star project)
@@ -205,7 +204,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpDelete("DeleteHolon/{id}")]
+        [HttpDelete("delete-holon/{id}")]
         public async Task<OASISResult<bool>> DeleteHolon(Guid id)
         {
             return await HolonManager.DeleteHolonAsync(id);
@@ -219,7 +218,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpDelete("DeleteHolon/{id}/{providerType}/{setGlobally}")]
+        [HttpDelete("delete-holon/{id}/{providerType}/{setGlobally}")]
         public async Task<OASISResult<bool>> DeleteHolon(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             // TODO: Finish implementing (will tie into the HDK/ODK/Star project)
