@@ -1125,6 +1125,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatarDetailOriginal.Achievements.AddRange(avatarDetailToUpdate.Achievements);
             }
 
+            if (avatarDetailOriginal.Attributes.Magic != avatarDetailToUpdate.Attributes.Magic && avatarDetailToUpdate.Attributes.Magic > 0)
+                avatarDetailOriginal.Attributes.Magic = avatarDetailToUpdate.Attributes.Magic;
+
+            if (avatarDetailOriginal.Attributes.Wisdom != avatarDetailToUpdate.Attributes.Wisdom && avatarDetailToUpdate.Attributes.Wisdom > 0)
+                avatarDetailOriginal.Attributes.Wisdom = avatarDetailToUpdate.Attributes.Wisdom;
+
+            if (avatarDetailOriginal.Attributes.Intelligence != avatarDetailToUpdate.Attributes.Wisdom && avatarDetailToUpdate.Attributes.Intelligence > 0)
+                avatarDetailOriginal.Attributes.Intelligence = avatarDetailToUpdate.Attributes.Intelligence;
+
+
 
             //TODO: Apply to all other properties. Use AutoMapper here instead! ;-)
 
