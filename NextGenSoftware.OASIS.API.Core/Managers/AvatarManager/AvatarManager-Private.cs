@@ -1131,9 +1131,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (avatarDetailOriginal.Attributes.Wisdom != avatarDetailToUpdate.Attributes.Wisdom && avatarDetailToUpdate.Attributes.Wisdom > 0)
                 avatarDetailOriginal.Attributes.Wisdom = avatarDetailToUpdate.Attributes.Wisdom;
 
-            if (avatarDetailOriginal.Attributes.Intelligence != avatarDetailToUpdate.Attributes.Wisdom && avatarDetailToUpdate.Attributes.Intelligence > 0)
+            if (avatarDetailOriginal.Attributes.Intelligence != avatarDetailToUpdate.Attributes.Intelligence && avatarDetailToUpdate.Attributes.Intelligence > 0)
                 avatarDetailOriginal.Attributes.Intelligence = avatarDetailToUpdate.Attributes.Intelligence;
 
+            //TODO: Finish...
 
 
             //TODO: Apply to all other properties. Use AutoMapper here instead! ;-)
