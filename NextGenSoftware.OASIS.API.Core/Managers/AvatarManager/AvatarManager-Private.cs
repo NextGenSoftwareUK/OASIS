@@ -1117,6 +1117,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (avatarDetailOriginal.DimensionLevel != avatarDetailToUpdate.DimensionLevel)
                 avatarDetailOriginal.DimensionLevel = avatarDetailToUpdate.DimensionLevel;
 
+            //foreach (Achievement achievement in avatarDetailToUpdate.Achievements)
+            //{
+
+            //}
+
             //TODO: Apply to all other properties. Use AutoMapper here instead! ;-)
 
             result = await SaveAvatarDetailAsync(avatarDetailOriginal);

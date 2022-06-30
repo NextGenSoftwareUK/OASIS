@@ -21,6 +21,7 @@ using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using Ipfs;
+using MongoDB.Driver;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
@@ -360,9 +361,33 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Restaurant)); //  Loads all resaurants from all providers.
 
             // Holochain Support
-            //TODO: Sort this out soon! ;-)
-            ShowWorkingMessage("Loading All Restaurant Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
-            await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.Config.AgentPubKey, "our_world_core", "load_holons", null);
+
+            try
+            {
+                ShowWorkingMessage("Initiating Holochain Tests...");
+
+                if (!STAR.OASISAPI.Providers.Holochain.ProviderActivated)
+                {
+                    ShowWorkingMessage("Activating Holochain Provider...");
+                    STAR.OASISAPI.Providers.Holochain.ActivateProvider();
+                    ShowSuccessMessage("Holochain Provider Activated.");
+                }
+
+                ShowWorkingMessage("Loading Avatar By Email...");
+                OASISResult<IAvatar> avatarResultHolochain = STAR.OASISAPI.Providers.Holochain.LoadAvatarByEmail("davidellams@hotmail.com");
+
+                if (!avatarResultHolochain.IsError && avatarResultHolochain.Result != null)
+                    ShowSuccessMessage($"Avatar Loaded Successfully. Id: {avatarResultHolochain.Result.Id}");
+
+                ShowWorkingMessage("Calling Test Zome Function on HoloNET Client...");
+                await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.Config.AgentPubKey, "our_world_core", "load_holons", null);
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error occured during Holochain Tests: {ex.Message}");
+            }
+
+            ShowSuccessMessage("Holochain Tests Completed.");
 
             // IPFS Support
             try
@@ -388,6 +413,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowErrorMessage($"Error occured during IPFS Tests: {ex.Message}");
             }
 
+            ShowSuccessMessage("IPFS Tests Completed.");
+
             // Ethereum Support
             try
             {
@@ -408,6 +435,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 ShowErrorMessage($"Error occured during Ethereum Tests: {ex.Message}");
             }
+
+            ShowSuccessMessage("Ethereum Tests Completed.");
 
             // EOSIO Support
             try
@@ -431,6 +460,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowErrorMessage($"Error occured during EOSIO Tests: {ex.Message}");
             }
 
+            ShowSuccessMessage("EOSIO Tests Completed.");
+
             // Graph DB Support
             try
             {
@@ -452,6 +483,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowErrorMessage($"Error occured during Neo4j Tests: {ex.Message}");
             }
 
+            ShowSuccessMessage("Neo4j Tests Completed.");
+
             // Document/Object DB Support
             try
             {
@@ -464,13 +497,23 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     ShowSuccessMessage("MongoDB Provider Activated.");
                 }
 
+                ShowWorkingMessage("Listing Collction Names...");
                 STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.ListCollectionNames();
+
+                ShowWorkingMessage("Getting Avatar Collection...");
+                //IMongoCollection<IAvatar> collection = STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("Avatar");
                 STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("Avatar");
+
+                //if (collection != null)
+                //    ShowSuccessMessage($"{collection.Coi} avatars found.");
+
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Error occured during MongoDB Tests: {ex.Message}");
             }
+
+            ShowSuccessMessage("MongoDB Tests Completed.");
 
             // SEEDS Support
             try
@@ -521,19 +564,19 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     OASISResult<Guid> linkKeyResult = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarById(Guid.Empty, STAR.LoggedInAvatar.Id, ProviderType.TelosOASIS, "davidsellams");
 
                     if (!linkKeyResult.IsError && linkKeyResult.Result != Guid.Empty)
-                        ShowSuccessMessage("Telos Account Successfully Linked to Avatar.");
+                        ShowSuccessMessage($"Telos Account Successfully Linked to Avatar. WalletID: {linkKeyResult.Result}");
                     else
-                        ShowErrorMessage("Error occured Whilst Linking Telos Account To Avatar.");
+                        ShowErrorMessage($"Error occured Whilst Linking Telos Account To Avatar. Reason: {linkKeyResult.Message}");
                 }
 
                 ShowWorkingMessage("Sending SEEDS from nextgenworld to davidsellams...");
                 OASISResult<string> payWithSeedsResult = STAR.OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("davidsellams", _privateKey, "nextgenworld", 1, KarmaSourceType.API, "test", "test", "test", "test memo");
-                ShowSuccessMessage(string.Concat("Success: ", payWithSeedsResult.IsError ? "false" : "true"));
-
+                
                 if (payWithSeedsResult.IsError)
-                    ShowErrorMessage(string.Concat("Error Message: ", payWithSeedsResult.Message));
+                    ShowErrorMessage(string.Concat("Error Occured: ", payWithSeedsResult.Message));
+                else
+                    ShowSuccessMessage(string.Concat("SEEDS Sent. Transaction ID: ", payWithSeedsResult.Result));
 
-                ShowSuccessMessage(string.Concat("Result: ", payWithSeedsResult.Result));
 
                 ShowWorkingMessage("Getting Balance for account davidsellams...");
                 balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
@@ -579,6 +622,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 ShowErrorMessage($"Error occured during SEEDS Tests: {ex.Message}");
             }
+
+            ShowSuccessMessage("SEEDS Tests Completed.");
 
 
             // ThreeFold, AcivityPub, SOLID, Cross/Off Chain, Smart Contract Interoperability & lots more coming soon! :)
