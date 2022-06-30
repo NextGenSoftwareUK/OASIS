@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="avatar"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetAllOAPPsInstalledForCurrentLoggedInAvatar")]
+        [HttpGet("get-all-oapps-installed-for-current-logged-in-avatar")]
         public OASISResult<bool> GetAllOAPPsInstalledForCurrentLoggedInAvatar()
         {
             // TODO: Finish implementing.

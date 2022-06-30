@@ -23,14 +23,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await _scmsRepository.GetAllDeliveries();
         }
 
-        [HttpGet("GetAllDeliveriesForSequenceAndPhase/{sequenceNo}/{phaseNo}/{loadDeliveryItems}/{loadSignedByUser}/{loadSentToPhase}/{loadFile}")]
+        [HttpGet("get-all-deliveries-for-sequence-and-phase/{sequenceNo}/{phaseNo}/{loadDeliveryItems}/{loadSignedByUser}/{loadSentToPhase}/{loadFile}")]
         public async Task<OASISResult<IEnumerable<Delivery>>> GetAllDeliveriesForSequenceAndPhase(int SequenceNo, int PhaseNo, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadFile = true)
         {
             GetAndActivateDefaultProvider();
             return await _scmsRepository.GetAllDeliveries(SequenceNo, PhaseNo, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadFile);
         }
         
-        [HttpGet("GetAllDeliveriesForSequenceAndPhase/{sequenceNo}/{phaseNo}")]
+        [HttpGet("get-all-deliveries-for-sequence-and-phase/{sequenceNo}/{phaseNo}")]
         public async Task<OASISResult<IEnumerable<Delivery>>> GetAllDeliveriesForSequenceAndPhase(int SequenceNo, int PhaseNo)
         {
             GetAndActivateDefaultProvider();

@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="avatar"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("SendMessageToAvatar/{avatar}")]
+        [HttpPost("send-message-to-avatar/{avatar}")]
         public OASISResult<bool> SendMessageToAvatar(IAvatar avatar)
         {
             // TODO: Finish implementing.
