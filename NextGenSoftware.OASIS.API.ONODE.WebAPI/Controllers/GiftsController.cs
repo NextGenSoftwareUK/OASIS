@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetAllGiftsForCurrentLoggedInAvatar")]
+        [HttpGet("get-all-gifts-for-current-logged-in-avatar")]
         public OASISResult<bool> GetAllGiftsForCurrentLoggedInAvatar()
         {
             // TODO: Finish implementing.

@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetAllSettingsForCurrentLoggedInAvatar")]
+        [HttpGet("get-all-settings-for-current-logged-in-avatar")]
         public OASISResult<bool> GetAllSettingsForCurrentLoggedInAvatar()
         {
             // TODO: Finish implementing.

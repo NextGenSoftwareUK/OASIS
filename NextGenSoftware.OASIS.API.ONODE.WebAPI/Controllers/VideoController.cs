@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("StartVideoCall")]
+        [HttpGet("start-video-call")]
         public OASISResult<bool> StartVideoCall()
         {
             // TODO: Finish implementing.

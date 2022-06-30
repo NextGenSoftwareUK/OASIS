@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetStatsForCurrentLoggedInAvatar")]
+        [HttpGet("get-stats-for-current-logged-in-avatar")]
         public OASISResult<bool> GetStatsForCurrentLoggedInAvatar()
         {
             // TODO: Finish implementing.
@@ -36,14 +36,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("GetCurrentLiveVersion")]
+        [HttpGet("get-current-live-version")]
         public OASISResult<string> GetCurrentLiveVersion()
         {
             return new(_OASISDNA.OASIS.CurrentLiveVersion) { IsError = false, Message = "OK" };
         }
         
         [AllowAnonymous]
-        [HttpGet("GetCurrentStagingVersion")]
+        [HttpGet("get-current-staging-version")]
         public OASISResult<string> GetCurrentStagingVersion()
         {
             return new(_OASISDNA.OASIS.CurrentStagingVersion) { IsError = false, Message = "OK" };
