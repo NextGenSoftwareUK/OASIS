@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("GenerateMoon")]
+        [HttpPost("generate-moon")]
         public OASISResult<bool> GenerateMoon()
         {
             // TODO: Finish implementing.
