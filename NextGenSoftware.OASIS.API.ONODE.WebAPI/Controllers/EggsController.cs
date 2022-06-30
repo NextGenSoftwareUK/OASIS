@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetAllEggs")]
+        [HttpGet("get-all-eggs")]
         public async Task<OASISResult<bool>> GetAllEggs()
         {
             // TODO: Finish implementing.
@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetCurrentEggQuests")]
+        [HttpGet("get-current-egg-quests")]
         public async Task<OASISResult<bool>> GetCurrentEggQuests()
         {
             // TODO: Finish implementing.
@@ -53,7 +53,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetCurrentEggQuestLeaderBoard")]
+        [HttpGet("get-current-egg-quest-leader-board")]
         public async Task<OASISResult<bool>> GetCurrentEggQuestLeaderBoard()
         {
             // TODO: Finish implementing.

@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("ShareHolon")]
+        [HttpGet("share-holon")]
         public OASISResult<bool> GetSocialFeed()
         {
             // TODO: Finish implementing.
@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("RegisterSocialProvider")]
+        [HttpPost("register-social-provider")]
         public OASISResult<bool> RegisterSocialProvider()
         {
             // TODO: Finish implementing.

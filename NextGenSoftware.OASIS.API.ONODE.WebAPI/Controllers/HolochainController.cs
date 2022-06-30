@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="avatarId"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetHolochainAgentIdsForAvatar")]
+        [HttpGet("get-holochain-agentids-for-avatar")]
         public OASISResult<List<string>> GetHolochainAgentIdsForAvatar(Guid avatarId)
         {
             return KeyManager.GetProviderPublicKeysForAvatarById(avatarId, ProviderType.HoloOASIS);
@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="avatarId"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetHolochainAgentPrivateKeysForAvatar")]
+        [HttpGet("get-holochain-agent-private-keys-for-avatar")]
         public OASISResult<List<string>> GetHolochainAgentPrivateKeysForAvatar(Guid avatarId)
         {
             return KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, ProviderType.HoloOASIS);
@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="agentId"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetAvatarIdForHolochainAgentId")]
+        [HttpGet("get-avatar-id-for-holochain-agentid")]
         public OASISResult<Guid> GetAvatarIdForHolochainAgentId(string agentId)
         {
             //TODO: Test that returning a GUID works?
@@ -80,7 +80,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="agentId"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetAvatarForHolochainAgentId")]
+        [HttpGet("get-avatar-for-holochain-agentid")]
         public OASISResult<IAvatar> GetAvatarForHolochainAgentId(string agentId)
         {
             return KeyManager.GetAvatarForProviderPublicKey(agentId, ProviderType.HoloOASIS);
@@ -92,7 +92,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="agentID"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetHoloFuelBalanceForAgentId")]
+        [HttpGet("get-holo-fuel-balance-for-agentId")]
         public OASISResult<string> GetHoloFuelBalanceForAgentId(string agentID)
         {
             return new();
@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="avatarId"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetHoloFuelBalanceForAvatar")]
+        [HttpGet("get-holo-fuel-balance-for-avatar")]
         public OASISResult<string> GetHoloFuelBalanceForAvatar(Guid avatarId)
         {
             return new();
