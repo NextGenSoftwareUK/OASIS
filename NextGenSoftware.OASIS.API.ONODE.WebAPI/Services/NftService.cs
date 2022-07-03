@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         private readonly ISolanaService _solanaService;
         private readonly ICargoService _cargoService;
 
-        private readonly OlandManager _olandManager;
+        private readonly OLANDManager _olandManager;
 
         private const int OlandUnitPrice = 17;
 
@@ -53,7 +53,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             _solanaService = solanaService;
             _cargoService = cargoService;
-            _olandManager = new OlandManager();
+            _olandManager = new OLANDManager();
         }
 
         public async Task<OASISResult<NftTransactionRespone>> CreateNftTransaction(CreateNftTransactionRequest request)

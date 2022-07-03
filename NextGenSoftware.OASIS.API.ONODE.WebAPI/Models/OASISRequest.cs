@@ -18,6 +18,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models
         public string AutoReplicationProviders { get; set; }
         public string AutoLoadBalanceProviders { get; set; }
         public bool WaitForAutoReplicationResult { get; set; }
-        public bool ShowDetailedSettings { get; set; }
+        public bool ShowDetailedSettings { get; set; } = true;
     }
 }
