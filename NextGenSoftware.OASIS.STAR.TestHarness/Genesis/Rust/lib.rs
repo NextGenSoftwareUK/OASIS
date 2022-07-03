@@ -5,6 +5,7 @@ use hdk_proc_macros::zome;
 use holochain_entry_utils::HolochainEntry;
 
 // see https://developer.holochain.org/api/0.0.50-alpha4/hdk/ for info on using the hdk library
+
 impl HolochainEntry for SuperHolon {
     fn entry_type() -> String {
         String::from("super_holon")
@@ -30,7 +31,6 @@ test_string: String,
 test_int: i32,
 test_bool: bool
 }
-
 
 #[zome]
 mod super_zome {

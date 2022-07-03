@@ -776,7 +776,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.ParentMoonId = avatar.Result.ParentMoonId;
             oasisAvatar.ParentMoon = avatar.Result.ParentMoon;
             oasisAvatar.Children = avatar.Result.Children;
-            oasisAvatar.Nodes = avatar.Result.Nodes;
+            //oasisAvatar.Nodes = avatar.Result.Nodes;
+
+            if (avatar.Result.Nodes != null)
+            {
+                foreach (INode node in avatar.Result.Nodes)
+                    oasisAvatar.Nodes.Add(node);
+            }
 
             result.Result = oasisAvatar;
             return result;
@@ -1025,19 +1031,36 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.ParentMoonId = avatar.ParentMoonId;
             mongoAvatar.ParentMoon = avatar.ParentMoon;
             mongoAvatar.Children = avatar.Children;
-            mongoAvatar.Nodes = avatar.Nodes;
+            // mongoAvatar.Nodes = avatar.Nodes;
+
+            if (avatar.Nodes != null)
+            {
+                List<Node> nodes = new List<Node>();
+                foreach (INode node in avatar.Nodes)
+                    nodes.Add((Node)node);
+
+                mongoAvatar.Nodes = nodes;
+            }
 
             return mongoAvatar;
         }
 
         private OASISResult<IHolon> ConvertMongoEntityToOASISHolon(OASISResult<Holon> holon)
         {
-            OASISResult<IHolon> result = new OASISResult<IHolon>(new Core.Holons.Holon());
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
             OASISResultHolonToHolonHelper<Holon, IHolon>.CopyResult(holon, result);
 
             if (holon.IsError || holon.Result == null)
-                return result;
+            {
+                holon.IsError = true;
 
+                //if (string.IsNullOrEmpty(holon.Message))
+                //    holon.Message = $"The holon with id {} was not found.";
+
+                return result;
+            }
+
+            result.Result = new Core.Holons.Holon();
             result.Result.IsNewHolon = false; //TODO: Not sure if best to default all new Holons to have this set to true or not?
             result.Result.Id = holon.Result.HolonId;
             result.Result.ProviderUniqueStorageKey = holon.Result.ProviderUniqueStorageKey;
@@ -1090,7 +1113,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             result.Result.ParentMoonId = holon.Result.ParentMoonId;
             result.Result.ParentMoon = holon.Result.ParentMoon;
             result.Result.Children = holon.Result.Children;
-            result.Result.Nodes = holon.Result.Nodes;
+            //result.Result.Nodes = holon.Result.Nodes;
+
+            if (holon.Result.Nodes != null)
+            {
+                result.Result.Nodes = new System.Collections.ObjectModel.ObservableCollection<INode>();
+                foreach (INode node in holon.Result.Nodes)
+                    result.Result.Nodes.Add(node);
+            }
+
             result.Result.CreatedByAvatarId = Guid.Parse(holon.Result.CreatedByAvatarId);
             result.Result.CreatedDate = holon.Result.CreatedDate;
             result.Result.DeletedByAvatarId = Guid.Parse(holon.Result.DeletedByAvatarId);
@@ -1110,8 +1141,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             Holon mongoHolon = new Holon();
 
-           // if (holon.CreatedProviderType != null)
-           //     mongoHolon.CreatedProviderType = holon.CreatedProviderType.Value;
+            // if (holon.CreatedProviderType != null)
+            //     mongoHolon.CreatedProviderType = holon.CreatedProviderType.Value;
 
             if (holon.ProviderUniqueStorageKey != null && holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
                 mongoHolon.Id = holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS];
@@ -1164,7 +1195,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoHolon.ParentMoonId = holon.ParentMoonId;
             mongoHolon.ParentMoon = holon.ParentMoon;
             mongoHolon.Children = holon.Children;
-            mongoHolon.Nodes = holon.Nodes;
+            //mongoHolon.Nodes = holon.Nodes;
+
+            if (holon.Nodes != null)
+            {
+                List<Node> nodes = new List<Node>();
+                foreach (INode node in holon.Nodes)
+                    nodes.Add((Node)node);
+
+                mongoHolon.Nodes = nodes;
+            }
+
             mongoHolon.CreatedByAvatarId = holon.CreatedByAvatarId.ToString();
             mongoHolon.CreatedDate = holon.CreatedDate;
             mongoHolon.DeletedByAvatarId = holon.DeletedByAvatarId.ToString();

@@ -6,7 +6,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 {
     public static class HttpResponseHelper
     {
-        public static OASISHttpResponseMessage<T> FormatResponse<T>(OASISResult<T> response, HttpStatusCode statusCode , bool showDetailedSettings = false, AutoFailOverMode autoFailOverMode = AutoFailOverMode.NotSet, AutoReplicationMode autoReplicationMode = AutoReplicationMode.NotSet, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.NotSet)
+        //public static OASISHttpResponseMessage<T> FormatResponse<T>(OASISResult<T> response, HttpStatusCode statusCode , bool showDetailedSettings = false, AutoFailOverMode autoFailOverMode = AutoFailOverMode.NotSet, AutoReplicationMode autoReplicationMode = AutoReplicationMode.NotSet, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.NotSet)
+        public static OASISHttpResponseMessage<T> FormatResponse<T>(OASISResult<T> response, HttpStatusCode statusCode, bool showDetailedSettings = false)
         {
             //Make sure no Error Details are in the Message.
             if (response.IsError && response.Message.IndexOf("\n\nError Details:\n") > 0)
@@ -26,7 +27,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                 response.DetailedMessage = response.DetailedMessage.Replace("\r", " ").Trim();
             }
 
-            return new OASISHttpResponseMessage<T>(response, statusCode, showDetailedSettings, autoFailOverMode, autoReplicationMode, autoLoadBalanceMode);
+            //return new OASISHttpResponseMessage<T>(response, statusCode, showDetailedSettings, autoFailOverMode, autoReplicationMode, autoLoadBalanceMode);
+            return new OASISHttpResponseMessage<T>(response, statusCode, showDetailedSettings);
         }
 
         public static OASISHttpResponseMessage<T> FormatResponse<T>(OASISResult<T> response)

@@ -4,9 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http.Description;
 using Microsoft.AspNetCore.Http;
-using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -321,146 +319,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Authenticate and log in using the given avatar credentials.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost("authenticate")]
         [ResponseType(typeof(OASISHttpResponseMessage<IAvatar>))]
-        public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest model)
+        public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest request)
         {
-            string currentAutoReplicationList = null;
-            string currentAutoFailOverList = null;
-            string currentAutoLoadBalanaceList = null;
-            object providerTypeObject = null;
-            ProviderType providerTypeOverride = ProviderType.Default;
-            AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA;
-            AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA;
-            AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA;
-            bool autoReplicationEnabledTemp = true;
-            bool autoFailOverEnabledTemp = true;
-            bool autoLoadBalanceEnabledTemp = true;
+            OASISConfigResult<IAvatar> configResult = ConfigureOASISSettings<IAvatar>(request);
 
-            if (model.AutoReplicationEnabled != "default" && !bool.TryParse(model.AutoReplicationEnabled, out autoReplicationEnabledTemp))
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"AutoReplicationEnabled must be either true, false or default but found {model.AutoReplicationEnabled}" });
+            if (configResult.IsError && configResult.Response != null)
+                return configResult.Response;
 
-            if (model.AutoFailOverEnabled != "default" && !bool.TryParse(model.AutoFailOverEnabled, out autoFailOverEnabledTemp))
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"AutoFailOverEnabled must be either true, false or default but found {model.AutoFailOverEnabled}" });
-
-            if (model.AutoLoadBalanceEnabled != "default" && !bool.TryParse(model.AutoLoadBalanceEnabled, out autoLoadBalanceEnabledTemp))
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"AutoLoadBlanaceEnabled must be either true, false or default but found {model.AutoLoadBalanceEnabled}" });
-
-
-            if (!string.IsNullOrEmpty(model.ProviderType) && !Enum.TryParse(typeof(ProviderType), model.ProviderType, out providerTypeObject))
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Message = $"The ProviderType {model.ProviderType} passed in is invalid. It must be one of the following types: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}.", IsError = true }, HttpStatusCode.BadRequest);
-
-            if (!string.IsNullOrEmpty(model.AutoReplicationProviders))
-            {
-                if (model.AutoReplicationProviders != "default")
-                {
-                    OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoReplication", model.AutoReplicationProviders);
-
-                    if (listResult.WarningCount > 0)
-                        return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Message = listResult.Message }, HttpStatusCode.BadRequest);
-                }
-            }
-
-            if (!string.IsNullOrEmpty(model.AutoFailOverProviders))
-            {
-                if (model.AutoFailOverProviders != "default")
-                {
-                    OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoFailOver", model.AutoFailOverProviders);
-
-                    if (listResult.WarningCount > 0)
-                        return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Message = listResult.Message }, HttpStatusCode.BadRequest);
-                }
-            }
-
-            if (!string.IsNullOrEmpty(model.AutoLoadBalanceProviders))
-            {
-                if (model.AutoLoadBalanceProviders != "default")
-                {
-                    OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoLoadBalance", model.AutoLoadBalanceProviders);
-
-                    if (listResult.WarningCount > 0)
-                        return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Message = listResult.Message }, HttpStatusCode.BadRequest);
-                }
-            }
-
-            if (providerTypeObject != null)
-                providerTypeOverride = (ProviderType)providerTypeObject;
-
-            if (providerTypeOverride != ProviderType.Default && providerTypeOverride != ProviderType.None)
-                GetAndActivateProvider(providerTypeOverride, model.SetGlobally);
-
-            //if (model.AutoReplicationEnabled.HasValue)
-            //    autoReplicationMode = model.AutoReplicationEnabled.Value ? AutoReplicationMode.True : AutoReplicationMode.False;
-
-            //if (model.AutoFailOverEnabled.HasValue)
-            //    autoFailOverMode = model.AutoFailOverEnabled.Value ? AutoFailOverMode.True : AutoFailOverMode.False;
-
-            //if (model.AutoLoadBalanceEnabled.HasValue)
-            //    autoLoadBalanceMode = model.AutoLoadBalanceEnabled.Value ? AutoLoadBalanceMode.True : AutoLoadBalanceMode.False;
-
-            autoReplicationMode = model.AutoReplicationEnabled == "default" ? AutoReplicationMode.UseGlobalDefaultInOASISDNA : autoReplicationEnabledTemp == true ? AutoReplicationMode.True : AutoReplicationMode.False;
-            autoFailOverMode = model.AutoFailOverEnabled == "default" ? AutoFailOverMode.UseGlobalDefaultInOASISDNA : autoFailOverEnabledTemp == true ? AutoFailOverMode.True : AutoFailOverMode.False;
-            autoLoadBalanceMode = model.AutoLoadBalanceEnabled == "default" ? AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA : autoLoadBalanceEnabledTemp == true ? AutoLoadBalanceMode.True : AutoLoadBalanceMode.False;
-
-            if (!string.IsNullOrEmpty(model.AutoReplicationProviders))
-            {
-                currentAutoReplicationList = ProviderManager.GetProvidersThatAreAutoReplicatingAsString();
-
-                if (model.AutoReplicationProviders == "default")
-                    ProviderManager.SetAndReplaceAutoReplicationListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoReplicationProviders);
-                else
-                    ProviderManager.SetAndReplaceAutoReplicationListForProviders(model.AutoReplicationProviders);
-            }
-
-            if (!string.IsNullOrEmpty(model.AutoFailOverProviders))
-            {
-                currentAutoFailOverList = ProviderManager.GetProviderAutoFailOverListAsString();
-
-                if (model.AutoFailOverProviders == "default")
-                    ProviderManager.SetAndReplaceAutoFailOverListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoFailOverProviders);
-                else
-                    ProviderManager.SetAndReplaceAutoFailOverListForProviders(model.AutoFailOverProviders);
-            }
-
-            if (!string.IsNullOrEmpty(model.AutoLoadBalanceProviders))
-            {
-                currentAutoLoadBalanaceList = ProviderManager.GetProviderAutoLoadBalanceListAsString();
-
-                if (model.AutoLoadBalanceProviders == "default")
-                    ProviderManager.SetAndReplaceAutoLoadBalanceListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders);
-                else
-                    ProviderManager.SetAndReplaceAutoLoadBalanceListForProviders(model.AutoLoadBalanceProviders);
-            }
-
-            //if (model.WaitForAutoReplicationResult && !waitForAutoReplicationResult)
-            //    waitForAutoReplicationResult = true;
-
-            //if (model.ShowDetailedSettings && !showDetailedSettings)
-            //    showDetailedSettings = true;
-
-            var result = await Program.AvatarManager.AuthenticateAsync(model.Username, model.Password, ipAddress(), autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, model.WaitForAutoReplicationResult);
-
-            if (currentAutoReplicationList != null && !model.SetGlobally)
-                ProviderManager.SetAndReplaceAutoReplicationListForProviders(currentAutoReplicationList);
-
-            if (currentAutoFailOverList != null && !model.SetGlobally)
-                ProviderManager.SetAndReplaceAutoFailOverListForProviders(currentAutoFailOverList);
-
-            if (currentAutoLoadBalanaceList != null && !model.SetGlobally)
-                ProviderManager.SetAndReplaceAutoLoadBalanceListForProviders(currentAutoLoadBalanaceList);
+            var result = await Program.AvatarManager.AuthenticateAsync(request.Username, request.Password, ipAddress(), configResult.AutoReplicationMode, configResult.AutoFailOverMode, configResult.AutoLoadBalanceMode, request.WaitForAutoReplicationResult);
+            ResetOASISSettings(request, configResult);
 
             if (!result.IsError && result.Result != null)
             {
                 setTokenCookie(result.Result.RefreshToken);
-                return HttpResponseHelper.FormatResponse(result, HttpStatusCode.OK, model.ShowDetailedSettings, autoFailOverMode, autoReplicationMode, autoLoadBalanceMode);
+                //return HttpResponseHelper.FormatResponse(result, HttpStatusCode.OK, request.ShowDetailedSettings, configResult.AutoFailOverMode, configResult.AutoReplicationMode, configResult.AutoLoadBalanceMode);
+                return HttpResponseHelper.FormatResponse(result, HttpStatusCode.OK, request.ShowDetailedSettings);
             }
             else
-                return HttpResponseHelper.FormatResponse(result, HttpStatusCode.Unauthorized, model.ShowDetailedSettings, autoFailOverMode, autoReplicationMode, autoLoadBalanceMode);
+                return HttpResponseHelper.FormatResponse(result, HttpStatusCode.Unauthorized, request.ShowDetailedSettings);
+            //return HttpResponseHelper.FormatResponse(result, HttpStatusCode.Unauthorized, request.ShowDetailedSettings, configResult.AutoFailOverMode, configResult.AutoReplicationMode, configResult.AutoLoadBalanceMode);
         }
-
-
 
 
         /// <summary>
@@ -492,19 +374,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest model, string providerType, bool setGlobally = false, AutoReplicationMode autoReplicatioMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, string autoReplicationProviders = null, string autoFailOverProviders = null, string autoLoadBalanceProviders = null, bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
         public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest model, string providerType, bool setGlobally = false, string autoReplicationEnabled = "default", string autoFailOverEnabled = "default", string autoLoadBalanceEnabled = "default", string autoReplicationProviders = "default", string autoFailOverProviders = "default", string autoLoadBalanceProviders = "default", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
         {
-            //bool autoReplicationEnabledTemp = true;
-            //bool autoFailOverEnabledTemp = true;
-            //bool autoLoadBalanceEnabledTemp = true;
-
-            //if (autoReplicationEnabled != "default" && !bool.TryParse(autoReplicationEnabled, out autoReplicationEnabledTemp))
-            //    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"AutoReplicationEnabled must be either true, false or default but found {autoReplicationEnabled}" });
-
-            //if (autoReplicationEnabled != "default" && !bool.TryParse(autoReplicationEnabled, out autoReplicationEnabledTemp))
-            //    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"AutoFailOverEnabled must be either true, false or default but found {autoFailOverEnabledTemp}" });
-
-            //if (autoReplicationEnabled != "default" && !bool.TryParse(autoReplicationEnabled, out autoReplicationEnabledTemp))
-            //    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"AutoLoadBlanaceEnabled must be either true, false or default but found {autoLoadBalanceEnabledTemp}" });
-
             model.ProviderType = providerType;
             model.SetGlobally = setGlobally;
             model.ShowDetailedSettings = showDetailedSettings;
@@ -516,18 +385,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             model.AutoFailOverEnabled = autoFailOverEnabled;
             model.AutoLoadBalanceEnabled = autoLoadBalanceEnabled;
 
-            //if (autoReplicationEnabled != "default")
-            //    model.AutoReplicationEnabled = autoReplicationEnabledTemp;
-
-            //if (autoReplicationEnabled != "default")
-            //    model.AutoFailOverEnabled = autoFailOverEnabledTemp;
-
-            //if (autoReplicationEnabled != "default")
-            //    model.AutoLoadBalanceEnabled = autoLoadBalanceEnabledTemp;
-
             //GetAndActivateProvider(providerType, setGlobally); //TODO: Not sure if this is needed here anymore because main method now handles this also?
             return await Authenticate(model);
-            //return await Authenticate(model, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, autoReplicationProviderList, autoFailOverProviderList, autoLoadBalanceProviderList, waitForAutoReplicationResult, showDetailedSettings);
         }
 
         /*
