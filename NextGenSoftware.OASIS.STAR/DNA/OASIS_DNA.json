@@ -7,8 +7,8 @@
   "AllowedHosts": "*",
   "OASIS": {
     "Terms": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n",
-    "CurrentStagingVersion": "v2.2.2",
-    "CurrentLiveVersion": "v2.2.2",
+    "CurrentStagingVersion": "v2.3.0",
+    "CurrentLiveVersion": "v2.3.0",
     "OASISVersion": "LIVE",
     "Logging": {
       "LoggingFramework": "NLog"
@@ -23,27 +23,27 @@
     "Security": {
       "HideVerificationToken": "true",
       "HideRefreshTokens": "true",
-      "SecretKey": "71DA7E48-B13B-428D-AF3C-6429B6B29367A6EDF84F-BDD0-443D-B9CA-C24B0EDEB882",
+      "SecretKey": "",
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",
-        "Rijndael256Key": "yNV4Q+Pccu6??2B&agdhn-6",
+        "Rijndael256Key": "",
         "QuantumEncryptionEnabled": "true"
       },
       "OASISProviderPrivateKeys": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",
-        "Rijndael256Key": "yNV4Q+Pccu6??2B&agdhn-6",
+        "Rijndael256Key": "",
         "QuantumEncryptionEnabled": "true"
       }
     },
     "Email": {
       "EmailFrom": "anorak@theoasisplatform.world",
-      "SmtpHost": "mailuk2.promailserver.com",
+      "SmtpHost": "",
       // "SmtpPort": 587,
       "SmtpPort": 25,
-      "SmtpUser": "anorak@oasisplatform.world",
-      "SmtpPass": "wrhm3gvuxcj]qpsknibdolyfta6:ze",
+      "SmtpUser": "",
+      "SmtpPass": "",
       "DisableAllEmails": "false", //This overrides the SendVerificationEmail setting below. MAKE SURE THIS IS FALSE FOR LIVE!
       "SendVerificationEmail": "true",
       "OASISWebSiteURL": "https://staging.oasisplatform.world"
@@ -71,14 +71,7 @@
       },
       "MongoDBOASIS": {
         "ConnectionString": "mongodb://localhost:27017",
-        //"ConnectionString": "mongodb+srv://dbadmin:V1K51w9DrfNEoFca@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
-        //"ConnectionString": "mongodb+srv://oasisadmin:4ABeZIUHwTVbiFWn@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
-        //"ConnectionString": "mongodb+srv://dbadmin:ZDVxEMHJJTfdtJ0S@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
-        // "ConnectionString": "mongodb+srv://oasisuser:EHPpjGAmW74lg8qS@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
-
-         "DBName": "OASISAPI_DEV"
-        //"DBName": "OASISAPI_TEST"
-        //"DBName": "OASISAPI_LIVE"
+        "DBName": "OASISAPI_DEV"
       },
       "SQLLiteDBOASIS": {
         "ConnectionString": "Data Source=OASISSQLLiteDB.db"
@@ -86,8 +79,8 @@
       "EOSIOOASIS": {
         "ConnectionString": "http://localhost:8888",
         "AccountName": "oasis",
-        "AccountPrivateKey": "5KUm4te3kPbR6Fmrmr5WwCw3pfkymVxdh44x1b9QFYhm66uwYsP",
-        "ChainId": "8a34ec7df1b8cd06ff4a8abbaa7cc50300823350cadc59ab296cb00d104d2b8f"
+        "AccountPrivateKey": "",
+        "ChainId": ""
       },
       "TelosOASIS": {
         "ConnectionString": "https://node.hypha.earth"
@@ -100,21 +93,21 @@
       },
       "EthereumOASIS": {
         "ConnectionString": "http://testchain.nethereum.com:8545",
-        "ChainPrivateKey": "0x7580e7fb49df1c861f0050fae31c2224c6aba908e116b8da44ee8cd927b990b0",
+        "ChainPrivateKey": "",
         "ChainId": 444444444500,
-        "ContractAddress": "0x06a2dabf7fec27d27f9283cb2de1cd328685510c"
+        "ContractAddress": ""
       },
       "Neo4JOASIS": {
         "ConnectionString": "http://localhost:7474",
-        "Username": "neo4j",
-        "Password": "letthereb@light!"
+        "Username": "",
+        "Password": ""
       },
       "IPFSOASIS": {
         "ConnectionString": "http://localhost:5001",
         "LookUpIPFSAddress": ""
       },
       "SolanaOASIS": {
-        "WalletMnemonicWords": "bullet nothing diamond universe detail east dinner code plunge charge poem ball cable clog spray purpose renew above clay brand control shallow turtle similar",
+        "WalletMnemonicWords": "",
         "ConnectionString": "https://api.mainnet-beta.solana.com"
       },
       "CargoOASIS": {

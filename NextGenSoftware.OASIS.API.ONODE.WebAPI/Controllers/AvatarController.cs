@@ -23,31 +23,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class AvatarController : OASISControllerBase
     {
         private readonly IAvatarService _avatarService;
-        //private KeyManager _keyManager = null;
-
-        //public KeyManager KeyManager
-        //{
-        //    get
-        //    {
-        //        if (_keyManager == null)
-        //        {
-        //            OASISHttpResponseMessage<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
-
-        //            if (result.IsError)
-        //                ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
-
-        //            _keyManager = new KeyManager(result.Result);
-        //        }
-
-        //        return _keyManager;
-        //    }
-        //}
-
         public AvatarController(IAvatarService avatarService)
         {
             _avatarService = avatarService;
-            //KeyManager.Init()
-            //KeyManager keyManager = new KeyManager()
         }
 
         /// <summary>
@@ -135,187 +113,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await VerifyEmail(model);
         }
 
-        /*
-        /// <summary>
-        /// Authenticate and log in using the given avatar credentials.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [HttpPost("authenticate")]
-        public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest model)
-        {
-            var response = await Program.AvatarManager.AuthenticateAsync(model.Username, model.Password, ipAddress());
-
-            if (!response.IsError && response.Result != null)
-                setTokenCookie(response.Result.RefreshToken);
-
-            return HttpResponseHelper.FormatResponse(response);
-        }
-        */
-
-        /*
-        /// <summary>
-        /// Authenticate and log in using the given avatar credentials.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [HttpPost("authenticate")]
-        [ResponseType(typeof(OASISHttpResponseMessage<IAvatar>))]
-        public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest model, bool showSettings = false)
-        {
-            var result = await Program.AvatarManager.AuthenticateAsync(model.Username, model.Password, ipAddress());
-
-            if (!result.IsError && result.Result != null)
-            {
-                setTokenCookie(result.Result.RefreshToken);
-                return new OASISHttpResponseMessage<IAvatar>(result, HttpStatusCode.OK, showSettings);
-            }
-            else
-                return new OASISHttpResponseMessage<IAvatar>(result, HttpStatusCode.Unauthorized, showSettings);
-        }*/
-
-
-        /*
-        /// <summary>
-        /// Authenticate and log in using the given avatar credentials.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="autoFailOverMode"></param>
-        /// <param name="autoReplicationMode"></param>
-        /// <param name="autoLoadBalanceMode"></param>
-        /// <param name="autoFailOverProviderList"></param>
-        /// <param name="autoReplicationProviderList"></param>
-        /// <param name="autoLoadBalanceProviderList"></param>
-        /// <param name="waitForAutoReplicationResult"></param>
-        /// <param name="showDetailedSettings"></param>
-        /// <returns></returns>
-        [HttpPost("authenticate")]
-        [ResponseType(typeof(OASISHttpResponseMessage<IAvatar>))]
-        public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest model, string providerType = null, bool setGlobally = false, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, string autoReplicationProviderList = null, string autoFailOverProviderList = null, string autoLoadBalanceProviderList = null, bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
-        {
-            //List<EnumValue<ProviderType>> currentAutoReplicationList = null;
-            //List<EnumValue<ProviderType>> currentAutoFailOverList = null;
-            //List<EnumValue<ProviderType>> currentAutoLoadBalanaceList = null;
-            string currentAutoReplicationList = null;
-            string currentAutoFailOverList = null;
-            string currentAutoLoadBalanaceList = null;
-            object providerTypeObject = null;
-            ProviderType providerTypeOverride = ProviderType.Default;
-
-            if (providerType != null)
-                model.ProviderType = providerType;
-
-            if (!string.IsNullOrEmpty(model.ProviderType) && !Enum.TryParse(typeof(ProviderType), model.ProviderType, out providerTypeObject))
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Message = $"The ProviderType {model.ProviderType} passed in is invalid. It must be one of the following types: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}.", IsError = true }, HttpStatusCode.BadRequest);
-
-            if (!string.IsNullOrEmpty(model.AutoReplicationProviders) || !string.IsNullOrEmpty(autoReplicationProviderList))
-            {
-                //Form properties take precedent.
-                if (!string.IsNullOrEmpty(model.AutoReplicationProviders))
-                    autoReplicationProviderList = model.AutoReplicationProviders;
-
-                //OASISResult<IAvatar> listResult = ProviderManager.ValidateProviderList<IAvatar>("AutoReplication", autoReplicationProviderList);
-                OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoReplication", autoReplicationProviderList);
-
-                if (listResult.WarningCount > 0)
-                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Message = listResult.Message }, HttpStatusCode.BadRequest);
-            }
-
-            if (!string.IsNullOrEmpty(model.AutoFailOverProviders) || !string.IsNullOrEmpty(autoFailOverProviderList))
-            {
-                //Form properties take precedent.
-                if (!string.IsNullOrEmpty(model.AutoFailOverProviders))
-                    autoFailOverProviderList = model.AutoFailOverProviders;
-
-                //OASISResult<IAvatar> listResult = ProviderManager.ValidateProviderList<IAvatar>("AutoFailOver", autoReplicationProviderList);
-                OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoFailOver", autoFailOverProviderList);
-
-                if (listResult.WarningCount > 0)
-                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Message = listResult.Message }, HttpStatusCode.BadRequest);
-            }
-
-            if (!string.IsNullOrEmpty(model.AutoLoadBalanceProviders) || !string.IsNullOrEmpty(autoLoadBalanceProviderList))
-            {
-                //Form properties take precedent.
-                if (!string.IsNullOrEmpty(model.AutoLoadBalanceProviders))
-                    autoLoadBalanceProviderList = model.AutoLoadBalanceProviders;
-
-                //OASISResult<IAvatar> listResult = ProviderManager.ValidateProviderList<IAvatar>("AutoLoadBalance", autoLoadBalanceProviderList);
-                OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoLoadBalance", autoLoadBalanceProviderList);
-
-                if (listResult.WarningCount > 0)
-                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Message = listResult.Message }, HttpStatusCode.BadRequest);
-            }
-
-            if (providerTypeObject != null)
-                providerTypeOverride = (ProviderType)providerTypeObject;
-
-            if (model.SetGlobally && !setGlobally)
-                setGlobally = true;
-
-            if (providerTypeOverride != ProviderType.Default && providerTypeOverride != ProviderType.None)
-                GetAndActivateProvider(providerTypeOverride, setGlobally);
-                //GetAndActivateProvider(providerTypeOverride, model.SetGlobally.HasValue ? model.SetGlobally.Value : false);
-
-            if (model.AutoReplicationEnabled.HasValue)
-                autoReplicationMode = model.AutoReplicationEnabled.Value ? AutoReplicationMode.True: AutoReplicationMode.False;
-
-            if (model.AutoFailOverEnabled.HasValue)
-                autoFailOverMode = model.AutoFailOverEnabled.Value ? AutoFailOverMode.True : AutoFailOverMode.False;
-
-            if (model.AutoLoadBalanceEnabled.HasValue)
-                autoLoadBalanceMode = model.AutoLoadBalanceEnabled.Value ? AutoLoadBalanceMode.True : AutoLoadBalanceMode.False;
-
-            if (!string.IsNullOrEmpty(autoReplicationProviderList))
-            {
-                currentAutoReplicationList = ProviderManager.GetProvidersThatAreAutoReplicatingAsString();
-                ProviderManager.SetAndReplaceAutoReplicationListForProviders(autoReplicationProviderList);
-            }
-
-            if (!string.IsNullOrEmpty(autoFailOverProviderList))
-            {
-                currentAutoFailOverList = ProviderManager.GetProviderAutoFailOverListAsString();
-                ProviderManager.SetAndReplaceAutoFailOverListForProviders(autoFailOverProviderList);
-            }
-
-            if (!string.IsNullOrEmpty(autoLoadBalanceProviderList))
-            {
-                currentAutoLoadBalanaceList = ProviderManager.GetProviderAutoLoadBalanceListAsString();
-                OASISResult<bool> loadBalanceResult = ProviderManager.SetAndReplaceAutoLoadBalanceListForProviders(autoLoadBalanceProviderList);                                        
-            }
-
-            //if (!waitForAutoReplicationResult.HasValue)
-            //    waitForAutoReplicationResult = model.WaitForAutoReplicationResult;
-
-            //if (!showDetailedSettings.HasValue)
-            //    showDetailedSettings = model.ShowDetailedSettings;
-
-            if (model.WaitForAutoReplicationResult && !waitForAutoReplicationResult)
-                waitForAutoReplicationResult = true;
-
-            if (model.ShowDetailedSettings && !showDetailedSettings)
-                showDetailedSettings = true;
-
-            var result = await Program.AvatarManager.AuthenticateAsync(model.Username, model.Password, ipAddress(), autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult);
-
-            if (currentAutoReplicationList != null && !model.SetGlobally)
-                ProviderManager.SetAndReplaceAutoReplicationListForProviders(currentAutoReplicationList);
-
-            if (currentAutoFailOverList != null && !model.SetGlobally)
-                ProviderManager.SetAndReplaceAutoFailOverListForProviders(currentAutoFailOverList);
-
-            if (currentAutoLoadBalanaceList != null && !model.SetGlobally)
-                ProviderManager.SetAndReplaceAutoLoadBalanceListForProviders(currentAutoLoadBalanaceList);
-
-            if (!result.IsError && result.Result != null)
-            {
-                setTokenCookie(result.Result.RefreshToken);
-                return HttpResponseHelper.FormatResponse(result, HttpStatusCode.OK, showDetailedSettings, autoFailOverMode, autoReplicationMode, autoLoadBalanceMode);
-            }
-            else
-                return HttpResponseHelper.FormatResponse(result, HttpStatusCode.Unauthorized, showDetailedSettings, autoFailOverMode, autoReplicationMode, autoLoadBalanceMode);
-        }*/
-
         /// <summary>
         /// Authenticate and log in using the given avatar credentials.
         /// </summary>
@@ -325,7 +122,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ResponseType(typeof(OASISHttpResponseMessage<IAvatar>))]
         public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest request)
         {
-            OASISConfigResult<IAvatar> configResult = ConfigureOASISSettings<IAvatar>(request);
+            OASISConfigResult<IAvatar> configResult = ConfigureOASISEngine<IAvatar>(request);
 
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
@@ -336,67 +133,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!result.IsError && result.Result != null)
             {
                 setTokenCookie(result.Result.RefreshToken);
-                //return HttpResponseHelper.FormatResponse(result, HttpStatusCode.OK, request.ShowDetailedSettings, configResult.AutoFailOverMode, configResult.AutoReplicationMode, configResult.AutoLoadBalanceMode);
                 return HttpResponseHelper.FormatResponse(result, HttpStatusCode.OK, request.ShowDetailedSettings);
             }
             else
                 return HttpResponseHelper.FormatResponse(result, HttpStatusCode.Unauthorized, request.ShowDetailedSettings);
-            //return HttpResponseHelper.FormatResponse(result, HttpStatusCode.Unauthorized, request.ShowDetailedSettings, configResult.AutoFailOverMode, configResult.AutoReplicationMode, configResult.AutoLoadBalanceMode);
         }
-
 
         /// <summary>
         /// Authenticate and log in using the given avatar credentials. 
-        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-        /// Set the autoFailOverMode to True if you wish this call to work through the the providers in the auto-failover list until it succeeds. Flase if you do not or to UseGlobalDefaultInOASISDNA to default to the global OASISDNA setting.
-        /// Set the autoReplicationMode to True if you wish this call to auto-replicate to the providers in the auto-replication list. Flase if you do not or to UseGlobalDefaultInOASISDNA to default to the global OASISDNA setting.
-        /// Set the autoLoadBalanceMode to True if you wish this call to use the fastest provider in your area from the auto-loadbalance list. Flase if you do not or to UseGlobalDefaultInOASISDNA to default to the global OASISDNA setting.
+        /// Pass in the provider you wish to use.
+        /// Set the autoFailOverMode to 'ON' if you wish this call to work through the the providers in the auto-failover list until it succeeds. Set it to OFF if you do not or to 'DEFAULT' to default to the global OASISDNA setting.
+        /// Set the autoReplicationMode to 'ON' if you wish this call to auto-replicate to the providers in the auto-replication list. Set it to OFF if you do not or to UseGlobalDefaultInOASISDNA to 'DEFAULT' to the global OASISDNA setting.
+        /// Set the autoLoadBalanceMode to 'ON' if you wish this call to use the fastest provider in your area from the auto-loadbalance list. Set it to OFF if you do not or to UseGlobalDefaultInOASISDNA to 'DEFAULT' to the global OASISDNA setting.
         /// Set the waitForAutoReplicationResult flag to true if you wish for the API to wait for the auto-replication to complete before returning the results.
-        /// Set the showDetailedSettings flag to true to view detailed settings such as the list of providers in the auto-failover, auto-replication &amp; auto-load balance lists.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="providerType"></param>
-        /// <param name="setGlobally"></param>
-        ///// <param name="autoFailOverMode"></param>
-        ///// <param name="autoReplicationMode"></param>
-        ///// <param name="autoLoadBalanceMode"></param>
-        /// <param name="autoFailOverEnabled"></param>
-        /// <param name="autoReplicationEnabled"></param>
-        /// <param name="autoLoadBalanceEnabled"></param>
-        /// <param name="autoFailOverProviders"></param>
-        /// <param name="autoReplicationProviders"></param>
-        /// <param name="autoLoadBalanceProviders"></param>
-        /// <param name="waitForAutoReplicationResult"></param>
-        /// <param name="showDetailedSettings"></param>
-        /// <returns></returns>
-        //[HttpPost("authenticate/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{AutoLoadBalanceProviders}{waitForAutoReplicationResult}/{showDetailedSettings}")]
-        [HttpPost("authenticate/{providerType}/{setGlobally}/{autoReplicationEnabled}/{autoFailOverEnabled}/{autoLoadBalanceEnabled}/{autoReplicationProviders}/{autoFailOverProviders}/{AutoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}")]
-        //public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest model, string providerType, bool setGlobally = false, AutoReplicationMode autoReplicatioMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, string autoReplicationProviders = null, string autoFailOverProviders = null, string autoLoadBalanceProviders = null, bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
-        public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest model, string providerType, bool setGlobally = false, string autoReplicationEnabled = "default", string autoFailOverEnabled = "default", string autoLoadBalanceEnabled = "default", string autoReplicationProviders = "default", string autoFailOverProviders = "default", string autoLoadBalanceProviders = "default", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
-        {
-            model.ProviderType = providerType;
-            model.SetGlobally = setGlobally;
-            model.ShowDetailedSettings = showDetailedSettings;
-            model.WaitForAutoReplicationResult = waitForAutoReplicationResult;
-            model.AutoReplicationProviders = autoReplicationProviders;
-            model.AutoFailOverProviders = autoFailOverProviders;
-            model.AutoLoadBalanceProviders = autoLoadBalanceProviders;
-            model.AutoReplicationEnabled = autoReplicationEnabled;
-            model.AutoFailOverEnabled = autoFailOverEnabled;
-            model.AutoLoadBalanceEnabled = autoLoadBalanceEnabled;
-
-            //GetAndActivateProvider(providerType, setGlobally); //TODO: Not sure if this is needed here anymore because main method now handles this also?
-            return await Authenticate(model);
-        }
-
-        /*
-        /// <summary>
-        /// Authenticate and log in using the given avatar credentials. 
-        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-        /// Set the autoFailOverMode to True if you wish this call to work through the the providers in the auto-failover list until it succeeds. Flase if you do not or to UseGlobalDefaultInOASISDNA to default to the global OASISDNA setting.
-        /// Set the autoReplicationMode to True if you wish this call to auto-replicate to the providers in the auto-replication list. Flase if you do not or to UseGlobalDefaultInOASISDNA to default to the global OASISDNA setting.
-        /// Set the autoLoadBalanceMode to True if you wish this call to use the fastest provider in your area from the auto-loadbalance list. Flase if you do not or to UseGlobalDefaultInOASISDNA to default to the global OASISDNA setting.
-        /// Set the waitForAutoReplicationResult flag to true if you wish for the API to wait for the auto-replication to complete before returning the results.
+        /// Set the setglobally flag to false to use these settings only for this request or true for it to be used for all future requests.
         /// Set the showDetailedSettings flag to true to view detailed settings such as the list of providers in the auto-failover, auto-replication &amp; auto-load balance lists.
         /// </summary>
         /// <param name="model"></param>
@@ -405,27 +155,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="autoFailOverMode"></param>
         /// <param name="autoReplicationMode"></param>
         /// <param name="autoLoadBalanceMode"></param>
+        /// <param name="autoFailOverProviders"></param>
+        /// <param name="autoReplicationProviders"></param>
+        /// <param name="autoLoadBalanceProviders"></param>
         /// <param name="waitForAutoReplicationResult"></param>
         /// <param name="showDetailedSettings"></param>
         /// <returns></returns>
-        [HttpPost("authenticate/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{waitForAutoReplicationResult}/{showDetailedSettings}")]
-        public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest model, ProviderType providerType = ProviderType.Default, bool setGlobally = false, bool autoFailOverMode = true, bool autoReplicationMode = true, bool autoLoadBalanceMode = true, bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
+        [HttpPost("authenticate/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{AutoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}")]
+        public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest model, string providerType, bool setGlobally = false, string autoReplicationMode = "default", string autoFailOverMode = "default", string autoLoadBalanceMode = "default", string autoReplicationProviders = "default", string autoFailOverProviders = "default", string autoLoadBalanceProviders = "default", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
         {
-            //TODO: Should the querystring params override form params? I think so?! :-)
-            //if (model.SetGlobally.HasValue)
-            //    setGlobally = model.SetGlobally.Value;
+            model.ProviderType = providerType;
+            model.SetGlobally = setGlobally;
+            model.ShowDetailedSettings = showDetailedSettings;
+            model.WaitForAutoReplicationResult = waitForAutoReplicationResult;
+            model.AutoReplicationProviders = autoReplicationProviders;
+            model.AutoFailOverProviders = autoFailOverProviders;
+            model.AutoLoadBalanceProviders = autoLoadBalanceProviders;
+            model.AutoReplicationMode = autoReplicationMode;
+            model.AutoFailOverMode = autoFailOverMode;
+            model.AutoLoadBalanceMode = autoLoadBalanceMode;
 
-            //if (model.ProviderType != ProviderType.Default)
-            //    providerType = model.ProviderType;
-
-            //  GetAndActivateProvider(providerType, setGlobally);
-            return await Authenticate(model,
-                autoReplicationMode == true ? AutoReplicationMode.True : AutoReplicationMode.False,
-                autoFailOverMode == true ? AutoFailOverMode.True : AutoFailOverMode.False,
-                autoLoadBalanceMode == true ? AutoLoadBalanceMode.True : AutoLoadBalanceMode.False,
-                waitForAutoReplicationResult, showDetailedSettings);
-        }*/
-
+            return await Authenticate(model);
+        }
 
         /// <summary>
         /// Authenticate and log in using the given JWT Token.

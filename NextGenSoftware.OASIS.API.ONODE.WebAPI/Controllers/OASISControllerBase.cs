@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -6,16 +9,11 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
-using System;
-using System.Collections.Generic;
-using System.Net;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     public class OASISControllerBase : ControllerBase
     {
-       // public IOptions<OASISSettings> OASISSettings;
-
         public IAvatar Avatar
         {
             get
@@ -23,31 +21,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 if (HttpContext.Items.ContainsKey("Avatar") && HttpContext.Items["Avatar"] != null)
                     return (IAvatar)HttpContext.Items["Avatar"];
 
-                //if (HttpContext.Session.GetString("Avatar") != null)
-                //    return JsonSerializer.Deserialize<IAvatar>(HttpContext.Session.GetString("Avatar"));
-
                 return null;
             }
             set
             {
                 HttpContext.Items["Avatar"] = value;
-                //HttpContext.Session.SetString("Avatar", JsonSerializer.Serialize(value));
             }
         }
 
-        //public OASISControllerBase(IOptions<OASISSettings> settings)
         public OASISControllerBase()
         {
-            //OASISSettings = settings;
-           // OASISProviderManager.OASISSettings = settings.Value;
-        }
 
-        //TODO: REMOVE ASAP, NOT USED ANYMORE
-        //public OASISControllerBase(IOptions<OASISDNA> settings)
-        //{
-        //    //OASISSettings = settings;
-        //    // OASISProviderManager.OASISSettings = settings.Value;
-        //}
+        }
 
         protected IOASISStorageProvider GetAndActivateDefaultProvider()
         {
@@ -76,33 +61,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return OASISBootLoader.OASISBootLoader.GetAndActivateProvider(providerType, customConnectionString, forceRegister, setGlobally).Result;
         }
 
-        protected OASISConfigResult<T> ConfigureOASISSettings<T>(OASISRequest request)
+        protected OASISConfigResult<T> ConfigureOASISEngine<T>(OASISRequest request)
         {
             OASISConfigResult<T> result = new OASISConfigResult<T>();
             object providerTypeObject = null;
             ProviderType providerTypeOverride = ProviderType.Default;
-            bool autoReplicationEnabledTemp = true;
-            bool autoFailOverEnabledTemp = true;
-            bool autoLoadBalanceEnabledTemp = true;
 
-            if (request.AutoReplicationEnabled != "default" && !bool.TryParse(request.AutoReplicationEnabled, out autoReplicationEnabledTemp))
+            if (!string.IsNullOrEmpty(request.AutoReplicationMode) && request.AutoReplicationMode.ToUpper() != "ON" && request.AutoReplicationMode.ToUpper() != "OFF" && request.AutoReplicationMode.ToUpper() != "DEFAULT")
             {
                 result.IsError = true;
-                result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { IsError = true, Message = $"AutoReplicationEnabled must be either true, false or default but found {request.AutoReplicationEnabled}" });
+                result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { IsError = true, Message = $"AutoReplicationMode must be either 'ON', 'OFF' or 'DEFAULT' but found {request.AutoReplicationMode}" });
                 return result;
             }
 
-            if (request.AutoFailOverEnabled != "default" && !bool.TryParse(request.AutoFailOverEnabled, out autoFailOverEnabledTemp))
+            if (!string.IsNullOrEmpty(request.AutoFailOverMode) && request.AutoFailOverMode.ToUpper() != "ON" && request.AutoFailOverMode.ToUpper() != "OFF" && request.AutoFailOverMode.ToUpper() != "DEFAULT")
             {
                 result.IsError = true;
-                result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { IsError = true, Message = $"AutoFailOverEnabled must be either true, false or default but found {request.AutoFailOverEnabled}" });
+                result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { IsError = true, Message = $"AutoFailOverMode must be either 'ON', 'OFF' or 'DEFAULT' but found {request.AutoFailOverMode}" });
                 return result;
             }
-                
-            if (request.AutoLoadBalanceEnabled != "default" && !bool.TryParse(request.AutoLoadBalanceEnabled, out autoLoadBalanceEnabledTemp))
+
+            if (!string.IsNullOrEmpty(request.AutoLoadBalanceMode) && request.AutoLoadBalanceMode.ToUpper() != "ON" && request.AutoLoadBalanceMode.ToUpper() != "OFF" && request.AutoLoadBalanceMode.ToUpper() != "DEFAULT")
             {
                 result.IsError = true;
-                result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { IsError = true, Message = $"AutoLoadBlanaceEnabled must be either true, false or default but found {request.AutoLoadBalanceEnabled}" });
+                result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { IsError = true, Message = $"AutoLoadBalanceMode must be either 'ON', 'OFF' or 'DEFAULT' but found {request.AutoReplicationMode}" });
                 return result;
             }
 
@@ -114,7 +96,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             if (!string.IsNullOrEmpty(request.AutoReplicationProviders))
             {
-                if (request.AutoReplicationProviders != "default")
+                if (request.AutoReplicationProviders.ToUpper() != "DEFAULT")
                 {
                     OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoReplication", request.AutoReplicationProviders);
 
@@ -129,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             if (!string.IsNullOrEmpty(request.AutoFailOverProviders))
             {
-                if (request.AutoFailOverProviders != "default")
+                if (request.AutoFailOverProviders.ToUpper() != "DEFAULT")
                 {
                     OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoFailOver", request.AutoFailOverProviders);
 
@@ -144,7 +126,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             if (!string.IsNullOrEmpty(request.AutoLoadBalanceProviders))
             {
-                if (request.AutoLoadBalanceProviders != "default")
+                if (request.AutoLoadBalanceProviders.ToUpper() != "DEFAULT")
                 {
                     OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoLoadBalance", request.AutoLoadBalanceProviders);
 
@@ -163,18 +145,55 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (providerTypeOverride != ProviderType.Default && providerTypeOverride != ProviderType.None)
                 GetAndActivateProvider(providerTypeOverride, request.SetGlobally);
 
-            //if (request.AutoReplicationEnabled.HasValue)
-            //    autoReplicationMode = request.AutoReplicationEnabled.Value ? AutoReplicationMode.True : AutoReplicationMode.False;
 
-            //if (request.AutoFailOverEnabled.HasValue)
-            //    autoFailOverMode = request.AutoFailOverEnabled.Value ? AutoFailOverMode.True : AutoFailOverMode.False;
+            switch (request.AutoReplicationMode.ToUpper())
+            {
+                case "ON":
+                    result.AutoReplicationMode = AutoReplicationMode.True;
+                    break;
 
-            //if (request.AutoLoadBalanceEnabled.HasValue)
-            //    autoLoadBalanceMode = request.AutoLoadBalanceEnabled.Value ? AutoLoadBalanceMode.True : AutoLoadBalanceMode.False;
+                case "OFF":
+                    result.AutoReplicationMode = AutoReplicationMode.False;
+                    break;
 
-            result.AutoReplicationMode = request.AutoReplicationEnabled == "default" ? AutoReplicationMode.UseGlobalDefaultInOASISDNA : autoReplicationEnabledTemp == true ? AutoReplicationMode.True : AutoReplicationMode.False;
-            result.AutoFailOverMode = request.AutoFailOverEnabled == "default" ? AutoFailOverMode.UseGlobalDefaultInOASISDNA : autoFailOverEnabledTemp == true ? AutoFailOverMode.True : AutoFailOverMode.False;
-            result.AutoLoadBalanceMode = request.AutoLoadBalanceEnabled == "default" ? AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA : autoLoadBalanceEnabledTemp == true ? AutoLoadBalanceMode.True : AutoLoadBalanceMode.False;
+                case "DEFAULT":
+                    result.AutoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA;
+                    break;
+            }
+
+            switch (request.AutoFailOverMode.ToUpper())
+            {
+                case "ON":
+                    result.AutoFailOverMode = AutoFailOverMode.True;
+                    break;
+
+                case "OFF":
+                    result.AutoFailOverMode = AutoFailOverMode.False;
+                    break;
+
+                case "DEFAULT":
+                    result.AutoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA;
+                    break;
+            }
+
+            switch (request.AutoLoadBalanceMode.ToUpper())
+            {
+                case "ON":
+                    result.AutoLoadBalanceMode = AutoLoadBalanceMode.True;
+                    break;
+
+                case "OFF":
+                    result.AutoLoadBalanceMode = AutoLoadBalanceMode.False;
+                    break;
+
+                case "DEFAULT":
+                    result.AutoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA;
+                    break;
+            }
+
+            //result.AutoReplicationMode = request.AutoReplicationMode == "DEFAULT" ? AutoReplicationMode.UseGlobalDefaultInOASISDNA : AutoReplicationModeTemp == true ? AutoReplicationMode.True : AutoReplicationMode.False;
+            //result.AutoFailOverMode = request.AutoFailOverEnabled == "DEFAULT" ? AutoFailOverMode.UseGlobalDefaultInOASISDNA : autoFailOverEnabledTemp == true ? AutoFailOverMode.True : AutoFailOverMode.False;
+            //result.AutoLoadBalanceMode = request.AutoLoadBalanceMode == "DEFAULT" ? AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA : AutoLoadBalanceModeTemp == true ? AutoLoadBalanceMode.True : AutoLoadBalanceMode.False;
 
             result.PreviousAutoFailOverEnabled = ProviderManager.IsAutoFailOverEnabled;
             result.PreviousAutoReplicationEnabled = ProviderManager.IsAutoReplicationEnabled;
@@ -206,7 +225,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 result.PreviousAutoReplicationList = ProviderManager.GetProvidersThatAreAutoReplicatingAsString();
 
-                if (request.AutoReplicationProviders == "default")
+                if (request.AutoReplicationProviders == "DEFAULT")
                     ProviderManager.SetAndReplaceAutoReplicationListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoReplicationProviders);
                 else
                     ProviderManager.SetAndReplaceAutoReplicationListForProviders(request.AutoReplicationProviders);
@@ -216,7 +235,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 result.PreviousAutoFailOverList = ProviderManager.GetProviderAutoFailOverListAsString();
 
-                if (request.AutoFailOverProviders == "default")
+                if (request.AutoFailOverProviders == "DEFAULT")
                     ProviderManager.SetAndReplaceAutoFailOverListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoFailOverProviders);
                 else
                     ProviderManager.SetAndReplaceAutoFailOverListForProviders(request.AutoFailOverProviders);
@@ -226,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 result.PreviousAutoLoadBalanaceList = ProviderManager.GetProviderAutoLoadBalanceListAsString();
 
-                if (request.AutoLoadBalanceProviders == "default")
+                if (request.AutoLoadBalanceProviders == "DEFAULT")
                     ProviderManager.SetAndReplaceAutoLoadBalanceListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders);
                 else
                     ProviderManager.SetAndReplaceAutoLoadBalanceListForProviders(request.AutoLoadBalanceProviders);
