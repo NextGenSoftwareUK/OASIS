@@ -11,9 +11,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models
         //public bool? AutoFailOverEnabled { get; set; } 
         //public bool? AutoReplicationEnabled { get; set; }
         //public bool? AutoLoadBalanceEnabled { get; set; }
-        public string AutoFailOverEnabled { get; set; } = "default";
-        public string AutoReplicationEnabled { get; set; } = "default";
-        public string AutoLoadBalanceEnabled { get; set; } = "default";
+        public string AutoFailOverMode { get; set; } = "default";
+        public string AutoReplicationMode { get; set; } = "default";
+        public string AutoLoadBalanceMode { get; set; } = "default";
         public string AutoFailOverProviders { get; set; }
         public string AutoReplicationProviders { get; set; }
         public string AutoLoadBalanceProviders { get; set; }

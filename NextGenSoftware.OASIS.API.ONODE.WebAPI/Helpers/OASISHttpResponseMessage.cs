@@ -8,10 +8,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 {
     public class OASISHttpResponseMessage<T> : HttpResponseMessage
     {
-        private bool _showSettings = false;
+       // private bool _showSettings = false;
         //private AutoFailOverMode _autoFailOverMode = AutoFailOverMode.NotSet;
         //private AutoReplicationMode _autoReplicationMode = AutoReplicationMode.NotSet;
         //private AutoLoadBalanceMode _autoLoadBalanceMode = AutoLoadBalanceMode.NotSet;
+
+        public bool ShowDetailedSettings { get; set; }
 
         public OASISResult<T> Result { get; set; }
         public string OASISVersion
@@ -75,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         {
             get
             {
-                if (_showSettings)
+                if (ShowDetailedSettings)
                     return ProviderManager.GetProviderAutoLoadBalanceListAsString();
                 //return OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders;
                 else
@@ -87,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         {
             get
             {
-                if (_showSettings)
+                if (ShowDetailedSettings)
                     return ProviderManager.GetProviderAutoFailOverListAsString();
                         //return OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoFailOverProviders;
                 else
@@ -99,7 +101,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         {
             get
             {
-                if (_showSettings)
+                if (ShowDetailedSettings)
                     return ProviderManager.GetProvidersThatAreAutoReplicatingAsString();
                     //return OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoReplicationProviders;
                 else
@@ -151,23 +153,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 
         public OASISHttpResponseMessage(OASISResult<T> result, bool showDetailedSettings = false) : base()
         {
-            _showSettings = showDetailedSettings;
+            ShowDetailedSettings = showDetailedSettings;
             Result = result;
         }
 
         public OASISHttpResponseMessage(bool showDetailedSettings = false) : base()
         {
-            _showSettings = showDetailedSettings;
+            ShowDetailedSettings = showDetailedSettings;
         }
 
         public OASISHttpResponseMessage(HttpStatusCode statusCode, bool showDetailedSettings = false) : base(statusCode)
         {
-            _showSettings = showDetailedSettings;
+            ShowDetailedSettings = showDetailedSettings;
         }
 
         public OASISHttpResponseMessage(OASISResult<T> result, HttpStatusCode statusCode, bool showDetailedSettings = false) : base(statusCode)
         {
-            _showSettings = showDetailedSettings;
+            ShowDetailedSettings = showDetailedSettings;
             Result = result;
         }
     }

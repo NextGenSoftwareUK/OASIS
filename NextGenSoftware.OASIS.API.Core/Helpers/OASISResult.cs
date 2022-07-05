@@ -12,6 +12,24 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         private string _message = "";
 
         //public List<OASISResult<T2>> InnerResults { get; set; } = new List<OASISResult<T2>>();
+
+        //TODO: Finish implementing later... :)
+        public int ResultsCount { get; set; }
+        //public int ResultsCount
+        //{
+        //    get
+        //    {
+        //        if (typeof(T) == typeof(IEnumerable<T>))
+        //        {
+        //            return T.Count;
+        //        }
+
+        //        IEnumerable<T> list = T as IEnumerable<T>;
+
+
+        //    }
+        //}
+
         public int ErrorCount { get; set; }
         public int WarningCount { get; set; }
         public int SavedCount { get; set; }
