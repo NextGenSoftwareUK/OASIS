@@ -203,11 +203,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness.csproj", "{BF70AEBD-22A3-4A31-8680-6580BEF8AD60}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness.csproj", "{5F56C3D3-EE6C-4864-A346-600E99C1519D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness.csproj", "{5F56C3D3-EE6C-4864-A346-600E99C1519D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness.csproj", "{3E06DEA5-7FA7-410C-978D-67311F49B95B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness.csproj", "{3E06DEA5-7FA7-410C-978D-67311F49B95B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS", "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj", "{169D9468-B97B-4778-A21D-E567EA2AA4FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS", "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj", "{169D9468-B97B-4778-A21D-E567EA2AA4FF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.LocalFileOASIS", "NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj", "{F02EADE3-44B5-4448-9BCC-8C507A7033C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1695,6 +1697,24 @@ Global
 		{169D9468-B97B-4778-A21D-E567EA2AA4FF}.Release|x64.Build.0 = Release|Any CPU
 		{169D9468-B97B-4778-A21D-E567EA2AA4FF}.Release|x86.ActiveCfg = Release|Any CPU
 		{169D9468-B97B-4778-A21D-E567EA2AA4FF}.Release|x86.Build.0 = Release|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Debug|x64.Build.0 = Debug|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Debug|x86.Build.0 = Debug|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Linux|x64.Build.0 = Debug|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Linux|x86.Build.0 = Debug|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Release|x64.ActiveCfg = Release|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Release|x64.Build.0 = Release|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Release|x86.ActiveCfg = Release|Any CPU
+		{F02EADE3-44B5-4448-9BCC-8C507A7033C9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

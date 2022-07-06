@@ -99,7 +99,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
     //}
 
     //TODO: REMOVE ASAP!
-    public static class OASISResultHolonToHolonHelper<T1, T2> 
+    /*
+    public static class OASISResultHelper<T1, T2> 
         //where T1 : IHolonBase //TODO: Ideally would like this code back in but this way it is more generic so can be used anywhere...
         //where T2 : IHolonBase //, new()
     {
@@ -136,7 +137,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
     }
 
     //TODO: REMOVE ASAP!
-    public static class OASISResultCollectionToCollectionHelper<T1, T2>
+    public static class OASISResultHelper<T1, T2>
        //where T1 : IEnumerable<IHolonBase>
        //where T2 : IEnumerable<IHolonBase> 
     {
@@ -169,7 +170,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         {
             return CopyResult(fromResult, ref toResult);
         }
-    }
+    }*/
 
     /*
     public static class OASISResultCollectionToHolonHelper<T1, T2>

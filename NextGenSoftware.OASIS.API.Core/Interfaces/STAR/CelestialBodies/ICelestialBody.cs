@@ -39,6 +39,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public int NunmerActiveAvatars { get; set; }
 
         ICelestialBodyCore CelestialBodyCore { get; set; }
+
+        Task<OASISResult<T>> InitializeAsync<T>() where T : ICelestialBody, new();
+        OASISResult<T> Initialize<T>() where T : ICelestialBody, new();
+
         Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
         OASISResult<ICelestialBody> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
         Task<OASISResult<IHolon>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);

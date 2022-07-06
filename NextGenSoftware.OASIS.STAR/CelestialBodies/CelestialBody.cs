@@ -11,7 +11,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.CelestialSpace;
 using NextGenSoftware.OASIS.STAR.Holons;
@@ -63,17 +62,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public CelestialBody(HolonType holonType) : base(holonType)
         {
-            Initialize<T>();
+            //Initialize<T>();
         }
 
         public CelestialBody(Guid id, HolonType holonType) : base(id, holonType)
         {
-            Initialize<T>();
+            //Initialize<T>();
         }
 
         public CelestialBody(Dictionary<ProviderType, string> providerKey, HolonType holonType) : base(providerKey, holonType)
         {
-            Initialize<T>();
+            //Initialize<T>();
         }
 
         //TODO: Try to remove this method if possible and only use the new generic method.
@@ -92,7 +91,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     // If there was an error then continueOnError must have been set to true.
                     ErrorHandling.HandleWarning(ref result, $"An errror occured in CelestialBody.LoadAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. ContinueOnError is set to true so continuing to attempt to load the celestial body zomes... Reason: {result.Message}");
                     celestialBodyResult.Result = (ICelestialBody)result.Result;
-                    OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(result, celestialBodyResult);
+                    OASISResultHelper<IHolon, ICelestialBody>.CopyResult(result, celestialBodyResult);
                     OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Reason = $"{result.Message}", Result = celestialBodyResult });
                 }
 
@@ -108,14 +107,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                             ErrorHandling.HandleWarning(ref result, $"The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} loaded fine but one or more of it's zomes failed to load. Reason: {zomeResult.Message}");
 
                         celestialBodyResult.Result = (ICelestialBody)result.Result;
-                        OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(result, celestialBodyResult);
+                        OASISResultHelper<IHolon, ICelestialBody>.CopyResult(result, celestialBodyResult);
                         OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Reason = "Error occured in CelestialBody.LoadAsync method. See Result.Message Property For More Info.", Result = celestialBodyResult });
                     }
                 }
             }
 
             celestialBodyResult.Result = (ICelestialBody)result.Result;
-            OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(result, celestialBodyResult);
+            OASISResultHelper<IHolon, ICelestialBody>.CopyResult(result, celestialBodyResult);
             OnCelestialBodyLoaded?.Invoke(this, new CelestialBodyLoadedEventArgs() { Result = celestialBodyResult });
             return result;
         }
@@ -138,7 +137,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 else
                 {
                     // If there was an error then continueOnError must have been set to true.
-                    ErrorHandling.HandleWarning(ref result, $"An errror occured in CelestialBody.LoadAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. ContinueOnError is set to true so continuing to attempt to load the celestial body zomes... Reason: {result.Message}");
+                    ErrorHandling.HandleWarning(ref result, $"An errror occured in CelestialBody.LoadAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. ContinueOnError is set to true so continuing to attempt to load the celestial body zomes... Reason: {result.Message}", result.DetailedMessage);
                     OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Reason = $"{result.Message}", Result = result });
                 }
 
@@ -416,7 +415,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             }
 
             celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this, saveChildren, recursive, maxChildDepth, continueOnError);
-            OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(celestialBodyHolonResult, result);
+            OASISResultHelper<IHolon, ICelestialBody>.CopyResult(celestialBodyHolonResult, result);
 
             if (celestialBodyHolonResult != null && !celestialBodyHolonResult.IsError && celestialBodyHolonResult.Result != null)
             {
@@ -827,40 +826,42 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             //Star.Super(this);
         }
 
-        protected override async Task InitializeAsync()
-        {
-            InitCelestialBodyCore();
-            WireUpEvents();
+        //protected override async Task InitializeAsync()
+        //{
+        //    InitCelestialBodyCore();
+        //    WireUpEvents();
 
-            if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
-            {
-                //OASISResult<ICelestialBody> celestialBodyResult = await LoadAsync();
-                OASISResult<IHolon> celestialBodyResult = await LoadAsync();
+        //    if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
+        //    {
+        //        //OASISResult<ICelestialBody> celestialBodyResult = await LoadAsync();
+        //        OASISResult<IHolon> celestialBodyResult = await LoadAsync();
 
-                if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
-                    await base.InitializeAsync();
-            }
-        }
+        //        if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
+        //            await base.InitializeAsync();
+        //    }
+        //}
 
-        protected override void Initialize()
-        {
-            InitCelestialBodyCore();
-            WireUpEvents();
+        //protected override void Initialize()
+        //{
+        //    InitCelestialBodyCore();
+        //    WireUpEvents();
 
             
-            if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
-            {
-                //OASISResult<ICelestialBody> celestialBodyResult = Load();
-                OASISResult<IHolon> celestialBodyResult = Load();
+        //    if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
+        //    {
+        //        //OASISResult<ICelestialBody> celestialBodyResult = Load();
+        //        OASISResult<IHolon> celestialBodyResult = Load();
 
-                if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
-                    base.Initialize();
-            }
-        }
+        //        if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
+        //            base.Initialize();
+        //    }
+        //}
 
         
-        protected async Task InitializeAsync<T>() where T : ICelestialBody, new()
+        public async Task<OASISResult<T>> InitializeAsync<T>() where T : ICelestialBody, new()
         {
+            OASISResult<T> result = new OASISResult<T>();
+            
             InitCelestialBodyCore();
             WireUpEvents();
 
@@ -868,24 +869,39 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             {
                 OASISResult<ICelestialBody> celestialBodyResult = await LoadAsync<T>();
 
+                OASISResultHelper<ICelestialBody, T>.CopyResult(celestialBodyResult, result);
+                result.Result = (T)celestialBodyResult.Result;
+
                 if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
                     await base.InitializeAsync();
             }
+            else
+                ErrorHandling.HandleWarning(ref result, "Warning in Initialize method in CelestialBody: Neither the Id or ProviderUniqueStorageKey have been set, at least one needs to be set.");
+
+            return result;
         }
 
-        protected void Initialize<T>() where T : ICelestialBody, new()
+        public OASISResult<T> Initialize<T>() where T : ICelestialBody, new()
         {
+            OASISResult<T> result = new OASISResult<T>();
+
             InitCelestialBodyCore();
             WireUpEvents();
-
 
             if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
             {
                 OASISResult<ICelestialBody> celestialBodyResult = Load<T>();
 
+                OASISResultHelper<ICelestialBody, T>.CopyResult(celestialBodyResult, result);
+                result.Result = (T)celestialBodyResult.Result;
+
                 if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
                     base.Initialize();
             }
+            else
+                ErrorHandling.HandleWarning(ref result, "Warning in Initialize method in CelestialBody: Neither the Id or ProviderUniqueStorageKey have been set, at least one needs to be set.");
+
+            return result;
         }
 
         private void InitCelestialBodyCore()
