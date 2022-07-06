@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
             OASISResult<IEnumerable<IHolon>>  holonResult = await base.LoadHolonsForParentAsync(HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, version);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, ref result);
+            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, ref result);
 
             if (holonResult.Result != null && !holonResult.IsError)
             {
@@ -95,7 +95,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
             OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, version);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, ref result);
+            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, ref result);
 
             if (holonResult.Result != null && !holonResult.IsError)
             {
@@ -419,9 +419,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new()
         {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>(new T());
+            //OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>(new T());
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
             OASISResult<IHolon> holonResult = await base.LoadHolonAsync(loadChildren, recursive, maxChildDepth, continueOnError, version);
+            
+            OASISResultHelper<IHolon, ICelestialBody>.CopyResult(holonResult, result);
             result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result, (T)result.Result);
+            
             return result;
         }
 

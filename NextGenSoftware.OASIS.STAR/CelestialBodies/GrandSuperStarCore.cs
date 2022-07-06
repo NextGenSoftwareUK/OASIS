@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         //public async Task<OASISResult<IUniverse>> AddUniverseToDimensionAsync(IDimension dimension, IUniverse universe)
         //{
-        //    return OASISResultHolonToHolonHelper<IHolon, IUniverse>.CopyResult(
+        //    return OASISResultHelper<IHolon, IUniverse>.CopyResult(
         //        await AddHolonToCollectionAsync(GrandSuperStar, universe, (List<IHolon>)Mapper<IUniverse, Holon>.MapBaseHolonProperties(
         //            dimension.Un)), new OASISResult<IUniverse>());
         //}
@@ -47,7 +47,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<IUniverse>> AddParallelUniverseToThirdDimensionAsync(IUniverse universe)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IUniverse>.CopyResult(
+            return OASISResultHelper<IHolon, IUniverse>.CopyResult(
                 await AddHolonToCollectionAsync(GrandSuperStar, universe, (List<IHolon>)Mapper<IUniverse, Holon>.MapBaseHolonProperties(
                     GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParallelUniverses)), new OASISResult<IUniverse>());
         }
@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<IDimension>> AddDimensionToMultiverseAsync(IDimension dimension)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IDimension>.CopyResult(
+            return OASISResultHelper<IHolon, IDimension>.CopyResult(
                 await AddHolonToCollectionAsync(GrandSuperStar, dimension, (List<IHolon>)Mapper<IDimension, Holon>.MapBaseHolonProperties(
                     GrandSuperStar.ParentMultiverse.Dimensions.CustomDimensions)), new OASISResult<IDimension>());
         }
@@ -123,13 +123,13 @@ namespace NextGenSoftware.OASIS.STAR
                     OASISResult<IHolon> universePrimeResult = await SaveHolonAsync(GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.Universe, false);
 
                     if (!(!universePrimeResult.IsError && universePrimeResult.Result != null))
-                        OASISResultHolonToHolonHelper<IHolon, IThirdDimension>.CopyResult(universePrimeResult, result);
+                        OASISResultHelper<IHolon, IThirdDimension>.CopyResult(universePrimeResult, result);
                 }
                 else
-                    OASISResultHolonToHolonHelper<IHolon, IThirdDimension>.CopyResult(magicVerseResult, result);
+                    OASISResultHelper<IHolon, IThirdDimension>.CopyResult(magicVerseResult, result);
             }
             else
-                OASISResultHolonToHolonHelper<IHolon, IThirdDimension>.CopyResult(thirdDimensionResult, result);
+                OASISResultHelper<IHolon, IThirdDimension>.CopyResult(thirdDimensionResult, result);
 
             return result;
         }
@@ -183,7 +183,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         //public async Task<OASISResult<IUniverse>> AddUniverseToDimensionAsync(IDimension dimension, IUniverse universe)
         //{
-        //    return OASISResultHolonToHolonHelper<IHolon, IUniverse>.CopyResult(
+        //    return OASISResultHelper<IHolon, IUniverse>.CopyResult(
         //        await AddHolonToCollectionAsync(dimension, universe, (List<IHolon>)Mapper<IUniverse, Holon>.MapBaseHolonProperties(
         //            dimension.Universe)), new OASISResult<IUniverse>());
         //}
@@ -196,7 +196,7 @@ namespace NextGenSoftware.OASIS.STAR
         /*
         public async Task<OASISResult<IDimension>> AddDimensionToUniverseAsync(IUniverse universe, IDimension dimension)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IDimension>.CopyResult(
+            return OASISResultHelper<IHolon, IDimension>.CopyResult(
                 await AddHolonToCollectionAsync(universe, dimension, (List<IHolon>)Mapper<IDimension, Holon>.MapBaseHolonProperties(
                     universe.Dimensions)), new OASISResult<IDimension>());
         }
@@ -208,7 +208,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<IGalaxyCluster>> AddGalaxyClusterToDimensionAsync(IDimension dimension, IGalaxyCluster galaxyCluster)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IGalaxyCluster>.CopyResult(
+            return OASISResultHelper<IHolon, IGalaxyCluster>.CopyResult(
                await AddHolonToCollectionAsync(dimension, galaxyCluster, (List<IHolon>)Mapper<IGalaxyCluster, Holon>.MapBaseHolonProperties(
                    dimension.GalaxyClusters)), new OASISResult<IGalaxyCluster>());
         }
@@ -220,7 +220,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<ISolarSystem>> AddSolarSystemToDimensionAsync(IDimension dimension, ISolarSystem solarSystem)
         {
-            return OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(
+            return OASISResultHelper<IHolon, ISolarSystem>.CopyResult(
                 await AddHolonToCollectionAsync(dimension, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.MapBaseHolonProperties(
                     dimension.SoloarSystems)), new OASISResult<ISolarSystem>());
         }
@@ -232,7 +232,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<IStar>> AddStarToDimensionAsync(IDimension dimension, IStar star)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IStar>.CopyResult(
+            return OASISResultHelper<IHolon, IStar>.CopyResult(
                 await AddHolonToCollectionAsync(dimension, star, (List<IHolon>)Mapper<IStar, Holon>.MapBaseHolonProperties(
                     dimension.Stars)), new OASISResult<IStar>());
         }
@@ -244,7 +244,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<IPlanet>> AddPlanetToDimensionAsync(IDimension dimension, IPlanet planet)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IPlanet>.CopyResult(
+            return OASISResultHelper<IHolon, IPlanet>.CopyResult(
                 await AddHolonToCollectionAsync(dimension, planet, (List<IHolon>)Mapper<IPlanet, Holon>.MapBaseHolonProperties(
                     dimension.Planets)), new OASISResult<IPlanet>());
         }
@@ -258,11 +258,11 @@ namespace NextGenSoftware.OASIS.STAR
         public async Task<OASISResult<IGalaxyCluster>> AddGalaxyClusterToUniverseAsync(IUniverse universe, IGalaxyCluster galaxyCluster)
         {
             OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(universe, galaxyCluster, (List<IHolon>)Mapper<IGalaxyCluster, Holon>.Convert(universe.GalaxyClusters));
-            OASISResult<IGalaxyCluster> galaxyClusterResult = OASISResultHolonToHolonHelper<IHolon, IGalaxyCluster>.CopyResult(holonResult, new OASISResult<IGalaxyCluster>());
+            OASISResult<IGalaxyCluster> galaxyClusterResult = OASISResultHelper<IHolon, IGalaxyCluster>.CopyResult(holonResult, new OASISResult<IGalaxyCluster>());
             galaxyClusterResult.Result = (IGalaxyCluster)holonResult.Result;
             return galaxyClusterResult;
 
-            //return OASISResultHolonToHolonHelper<IHolon, IGalaxyCluster>.CopyResult(
+            //return OASISResultHelper<IHolon, IGalaxyCluster>.CopyResult(
             //   await AddHolonToCollectionAsync(universe, galaxyCluster, (List<IHolon>)Mapper<IGalaxyCluster, Holon>.MapBaseHolonProperties(
             //      universe.GalaxyClusters)), new OASISResult<IGalaxyCluster>());
         }
@@ -276,7 +276,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IGalaxy> result = new OASISResult<IGalaxy>();
 
-            //return OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(
+            //return OASISResultHelper<IHolon, IGalaxy>.CopyResult(
             //    await AddHolonToCollectionAsync(galaxyCluster, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.MapBaseHolonProperties(
             //        galaxyCluster.Galaxies)), new OASISResult<IGalaxy>());
 
@@ -321,7 +321,7 @@ namespace NextGenSoftware.OASIS.STAR
             galaxy.ParentGalaxyClusterId = galaxyCluster.Id;
 
             OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(galaxyCluster, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.Convert(galaxyCluster.Galaxies));
-            result = OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(holonResult, new OASISResult<IGalaxy>());
+            result = OASISResultHelper<IHolon, IGalaxy>.CopyResult(holonResult, new OASISResult<IGalaxy>());
             result.Result = (IGalaxy)holonResult.Result;
 
             if (!result.IsError && result.Result != null)
@@ -354,11 +354,11 @@ namespace NextGenSoftware.OASIS.STAR
         public async Task<OASISResult<ISolarSystem>> AddSolarSystemToUniverseAsync(IUniverse universe, ISolarSystem solarSystem)
         {
             OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(universe, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.Convert(universe.SolarSystems));
-            OASISResult<ISolarSystem> result = OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(holonResult, new OASISResult<ISolarSystem>());
+            OASISResult<ISolarSystem> result = OASISResultHelper<IHolon, ISolarSystem>.CopyResult(holonResult, new OASISResult<ISolarSystem>());
             result.Result = (ISolarSystem)holonResult.Result;
             return result;
 
-            //return OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(
+            //return OASISResultHelper<IHolon, ISolarSystem>.CopyResult(
             //    await AddHolonToCollectionAsync(universe, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.MapBaseHolonProperties(
             //        universe.SolarSystems)), new OASISResult<ISolarSystem>());
         }
@@ -370,12 +370,12 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<IStar>> AddStarToUniverseAsync(IUniverse universe, IStar star)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IStar>.CopyResult(
+            return OASISResultHelper<IHolon, IStar>.CopyResult(
                 await AddHolonToCollectionAsync(universe, star, (List<IHolon>)Mapper<IStar, Holon>.MapBaseHolonProperties(
                     universe.Stars)), new OASISResult<IStar>());
 
             //OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(universe, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.Convert(universe.SolarSystems));
-            //OASISResult<ISolarSystem> result = OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(holonResult, new OASISResult<ISolarSystem>());
+            //OASISResult<ISolarSystem> result = OASISResultHelper<IHolon, ISolarSystem>.CopyResult(holonResult, new OASISResult<ISolarSystem>());
             //result.Result = (ISolarSystem)holonResult.Result;
             //return result;
         }
@@ -387,7 +387,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<IPlanet>> AddPlanetToUniverseAsync(IUniverse universe, IPlanet planet)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IPlanet>.CopyResult(
+            return OASISResultHelper<IHolon, IPlanet>.CopyResult(
                 await AddHolonToCollectionAsync(universe, planet, (List<IHolon>)Mapper<IPlanet, Holon>.MapBaseHolonProperties(
                     universe.Planets)), new OASISResult<IPlanet>());
         }
@@ -403,7 +403,7 @@ namespace NextGenSoftware.OASIS.STAR
             OASISResult<IEnumerable<IUniverse>> result = new OASISResult<IEnumerable<IUniverse>>();
             
             OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(GrandSuperStar.ParentMultiverse.Universes, HolonType.Universe, refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IUniverse>>.CopyResult(holonResult, ref result);
+            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IUniverse>>.CopyResult(holonResult, ref result);
             result.Result = Mapper<IHolon, Universe>.MapBaseHolonProperties(holonResult.Result);
 
             return result;
@@ -447,7 +447,7 @@ namespace NextGenSoftware.OASIS.STAR
         //{
         //    OASISResult<IEnumerable<IDimension>> result = new OASISResult<IEnumerable<IDimension>>();
         //    OASISResult<IEnumerable<IUniverse>> universesResult = await GetAllUniversesForMultiverseAsync(refresh);
-        //    OASISResultCollectionToCollectionHelper<IEnumerable<IUniverse>, IEnumerable<IDimension>>.CopyResult(universesResult, ref result);
+        //    OASISResultHelper<IEnumerable<IUniverse>, IEnumerable<IDimension>>.CopyResult(universesResult, ref result);
 
         //    if (!universesResult.IsError)
         //    {
@@ -490,7 +490,7 @@ namespace NextGenSoftware.OASIS.STAR
         //{
         //    OASISResult<IEnumerable<IGalaxyCluster>> result = new OASISResult<IEnumerable<IGalaxyCluster>>();
         //    OASISResult<IEnumerable<IDimension>> dimensionsResult = await GetAllDimensionsForMultiverseAsync(refresh);
-        //    OASISResultCollectionToCollectionHelper<IEnumerable<IDimension>, IEnumerable<IGalaxyCluster>>.CopyResult(dimensionsResult, ref result);
+        //    OASISResultHelper<IEnumerable<IDimension>, IEnumerable<IGalaxyCluster>>.CopyResult(dimensionsResult, ref result);
 
         //    if (!dimensionsResult.IsError)
         //    {
@@ -509,7 +509,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<IGalaxyCluster>> result = new OASISResult<IEnumerable<IGalaxyCluster>>();
             OASISResult<IEnumerable<IUniverse>> universesResult = await GetAllUniversesForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IUniverse>, IEnumerable<IGalaxyCluster>>.CopyResult(universesResult, ref result);
+            OASISResultHelper<IEnumerable<IUniverse>, IEnumerable<IGalaxyCluster>>.CopyResult(universesResult, ref result);
 
             if (!universesResult.IsError)
             {
@@ -533,7 +533,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<IGalaxy>> result = new OASISResult<IEnumerable<IGalaxy>>();
             OASISResult<IEnumerable<IGalaxyCluster>> galaxyClustersResult = await GetAllGalaxyClustersForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxyCluster>, IEnumerable<IGalaxy>>.CopyResult(galaxyClustersResult, ref result);
+            OASISResultHelper<IEnumerable<IGalaxyCluster>, IEnumerable<IGalaxy>>.CopyResult(galaxyClustersResult, ref result);
 
             if (!galaxyClustersResult.IsError)
             {
@@ -557,7 +557,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<ISuperStar>> result = new OASISResult<IEnumerable<ISuperStar>>();
             OASISResult<IEnumerable<IGalaxy>> galaxiesResult = await GetAllGalaxiesForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxy>, IEnumerable<ISuperStar>>.CopyResult(galaxiesResult, ref result);
+            OASISResultHelper<IEnumerable<IGalaxy>, IEnumerable<ISuperStar>>.CopyResult(galaxiesResult, ref result);
 
             if (!galaxiesResult.IsError)
             {
@@ -581,7 +581,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
             OASISResult<IEnumerable<IGalaxyCluster>> galaxyClustersResult = await GetAllGalaxyClustersForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxyCluster>, IEnumerable<ISolarSystem>>.CopyResult(galaxyClustersResult, ref result);
+            OASISResultHelper<IEnumerable<IGalaxyCluster>, IEnumerable<ISolarSystem>>.CopyResult(galaxyClustersResult, ref result);
 
             if (!galaxyClustersResult.IsError)
             {
@@ -605,7 +605,7 @@ namespace NextGenSoftware.OASIS.STAR
         //{
         //    OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
         //    OASISResult<IEnumerable<IDimension>> dimensionsResult = await GetAllDimensionsForMultiverseAsync(refresh);
-        //    OASISResultCollectionToCollectionHelper<IEnumerable<IDimension>, IEnumerable<ISolarSystem>>.CopyResult(dimensionsResult, ref result);
+        //    OASISResultHelper<IEnumerable<IDimension>, IEnumerable<ISolarSystem>>.CopyResult(dimensionsResult, ref result);
 
         //    if (!dimensionsResult.IsError)
         //    {
@@ -624,7 +624,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
             OASISResult<IEnumerable<IUniverse>> universesResult = await GetAllUniversesForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IUniverse>, IEnumerable<ISolarSystem>>.CopyResult(universesResult, ref result);
+            OASISResultHelper<IEnumerable<IUniverse>, IEnumerable<ISolarSystem>>.CopyResult(universesResult, ref result);
 
             if (!universesResult.IsError)
             {
@@ -649,7 +649,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
             OASISResult<IEnumerable<IGalaxy>> galaxiesResult = await GetAllGalaxiesForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxy>, IEnumerable<ISolarSystem>>.CopyResult(galaxiesResult, ref result);
+            OASISResultHelper<IEnumerable<IGalaxy>, IEnumerable<ISolarSystem>>.CopyResult(galaxiesResult, ref result);
             List<ISolarSystem> solarSystems = new List<ISolarSystem>();
 
             if (!galaxiesResult.IsError)
@@ -683,7 +683,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
             OASISResult<IEnumerable<IGalaxyCluster>> galaxyClustersResult = await GetAllGalaxyClustersForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxyCluster>, IEnumerable<IStar>>.CopyResult(galaxyClustersResult, ref result);
+            OASISResultHelper<IEnumerable<IGalaxyCluster>, IEnumerable<IStar>>.CopyResult(galaxyClustersResult, ref result);
 
             if (!galaxyClustersResult.IsError)
             {
@@ -707,7 +707,7 @@ namespace NextGenSoftware.OASIS.STAR
         //{
         //    OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
         //    OASISResult<IEnumerable<IDimension>> dimensionsResult = await GetAllDimensionsForMultiverseAsync(refresh);
-        //    OASISResultCollectionToCollectionHelper<IEnumerable<IDimension>, IEnumerable<IStar>>.CopyResult(dimensionsResult, ref result);
+        //    OASISResultHelper<IEnumerable<IDimension>, IEnumerable<IStar>>.CopyResult(dimensionsResult, ref result);
 
         //    if (!dimensionsResult.IsError)
         //    {
@@ -726,7 +726,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
             OASISResult<IEnumerable<IUniverse>> universesResult = await GetAllUniversesForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IUniverse>, IEnumerable<IStar>>.CopyResult(universesResult, ref result);
+            OASISResultHelper<IEnumerable<IUniverse>, IEnumerable<IStar>>.CopyResult(universesResult, ref result);
 
             if (!universesResult.IsError)
             {
@@ -751,7 +751,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
             OASISResult<IEnumerable<ISuperStar>> superStarsResult = await GetAllSuperStarsForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<ISuperStar>, IEnumerable<IStar>>.CopyResult(superStarsResult, ref result);
+            OASISResultHelper<IEnumerable<ISuperStar>, IEnumerable<IStar>>.CopyResult(superStarsResult, ref result);
             List<IStar> stars = new List<IStar>();
 
             if (!superStarsResult.IsError)
@@ -788,7 +788,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
             OASISResult<IEnumerable<IGalaxyCluster>> galaxyClustersResult = await GetAllGalaxyClustersForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxyCluster>, IEnumerable<IPlanet>>.CopyResult(galaxyClustersResult, ref result);
+            OASISResultHelper<IEnumerable<IGalaxyCluster>, IEnumerable<IPlanet>>.CopyResult(galaxyClustersResult, ref result);
 
             if (!galaxyClustersResult.IsError)
             {
@@ -812,7 +812,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
             OASISResult<IEnumerable<IDimension>> dimensionsResult = await GetAllDimensionsForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IDimension>, IEnumerable<IPlanet>>.CopyResult(dimensionsResult, ref result);
+            OASISResultHelper<IEnumerable<IDimension>, IEnumerable<IPlanet>>.CopyResult(dimensionsResult, ref result);
 
             if (!dimensionsResult.IsError)
             {
@@ -831,7 +831,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
             OASISResult<IEnumerable<IUniverse>> universesResult = await GetAllUniversesForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IUniverse>, IEnumerable<IPlanet>>.CopyResult(universesResult, ref result);
+            OASISResultHelper<IEnumerable<IUniverse>, IEnumerable<IPlanet>>.CopyResult(universesResult, ref result);
 
             if (!universesResult.IsError)
             {
@@ -855,7 +855,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
             OASISResult<IEnumerable<ISuperStar>> superStarsResult = await GetAllSuperStarsForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<ISuperStar>, IEnumerable<IPlanet>>.CopyResult(superStarsResult, ref result);
+            OASISResultHelper<IEnumerable<ISuperStar>, IEnumerable<IPlanet>>.CopyResult(superStarsResult, ref result);
             List<IPlanet> planets = new List<IPlanet>();
 
             if (!superStarsResult.IsError)
@@ -894,7 +894,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
             OASISResult<IEnumerable<IStar>> starsResult = await GetAllStarsForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IStar>, IEnumerable<IPlanet>>.CopyResult(starsResult, ref result);
+            OASISResultHelper<IEnumerable<IStar>, IEnumerable<IPlanet>>.CopyResult(starsResult, ref result);
 
             if (!starsResult.IsError)
             {
@@ -923,7 +923,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IEnumerable<IMoon>> result = new OASISResult<IEnumerable<IMoon>>();
             OASISResult<IEnumerable<IPlanet>> planetsResult = await GetAllPlanetsForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IPlanet>, IEnumerable<IMoon>>.CopyResult(planetsResult, ref result);
+            OASISResultHelper<IEnumerable<IPlanet>, IEnumerable<IMoon>>.CopyResult(planetsResult, ref result);
 
             if (!planetsResult.IsError)
             {

@@ -229,6 +229,93 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             // BEGIN OASIS API DEMO ***********************************************************************************
             ShowMessage("BEGINNING OASIS API TEST'S...");
 
+            ShowWorkingMessage("Beginning Wallet/Key API Tests...");
+
+            ShowWorkingMessage("Linking Public Key to Solana Wallet...");
+            OASISResult<Guid> keyLinkResult = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarByEmail(Guid.Empty, "davidellams@hotmail.com", ProviderType.SolanaOASIS, "TEST PUBLIC KEY");
+
+            if (!keyLinkResult.IsError && keyLinkResult.Result != Guid.Empty)
+                ShowSuccessMessage($"Successfully linked public key to Solana Wallet. WalletID: {keyLinkResult.Result}");
+            else
+                ShowErrorMessage($"Error occured linking key. Reason: {keyLinkResult.Message}");
+
+
+            ShowWorkingMessage("Linking Private Key to Solana Wallet...");
+            keyLinkResult = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarByEmail(keyLinkResult.Result, "davidellams@hotmail.com", ProviderType.SolanaOASIS, "TEST PRIVATE KEY");
+
+            if (!keyLinkResult.IsError && keyLinkResult.Result != Guid.Empty)
+                ShowSuccessMessage($"Successfully linked private key to Solana Wallet. WalletID: {keyLinkResult.Result}");
+            else
+                ShowErrorMessage($"Error occured linking key. Reason: {keyLinkResult.Message}");
+
+
+            ShowWorkingMessage("Generating KeyPair & Linking to EOS Wallet...");
+            OASISResult<KeyPair> generateKeyPairResult = STAR.OASISAPI.Keys.GenerateKeyPairAndLinkProviderKeysToAvatarByEmail("davidellams@hotmail.com", ProviderType.EOSIOOASIS, true, true);
+
+            if (!generateKeyPairResult.IsError && generateKeyPairResult.Result != null)
+                ShowSuccessMessage($"Successfully generated new keypair and linked to EOS Wallet. Public Key: {generateKeyPairResult.Result.PublicKey}, Private Key: {generateKeyPairResult.Result.PrivateKey}");
+            else
+                ShowErrorMessage($"Error occured generating keypair. Reason: {generateKeyPairResult.Message}");
+
+            ShowSuccessMessage("Wallet/Key API Tests Complete.");
+
+
+            ShowWorkingMessage("Getting all Provider Public Keys For Avatar...");
+            OASISResult<Dictionary<ProviderType, List<string>>> keysResult = STAR.OASISAPI.Keys.GetAllProviderPublicKeysForAvatarByEmail("davidellams@hotmail.com");
+
+            if (!keysResult.IsError && keysResult.Result != null)
+            {
+                string message = "";
+                foreach (ProviderType providerType in keysResult.Result.Keys)
+                {
+                    foreach (string key in keysResult.Result[providerType])
+                        message = string.Concat(message, providerType.ToString(), ": ", key, "\n");
+                }
+                
+                ShowSuccessMessage($"Successfully retreived keys: {message}");
+            }
+            else
+                ShowErrorMessage($"Error occured getting keys. Reason: {keysResult.Message}");
+
+
+            ShowWorkingMessage("Getting all Provider Private Keys For Avatar...");
+            keysResult = STAR.OASISAPI.Keys.GetAllProviderPrivateKeysForAvatarByUsername("davidellams@hotmail.com");
+
+            if (!keysResult.IsError && keysResult.Result != null)
+            {
+                string message = "";
+                foreach (ProviderType providerType in keysResult.Result.Keys)
+                {
+                    foreach (string key in keysResult.Result[providerType])
+                        message = string.Concat(message, providerType.ToString(), ": ", key, "\n");
+                }
+
+                ShowSuccessMessage($"Successfully retreived keys: {message}");
+            }
+            else
+                ShowErrorMessage($"Error occured getting keys. Reason: {keysResult.Message}");
+
+
+            ShowWorkingMessage("Getting all Provider Unique Storage Keys For Avatar...");
+            OASISResult<Dictionary<ProviderType, string>> uniqueKeysResult = STAR.OASISAPI.Keys.GetAllProviderUniqueStorageKeysForAvatarByEmail("davidellams@hotmail.com");
+
+            if (!uniqueKeysResult.IsError && uniqueKeysResult.Result != null)
+            {
+                string message = "";
+                foreach (ProviderType providerType in uniqueKeysResult.Result.Keys)
+                    message = string.Concat(message, providerType.ToString(), ": ", uniqueKeysResult.Result[providerType], "\n");
+
+                ShowSuccessMessage($"Successfully retreived keys: {message}");
+            }
+            else
+                ShowErrorMessage($"Error occured getting keys. Reason: {uniqueKeysResult.Message}");
+
+
+            ShowSuccessMessage("Wallet/Key API Tests Complete.");
+            
+            Console.WriteLine("Press Any Key To Continue...");
+            Console.ReadKey();
+
             //Set auto-replicate for all providers except IPFS and Neo4j.
             //EnableOrDisableAutoProviderList(ProviderManager.SetAutoReplicateForAllProviders, true, null, "Enabling Auto-Replication For All Providers...", "Auto-Replication Successfully Enabled For All Providers.", "Error Occured Enabling Auto-Replication For All Providers.");
             ShowWorkingMessage("Enabling Auto-Replication For All Providers...");

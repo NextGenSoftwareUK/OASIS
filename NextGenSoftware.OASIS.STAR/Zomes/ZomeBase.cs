@@ -647,7 +647,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
                 result.Result = (T)RestoreCelesialBodies(savingHolon);
                 OASISResult<IHolon> holonResult = new OASISResult<IHolon>(result.Result);
-                OASISResultHolonToHolonHelper<T, IHolon>.CopyResult(result, holonResult);
+                OASISResultHelper<T, IHolon>.CopyResult(result, holonResult);
                 OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = holonResult });
             }
             else

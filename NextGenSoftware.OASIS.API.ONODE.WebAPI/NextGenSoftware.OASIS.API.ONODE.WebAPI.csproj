@@ -13,6 +13,7 @@
     <StartupObject>NextGenSoftware.OASIS.API.ONODE.WebAPI.Program</StartupObject>
     <UserSecretsId>b95fccdc-3bbf-4f80-b705-624af891ef15</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'OASIS_API' " />
