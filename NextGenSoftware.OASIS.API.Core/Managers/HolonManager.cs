@@ -157,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result == null)
             {
                 result.IsError = true;
-                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load the holon with id ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load the holon with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), string.Concat(".\n\nDetailed Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
@@ -1673,39 +1673,45 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        //TODO: Finish Upgrading rest of HolonManager to work with this improved code (from AvatarManager):
         private async Task<OASISResult<IHolon>> LoadHolonForProviderTypeAsync(Guid id, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<IHolon> result = null)
         {
+            string errorMessageTemplate = "Error in LoadHolonForProviderTypeAsync method in HolonManager loading holon with id {0} for provider {1}. Reason: ";
+            string errorMessage = string.Format(errorMessageTemplate, id, providerType);
+
             try
             {
                 OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                errorMessage = string.Format(errorMessageTemplate, id, ProviderManager.CurrentStorageProviderType.Name);
 
-                if (providerResult.IsError)
+                if (!providerResult.IsError && providerResult.Result != null)
                 {
-                    LoggingManager.Log(providerResult.Message, LogType.Error);
+                    var task = providerResult.Result.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
-                    if (result != null)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        result.IsError = true;
-                        result.Message = providerResult.Message;
+                        if (task.Result.IsError || task.Result.Result == null)
+                        {
+                            if (string.IsNullOrEmpty(task.Result.Message))
+                                task.Result.Message = "No Holon Found.";
+
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                        }
+                        else
+                        {
+                            result.IsLoaded = true;
+                            result.Result = task.Result.Result;
+                        }
                     }
+                    else
+                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
-                else if (result != null)
-                {
-                    result = await providerResult.Result.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, version);
-                    result.IsLoaded = true;
-                }
+                else
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                string errorMessage = string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
-
-                if (result != null)
-                {
-                    result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
-                }
-                else
-                    LoggingManager.Log(errorMessage, LogType.Error);
+                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message));
             }
 
             return result;

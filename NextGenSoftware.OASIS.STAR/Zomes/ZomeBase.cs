@@ -80,7 +80,9 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             }
             else
             {
-                _holonManager = new HolonManager(result.Result);
+                //TODO: Mot sure if want each Zome to have its own instance of HolonManager? Have to think about possible use cases for this?
+                _holonManager = HolonManager.Instance;
+                //_holonManager = new HolonManager(result.Result); //TODO: Change to use static instance instead!
                 OnInitialized?.Invoke(this, new System.EventArgs());
             }
         }

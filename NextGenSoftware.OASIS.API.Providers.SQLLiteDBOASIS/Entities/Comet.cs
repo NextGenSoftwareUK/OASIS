@@ -224,5 +224,35 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         {
             throw new NotImplementedException();
         }
+
+        public Task<OASISResult<T>> InitializeAsync<T>() where T : ICelestialBody, new()
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<T> Initialize<T>() where T : ICelestialBody, new()
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<OASISResult<ICelestialBody>> ICelestialBody.LoadAsync(bool loadChildren, bool recursive, int maxChildDepth, bool continueOnError, int version)
+        {
+            throw new NotImplementedException();
+        }
+
+        OASISResult<ICelestialBody> ICelestialBody.Load(bool loadChildren, bool recursive, int maxChildDepth, bool continueOnError, int version)
+        {
+            throw new NotImplementedException();
+        }
+
+        //Task<OASISResult<ICelestialBody>> ICelestialBody.InitializeAsync()
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //OASISResult<ICelestialBody> ICelestialBody.Initialize()
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }
