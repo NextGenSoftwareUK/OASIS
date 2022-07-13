@@ -40,13 +40,15 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 
         ICelestialBodyCore CelestialBodyCore { get; set; }
 
-        Task<OASISResult<T>> InitializeAsync<T>() where T : ICelestialBody, new();
-        OASISResult<T> Initialize<T>() where T : ICelestialBody, new();
+        //Task<OASISResult<T>> InitializeAsync<T>() where T : ICelestialBody, new();
+        //OASISResult<T> Initialize<T>() where T : ICelestialBody, new();
+        //Task<OASISResult<ICelestialBody>> InitializeAsync();
+        //OASISResult<ICelestialBody> Initialize();
 
         Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
         OASISResult<ICelestialBody> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
-        Task<OASISResult<IHolon>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
-        OASISResult<IHolon> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
+        Task<OASISResult<ICelestialBody>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
+        OASISResult<ICelestialBody> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
         Task<OASISResult<ICelestialBody>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new();
         OASISResult<ICelestialBody> Load<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new();
         Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
