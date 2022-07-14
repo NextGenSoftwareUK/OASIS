@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.STAR.CelestialSpace;
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
     // At the centre of each Solar System (creates Solar Systems, Planets & Moons).
-    public class StarCore : CelestialBodyCore, IStarCore
+    public class StarCore : CelestialBodyCore<Star>, IStarCore
     {
         public IStar Star { get; set; }
 

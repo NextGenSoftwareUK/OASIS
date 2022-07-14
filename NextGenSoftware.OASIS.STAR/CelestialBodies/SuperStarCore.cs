@@ -12,7 +12,7 @@ using NextGenSoftware.OASIS.STAR.CelestialSpace;
 namespace NextGenSoftware.OASIS.STAR
 {
     // At the centre of each Galaxy (creates Stars & Planets) Creator
-    public class SuperStarCore : CelestialBodyCore, ISuperStarCore
+    public class SuperStarCore : CelestialBodyCore<Star>, ISuperStarCore
     {
         public ISuperStar SuperStar { get; set; }
 

@@ -12,7 +12,7 @@ using static NextGenSoftware.OASIS.API.Core.Events.Events;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public abstract class CelestialBodyCore : ZomeBase, ICelestialBodyCore
+    public abstract class CelestialBodyCore<T> : ZomeBase, ICelestialBodyCore where T : ICelestialBody, new()
     {
         //public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         ////  public event HolonsLoaded OnHolonsLoaded;
@@ -419,31 +419,39 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new()
         {
-            //OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>(new T());
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
             OASISResult<IHolon> holonResult = await base.LoadHolonAsync(loadChildren, recursive, maxChildDepth, continueOnError, version);
             
             OASISResultHelper<IHolon, ICelestialBody>.CopyResult(holonResult, result);
-            result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result, (T)result.Result);
+            result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
             
             return result;
         }
 
         public OASISResult<ICelestialBody> LoadCelestialBody<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new()
         {
-            return LoadCelestialBodyAsync<T>(loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<IHolon> holonResult = base.LoadHolon(loadChildren, recursive, maxChildDepth, continueOnError, version);
+
+            OASISResultHelper<IHolon, ICelestialBody>.CopyResult(holonResult, result);
+            result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
+
+            return result;
         }
 
         public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             //return await base.LoadHolonAsync(loadChildren, recursive, maxChildDepth, continueOnError, version);
 
+            
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
             OASISResult<IHolon> holonResult = await base.LoadHolonAsync(loadChildren, recursive, maxChildDepth, continueOnError, version);
 
             OASISResultHelper<IHolon, ICelestialBody>.CopyResult(holonResult, result);
-            //result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result, (T)result.Result);
-            result.Result = (ICelestialBody)holonResult.Result;
+            //result.Result = Mapper.ConvertHolonToCelestialBody(holonResult.Result, result.Result);
+            //result.Result = Mapper.MapBaseHolonProperties(holonResult.Result, result.Result);
+            result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
+            //result.Result = (ICelestialBody)holonResult.Result;
 
             return result;
         }
@@ -456,7 +464,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             OASISResult<IHolon> holonResult = base.LoadHolon(loadChildren, recursive, maxChildDepth, continueOnError, version);
 
             OASISResultHelper<IHolon, ICelestialBody>.CopyResult(holonResult, result);
-            //result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result, (T)result.Result);
+            result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
             result.Result = (ICelestialBody)holonResult.Result;
 
             return result;

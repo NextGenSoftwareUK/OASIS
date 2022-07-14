@@ -12,11 +12,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public StarType StarType { get; set; }
         public StarClassification StarClassification { get; set; }
         public StarBinaryType StarBinaryType { get; set; }
-
-        public Star(HolonType holonType, bool autoLoad = true) : base(holonType, autoLoad) { }
+        public Star(HolonType holonType) : base(holonType) { }
         public Star(Guid id, bool autoLoad = true) : base(id, HolonType.Star, autoLoad) { }
         public Star(Dictionary<ProviderType, string> providerKey, bool autoLoad = true) : base(providerKey, HolonType.Star, autoLoad) { }
-        public Star(bool autoLoad = true) : base(HolonType.Star, autoLoad) { }
         public Star() : base(HolonType.Star) { }
     }
 }

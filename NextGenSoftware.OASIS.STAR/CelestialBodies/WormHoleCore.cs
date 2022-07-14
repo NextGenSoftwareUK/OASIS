@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public class WormHoleCore : CelestialBodyCore, IWormHoleCore
+    public class WormHoleCore : CelestialBodyCore<WormHole>, IWormHoleCore
     {
         public IWormHole WormHole { get; set; }
 

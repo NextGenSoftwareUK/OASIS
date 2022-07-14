@@ -426,10 +426,30 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (!result.IsError && result.Result != null)
                 {
+                    //Backup the wallets before the private keys get blanked out in LinkProviderPublicKeyToAvatar.
+                    Dictionary<ProviderType, List<IProviderWallet>> wallets = WalletManager.Instance.CopyProviderWallets(avatar.ProviderWallets);
                     OASISResult<Guid> publicKeyResult = LinkProviderPublicKeyToAvatar(Guid.Empty, avatar, providerTypeToLinkTo, result.Result.PublicKey, providerToLoadAvatarFrom);
 
                     if (!publicKeyResult.IsError)
                     {
+                        //Need to restore wallet private keys because the LinkProviderPublicKeyToAvatar calls Save() on the avatar object, which then blanks all private keys for extra security.
+                        foreach (ProviderType pType in avatar.ProviderWallets.Keys)
+                        {
+                            foreach (IProviderWallet wallet in avatar.ProviderWallets[pType])
+                            {
+                                //if (wallets.ContainsKey(pType) && wallets[pType].Any(x => x.WalletId == wallet.Id))
+                                if (wallets.ContainsKey(pType))
+                                {
+                                    IProviderWallet backedUpWallet = wallets[pType].FirstOrDefault(x => x.WalletId == wallet.Id);
+
+                                    if (backedUpWallet != null)
+                                        wallet.PrivateKey = backedUpWallet.PrivateKey;
+                                }
+                            }
+                        }
+
+                        //avatar.ProviderWallets = wallets;
+                        
                         OASISResult<Guid> privateKeyResult = LinkProviderPrivateKeyToAvatar(publicKeyResult.Result, avatar, providerTypeToLinkTo, result.Result.PrivateKey, providerToLoadAvatarFrom);
 
                         if (!privateKeyResult.IsError)
@@ -585,7 +605,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (wallet != null)
                         {
-                            wallet.PrivateKey = providerPrivateKey;
+                            wallet.PrivateKey = Rijndael.Encrypt(providerPrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
                             wallet.ModifiedByAvatarId = avatar.Id;
                             wallet.ModifiedDate = DateTime.Now;
                             result.Result = wallet.WalletId;

@@ -28,10 +28,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
     class Program
     {
         private const string dnaFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
-        //private const string cSharpGeneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis\\CSharp";
-        //private const string rustGenesisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis\\Rust";
-        private const string cSharpGeneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\Genesis\\CSharp";
-        private const string rustGenesisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\Genesis\\Rust";
+        private const string cSharpGeneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis\\CSharp";
+        private const string rustGenesisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis\\Rust";
+        //private const string cSharpGeneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\Genesis\\CSharp";
+        //private const string rustGenesisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\Genesis\\Rust";
 
         private static Planet _superWorld;
         private static Moon _jlaMoon;
@@ -241,7 +241,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
 
             ShowWorkingMessage("Linking Private Key to Solana Wallet...");
-            keyLinkResult = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarByEmail(keyLinkResult.Result, "davidellams@hotmail.com", ProviderType.SolanaOASIS, "TEST PRIVATE KEY");
+            keyLinkResult = STAR.OASISAPI.Keys.LinkProviderPrivateKeyToAvatarByEmail(keyLinkResult.Result, "davidellams@hotmail.com", ProviderType.SolanaOASIS, "TEST PRIVATE KEY");
 
             if (!keyLinkResult.IsError && keyLinkResult.Result != Guid.Empty)
                 ShowSuccessMessage($"Successfully linked private key to Solana Wallet. WalletID: {keyLinkResult.Result}");
@@ -257,9 +257,6 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             else
                 ShowErrorMessage($"Error occured generating keypair. Reason: {generateKeyPairResult.Message}");
 
-            ShowSuccessMessage("Wallet/Key API Tests Complete.");
-
-
             ShowWorkingMessage("Getting all Provider Public Keys For Avatar...");
             OASISResult<Dictionary<ProviderType, List<string>>> keysResult = STAR.OASISAPI.Keys.GetAllProviderPublicKeysForAvatarByEmail("davidellams@hotmail.com");
 
@@ -272,7 +269,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                         message = string.Concat(message, providerType.ToString(), ": ", key, "\n");
                 }
                 
-                ShowSuccessMessage($"Successfully retreived keys: {message}");
+                ShowSuccessMessage($"Successfully retreived keys:\n{message}");
             }
             else
                 ShowErrorMessage($"Error occured getting keys. Reason: {keysResult.Message}");
@@ -290,7 +287,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                         message = string.Concat(message, providerType.ToString(), ": ", key, "\n");
                 }
 
-                ShowSuccessMessage($"Successfully retreived keys: {message}");
+                ShowSuccessMessage($"Successfully retreived keys\n{message}");
             }
             else
                 ShowErrorMessage($"Error occured getting keys. Reason: {keysResult.Message}");
@@ -305,7 +302,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 foreach (ProviderType providerType in uniqueKeysResult.Result.Keys)
                     message = string.Concat(message, providerType.ToString(), ": ", uniqueKeysResult.Result[providerType], "\n");
 
-                ShowSuccessMessage($"Successfully retreived keys: {message}");
+                ShowSuccessMessage($"Successfully retreived keys:\n{message}");
             }
             else
                 ShowErrorMessage($"Error occured getting keys. Reason: {uniqueKeysResult.Message}");

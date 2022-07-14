@@ -12,7 +12,7 @@ using NextGenSoftware.OASIS.STAR.CelestialSpace;
 namespace NextGenSoftware.OASIS.STAR
 {
     // At the centre of each Multiverse (creates dimensions, universes, GalaxyClusters, SolarSystems (outside of a Galaxy), Stars (outside of a Galaxy) & Planets (outside of a Galaxy)). Prime Creator
-    public class GrandSuperStarCore : CelestialBodyCore, IGrandSuperStarCore
+    public class GrandSuperStarCore : CelestialBodyCore<Star>, IGrandSuperStarCore
     {
         public IGrandSuperStar GrandSuperStar { get; set; }
 
