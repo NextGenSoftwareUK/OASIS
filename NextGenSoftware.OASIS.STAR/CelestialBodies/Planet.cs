@@ -16,7 +16,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public PlanetClassification PlanetClassification { get; set; }
 
         public Planet() : base(HolonType.Planet) { }
-        public Planet(bool autoLoad = true) : base(HolonType.Planet, autoLoad){}
         public Planet(Guid id, bool autoLoad = true) : base(id, HolonType.Planet, autoLoad) {}
         public Planet(Dictionary<ProviderType, string> providerKey, bool autoLoad = true) : base(providerKey, HolonType.Planet, autoLoad) {}
     }

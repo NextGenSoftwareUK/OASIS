@@ -40,6 +40,36 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public event HolonsSaved OnHolonsSaved;
         public event HolonsError OnHolonsError;
 
+        public new Guid Id
+        {
+            get
+            {
+                return base.Id;
+            }
+            set
+            {
+                base.Id = value;
+                
+                if (CelestialBodyCore != null)
+                    CelestialBodyCore.Id = value;
+            }
+        }
+
+        public new Dictionary<ProviderType, string> ProviderUniqueStorageKey
+        {
+            get
+            {
+                return base.ProviderUniqueStorageKey;
+            }
+            set
+            {
+                base.ProviderUniqueStorageKey = value;
+
+                if (CelestialBodyCore != null)
+                    CelestialBodyCore.ProviderUniqueStorageKey = value;
+            }
+        }
+
         public int Mass { get; set; }
         public int Density { get; set; }
         public int RotationPeriod { get; set; } //How long it takes to rotate on its axis.
@@ -60,25 +90,25 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //    Initialize();
         //}
 
-        public CelestialBody(HolonType holonType, bool autoLoad = true) : base(holonType)
+        public CelestialBody(HolonType holonType) : base(holonType)
         {
             //InitCelestialBodyCore();
             //WireUpEvents();
-            Initialize<T>(autoLoad);
+            Initialize();
         }
 
         public CelestialBody(Guid id, HolonType holonType, bool autoLoad = true) : base(id, holonType)
         {
             //InitCelestialBodyCore();
             //WireUpEvents();
-            Initialize<T>(autoLoad);
+            Initialize(autoLoad);
         }
 
         public CelestialBody(Dictionary<ProviderType, string> providerKey, HolonType holonType, bool autoLoad = true) : base(providerKey, holonType)
         {
             //InitCelestialBodyCore();
             //WireUpEvents();
-            Initialize<T>(autoLoad);
+            Initialize(autoLoad);
         }
 
         //TODO: Try to remove this method if possible and only use the new generic method.
@@ -173,28 +203,24 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError).Result;
         }
 
-        public async Task<OASISResult<ICelestialBody>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new()
+        public async Task<OASISResult<T>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new()
         {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<T> result = new OASISResult<T>();
 
-            //if (!IsInitialized)
-            //{
-            //    result = await InitializeAsync();
-            //    return result;
-            //}
 
-            result = await CelestialBodyCore.LoadCelestialBodyAsync<T>(loadChildren, recursive, maxChildDepth, continueOnError);
+            /*
+            OASISResult<ICelestialBody> celestialBodyResult = await CelestialBodyCore.LoadCelestialBodyAsync<T>(loadChildren, recursive, maxChildDepth, continueOnError);
 
-            if ((result != null && !result.IsError && result.Result != null)
+            if ((celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
                 || ((result == null || result.IsError || result.Result == null) && continueOnError))
             {
-                if (result != null && !result.IsError && result.Result != null)
-                    Mapper.MapBaseHolonProperties(result.Result, this);
+                if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
+                    Mapper.MapBaseHolonProperties(celestialBodyResult.Result, this);
                 else
                 {
                     // If there was an error then continueOnError must have been set to true.
                     ErrorHandling.HandleWarning(ref result, $"An errror occured in CelestialBody.LoadAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. ContinueOnError is set to true so continuing to attempt to load the celestial body zomes... Reason: {result.Message}", result.DetailedMessage);
-                    OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+                    OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Reason = $"{result.Message}", Result = celestialBodyResult });
                 }
 
                 if (loadChildren)
@@ -213,13 +239,25 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 }
             }
 
-            OnCelestialBodyLoaded?.Invoke(this, new CelestialBodyLoadedEventArgs() { Result = result });
+            OnCelestialBodyLoaded?.Invoke(this, new CelestialBodyLoadedEventArgs() { Result = celestialBodyResult });
+            */
+
+            OASISResult<ICelestialBody> celestialBodyResult = await LoadAsync(loadChildren: loadChildren, recursive: recursive, maxChildDepth, continueOnError);
+            result.Result = (T)celestialBodyResult.Result;
+            OASISResultHelper<ICelestialBody, T>.CopyResult(celestialBodyResult, result);
+
             return result;
         }
 
-        public OASISResult<ICelestialBody> Load<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new()
+        public OASISResult<T> Load<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new()
         {
-            return LoadAsync<T>(loadChildren, recursive, maxChildDepth, continueOnError).Result;
+            OASISResult<T> result = new OASISResult<T>();
+
+            OASISResult<ICelestialBody> celestialBodyResult = Load(loadChildren: loadChildren, recursive: recursive, maxChildDepth, continueOnError);
+            result.Result = (T)celestialBodyResult.Result;
+            OASISResultHelper<ICelestialBody, T>.CopyResult(celestialBodyResult, result);
+
+            return result;
         }
 
         public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
@@ -999,7 +1037,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             if (autoLoad && !IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
             {
-                result = await LoadAsync<T>();
+                result = await LoadAsync();
 
                 if (result != null && !result.IsError && result.Result != null)
                     await base.InitializeAsync();
@@ -1019,7 +1057,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             if (autoLoad && !IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
             {
-                result = Load<T>();
+                result = Load();
 
                 if (result != null && !result.IsError && result.Result != null)
                     base.Initialize();
@@ -1030,6 +1068,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
+        /*
         protected async Task<OASISResult<T>> InitializeAsync<T>(bool autoLoad = true) where T : ICelestialBody, new()
         {
             OASISResult<T> result = new OASISResult<T>();
@@ -1074,7 +1113,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             //    ErrorHandling.HandleWarning(ref result, "Warning in Initialize method in CelestialBody: Neither the Id or ProviderUniqueStorageKey have been set, at least one needs to be set.");
 
             return result;
-        }
+        }*/
 
         private void InitCelestialBodyCore()
         {
@@ -1114,20 +1153,20 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             if (CelestialBodyCore != null)
             {
-                ((CelestialBodyCore)CelestialBodyCore).OnHolonLoaded += CelestialBody_OnHolonLoaded;
-                ((CelestialBodyCore)CelestialBodyCore).OnHolonSaved += CelestialBodyCore_OnHolonSaved;
-                ((CelestialBodyCore)CelestialBodyCore).OnHolonError += CelestialBody_OnHolonError;
-                ((CelestialBodyCore)CelestialBodyCore).OnHolonsLoaded += CelestialBodyCore_OnHolonsLoaded;
-                ((CelestialBodyCore)CelestialBodyCore).OnHolonsSaved += CelestialBody_OnHolonsSaved;
-                ((CelestialBodyCore)CelestialBodyCore).OnHolonsError += CelestialBody_OnHolonsError;
-                ((CelestialBodyCore)CelestialBodyCore).OnZomeLoaded += CelestialBody_OnZomeLoaded;
-                ((CelestialBodyCore)CelestialBodyCore).OnZomeSaved += CelestialBody_OnZomeSaved;
-                ((CelestialBodyCore)CelestialBodyCore).OnZomeAdded += CelestialBody_OnZomeAdded;
-                ((CelestialBodyCore)CelestialBodyCore).OnZomeRemoved += CelestialBody_OnZomeRemoved;
-                ((CelestialBodyCore)CelestialBodyCore).OnZomeError += CelestialBodyCore_OnZomeError;
-                ((CelestialBodyCore)CelestialBodyCore).OnZomesLoaded += CelestialBodyCore_OnZomesLoaded;
-                ((CelestialBodyCore)CelestialBodyCore).OnZomesSaved += CelestialBody_OnZomesSaved;
-                ((CelestialBodyCore)CelestialBodyCore).OnZomesError += CelestialBody_OnZomesError;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnHolonLoaded += CelestialBody_OnHolonLoaded;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnHolonSaved += CelestialBodyCore_OnHolonSaved;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnHolonError += CelestialBody_OnHolonError;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnHolonsLoaded += CelestialBodyCore_OnHolonsLoaded;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnHolonsSaved += CelestialBody_OnHolonsSaved;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnHolonsError += CelestialBody_OnHolonsError;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnZomeLoaded += CelestialBody_OnZomeLoaded;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnZomeSaved += CelestialBody_OnZomeSaved;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnZomeAdded += CelestialBody_OnZomeAdded;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnZomeRemoved += CelestialBody_OnZomeRemoved;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnZomeError += CelestialBodyCore_OnZomeError;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnZomesLoaded += CelestialBodyCore_OnZomesLoaded;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnZomesSaved += CelestialBody_OnZomesSaved;
+                ((CelestialBodyCore<T>)CelestialBodyCore).OnZomesError += CelestialBody_OnZomesError;
             }
         }
 

@@ -937,4 +937,8 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.STAR\NextGenSoftware.OASIS.STAR.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Genesis\CSharp\" />
+  </ItemGroup>
+
 </Project>

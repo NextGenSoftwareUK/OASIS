@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public class AsteroidCore : CelestialBodyCore, IAsteroidCore
+    public class AsteroidCore : CelestialBodyCore<Asteroid>, IAsteroidCore
     {
         public IAsteroid Asteroid { get; set; }
 

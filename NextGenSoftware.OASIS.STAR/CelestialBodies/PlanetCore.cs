@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public class PlanetCore : CelestialBodyCore, IPlanetCore
+    public class PlanetCore : CelestialBodyCore<Planet>, IPlanetCore
     {
         public IPlanet Planet { get; set; }
 
