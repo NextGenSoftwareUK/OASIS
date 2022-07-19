@@ -27,6 +27,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
     class Program
     {
+        private const string defaultGenesisNamespace = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
         private const string dnaFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
         private const string cSharpGeneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis\\CSharp";
         private const string rustGenesisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis\\Rust";
@@ -113,13 +114,13 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         private static async Task Test(string dnaFolder, string cSharpGeneisFolder, string rustGenesisFolder)
         {
             //Passing in null for the ParentCelestialBody will default it to the default planet (Our World).
-            OASISResult<CoronalEjection> result = await GenerateCelestialBody("The Justice League Accademy", null, GenesisType.Moon, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis");
+            OASISResult<CoronalEjection> result = await GenerateCelestialBody("The Justice League Accademy", null, GenesisType.Moon, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, defaultGenesisNamespace);
             
             if (result != null && !result.IsError && result.Result != null && result.Result.CelestialBody != null)
                 _jlaMoon = (Moon)result.Result.CelestialBody;
 
             //Passing in null for the ParentCelestialBody will default it to the default Star (Our Sun Sol).
-            result = await GenerateCelestialBody("Super World", null, GenesisType.Planet, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis");
+            result = await GenerateCelestialBody("Super World", null, GenesisType.Planet, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, defaultGenesisNamespace);
 
             if (result != null && !result.IsError && result.Result != null && result.Result.CelestialBody != null)
             {

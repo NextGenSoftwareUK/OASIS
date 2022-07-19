@@ -1,0 +1,131 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "OASIS": {
+    "Terms": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n",
+    "CurrentStagingVersion": "v2.3.0",
+    "CurrentLiveVersion": "v2.3.0",
+    "OASISVersion": "LIVE",
+    "Logging": {
+      "LoggingFramework": "NLog"
+    },
+    "ErrorHandling": {
+      "ShowStackTrace": "false",
+      "ThrowExceptionsOnErrors": "false",
+      "ThrowExceptionsOnWarnings": "false",
+      "LogAllErrors": "true",
+      "LogAllWarnings": "true"
+    },
+    "Security": {
+      "HideVerificationToken": "true",
+      "HideRefreshTokens": "true",
+      "SecretKey": "EA42F757-2EB8-414B-B68F-5D97C11983245A1F284F-ABEB-4C40-BE8C-80533E60AF3D",
+      "AvatarPassword": {
+        "BCryptEncryptionEnabled": "true",
+        "Rijndael256EncryptionEnabled": "true",
+        "Rijndael256Key": "RsWfvBg6_@Sb#BM^gRcyTK5x&8g=5SNhFwCx9AFQ$3G6#sZrEwx6M#*xB7rZa*uv!Cqm4mz+ZkeD!j@H=HQpPXJXu6fsvCc+kM^sWmZUSYbsnmtEVQvvhAA_^fLV_VvZ^JxJPgd+AkVy=&vt5z*nr8^$xEtDNqmNbZd5wnf6MFV&$Pujb*GRq%d6rPx92dCUA?QzRu+c6=vFXn@W_agxZa&8Khq*8+*+#Qt9T29S%M+AMU8TPYhe8R*Ht@2@LfhTGzG+Y2^!gg7rStvD@sSUd%rz#z4$V#uNXg2FDYes!vAKbErffdZraCF6v2sGexQtDWc?8teNqQ=2#JD^3@h9=$c_VVc6+W8fA9=mmN&6j&sD47*exykC_gm2bD2Tv5RPH7S^&r$kC4974+f3_Ke$X3MY6Na3d@xHeVGhXx@NudfC+BUDWMngBatd-5j+a5YY!%3&$=M5mgXmM_HueSJfjsqQ*&JtnwGzxVySs3s*sfW#%A?*%6VGBQE%e_FgXv43bTYsMLNmcEk^RP#2b%p9-sHvP4u&NfJ8Uj9E6+rZ@kJqxC+2p$+QRCnJWHRg3TdV$y9n*ZGWbLQgvs_f-TAW*W96d?gyr3q&-MPBjmrWLuNe-a3s^JTaQp!NShqB7-abyvHsAh=4AwM47Yr2CA+Y^$!kUk#^bdWtp39nS=K74yrhT2HFcSvpB$u!4-rTS%F+Qr3dwZ!fnj?N2N2zEBXB3krFddM4%Ea$MtRzZFX7eqf8wwe*t2P$dP#-R6x6P%JRcR7qPjWXg_N3$TeR^%GG?4xCn6TxFcM2FMYJ*sQm4JfVdbV$UvfX6WBwXk++_4tC6qHPsH3%UF-wRdZj8rjkfR?4Vcb%-L*&Sg^uB$EDRekD^!cd&y6xs*h!g95-xtGGAZ++$rMWt@hjQ^XekzstFUc%&xZZRn9GzuYmj%NbVsA%9jtuMYA_JBfmNDpk^pf^+vTbsCHxY2Dn6&^@yGmv+jx4XhrmsnPzuJ9H54EtTB=8yd?c&@xjPTqEv!5pDjmv6-vbrBS8VUR&jQqp&rCNqngKLRhJM&Tdh@PcshN9JL7tvpf6kjyPZu-*V9rnPE_xR!55tu3q$dAB#3u6VuYp2M?TzbZUxD6mkqGWehY+^82z76Y!yC6hXv7NwD$5Za7YFdXNty!peDn7@uGcCyp_bgZf?N!MQ5w*X@cxXPzAMs^7c%hX!J%jaN^=3cHEy9zX4&=D4bZLNDCG+bn6+hNFuyT9fpL&dxRV$7kv_FhZ2VQzU!#W5Ptja-HHQ=Qvk@u2StKW_P_cB4sgB%xdP@@FUsde=S4yHH%*kz^atdzspX$2-NyyXJGxrEyxhN%t?an_XetWL^?ZaN5Z5#!kG5mrM8&k2QVNxXp$N%3Z?R@@VRyuZwKG@Z*_D8VHhPafdt4DcmzWBPspu@&FV@md5RQk%QQu*d3^8y56mCk-BcqcAr6qK$_Sxhx59E_BLqRz^W98ZTJvPU7YSsRy3r#7b2y7KX?qR=mAwyhMekrhyRW%q2#x^kwSPm8%pz*96=KA5Hs^vfc=BjS^y8a=NRdA7Ue4pBEKq_zw@c^cn$B$JygGFLm6sQ4@GCLAvy_=s@4kJxx=bE@nYc%*eJE?DeqwHuF#*pScKq!qp3GFgZ*8HUWka_tHTG@M!VzU*aqh8F#CPjY6qGZeeymCeDP5fWhf!y=mx@_%j#2+X?VQYxW*gm*fa8X=dakwBGHb-ETsk76nf&!TzbUeZ!by7gNGLVX=$*N56uKh&L%T*y+bvLMRgnqm3p-b9zMqULR4z=8j544HYj+3dMhK3RgBhc@5TmT==ucn6X=t7YuT=*mmDPWhqf?N9Ucd?%9KrZWx%ffyT%@UnsQ=Qp+zq77+-Uf+P9M@gk&vf+9r69BBba3dWS#=shSB5V!N=bzJ@Ut&z%^*9e*hFdW8=*S9Mw*GbgRG32ScL!$Ntnv9rcg7d_^NdZkkPU*bBJa%f!_%dyMWH2Y2v$GpM6_PTdq#u8B%g%qE3MBw?4+n%mquMHKsGrALLL57jbAR+j7BnrRxUz!2Yan7v64zY$!h",
+        "QuantumEncryptionEnabled": "true"
+      },
+      "OASISProviderPrivateKeys": {
+        "BCryptEncryptionEnabled": "true",
+        "Rijndael256EncryptionEnabled": "true",
+        "Rijndael256Key": "RsWfvBg6_@Sb#BM^gRcyTK5x&8g=5SNhFwCx9AFQ$3G6#sZrEwx6M#*xB7rZa*uv!Cqm4mz+ZkeD!j@H=HQpPXJXu6fsvCc+kM^sWmZUSYbsnmtEVQvvhAA_^fLV_VvZ^JxJPgd+AkVy=&vt5z*nr8^$xEtDNqmNbZd5wnf6MFV&$Pujb*GRq%d6rPx92dCUA?QzRu+c6=vFXn@W_agxZa&8Khq*8+*+#Qt9T29S%M+AMU8TPYhe8R*Ht@2@LfhTGzG+Y2^!gg7rStvD@sSUd%rz#z4$V#uNXg2FDYes!vAKbErffdZraCF6v2sGexQtDWc?8teNqQ=2#JD^3@h9=$c_VVc6+W8fA9=mmN&6j&sD47*exykC_gm2bD2Tv5RPH7S^&r$kC4974+f3_Ke$X3MY6Na3d@xHeVGhXx@NudfC+BUDWMngBatd-5j+a5YY!%3&$=M5mgXmM_HueSJfjsqQ*&JtnwGzxVySs3s*sfW#%A?*%6VGBQE%e_FgXv43bTYsMLNmcEk^RP#2b%p9-sHvP4u&NfJ8Uj9E6+rZ@kJqxC+2p$+QRCnJWHRg3TdV$y9n*ZGWbLQgvs_f-TAW*W96d?gyr3q&-MPBjmrWLuNe-a3s^JTaQp!NShqB7-abyvHsAh=4AwM47Yr2CA+Y^$!kUk#^bdWtp39nS=K74yrhT2HFcSvpB$u!4-rTS%F+Qr3dwZ!fnj?N2N2zEBXB3krFddM4%Ea$MtRzZFX7eqf8wwe*t2P$dP#-R6x6P%JRcR7qPjWXg_N3$TeR^%GG?4xCn6TxFcM2FMYJ*sQm4JfVdbV$UvfX6WBwXk++_4tC6qHPsH3%UF-wRdZj8rjkfR?4Vcb%-L*&Sg^uB$EDRekD^!cd&y6xs*h!g95-xtGGAZ++$rMWt@hjQ^XekzstFUc%&xZZRn9GzuYmj%NbVsA%9jtuMYA_JBfmNDpk^pf^+vTbsCHxY2Dn6&^@yGmv+jx4XhrmsnPzuJ9H54EtTB=8yd?c&@xjPTqEv!5pDjmv6-vbrBS8VUR&jQqp&rCNqngKLRhJM&Tdh@PcshN9JL7tvpf6kjyPZu-*V9rnPE_xR!55tu3q$dAB#3u6VuYp2M?TzbZUxD6mkqGWehY+^82z76Y!yC6hXv7NwD$5Za7YFdXNty!peDn7@uGcCyp_bgZf?N!MQ5w*X@cxXPzAMs^7c%hX!J%jaN^=3cHEy9zX4&=D4bZLNDCG+bn6+hNFuyT9fpL&dxRV$7kv_FhZ2VQzU!#W5Ptja-HHQ=Qvk@u2StKW_P_cB4sgB%xdP@@FUsde=S4yHH%*kz^atdzspX$2-NyyXJGxrEyxhN%t?an_XetWL^?ZaN5Z5#!kG5mrM8&k2QVNxXp$N%3Z?R@@VRyuZwKG@Z*_D8VHhPafdt4DcmzWBPspu@&FV@md5RQk%QQu*d3^8y56mCk-BcqcAr6qK$_Sxhx59E_BLqRz^W98ZTJvPU7YSsRy3r#7b2y7KX?qR=mAwyhMekrhyRW%q2#x^kwSPm8%pz*96=KA5Hs^vfc=BjS^y8a=NRdA7Ue4pBEKq_zw@c^cn$B$JygGFLm6sQ4@GCLAvy_=s@4kJxx=bE@nYc%*eJE?DeqwHuF#*pScKq!qp3GFgZ*8HUWka_tHTG@M!VzU*aqh8F#CPjY6qGZeeymCeDP5fWhf!y=mx@_%j#2+X?VQYxW*gm*fa8X=dakwBGHb-ETsk76nf&!TzbUeZ!by7gNGLVX=$*N56uKh&L%T*y+bvLMRgnqm3p-b9zMqULR4z=8j544HYj+3dMhK3RgBhc@5TmT==ucn6X=t7YuT=*mmDPWhqf?N9Ucd?%9KrZWx%ffyT%@UnsQ=Qp+zq77+-Uf+P9M@gk&vf+9r69BBba3dWS#=shSB5V!N=bzJ@Ut&z%^*9e*hFdW8=*S9Mw*GbgRG32ScL!$Ntnv9rcg7d_^NdZkkPU*bBJa%f!_%dyMWH2Y2v$GpM6_PTdq#u8B%g%qE3MBw?4+n%mquMHKsGrALLL57jbAR+j7BnrRxUz!2Yan7v64zY$!h",
+        "QuantumEncryptionEnabled": "true"
+      }
+    },
+    "Email": {
+      "EmailFrom": "anorak@theoasisplatform.world",
+      "SmtpHost": "mailuk2.promailserver.com",
+      // "SmtpPort": 587,
+      "SmtpPort": 25,
+      "SmtpUser": "anorak@oasisplatform.world",
+      "SmtpPass": "mkjex+g9sofnca/qbdtvurihypw3zl",
+      "DisableAllEmails": "false", //This overrides the SendVerificationEmail setting below. MAKE SURE THIS IS FALSE FOR LIVE!
+      "SendVerificationEmail": "true",
+      "OASISWebSiteURL": "https://staging.oasisplatform.world"
+    },
+    "StorageProviders": {
+      "AutoReplicationEnabled": "false",
+      "AutoFailOverEnabled": "true",
+      "AutoLoadBalanceEnabled": "true",
+      "AutoLoadBalanceReadPollIntervalMins": "10",
+      "AutoLoadBalanceWritePollIntervalMins": "10",
+      "ProviderMethodCallTimeOutSeconds": "10",
+      "AutoReplicationProviders": "MongoDBOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoFailOverProviders": "MongoDBOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoLoadBalanceProviders": "MongoDBOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+
+      //Can be:
+      //Cold (will only register and activate (connect, etc) each provider when you fist make a call into it - fastest initial OASIS boot but slowest initial call into each OASIS Provider as it is registered and activated. Has the smallest initial memory footprint.
+      //Warm (will register each provider but not activate it - average boot and slight delay intially calling into an OASIS Provider as it activates for the first time).
+      //Hot (will register and activate each provider (connect, etc) - slower inital boot of OASIS but subsequent calls to OASIS Providers will be faster, also has slightly higher initial memory footprint).
+      "OASISProviderBootType": "Warm",
+
+      "HoloOASIS": {
+        "ConnectionString": "ws://localhost:8888",
+        "HolochainVersion": "Redux" //Can be Redux or RSM.
+      },
+      "MongoDBOASIS": {
+        "ConnectionString": "mongodb://localhost:27017",
+        //"ConnectionString": "mongodb+srv://dbadmin:d0pGRjhhRlOjeOUA@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        //"ConnectionString": "mongodb+srv://oasisadmin:4ABeZIUHwTVbiFWn@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        //"ConnectionString": "mongodb+srv://dbadmin:ZDVxEMHJJTfdtJ0S@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        // "ConnectionString": "mongodb+srv://oasisuser:EHPpjGAmW74lg8qS@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+
+         "DBName": "OASISAPI_DEV"
+        //"DBName": "OASISAPI_TEST"
+        //"DBName": "OASISAPI_LIVE"
+      },
+      "SQLLiteDBOASIS": {
+        "ConnectionString": "Data Source=OASISSQLLiteDB.db"
+      },
+      "EOSIOOASIS": {
+        "ConnectionString": "http://localhost:8888",
+        "AccountName": "oasis",
+        "AccountPrivateKey": "5KUm4te3kPbR6Fmrmr5WwCw3pfkymVxdh44x1b9QFYhm66uwYsP",
+        "ChainId": "8a34ec7df1b8cd06ff4a8abbaa7cc50300823350cadc59ab296cb00d104d2b8f"
+      },
+      "TelosOASIS": {
+        "ConnectionString": "https://node.hypha.earth"
+      },
+      "SEEDSOASIS": {
+        "ConnectionString": "https://node.hypha.earth"
+      },
+      "ThreeFoldOASIS": {
+        "ConnectionString": ""
+      },
+      "EthereumOASIS": {
+        "ConnectionString": "http://testchain.nethereum.com:8545",
+        "ChainPrivateKey": "0x7580e7fb49df1c861f0050fae31c2224c6aba908e116b8da44ee8cd927b990b0",
+        "ChainId": 444444444500,
+        "ContractAddress": "0x06a2dabf7fec27d27f9283cb2de1cd328685510c"
+      },
+      "Neo4JOASIS": {
+        "ConnectionString": "http://localhost:7474",
+        "Username": "neo4j",
+        "Password": "letthereb@light!"
+      },
+      "IPFSOASIS": {
+        "ConnectionString": "http://localhost:5001",
+        "LookUpIPFSAddress": ""
+      },
+      "SolanaOASIS": {
+        "WalletMnemonicWords": "bullet nothing diamond universe detail east dinner code plunge charge poem ball cable clog spray purpose renew above clay brand control shallow turtle similar",
+        "ConnectionString": "https://api.mainnet-beta.solana.com"
+      },
+      "CargoOASIS": {
+        "ConnectionString": "",
+        "SingingMessage": "",
+        "PrivateKey": "",
+        "HostUrl": ""
+      },
+      "LocalFileOASIS": {
+        "FilePath": "wallets.json" //TEMP FOR TESTING - NEVER USE LOCAL ON LIVE SERVER!
+      }
+    }
+  }
+}
