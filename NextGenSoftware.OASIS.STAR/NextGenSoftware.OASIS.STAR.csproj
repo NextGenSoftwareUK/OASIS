@@ -5,6 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Types\bool.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Types\int.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Types\string.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="appsettings.Development.json" />
     <None Remove="CelestialBodyDNA.json" />
     <None Remove="OASIS_DNA.json" />
@@ -68,6 +75,13 @@
   <ItemGroup>
     <Folder Include="DNATemplates\RustDNATemplates\RSM\" />
     <Folder Include="Interfaces\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Types\bool.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Types\int.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Types\string.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -525,6 +525,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return providerTypes;
         }
 
+        //TODO: Change to OASISResult instead of throwing exceptions ASAP! :)
         private static void LoadOASISDNA(string OASISDNAFileName)
         {
             OASISBootLoader.OASISDNAFileName = OASISDNAFileName;

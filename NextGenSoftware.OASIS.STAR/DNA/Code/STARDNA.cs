@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         //public string GenesisRustFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\Rust";
         //public string GenesisCSharpFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\CSharp";
         public string GenesisNamespace = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
-        public string TemplateNamespace = "NextGenSoftware.OASIS.STAR.CSharpTemplates";
+        public string TemplateNamespace = "NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates";
         public string RustTemplateLib = @"core\lib.rs";
         public string RustTemplateHolon = @"core\holon.rs";
         public string RustTemplateValidation = @"core\validation.rs";
@@ -55,6 +55,9 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string CSharpTemplateMoonDNA = "MoonDNATemplate.cs";
         public string CSharpTemplateICelestialBodyDNA = @"Interfaces\ICelestialBodyDNATemplate.cs";
         public string CSharpTemplateCelestialBodyDNA = "CelestialBodyDNATemplate.cs";
+        public string CSharpTemplateInt = @"types\int.cs";
+        public string CSharpTemplateString = @"types\string.cs";
+        public string CSharpTemplateBool = @"types\bool.cs";
         public Dictionary<ProviderType, string> StarProviderKey = new Dictionary<ProviderType, string>();
         public string DefaultGreatGrandSuperStarId;
         public string DefaultGrandSuperStarId;
