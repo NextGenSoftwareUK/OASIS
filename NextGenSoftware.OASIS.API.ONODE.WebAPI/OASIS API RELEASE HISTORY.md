@@ -1,13 +1,13 @@
 ﻿
 ******************************
-#OASIS API RELEASE HISTORY
+# OASIS API RELEASE HISTORY
 ******************************
 
 This needs to be updated whenever we do anywork that will effect the OASIS API (even changes to properties, etc on OASIS.API.CORE objects that are used in the API, etc...
 Then when we do a release, this file will be linked to the Swagger documentation. We also then need to copy it to the WIKI and GitHub Documentation.
 
 ----------------------------------------------------------------------------------------------------------------------------
-##0.0.1 ALPHA (10/10/2020)
+## 0.0.1 ALPHA (10/10/2020)
 
 Initial release of the WEB4 OASIS API.
 https://www.ourworldthegame.com/single-post/oasis-api-v0-0-1-altha-live
