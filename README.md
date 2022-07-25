@@ -39,6 +39,7 @@
   * [Sharing & Storing Your Data](#sharing---storing-your-data)
 - [OAPP Web UI Components](#oapp-web-ui-components)
 - [.NET HDK](#net-hdk)
+- [STAR ODK](#star-odk)
 - [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
   * [ARC & Noomap Integration](#arc---noomap-integration)
   * [Node.JS Integration](#nodejs-integration)
@@ -660,6 +661,92 @@ This will allow managed C# code to be compiled into any native language includin
 
 The front-end is built in Unity, the middle layer is built in C#/.NET and the back-end is built-in Holochain. 
 
+<a name="web5-star-odk"></a>
+## WEB5 STAR ODK (OASIS Developer Kit)
+
+WEB 5 OASIS STAR OMNIVERSE is built on top of the OASIS API & .NET HDK and aggregates all the worlds data and expresses it within a cyberspace ontology using a cutting edge custom built ORM (Object Relational Mapper) called COSMIC. The STAR Omniverse is both a simulation & game of life and aggregates all metaverses into one fully integrated unified platform. It is also a fully integrated immersive interoperable metaverse Low Code Generator and soooooo much more.... ;-)
+
+Both WEB 4 & WEB 5 use machine learning AI to analyse all of the worlds data to generate useful insights, predictions & so much more!
+
+To summarize, WEB4 OASIS API aggregates all of the worlds data into a fully unified API to allow better sense making to made, which then feeds into WEB5 STAR, which expresses it in a cyberspace ontology and connects the worlds data to the rest of the COSMOS and Galaxy... ;-)
+	
+The STAR ODK, the heart of the OASIS can even compile OAPP's to native code for each platform, provider, network, etc. For example, for Holochain Provider it dynamically generates the low-level Rust code, which acts as the DAL (Data Access Layer). It also dynamically generates the C# code that runs on top of it abstracting away the lower-level complexities and this acts as the BLL (Business Logic Layer). The possibilities are endless, time to unleash YOUR full potential!
+
+Here are some diagrams that will soon be written up properly:
+	
+![photo_2022-03-30_12-45-35](https://user-images.githubusercontent.com/3522378/180854596-a31626e3-22b0-4af8-8840-0e429657b088.jpg)
+![photo_2021-12-11_13-43-31](https://user-images.githubusercontent.com/3522378/180854659-4876184b-f15c-4ffa-b274-abc615a9403a.jpg)
+![photo_2022-03-30_12-45-37 (2)](https://user-images.githubusercontent.com/3522378/180854661-e7fef7b6-5c90-4288-a46f-a75abd04b568.jpg)
+![photo_2022-03-30_12-45-37](https://user-images.githubusercontent.com/3522378/180854662-10633fcb-4d01-43f2-986a-dce9fce191ed.jpg)
+![photo_2022-03-30_12-45-38](https://user-images.githubusercontent.com/3522378/180854664-594c1e06-2e5f-433d-ac2e-c76376cfd040.jpg)
+
+STAR stands for Synergiser Transformer/Translator Aggregator Resolver. 
+
+**Synergiser** - This is because it synergises all of what is out there including all tech, the entire worlds content, models of the Universe, us, creation, etc. 
+
+**Transformer/Translator **- Due to it transforming and translating the data between different OASIS Providers and into one unified language (COSMIC ORM), which is how you talk to STAR.
+
+**Aggregator** - Due to it aggerating all the data together and into one unified model of all and into one unified language (COSMIC ORM).
+
+**Resolver** - This is because it resolves all of the data one one format to another as well as into the one unified language (COSMIC ORM),
+
+
+As part of this we have been building it's very own ORM (Object Relational Mapping) 
+
+system as an abstraction layer over all the OASIS Providers (whole Internet eventually). This ORM is called COSMIC (Computer Object-Orientated Super-Synergistic Machine Interface Code). It supports the same features as many popular ORM's such as change-management, version control, change tracking, etc.
+
+What makes it pretty cool and unique (other than all the other exciting features above) is that is is modelled on Life! The root object is the Omiverse, this contains multiple multiverses, each of these contains dimensions. the 3rd dimension contains parallel Universes. Each Universe contains Galaxies, SloarSystems, Stars, SuperStars, GrandSuperStars, GreatGrandSuperStar, Planets, Moons, Stargates, Wormholes, Blackholes, Nebulas, Portals, Comets, Meteoroid's, Asteroids, Cosmic Rays, Galactic Waves, Cosmic Waves, Gravitational Waves, SpaceTime Distortion's, Temporal Rift's, Stardust, SpaceTime Abnormalities etc. The first Planet created is Our World and it's moons are the satellite apps/games/websites (OAPP's) that plug into it sharing the central avatar/karma system. Each celestial body (moon, planet, star, etc) are also OAPP's (OASIS Applications).
+
+Stars, SuperStars, GrandSuperStars & the GreatGrandSuperStar create the contents of all of the OASIS Omiverse/Magicverse. They can also be used to jump around/navigate the Omierse through Multiverses/Universes, Galaxies, Dimensions, etc.
+
+**Stars** - Can be at the centre of a Solar System (or without any Planets or Moons). Can create moons & planets within it's SolarSystem,
+
+**SuperStars** - At the centre of a Galaxy. Can create SolarSytems, Stars, Planets & Moons within it's Galaxy. SuperStars are also used to jump from one Galaxy to another or to different dimensions within it's Universe.
+
+**GrandSuperStar** - At the centre of each Multiverse/Universe. Can create Galaxies, SuperStars, Stars, Planets & Moons within it's Universe. GrandSuperStars are also used to jump from one Multiverse/Universe to another but may only access dimensions 1-7. 
+
+**GreatGrandSuperStar** - There is ever only one of these in the OASIS and is at the centre of the Omiverse. This can create Multiverses (containing Universes), Galaxies, GrandSuperStars, SuperStars, Stars, Planets & Moons within it's Universe. The GreatGrandSuperStar can also be used to jump from one Multiverse/Universe anywhere within the Omiverse including all higher dimensions (8 - 12).
+
+
+ONODE's can host any of the various Star types above depending on how much processing power/network bandwidth, etc each Node has. A OASIS ONODE can be running any number of OASIS Providers.
+
+This is what forms the STAR NET, and this is what powers the HoloNET/ONET (OASIS Network).
+
+You of course earn karma for hosing and the more you host and the bigger Star you are, the more karma you will be rewarded as well as SEEDS and HoloFuel. 
+
+To begin with users Avatars can only create Moons, but as they level up and earn more karma they can create their own planets and eventually Stars, Galaxies and even entire Universes! Yes, this really is the beginning of the TRUE OASIS! ;-) This is like a God training programme! :)
+
+Most of the back-end/ontology/object model has now been built, we just have a few more features to add, then lots of testing, bug fixing. Then we will be finishing of the Web Assembly templates/prototypes started last year (full stack Web Assembly). STAR can generate code for any target platform/use case such as website, game, app, service, etc.
+
+You no longer need to keep learning new stacks, API's, languages, the OASIS API/STAR/COSMIC abstracts all of this away for you. You just need to write your OAPP once and it will be future prove, for ever! :) No more need to get porting to newer versions of Holochain or any other stack! :) As new tech emerges a new OASIS Provider can be added, which will automatically take advantage of it. The OASIS gives you the best of all the tech out there through a very powerful yet simple to use intuitive API/SDK abstracting away all the lower stack complexities. It also allows you to dig deeper into the lower stacks if you are a power user.
+
+We have also built an advanced STAR CLI with its own powerful sub-engine. So as you can see we have been VERY busy and hence the radio silence! ;-)
+
+In the past few months we have written over 100K lines of code! ;-)
+
+The OASIS is really starting to take shape now, but much as with NextGen tech it is taking a LOT longer than originally anticipated, as I am sure Holochain know how that feels too! ;-) It's not easy being ahead of the curve going where no man has gone before blazing a path for others to follow! There isn't really much resources you can call on for help because there is nothing else out there like it! ;-)
+
+We started off building the digital twin of you (the Avatar Karma System back in 2019) along with the digital twin of our planet called Our World (we started doing R&D, research, designing, prototyping back in 2011). It then expanded into the digital twin of our Solar System when STAR was born last year on Lions Gate (8th Aug). Since then it has continued to expand and what we are now building is the digital twin for all of creation, no small task! ;-) 
+
+We were deeply inspired by Holochain & Noomap/Holomap/HoloWeb modelling nature so we have taken this to the next level. Each OAPP still contains Zomes (modules), the data objects used are Holons and EVERY single object in the OASIS inherits from a base Holon object. What we are now building with STAR is like the Holochain/HoloWeb/,NET HDK/OASIS love child! :)
+
+It is very hard to put into words what we are building but I hope this gives you a bit more of an idea... ;-)
+
+You may recall in Ready Player One, that the OASIS is a "**SIMULATION**", it is not just another VR game/platform... well that is what we are building, a SIMILATION, it mimics all of creation from the macrocosm right down to the microcosm. The Omiverse is inside us all so yes you can access the Omiverse from within each of your Avatars... we are merging and unifying all current earth science along with spiritual/galactic information/downloads and beyond... ;-) 
+
+We truly are creating the most accurate Unified Model there is of all there is....
+	
+We are building the architecture/platform to allow everything to integrate and play with everything else... completely removing all silos once and for all... you could have a Holochain Galaxy, a EOSIO Galaxy, etc or even entire Universes (depending on the size of the ecosystems). The OASIS has been built from the ground up with MAXIMUM inter-operability in mind with EVERYTHING, so it is not something that has been crowbarred in as a after thought. It is outside of all existing blockchain/tech understandings and concepts, it has been designed from the outside looking in using a new novel/intuitive way, which others may not have seen being on the inside... 
+
+So yes as you can see it has grown way beyond the .NET HDK now! ;-) And hence the delays... 
+	
+Check out more info below:<br>
+https://www.ourworldthegame.com/single-post/what-is-web4-web5-really <br>
+https://www.ourworldthegame.com/single-post/first-production-ready-release-of-web4-oasis-api-more <br>
+https://www.ourworldthegame.com/single-post/announcing-star-odk-hdk-cosmic  <br>
+https://www.ourworldthegame.com/single-post/star-odk-hdk-cosmic-oasis-api-our-world-update 
+	
+	
 <a name="arc---noomap-integration"></a>
 ### ARC & Noomap Integration
 
