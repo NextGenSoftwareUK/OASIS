@@ -203,13 +203,14 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 All API responses now also include a new OASISVersion property so you always know the API version you are using. It is a version number followed by the current enviroment, e.g. v2.2.1 LIVE.
 
 ----------------------------------------------------------------------------------------------------------------------------
-2.2.2
+2.2.2 - 21/06/22
 
 
 
 ----------------------------------------------------------------------------------------------------------------------------
-2.2.3
+2.2.3 - 24/07/22
 
-
+- Improvements & upgrades to the Data API.
+- Finished upgrading the OASISEngine so now EVERY API call can fully customise the OASIS Engine for that call such as whether auto-load balance, auto-fail over, auto-replication is enabled, which providers to use for auto-replication, auto-load balance & auto-failover, whether to show the auto-replication, auto-load balance & auto-failover lists in the response returned & whether to wait for auto-replication result. This allows for greating power and flexability so the OASIS Engine behaviour can be customised by api call per avatar.
 
 ----------------------------------------------------------------------------------------------------------------------------
