@@ -190,27 +190,38 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Temp renamed SQLLiteDBOASIS to SQLLiteOASIS in OASISBootLoader.
 
 ----------------------------------------------------------------------------------------------------------------------------
-2.2
+2.2 - 06/06/22
 
+- Many bug fixes.
 - Keys API.
 - EthereumOASIS Provider.
 - EOS Provider.
 - All Avatar API calls are now wrapped in a HttpResponseMessage so follow HTTP/REST best practices.
+- See Commit History for more details...
 
 ----------------------------------------------------------------------------------------------------------------------------
-2.2.1
+2.2.1 - 13/06/22
 
-All API responses now also include a new OASISVersion property so you always know the API version you are using. It is a version number followed by the current enviroment, e.g. v2.2.1 LIVE.
+- Many bug fixes.
+- All API responses now also include a new OASISVersion property so you always know the API version you are using. It is a version number followed by the current enviroment, e.g. v2.2.1 LIVE.
+- Added new LocalFileOASIS Provider to work with the new Key/Wallets API to store private keys encrypted locally only.
+- Improved OASIS Arcitecture generally.
+- See Commit History for more details...
 
 ----------------------------------------------------------------------------------------------------------------------------
 2.2.2 - 21/06/22
 
-
+- Many bug fixes.
+- Improved new Keys/Wallets API.
+- Improved OASIS Arcitecture generally.
+- See Commit History for more details...
 
 ----------------------------------------------------------------------------------------------------------------------------
 2.2.3 - 24/07/22
 
 - Improvements & upgrades to the Data API.
 - Finished upgrading the OASISEngine so now EVERY API call can fully customise the OASIS Engine for that call such as whether auto-load balance, auto-fail over, auto-replication is enabled, which providers to use for auto-replication, auto-load balance & auto-failover, whether to show the auto-replication, auto-load balance & auto-failover lists in the response returned & whether to wait for auto-replication result. This allows for greating power and flexability so the OASIS Engine behaviour can be customised by api call per avatar.
+- Improved OASIS Arcitecture generally.
+- See Commit History for more details...
 
 ----------------------------------------------------------------------------------------------------------------------------
