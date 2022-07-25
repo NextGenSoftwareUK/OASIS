@@ -1,25 +1,23 @@
 ﻿
-******************************
-* OASIS API RELEASE HISTORY *
-******************************
+# OASIS API RELEASE HISTORY
 
 This needs to be updated whenever we do anywork that will effect the OASIS API (even changes to properties, etc on OASIS.API.CORE objects that are used in the API, etc...
-Then when we do a release, this file will be linked to the Swagger documentation. We also then need to copy it to the WIKI and GitHub Documentation.
+Then when we do a release, this file will be linked to the Swagger documentation. The file is also linked to the WIKI and GitHub Documentation.
 
 ----------------------------------------------------------------------------------------------------------------------------
-0.0.1 ALPHA (10/10/2020)
+## 0.0.1 ALPHA (10/10/2020)
 
 Initial release of the WEB4 OASIS API.
 https://www.ourworldthegame.com/single-post/oasis-api-v0-0-1-altha-live
 
 ----------------------------------------------------------------------------------------------------------------------------
-0.0.2 ALTHA - 0.0.16 ALTHA
+## 0.0.2 ALTHA - 0.0.16 ALTHA
 
 Miscellaneous releases made before this change log was created (need to go back through old GitHub commits to fill this out...)
 TODO: Also need to go back through to find the dates of all releases below and update the dates...
 
 ----------------------------------------------------------------------------------------------------------------------------
-0.17 ALPHA
+## 0.17 ALPHA
 
 - Changed controller methods to return OASISResult (more efficient error handling system used throughout The OASIS with minimal overhead)
 - Added ability to call avatar methods or specify avatar parameters by their username or email as well as the existing id way.
@@ -35,18 +33,18 @@ TODO: Also need to go back through to find the dates of all releases below and u
 - Added LastBeamedIn, LastBeamedOut and IsBeamedIn properties to Avatar and IAvatar.
 
 ----------------------------------------------------------------------------------------------------------------------------
-0.17.1 ALPHA
+## 0.17.1 ALPHA
 
 - Fixed bug preventing people logging in for avatar/authenticate API method (Password was missing in mappings in MongoDBOASIS).
 
 ----------------------------------------------------------------------------------------------------------------------------
-0.17.2 ALPHA
+## 0.17.2 ALPHA
 
 - Avatar and AvatarDetail now reutn id (workaorund for bug in Web API).
 - Fixed bug in SQLLiteOASIS Provider (null checkes for collections).
 
 ----------------------------------------------------------------------------------------------------------------------------
-0.18 ALPHA (09/10/21)
+## 0.18 ALPHA (09/10/21)
 
 - All routes in all controllers returns OASISResult
 - Added exception filter
@@ -58,7 +56,7 @@ TODO: Also need to go back through to find the dates of all releases below and u
 - Added Release History link to this doc on main Swagger text at the top of the OASIS API.
 
 ----------------------------------------------------------------------------------------------------------------------------
-0.19 ALPHA (25/10/21)
+## 0.19 ALPHA (25/10/21)
 
 - ErrorHandling on all routes
 - Solana Provider Integrated
@@ -71,13 +69,13 @@ TODO: Also need to go back through to find the dates of all releases below and u
 - IFPS Provider Integrated
 
 ----------------------------------------------------------------------------------------------------------------------------
-0.19.1 ALPHA (04/11/21)
+## 0.19.1 ALPHA (04/11/21)
 
 - Fixed Authorization Error
 - Fixed Email Validation
 
 ----------------------------------------------------------------------------------------------------------------------------
-2.0.0 PREVIEW (14/04/22)
+## 2.0.0 PREVIEW (14/04/22)
 
 LOTS of improvements in all areas including performance, security, features, improved error handling/reporting as well as being upgraded to the latest .NET (v6), which itself comes with many performance/security improvements & new features.
 This is built on top of a whole new massively improved OASIS Architecture with improved error handling/reporting, auto-fail over, auto-replication, auto-load balancing and so much more! ;-) 
@@ -87,7 +85,7 @@ This is the real deal and is the commerical production ready OASIS, and why is n
 TODO: Will attempt to list here more detail of what is in this release (a very long list! ;-) ).
 
 ----------------------------------------------------------------------------------------------------------------------------
-2.0.1 PREVIEW (17/04/22)
+## 2.0.1 PREVIEW (17/04/22)
 
 Fixed a bug with the Authentication/Signup process where it previously allowed more than one avatar to be created with the same email address.
 
@@ -117,7 +115,7 @@ This was not really a bug but by deseign because when someone deletes a avatar i
   - Refactored & improved Update, UpdateByEmail & UpdateByUsername methods in AvatarService so is now more efficient and generic calling into new private Update method.
 
 ----------------------------------------------------------------------------------------------------------------------------
-2.0.2 PREVIEW (18/04/22)
+## 2.0.2 PREVIEW (18/04/22)
 
 Miscellaneous fixes/improvements including:
 
@@ -130,11 +128,11 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
  - Fixed a bug in MongoDBOASIS Provider where the email and username were not being mapped in ConvertMongoEntityToOASISAvatarDetail & ConvertOASISAvatarDetailToMongoEntity methods.
 
 ----------------------------------------------------------------------------------------------------------------------------
-2.1 (05/05/22)
+## 2.1 (05/05/22)
 
 First official version of the production ready to use OASIS API! :)
 
-Many improvements:
+Many improvements:<br>
 https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/42a43cc3c788cd6333bd937a997d443da3b195ed
 - Added a new StackTraces property to the OASISResult wrapper.
 - Detailed messages are now added to the new StackTraces property of OASISResult rather than being appended to the InnerMessages property in HandleWarning method in ErrorHandling helper,
@@ -190,7 +188,7 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Temp renamed SQLLiteDBOASIS to SQLLiteOASIS in OASISBootLoader.
 
 ----------------------------------------------------------------------------------------------------------------------------
-2.2 - 06/06/22
+## 2.2 (06/06/22)
 
 - Many bug fixes.
 - Keys API.
@@ -262,14 +260,14 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - See Commit History for more details...
 
 ----------------------------------------------------------------------------------------------------------------------------
-2.2.1 - 13/06/22
+## 2.2.1 (13/06/22)
 
 - Many bug fixes.
 - All API responses now also include a new OASISVersion property so you always know the API version you are using. It is a version number followed by the current enviroment, e.g. v2.2.1 LIVE.
 - Added new LocalFileOASIS Provider to work with the new Key/Wallets API to store private keys encrypted locally only.
 - Improved OASIS Arcitecture generally.
 
-https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/b2172f455b3869e2dc70b854b8aa68cde83bec04
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/b2172f455b3869e2dc70b854b8aa68cde83bec04 <br>
 Fixed a bug in GetAllProviderPrivateKeysForAvatarById method in KeyManager where the keys were not null checked.
 
 https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/8c93ea5398160aa4a273b2da1f10865c5581552f
@@ -322,7 +320,7 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - See Commit History for more details...
 
 ----------------------------------------------------------------------------------------------------------------------------
-2.2.2 - 21/06/22
+## 2.2.2 (21/06/22)
 
 - Many bug fixes.
 - Improved new Keys/Wallets API.
@@ -393,7 +391,7 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - See Commit History for more details...
 
 ----------------------------------------------------------------------------------------------------------------------------
-2.2.3 - 22/07/22
+## 2.2.3 (22/07/22)
 
 - Improvements & upgrades to the Data API.
 - Finished upgrading the OASISEngine so now EVERY API call can fully customise the OASIS Engine for that call such as whether auto-load balance, auto-fail over, auto-replication is enabled, which providers to use for auto-replication, auto-load balance & auto-failover, whether to show the auto-replication, auto-load balance & auto-failover lists in the response returned & whether to wait for auto-replication result. This allows for greating power and flexability so the OASIS Engine behaviour can be customised by api call per avatar.

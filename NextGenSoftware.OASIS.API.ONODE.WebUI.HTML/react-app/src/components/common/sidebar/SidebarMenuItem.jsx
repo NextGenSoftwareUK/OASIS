@@ -24,7 +24,6 @@ class SidebarMenuItem extends React.Component {
 
     render() {
         const { item } = this.props;
-        console.log(item)
         return (
             <>
                 <li>
