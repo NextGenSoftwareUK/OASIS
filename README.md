@@ -223,7 +223,7 @@ To summarize, WEB4 OASIS API aggregates all of the worlds data into a fully unif
 
 
 Check out more info below:<br>
-[The Power Of The OASIS API](https://drive.google.com/file/d/1nnhGpXcprr6kota1Y85HDDKsBfJHN6sn/view?usp=sharing)
+[The Power Of The OASIS API](https://drive.google.com/file/d/1nnhGpXcprr6kota1Y85HDDKsBfJHN6sn/view?usp=sharing) <br>
 [What Is WEB4 & WEB5 Really?](https://www.ourworldthegame.com/single-post/what-is-web4-web5-really) <br>
 [First Production Release Of The WEB4 OASIS API](https://www.ourworldthegame.com/single-post/first-production-ready-release-of-web4-oasis-api-more) <br>
 [Annoucing WEB5 STAR ODK/HDK/COSMIC](https://www.ourworldthegame.com/single-post/announcing-star-odk-hdk-cosmic)  <br>
