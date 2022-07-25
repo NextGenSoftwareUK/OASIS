@@ -3,7 +3,7 @@
 * OASIS API RELEASE HISTORY *
 ******************************
 
-This needs to be updated when ever we do anywork that will effect the OASIS API (even changes to properties, etc on OASIS.API.CORE objects that are used in the API, etc...
+This needs to be updated whenever we do anywork that will effect the OASIS API (even changes to properties, etc on OASIS.API.CORE objects that are used in the API, etc...
 Then when we do a release, this file will be linked to the Swagger documentation. We also then need to copy it to the WIKI and GitHub Documentation.
 
 ----------------------------------------------------------------------------------------------------------------------------
@@ -445,7 +445,7 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Added a new zome to the test CelestialBodyDNA (about to update templating engine in STAR ODK to suupport multiple zomes).
 - Changed cSharpGeneisFolder & rustGenesisFolder paths to point at Debug instead of Release in STAR Test Harness.
 
-https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/1cd844395fec2311e108e15046f00b2cfd94f021
+<a href="https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/1cd844395fec2311e108e15046f00b2cfd94f021">https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/1cd844395fec2311e108e15046f00b2cfd94f021</a>
 - Finished upgrding the new evolved Data API (almost ready to deploy and demo). :)
 - Added a new ResultsCount to the OASISResult helper.
 - Tidied up code in AvatarController.
