@@ -10,7 +10,7 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.AcitvityPub\NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS-OLD\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS-OLD.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj" />

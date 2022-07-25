@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using static NextGenSoftware.OASIS.API.Core.Events.Events;
 
@@ -44,21 +42,27 @@ namespace NextGenSoftware.OASIS.STAR.Holons
         public int Age { get; set; }
         public int Temperature { get; set; }
 
-        public CelestialHolon(HolonType holonType) : base(holonType)
-        {
-            //Initialize();
-        }
-
         public CelestialHolon(Guid id, HolonType holonType) : base(id)
         {
             this.HolonType = holonType;
             //Initialize();
         }
 
-        public CelestialHolon(Dictionary<ProviderType, string> providerKey, HolonType holonType) : base(providerKey)
+        public CelestialHolon(string providerKey, ProviderType providerType, HolonType holonType) : base(providerKey, providerType)
         {
             this.HolonType = holonType;
             //Initialize(); 
+        }
+
+        //public CelestialHolon(Dictionary<ProviderType, string> providerKeys, HolonType holonType) : base(providerKeys)
+        //{
+        //    this.HolonType = holonType;
+        //    //Initialize(); 
+        //}
+
+        public CelestialHolon(HolonType holonType) : base(holonType)
+        {
+            //Initialize();
         }
 
         protected virtual async Task InitializeAsync()

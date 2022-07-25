@@ -386,11 +386,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         public new async Task<OASISResult<IAvatarDetail>> SaveAsync()
         {
-            return await (ProviderManager.CurrentStorageProvider).SaveAvatarDetailAsync(this);
+            return await AvatarManager.Instance.SaveAvatarDetailAsync(this); //TODO: Finish
         }
         public new OASISResult<IAvatarDetail> Save()
         {
-            return (ProviderManager.CurrentStorageProvider).SaveAvatarDetail(this);
+            return AvatarManager.Instance.SaveAvatarDetail(this);
         }
     }
 }

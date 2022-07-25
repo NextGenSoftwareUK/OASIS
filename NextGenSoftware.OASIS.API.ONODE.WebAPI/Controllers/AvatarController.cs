@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
+using System.Web.Http.Description;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
@@ -21,31 +23,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class AvatarController : OASISControllerBase
     {
         private readonly IAvatarService _avatarService;
-        private KeyManager _keyManager = null;
-
-        public KeyManager KeyManager
-        {
-            get
-            {
-                if (_keyManager == null)
-                {
-                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
-
-                    if (result.IsError)
-                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
-
-                    _keyManager = new KeyManager(result.Result);
-                }
-
-                return _keyManager;
-            }
-        }
-
         public AvatarController(IAvatarService avatarService)
         {
             _avatarService = avatarService;
-            //KeyManager.Init()
-            //KeyManager keyManager = new KeyManager()
         }
 
         /// <summary>
@@ -54,9 +34,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost("register")]
-        public async Task<OASISResult<IAvatar>> Register(RegisterRequest model)
+        public async Task<OASISHttpResponseMessage<IAvatar>> Register(RegisterRequest model)
         {
-            return FormatResponse(await _avatarService.RegisterAsync(model, Request.Headers["origin"]));
+            return HttpResponseHelper.FormatResponse(await _avatarService.RegisterAsync(model, Request.Headers["origin"]));
         }
 
         /// <summary>
@@ -68,7 +48,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         /// <returns></returns>
         [HttpPost("register/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatar>> Register(RegisterRequest model, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatar>> Register(RegisterRequest model, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await Register(model);
@@ -82,9 +62,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="token"></param>
         /// <returns></returns>
         [HttpGet("verify-email")]
-        public async Task<OASISResult<bool>> VerifyEmail(string token)
+        public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(string token)
         {
-            return FormatResponse(await _avatarService.VerifyEmail(token));
+            return HttpResponseHelper.FormatResponse(await _avatarService.VerifyEmail(token));
         }
 
         /// <summary>
@@ -98,9 +78,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         /// <returns></returns>
         [HttpGet("verify-email/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<bool>> VerifyEmail(string token, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(string token, ProviderType providerType, bool setGlobally = false)
         {
-            return FormatResponse(await _avatarService.VerifyEmail(token));
+            return HttpResponseHelper.FormatResponse(await _avatarService.VerifyEmail(token));
         }
 
         /// <summary>
@@ -109,10 +89,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
+        [ResponseType(typeof(OASISHttpResponseMessage<bool>))]
         [HttpPost("verify-email")]
-        public async Task<OASISResult<bool>> VerifyEmail(VerifyEmailRequest model)
+        public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(VerifyEmailRequest model)
         {
-            return FormatResponse(await VerifyEmail(model.Token));
+            return await VerifyEmail(model.Token);
         }
 
         /// <summary>
@@ -124,8 +105,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerType"></param>
         /// <param name="setGlobally"></param>
         /// <returns></returns>
+        [ResponseType(typeof(OASISHttpResponseMessage<bool>))]
         [HttpPost("verify-email/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<bool>> VerifyEmail(VerifyEmailRequest model, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(VerifyEmailRequest model, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await VerifyEmail(model);
@@ -134,32 +116,65 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Authenticate and log in using the given avatar credentials.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost("authenticate")]
-        public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model)
+        [ResponseType(typeof(OASISHttpResponseMessage<IAvatar>))]
+        public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest request)
         {
-            var response = await Program.AvatarManager.AuthenticateAsync(model.Username, model.Password, ipAddress());
+            OASISConfigResult<IAvatar> configResult = ConfigureOASISEngine<IAvatar>(request);
 
-            if (!response.IsError && response.Result != null)
-                setTokenCookie(response.Result.RefreshToken);
+            if (configResult.IsError && configResult.Response != null)
+                return configResult.Response;
 
-            return FormatResponse(response);
+            var result = await Program.AvatarManager.AuthenticateAsync(request.Username, request.Password, ipAddress(), configResult.AutoReplicationMode, configResult.AutoFailOverMode, configResult.AutoLoadBalanceMode, request.WaitForAutoReplicationResult);
+            ResetOASISSettings(request, configResult);
+
+            if (!result.IsError && result.Result != null)
+            {
+                setTokenCookie(result.Result.RefreshToken);
+                return HttpResponseHelper.FormatResponse(result, HttpStatusCode.OK, request.ShowDetailedSettings);
+            }
+            else
+                return HttpResponseHelper.FormatResponse(result, HttpStatusCode.Unauthorized, request.ShowDetailedSettings);
         }
-
 
         /// <summary>
         /// Authenticate and log in using the given avatar credentials. 
-        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// Pass in the provider you wish to use.
+        /// Set the autoFailOverMode to 'ON' if you wish this call to work through the the providers in the auto-failover list until it succeeds. Set it to OFF if you do not or to 'DEFAULT' to default to the global OASISDNA setting.
+        /// Set the autoReplicationMode to 'ON' if you wish this call to auto-replicate to the providers in the auto-replication list. Set it to OFF if you do not or to UseGlobalDefaultInOASISDNA to 'DEFAULT' to the global OASISDNA setting.
+        /// Set the autoLoadBalanceMode to 'ON' if you wish this call to use the fastest provider in your area from the auto-loadbalance list. Set it to OFF if you do not or to UseGlobalDefaultInOASISDNA to 'DEFAULT' to the global OASISDNA setting.
+        /// Set the waitForAutoReplicationResult flag to true if you wish for the API to wait for the auto-replication to complete before returning the results.
+        /// Set the setglobally flag to false to use these settings only for this request or true for it to be used for all future requests.
+        /// Set the showDetailedSettings flag to true to view detailed settings such as the list of providers in the auto-failover, auto-replication &amp; auto-load balance lists.
         /// </summary>
         /// <param name="model"></param>
         /// <param name="providerType"></param>
         /// <param name="setGlobally"></param>
+        /// <param name="autoFailOverMode"></param>
+        /// <param name="autoReplicationMode"></param>
+        /// <param name="autoLoadBalanceMode"></param>
+        /// <param name="autoFailOverProviders"></param>
+        /// <param name="autoReplicationProviders"></param>
+        /// <param name="autoLoadBalanceProviders"></param>
+        /// <param name="waitForAutoReplicationResult"></param>
+        /// <param name="showDetailedSettings"></param>
         /// <returns></returns>
-        [HttpPost("authenticate/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
+        [HttpPost("authenticate/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{AutoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}")]
+        public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest model, string providerType, bool setGlobally = false, string autoReplicationMode = "default", string autoFailOverMode = "default", string autoLoadBalanceMode = "default", string autoReplicationProviders = "default", string autoFailOverProviders = "default", string autoLoadBalanceProviders = "default", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            model.ProviderType = providerType;
+            model.SetGlobally = setGlobally;
+            model.ShowDetailedSettings = showDetailedSettings;
+            model.WaitForAutoReplicationResult = waitForAutoReplicationResult;
+            model.AutoReplicationProviders = autoReplicationProviders;
+            model.AutoFailOverProviders = autoFailOverProviders;
+            model.AutoLoadBalanceProviders = autoLoadBalanceProviders;
+            model.AutoReplicationMode = autoReplicationMode;
+            model.AutoFailOverMode = autoFailOverMode;
+            model.AutoLoadBalanceMode = autoLoadBalanceMode;
+
             return await Authenticate(model);
         }
 
@@ -169,9 +184,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="JWTToken"></param>
         /// <returns></returns>
         [HttpPost("authenticate-token/{JWTToken}")]
-        public async Task<OASISResult<string>> Authenticate(string JWTToken)
+        public async Task<OASISHttpResponseMessage<string>> Authenticate(string JWTToken)
         {
-            return FormatResponse(await _avatarService.ValidateAccountToken(JWTToken));
+            return HttpResponseHelper.FormatResponse(await _avatarService.ValidateAccountToken(JWTToken));
         }
 
         /// <summary>
@@ -183,7 +198,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         /// <returns></returns>
         [HttpPost("authenticate-token/{JWTToken}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<string>> Authenticate(string JWTToken, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<string>> Authenticate(string JWTToken, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await Authenticate(JWTToken);
@@ -195,7 +210,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("refresh-token")]
-        public async Task<OASISResult<IAvatar>> RefreshToken()
+        public async Task<OASISHttpResponseMessage<IAvatar>> RefreshToken()
         {
             var refreshToken = Request.Cookies["refreshToken"];
             var response = await _avatarService.RefreshToken(refreshToken, ipAddress());
@@ -203,7 +218,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!response.IsError && response.Result != null)
                 setTokenCookie(response.Result.RefreshToken);
 
-            return FormatResponse(response);
+            return HttpResponseHelper.FormatResponse(response);
         }
 
         /// <summary>
@@ -215,7 +230,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         /// <returns></returns>
         [HttpPost("refresh-token/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatar>> RefreshToken(ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatar>> RefreshToken(ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await RefreshToken();
@@ -229,19 +244,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("revoke-token")]
-        public async Task<OASISResult<string>> RevokeToken(RevokeTokenRequest model)
+        public async Task<OASISHttpResponseMessage<string>> RevokeToken(RevokeTokenRequest model)
         {
             // accept token from request body or cookie
             var token = model.Token ?? Request.Cookies["refreshToken"];
 
             if (string.IsNullOrEmpty(token))
-                return new OASISResult<string>() { Result = "Token is required", IsError = true };
+                return HttpResponseHelper.FormatResponse(new OASISResult<string>() { Result = "Token is required", IsError = true });
 
             // users can revoke their own tokens and admins can revoke any tokens
             if (!Avatar.OwnsToken(token) && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<string>() { Result = "Unauthorized", IsError = true };
+                return HttpResponseHelper.FormatResponse(new OASISResult<string>() { Result = "Unauthorized", IsError = true }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await _avatarService.RevokeToken(token, ipAddress()));
+            return HttpResponseHelper.FormatResponse(await _avatarService.RevokeToken(token, ipAddress()));
         }
 
         /// <summary>
@@ -257,7 +272,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("revoke-token/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<string>> RevokeToken(RevokeTokenRequest model, ProviderType providerType,
+        public async Task<OASISHttpResponseMessage<string>> RevokeToken(RevokeTokenRequest model, ProviderType providerType,
             bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
@@ -271,9 +286,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost("forgot-password")]
-        public async Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model)
+        public async Task<OASISHttpResponseMessage<string>> ForgotPassword(ForgotPasswordRequest model)
         {
-            return FormatResponse(await _avatarService.ForgotPassword(model, Request.Headers["origin"]));
+            //return HttpResponseHelper.FormatResponse(await Program.AvatarManager.ForgotPassword(model, Request.Headers["origin"]));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.ForgotPassword(model.Email));
         }
 
         /// <summary>
@@ -286,7 +302,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         /// <returns></returns>
         [HttpPost("forgot-password/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model, ProviderType providerType,
+        public async Task<OASISHttpResponseMessage<string>> ForgotPassword(ForgotPasswordRequest model, ProviderType providerType,
             bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
@@ -300,9 +316,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="model"></param>
         /// < returns></returns>
         [HttpPost("validate-reset-token")]
-        public async Task<OASISResult<string>> ValidateResetToken(ValidateResetTokenRequest model)
+        public async Task<OASISHttpResponseMessage<string>> ValidateResetToken(ValidateResetTokenRequest model)
         {
-            return FormatResponse(await _avatarService.ValidateResetToken(model));
+            return HttpResponseHelper.FormatResponse(await _avatarService.ValidateResetToken(model));
         }
 
         /// <summary>
@@ -315,7 +331,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         /// < returns></returns>
         [HttpPost("validate-reset-token/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<string>> ValidateResetToken(ValidateResetTokenRequest model, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<string>> ValidateResetToken(ValidateResetTokenRequest model, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await ValidateResetToken(model);
@@ -328,9 +344,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost("reset-password")]
-        public async Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model)
+        public async Task<OASISHttpResponseMessage<string>> ResetPassword(ResetPasswordRequest model)
         {
-            return FormatResponse(await _avatarService.ResetPassword(model));
+            return HttpResponseHelper.FormatResponse(await _avatarService.ResetPassword(model));
         }
 
         /// <summary>
@@ -343,7 +359,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         /// <returns></returns>
         [HttpPost("reset-password/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<string>> ResetPassword(ResetPasswordRequest model, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await ResetPassword(model);
@@ -357,9 +373,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpPost("create/{model}")]
-        public async Task<OASISResult<IAvatar>> Create(CreateRequest model)
+        public async Task<OASISHttpResponseMessage<IAvatar>> Create(CreateRequest model)
         {
-            return FormatResponse(await _avatarService.Create(model));
+            return HttpResponseHelper.FormatResponse(await _avatarService.Create(model));
         }
 
         /// <summary>
@@ -374,11 +390,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpPost("create/{model}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatar>> Create(CreateRequest model, ProviderType providerType,
+        public async Task<OASISHttpResponseMessage<IAvatar>> Create(CreateRequest model, ProviderType providerType,
             bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return await _avatarService.Create(model);
+            return await Create(model);
         }
 
         /// <summary>
@@ -386,9 +402,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("get-terms")]
-        public async Task<OASISResult<string>> GetTerms()
+        public async Task<OASISHttpResponseMessage<string>> GetTerms()
         {
-            return FormatResponse(await _avatarService.GetTerms());
+            return HttpResponseHelper.FormatResponse(await _avatarService.GetTerms());
         }
 
         /// <summary>
@@ -399,13 +415,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-avatar-portrait/{id}")]
-        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitById(Guid id)
+        public async Task<OASISHttpResponseMessage<AvatarPortrait>> GetAvatarPortraitById(Guid id)
         {
             // users can get their own account and admins can get any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<AvatarPortrait>() { Result = null, IsError = true, Message = "Unauthorized" };
+                return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await _avatarService.GetAvatarPortraitById(id));
+            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarPortraitById(id));
         }
 
         /// <summary>
@@ -419,7 +435,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-avatar-portrait/{id}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitById(Guid id, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<AvatarPortrait>> GetAvatarPortraitById(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetAvatarPortraitById(id);
@@ -433,13 +449,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-avatar-portrait-by-username/{username}")]
-        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByUsername(string username)
+        public async Task<OASISHttpResponseMessage<AvatarPortrait>> GetAvatarPortraitByUsername(string username)
         {
             // users can get their own account and admins can get any account
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<AvatarPortrait> { IsError = true, Message = "Unauthorized" };
+                return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await _avatarService.GetAvatarPortraitByUsername(username));
+            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarPortraitByUsername(username));
         }
 
         /// <summary>
@@ -453,7 +469,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-avatar-portrait-by-username/{username}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByUsername(string username, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<AvatarPortrait>> GetAvatarPortraitByUsername(string username, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetAvatarPortraitByUsername(username);
@@ -466,13 +482,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-avatar-portrait-by-email/{email}")]
-        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByEmail(string email)
+        public async Task<OASISHttpResponseMessage<AvatarPortrait>> GetAvatarPortraitByEmail(string email)
         {
             // users can get their own account and admins can get any account
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<AvatarPortrait> { IsError = true, Message = "Unauthorized" };
+                return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await _avatarService.GetAvatarPortraitByEmail(email));
+            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarPortraitByEmail(email));
         }
 
         /// <summary>
@@ -486,7 +502,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-avatar-portrait-by-email/{email}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByEmail(string email, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<AvatarPortrait>> GetAvatarPortraitByEmail(string email, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetAvatarPortraitByEmail(email);
@@ -500,14 +516,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("upload-avatar-portrait")]
-        public async Task<OASISResult<bool>> UploadAvatarPortrait(AvatarPortrait avatarPortrait)
+        public async Task<OASISHttpResponseMessage<bool>> UploadAvatarPortrait(AvatarPortrait avatarPortrait)
         {
             // users can get their own account and admins can get any account
             if (avatarPortrait.AvatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<bool>()
-                { Result = false, Message = "Image not uploaded. Unauthorized", IsError = true };
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await _avatarService.UploadAvatarPortrait(avatarPortrait));
+            return HttpResponseHelper.FormatResponse(await _avatarService.UploadAvatarPortrait(avatarPortrait));
         }
 
         /// <summary>
@@ -521,7 +536,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("upload-avatar-portrait/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<bool>> UploadAvatarPortrait(AvatarPortrait avatarPortrait, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<bool>> UploadAvatarPortrait(AvatarPortrait avatarPortrait, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await UploadAvatarPortrait(avatarPortrait);
@@ -535,9 +550,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("get-avatar-detail-by-id/{id:guid}")]
-        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetail(Guid id)
         {
-            return FormatResponse(await Program.AvatarManager.LoadAvatarDetailAsync(id));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarDetailAsync(id));
         }
 
         /// <summary>
@@ -551,7 +566,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("get-avatar-detail-by-id/{id:guid}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetail(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetAvatarDetail(id);
@@ -565,9 +580,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("get-avatar-detail-by-email/{email}")]
-        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByEmail(string email)
         {
-            return FormatResponse(await Program.AvatarManager.LoadAvatarDetailByEmailAsync(email));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarDetailByEmailAsync(email));
         }
 
         /// <summary>
@@ -581,7 +596,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("get-avatar-detail-by-email/{email}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByEmail(string email, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetAvatarDetailByEmail(email);
@@ -595,9 +610,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("get-avatar-detail-by-username/{username}")]
-        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByUsername(string username)
         {
-            return FormatResponse(await Program.AvatarManager.LoadAvatarDetailByUsernameAsync(username));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarDetailByUsernameAsync(username));
         }
 
         /// <summary>
@@ -611,7 +626,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("get-avatar-detail-by-username/{username}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByUsername(string username, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetAvatarDetailByUsername(username);
@@ -624,9 +639,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("get-all-avatar-details")]
-        public async Task<OASISResult<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
+        public async Task<OASISHttpResponseMessage<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
         {
-            return FormatResponse(await Program.AvatarManager.LoadAllAvatarDetailsAsync());
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAllAvatarDetailsAsync());
         }
 
         /// <summary>
@@ -639,7 +654,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("get-all-avatar-details/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails(ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails(ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetAllAvatarDetails();
@@ -652,9 +667,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("get-all-avatars")]
-        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAll()
+        public async Task<OASISHttpResponseMessage<IEnumerable<IAvatar>>> GetAll()
         {
-            return FormatResponse(await Program.AvatarManager.LoadAllAvatarsAsync());
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAllAvatarsAsync());
         }
 
         /// <summary>
@@ -667,7 +682,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("get-all-avatars/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAll(ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IEnumerable<IAvatar>>> GetAll(ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetAll();
@@ -681,17 +696,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-by-id/{id}")]
-        public async Task<OASISResult<IAvatar>> GetById(Guid id)
+        public async Task<OASISHttpResponseMessage<IAvatar>> GetById(Guid id)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-
             // users can get their own account and admins can get any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<IAvatar> { Result = null, Message = "Unauthorized", IsError = true };
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            result = await Program.AvatarManager.LoadAvatarAsync(id);
-
-            return FormatResponse(result);
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarAsync(id));
         }
 
         /// <summary>
@@ -705,7 +716,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-by-id/{id}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatar>> GetById(Guid id, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatar>> GetById(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetById(id);
@@ -719,14 +730,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-by-username/{username}")]
-        public async Task<OASISResult<IAvatar>> GetByUsername(string username)
+        public async Task<OASISHttpResponseMessage<IAvatar>> GetByUsername(string username)
         {
             // users can get their own account and admins can get any account
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<IAvatar> { Message = "Unauthorized", IsError = true };
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
             //return await _avatarService.GetByUsername(username);
-            return FormatResponse(await Program.AvatarManager.LoadAvatarAsync(username));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarAsync(username));
         }
 
         /// <summary>
@@ -740,7 +751,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-by-username/{username}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatar>> GetByUsername(string username, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatar>> GetByUsername(string username, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetByUsername(username);
@@ -754,14 +765,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-by-email/{email}")]
-        public async Task<OASISResult<IAvatar>> GetByEmail(string email)
+        public async Task<OASISHttpResponseMessage<IAvatar>> GetByEmail(string email)
         {
             // users can get their own account and admins can get any account
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<IAvatar> { Message = "Unauthorized", IsError = true };
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            //return await _avatarService.GetByEmail(email);
-            return FormatResponse(await Program.AvatarManager.LoadAvatarByEmailAsync(email));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarByEmailAsync(email));
         }
 
         /// <summary>
@@ -775,7 +785,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-by-email/{email}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatar>> GetByEmail(string email, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatar>> GetByEmail(string email, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetByUsername(email);
@@ -787,9 +797,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="searchParams"></param>
         /// <returns></returns>
         [HttpPost("search")]
-        public async Task<OASISResult<ISearchResults>> SearchAvatar(SearchParams searchParams)
+        public async Task<OASISHttpResponseMessage<ISearchResults>> SearchAvatar(SearchParams searchParams)
         {
-            return FormatResponse(await _avatarService.Search(searchParams));
+            return HttpResponseHelper.FormatResponse(await _avatarService.Search(searchParams));
         }
 
         /// <summary>
@@ -801,10 +811,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         /// <returns></returns>
         [HttpPost("search/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<ISearchResults>> SearchAvatar(SearchParams searchParams, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<ISearchResults>> SearchAvatar(SearchParams searchParams, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return await _avatarService.Search(searchParams);
+            return await SearchAvatar(searchParams);
         }
 
         /// <summary>
@@ -821,10 +831,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("add-karma-to-avatar/{avatarId}")]
-        public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatar(Guid avatarId,
+        public async Task<OASISHttpResponseMessage<KarmaAkashicRecord>> AddKarmaToAvatar(Guid avatarId,
             AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
-            return FormatResponse(await _avatarService.AddKarmaToAvatar(avatarId, addKarmaToAvatarRequest));
+            return HttpResponseHelper.FormatResponse(await _avatarService.AddKarmaToAvatar(avatarId, addKarmaToAvatarRequest));
         }
 
         /// <summary>
@@ -847,7 +857,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("add-karma-to-avatar/{avatarId}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatar(
+        public async Task<OASISHttpResponseMessage<KarmaAkashicRecord>> AddKarmaToAvatar(
             AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest, Guid avatarId, ProviderType providerType,
             bool setGlobally = false)
         {
@@ -868,10 +878,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("remove-karma-from-avatar/{avatarId}")]
-        public async Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatar(Guid avatarId,
+        public async Task<OASISHttpResponseMessage<KarmaAkashicRecord>> RemoveKarmaFromAvatar(Guid avatarId,
             AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
-            return FormatResponse(await _avatarService.RemoveKarmaFromAvatar(avatarId, addKarmaToAvatarRequest));
+            return HttpResponseHelper.FormatResponse(await _avatarService.RemoveKarmaFromAvatar(avatarId, addKarmaToAvatarRequest));
         }
 
         /// <summary>
@@ -894,7 +904,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("remove-karma-from-avatar/{avatarId}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatar(
+        public async Task<OASISHttpResponseMessage<KarmaAkashicRecord>> RemoveKarmaFromAvatar(
             AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest, Guid avatarId, ProviderType providerType,
             bool setGlobally = false)
         {
@@ -911,13 +921,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("update-by-id/{id}")]
-        public async Task<OASISResult<IAvatar>> Update(UpdateRequest avatar, Guid id)
+        public async Task<OASISHttpResponseMessage<IAvatar>> Update(UpdateRequest avatar, Guid id)
         {
             // users can update their own account and admins can update any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" };
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await _avatarService.Update(id, avatar));
+            return HttpResponseHelper.FormatResponse(await _avatarService.Update(id, avatar));
         }
 
         /// <summary>
@@ -934,7 +944,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpPost("update-by-id/{id}/{providerType}/{setGlobally}")]
         //public ActionResult<IAvatar> Update(Guid id, Core.Avatar avatar, ProviderType providerType, bool setGlobally = false)
-        public async Task<OASISResult<IAvatar>> Update(Guid id, UpdateRequest avatar, ProviderType providerType,
+        public async Task<OASISHttpResponseMessage<IAvatar>> Update(Guid id, UpdateRequest avatar, ProviderType providerType,
             bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
@@ -950,13 +960,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("update-by-email/{email}")]
-        public async Task<OASISResult<IAvatar>> UpdateByEmail(UpdateRequest avatar, string email)
+        public async Task<OASISHttpResponseMessage<IAvatar>> UpdateByEmail(UpdateRequest avatar, string email)
         {
             // users can update their own account and admins can update any account
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" };
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await _avatarService.UpdateByEmail(email, avatar));
+            return HttpResponseHelper.FormatResponse(await _avatarService.UpdateByEmail(email, avatar));
         }
 
         /// <summary>
@@ -971,7 +981,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("update-by-email/{email}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatar>> UpdateByEmail(UpdateRequest avatar, string email, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatar>> UpdateByEmail(UpdateRequest avatar, string email, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await UpdateByEmail(avatar, email);
@@ -985,13 +995,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="username"></param>
         [Authorize]
         [HttpPost("update-by-username/{username}")]
-        public async Task<OASISResult<IAvatar>> UpdateByUsername(UpdateRequest avatar, string username)
+        public async Task<OASISHttpResponseMessage<IAvatar>> UpdateByUsername(UpdateRequest avatar, string username)
         {
             // users can update their own account and admins can update any account
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" };
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await _avatarService.UpdateByUsername(username, avatar));
+            return HttpResponseHelper.FormatResponse(await _avatarService.UpdateByUsername(username, avatar));
         }
 
         /// <summary>
@@ -1005,7 +1015,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         [Authorize]
         [HttpPost("update-by-username/{username}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatar>> UpdateByUsername(UpdateRequest avatar, string username, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatar>> UpdateByUsername(UpdateRequest avatar, string username, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await UpdateByUsername(avatar, username);
@@ -1020,13 +1030,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("update-avatar-detail-by-id/{id}")]
-        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetail(AvatarDetail avatarDetail, Guid id)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> UpdateAvatarDetail(AvatarDetail avatarDetail, Guid id)
         {
             // users can update their own account and admins can update any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<IAvatarDetail>() { Result = null, IsError = true, Message = "Unauthorized" };
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatarDetail>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await Program.AvatarManager.UpdateAvatarDetailAsync(id, avatarDetail));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.UpdateAvatarDetailAsync(id, avatarDetail));
         }
 
         /// <summary>
@@ -1041,7 +1051,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("update-avatar-detail-by-id/{id}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetail(Guid id, AvatarDetail avatarDetail, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> UpdateAvatarDetail(Guid id, AvatarDetail avatarDetail, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await UpdateAvatarDetail(avatarDetail, id);
@@ -1056,13 +1066,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("update-avatar-detail-by-email/{email}")]
-        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailByEmail(AvatarDetail avatarDetail, string email)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> UpdateAvatarDetailByEmail(AvatarDetail avatarDetail, string email)
         {
             // users can update their own account and admins can update any account
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<IAvatarDetail>() { Result = null, IsError = true, Message = "Unauthorized" };
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatarDetail>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await Program.AvatarManager.UpdateAvatarDetailByEmailAsync(email, avatarDetail));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.UpdateAvatarDetailByEmailAsync(email, avatarDetail));
         }
 
         /// <summary>
@@ -1077,7 +1087,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("update-avatar-detail-by-email/{email}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailByEmail(AvatarDetail avatarDetail, string email, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> UpdateAvatarDetailByEmail(AvatarDetail avatarDetail, string email, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await UpdateAvatarDetailByEmail(avatarDetail, email);
@@ -1092,13 +1102,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("update-avatar-detail-by-username/{username}")]
-        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailByUsername(AvatarDetail avatarDetail, string username)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> UpdateAvatarDetailByUsername(AvatarDetail avatarDetail, string username)
         {
             // users can update their own account and admins can update any account
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<IAvatarDetail>() { Result = null, IsError = true, Message = "Unauthorized" };
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatarDetail>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await Program.AvatarManager.UpdateAvatarDetailByUsernameAsync(username, avatarDetail));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.UpdateAvatarDetailByUsernameAsync(username, avatarDetail));
         }
 
         /// <summary>
@@ -1113,7 +1123,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("update-avatar-detail-by-username/{username}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailByUsername(AvatarDetail avatarDetail, string username, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> UpdateAvatarDetailByUsername(AvatarDetail avatarDetail, string username, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await UpdateAvatarDetailByUsername(avatarDetail, username);
@@ -1127,13 +1137,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("{id:Guid}")]
-        public async Task<OASISResult<bool>> Delete(Guid id)
+        public async Task<OASISHttpResponseMessage<bool>> Delete(Guid id)
         {
             // users can delete their own account and admins can delete any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<bool> { Result = false, IsError = true };
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await Program.AvatarManager.DeleteAvatarAsync(id));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.DeleteAvatarAsync(id));
         }
 
         /// <summary>
@@ -1147,7 +1157,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("{id:Guid}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<bool>> Delete(Guid id, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<bool>> Delete(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await Delete(id);
@@ -1161,13 +1171,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("delete-by-username/{username}")]
-        public async Task<OASISResult<bool>> DeleteByUsername(string username)
+        public async Task<OASISHttpResponseMessage<bool>> DeleteByUsername(string username)
         {
             // users can delete their own account and admins can delete any account
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<bool> { IsError = true, Message = "Unauthorized", Result = false };
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await Program.AvatarManager.DeleteAvatarByUsernameAsync(username));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.DeleteAvatarByUsernameAsync(username));
         }
 
         /// <summary>
@@ -1181,7 +1191,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("delete-by-username/{username}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<bool>> DeleteByUsername(string username, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<bool>> DeleteByUsername(string username, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await DeleteByUsername(username);
@@ -1195,13 +1205,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("delete-by-email/{email}")]
-        public async Task<OASISResult<bool>> DeleteByEmail(string email)
+        public async Task<OASISHttpResponseMessage<bool>> DeleteByEmail(string email)
         {
             // users can delete their own account and admins can delete any account
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<bool> { IsError = true, Message = "Unauthorized", Result = false };
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return FormatResponse(await Program.AvatarManager.DeleteAvatarByEmailAsync(email));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.DeleteAvatarByEmailAsync(email));
         }
 
         /// <summary>
@@ -1215,7 +1225,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("delete-by-email/{email}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<bool>> DeleteByEmail(string email, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<bool>> DeleteByEmail(string email, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await DeleteByUsername(email);
@@ -1229,9 +1239,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-uma-json-by-id/{id}")]
-        public async Task<OASISResult<string>> GetUmaJsonById(Guid id)
+        public async Task<OASISHttpResponseMessage<string>> GetUmaJsonById(Guid id)
         {
-            return FormatResponse(await _avatarService.GetAvatarUmaJsonById(id));
+            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarUmaJsonById(id));
         }
 
         /// <summary>
@@ -1245,7 +1255,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-uma-json-by-id/{id}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<string>> GetUmaJsonById(Guid id, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<string>> GetUmaJsonById(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetUmaJsonById(id);
@@ -1259,9 +1269,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-uma-json-by-username/{username}")]
-        public async Task<OASISResult<string>> GetUmaJsonByUsername(string username)
+        public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByUsername(string username)
         {
-            return FormatResponse(await _avatarService.GetAvatarUmaJsonByUsername(username));
+            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarUmaJsonByUsername(username));
         }
 
         /// <summary>
@@ -1275,7 +1285,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-uma-json-by-username/{username}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<string>> GetUmaJsonByUsername(string username, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByUsername(string username, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetUmaJsonByUsername(username);
@@ -1289,9 +1299,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-uma-json-by-email/{email}")]
-        public async Task<OASISResult<string>> GetUmaJsonByEmail(string email)
+        public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByEmail(string email)
         {
-            return await GetUmaJsonByUsername(email);
+            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarUmaJsonByEmail(email));
         }
 
         /// <summary>
@@ -1305,7 +1315,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-uma-json-by-email/{email}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<string>> GetUmaJsonByEmail(string email, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByEmail(string email, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetUmaJsonByEmail(email);
@@ -1318,9 +1328,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-logged-in-avatar")]
-        public async Task<OASISResult<IAvatar>> GetLoggedInAvatar()
+        public async Task<OASISHttpResponseMessage<IAvatar>> GetLoggedInAvatar()
         {
-            return FormatResponse(await _avatarService.GetLoggedInAvatar());
+            return HttpResponseHelper.FormatResponse(await _avatarService.GetLoggedInAvatar());
         }
 
         /// <summary>
@@ -1333,7 +1343,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-logged-in-avatar/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatar>> GetLoggedInAvatar(ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatar>> GetLoggedInAvatar(ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetLoggedInAvatar();
@@ -1347,7 +1357,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("LinkProviderPublicKeyToAvatarByAvatarId")]
-        //public OASISResult<bool> LinkProviderPublicKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
+        //public OASISHttpResponseMessage<bool> LinkProviderPublicKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         //{
         //    bool isValid;
         //    string errorMessage = "";
@@ -1360,7 +1370,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    if (isValid)
         //        return KeyManager.LinkProviderPublicKeyToAvatar(avatarID, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey, providerTypeToLoadAvatarFrom);
         //    else
-        //        return new OASISResult<bool>(false) { IsError = true, Message = errorMessage };
+        //        return new OASISHttpResponseMessage<bool>(false) { IsError = true, Message = errorMessage };
         //}
 
 
@@ -1371,7 +1381,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("LinkProviderPublicKeyToAvatarByUsername")]
-        //public OASISResult<bool> LinkProviderPublicKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
+        //public OASISHttpResponseMessage<bool> LinkProviderPublicKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         //{
         //    bool isValid;
         //    string errorMessage = "";
@@ -1384,7 +1394,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    if (isValid)
         //        return KeyManager.LinkProviderPublicKeyToAvatar(linkProviderKeyToAvatarParams.AvatarUsername, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey, providerTypeToLoadAvatarFrom);
         //    else
-        //        return new OASISResult<bool>(false) { IsError = true, Message = errorMessage };
+        //        return new OASISHttpResponseMessage<bool>(false) { IsError = true, Message = errorMessage };
         //}
 
         ///// <summary>
@@ -1394,7 +1404,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("LinkProviderPrivateKeyToAvatarByAvatarId")]
-        //public OASISResult<bool> LinkProviderPrivateKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
+        //public OASISHttpResponseMessage<bool> LinkProviderPrivateKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
         //{
         //    bool isValid;
         //    string errorMessage = "";
@@ -1407,7 +1417,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    if (isValid)
         //        return KeyManager.LinkProviderPrivateKeyToAvatar(avatarID, providerTypeToLinkTo, linkProviderPrivateKeyToAvatarParams.ProviderKey, providerTypeToLoadAvatarFrom);
         //    else
-        //        return new OASISResult<bool>(false) { IsError = true, Message = errorMessage };
+        //        return new OASISHttpResponseMessage<bool>(false) { IsError = true, Message = errorMessage };
         //}
 
         ///// <summary>
@@ -1417,7 +1427,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("LinkProviderPrivateKeyToAvatarByUsername")]
-        //public OASISResult<bool> LinkProviderPrivateKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
+        //public OASISHttpResponseMessage<bool> LinkProviderPrivateKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
         //{
         //    bool isValid;
         //    string errorMessage = "";
@@ -1430,7 +1440,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    if (isValid)
         //        return KeyManager.LinkProviderPrivateKeyToAvatar(linkProviderPrivateKeyToAvatarParams.AvatarUsername, providerTypeToLinkTo, linkProviderPrivateKeyToAvatarParams.ProviderKey, providerTypeToLoadAvatarFrom);
         //    else
-        //        return new OASISResult<bool>(false) { IsError = true, Message = errorMessage };
+        //        return new OASISHttpResponseMessage<bool>(false) { IsError = true, Message = errorMessage };
         //}
 
         ///*
@@ -1440,7 +1450,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("GenerateKeyPairAndLinkProviderKeysToAvatar")]
-        //public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatar(Guid avatarId, string providerTypeToLinkTo, string providerTypeToloadAvatarFrom)
+        //public OASISHttpResponseMessage<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatar(Guid avatarId, string providerTypeToLinkTo, string providerTypeToloadAvatarFrom)
         //{
         //    object providerTypeToLinkToObject = null;
         //    object providerTypeToLoadAvatarFromObject = null;
@@ -1448,13 +1458,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    ProviderType providerTypeToloadAvatarFromEnumValue = ProviderType.Default;
 
         //    if (string.IsNullOrEmpty(providerTypeToLinkTo))
-        //        return (new OASISResult<KeyPair> { IsError = true, Message = $"The providerTypeToLinkTo param cannot be null. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" });
+        //        return (new OASISHttpResponseMessage<KeyPair> { IsError = true, Message = $"The providerTypeToLinkTo param cannot be null. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" });
 
         //    if (!string.IsNullOrEmpty(providerTypeToLinkTo) && !Enum.TryParse(typeof(ProviderType), providerTypeToLinkTo, out providerTypeToLinkToObject))
-        //        return (new OASISResult<KeyPair> { IsError = true, Message = $"The given providerTypeToLinkTo {providerTypeToLinkTo} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" });
+        //        return (new OASISHttpResponseMessage<KeyPair> { IsError = true, Message = $"The given providerTypeToLinkTo {providerTypeToLinkTo} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" });
 
         //    if (!string.IsNullOrEmpty(providerTypeToloadAvatarFrom) && !Enum.TryParse(typeof(ProviderType), providerTypeToloadAvatarFrom, out providerTypeToLoadAvatarFromObject))
-        //        return (new OASISResult<KeyPair> { IsError = true, Message = $"The given providerTypeToloadAvatarFrom {providerTypeToloadAvatarFrom} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" });
+        //        return (new OASISHttpResponseMessage<KeyPair> { IsError = true, Message = $"The given providerTypeToloadAvatarFrom {providerTypeToloadAvatarFrom} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" });
 
         //    if (providerTypeToLinkToObject != null)
         //        providerTypeToLinkToEnumValue = (ProviderType)providerTypeToLinkToObject;
@@ -1472,7 +1482,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarId")]
-        //public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarId(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
+        //public OASISHttpResponseMessage<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarId(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
         //{
         //    bool isValid;
         //    string errorMessage = "";
@@ -1485,7 +1495,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    if (isValid)
         //        return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatar(avatarID, providerTypeToLinkTo, providerTypeToLoadAvatarFrom);
         //    else
-        //        return new OASISResult<KeyPair>() { IsError = true, Message = errorMessage };
+        //        return new OASISHttpResponseMessage<KeyPair>() { IsError = true, Message = errorMessage };
         //}
 
         ///// <summary>
@@ -1496,7 +1506,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("GetProviderUniqueStorageKeyForAvatar")]
-        //public OASISResult<string> GetProviderUniqueStorageKeyForAvatar(Guid avatarId, ProviderType providerType)
+        //public OASISHttpResponseMessage<string> GetProviderUniqueStorageKeyForAvatar(Guid avatarId, ProviderType providerType)
         //{
         //    return KeyManager.GetProviderUniqueStorageKeyForAvatar(avatarId, providerType);
         //}
@@ -1509,7 +1519,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("GetProviderUniqueStorageKeyForAvatar")]
-        //public OASISResult<string> GetProviderUniqueStorageKeyForAvatar(string username, ProviderType providerType)
+        //public OASISHttpResponseMessage<string> GetProviderUniqueStorageKeyForAvatar(string username, ProviderType providerType)
         //{
         //    return KeyManager.GetProviderUniqueStorageKeyForAvatar(username, providerType);
         //}
@@ -1522,7 +1532,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("GetProviderPrivateKeyForAvatar")]
-        //public OASISResult<string> GetProviderPrivateKeyForAvatar(Guid avatarId, ProviderType providerType)
+        //public OASISHttpResponseMessage<string> GetProviderPrivateKeyForAvatar(Guid avatarId, ProviderType providerType)
         //{
         //    return KeyManager.GetProviderPrivateKeyForAvatar(avatarId, providerType);
         //}
@@ -1535,7 +1545,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("GetProviderPrivateKeyForAvatar")]
-        //public OASISResult<string> GetProviderPrivateKeyForAvatar(string username, ProviderType providerType)
+        //public OASISHttpResponseMessage<string> GetProviderPrivateKeyForAvatar(string username, ProviderType providerType)
         //{
         //    return KeyManager.GetProviderPrivateKeyForAvatar(username, providerType);
         //}
@@ -1548,7 +1558,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("GetProviderPublicKeysForAvatar")]
-        //public OASISResult<List<string>> GetProviderPublicKeysForAvatar(Guid avatarId, ProviderType providerType)
+        //public OASISHttpResponseMessage<List<string>> GetProviderPublicKeysForAvatar(Guid avatarId, ProviderType providerType)
         //{
         //    return KeyManager.GetProviderPublicKeysForAvatar(avatarId, providerType);
         //}
@@ -1561,7 +1571,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("GetProviderPublicKeysForAvatar")]
-        //public OASISResult<List<string>> GetProviderPublicKeysForAvatar(string username, ProviderType providerType)
+        //public OASISHttpResponseMessage<List<string>> GetProviderPublicKeysForAvatar(string username, ProviderType providerType)
         //{
         //    return KeyManager.GetProviderPublicKeysForAvatar(username, providerType);
         //}
@@ -1573,7 +1583,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("GetAllProviderPublicKeysForAvatar")]
-        //public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatar(string username)
+        //public OASISHttpResponseMessage<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatar(string username)
         //{
         //    return KeyManager.GetAllProviderPublicKeysForAvatar(username);
         //}
@@ -1584,7 +1594,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("GenerateKeyPairForProvider")]
-        //public OASISResult<KeyPair> GenerateKeyPairForProvider(ProviderType providerType)
+        //public OASISHttpResponseMessage<KeyPair> GenerateKeyPairForProvider(ProviderType providerType)
         //{
         //    return KeyManager.GenerateKeyPair(providerType);
         //}
@@ -1595,7 +1605,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("GenerateKeyPair")]
-        //public OASISResult<KeyPair> GenerateKeyPair(string keyPrefix)
+        //public OASISHttpResponseMessage<KeyPair> GenerateKeyPair(string keyPrefix)
         //{
         //    return KeyManager.GenerateKeyPair(keyPrefix);
         //}
@@ -1616,7 +1626,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("{id:Guid}/{telosAccountName}")]
-        public async Task<OASISResult<IAvatarDetail>> LinkTelosAccountToAvatar(Guid id, string telosAccountName)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> LinkTelosAccountToAvatar(Guid id, string telosAccountName)
         {
             return await _avatarService.LinkProviderKeyToAvatar(id, ProviderType.TelosOASIS, telosAccountName);
         }
@@ -1629,7 +1639,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost]
-        public async Task<OASISResult<IAvatarDetail>> LinkTelosAccountToAvatar2(
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> LinkTelosAccountToAvatar2(
             LinkProviderKeyToAvatar linkProviderKeyToAvatar)
         {
             return await _avatarService.LinkProviderKeyToAvatar(linkProviderKeyToAvatar.AvatarID,
@@ -1645,7 +1655,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("{avatarId}/{eosioAccountName}")]
-        public async Task<OASISResult<IAvatarDetail>> LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
         {
             return await _avatarService.LinkProviderKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName);
         }
@@ -1658,7 +1668,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("{avatarId}/{holochainAgentID}")]
-        public async Task<OASISResult<IAvatarDetail>> LinkHolochainAgentIDToAvatar(Guid avatarId,
+        public async Task<OASISHttpResponseMessage<IAvatarDetail>> LinkHolochainAgentIDToAvatar(Guid avatarId,
             string holochainAgentID)
         {
             return await _avatarService.LinkProviderKeyToAvatar(avatarId, ProviderType.HoloOASIS, holochainAgentID);
@@ -1672,7 +1682,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <returns></returns>
         //[Authorize]
         //[HttpPost("{avatarUsername}/{providerType}")]
-        //public async Task<OASISResult<string>> GetProviderKeyForAvatar(string avatarUsername, ProviderType providerType)
+        //public async Task<OASISHttpResponseMessage<string>> GetProviderKeyForAvatar(string avatarUsername, ProviderType providerType)
         //{
         //    //return await _avatarService.GetProviderKeyForAvatar(avatarUsername, providerType);
         //    return await Program.AvatarManager.GetProviderKeyForAvatar(avatarUsername, providerType);
@@ -1697,26 +1707,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 : string.Empty;
         }
 
-        private OASISResult<T> FormatResponse<T>(OASISResult<T> response)
-        {
-            //Make sure no Error Details are in the Message.
-            if (response.IsError && response.Message.IndexOf("\n\nError Details:\n") > 0)
-                response.Message = response.Message.Substring(0, response.Message.IndexOf("\n\nError Details:\n"));
+        //private string GetProviderList(string listName, string providerList)
+        //{
+        //    OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList(listName, providerList);
 
-            //Replace unsupported chars.
-            if (!string.IsNullOrEmpty(response.Message))
-            {
-                response.Message = response.Message.Replace("\n", " ").Trim();
-                response.Message = response.Message.Replace("\r", " ").Trim();
-            }
-
-            if (!string.IsNullOrEmpty(response.DetailedMessage))
-            {
-                response.DetailedMessage = response.DetailedMessage.Replace("\n", " ").Trim();
-                response.DetailedMessage = response.DetailedMessage.Replace("\r", " ").Trim();
-            }
-
-            return response;
-        }
+        //    if (listResult.WarningCount > 0)
+        //        return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Message = listResult.Message }, HttpStatusCode.BadRequest);
+        //    else
+        //        currentAutoFailOverList = ProviderManager.GetProviderListAsString(listResult.Result.ToList());
+        //}
     }
 }

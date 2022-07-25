@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="avatarId"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("ShareHolon/{holonId}/{avatarId}")]
+        [HttpGet("share-holon/{holonId}/{avatarId}")]
         public OASISResult<bool> ShareHolon(Guid holonId, Guid avatarId)
         {
             // TODO: Finish implementing.
@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="avatarIds"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("ShareHolon/{holonId}/{avatarIds}")]
+        [HttpGet("share-holon/{holonId}/{avatarIds}")]
         public OASISResult<bool> ShareHolon(Guid holonId, Guid[] avatarIds)
         {
             // TODO: Finish implementing.

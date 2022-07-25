@@ -59,8 +59,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             get
             {
                 if (_avatarManager == null)
-                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), OASISDNA);
-                //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+                    //_avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), OASISDNA);
+                    _avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+                
                 return _avatarManager;
             }
         }
@@ -70,8 +71,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             get
             {
                 if (_walletManager == null)
-                    _walletManager = new WalletManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS),
-                        AvatarManager.OASISDNA);
+                    _walletManager = new WalletManager(this, AvatarManager.OASISDNA);
+                //_walletManager = new WalletManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS),AvatarManager.OASISDNA);
+
                 return _walletManager;
             }
         }
@@ -81,9 +83,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             get
             {
                 if (_keyManager == null)
-                    _keyManager =
-                        new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
-                //_keyManager = new KeyManager(this, AvatarManager); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+                    //_keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
+                    _keyManager = new KeyManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
 
                 return _keyManager;
             }
@@ -183,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                ErrorHandling.HandleError(ref result, ex.Message, ex);
             }
 
             return result;

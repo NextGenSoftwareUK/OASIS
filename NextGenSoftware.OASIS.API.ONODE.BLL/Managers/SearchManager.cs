@@ -3,13 +3,19 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 {
     public class SearchManager : OASISManager, ISearchManager
     {
-        public SearchManager() : base()
+        public SearchManager(OASISDNA OASISDNA = null) : base(OASISDNA)
+        {
+
+        }
+
+        public SearchManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
 
         }

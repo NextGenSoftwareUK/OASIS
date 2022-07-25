@@ -160,8 +160,8 @@ namespace NextGenSoftware.OASIS.STAR
         //    }
         //}
 
-        public static Avatar LoggedInAvatar { get; set; }
-        public static AvatarDetail LoggedInAvatarDetail { get; set; }
+        public static IAvatar LoggedInAvatar { get; set; }
+        public static IAvatarDetail LoggedInAvatarDetail { get; set; }
 
         public static OASISAPI OASISAPI
         {
@@ -240,7 +240,81 @@ namespace NextGenSoftware.OASIS.STAR
 
         //public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         //public static event DataReceived OnDataReceived;
-       
+
+        public static async Task<OASISResult<IOmiverse>> IgniteStarAsync(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
+        {
+            OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
+            Status = StarStatus.Igniting;
+
+            // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
+            //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
+
+            /*
+            var config = new MapperConfiguration(cfg => {
+                //cfg.AddProfile<AppProfile>();
+                cfg.CreateMap<IHolon, CelestialBody>();
+                cfg.CreateMap<IHolon, Zome>();
+            });
+
+            Mapper = config.CreateMapper();
+            */
+
+            if (File.Exists(STARDNAPath))
+                LoadDNA();
+            else
+            {
+                STARDNA = new STARDNA();
+                SaveDNA();
+            }
+
+            ValidateSTARDNA(STARDNA);
+            Status = StarStatus.BootingOASIS;
+            OASISResult<bool> oasisResult = BootOASIS(OASISDNAPath); //TODO: Add Async versions of everything! ;-)
+
+            if (oasisResult.IsError)
+            {
+                string errorMessage = string.Concat("Error whilst booting OASIS. Reason: ", oasisResult.Message);
+                OnOASISBootError?.Invoke(null, new OASISBootErrorEventArgs() { ErrorReason = errorMessage });
+                OnStarError?.Invoke(null, new StarErrorEventArgs() { Reason = errorMessage });
+                result.IsError = true;
+                result.Message = errorMessage;
+                return result;
+            }
+            else
+                OnOASISBooted?.Invoke(null, new OASISBootedEventArgs() { Message = result.Message });
+
+            Status = StarStatus.OASISBooted;
+
+            // If the starId is passed in and is valid then convert to Guid, otherwise get it from the STARDNA file.
+            if (!string.IsNullOrEmpty(starId) && !string.IsNullOrWhiteSpace(starId))
+            {
+                if (!Guid.TryParse(starId, out _starId))
+                {
+                    //TODO: Need to apply this error handling across the entire OASIS eventually...
+                    HandleErrorMessage(ref result, "StarID passed in is invalid. It needs to be a valid Guid.");
+                    return result;
+                }
+            }
+            else if (!string.IsNullOrEmpty(STARDNA.DefaultStarId) && !string.IsNullOrWhiteSpace(STARDNA.DefaultStarId) && !Guid.TryParse(STARDNA.DefaultStarId, out _starId))
+            {
+                HandleErrorMessage(ref result, "StarID defined in the STARDNA file in is invalid. It needs to be a valid Guid.");
+                return result;
+            }
+
+            result = await IgniteInnerStarAsync(result);
+
+            if (result.IsError)
+                Status = StarStatus.Error;
+            else
+            {
+                Status = StarStatus.Ingited;
+                OnStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
+                IsStarIgnited = true;
+            }
+
+            return result;
+        }
+
         public static OASISResult<IOmiverse> IgniteStar(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
         {
             OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
@@ -301,7 +375,7 @@ namespace NextGenSoftware.OASIS.STAR
                 return result;
             }
 
-            IgniteInnerStar(ref result);
+            result = IgniteInnerStar(result);
 
             if (result.IsError)
                 Status = StarStatus.Error;
@@ -378,7 +452,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsStarIgnited)
                 IgniteStar();
 
-            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "https://api.oasisplatform.world/api", OASISType.STARCLI, cliColour, favColour);
+            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
         }
 
         public static async Task<OASISResult<IAvatar>> CreateAvatarAsync(string title, string firstName, string lastName, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
@@ -387,7 +461,7 @@ namespace NextGenSoftware.OASIS.STAR
                 IgniteStar();
 
             //TODO: Implement Async version of Register and call instead of below:
-            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "https://api.oasisplatform.world/api", OASISType.STARCLI, cliColour, favColour);
+            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
         }
 
         public static OASISResult<IAvatar> BeamIn(string username, string password)
@@ -413,81 +487,105 @@ namespace NextGenSoftware.OASIS.STAR
             if (!result.IsError)
             {
                 LoggedInAvatar = (Avatar)result.Result;
-                OASISResult<IAvatarDetail> LoggedInAvatarDetail = OASISAPI.Avatar.LoadAvatarDetail(LoggedInAvatar.Id);
+                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = OASISAPI.Avatar.LoadAvatarDetail(LoggedInAvatar.Id);
 
-                if (username == "davidellams@hotmail.com" || username == "davidellams@gmail.com")
+                if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
                 {
-                    LoggedInAvatarDetail.Result = new AvatarDetail();
-                    LoggedInAvatarDetail.Result = new AvatarDetail();
-                    LoggedInAvatarDetail.Result.Karma = 777777;
-                    LoggedInAvatarDetail.Result.XP = 2222222;
+                    LoggedInAvatarDetail = loggedInAvatarDetailResult.Result;
 
-                    LoggedInAvatarDetail.Result.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-                    LoggedInAvatarDetail.Result.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-                    LoggedInAvatarDetail.Result.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                    if (username == "davidellams@hotmail.com" || username == "davidellams@gmail.com")
+                    {
+                        LoggedInAvatarDetail = new AvatarDetail();
+                        LoggedInAvatarDetail.Karma = 777777;
+                        LoggedInAvatarDetail.XP = 2222222;
 
-                    LoggedInAvatarDetail.Result.HumanDesign.Type = "Generator";
-                    LoggedInAvatarDetail.Result.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
-                    LoggedInAvatarDetail.Result.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
+                        LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                        LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                        LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
 
-                    LoggedInAvatarDetail.Result.Spells.Add(new Spell() { Name = "Super Spell" });
-                    LoggedInAvatarDetail.Result.Spells.Add(new Spell() { Name = "Super Speed Spell" });
-                    LoggedInAvatarDetail.Result.Spells.Add(new Spell() { Name = "Super Srength Spell" });
+                        LoggedInAvatarDetail.HumanDesign.Type = "Generator";
+                        LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
+                        LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
 
-                    LoggedInAvatarDetail.Result.Achievements.Add(new Achievement() { Name = "Becoming Superman!" });
-                    LoggedInAvatarDetail.Result.Achievements.Add(new Achievement() { Name = "Completing STAR!" });
+                        LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Spell" });
+                        LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Speed Spell" });
+                        LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Srength Spell" });
 
-                    LoggedInAvatarDetail.Result.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
+                        LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Becoming Superman!" });
+                        LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Completing STAR!" });
 
-                    LoggedInAvatarDetail.Result.Aura.Brightness = 99;
-                    LoggedInAvatarDetail.Result.Aura.Level = 77;
-                    LoggedInAvatarDetail.Result.Aura.Progress = 88;
-                    LoggedInAvatarDetail.Result.Aura.Size = 10;
-                    LoggedInAvatarDetail.Result.Aura.Value = 777;
+                        LoggedInAvatarDetail.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
 
-                    LoggedInAvatarDetail.Result.Chakras.Root.Level = 77;
-                    LoggedInAvatarDetail.Result.Chakras.Root.Progress = 99;
-                    LoggedInAvatarDetail.Result.Chakras.Root.XP = 8783;
+                        LoggedInAvatarDetail.Aura.Brightness = 99;
+                        LoggedInAvatarDetail.Aura.Level = 77;
+                        LoggedInAvatarDetail.Aura.Progress = 88;
+                        LoggedInAvatarDetail.Aura.Size = 10;
+                        LoggedInAvatarDetail.Aura.Value = 777;
 
-                    LoggedInAvatarDetail.Result.Attributes.Dexterity = 99;
-                    LoggedInAvatarDetail.Result.Attributes.Endurance = 99;
-                    LoggedInAvatarDetail.Result.Attributes.Intelligence = 99;
-                    LoggedInAvatarDetail.Result.Attributes.Magic = 99;
-                    LoggedInAvatarDetail.Result.Attributes.Speed = 99;
-                    LoggedInAvatarDetail.Result.Attributes.Strength = 99;
-                    LoggedInAvatarDetail.Result.Attributes.Toughness = 99;
-                    LoggedInAvatarDetail.Result.Attributes.Vitality = 99;
-                    LoggedInAvatarDetail.Result.Attributes.Wisdom = 99;
+                        LoggedInAvatarDetail.Chakras.Root.Level = 77;
+                        LoggedInAvatarDetail.Chakras.Root.Progress = 99;
+                        LoggedInAvatarDetail.Chakras.Root.XP = 8783;
 
-                    LoggedInAvatarDetail.Result.Stats.Energy.Current = 99;
-                    LoggedInAvatarDetail.Result.Stats.Energy.Max = 99;
-                    LoggedInAvatarDetail.Result.Stats.HP.Current = 99;
-                    LoggedInAvatarDetail.Result.Stats.HP.Max = 99;
-                    LoggedInAvatarDetail.Result.Stats.Mana.Current = 99;
-                    LoggedInAvatarDetail.Result.Stats.Mana.Max = 99;
-                    LoggedInAvatarDetail.Result.Stats.Staminia.Current = 99;
-                    LoggedInAvatarDetail.Result.Stats.Staminia.Max = 99;
+                        LoggedInAvatarDetail.Attributes.Dexterity = 99;
+                        LoggedInAvatarDetail.Attributes.Endurance = 99;
+                        LoggedInAvatarDetail.Attributes.Intelligence = 99;
+                        LoggedInAvatarDetail.Attributes.Magic = 99;
+                        LoggedInAvatarDetail.Attributes.Speed = 99;
+                        LoggedInAvatarDetail.Attributes.Strength = 99;
+                        LoggedInAvatarDetail.Attributes.Toughness = 99;
+                        LoggedInAvatarDetail.Attributes.Vitality = 99;
+                        LoggedInAvatarDetail.Attributes.Wisdom = 99;
 
-                    LoggedInAvatarDetail.Result.SuperPowers.AstralProjection = 99;
-                    LoggedInAvatarDetail.Result.SuperPowers.BioLocatation = 88;
-                    LoggedInAvatarDetail.Result.SuperPowers.Flight = 99;
-                    LoggedInAvatarDetail.Result.SuperPowers.FreezeBreath = 88;
-                    LoggedInAvatarDetail.Result.SuperPowers.HeatVision = 99;
-                    LoggedInAvatarDetail.Result.SuperPowers.Invulerability = 99;
-                    LoggedInAvatarDetail.Result.SuperPowers.SuperSpeed = 99;
-                    LoggedInAvatarDetail.Result.SuperPowers.SuperStrength = 99;
-                    LoggedInAvatarDetail.Result.SuperPowers.XRayVision = 99;
-                    LoggedInAvatarDetail.Result.SuperPowers.Teleportation = 99;
-                    LoggedInAvatarDetail.Result.SuperPowers.Telekineseis = 99;
+                        LoggedInAvatarDetail.Stats.Energy.Current = 99;
+                        LoggedInAvatarDetail.Stats.Energy.Max = 99;
+                        LoggedInAvatarDetail.Stats.HP.Current = 99;
+                        LoggedInAvatarDetail.Stats.HP.Max = 99;
+                        LoggedInAvatarDetail.Stats.Mana.Current = 99;
+                        LoggedInAvatarDetail.Stats.Mana.Max = 99;
+                        LoggedInAvatarDetail.Stats.Staminia.Current = 99;
+                        LoggedInAvatarDetail.Stats.Staminia.Max = 99;
 
-                    LoggedInAvatarDetail.Result.Skills.Computers = 99;
-                    LoggedInAvatarDetail.Result.Skills.Engineering = 99;
+                        LoggedInAvatarDetail.SuperPowers.AstralProjection = 99;
+                        LoggedInAvatarDetail.SuperPowers.BioLocatation = 88;
+                        LoggedInAvatarDetail.SuperPowers.Flight = 99;
+                        LoggedInAvatarDetail.SuperPowers.FreezeBreath = 88;
+                        LoggedInAvatarDetail.SuperPowers.HeatVision = 99;
+                        LoggedInAvatarDetail.SuperPowers.Invulerability = 99;
+                        LoggedInAvatarDetail.SuperPowers.SuperSpeed = 99;
+                        LoggedInAvatarDetail.SuperPowers.SuperStrength = 99;
+                        LoggedInAvatarDetail.SuperPowers.XRayVision = 99;
+                        LoggedInAvatarDetail.SuperPowers.Teleportation = 99;
+                        LoggedInAvatarDetail.SuperPowers.Telekineseis = 99;
+
+                        LoggedInAvatarDetail.Skills.Computers = 99;
+                        LoggedInAvatarDetail.Skills.Engineering = 99;
+                    }
                 }
-                
-
             }
 
             return result;
+        }
+
+        public static OASISResult<CoronalEjection> Light(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        {
+            return Light(type, name, (ICelestialBody)null, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+        }
+
+        public static OASISResult<CoronalEjection> Light(GenesisType type, string name, IStar starToAddPlanetTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        {
+            return Light(type, name, (ICelestialBody)starToAddPlanetTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+        }
+
+        public static OASISResult<CoronalEjection> Light(GenesisType type, string name, IPlanet planetToAddMoonTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        {
+            return Light(type, name, (ICelestialBody)planetToAddMoonTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+        }
+
+        //TODO: Create non async version of Light();
+        public static OASISResult<CoronalEjection> Light(GenesisType type, string name, ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        {
+            //TODO: Implement Light version ASAP (I just don't know about duplicating every method again and again?!)
+            return LightAsync(type, name, celestialBodyParent, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace).Result;
         }
 
         public static async Task<OASISResult<CoronalEjection>> LightAsync(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
@@ -542,7 +640,8 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (DefaultStar == null)
             {
-                OASISResult<IOmiverse> result = await IgniteInnerStarAsync();
+                OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
+                result = await IgniteInnerStarAsync(result);
 
                 if (result.IsError)
                     return new OASISResult<CoronalEjection>() { IsError = true, Message = string.Concat("Error Igniting Inner Star. Reason: ", result.Message) };
@@ -569,9 +668,9 @@ namespace NextGenSoftware.OASIS.STAR
             string listTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateList)).OpenText().ReadToEnd();
             string validationTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateValidation)).OpenText().ReadToEnd();
             string holonTemplateRust = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateHolon)).OpenText().ReadToEnd();
-            string intTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateInt)).OpenText().ReadToEnd();
-            string stringTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateString)).OpenText().ReadToEnd();
-            string boolTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateBool)).OpenText().ReadToEnd();
+            string intTemplateRust = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateInt)).OpenText().ReadToEnd();
+            string stringTemplateRust = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateString)).OpenText().ReadToEnd();
+            string boolTemplateRust = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateBool)).OpenText().ReadToEnd();
 
             string iHolonTemplate = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIHolonDNA)).OpenText().ReadToEnd();
             string holonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateHolonDNA)).OpenText().ReadToEnd();
@@ -587,6 +686,12 @@ namespace NextGenSoftware.OASIS.STAR
             string iCelestialBodyTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateICelestialBodyDNA)).OpenText().ReadToEnd();
             string celestialBodyTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateCelestialBodyDNA)).OpenText().ReadToEnd();
             string iZomeTemplate = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIZomeDNA)).OpenText().ReadToEnd();
+
+            string IntTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateInt)).OpenText().ReadToEnd();
+            string StringTemplateCSharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateString)).OpenText().ReadToEnd();
+            string BoolTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateBool)).OpenText().ReadToEnd();
+
+
 
             //If folder is not passed in via command line args then use default in config file.
             if (string.IsNullOrEmpty(dnaFolder))
@@ -750,7 +855,7 @@ namespace NextGenSoftware.OASIS.STAR
                             libBuffer = libTemplate.Replace("zome_name", parts[6].ToSnakeCase());
 
                             zomeBufferCsharp = zomeBufferCsharp.Replace("ZomeDNATemplate", parts[6].ToPascalCase());
-                            zomeBufferCsharp = zomeBufferCsharp.Replace("{zome}", parts[6].ToSnakeCase());
+                            //zomeBufferCsharp = zomeBufferCsharp.Replace("{zome}", parts[6].ToSnakeCase());
                             zomeName = parts[6].ToPascalCase();
 
                             currentZome = new Zome()
@@ -781,15 +886,18 @@ namespace NextGenSoftware.OASIS.STAR
                             switch (parts[13].ToLower())
                             {
                                 case "string":
-                                    GenerateRustField(fieldName, stringTemplate, NodeType.String, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
+                                    GenerateCSharpField(fieldName, StringTemplateCSharp, holonBufferCsharp);
+                                    GenerateRustField(fieldName, stringTemplateRust, NodeType.String, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
                                     break;
 
                                 case "int":
-                                    GenerateRustField(fieldName, intTemplate, NodeType.Int, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
+                                    GenerateCSharpField(fieldName, IntTemplateCsharp, holonBufferCsharp);
+                                    GenerateRustField(fieldName, intTemplateRust, NodeType.Int, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
                                     break;
 
                                 case "bool":
-                                    GenerateRustField(fieldName, boolTemplate, NodeType.Bool, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
+                                    GenerateCSharpField(fieldName, BoolTemplateCsharp, holonBufferCsharp);
+                                    GenerateRustField(fieldName, boolTemplateRust, NodeType.Bool, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
                                     break;
                             }
                         }
@@ -822,8 +930,8 @@ namespace NextGenSoftware.OASIS.STAR
                             if (!firstHolon)
                             {
                                 //TODO: Need to make dynamic so no need to pass length in (had issues before but will try again later... :) )
-                                zomeBufferCsharp = GenerateDynamicZomeFunc("Load", zomeTemplateCsharp, holonName, zomeBufferCsharp, 170);
-                                zomeBufferCsharp = GenerateDynamicZomeFunc("Save", zomeTemplateCsharp, holonName, zomeBufferCsharp, 147);
+                                //zomeBufferCsharp = GenerateDynamicZomeFunc("Load", zomeTemplateCsharp, holonName, zomeBufferCsharp, 170);
+                                //zomeBufferCsharp = GenerateDynamicZomeFunc("Save", zomeTemplateCsharp, holonName, zomeBufferCsharp, 147);
                             }
 
                             holonName = holonName.ToPascalCase();
@@ -859,8 +967,12 @@ namespace NextGenSoftware.OASIS.STAR
                             holonBufferCsharp = holonBufferCsharp.Replace("HolonDNATemplate", parts[10]);
                             iholonBuffer = iHolonTemplate.Replace("IHolonDNATemplate", string.Concat("I", parts[10]));
 
+                            //int fieldsEnd = holonBufferCsharp.IndexOf("}") - 1;
+                            //holonBufferCsharp.Insert(fieldsEnd, BoolTemplateCsharp.Replace("variableName", ""));
+
                             zomeBufferCsharp = zomeBufferCsharp.Replace("HOLON", parts[10].ToPascalCase());
-                            zomeBufferCsharp = zomeBufferCsharp.Replace("{holon}", parts[10].ToSnakeCase());
+                            zomeBufferCsharp = zomeBufferCsharp.Replace("IHolon", $"I{parts[10].ToPascalCase()}");
+                            //zomeBufferCsharp = zomeBufferCsharp.Replace("{holon}", parts[10].ToSnakeCase());
 
                             zomeBufferCsharp = zomeBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
                             holonBufferCsharp = holonBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
@@ -870,12 +982,15 @@ namespace NextGenSoftware.OASIS.STAR
                                 celestialBodyBufferCsharp = celestialBodyTemplateCsharp;
 
                             celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("NAMESPACE", genesisNameSpace);
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("ID", newBody.Id.ToString());
                             celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBodyDNATemplate", name.ToPascalCase());
-                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("{holon}", parts[10].ToSnakeCase()).Replace("HOLON", parts[10].ToPascalCase());
-                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBody", Enum.GetName(typeof(GenesisType), type)).Replace("ICelestialBody", string.Concat("I", Enum.GetName(typeof(GenesisType), type)));
-                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("ICelestialBody", string.Concat("I", Enum.GetName(typeof(GenesisType), type)));
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("HOLON", parts[10].ToPascalCase());
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CELESTIALBODY", Enum.GetName(typeof(GenesisType), type));//.Replace("ICELESTIALBODY", string.Concat("I", Enum.GetName(typeof(GenesisType), type)));
+                            //celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("ICelestialBody", string.Concat("I", Enum.GetName(typeof(GenesisType), type)));
+                            //celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("IHolon", $"I{parts[10].ToPascalCase()}");
                             //celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("GenesisType.Star", string.Concat("GenesisType.", Enum.GetName(typeof(GenesisType), type)));
-                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(", GenesisType.Star", "");
+                            //celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(", GenesisType.Star", "");
 
                             /*
                             switch (type)
@@ -1050,10 +1165,15 @@ namespace NextGenSoftware.OASIS.STAR
             //This will be private on the store until the user publishes via the Star.Seed() command.
         }
 
-        public static void ShowStatusMessage(StarStatusChangedEventArgs eventArgs)
+        public static void ShowStatusMessage(StarStatusMessageType messageType, string message)
         {
-            OnStarStatusChanged?.Invoke(null, eventArgs);
+            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = messageType, Message = message });
         }
+
+        //public static void ShowStatusMessage(StarStatusChangedEventArgs eventArgs)
+        //{
+        //    OnStarStatusChanged?.Invoke(null, eventArgs);
+        //}
 
         public static void ShowStatusMessage<T>(OASISEventArgs<T> eventArgs)
         {
@@ -1334,32 +1454,43 @@ namespace NextGenSoftware.OASIS.STAR
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIMoonDNA, "STARDNA.CSharpTemplateIMoonDNA");
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIMoonDNA, "STARDNA.CSharpTemplateMoonDNA");
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateCelestialBodyDNA, "STARDNA.CSharpTemplateCelestialBodyDNA");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateInt, "STARDNA.CSharpTemplateInt");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateString, "STARDNA.CSharpTemplateString");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateBool, "STARDNA.CSharpTemplateBool");
 
                 switch (starDNA.HolochainVersion.ToUpper())
                 {
                     case "REDUX":
                         {
                             ValidateFolder(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, "STARDNA.RustDNAReduxTemplateFolder");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateRead, "STARDNA.RustTemplateRead");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateUpdate, "STARDNA.RustTemplateUpdate");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateList, "STARDNA.RustTemplateList");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateValidation, "STARDNA.RustTemplateValidation");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateInt, "STARDNA.RustTemplateInt");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateString, "STARDNA.RustTemplateString");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateBool, "STARDNA.RustTemplateBool");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateHolon, "STARDNA.RustTemplateHolon");
                         }
                         break;
 
                     case "RSM":
                         {
                             ValidateFolder(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, "STARDNA.RustDNARSMTemplateFolder");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateRead, "STARDNA.RustTemplateRead");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateUpdate, "STARDNA.RustTemplateUpdate");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateList, "STARDNA.RustTemplateList");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateValidation, "STARDNA.RustTemplateValidation");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateInt, "STARDNA.RustTemplateInt");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateString, "STARDNA.RustTemplateString");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateBool, "STARDNA.RustTemplateBool");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateHolon, "STARDNA.RustTemplateHolon");
                         }
                         break;
                 }
@@ -1453,9 +1584,15 @@ namespace NextGenSoftware.OASIS.STAR
             if (currentHolon.Nodes == null)
                 currentHolon.Nodes = new ObservableCollection<INode>(); //new List<INode>();
 
-            currentHolon.Nodes.Add(new Node { NodeName = fieldName.ToPascalCase(), NodeType = nodeType, ParentId = currentHolon.Id });
+            currentHolon.Nodes.Add(new Node { Id = Guid.NewGuid(), NodeName = fieldName.ToPascalCase(), NodeType = nodeType, ParentId = currentHolon.Id });
         }
-       
+
+        private static void GenerateCSharpField(string fieldName, string fieldTemplate, string holonBufferCsharp)
+        {
+            int fieldsEnd = holonBufferCsharp.IndexOf("}") - 1;
+            holonBufferCsharp.Insert(fieldsEnd, fieldTemplate.Replace("variableName", fieldName));
+        }
+
         private static OASISResult<bool> BootOASIS(string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
         {
             STAR.OASISDNAPath = OASISDNAPath;
@@ -1466,45 +1603,412 @@ namespace NextGenSoftware.OASIS.STAR
                 return new OASISResult<bool>() { Message = "OASIS Already Booted" };
         }
         
-        private static OASISResult<IOmiverse> IgniteInnerStar(ref OASISResult<IOmiverse> result)
+        private static OASISResult<IOmiverse> IgniteInnerStar(OASISResult<IOmiverse> result)
         {
-          //  _starId = Guid.Empty; //TODO:Temp, remove after!
+            //  _starId = Guid.Empty; //TODO:Temp, remove after!
+
+            ShowStatusMessage(StarStatusMessageType.Processing, "IGNITING INNER STAR...");
+            ShowStatusMessage(StarStatusMessageType.Processing, "Checking If OASIS Omniverse Already Created...");
 
             if (_starId == Guid.Empty)
                 result = OASISOmniverseGenesisAsync().Result;
             else
             {
-                //DefaultPlanet = new Planet(new Guid(STARDNA.DefaultPlanetId));
-                DefaultStar = new Star(_starId); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
-                //DefaultSuperStar = new SuperStar(new Guid(STARDNA.DefaultSuperStarId));
-                //DefaultGrandSuperStar = new GrandSuperStar(new Guid(STARDNA.DefaultGrandSuperStarId));
-                //DefaultGreatGrandSuperStar = new GreatGrandSuperStar(new Guid(STARDNA.DefaultGreatGrandSuperStarId));
+                result = InitDefaultCelestialBodies(result);
             }
 
             WireUpEvents();
             return result;
         }
 
-        private static async Task<OASISResult<IOmiverse>> IgniteInnerStarAsync()
+        private static async Task<OASISResult<IOmiverse>> IgniteInnerStarAsync(OASISResult<IOmiverse> result)
         {
-            OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
-
             // _starId = Guid.Empty; //TODO:Temp, remove after!
+
+            ShowStatusMessage(StarStatusMessageType.Processing, "IGNITING INNER STAR...");
+            ShowStatusMessage(StarStatusMessageType.Processing, "Checking If OASIS Omniverse Already Created...");
 
             if (_starId == Guid.Empty)
                 result = await OASISOmniverseGenesisAsync();
             else
-            {
-                //DefaultPlanet = new Planet(new Guid(STARDNA.DefaultPlanetId));
-                DefaultStar = new Star(_starId); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
-                //DefaultSuperStar = new SuperStar(new Guid(STARDNA.DefaultSuperStarId));
-                //DefaultGrandSuperStar = new GrandSuperStar(new Guid(STARDNA.DefaultGrandSuperStarId));
-                //DefaultGreatGrandSuperStar = new GreatGrandSuperStar(new Guid(STARDNA.DefaultGreatGrandSuperStarId));
-            }
+                result = await InitDefaultCelestialBodiesAsync(result);
 
             WireUpEvents();
             return result;
         }
+
+        private static OASISResult<IOmiverse> InitDefaultCelestialBodies(OASISResult<IOmiverse> result)
+        {
+            ShowStatusMessage(StarStatusMessageType.Success, "OASIS Omniverse Already Created.");
+            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Celestial Bodies...");
+
+            (result, DefaultPlanet) = InitCelestialBody<Planet>(STARDNA.DefaultPlanetId, "Default Planet", result);
+
+            if (result.IsError || DefaultPlanet == null)
+                return result;
+
+            (result, DefaultStar) = InitCelestialBody<Star>(STARDNA.DefaultStarId, "Default Star", result);
+
+            if (result.IsError || DefaultStar == null)
+                return result;
+
+            (result, DefaultSuperStar) = InitCelestialBody<SuperStar>(STARDNA.DefaultSuperStarId, "Default Super Star", result);
+
+            if (result.IsError || DefaultSuperStar == null)
+                return result;
+
+            (result, DefaultGrandSuperStar) = InitCelestialBody<GrandSuperStar>(STARDNA.DefaultGrandSuperStarId, "Default Grand Super Star", result);
+
+            if (result.IsError || DefaultGrandSuperStar == null)
+                return result;
+
+            (result, DefaultGreatGrandSuperStar) = InitCelestialBody<GreatGrandSuperStar>(STARDNA.DefaultGreatGrandSuperStarId, "Default Great Grand Super Star", result);
+
+            if (result.IsError || DefaultGreatGrandSuperStar == null)
+                return result;
+
+
+
+            /*
+            //Normally you would leave autoLoad set to true but if you need to process the result in-line then you need to manually call Load as we do here (otherwise you would process the result from the OnCelestialBodyLoaded or OnCelestialBodyError event handlers).
+            if (!string.IsNullOrEmpty(STARDNA.DefaultPlanetId))
+            {
+                if (Guid.TryParse(STARDNA.DefaultPlanetId, out id))
+                {
+                    DefaultPlanet = new Planet(id, false);
+                    //OASISResult<ICelestialBody> planetResult = DefaultPlanet.Initialize();
+                    OASISResult<ICelestialBody> planetResult = DefaultPlanet.Load();
+
+                    if (planetResult.IsError || planetResult.Result == null)
+                    {
+                        ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Planet.");
+                        HandleCelesitalBodyInitError(result, "DefaultPlanet", STARDNA.DefaultPlanetId, planetResult);
+                        return result;
+                    }
+                    else
+                        ShowStatusMessage(StarStatusMessageType.Success, "Default Planet Initialized.");
+                }
+                else
+                {
+                    HandleCelesitalBodyInitError(result, "DefaultPlanet", STARDNA.DefaultPlanetId, "The DefaultPlanetId value in STARDNA.json is not a valid Guid.");
+                    return result;
+                }
+            }
+            else
+            {
+                HandleCelesitalBodyInitError(result, "DefaultPlanet", STARDNA.DefaultPlanetId, "The DefaultPlanetId value in STARDNA.json is missing.");
+                return result;
+            }
+
+            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Star...");
+            DefaultStar = new Star(id, false); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
+            //OASISResult<ICelestialBody> starResult = DefaultStar.Initialize();
+            OASISResult<ICelestialBody> starResult = DefaultStar.Load();
+
+            if (starResult.IsError || starResult.Result == null)
+            {
+                ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Star.");
+                HandleCelesitalBodyInitError(result, "DefaultStar", _starId.ToString(), starResult);
+                return result;
+            }
+            else
+                ShowStatusMessage(StarStatusMessageType.Success, "Default Star Initialized.");
+
+
+            if (!string.IsNullOrEmpty(STARDNA.DefaultSuperStarId))
+            {
+                if (Guid.TryParse(STARDNA.DefaultSuperStarId, out id))
+                {
+                    ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Super Star...");
+                    DefaultSuperStar = new SuperStar(id);
+                    //OASISResult<ICelestialBody> superStarResult = DefaultSuperStar.Initialize();
+                    OASISResult<ICelestialBody> superStarResult = DefaultSuperStar.Load();
+
+                    if (superStarResult.IsError || superStarResult.Result == null)
+                    {
+                        ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Super Star.");
+                        HandleCelesitalBodyInitError(result, "DefaultSuperStar", STARDNA.DefaultSuperStarId, superStarResult);
+                        return result;
+                    }
+                    else
+                        ShowStatusMessage(StarStatusMessageType.Success, "Default Super Star Initialized.");
+                }
+                else
+                {
+                    HandleCelesitalBodyInitError(result, "DefaultSuperStar", STARDNA.DefaultSuperStarId, "The DefaultSuperStar value in STARDNA.json is not a valid Guid.");
+                    return result;
+                }
+            }
+            else
+            {
+                HandleCelesitalBodyInitError(result, "DefaultSuperStar", STARDNA.DefaultSuperStarId, "The DefaultSuperStarId value in STARDNA.json is missing.");
+                return result;
+            }
+
+            if (!string.IsNullOrEmpty(STARDNA.DefaultGrandSuperStarId))
+            {
+                if (Guid.TryParse(STARDNA.DefaultGrandSuperStarId, out id))
+                {
+                    ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Grand Super Star...");
+                    DefaultGrandSuperStar = new GrandSuperStar(id);
+                    //OASISResult<ICelestialBody> grandSuperStarResult = DefaultGrandSuperStar.Initialize();
+                    OASISResult<ICelestialBody> grandSuperStarResult = DefaultGrandSuperStar.Load();
+
+                    if (grandSuperStarResult.IsError || grandSuperStarResult.Result == null)
+                    {
+                        ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Grand Super Star.");
+                        HandleCelesitalBodyInitError(result, "DefaultGrandSuperStar", STARDNA.DefaultGrandSuperStarId, grandSuperStarResult);
+                        return result;
+                    }
+                    else
+                        ShowStatusMessage(StarStatusMessageType.Success, "Default Super Star Initialized.");
+                }
+                else
+                {
+                    HandleCelesitalBodyInitError(result, "DefaultGrandSuperStar", STARDNA.DefaultGrandSuperStarId, "The DefaultGrandSuperStarId value in STARDNA.json is not a valid Guid.");
+                    return result;
+                }
+            }
+            else
+            {
+                HandleCelesitalBodyInitError(result, "DefaultGrandSuperStar", STARDNA.DefaultGrandSuperStarId, "The DefaultGrandSuperStarId value in STARDNA.json is missing.");
+                return result;
+            }
+
+            if (!string.IsNullOrEmpty(STARDNA.DefaultGreatGrandSuperStarId))
+            {
+                if (Guid.TryParse(STARDNA.DefaultGreatGrandSuperStarId, out id))
+                {
+                    ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Great Grand Super Star...");
+                    DefaultGreatGrandSuperStar = new GreatGrandSuperStar(id);
+                    //OASISResult<ICelestialBody> greatGrandSuperStarResult = DefaultGreatGrandSuperStar.Initialize();
+                    OASISResult<ICelestialBody> greatGrandSuperStarResult = DefaultGreatGrandSuperStar.Load();
+
+                    if (greatGrandSuperStarResult.IsError || greatGrandSuperStarResult.Result == null)
+                    {
+                        ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Great Grand Super Star.");
+                        HandleCelesitalBodyInitError(result, "DefaultGreatGrandSuperStarId", STARDNA.DefaultGreatGrandSuperStarId, greatGrandSuperStarResult);
+                        return result;
+                    }
+                    else
+                        ShowStatusMessage(StarStatusMessageType.Success, "Default Great Grand Super Star Initialized.");
+                }
+                else
+                {
+                    HandleCelesitalBodyInitError(result, "DefaultGreatGrandSuperStar", STARDNA.DefaultGreatGrandSuperStarId, "The DefaultGreatGrandSuperStarId value in STARDNA.json is not a valid Guid.");
+                    return result;
+                }
+            }
+            else
+            {
+                HandleCelesitalBodyInitError(result, "DefaultGreatGrandSuperStar", STARDNA.DefaultGreatGrandSuperStarId, "The DefaultGreatGrandSuperStarId value in STARDNA.json is missing.");
+                return result;
+            }*/
+
+            ShowStatusMessage(StarStatusMessageType.Success, "Default Celestial Bodies Initialized.");
+
+            return result;
+        }
+
+        private static async Task<OASISResult<IOmiverse>> InitDefaultCelestialBodiesAsync(OASISResult<IOmiverse> result)
+        {
+            ShowStatusMessage(StarStatusMessageType.Success, "OASIS Omniverse Already Created.");
+            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Celestial Bodies...");
+
+            (result, DefaultPlanet) = await InitCelestialBodyAsync<Planet>(STARDNA.DefaultPlanetId, "Default Planet", result);
+
+            if (result.IsError || DefaultPlanet == null)
+                return result;
+
+            (result, DefaultStar) = await InitCelestialBodyAsync<Star>(STARDNA.DefaultStarId, "Default Star", result);
+
+            if (result.IsError || DefaultStar == null)
+                return result;
+
+            (result, DefaultSuperStar) = await InitCelestialBodyAsync<SuperStar>(STARDNA.DefaultSuperStarId, "Default Super Star", result);
+
+            if (result.IsError || DefaultSuperStar == null)
+                return result;
+
+            (result, DefaultGrandSuperStar) = await InitCelestialBodyAsync<GrandSuperStar>(STARDNA.DefaultGrandSuperStarId, "Default Grand Super Star", result);
+
+            if (result.IsError || DefaultGrandSuperStar == null)
+                return result;
+
+            (result, DefaultGreatGrandSuperStar) = await InitCelestialBodyAsync<GreatGrandSuperStar>(STARDNA.DefaultGreatGrandSuperStarId, "Default Great Grand Super Star", result);
+
+            if (result.IsError || DefaultGreatGrandSuperStar == null)
+                return result;
+
+
+            /*
+            DefaultPlanet = new Planet(new Guid(STARDNA.DefaultPlanetId), false);
+            //OASISResult<ICelestialBody> planetResult = await DefaultPlanet.InitializeAsync();
+            OASISResult<ICelestialBody> planetResult = await DefaultPlanet.LoadAsync();
+
+            if (planetResult.IsError || planetResult.Result == null)
+            {
+                ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Planet.");
+                HandleCelesitalBodyInitError(result, "DefaultPlanet", STARDNA.DefaultPlanetId, planetResult);
+                return result;
+            }
+            else
+                ShowStatusMessage(StarStatusMessageType.Success, "Default Planet Initialized.");
+
+            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Star...");
+            DefaultStar = new Star(_starId, false); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
+            //OASISResult<ICelestialBody> starResult = await DefaultStar.InitializeAsync();
+            OASISResult<ICelestialBody> starResult = await DefaultStar.LoadAsync();
+
+            if (starResult.IsError || starResult.Result == null)
+            {
+                ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Star.");
+                HandleCelesitalBodyInitError(result, "DefaultStar", _starId.ToString(), starResult);
+                return result;
+            }
+            else
+                ShowStatusMessage(StarStatusMessageType.Success, "Default Star Initialized.");
+
+            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Super Star...");
+            DefaultSuperStar = new SuperStar(new Guid(STARDNA.DefaultSuperStarId));
+            //OASISResult<ICelestialBody> superStarResult = await DefaultSuperStar.InitializeAsync();
+            OASISResult<ICelestialBody> superStarResult = await DefaultSuperStar.LoadAsync();
+
+            if (superStarResult.IsError || superStarResult.Result == null)
+            {
+                ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Super Star.");
+                HandleCelesitalBodyInitError(result, "DefaultSuperStar", STARDNA.DefaultSuperStarId, superStarResult);
+                return result;
+            }
+            else
+                ShowStatusMessage(StarStatusMessageType.Success, "Default Super Star Initialized.");
+
+            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Grand Super Star...");
+            DefaultGrandSuperStar = new GrandSuperStar(new Guid(STARDNA.DefaultGrandSuperStarId));
+            //OASISResult<ICelestialBody> grandSuperStarResult = await DefaultGrandSuperStar.InitializeAsync();
+            OASISResult<ICelestialBody> grandSuperStarResult = await DefaultGrandSuperStar.LoadAsync();
+
+            if (grandSuperStarResult.IsError || grandSuperStarResult.Result == null)
+            {
+                ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Grand Super Star.");
+                HandleCelesitalBodyInitError(result, "DefaultGrandSuperStar", STARDNA.DefaultGrandSuperStarId, grandSuperStarResult);
+                return result;
+            }
+            else
+                ShowStatusMessage(StarStatusMessageType.Success, "Default Super Star Initialized.");
+
+            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Great Grand Super Star...");
+            DefaultGreatGrandSuperStar = new GreatGrandSuperStar(new Guid(STARDNA.DefaultGreatGrandSuperStarId));
+            //OASISResult<ICelestialBody> greatGrandSuperStarResult = await DefaultGreatGrandSuperStar.InitializeAsync();
+            OASISResult<ICelestialBody> greatGrandSuperStarResult = await DefaultGreatGrandSuperStar.LoadAsync();
+
+            if (greatGrandSuperStarResult.IsError || greatGrandSuperStarResult.Result == null)
+            {
+                ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Great Grand Super Star.");
+                HandleCelesitalBodyInitError(result, "DefaultGreatGrandSuperStarId", STARDNA.DefaultGreatGrandSuperStarId, greatGrandSuperStarResult);
+                return result;
+            }
+            else
+                ShowStatusMessage(StarStatusMessageType.Success, "Default Great Grand Super Star Initialized.");
+            */
+
+            ShowStatusMessage(StarStatusMessageType.Success, "Default Celestial Bodies Initialized.");
+
+            return result;
+        }
+
+        //private static (OASISResult<IOmiverse>, T) InitCelestialBody<T>(string id, string name, OASISResult<IOmiverse> result, Func<OASISResult<ICelestialBody>> loadFunc) where T : ICelestialBody, new()
+        private static (OASISResult<IOmiverse>, T) InitCelestialBody<T>(string id, string longName, OASISResult<IOmiverse> result) where T : ICelestialBody, new()
+        {
+            Guid guidId;
+            ICelestialBody celestialBody = null;
+            string name = longName.Replace(" ", "");
+
+            ShowStatusMessage(StarStatusMessageType.Processing, $"Initializing {longName}..");
+
+            if (!string.IsNullOrEmpty(id))
+            {
+                if (Guid.TryParse(id, out guidId))
+                {
+                    //Normally you would leave autoLoad set to true but if you need to process the result in-line then you need to manually call Load as we do here (otherwise you would process the result from the OnCelestialBodyLoaded or OnCelestialBodyError event handlers).
+                    //ICelestialBody celestialBody = new T(guidId, false);
+                    celestialBody = new T() {  Id = guidId};
+
+                    //OASISResult<ICelestialBody> celestialBodyResult = celestialBody.Initialize();
+                    OASISResult<ICelestialBody> celestialBodyResult = celestialBody.Load();
+                    //OASISResult<ICelestialBody> celestialBodyResult = loadFunc();
+
+                    if (celestialBodyResult.IsError || celestialBodyResult.Result == null)
+                    {
+                        ShowStatusMessage(StarStatusMessageType.Error, $"Error Initializing {longName}.");
+                        HandleCelesitalBodyInitError(result, name, id, celestialBodyResult);
+                    }
+                    else
+                        ShowStatusMessage(StarStatusMessageType.Success, $"{longName} Initialized.");
+                }
+                else
+                    HandleCelesitalBodyInitError(result, name, id, $"The {name}Id value in STARDNA.json is not a valid Guid.");
+            }
+            else
+                HandleCelesitalBodyInitError(result, name, id, $"The {name}Id value in STARDNA.json is missing.");
+
+            return (result, (T)celestialBody);
+        }
+
+        private static async Task<(OASISResult<IOmiverse>, T)> InitCelestialBodyAsync<T>(string id, string longName, OASISResult<IOmiverse> result) where T : ICelestialBody, new()
+        {
+            Guid guidId;
+            ICelestialBody celestialBody = null;
+            string name = longName.Replace(" ", "");
+
+            ShowStatusMessage(StarStatusMessageType.Processing, $"Initializing {longName}..");
+
+            if (!string.IsNullOrEmpty(id))
+            {
+                if (Guid.TryParse(id, out guidId))
+                {
+                    //Normally you would leave autoLoad set to true but if you need to process the result in-line then you need to manually call Load as we do here (otherwise you would process the result from the OnCelestialBodyLoaded or OnCelestialBodyError event handlers).
+                    //ICelestialBody celestialBody = new T(guidId, false);
+                    celestialBody = new T() { Id = guidId };
+
+                    //OASISResult<ICelestialBody> celestialBodyResult = celestialBody.Initialize();
+                    OASISResult<ICelestialBody> celestialBodyResult = await celestialBody.LoadAsync();
+                    //OASISResult<ICelestialBody> celestialBodyResult = loadFunc();
+
+                    if (celestialBodyResult.IsError || celestialBodyResult.Result == null)
+                    {
+                        ShowStatusMessage(StarStatusMessageType.Error, $"Error Initializing {longName}.");
+                        HandleCelesitalBodyInitError(result, name, id, celestialBodyResult);
+                    }
+                    else
+                        ShowStatusMessage(StarStatusMessageType.Success, $"{longName} Initialized.");
+                }
+                else
+                    HandleCelesitalBodyInitError(result, name, id, $"The {name}Id value in STARDNA.json is not a valid Guid.");
+            }
+            else
+                HandleCelesitalBodyInitError(result, name, id, $"The {name}Id value in STARDNA.json is missing.");
+
+            return (result, (T)celestialBody);
+        }
+
+        private static void HandleCelesitalBodyInitError(OASISResult<IOmiverse> result, string name, string id, string errorMessage, OASISResult<ICelestialBody> celstialBodyResult = null)
+        {
+            string msg = $"Error occured in IgniteInnerStar initializing {name} with Id {id}. {errorMessage} Please correct or delete STARDNA to reset STAR ODK to then auto-generate new defaults.";
+
+            if (celstialBodyResult != null)
+                msg = string.Concat(msg, " Reason: ", celstialBodyResult.Message);
+
+            ErrorHandling.HandleError(ref result, msg, celstialBodyResult != null ? celstialBodyResult.DetailedMessage : null);
+        }
+
+        private static void HandleCelesitalBodyInitError(OASISResult<IOmiverse> result, string name, string id, OASISResult<ICelestialBody> celstialBodyResult)
+        {
+            HandleCelesitalBodyInitError(result, name, id, "Likely reason is that the id does not exist.", celstialBodyResult);
+            //ErrorHandling.HandleError(ref result, $"Error occured in IgniteInnerStar initializing {name} with Id {id}. Likely reason is that the id does not exist. Please correct or delete STARDNA to reset STAR ODK to then auto-generate new defaults. Reason: {celstialBodyResult.Message}", celstialBodyResult.DetailedMessage);
+            //ErrorHandling.HandleError(ref result, $"Error occured in IgniteInnerStar initializing {name} with Id {id}. Likely reason is that the id does not exist, in this case remove the {name}Id from STARDNA.json and then try again. Reason: {celstialBodyResult.Message}", celstialBodyResult.DetailedMessage);
+        }
+
 
         /// <summary>
         /// Create's the OASIS Omniverse along with a new default Multiverse (with it's GrandSuperStar) containing the ThirdDimension containing UniversePrime (simulation) and the MagicVerse (contains OAPP's), which itself contains a default GalaxyCluster containing a default Galaxy (along with it's SuperStar) containing a default SolarSystem (along wth it's Star) containing a default planet (Our World).
@@ -1515,7 +2019,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
             OASISResult<ICelestialSpace> celestialSpaceResult = new OASISResult<ICelestialSpace>();
-            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Omniverse not found. Initiating Omniverse Genesis Process..." });
+            ShowStatusMessage(StarStatusMessageType.Processing, "OASIS Omniverse not found. Initiating Omniverse Genesis Process...");
 
             //OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Omniverse..." });
 
@@ -1524,7 +2028,7 @@ namespace NextGenSoftware.OASIS.STAR
             //It will also create the GreatGrandCentralStar in the centre of the Omniverse and also a GrandCentralStar at the centre of the Multiverse.
             Omniverse omniverse = new Omniverse();
             celestialSpaceResult = await omniverse.SaveAsync();
-            OASISResultHolonToHolonHelper<ICelestialSpace, IOmiverse>.CopyResult(celestialSpaceResult, result);
+            OASISResultHelper<ICelestialSpace, IOmiverse>.CopyResult(celestialSpaceResult, result);
             result.Result = (IOmiverse)celestialSpaceResult.Result;
 
             if (!result.IsError && result.Result != null)
@@ -1692,34 +2196,34 @@ namespace NextGenSoftware.OASIS.STAR
                                 }
                                 else
                                 {
-                                    OASISResultHolonToHolonHelper<IPlanet, IOmiverse>.CopyResult(ourWorldResult, result);
+                                    OASISResultHelper<IPlanet, IOmiverse>.CopyResult(ourWorldResult, result);
                                     OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Our World. Reason: {ourWorldResult.Message}." });
                                 }
                             }
                             else
-                                OASISResultHolonToHolonHelper<ISolarSystem, IOmiverse>.CopyResult(solarSystemResult, result);
+                                OASISResultHelper<ISolarSystem, IOmiverse>.CopyResult(solarSystemResult, result);
                         }
                         else
                         {
-                            OASISResultHolonToHolonHelper<IStar, IOmiverse>.CopyResult(starResult, result);
+                            OASISResultHelper<IStar, IOmiverse>.CopyResult(starResult, result);
                             OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Star. Reason: {starResult.Message}." });
                         }
                     }
                     else
                     {
-                        OASISResultHolonToHolonHelper<IGalaxy, IOmiverse>.CopyResult(galaxyResult, result);
+                        OASISResultHelper<IGalaxy, IOmiverse>.CopyResult(galaxyResult, result);
                         OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Galaxy. Reason: {galaxyResult.Message}." });
                     }
                 }
                 else
                 {
-                    OASISResultHolonToHolonHelper<IGalaxyCluster, IOmiverse>.CopyResult(galaxyClusterResult, result);
+                    OASISResultHelper<IGalaxyCluster, IOmiverse>.CopyResult(galaxyClusterResult, result);
                     OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Galaxy Cluster. Reason: {galaxyClusterResult.Message}." });
                 }
                 //}
                 //else
                 //{
-                //    OASISResultHolonToHolonHelper<IMultiverse, ICelestialBody>.CopyResult(multiverseResult, result);
+                //    OASISResultHelper<IMultiverse, ICelestialBody>.CopyResult(multiverseResult, result);
                 //    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Multiverse. Reason: {multiverseResult.Message}." });
                 //}
             }
@@ -1923,40 +2427,40 @@ namespace NextGenSoftware.OASIS.STAR
                                         }
                                         else
                                         {
-                                            OASISResultHolonToHolonHelper<IPlanet, ICelestialBody>.CopyResult(ourWorldResult, result);
+                                            OASISResultHelper<IPlanet, ICelestialBody>.CopyResult(ourWorldResult, result);
                                             OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Our World. Reason: {ourWorldResult.Message}." });
                                         }
                                     }
                                     else
-                                        OASISResultHolonToHolonHelper<ISolarSystem, ICelestialBody>.CopyResult(solarSystemResult, result);
+                                        OASISResultHelper<ISolarSystem, ICelestialBody>.CopyResult(solarSystemResult, result);
                                 }
                                 else
                                 {
-                                    OASISResultHolonToHolonHelper<IStar, ICelestialBody>.CopyResult(starResult, result);
+                                    OASISResultHelper<IStar, ICelestialBody>.CopyResult(starResult, result);
                                     OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Star. Reason: {starResult.Message}." });
                                 }
                             }
                             else
                             {
-                                OASISResultHolonToHolonHelper<IGalaxy, ICelestialBody>.CopyResult(galaxyResult, result);
+                                OASISResultHelper<IGalaxy, ICelestialBody>.CopyResult(galaxyResult, result);
                                 OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Galaxy. Reason: {galaxyResult.Message}." });
                             }
                         }
                         else
                         {
-                            OASISResultHolonToHolonHelper<IGalaxyCluster, ICelestialBody>.CopyResult(galaxyClusterResult, result);
+                            OASISResultHelper<IGalaxyCluster, ICelestialBody>.CopyResult(galaxyClusterResult, result);
                             OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Galaxy Cluster. Reason: {galaxyClusterResult.Message}." });
                         }
                     }
                     else
                     {
-                        OASISResultHolonToHolonHelper<IMultiverse, ICelestialBody>.CopyResult(multiverseResult, result);
+                        OASISResultHelper<IMultiverse, ICelestialBody>.CopyResult(multiverseResult, result);
                         OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Multiverse. Reason: {multiverseResult.Message}." });
                     }
                 }
                 else
                 {
-                    OASISResultHolonToHolonHelper<IOmiverse, ICelestialBody>.CopyResult(omiverseResult, result);
+                    OASISResultHelper<IOmiverse, ICelestialBody>.CopyResult(omiverseResult, result);
                     OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Omniverse. Reason: {omiverseResult.Message}." });
                 }
             }

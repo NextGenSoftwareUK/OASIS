@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Core.TestHarness
 {
@@ -37,43 +38,43 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
 
             //   await newAvatar.KarmaEarntAsync(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place");
-            Avatar savedAvatar = (Avatar)await OASISAPI.Avatar.SaveAvatarAsync(newAvatar);
+            OASISResult<IAvatar> savedAvatar = await OASISAPI.Avatar.SaveAvatarAsync(newAvatar);
             //IAvatar savedAvatar = await AvatarManager.SaveAvatarAsync(newAvatar);
 
-            if (savedAvatar != null)
+            if (!savedAvatar.IsError && savedAvatar.Result != null)
             {
                 Console.WriteLine("Avatar Saved.\n");
-                Console.WriteLine(string.Concat("Id: ", savedAvatar.Id));
-                Console.WriteLine(string.Concat("Provider Key: ", savedAvatar.ProviderUniqueStorageKey));
+                Console.WriteLine(string.Concat("Id: ", savedAvatar.Result.Id));
+                Console.WriteLine(string.Concat("Provider Key: ", savedAvatar.Result.ProviderUniqueStorageKey));
                 // Console.WriteLine(string.Concat("HC Address Hash: ", savedAvatar.HcAddressHash)); //But we can still view the HC Hash if we wish by casting to the provider Avatar object as we have above. - UPDATE: We do not need this, the ProviderUniqueStorageKey shows the same info (hash in this case).
-                Console.WriteLine(string.Concat("Name: ", savedAvatar.Title, " ", savedAvatar.FirstName, " ", savedAvatar.LastName));
-                Console.WriteLine(string.Concat("Username: ", savedAvatar.Username));
-                Console.WriteLine(string.Concat("Password: ", savedAvatar.Password));
-                Console.WriteLine(string.Concat("Email: ", savedAvatar.Email));
+                Console.WriteLine(string.Concat("Name: ", savedAvatar.Result.Title, " ", savedAvatar.Result.FirstName, " ", savedAvatar.Result.LastName));
+                Console.WriteLine(string.Concat("Username: ", savedAvatar.Result.Username));
+                Console.WriteLine(string.Concat("Password: ", savedAvatar.Result.Password));
+                Console.WriteLine(string.Concat("Email: ", savedAvatar.Result.Email));
                 // Console.WriteLine(string.Concat("DOB: ", savedAvatar.DOB));
                 //Console.WriteLine(string.Concat("Address: ", savedAvatar.Address));
-                Console.WriteLine(string.Concat("Karma: ", savedAvatar.Karma));
-                Console.WriteLine(string.Concat("Level: ", savedAvatar.Level));
+                //Console.WriteLine(string.Concat("Karma: ", savedAvatar.Karma));
+                //Console.WriteLine(string.Concat("Level: ", savedAvatar.Level));
             }
 
             Console.WriteLine("\nLoading Avatar...");
             //IAvatar Avatar = await AvatarManager.LoadAvatarAsync("dellams", "1234");
-            IAvatar Avatar = await OASISAPI.Avatar.LoadAvatarAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
+            OASISResult<IAvatar> avatarResult = await OASISAPI.Avatar.LoadAvatarAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
 
-            if (Avatar != null)
+            if (!avatarResult.IsError && avatarResult.Result != null)
             {
                 Console.WriteLine("Avatar Loaded.\n");
-                Console.WriteLine(string.Concat("Id: ", Avatar.Id));
-                Console.WriteLine(string.Concat("Provider Key: ", savedAvatar.ProviderUniqueStorageKey));
+                Console.WriteLine(string.Concat("Id: ", avatarResult.Result.Id));
+                Console.WriteLine(string.Concat("Provider Key: ", savedAvatar.Result.ProviderUniqueStorageKey));
                 //Console.WriteLine(string.Concat("HC Address Hash: ", Avatar.HcAddressHash)); //AvatarManager is independent of provider implementation so it should not know about HC Hash.
-                Console.WriteLine(string.Concat("Name: ", Avatar.Title, " ", Avatar.FirstName, " ", Avatar.LastName));
-                Console.WriteLine(string.Concat("Username: ", Avatar.Username));
-                Console.WriteLine(string.Concat("Password: ", Avatar.Password));
-                Console.WriteLine(string.Concat("Email: ", Avatar.Email));
+                Console.WriteLine(string.Concat("Name: ", avatarResult.Result.Title, " ", avatarResult.Result.FirstName, " ", avatarResult.Result.LastName));
+                Console.WriteLine(string.Concat("Username: ", avatarResult.Result.Username));
+                Console.WriteLine(string.Concat("Password: ", avatarResult.Result.Password));
+                Console.WriteLine(string.Concat("Email: ", avatarResult.Result.Email));
                 //  Console.WriteLine(string.Concat("DOB: ", Avatar.DOB));
                 //  Console.WriteLine(string.Concat("Address: ", Avatar.Address));
-                Console.WriteLine(string.Concat("Karma: ", Avatar.Karma));
-                Console.WriteLine(string.Concat("Level: ", Avatar.Level));
+                //Console.WriteLine(string.Concat("Karma: ", avatarResult.Result.Karma));
+                //Console.WriteLine(string.Concat("Level: ", avatarResult.Result.Level));
             }
 
 
@@ -83,12 +84,12 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
         private static void AvatarManager_OnAvatarManagerError(object sender, AvatarManagerErrorEventArgs e)
         {
-            Console.WriteLine(string.Concat("\nAvatarManager Error. EndPoint: ", e.EndPoint, ", Reason: ", e.Reason, ", Error Details: ", e.ErrorDetails.ToString()));
+            Console.WriteLine(string.Concat("\nAvatarManager Error. EndPoint: ", e.EndPoint, ", Reason: ", e.Reason, ", Error Details: ", e.Reason.ToString()));
         }
 
         private static void OASISStorageProvider_OnStorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
-            Console.WriteLine(string.Concat("\nOASIS Storage Provider Error. EndPoint: ", e.EndPoint, ", Reason: ", e.Reason, ", Error Details: ", e.ErrorDetails.ToString()));
+            Console.WriteLine(string.Concat("\nOASIS Storage Provider Error. EndPoint: ", e.EndPoint, ", Reason: ", e.Reason, ", Error Details: ", e.Reason.ToString()));
         }
     }
 }

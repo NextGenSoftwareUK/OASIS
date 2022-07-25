@@ -7,8 +7,9 @@
   "AllowedHosts": "*",
   "OASIS": {
     "Terms": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n",
-    "CurrentStagingVersion": "v2.2.0",
-    "CurrentLiveVersion": "v2.1.0",
+    "CurrentStagingVersion": "v2.3.0",
+    "CurrentLiveVersion": "v2.3.0",
+    "OASISVersion": "LIVE",
     "Logging": {
       "LoggingFramework": "NLog"
     },
@@ -37,14 +38,15 @@
       }
     },
     "Email": {
-      "EmailFrom": "",
+      "EmailFrom": "anorak@theoasisplatform.world",
       "SmtpHost": "",
       // "SmtpPort": 587,
       "SmtpPort": 25,
       "SmtpUser": "",
       "SmtpPass": "",
-      "DisableAllEmails": "true", //This overrides the SendVerificationEmail setting below. MAKE SURE THIS IS FALSE FOR LIVE!
-      "SendVerificationEmail": "true"
+      "DisableAllEmails": "false", //This overrides the SendVerificationEmail setting below. MAKE SURE THIS IS FALSE FOR LIVE!
+      "SendVerificationEmail": "true",
+      "OASISWebSiteURL": "https://staging.oasisplatform.world"
     },
     "StorageProviders": {
       "AutoReplicationEnabled": "false",
@@ -70,14 +72,15 @@
       "MongoDBOASIS": {
         "ConnectionString": "mongodb://localhost:27017",
         "DBName": "OASISAPI_DEV"
-        //"DBName": "OASISAPI_TEST"
-        //"DBName": "OASISAPI_LIVE"
       },
       "SQLLiteDBOASIS": {
         "ConnectionString": "Data Source=OASISSQLLiteDB.db"
       },
       "EOSIOOASIS": {
-        "ConnectionString": "https://node.hypha.earth"
+        "ConnectionString": "http://localhost:8888",
+        "AccountName": "oasis",
+        "AccountPrivateKey": "",
+        "ChainId": ""
       },
       "TelosOASIS": {
         "ConnectionString": "https://node.hypha.earth"
@@ -90,9 +93,9 @@
       },
       "EthereumOASIS": {
         "ConnectionString": "http://testchain.nethereum.com:8545",
-        "ChainPrivateKey": "0x7580e7fb49df1c861f0050fae31c2224c6aba908e116b8da44ee8cd927b990b0",
+        "ChainPrivateKey": "",
         "ChainId": 444444444500,
-        "ContractAddress": "0x06a2dabf7fec27d27f9283cb2de1cd328685510c"
+        "ContractAddress": ""
       },
       "Neo4JOASIS": {
         "ConnectionString": "http://localhost:7474",
@@ -104,7 +107,7 @@
         "LookUpIPFSAddress": ""
       },
       "SolanaOASIS": {
-        "WalletMnemonicWords": "bullet nothing diamond universe detail east dinner code plunge charge poem ball cable clog spray purpose renew above clay brand control shallow turtle similar",
+        "WalletMnemonicWords": "",
         "ConnectionString": "https://api.mainnet-beta.solana.com"
       },
       "CargoOASIS": {
@@ -114,7 +117,7 @@
         "HostUrl": ""
       },
       "LocalFileOASIS": {
-        "FilePath": "wallets.json"
+        "FilePath": "wallets.json" //TEMP FOR TESTING - NEVER USE LOCAL ON LIVE SERVER!
       }
     }
   }

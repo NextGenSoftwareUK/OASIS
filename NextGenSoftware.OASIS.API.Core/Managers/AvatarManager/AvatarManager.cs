@@ -130,7 +130,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public delegate OASISResult<IAvatar> SaveAvatarFunction(IAvatar avatar);
 
-        public async Task<OASISResult<IAvatar>> AuthenticateAsync(string username, string password, string ipAddress)
+        public async Task<OASISResult<IAvatar>> AuthenticateAsync(string username, string password, string ipAddress, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false)
         {
             //They can log in with either username, email or a public key linked to the avatar.
             OASISResult<IAvatar> result = null;
@@ -181,7 +181,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.Result.IsBeamedIn = true;
 
                         LoggedInAvatar = result.Result;
-                        OASISResult<IAvatar> saveAvatarResult = SaveAvatar(result.Result);
+                        OASISResult<IAvatar> saveAvatarResult = SaveAvatar(result.Result, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult);
 
                         if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
                         {
@@ -205,13 +205,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, string origin, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
 
             try
             {
-                result = PrepareToRegisterAvatar(avatarTitle, firstName, lastName, email, password, avatarType, origin, createdOASISType);
+                result = PrepareToRegisterAvatar(avatarTitle, firstName, lastName, email, password, avatarType, createdOASISType);
 
                 if (result != null && !result.IsError && result.Result != null)
                 {
@@ -228,7 +228,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             OASISResult<IAvatarDetail> saveAvatarDetailResult = SaveAvatarDetail(avatarDetailResult.Result);
 
                             if (saveAvatarDetailResult != null && !saveAvatarDetailResult.IsError && saveAvatarDetailResult.Result != null)
-                                result = AvatarRegistered(result, origin);
+                                result = AvatarRegistered(result);
                             else
                             {
                                 result.Message = saveAvatarDetailResult.Message;
@@ -254,13 +254,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IAvatar>> RegisterAsync(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, string origin, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        public async Task<OASISResult<IAvatar>> RegisterAsync(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
 
             try
             {
-                result = PrepareToRegisterAvatar(avatarTitle, firstName, lastName, email, password, avatarType, origin, createdOASISType);
+                result = PrepareToRegisterAvatar(avatarTitle, firstName, lastName, email, password, avatarType, createdOASISType);
 
 
                 if (result != null && !result.IsError && result.Result != null)
@@ -278,7 +278,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             OASISResult<IAvatarDetail> saveAvatarDetailResult = await SaveAvatarDetailAsync(avatarDetailResult.Result);
 
                             if (saveAvatarDetailResult != null && !saveAvatarDetailResult.IsError && saveAvatarDetailResult.Result != null)
-                                result = AvatarRegistered(result, origin);
+                                result = AvatarRegistered(result);
                             else
                             {
                                 result.Message = saveAvatarDetailResult.Message;
@@ -356,6 +356,56 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        //public async Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model)
+        public async Task<OASISResult<string>> ForgotPassword(string email)
+        {
+            var response = new OASISResult<string>();
+
+            try
+            {
+                OASISResult<IAvatar> avatarResult = await LoadAvatarByEmailAsync(email, false, false);
+
+                // always return ok response to prevent email enumeration
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    ErrorHandling.HandleError(ref response, $"Error occured loading avatar in ForgotPassword, avatar not found. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    return response;
+                }
+
+                // create reset token that expires after 1 day
+                avatarResult.Result.ResetToken = RandomTokenString();
+                avatarResult.Result.ResetTokenExpires = DateTime.UtcNow.AddDays(24);
+
+                var saveAvatar = SaveAvatar(avatarResult.Result);
+
+                if (saveAvatar.IsError)
+                {
+                    ErrorHandling.HandleError(ref response, $"An error occured saving the avatar in ForgotPassword method in AvatarService. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
+                    return response;
+                }
+
+                // send email
+                SendPasswordResetEmail(avatarResult.Result);
+                response.Message = "Please check your email for password reset instructions";
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                ErrorHandling.HandleError(ref response, $"An error occured in ForgotPassword method in AvatarService. Reason: {e.Message}");
+            }
+
+            return response;
+        }
+
+        public string RandomTokenString()
+        {
+            using var rngCryptoServiceProvider = new System.Security.Cryptography.RNGCryptoServiceProvider();
+            var randomBytes = new byte[40];
+            rngCryptoServiceProvider.GetBytes(randomBytes);
+            // convert random bytes to hex string
+            return BitConverter.ToString(randomBytes).Replace("-", "");
+        }
+
         //TODO: Finish moving Update methods and ALL AvatarService methods here ASAP!
         //Update also needs to be able to update ANY avatar property, currently it is only email, name, etc.
 
@@ -426,21 +476,33 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return response;
         }*/
 
-        //public bool CheckIfEmailIsAlreadyInUse(string email)
-        //{
-        //    OASISResult<IAvatar> result = LoadAvatarByEmail(email);
+        public OASISResult<bool> CheckIfEmailIsAlreadyInUse(string email, bool sendMail = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IAvatar> existingAvatarResult = LoadAvatarByEmail(email);
 
-        //    if (!result.IsError && result.Result != null)
-        //    {
-        //        //If the avatar has previously been deleted (soft deleted) then allow them to create a new avatar with the same email address.
-        //       // if (result.Result.DeletedDate == DateTime.MinValue)
-        //            return true;
-        //      //  else
-        //     //       return false;
-        //    }
-        //    else
-        //        return false;
-        //}
+            if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
+            {
+                //If the avatar has previously been deleted (soft deleted) then allow them to create a new avatar with the same email address.
+                if (existingAvatarResult.Result.DeletedDate != DateTime.MinValue)
+                {
+                    result.Result = true;
+                    ErrorHandling.HandleError(ref result, $"The avatar using email {email} was deleted on {existingAvatarResult.Result.DeletedDate} by avatar with id {existingAvatarResult.Result.DeletedByAvatarId}, please contact support (to either restore your old avatar or permanently delete your old avatar so you can then re-use your old email address to create a new avatar) or create a new avatar with a new email address.");
+                }
+                else
+                {
+                    result.Result = true;
+                    ErrorHandling.HandleError(ref result, $"Sorry, the email {email} is already in use, please use another one.");
+                }
+            }
+            else
+                result.Message = $"Email {email} not in use.";
+
+            if (result.Result && sendMail)
+                SendAlreadyRegisteredEmail(email, result.Message);
+
+            return result;
+        }
 
         public IAvatar HideAuthDetails(IAvatar avatar, bool hidePassword = true, bool hidePrivateKeys = true, bool hideVerificationToken = true, bool hideRefreshTokens = true)
         {

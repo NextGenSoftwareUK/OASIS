@@ -2,6 +2,7 @@
 {
     public enum AutoFailOverMode
     {
+        NotSet,
         UseGlobalDefaultInOASISDNA,
         True,
         False

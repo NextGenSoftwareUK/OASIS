@@ -1,4 +1,6 @@
 ﻿using System;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
 using NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces;
 
@@ -6,7 +8,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 {
     public class MissionManager : OASISManager, IMissionManager
     {
-        public MissionManager() : base()
+        public MissionManager(OASISDNA OASISDNA = null) : base(OASISDNA)
+        {
+
+        }
+
+        public MissionManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
 
         }

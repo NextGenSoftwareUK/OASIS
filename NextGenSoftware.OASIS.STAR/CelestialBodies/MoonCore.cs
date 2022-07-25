@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public class MoonCore : CelestialBodyCore, IMoonCore
+    public class MoonCore : CelestialBodyCore<Moon>, IMoonCore
     {
         public IMoon Moon { get; set; }
 

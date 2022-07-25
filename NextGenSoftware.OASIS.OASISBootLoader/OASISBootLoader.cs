@@ -134,7 +134,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     }
                 }
 
-                //TODO: Double check this code when I am not half asleep! ;-) lol
                 foreach (EnumValue<ProviderType> providerType in ProviderManager.GetProviderAutoFailOverList())
                 {
                     OASISResult<IOASISStorageProvider> providerManagerResult = GetAndActivateProvider(providerType.Value);
@@ -270,7 +269,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             new MongoDBOASIS(
                                 overrideConnectionString == null
                                     ? OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString
-                                    : overrideConnectionString, OASISDNA.OASIS.StorageProviders.MongoDBOASIS.DBName);
+                                    : overrideConnectionString, OASISDNA.OASIS.StorageProviders.MongoDBOASIS.DBName, OASISDNA);
                         mongoOASIS.StorageProviderError += MongoOASIS_StorageProviderError;
                         registeredProvider = mongoOASIS;
                     }
@@ -526,6 +525,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return providerTypes;
         }
 
+        //TODO: Change to OASISResult instead of throwing exceptions ASAP! :)
         private static void LoadOASISDNA(string OASISDNAFileName)
         {
             OASISBootLoader.OASISDNAFileName = OASISDNAFileName;

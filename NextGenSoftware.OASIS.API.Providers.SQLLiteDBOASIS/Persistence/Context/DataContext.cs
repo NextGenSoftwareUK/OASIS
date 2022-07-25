@@ -11,17 +11,39 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
         public DbSet<AvatarDetailModel> AvatarDetails { get; set; }
         public DbSet<HolonModel> Holons { get; set; }
 
-        private string _defaultDbPath => "OASISSqlLiteDb.db";
+        //private string _defaultDbPath => "OASISSqlLiteDb.db";
 
-        private string GetDefaultDbConnectionString()
+        //private string GetDefaultDbConnectionString()
+        //{
+        //    return $"Data Source={_defaultDbPath}";
+        //}
+
+        private string DbPath = "";
+        private string _connectionString = "";
+
+        public DataContext(string connectionString)
         {
-            return $"Data Source={_defaultDbPath}";
+            _connectionString = connectionString;
+            var folder = Environment.SpecialFolder.LocalApplicationData;
+            var path = Environment.GetFolderPath(folder);
+
+            //Default DB Path if no connectionstring is passed in.
+            DbPath = $"{path}{System.IO.Path.DirectorySeparatorChar}Database{System.IO.Path.DirectorySeparatorChar}OASISSqlLiteDb.sqlite";
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            optionsBuilder.UseSqlite(GetDefaultDbConnectionString());
+            // connect to sqlite database
+            if (string.IsNullOrEmpty(_connectionString))
+                options.UseSqlite($"Data Source={DbPath}");
+            else
+                options.UseSqlite(_connectionString);
         }
+
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    optionsBuilder.UseSqlite(GetDefaultDbConnectionString());
+        //}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public class CometCore : CelestialBodyCore, ICometCore
+    public class CometCore : CelestialBodyCore<Comet>, ICometCore
     {
         public IComet Comet { get; set; }
 
