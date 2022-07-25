@@ -172,7 +172,7 @@
 
 **NOTE: This documentation & code is a WIP and is still currently being written so please make sure you check back often...**
 
-**We would love to hear from you regarding feedback on any of the vision, docs, code or would like to submit ideas. Even better, if you would like to get actively involved by coding, spreading the word, finding funding or any other role then please get in touch right NOW! :) Email us ourworld@nextgensoftware.co.uk or better to contact us on our Telegram group https://t.me/ourworldthegamechat (we check it more often!) here:  Thank you.**
+**We would love to hear from you regarding feedback on any of the vision, docs, code or would like to submit ideas. Even better, if you would like to get actively involved by coding, spreading the word, finding funding or any other role then please get in touch right NOW! :) Contact us on our Telegram group https://t.me/ourworldthegamechat Thank you.**
 
 ## Overview
 
@@ -232,8 +232,6 @@ Next, it will port Noomap to Unity and will implement a Synergy Engine allowing 
 Read another more refined (and updated) summary on the github repo code base for the Our World Smartphone AR Prototype:<br>
 https://github.com/NextGenSoftwareUK/Our-World-Smartphone-Prototype-AR
 
-<br>
-
 ## Benefits Of Building On The WEB4 OASIS API:
 
 * **Integrate any WEB2 or WEB3 tech into your (web)app without having to learn or worry about new tech stacks/languages (the OASIS API hides all the complexity away so you can focus on creating your dream app!).**
@@ -250,8 +248,6 @@ Check out more info below:<br>
 [First Production Release Of The WEB4 OASIS API](https://www.ourworldthegame.com/single-post/first-production-ready-release-of-web4-oasis-api-more) <br>
 [Annoucing WEB5 STAR ODK/HDK/COSMIC](https://www.ourworldthegame.com/single-post/announcing-star-odk-hdk-cosmic)  <br>
 [STAR ODK/HDK/COSMIC/OASIS API/Our World Update](https://www.ourworldthegame.com/single-post/star-odk-hdk-cosmic-oasis-api-our-world-update) 
-
-<br>
 
 ## Project Structure
 
