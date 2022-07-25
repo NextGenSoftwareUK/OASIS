@@ -1,13 +1,13 @@
 ﻿
 ******************************
-* OASIS API RELEASE HISTORY *
+#OASIS API RELEASE HISTORY
 ******************************
 
 This needs to be updated whenever we do anywork that will effect the OASIS API (even changes to properties, etc on OASIS.API.CORE objects that are used in the API, etc...
 Then when we do a release, this file will be linked to the Swagger documentation. We also then need to copy it to the WIKI and GitHub Documentation.
 
 ----------------------------------------------------------------------------------------------------------------------------
-0.0.1 ALPHA (10/10/2020)
+##0.0.1 ALPHA (10/10/2020)
 
 Initial release of the WEB4 OASIS API.
 https://www.ourworldthegame.com/single-post/oasis-api-v0-0-1-altha-live
@@ -134,7 +134,7 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 
 First official version of the production ready to use OASIS API! :)
 
-Many improvements:
+Many improvements:<br>
 https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/42a43cc3c788cd6333bd937a997d443da3b195ed
 - Added a new StackTraces property to the OASISResult wrapper.
 - Detailed messages are now added to the new StackTraces property of OASISResult rather than being appended to the InnerMessages property in HandleWarning method in ErrorHandling helper,
@@ -269,7 +269,7 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Added new LocalFileOASIS Provider to work with the new Key/Wallets API to store private keys encrypted locally only.
 - Improved OASIS Arcitecture generally.
 
-https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/b2172f455b3869e2dc70b854b8aa68cde83bec04
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/b2172f455b3869e2dc70b854b8aa68cde83bec04 <br>
 Fixed a bug in GetAllProviderPrivateKeysForAvatarById method in KeyManager where the keys were not null checked.
 
 https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/8c93ea5398160aa4a273b2da1f10865c5581552f
