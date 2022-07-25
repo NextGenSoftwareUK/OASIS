@@ -1,8 +1,9 @@
 {
 	"info": {
 		"_postman_id": "a1065653-d330-4549-b03c-3ada31c70def",
-		"name": "OASIS API",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"name": "OASIS API v2.3.0",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "10731858"
 	},
 	"item": [
 		{
@@ -83,7 +84,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password!\"\r\n}",
+							"raw": "{\r\n    \"username\": \"davidellams@hotmail.com\",\r\n    \"password\": \"test!\",\r\n    \"showDetailedSettings\": true,\r\n    \"ProviderType\": \"MongoDBOASIS\",\r\n    \"SetGlobally\": true\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -91,15 +92,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/authenticate/",
+							"raw": "{{host}}/api/avatar/authenticate",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"authenticate",
-								""
+								"authenticate"
 							]
 						}
 					},
@@ -130,7 +130,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/authenticate/HoloOASIS/true",
+							"raw": "{{host}}/api/avatar/authenticate/HoloOASIS/true/UseGlobalDefaultInOASISDNA/UseGlobalDefaultInOASISDNA/UseGlobalDefaultInOASISDNA/false/true",
 							"host": [
 								"{{host}}"
 							],
@@ -139,6 +139,11 @@
 								"avatar",
 								"authenticate",
 								"HoloOASIS",
+								"true",
+								"UseGlobalDefaultInOASISDNA",
+								"UseGlobalDefaultInOASISDNA",
+								"UseGlobalDefaultInOASISDNA",
+								"false",
 								"true"
 							]
 						}
@@ -194,7 +199,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"token\": \"E5525E27B26567BD372D34ED89306346BDF82539BBAD00DD24E01AF578A7A12758A3A339E16D411C\"\r\n}",
+							"raw": "{\r\n    \"token\": \"DF25B27ED66297A8B00AC5A5E7C18FC64664F9FCBD74FF0D7AC7C474B60439EB13368A525BC2D7BF\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -254,7 +259,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijk2YWFlZmZkLTYyMmEtNGNjMi1iNDE5LTg0YjAyNWYyNmI1YiIsIm5iZiI6MTY0NzM3MTY3NSwiZXhwIjoxNjQ3MzcyNTc1LCJpYXQiOjE2NDczNzE2NzV9.GkFYV71dREHuAJweGuquAw4JQxFwj9cp-pms0Mwybzo",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIxODhjYTQyLWVmNTUtNGNiYi04MWI5LTllOTg0YThlOWVjYiIsIm5iZiI6MTY1NTc4NjYwNCwiZXhwIjoxNjU1Nzg3NTA0LCJpYXQiOjE2NTU3ODY2MDR9.vZL0Nmj959A3SkNZLFgiGxAzYe91AhjzHCJDWYLG_NE",
 									"type": "string"
 								}
 							]
@@ -330,7 +335,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFkY2NmNTY1LTlmNjQtNDllNi1iZjIwLTBhYWYxNDcwYjQ1MyIsIm5iZiI6MTYwMTU1Nzg5NCwiZXhwIjoxNjAxNTU4Nzk0LCJpYXQiOjE2MDE1NTc4OTR9.2AB1U_l0j0JhhXOn4Ymr4btdvKCEDTYTr0drljFJaOM",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIxODhjYTQyLWVmNTUtNGNiYi04MWI5LTllOTg0YThlOWVjYiIsIm5iZiI6MTY1NTc4NjgzNywiZXhwIjoxNjU1Nzg3NzM3LCJpYXQiOjE2NTU3ODY4Mzd9.sliILr-fJnIx6fArYwcADJTXGcEAWRZhBl5eGgizxkU",
 									"type": "string"
 								}
 							]
@@ -397,7 +402,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdiNGE0ODkyLWI5MjAtNGM0Ny05NjU0LWZhMzA4YzQzNTk0MiIsIm5iZiI6MTY1MTgwMTM4MywiZXhwIjoxNjUxODAyMjgzLCJpYXQiOjE2NTE4MDEzODN9.FXoOlK5ij1kYfaCF2B5IdtzLYI-9fErUjoiqELFCtjg",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijk5NDE5N2I5LWFmM2UtNDMzOC04YTViLTdmM2M1YWQxYWI2MSIsIm5iZiI6MTY1MjMwNTkyOSwiZXhwIjoxNjUyMzA2ODI5LCJpYXQiOjE2NTIzMDU5Mjl9.mblKCAk4fzq4w_32ffr_r2S6UeGkqz9PPP54rXqk4PY",
 									"type": "string"
 								}
 							]
@@ -405,7 +410,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/get-by-id/7b4a4892-b920-4c47-9654-fa308c435942",
+							"raw": "{{host}}/api/avatar/get-by-id/7b4a4892-b920-4c47-9654-fa",
 							"host": [
 								"{{host}}"
 							],
@@ -413,7 +418,7 @@
 								"api",
 								"avatar",
 								"get-by-id",
-								"7b4a4892-b920-4c47-9654-fa308c435942"
+								"7b4a4892-b920-4c47-9654-fa"
 							]
 						}
 					},
@@ -427,7 +432,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdiNGE0ODkyLWI5MjAtNGM0Ny05NjU0LWZhMzA4YzQzNTk0MiIsIm5iZiI6MTY1MTgwMTM4MywiZXhwIjoxNjUxODAyMjgzLCJpYXQiOjE2NTE4MDEzODN9.FXoOlK5ij1kYfaCF2B5IdtzLYI-9fErUjoiqELFCtjg",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdiNGE0ODkyLWI5MjAtNGM0Ny05NjU0LWZhMzA4YzQzNTk0MiIsIm5iZiI6MTY1MTgwMjUwOSwiZXhwIjoxNjUxODAzNDA5LCJpYXQiOjE2NTE4MDI1MDl9.BsbUNwk3_4Bp-uqr0Nwh3BkUrMNNtaAoYXrUlZQRDDM",
 									"type": "string"
 								}
 							]
@@ -545,7 +550,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIxODhjYTQyLWVmNTUtNGNiYi04MWI5LTllOTg0YThlOWVjYiIsIm5iZiI6MTY1NTc4OTU2MSwiZXhwIjoxNjU1NzkwNDYxLCJpYXQiOjE2NTU3ODk1NjF9.jGx7z7kZ5BerrsaD-xlUO7-Y3Eb2HsuN6NZyGLku9aU",
 									"type": "string"
 								}
 							]
@@ -553,7 +558,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/avatar/get-avatar-detail-by-id/45b7334c-0948-4371-a6f8-b44c5be19ecf",
+							"raw": "{{host}}/api/avatar/get-avatar-detail-by-id/2188ca42-ef55-4cbb-81b9-9e984a8e9ecb",
 							"host": [
 								"{{host}}"
 							],
@@ -561,37 +566,7 @@
 								"api",
 								"avatar",
 								"get-avatar-detail-by-id",
-								"45b7334c-0948-4371-a6f8-b44c5be19ecf"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Avatar Detail (Email)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{host}}/api/avatar/get-avatar-detail-by-email/davidellams@hotmail.com",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"avatar",
-								"get-avatar-detail-by-email",
-								"davidellams@hotmail.com"
+								"2188ca42-ef55-4cbb-81b9-9e984a8e9ecb"
 							]
 						}
 					},
@@ -622,6 +597,36 @@
 								"avatar",
 								"get-avatar-detail-by-username",
 								"superman"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar Detail (Email)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/get-avatar-detail-by-email/davidellams@hotmail.com",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"get-avatar-detail-by-email",
+								"davidellams@hotmail.com"
 							]
 						}
 					},
@@ -664,7 +669,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijk2YWFlZmZkLTYyMmEtNGNjMi1iNDE5LTg0YjAyNWYyNmI1YiIsIm5iZiI6MTY0Nzk2NTg0MSwiZXhwIjoxNjQ3OTY2NzQxLCJpYXQiOjE2NDc5NjU4NDF9.wv3d0quTzrtGriMdYSLhXMIGiAMFlheR024ZBlMJc4M",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIxODhjYTQyLWVmNTUtNGNiYi04MWI5LTllOTg0YThlOWVjYiIsIm5iZiI6MTY1NTc4Nzc0OSwiZXhwIjoxNjU1Nzg4NjQ5LCJpYXQiOjE2NTU3ODc3NDl9.W1RoQsmZantsKOwPcv-MbGM5b151_h5Y-wvVY56FriA",
 									"type": "string"
 								}
 							]
@@ -681,15 +686,54 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/update/f20be161-4867-483e-9529-d2f1cdcbf440",
+							"raw": "{{host}}/api/avatar/update-by-id/2188ca42-ef55-4cbb-81b9-9e984a8e9ecb",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"update",
-								"f20be161-4867-483e-9529-d2f1cdcbf440"
+								"update-by-id",
+								"2188ca42-ef55-4cbb-81b9-9e984a8e9ecb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Avatar (Username)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIxODhjYTQyLWVmNTUtNGNiYi04MWI5LTllOTg0YThlOWVjYiIsIm5iZiI6MTY1NTc4Nzc0OSwiZXhwIjoxNjU1Nzg4NjQ5LCJpYXQiOjE2NTU3ODc3NDl9.W1RoQsmZantsKOwPcv-MbGM5b151_h5Y-wvVY56FriA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"David\",\r\n    \"lastName\": \"Ellams\",\r\n    \"title\": \"Dr\",\r\n    \"username\": \"superman\",\r\n    \"email\": \"davidellams@hotmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/update-by-username/superman",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"update-by-username",
+								"superman"
 							]
 						}
 					},
@@ -703,7 +747,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyNzUwNywiZXhwIjoxNjUwMzI4NDA3LCJpYXQiOjE2NTAzMjc1MDd9.O2d0XK4vru7ZzTDOSyc9FOEfOOP4y5BsvowA7PpLagM",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzA5MDE1MCwiZXhwIjoxNjUzMDkxMDUwLCJpYXQiOjE2NTMwOTAxNTB9.EKKsdsegSDn6VmlYsok8vvEsCvPl_vRjgrn_ovBFrbQ",
 									"type": "string"
 								}
 							]
@@ -729,45 +773,6 @@
 								"avatar",
 								"update-by-email",
 								"davidellams@hotmail.com"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Avatar (Username)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgyYWZmNjBmLTk1ZTUtNDZmZS1iMGI5LTk0ZmViNTdmNzc5NCIsIm5iZiI6MTY0OTg5ODYwMCwiZXhwIjoxNjQ5ODk5NTAwLCJpYXQiOjE2NDk4OTg2MDB9.bysRM0nEMrJkC36KV-5gx5v8sZ8K7tITEdW7eHshDOc",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"firstName\": \"David\",\r\n    \"lastName\": \"Ellams\",\r\n    \"title\": \"Dr\",\r\n    \"username\": \"superman22\",\r\n    \"email\": \"davidellams22@hotmail.com\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/api/avatar/update-by-username/superman22",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"avatar",
-								"update-by-username",
-								"superman22"
 							]
 						}
 					},
@@ -813,45 +818,6 @@
 					"response": []
 				},
 				{
-					"name": "Update Avatar Detail (Email)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFhZjZjMTJhLTM0MGItNGIyOS1hOTAxLTBjOTdhZTA3MjAzNSIsIm5iZiI6MTY1MDg0MjMyNywiZXhwIjoxNjUwODQzMjI3LCJpYXQiOjE2NTA4NDIzMjd9.AtLNb6VDpQ9-TSUFwuvWBW0PWGDxqtUMmUmUsVhg_yQ",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"firstName\": \"Frank2\",\r\n    \"lastName\": \"Murphy2222\",\r\n    \"title\": \"Dr\",\r\n    \"username\": \"superman\",\r\n    \"email\": \"davidellams@gmail.com\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/api/avatar/update-avatar-detail-by-email/davidellams@hotmail.com",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"avatar",
-								"update-avatar-detail-by-email",
-								"davidellams@hotmail.com"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Update Avatar Detail (Username)",
 					"request": {
 						"auth": {
@@ -891,6 +857,45 @@
 					"response": []
 				},
 				{
+					"name": "Update Avatar Detail (Email)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFhZjZjMTJhLTM0MGItNGIyOS1hOTAxLTBjOTdhZTA3MjAzNSIsIm5iZiI6MTY1MDg0MjMyNywiZXhwIjoxNjUwODQzMjI3LCJpYXQiOjE2NTA4NDIzMjd9.AtLNb6VDpQ9-TSUFwuvWBW0PWGDxqtUMmUmUsVhg_yQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"Frank2\",\r\n    \"lastName\": \"Murphy2222\",\r\n    \"title\": \"Dr\",\r\n    \"username\": \"superman\",\r\n    \"email\": \"davidellams@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/update-avatar-detail-by-email/davidellams@hotmail.com",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"update-avatar-detail-by-email",
+								"davidellams@hotmail.com"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Delete Avatar (Id)",
 					"request": {
 						"auth": {
@@ -914,36 +919,6 @@
 								"api",
 								"avatar",
 								"aaf6c12a-340b-4b29-a901-0c97ae072035"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Avatar (Email)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFhZjZjMTJhLTM0MGItNGIyOS1hOTAxLTBjOTdhZTA3MjAzNSIsIm5iZiI6MTY1MDkyNzAwMSwiZXhwIjoxNjUwOTI3OTAxLCJpYXQiOjE2NTA5MjcwMDF9.w7nDmt8XiKQHvzOMlJHJ2sme32jdv3PJtBWSbfah_6o",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{host}}/api/avatar/delete-by-email/davidellams@gmail.com",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"avatar",
-								"delete-by-email",
-								"davidellams@gmail.com"
 							]
 						}
 					},
@@ -974,6 +949,36 @@
 								"avatar",
 								"delete-by-username",
 								"superman22"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Avatar (Email)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFhZjZjMTJhLTM0MGItNGIyOS1hOTAxLTBjOTdhZTA3MjAzNSIsIm5iZiI6MTY1MDkyNzAwMSwiZXhwIjoxNjUwOTI3OTAxLCJpYXQiOjE2NTA5MjcwMDF9.w7nDmt8XiKQHvzOMlJHJ2sme32jdv3PJtBWSbfah_6o",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/delete-by-email/davidellams@gmail.com",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"delete-by-email",
+								"davidellams@gmail.com"
 							]
 						}
 					},
@@ -1026,7 +1031,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEwOGZkOGQwLTNmMGQtNDgyMy1iMDQ3LTZlYWY2ZDM1YjkwZiIsIm5iZiI6MTY1MDIyMjU4MCwiZXhwIjoxNjUwMjIzNDgwLCJpYXQiOjE2NTAyMjI1ODB9.6aTmqMd_qbkojPlUi1tA_GBSDY0aJ78KOjcUt1HPvoU",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIxODhjYTQyLWVmNTUtNGNiYi04MWI5LTllOTg0YThlOWVjYiIsIm5iZiI6MTY1NTc4Nzc0OSwiZXhwIjoxNjU1Nzg4NjQ5LCJpYXQiOjE2NTU3ODc3NDl9.W1RoQsmZantsKOwPcv-MbGM5b151_h5Y-wvVY56FriA",
 									"type": "string"
 								}
 							]
@@ -1186,7 +1191,7 @@
 					"response": []
 				},
 				{
-					"name": "Upload Avatar Portrait (Email)",
+					"name": "Upload Avatar Portrait  (Username)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1202,7 +1207,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"Email\": \"davidellams@hotmail.com\",\r\n    \"ImageBase64\": \"ffff\"\r\n}",
+							"raw": "{\r\n    \"Username\": \"superman\",\r\n    \"ImageBase64\": \"ffff\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1224,7 +1229,7 @@
 					"response": []
 				},
 				{
-					"name": "Upload Avatar Portrait  (Username)",
+					"name": "Upload Avatar Portrait (Email)",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1240,7 +1245,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"Username\": \"superman\",\r\n    \"ImageBase64\": \"ffff\"\r\n}",
+							"raw": "{\r\n    \"Email\": \"davidellams@hotmail.com\",\r\n    \"ImageBase64\": \"ffff\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1292,36 +1297,6 @@
 					"response": []
 				},
 				{
-					"name": "Get Avatar UMA JSON (Email)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMzMDgxMSwiZXhwIjoxNjUwMzMxNzExLCJpYXQiOjE2NTAzMzA4MTF9.nINxevRhYNosqNb7N9bpZ6ZdD9AWcYSz_WT3iS70pjo",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{host}}/api/avatar/get-uma-json-by-email/davidellams@hotmail.com",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"avatar",
-								"get-uma-json-by-email",
-								"davidellams@hotmail.com"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Get Avatar UMA JSON (Username)",
 					"request": {
 						"auth": {
@@ -1346,6 +1321,36 @@
 								"avatar",
 								"get-uma-json-by-username",
 								"superman"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar UMA JSON (Email)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMzMDgxMSwiZXhwIjoxNjUwMzMxNzExLCJpYXQiOjE2NTAzMzA4MTF9.nINxevRhYNosqNb7N9bpZ6ZdD9AWcYSz_WT3iS70pjo",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/get-uma-json-by-email/davidellams@hotmail.com",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"get-uma-json-by-email",
+								"davidellams@hotmail.com"
 							]
 						}
 					},
@@ -1394,6 +1399,1158 @@
 								"avatar",
 								"get-terms",
 								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Keys",
+			"item": [
+				{
+					"name": "Link Provider PublicKey To Avatar (Id)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxZjNiZmE5LTAyOTAtNGRlYy1iMmQ5LTk0ZDZmNmU2ZmY1MiIsIm5iZiI6MTY1NDM4NzE3OCwiZXhwIjoxNjU0Mzg4MDc4LCJpYXQiOjE2NTQzODcxNzh9.Qpd99tCLNZS7MboXuu-2q-VRVqY5iJTr9zkt9z1txUE",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"WalletID\": \"d449cc82-b113-4369-b794-581acaa06526\",\r\n    \"AvatarID\": \"81f3bfa9-0290-4dec-b2d9-94d6f6e6ff52\",\r\n    \"ProviderKey\": \"publickey\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/link_provider_public_key_to_avatar_by_id",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"link_provider_public_key_to_avatar_by_id"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link Provider PublicKey To Avatar (Username)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzA5MDE1MCwiZXhwIjoxNjUzMDkxMDUwLCJpYXQiOjE2NTMwOTAxNTB9.EKKsdsegSDn6VmlYsok8vvEsCvPl_vRjgrn_ovBFrbQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarUsername\": \"superman\",\r\n    \"ProviderKey\": \"publickey\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/link_provider_public_key_to_avatar_by_username",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"link_provider_public_key_to_avatar_by_username"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link Provider PublicKey To Avatar (Email)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzA5MTA5OSwiZXhwIjoxNjUzMDkxOTk5LCJpYXQiOjE2NTMwOTEwOTl9.LYRAUbS-MeyoxGUCkhgI0WeuWGs2Yc-SzYnyKPSBzF4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarEmail\": \"davidellams@hotmail.com\",\r\n    \"ProviderKey\": \"publickey22\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/link_provider_public_key_to_avatar_by_email",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"link_provider_public_key_to_avatar_by_email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link Provider PrivateKey To Avatar (Id)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxZjNiZmE5LTAyOTAtNGRlYy1iMmQ5LTk0ZDZmNmU2ZmY1MiIsIm5iZiI6MTY1NDM4NzE3OCwiZXhwIjoxNjU0Mzg4MDc4LCJpYXQiOjE2NTQzODcxNzh9.Qpd99tCLNZS7MboXuu-2q-VRVqY5iJTr9zkt9z1txUE",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarID\": \"81f3bfa9-0290-4dec-b2d9-94d6f6e6ff52\",\r\n    \"ProviderKey\": \"privatekey2222222222222222222222222222222222222\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/link_provider_private_key_to_avatar_by_id",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"link_provider_private_key_to_avatar_by_id"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link Provider PrivateKey To Avatar (Username}",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0YmUzOWE2LTNhMTAtNDVkNi1iYjI0LTc0ZjExOWVkNmIxMSIsIm5iZiI6MTY1NDA0MDQ2MywiZXhwIjoxNjU0MDQxMzYzLCJpYXQiOjE2NTQwNDA0NjN9.z0ByYy0VWMJt0FO1H573vsYIGgO0uf0o2vYce5tQyRM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarUsername\": \"superman\",\r\n    \"ProviderKey\": \"privatekey\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/link_provider_private_key_to_avatar_by_username",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"link_provider_private_key_to_avatar_by_username"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate KeyPair",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI2ODUyMiwiZXhwIjoxNjUzMjY5NDIyLCJpYXQiOjE2NTMyNjg1MjJ9.SAlmo2YUGyv2-0uZ8s4cCYG-Daee7e1j4i2Eagewlxw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/keys/generate_keypair/OASIS",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"generate_keypair",
+								"OASIS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate KeyPair For Provider",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI2ODUyMiwiZXhwIjoxNjUzMjY5NDIyLCJpYXQiOjE2NTMyNjg1MjJ9.SAlmo2YUGyv2-0uZ8s4cCYG-Daee7e1j4i2Eagewlxw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/keys/generate_keypair_for_provider/MongoDBOASIS",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"generate_keypair_for_provider",
+								"MongoDBOASIS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate KeyPair And Link To Avatar (Id)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI2OTUyNywiZXhwIjoxNjUzMjcwNDI3LCJpYXQiOjE2NTMyNjk1Mjd9.RlkTi_HiFAYCvhAUL8Pc_Nv-7dApDU6oyFMDDmAHXPM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarID\": \"0b2d652a-334c-42a5-bc4e-f367cbd66015\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/generate_keypair_and_link_provider_keys_to_avatar_by_id",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"generate_keypair_and_link_provider_keys_to_avatar_by_id"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate KeyPair And Link To Avatar (Username)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI2OTUyNywiZXhwIjoxNjUzMjcwNDI3LCJpYXQiOjE2NTMyNjk1Mjd9.RlkTi_HiFAYCvhAUL8Pc_Nv-7dApDU6oyFMDDmAHXPM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarUsername\": \"superman\",\r\n    \"ProviderType\": \"MongoDBOASIS\",\r\n    \"ReturnKeys\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/generate_keypair_and_link_provider_keys_to_avatar_by_username",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"generate_keypair_and_link_provider_keys_to_avatar_by_username"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate KeyPair And Link To Avatar (Email)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI2OTUyNywiZXhwIjoxNjUzMjcwNDI3LCJpYXQiOjE2NTMyNjk1Mjd9.RlkTi_HiFAYCvhAUL8Pc_Nv-7dApDU6oyFMDDmAHXPM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarEmail\": \"davidellams@hotmail.com\",\r\n    \"ProviderType\": \"MongoDBOASIS\",\r\n    \"ReturnKeys\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/generate_keypair_and_link_provider_keys_to_avatar_by_email",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"generate_keypair_and_link_provider_keys_to_avatar_by_email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Provider Unique Storage Key For Avatar (Id)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI3Mjc4OSwiZXhwIjoxNjUzMjczNjg5LCJpYXQiOjE2NTMyNzI3ODl9.yJnyGaQPLxppAbVlrJDp8A2MLHi5uXlCFpUmKFYe6As",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarID\": \"0b2d652a-334c-42a5-bc4e-f367cbd66015\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/get_provider_unique_storage_key_for_avatar_by_id",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_provider_unique_storage_key_for_avatar_by_id"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Provider Unique Storage Key For Avatar (Username)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI3Mjc4OSwiZXhwIjoxNjUzMjczNjg5LCJpYXQiOjE2NTMyNzI3ODl9.yJnyGaQPLxppAbVlrJDp8A2MLHi5uXlCFpUmKFYe6As",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarUsername\": \"superman\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/get_provider_unique_storage_key_for_avatar_by_username",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_provider_unique_storage_key_for_avatar_by_username"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Provider Unique Storage Key For Avatar (Email)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI3Mjc4OSwiZXhwIjoxNjUzMjczNjg5LCJpYXQiOjE2NTMyNzI3ODl9.yJnyGaQPLxppAbVlrJDp8A2MLHi5uXlCFpUmKFYe6As",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarEmail\": \"davidellams@hotmail.com\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/get_provider_unique_storage_key_for_avatar_by_email",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_provider_unique_storage_key_for_avatar_by_email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Provider Private Keys For Avatar (Id)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxZjNiZmE5LTAyOTAtNGRlYy1iMmQ5LTk0ZDZmNmU2ZmY1MiIsIm5iZiI6MTY1NDM4ODExMywiZXhwIjoxNjU0Mzg5MDEzLCJpYXQiOjE2NTQzODgxMTN9.82xGKoD4S1qTsPArSKcqgWk_dE6q-Q8SDPlZqjfYzsY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarID\": \"81f3bfa9-0290-4dec-b2d9-94d6f6e6ff52\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/get_provider_private_key_for_avatar_by_id/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_provider_private_key_for_avatar_by_id",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Provider Private Keys For Avatar (Username)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI3MzcyMywiZXhwIjoxNjUzMjc0NjIzLCJpYXQiOjE2NTMyNzM3MjN9.KYmogiFM61BZL4s4eskvhUmPB9_fBoGjKmTH5PzbUVI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarUsername\": \"superman\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/get_provider_private_key_for_avatar_by_username",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_provider_private_key_for_avatar_by_username"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Provider Public Keys For Avatar (Id)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI3MzcyMywiZXhwIjoxNjUzMjc0NjIzLCJpYXQiOjE2NTMyNzM3MjN9.KYmogiFM61BZL4s4eskvhUmPB9_fBoGjKmTH5PzbUVI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n     \"AvatarID\": \"0b2d652a-334c-42a5-bc4e-f367cbd66015\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/get_provider_public_keys_for_avatar_by_id",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_provider_public_keys_for_avatar_by_id"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Provider Public Keys For Avatar (Username)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI3MzcyMywiZXhwIjoxNjUzMjc0NjIzLCJpYXQiOjE2NTMyNzM3MjN9.KYmogiFM61BZL4s4eskvhUmPB9_fBoGjKmTH5PzbUVI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarUsername\": \"superman\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/get_provider_public_keys_for_avatar_by_username",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_provider_public_keys_for_avatar_by_username"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Provider Public Keys For Avatar (Email)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI3MzcyMywiZXhwIjoxNjUzMjc0NjIzLCJpYXQiOjE2NTMyNzM3MjN9.KYmogiFM61BZL4s4eskvhUmPB9_fBoGjKmTH5PzbUVI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"AvatarEmail\": \"davidellams@hotmail.com\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/get_provider_public_keys_for_avatar_by_email",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_provider_public_keys_for_avatar_by_email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Provider Public Keys For Avatar (Id)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI3MzcyMywiZXhwIjoxNjUzMjc0NjIzLCJpYXQiOjE2NTMyNzM3MjN9.KYmogiFM61BZL4s4eskvhUmPB9_fBoGjKmTH5PzbUVI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/keys/get_all_provider_public_keys_for_avatar_by_id/0b2d652a-334c-42a5-bc4e-f367cbd66015",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_all_provider_public_keys_for_avatar_by_id",
+								"0b2d652a-334c-42a5-bc4e-f367cbd66015"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Provider Public Keys For Avatar (Username}",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/keys/get_all_provider_public_keys_for_avatar_by_username/superman",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_all_provider_public_keys_for_avatar_by_username",
+								"superman"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Provider Public Keys For Avatar (Email)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/keys/get_all_provider_public_keys_for_avatar_by_email/davidellams@hotmail.com",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_all_provider_public_keys_for_avatar_by_email",
+								"davidellams@hotmail.com"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Provider Private Keys For Avatar (Id)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/keys/get_all_provider_private_keys_for_avatar_by_id/45b7334c-0948-4371-a6f8-b44c5be19ecf",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_all_provider_private_keys_for_avatar_by_id",
+								"45b7334c-0948-4371-a6f8-b44c5be19ecf"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Provider Private Keys For Avatar (Username}",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/keys/get_all_provider_private_keys_for_avatar_by_username/superman",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_all_provider_private_keys_for_avatar_by_username",
+								"superman"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Provider Unique Storage Keys For Avatar (Id)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/keys/get_all_provider_unique_storage_keys_for_avatar_by_id/45b7334c-0948-4371-a6f8-b44c5be19ecf",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_all_provider_unique_storage_keys_for_avatar_by_id",
+								"45b7334c-0948-4371-a6f8-b44c5be19ecf"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Provider Unique Storage Keys For Avatar (Username}",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBiMmQ2NTJhLTMzNGMtNDJhNS1iYzRlLWYzNjdjYmQ2NjAxNSIsIm5iZiI6MTY1MzI3MzcyMywiZXhwIjoxNjUzMjc0NjIzLCJpYXQiOjE2NTMyNzM3MjN9.KYmogiFM61BZL4s4eskvhUmPB9_fBoGjKmTH5PzbUVI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/keys/get_all_provider_unique_storage_keys_for_avatar_by_username/superman",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_all_provider_unique_storage_keys_for_avatar_by_username",
+								"superman"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Provider Unique Storage Keys For Avatar (Email)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/keys/get_all_provider_unique_storage_keys_for_avatar_by_email/davidellams@hotmail.com",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_all_provider_unique_storage_keys_for_avatar_by_email",
+								"davidellams@hotmail.com"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clear Cache",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/keys/clear_cache",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"clear_cache"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Private Wif",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/keys/get_private_wifi/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_private_wifi",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Public Wif",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"PublicKey\": \"dsdsd\",\r\n    \"Prefix\": \"OASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/get_public_wifi/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"get_public_wifi",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Decode Private Wif",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"PublicKey\": \"dsdsd\",\r\n    \"Prefix\": \"OASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/decode_private_wif/data",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"decode_private_wif",
+								"data"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Base58Check Decode",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"PublicKey\": \"dsdsd\",\r\n    \"Prefix\": \"OASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/base58_check_decode/data",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"base58_check_decode",
+								"data"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Encode Signature",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ1YjczMzRjLTA5NDgtNDM3MS1hNmY4LWI0NGM1YmUxOWVjZiIsIm5iZiI6MTY1MDMyODYyNywiZXhwIjoxNjUwMzI5NTI3LCJpYXQiOjE2NTAzMjg2Mjd9.XV-btNXILEN5-aNXFjRvg6-e-l1PQQ7cUGnWwiPeouw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"PublicKey\": \"dsdsd\",\r\n    \"Prefix\": \"OASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/keys/encode_signature",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"keys",
+								"encode_signature"
 							]
 						}
 					},
@@ -1579,7 +2736,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNTU1NjIzMSwiZXhwIjoxNjE1NTU3MTMxLCJpYXQiOjE2MTU1NTYyMzF9.CX1OIFPFBFqkDw2GCqpAEnfeQzTBTtTQh6NsmpCcgZM",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1NjgwOTkyNywiZXhwIjoxNjU2ODEwODI3LCJpYXQiOjE2NTY4MDk5Mjd9.U5iZgx77S_0iiWw_bMTxW24BLipiIWXV7Ln3jtgQ9-8",
 									"type": "string"
 								}
 							]
@@ -1587,15 +2744,170 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/data/loadholon/0588e043-58f8-408a-af46-e0a45861b149",
+							"raw": "{{host}}/api/data/load-holon/188e0e27-3af2-478f-af86-030c56a42edb",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"data",
-								"loadholon",
-								"0588e043-58f8-408a-af46-e0a45861b149"
+								"load-holon",
+								"188e0e27-3af2-478f-af86-030c56a42edb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Holon (Advanced Form)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1NjgxMjM5NSwiZXhwIjoxNjU2ODEzMjk1LCJpYXQiOjE2NTY4MTIzOTV9.AoVtsugTIe4dRPGbHa0Oa11bu9u8vh-QI6TqMHvHZ9k",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"188e0e27-3af2-478f-af86-030c56a42edb\",\r\n    \"LoadChildren\": false,\r\n    \"Recursive\": false,\r\n    \"MaxChildDepth\" : 1,\r\n    \"ContinueOnError\" : false,\r\n    \"Version\": 1,\r\n    \"ProviderType\": \"HoloOASIS\",\r\n    \"SetGlobally\": false,\r\n    \"ShowDetailedSettings\": true,\r\n    \"AutoFailOverEnabled\": \"true\",\r\n    \"AutoReplicationEnabled\": \"false\",\r\n    \"AutoLoadBalanceEnabled\": \"false\",\r\n    \"AutoFailOverProviders\": \"MongoDBOASIS, HoloOASIS\",\r\n    \"AutoReplicationProviders\": \"MongoDBOASIS, HoloOASIS\",\r\n    \"AutoLoadBalanceProviders\": \"MongoDBOASIS, HoloOASIS\",\r\n    \"WaitForAutoReplicationResult\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/load-holon",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-holon"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Holon (Advanced QS)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1Njc5MTcyMCwiZXhwIjoxNjU2NzkyNjIwLCJpYXQiOjE2NTY3OTE3MjB9.pWDjSDspC8tPEuDf4HoW7tADuTUDpvoHZrGuUNhZrlc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/load-holon/3b524788-6453-4c79-8fb2-981725dbd9fb/true/true/0/true/0",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-holon",
+								"3b524788-6453-4c79-8fb2-981725dbd9fb",
+								"true",
+								"true",
+								"0",
+								"true",
+								"0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Holon (Advanced QS2)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1Njc5MTcyMCwiZXhwIjoxNjU2NzkyNjIwLCJpYXQiOjE2NTY3OTE3MjB9.pWDjSDspC8tPEuDf4HoW7tADuTUDpvoHZrGuUNhZrlc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/load-holon/3b524788-6453-4c79-8fb2-981725dbd9fb/true/true/0/true/0/HoloOASIS/false",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-holon",
+								"3b524788-6453-4c79-8fb2-981725dbd9fb",
+								"true",
+								"true",
+								"0",
+								"true",
+								"0",
+								"HoloOASIS",
+								"false"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Holon (Advanced QS3)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1Njc5MTcyMCwiZXhwIjoxNjU2NzkyNjIwLCJpYXQiOjE2NTY3OTE3MjB9.pWDjSDspC8tPEuDf4HoW7tADuTUDpvoHZrGuUNhZrlc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/load-holon/3b524788-6453-4c79-8fb2-981725dbd9fb/true/true/0/true/0/HoloOASIS/false/true/true/true/default/default/default/false/true",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-holon",
+								"3b524788-6453-4c79-8fb2-981725dbd9fb",
+								"true",
+								"true",
+								"0",
+								"true",
+								"0",
+								"HoloOASIS",
+								"false",
+								"true",
+								"true",
+								"true",
+								"default",
+								"default",
+								"default",
+								"false",
+								"true"
 							]
 						}
 					},
@@ -1609,7 +2921,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNTU2MjUwOCwiZXhwIjoxNjE1NTYzNDA4LCJpYXQiOjE2MTU1NjI1MDh9.Uv3RNwFMtiQJCxPp8v7saoCO2Bi9xIHDO0zsojvh0L0",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1Njc4NjMxNywiZXhwIjoxNjU2Nzg3MjE3LCJpYXQiOjE2NTY3ODYzMTd9.dDeZ06HkpMO_gqMndhw3NS8OHL_a5TfpR6FoM9NYyUo",
 									"type": "string"
 								}
 							]
@@ -1617,28 +2929,67 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/data/LoadAllHolons",
+							"raw": "{{host}}/api/data/load-all-holons/all",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"data",
-								"LoadAllHolons"
+								"load-all-holons",
+								"all"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Load All Holons For Parent",
+					"name": "Load All Holons (Advanced Form)",
 					"request": {
 						"auth": {
 							"type": "bearer",
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNTU2MzQzMiwiZXhwIjoxNjE1NTY0MzMyLCJpYXQiOjE2MTU1NjM0MzJ9.WpV5iq4Ce9qnpdMbLiAPyRTbtJmhGw2bBYgTJnWdsxs",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1Njc5MTcyMCwiZXhwIjoxNjU2NzkyNjIwLCJpYXQiOjE2NTY3OTE3MjB9.pWDjSDspC8tPEuDf4HoW7tADuTUDpvoHZrGuUNhZrlc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"HolonType\": \"Moon\",\r\n    \"LoadChildren\": true,\r\n    \"Recursive\": true,\r\n    \"MaxChildDepth\" : 0,\r\n    \"ContinueOnError\" : false,\r\n    \"Version\": 0,\r\n    \"ProviderType\": \"HoloOASIS\",\r\n    \"SetGlobally\": false,\r\n    \"ShowDetailedSettings\": true,\r\n    \"AutoFailOverEnabled\": \"true\",\r\n    \"AutoReplicationEnabled\": \"true\",\r\n    \"AutoLoadBalanceEnabled\": \"true\",\r\n    \"AutoFailOverProviders\": \"MongoDBOASIS, HoloOASOS\",\r\n    \"AutoReplicationProviders\": \"MongoDBOASIS, HoloOASOS\",\r\n    \"AutoLoadBalanceProviders\": \"MongoDBOASIS, HoloOASOS\",\r\n    \"WaitForAutoReplicationResult\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/load-all-holons",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-all-holons"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load All Holons (Advanced QS)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1Njc5MTcyMCwiZXhwIjoxNjU2NzkyNjIwLCJpYXQiOjE2NTY3OTE3MjB9.pWDjSDspC8tPEuDf4HoW7tADuTUDpvoHZrGuUNhZrlc",
 									"type": "string"
 								}
 							]
@@ -1646,15 +2997,291 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/api/data/LoadAllHolonsForParent/89a935f4-d0ad-44af-b954-558041a76c18",
+							"raw": "{{host}}/api/data/load-all-holons/all/true/true/0/true/0",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"data",
-								"LoadAllHolonsForParent",
-								"89a935f4-d0ad-44af-b954-558041a76c18"
+								"load-all-holons",
+								"all",
+								"true",
+								"true",
+								"0",
+								"true",
+								"0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load All Holons (Advanced QS2)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1Njc5MTcyMCwiZXhwIjoxNjU2NzkyNjIwLCJpYXQiOjE2NTY3OTE3MjB9.pWDjSDspC8tPEuDf4HoW7tADuTUDpvoHZrGuUNhZrlc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/load-all-holons/all/true/true/0/true/0/HoloOASIS/false",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-all-holons",
+								"all",
+								"true",
+								"true",
+								"0",
+								"true",
+								"0",
+								"HoloOASIS",
+								"false"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load All Holons (Advanced QS3)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1Njc5MTcyMCwiZXhwIjoxNjU2NzkyNjIwLCJpYXQiOjE2NTY3OTE3MjB9.pWDjSDspC8tPEuDf4HoW7tADuTUDpvoHZrGuUNhZrlc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/load-all-holons/all/true/true/0/true/0/HoloOASIS/false/true/true/true/default/default/default/false/true",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-all-holons",
+								"all",
+								"true",
+								"true",
+								"0",
+								"true",
+								"0",
+								"HoloOASIS",
+								"false",
+								"true",
+								"true",
+								"true",
+								"default",
+								"default",
+								"default",
+								"false",
+								"true"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Holons For Parent",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1NjgwNDcyNywiZXhwIjoxNjU2ODA1NjI3LCJpYXQiOjE2NTY4MDQ3Mjd9.uXq_jeqr4oKPNTG5knu0e_yXUEZSpqSXC2IYu47wWM4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/load-holons-for-parent/9d707c2b-5f2d-4101-bb27-3ea1552d13b6/all",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-holons-for-parent",
+								"9d707c2b-5f2d-4101-bb27-3ea1552d13b6",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Holons For Parent (Advanced Form)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1NjgwNTM0MSwiZXhwIjoxNjU2ODA2MjQxLCJpYXQiOjE2NTY4MDUzNDF9.JY7E6GrlHdAZSd-esrVdFFGWrvfL8PiF9LeQMd13FI8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Id\": \"89a935f4-d0ad-44af-b954-558041a76c18\",\r\n    \"HolonType\": \"Moon\",\r\n    \"LoadChildren\": true,\r\n    \"Recursive\": true,\r\n    \"MaxChildDepth\" : 0,\r\n    \"ContinueOnError\" : false,\r\n    \"Version\": 0,\r\n    \"ProviderType\": \"HoloOASIS\",\r\n    \"SetGlobally\": false,\r\n    \"ShowDetailedSettings\": true,\r\n    \"AutoFailOverEnabled\": \"true\",\r\n    \"AutoReplicationEnabled\": \"true\",\r\n    \"AutoLoadBalanceEnabled\": \"true\",\r\n    \"AutoFailOverProviders\": \"MongoDBOASIS, HoloOASOS\",\r\n    \"AutoReplicationProviders\": \"MongoDBOASIS, HoloOASOS\",\r\n    \"AutoLoadBalanceProviders\": \"MongoDBOASIS, HoloOASOS\",\r\n    \"WaitForAutoReplicationResult\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/load-holons-for-parent",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-holons-for-parent"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Holons For Parent (Advanced QS)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1NjgwNTM0MSwiZXhwIjoxNjU2ODA2MjQxLCJpYXQiOjE2NTY4MDUzNDF9.JY7E6GrlHdAZSd-esrVdFFGWrvfL8PiF9LeQMd13FI8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/load-holons-for-parent/89a935f4-d0ad-44af-b954-558041a76c18/all/true/true/0/true/0",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-holons-for-parent",
+								"89a935f4-d0ad-44af-b954-558041a76c18",
+								"all",
+								"true",
+								"true",
+								"0",
+								"true",
+								"0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Holons For Parent (Advanced QS2)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1NjgwNTM0MSwiZXhwIjoxNjU2ODA2MjQxLCJpYXQiOjE2NTY4MDUzNDF9.JY7E6GrlHdAZSd-esrVdFFGWrvfL8PiF9LeQMd13FI8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/load-holons-for-parent/89a935f4-d0ad-44af-b954-558041a76c18/all/true/true/0/true/0/HoloOASIS/false",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-holons-for-parent",
+								"89a935f4-d0ad-44af-b954-558041a76c18",
+								"all",
+								"true",
+								"true",
+								"0",
+								"true",
+								"0",
+								"HoloOASIS",
+								"false"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Holons For Parent (Advanced QS3)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1NjgwNTM0MSwiZXhwIjoxNjU2ODA2MjQxLCJpYXQiOjE2NTY4MDUzNDF9.JY7E6GrlHdAZSd-esrVdFFGWrvfL8PiF9LeQMd13FI8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/load-holons-for-parent/89a935f4-d0ad-44af-b954-558041a76c18/all/true/true/0/true/0/HoloOASIS/false/true/true/true/default/default/default/false/true",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-holons-for-parent",
+								"89a935f4-d0ad-44af-b954-558041a76c18",
+								"all",
+								"true",
+								"true",
+								"0",
+								"true",
+								"0",
+								"HoloOASIS",
+								"false",
+								"true",
+								"true",
+								"true",
+								"default",
+								"default",
+								"default",
+								"false",
+								"true"
 							]
 						}
 					},
@@ -1668,7 +3295,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNTU1OTkzNywiZXhwIjoxNjE1NTYwODM3LCJpYXQiOjE2MTU1NTk5Mzd9.x-R4pDKtZr0zxqQwwMb1yeSAsd5TH-lD9kLmqj0zflc",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1Njc5Njk2NCwiZXhwIjoxNjU2Nzk3ODY0LCJpYXQiOjE2NTY3OTY5NjR9.bSXazT-DHVjMZriLQrUkXceVxflg1kd0TqjXwjwU-Nw",
 									"type": "string"
 								}
 							]
@@ -1677,7 +3304,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": \"56e87574-1607-4321-b314-60533a877df9\",\r\n    \"Name\": \"Test Holon2225nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn55\",\r\n    \"Description\": \"Test Holon Desc\"\r\n}",
+							"raw": "{\r\n    \"Name\": \"Test Holon2225nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn55\",\r\n    \"Description\": \"Test Holon Desc\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1685,13 +3312,249 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}api/data/saveholon",
+							"raw": "{{host}}/api/data/save-holon",
 							"host": [
-								"{{host}}api"
+								"{{host}}"
 							],
 							"path": [
+								"api",
 								"data",
-								"saveholon"
+								"save-holon"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Holon (Advanced Form)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1Njc5Njk2NCwiZXhwIjoxNjU2Nzk3ODY0LCJpYXQiOjE2NTY3OTY5NjR9.bSXazT-DHVjMZriLQrUkXceVxflg1kd0TqjXwjwU-Nw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Holon\":\r\n    {\r\n        \"Name\": \"Test Holon2225nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn55\",\r\n        \"Description\": \"Test Holon Desc\"\r\n    },\r\n    \"SaveChildren\": false,\r\n    \"Recursive\": false,\r\n    \"MaxChildDepth\" : 1,\r\n    \"ContinueOnError\" : false,\r\n    \"ProviderType\": \"HoloOASIS\",\r\n    \"SetGlobally\": false,\r\n    \"ShowDetailedSettings\": true,\r\n    \"AutoFailOverEnabled\": \"true\",\r\n    \"AutoReplicationEnabled\": \"true\",\r\n    \"AutoLoadBalanceEnabled\": \"true\",\r\n    \"AutoFailOverProviders\": \"MongoDBOASIS, HoloOASOS\",\r\n    \"AutoReplicationProviders\": \"MongoDBOASIS, HoloOASOS\",\r\n    \"AutoLoadBalanceProviders\": \"MongoDBOASIS, HoloOASOS\",\r\n    \"WaitForAutoReplicationResult\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/save-holon",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"save-holon"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Holon Offchain",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1Njc5Njk2NCwiZXhwIjoxNjU2Nzk3ODY0LCJpYXQiOjE2NTY3OTY5NjR9.bSXazT-DHVjMZriLQrUkXceVxflg1kd0TqjXwjwU-Nw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Holon\":\r\n    {\r\n        \"Name\": \"Test Holon2225nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn55\",\r\n        \"Description\": \"Test Holon Desc\"\r\n    },\r\n    \"OffChainProvider\": \"HoloOASIS\",\r\n    \"OnChainProvider\": \"SolanaOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/save-holon-off-chain",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"save-holon-off-chain"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Holon",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1NjgxMzM5NSwiZXhwIjoxNjU2ODE0Mjk1LCJpYXQiOjE2NTY4MTMzOTV9.oHd5tx3nAc1CEu1jh_qjAbP7glRV_xe5nVh0PHMg7ik",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Name\": \"Test Holon2225nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn55\",\r\n    \"Description\": \"Test Holon Desc\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/delete-holon/3b524788-6453-4c79-8fb2-981725dbd9fb",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"delete-holon",
+								"3b524788-6453-4c79-8fb2-981725dbd9fb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Holon (Advanced Form)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1NjgxMzM5NSwiZXhwIjoxNjU2ODE0Mjk1LCJpYXQiOjE2NTY4MTMzOTV9.oHd5tx3nAc1CEu1jh_qjAbP7glRV_xe5nVh0PHMg7ik",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Id\": \"3b524788-6453-4c79-8fb2-981725dbd9fb\",\r\n    \"SoftDelete\": \"true\",\r\n    \"ProviderType\": \"HoloOASIS\",\r\n    \"SetGlobally\": false,\r\n    \"ShowDetailedSettings\": true,\r\n    \"AutoFailOverEnabled\": \"true\",\r\n    \"AutoReplicationEnabled\": \"true\",\r\n    \"AutoLoadBalanceEnabled\": \"true\",\r\n    \"AutoFailOverProviders\": \"MongoDBOASIS, HoloOASOS\",\r\n    \"AutoReplicationProviders\": \"MongoDBOASIS, HoloOASOS\",\r\n    \"AutoLoadBalanceProviders\": \"MongoDBOASIS, HoloOASOS\",\r\n    \"WaitForAutoReplicationResult\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/delete-holon",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"delete-holon"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Holon (Advanced QS)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImIxNmEzMWM3LTlmMjAtNDE5Zi1hMzcxLTFhY2Q3MjY0ZGI3MSIsIm5iZiI6MTY1NjcwMTUxMCwiZXhwIjoxNjU2NzAyNDEwLCJpYXQiOjE2NTY3MDE1MTB9.jqWUtOmYsidKdODvTiVQoDwsB8hAP4fnOrNvGBdCVbs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Name\": \"Test Holon2225nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn55\",\r\n    \"Description\": \"Test Holon Desc\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/delete-holon/3b524788-6453-4c79-8fb2-981725dbd9fb/true",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"delete-holon",
+								"3b524788-6453-4c79-8fb2-981725dbd9fb",
+								"true"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Holon (Advanced QS2)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImIxNmEzMWM3LTlmMjAtNDE5Zi1hMzcxLTFhY2Q3MjY0ZGI3MSIsIm5iZiI6MTY1NjcwMTUxMCwiZXhwIjoxNjU2NzAyNDEwLCJpYXQiOjE2NTY3MDE1MTB9.jqWUtOmYsidKdODvTiVQoDwsB8hAP4fnOrNvGBdCVbs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Name\": \"Test Holon2225nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn55\",\r\n    \"Description\": \"Test Holon Desc\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/delete-holon/3b524788-6453-4c79-8fb2-981725dbd9fb/true/HoloOASIS/false",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"delete-holon",
+								"3b524788-6453-4c79-8fb2-981725dbd9fb",
+								"true",
+								"HoloOASIS",
+								"false"
 							]
 						}
 					},
