@@ -5,6 +5,8 @@
 
 ## Contents
 - [Introduction](#introduction)
+- [Overview](#overview)
+- [Benefits Of Building On The WEB4 OASIS API](#web4-oasisapi-benefits)
 - [Project Structure](#project-structure)
 - [The OASIS API & Karma System](#the-oasis-api---karma-system)
   * [Your Karma Level Effects Your Real Life Too!](#your-karma-level-effects-your-real-life-too-)
@@ -211,24 +213,6 @@ Both WEB 4 & WEB 5 use machine learning AI to analyse all of the worlds data to 
 
 To summarize, WEB4 OASIS API aggregates all of the worlds data into a fully unified API to allow better sense making to made, which then feeds into WEB5 STAR, which expresses it in a cyberspace ontology and connects the worlds data to the rest of the COSMOS and Galaxy... ;-)
 
-**Benefits Of Building On The WEB4 OASIS API:**
-
-* **Integrate any WEB2 or WEB3 tech into your (web)app without having to learn or worry about new tech stacks/languages (the OASIS API hides all the complexity away so you can focus on creating your dream app!).**
-
-* **No need to worry about how different blockchains or WEB2 and WEB3 can talk and integrate with each other, the OASIS handles all this for you!**
-
-* **Future prove so when any new language/tech comes out such as Ethereum2 etc, these will be automatically added to the OASIS API for FREE, you will have FREE upgrades for life!**
-
-* **WEB5 ready when it is released later this year...**
-
-
-Check out more info below:<br>
-[The Power Of The OASIS API](https://drive.google.com/file/d/1nnhGpXcprr6kota1Y85HDDKsBfJHN6sn/view?usp=sharing) <br>
-[What Is WEB4 & WEB5 Really?](https://www.ourworldthegame.com/single-post/what-is-web4-web5-really) <br>
-[First Production Release Of The WEB4 OASIS API](https://www.ourworldthegame.com/single-post/first-production-ready-release-of-web4-oasis-api-more) <br>
-[Annoucing WEB5 STAR ODK/HDK/COSMIC](https://www.ourworldthegame.com/single-post/announcing-star-odk-hdk-cosmic)  <br>
-[STAR ODK/HDK/COSMIC/OASIS API/Our World Update](https://www.ourworldthegame.com/single-post/star-odk-hdk-cosmic-oasis-api-our-world-update) 
-
 [Our World](#our-world-overview) is an exciting immersive next generation 3D XR/IR (Infinite Reality) educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...
 
 It is the XR/IR Gamification layer of the new interplanetary operating system & the new internet (Web 3.0), which is being built by the elite technical wizards stationed around the world. This will one day replace the current tech giants such as Google, FaceBook, etc and act as the technical layer of the New Earth, which is birthing now.  Unlike the current tech giants who's only aim is to ruthlessly maximize profits at the expense of people and the planet (as well as spying, exploitation, censorship & social engineering), our technology is based on true love & unity consciousness where money and profits are not our aim or intention, our aim and intention is to heal the entire planet & human race so we can all live in harmony with each other.  It is a 5th dimensional and ascension training platform, teaching people vital life lessons as well as acting as a real-time simulation of the real world.
@@ -247,6 +231,25 @@ Next, it will port Noomap to Unity and will implement a Synergy Engine allowing 
 
 Read another more refined (and updated) summary on the github repo code base for the Our World Smartphone AR Prototype:<br>
 https://github.com/NextGenSoftwareUK/Our-World-Smartphone-Prototype-AR
+
+<br>
+
+## Benefits Of Building On The WEB4 OASIS API:
+
+* **Integrate any WEB2 or WEB3 tech into your (web)app without having to learn or worry about new tech stacks/languages (the OASIS API hides all the complexity away so you can focus on creating your dream app!).**
+
+* **No need to worry about how different blockchains or WEB2 and WEB3 can talk and integrate with each other, the OASIS handles all this for you!**
+
+* **Future prove so when any new language/tech comes out such as Ethereum2 etc, these will be automatically added to the OASIS API for FREE, you will have FREE upgrades for life!**
+
+* **WEB5 ready when it is released later this year...**
+
+Check out more info below:<br>
+[The Power Of The OASIS API](https://drive.google.com/file/d/1nnhGpXcprr6kota1Y85HDDKsBfJHN6sn/view?usp=sharing) <br>
+[What Is WEB4 & WEB5 Really?](https://www.ourworldthegame.com/single-post/what-is-web4-web5-really) <br>
+[First Production Release Of The WEB4 OASIS API](https://www.ourworldthegame.com/single-post/first-production-ready-release-of-web4-oasis-api-more) <br>
+[Annoucing WEB5 STAR ODK/HDK/COSMIC](https://www.ourworldthegame.com/single-post/announcing-star-odk-hdk-cosmic)  <br>
+[STAR ODK/HDK/COSMIC/OASIS API/Our World Update](https://www.ourworldthegame.com/single-post/star-odk-hdk-cosmic-oasis-api-our-world-update) 
 
 <br>
 
