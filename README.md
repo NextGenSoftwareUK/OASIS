@@ -232,6 +232,7 @@ Next, it will port Noomap to Unity and will implement a Synergy Engine allowing 
 Read another more refined (and updated) summary on the github repo code base for the Our World Smartphone AR Prototype:<br>
 https://github.com/NextGenSoftwareUK/Our-World-Smartphone-Prototype-AR
 
+<a name="web4-oasisapi-benefits"></a>
 ## Benefits Of Building On The WEB4 OASIS API:
 
 * **Integrate any WEB2 or WEB3 tech into your (web)app without having to learn or worry about new tech stacks/languages (the OASIS API hides all the complexity away so you can focus on creating your dream app!).**
