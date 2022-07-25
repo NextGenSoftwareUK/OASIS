@@ -176,7 +176,9 @@
 
 ## Overview
 
-The core OASIS (Open Advanced Sensory Immersion System) API that powers Our World and manages the central profile/avatar/karma system that other satellite apps/games plug into it and share. This allows karma to be earnt in the satellite apps/games by doing good deeds or progressing self help apps for example. 
+The core OASIS (Open Advanced Sensory Immersion System) API that powers Our World and manages the central profile/avatar/karma system that other satellite apps/games plug into it and share. This allows karma to be earnt in the satellite apps/games by doing good deeds or progressing self help apps for example.
+
+Various OASIS API functions and services can be accessed with this API such as Authentication, Karma, Avatars, Data, SEEDS, Wallets/Keys & more...
 
 [The OASIS API is a global universal API that aims to connect everything to everything](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-) to eliminate walled gardens/silos. There are a number of open protocols/platforms/networks (such as Gab, Mastodon, Diaspora, WebFinger,
  SOLID, Holochain, CEPTR Pluggable Protocol, Ethereum, Fediverse, ActivityPub, XMPP & more!) that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. 
