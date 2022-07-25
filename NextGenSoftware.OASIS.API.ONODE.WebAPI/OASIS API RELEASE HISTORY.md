@@ -467,5 +467,6 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 
 - Corrected previous version (from v2.2.3 to v2.3.0) in this release history (above).
 - Updated ref in Swagger documentation to point to this new md file rather than the older txt file.
+- Corrected typeo in Data API swagger documentation.
 
 ----------------------------------------------------------------------------------------------------------------------------

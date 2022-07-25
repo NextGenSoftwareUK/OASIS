@@ -664,23 +664,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
        //return HttpResponseHelper.FormatResponse(response);
    }
-   
 
-        
+
+
         /// <summary>
         /// Save's a holon data object.
         /// Set the saveChildren flag to true to save all the holon's child holon's. This defaults to true.
         /// If saveChildren is set to true, you can set the Recursive flag to true to save all the child's holon's recursively, or false to only save the first level of child holon's. This defaults to true.
         /// If saveChildren is set to true, you can set the maxChildDepth value to a custom int of how many levels down you wish to save, it defaults to 0, which means it will save to infinite depth.
         /// Set the continueOnError flag to true if you wish it to continue saving child holon's even if an error has occured, this defaults to true.
+        /// </summary>
         /// <param name="saveChildren"></param>
         /// <param name="recursive"></param>
         /// <param name="maxChildDepth"></param>
         /// <param name="continueOnError"></param>
-        /// </summary>
         /// <param name="holon"></param>
-        /// <param name="providerType">Pass in the provider you wish to use.</param>
-        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [Authorize]
         [HttpPost("save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}")]
