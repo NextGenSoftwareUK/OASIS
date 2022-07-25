@@ -2,7 +2,7 @@
 # OASIS API RELEASE HISTORY
 
 This needs to be updated whenever we do anywork that will effect the OASIS API (even changes to properties, etc on OASIS.API.CORE objects that are used in the API, etc...
-Then when we do a release, this file will be linked to the Swagger documentation. We also then need to copy it to the WIKI and GitHub Documentation.
+Then when we do a release, this file will be linked to the Swagger documentation. The file is also linked to the WIKI and GitHub Documentation.
 
 ----------------------------------------------------------------------------------------------------------------------------
 ## 0.0.1 ALPHA (10/10/2020)
