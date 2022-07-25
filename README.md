@@ -211,7 +211,17 @@ Both WEB 4 & WEB 5 use machine learning AI to analyse all of the worlds data to 
 
 To summarize, WEB4 OASIS API aggregates all of the worlds data into a fully unified API to allow better sense making to made, which then feeds into WEB5 STAR, which expresses it in a cyberspace ontology and connects the worlds data to the rest of the COSMOS and Galaxy... ;-)
 
-**By building on the WEB4 OASIS API, not only can you then integrate any WEB2 or WEB3 tech into your (web)app, you are also then future prove and your app will be WEB5 ready when it is released later this year...**
+**Benefits Of Building On The WEB4 OASIS API:
+
+* **Integrate any WEB2 or WEB3 tech into your (web)app without having to learn or worry about new tech stacks/languages (the OASIS API hides all the complexity away so you can focus on creating your dream app!).**
+
+* **No need to worry about how different blockchains or web2 and web3 can talk and integrate with each other, the OASIS handles all this for you!**
+
+* **Future prove so when any new language/tech comes out such as Ethereum2 etc, these will be automatically added to the OASIS API for FREE, you will have FREE upgrades for life!**
+
+* **WEB5 ready when it is released later this year...**
+
+**By building on the WEB4 OASIS API, not only can you then integrate any WEB2 or WEB3 tech into your (web)app without having to learn or worry about new tech stacks/languages (the OASIS API hides all the complexity away so you can focus on creating your dream app!), you are also then future prove (so when any new language/tech comes out such as Ethereum2 etc, these will be automatically added to the OASIS API for FREE, you will have FREE upgrades for life!) and your app will be WEB5 ready when it is released later this year...**
 
 Check out more info below:<br>
 https://www.ourworldthegame.com/single-post/what-is-web4-web5-really <br>
