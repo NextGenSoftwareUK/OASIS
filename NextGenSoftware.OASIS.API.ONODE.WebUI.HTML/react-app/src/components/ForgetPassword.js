@@ -39,20 +39,22 @@ export default class ForgetPassword extends React.Component {
         const auth = new oasisApi.Auth();
         auth.forgotPassword(data)
             .then(response => {
-                if (response.data.isError) {
-                    toast.error(response.data.message);
+                this.setState({ loading: false })
+                console.log(response)
+                if (response.data.result.isError) {
+                    toast.error(response.data.result.message);
                     return
                 }
 
-                toast.success(response.data.message);
+                toast.success(response.data.result.message);
                 this.props.hide();
             })
             .catch(error => {
-                toast.error(error.data.message);
+                toast.error(error.data.result.message);
                 this.setState({ loading: false })
             })
     }
-
+    
     render() {
         const { loading } = this.state;
         const { show, hide } = this.props;
@@ -96,7 +98,7 @@ export default class ForgetPassword extends React.Component {
 
                                 <form className="custom-form" onSubmit={handleSubmit}>
                                     <div className="form-header">
-                                        <h2>Forget Password</h2>
+                                        <h2>Forget Password?</h2>
                                     </div>
 
                                     <div className="form-inputs">

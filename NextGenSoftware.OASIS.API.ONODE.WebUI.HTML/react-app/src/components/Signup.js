@@ -76,18 +76,17 @@ export default class Signup extends React.Component {
             auth.signup(data)
                 .then(response => {
                     console.log(response)
-                    if(response.error) {
-                        toast.error(response.result.message)
-                        return
-                    } else if(!response.error) {
-                        this.props.hide()
-                        toast.success(response.result.message);
+                    if(response.data.result.isError) {
+                        toast.error(response.data.result.message)
+                        return;
                     }
+                    
+                    this.props.hide()
+                    toast.success(response.data.result.message);
                 }).catch(error => {
-                    // console.log(JSON.parse(error))
                     console.log(error)
                     this.setState({ loading: false })
-                    toast.error(error.result.message);
+                    toast.error(error.data.result.message);
                 }).finally(()=>{
                     this.setState({loading: false})
                 });
