@@ -169,12 +169,52 @@
 
 **NOTE: This documentation & code is a WIP and is still currently being written so please make sure you check back often...**
 
-**We would love to hear from you regarding feedback on any of the vision, docs, code or would like to submit ideas. Even better, if you would like to get actively involved by coding, spreading the word, finding funding or any other role then please get in touch right NOW! :) Email us ourworld@nextgensoftware.co.uk. Thank you.**
+**We would love to hear from you regarding feedback on any of the vision, docs, code or would like to submit ideas. Even better, if you would like to get actively involved by coding, spreading the word, finding funding or any other role then please get in touch right NOW! :) Email us ourworld@nextgensoftware.co.uk or better to contact us on our Telegram group https://t.me/ourworldthegamechat (we check it more often!) here:  Thank you.**
 
-The core OASIS (Open Advanced Sensory Immersion System) API that powers Our World and manages the central profile/avatar/karma system that other satellite apps/games plug into it and share. This allows karma to be earnt in the satellite apps/games by doing good deeds or progressing self help apps for example. This also includes HoloNET that allows .NET to talk to Holochain, which is where the profile/avatar is stored on a private decentralised, distributed network. This will be gifted forward to the Holochain community along with the HoloUnity3D SDK/Lib/Asset coming soon... ;-)
+## Overview
+
+The core OASIS (Open Advanced Sensory Immersion System) API that powers Our World and manages the central profile/avatar/karma system that other satellite apps/games plug into it and share. This allows karma to be earnt in the satellite apps/games by doing good deeds or progressing self help apps for example. 
 
 [The OASIS API is a global universal API that aims to connect everything to everything](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-) to eliminate walled gardens/silos. There are a number of open protocols/platforms/networks (such as Gab, Mastodon, Diaspora, WebFinger,
  SOLID, Holochain, CEPTR Pluggable Protocol, Ethereum, Fediverse, ActivityPub, XMPP & more!) that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. 
+
+WEB 4 OASIS API is a fully distributed decentralised fault tolerant load balanced integrated API that runs across the full Internet acting as an abstraction layer over everything and serves as a network of networks.
+
+One of the core design goals of the OASIS is maximum interoperability (to remove all silos and walled gardens) to the point everything merges into one (the singularity) and also to be super powerful but super easy and intuitive to use.
+
+It also harnesses the best of each provider so the OASIS uses the strengths of each provider to the maximum and removes all weaknesses, it automatically uses the most appropriate provider or providers for any given use case.
+
+The WEB4 OASIS API connects & Integrates everything (all of Web 2 & Web 3) including all blockchains,  holochain, ipfs, databases, cloud etc into one fully unified API that is an abstraction layer over everything) and the STAR OASIS Omniverse (WEB 5) where Our World is the first world in the infinite Omniverse (what comes after Metaverse). It connects and integrates all metaverses together through the SSO Avatar/Karma system (part of the OASIS API). It is also a fully interoperable Metaverse Low Code Generator (connecting all WEB 2 and WEB 3 together) through the WEB 4 OASIS API.
+
+So far it integrates Holochain, IPFS, MongoDB, SQLLite, Neo4j, Solana, Ethereum, EOS & ThreeFold with many more coming soon such as COSMOS, Polkadot, Polygon, SOLID, ActivityPub, Near & many more! :) If you wish to get involved and help build out any of these providers or any other you would like please get in touch here: https://t.me/ourworldthegamechat. 
+
+The OASIS API features a powerful Avatar SSO API allowing one login across all your sites, games, apps, services, etc. This avatar is the digital twin of YOU and allows you to earn/lose karma through the Karma API. 
+
+It also features the Data API allowing data to be shared between the above providers giving for interoperability. It also has powerful features such as auto-fail over, auto-load balancing and auto-replication across the providers so if one node goes down in your local area it will automatically switch to the next fastest node in your area independent of the network it belongs to, this way the OASIS API never has any downtime and will always be super fast and not reliant on only one network.
+
+The OASIS API also has a SEEDS API allowing people to earn karma for donating and paying with Seeds as well as when they invite or join Seeds. Read more here: https://joinseeds.earth/
+
+Finally, it also features a Keys/Wallets API, which allows public private keys to be linked to your avatar per provider and private keys are only stored locally. Public keys and the rest of the wallet are stored on any provider. Because of the auto replication the private keys are automatically backed up to your local devices and can automatically sync between them so if you get a new device it can automatically sync with it, a bit like a decentralised offline cloud. 
+
+You will never lose your keys again! ;-)
+
+It can also then sync your public key and wallet address etc when you go back online. With this architecture it opens the doors to many new use cases... 
+
+The whole point of the OASIS API is to allow everything to be fully interoperable so data can be shared between any provider, the architecture opens the doors for many more use cases like importing and exporting your data between providers, aggregating all your data to remove all silos so better sense making and AI machine learning can be made to analyse and to make predictions etc, smart contract interoperability, etc
+
+It also allows full data redundancy and for it to be network independent so if one network goes down it can automatically switch to the next fastest node in your area regardless of what network it is on...
+
+WEB 5 OASIS STAR OMNIVERSE is built on top of the OASIS API and aggregates all the worlds data and expresses it within a cyberspace ontology using a cutting edge custom built ORM (Object Relational Mapper) called COSMIC. The STAR Omniverse is both a simulation & game of life and aggregates all metaverses into one fully integrated unified platform.
+
+Both WEB 4 & WEB 5 use machine learning AI to analyse all of the worlds data to generate useful insights, predictions & so much more!
+
+To summarize, WEB4 OASIS API aggregates all of the worlds data into a fully unified API to allow better sense making to made, which then feeds into WEB5 STAR, which expresses it in a cyberspace ontology and connects the worlds data to the rest of the COSMOS and Galaxy... ;-)
+
+Check out more info below:<br>
+https://www.ourworldthegame.com/single-post/what-is-web4-web5-really <br>
+https://www.ourworldthegame.com/single-post/first-production-ready-release-of-web4-oasis-api-more <br>
+https://www.ourworldthegame.com/single-post/announcing-star-odk-hdk-cosmic  <br>
+https://www.ourworldthegame.com/single-post/star-odk-hdk-cosmic-oasis-api-our-world-update 
 
 [Our World](#our-world-overview) is an exciting immersive next generation 3D XR/IR (Infinite Reality) educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...
 
