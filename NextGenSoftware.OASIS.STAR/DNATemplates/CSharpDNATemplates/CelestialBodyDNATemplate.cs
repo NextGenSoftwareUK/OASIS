@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates
 {
     public class CelestialBodyDNATemplate : CELESTIALBODY, ICELESTIALBODY
     {
-        //public CelestialBodyDNATemplate(Dictionary<ProviderType, string> providerKey, bool autoLoad = true) : base(providerKey, autoLoad)
+        //public CelestialBodyDNATemplate(string> providerKey, bool autoLoad = true) : base(providerKey, autoLoad)
         //{
 
         //}
