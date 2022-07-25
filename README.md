@@ -39,7 +39,7 @@
   * [Sharing & Storing Your Data](#sharing---storing-your-data)
 - [OAPP Web UI Components](#oapp-web-ui-components)
 - [.NET HDK](#net-hdk)
-- [STAR ODK](#star-odk)
+- [WEB5 STAR ODK](#web5-star-odk)
 - [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
   * [ARC & Noomap Integration](#arc---noomap-integration)
   * [Node.JS Integration](#nodejs-integration)
