@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Options;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
@@ -71,8 +74,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
         public IEnumerable<IHolon> Children { get; set; }
-       //public ProviderType CreatedProviderType { get; set; }
-        public ObservableCollection<INode> Nodes { get; set; }
+        //public ProviderType CreatedProviderType { get; set; }
+        //public ObservableCollection<INode> Nodes { get; set; }
+
+        //[BsonDictionaryOptions(ArrayRepresentation)]
+        public IEnumerable<Node> Nodes { get; set; }
 
 
         /*

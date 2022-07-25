@@ -1,5 +1,6 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
 using NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces;
 
@@ -7,7 +8,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 {
     public class MapManager : OASISManager, IMapManager
     {
-        public MapManager() : base()
+        public MapManager(OASISDNA OASISDNA = null) : base(OASISDNA)
+        {
+
+        }
+
+        public MapManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
 
         }

@@ -5,6 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Types\bool.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Types\int.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Types\string.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="appsettings.Development.json" />
     <None Remove="CelestialBodyDNA.json" />
     <None Remove="OASIS_DNA.json" />
@@ -13,7 +20,7 @@
 
   <ItemGroup>
     <Content Include="DNA\OASIS_DNA.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
@@ -71,9 +78,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="10.1.1" />
+    <None Include="DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Types\bool.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Types\int.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Types\string.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MappingGenerator" Version="1.22.3" />
     <PackageReference Include="Mapster" Version="7.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.6" />
   </ItemGroup>
 
 </Project>

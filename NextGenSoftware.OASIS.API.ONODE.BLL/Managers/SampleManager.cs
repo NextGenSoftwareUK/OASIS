@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
 using NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces;
 
@@ -8,6 +10,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 {
     public class SampleManager : OASISManager, ISampleManager
     {
+        public SampleManager(OASISDNA OASISDNA = null) : base(OASISDNA)
+        {
+
+        }
+
+        public SampleManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
+        {
+
+        }
+
         public OASISResult<SampleHolon> SaveSampleHolon(string customPropety, string customPropety2, Guid avatarId, DateTime customDate, int customNumber, long customLongNumber)
         {
             SampleHolon sampleHolon = new SampleHolon();

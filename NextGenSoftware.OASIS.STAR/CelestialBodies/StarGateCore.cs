@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public class StarGateCore : CelestialBodyCore, IStarGateCore
+    public class StarGateCore : CelestialBodyCore<StarGate>, IStarGateCore
     {
         public IStarGate StarGate { get; set; }
 

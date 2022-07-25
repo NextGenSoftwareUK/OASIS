@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public class BlackHoleCore : CelestialBodyCore, IBlackHoleCore
+    public class BlackHoleCore : CelestialBodyCore<BlackHole>, IBlackHoleCore
     {
         public IBlackHole BlackHole { get; set; }
 

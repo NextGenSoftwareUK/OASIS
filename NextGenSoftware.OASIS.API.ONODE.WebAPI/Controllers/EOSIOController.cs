@@ -66,7 +66,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="avatarId"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetEOSIOAccountNameForAvatar")]
+        [HttpGet("get-eosio-account-name-for-avatar")]
         public OASISResult<List<string>> GetEOSIOAccountNamesForAvatar(Guid avatarId)
         {
             return new(EOSIOOASIS.GetEOSIOAccountNamesForAvatar(avatarId));
@@ -78,8 +78,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="avatarId"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetEOSIOAccounPrivateKeyForAvatar")]
-        public OASISResult<string> GetTelosAccounPrivateKeyForAvatar(Guid avatarId)
+        [HttpGet("get-eosio-account-private-key-for-avatar")]
+        public OASISResult<string> GetTelosAccountPrivateKeyForAvatar(Guid avatarId)
         {
             return new(EOSIOOASIS.GetEOSIOAccountPrivateKeyForAvatar(avatarId));
         }
@@ -90,7 +90,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="eosioAccountName"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetEOSIOAccount")]
+        [HttpGet("get-eosio-account")]
         public OASISResult<GetAccountResponseDto> GetEOSIOAccount(string eosioAccountName)
         {
             return new(EOSIOOASIS.GetEOSIOAccount(eosioAccountName));
@@ -102,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="avatarId"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetEOSIOAccountForAvatar")]
+        [HttpGet("get-eosio-account-for-avatar")]
         public OASISResult<GetAccountResponseDto> GetEOSIOAccountForAvatar(Guid avatarId)
         {
             return new(EOSIOOASIS.GetEOSIOAccountForAvatar(avatarId));
@@ -114,7 +114,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="eosioAccountName"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetAvatarIdForEOSIOAccountName")]
+        [HttpGet("get-avatar-id-for-eosio-account-name")]
         public OASISResult<string> GetAvatarIdForEOSIOAccountName(string eosioAccountName)
         {
             return new(EOSIOOASIS.GetAvatarIdForEOSIOAccountName(eosioAccountName).ToString());
@@ -126,7 +126,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="eosioAccountName"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetAvatarForEOSIOAccountName")]
+        [HttpGet("get-avatar-for-eosio-account-name")]
         public OASISResult<IAvatar> GetAvatarForEOSIOAccountName(string eosioAccountName)
         {
             return new (EOSIOOASIS.GetAvatarForEOSIOAccountName(eosioAccountName));
@@ -140,7 +140,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="symbol"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetBalanceForEOSIOAccount")]
+        [HttpGet("get-balance-for-eosio-account")]
         public OASISResult<string> GetBalanceForEOSIOAccount(string eosioAccountName, string code, string symbol)
         {
             return new(EOSIOOASIS.GetBalanceForEOSIOAccount(eosioAccountName, code, symbol));
@@ -154,7 +154,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="symbol"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetBalanceForAvatar")]
+        [HttpGet("get-balance-for-avatar")]
         public OASISResult<string> GetBalanceForAvatar(Guid avatarId, string code, string symbol)
         {
             return new(EOSIOOASIS.GetBalanceForAvatar(avatarId, code, symbol));

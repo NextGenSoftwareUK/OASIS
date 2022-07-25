@@ -116,6 +116,16 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     }
 
+    public class HolonLoadedEventArgs<T> : OASISEventArgs<T>
+    {
+
+    }
+
+    public class HolonSavedEventArgs<T> : OASISEventArgs<T>
+    {
+
+    }
+
     //public class HolonAddedEventArgs : OASISEventArgs<IEnumerable<IHolon>>
     public class HolonAddedEventArgs : OASISEventArgs<IHolon>
     {

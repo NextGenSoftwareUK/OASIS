@@ -4,6 +4,7 @@ using System.ComponentModel;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
@@ -12,27 +13,33 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         private string _name;
         private string _description;
 
-        public HolonBase()
-        {
-            IsNewHolon = true;
-            //Id = Guid.NewGuid(); //TODO: Not sure if to have this or not?
-        }
-
-        public HolonBase(HolonType holonType)
-        {
-            IsNewHolon = true;
-            //Id = Guid.NewGuid(); //TODO: Not sure if to have this or not?
-            HolonType = holonType;
-        }
-
         public HolonBase(Guid id)
         {
             Id = id;
         }
 
-        public HolonBase(Dictionary<ProviderType, string> providerKey)
+        public HolonBase(string providerKey, ProviderType providerType = ProviderType.Default)
         {
-            ProviderUniqueStorageKey = providerKey;
+            if (providerType == ProviderType.Default)
+                providerType = ProviderManager.CurrentStorageProviderType.Value;
+
+            this.ProviderUniqueStorageKey[providerType] = providerKey;
+        }
+
+        //public HolonBase(Dictionary<ProviderType, string> providerKeys)
+        //{
+        //    ProviderUniqueStorageKey = providerKeys;
+        //}
+
+        public HolonBase(HolonType holonType)
+        {
+            IsNewHolon = true;
+            HolonType = holonType;
+        }
+
+        public HolonBase()
+        {
+            IsNewHolon = true;
         }
 
         public IHolon Original { get; set; }

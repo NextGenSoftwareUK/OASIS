@@ -7,15 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Genesis - Copy\CSharp\ISuperHolon.cs" />
-    <Compile Remove="Genesis - Copy\CSharp\ISuperTest.cs" />
-    <Compile Remove="Genesis - Copy\CSharp\OurWorldPlanet.cs" />
-    <Compile Remove="Genesis - Copy\CSharp\SuperHolon.cs" />
-    <Compile Remove="Genesis - Copy\CSharp\SuperTest.cs" />
-    <Compile Remove="Genesis - Copy\CSharp\SuperZome.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="fonts\1Row.flf" />
     <None Remove="fonts\3-D.flf" />
     <None Remove="fonts\3D Diagonal.flf" />
@@ -938,18 +929,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Genesis - Copy\CSharp\" />
-    <Folder Include="Genesis\CSharp\" />
-    <Folder Include="Genesis\Rust\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0-preview.1.21102.12" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.STAR\NextGenSoftware.OASIS.STAR.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Genesis\CSharp\" />
   </ItemGroup>
 
 </Project>

@@ -12,9 +12,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     {
         private static List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
         private static List<EnumValue<ProviderType>> _registeredProviderTypes = new List<EnumValue<ProviderType>>();
-        private static List<EnumValue<ProviderType>> _providerAutoFailOverList { get; } = new List<EnumValue<ProviderType>>();
-        private static List<EnumValue<ProviderType>> _providerAutoLoadBalanceList { get; } = new List<EnumValue<ProviderType>>();
-        private static List<EnumValue<ProviderType>> _providersThatAreAutoReplicating { get; } = new List<EnumValue<ProviderType>>();
+        private static List<EnumValue<ProviderType>> _providerAutoFailOverList { get; set; } = new List<EnumValue<ProviderType>>();
+        private static List<EnumValue<ProviderType>> _providerAutoLoadBalanceList { get; set; } = new List<EnumValue<ProviderType>>();
+        private static List<EnumValue<ProviderType>> _providersThatAreAutoReplicating { get; set; } = new List<EnumValue<ProviderType>>();
         private static bool _setProviderGlobally = false;
 
         public static EnumValue<ProviderType> CurrentStorageProviderType { get; private set; } = new EnumValue<ProviderType>(ProviderType.Default);
@@ -407,9 +407,44 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static bool SetAutoReplicationForProviders(bool autoReplicate, List<ProviderType> providers)
+        public static bool SetAutoReplicationForProviders(bool autoReplicate, IEnumerable<ProviderType> providers)
         {
             return SetProviderList(autoReplicate, providers, _providersThatAreAutoReplicating);
+        }
+
+        public static OASISResult<bool> SetAutoReplicationForProviders(bool autoReplicate, string providerList)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoReplicate", providerList);
+
+            result.InnerMessages.AddRange(listResult.InnerMessages);
+            result.IsWarning = listResult.IsWarning;
+            result.WarningCount += listResult.WarningCount;
+
+            result.Result = SetAutoReplicationForProviders(autoReplicate, listResult.Result);
+            return result;
+        }
+
+        public static OASISResult<bool> SetAndReplaceAutoReplicationListForProviders(string providerList)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoReplicate", providerList);
+
+            result.InnerMessages.AddRange(listResult.InnerMessages);
+            result.IsWarning = listResult.IsWarning;
+            result.WarningCount += listResult.WarningCount;
+
+            _providersThatAreAutoReplicating.Clear();
+            foreach (ProviderType providerType in listResult.Result)
+                _providersThatAreAutoReplicating.Add(new EnumValue<ProviderType>(providerType));
+
+            return result;
+        }
+
+        public static OASISResult<bool> SetAndReplaceAutoReplicationListForProviders(IEnumerable<EnumValue<ProviderType>> providerList)
+        {
+            _providersThatAreAutoReplicating = providerList.ToList();
+            return new OASISResult<bool>(true);
         }
 
         public static bool SetAutoReplicateForAllProviders(bool autoReplicate)
@@ -417,9 +452,99 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return SetAutoReplicationForProviders(autoReplicate, _registeredProviderTypes.Select(x => x.Value).ToList());
         }
 
-        public static bool SetAutoFailOverForProviders(bool addToFailOverList, List<ProviderType> providers)
+        public static bool SetAutoFailOverForProviders(bool addToFailOverList, IEnumerable<ProviderType> providers)
         {
             return SetProviderList(addToFailOverList, providers, _providerAutoFailOverList);
+        }
+
+        public static OASISResult<bool> SetAutoFailOverForProviders(bool addToFailOverList, string providerList)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoFailOver", providerList);
+
+            result.InnerMessages.AddRange(listResult.InnerMessages);
+            result.IsWarning = listResult.IsWarning;
+            result.WarningCount += listResult.WarningCount;
+
+            result.Result = SetAutoFailOverForProviders(addToFailOverList, listResult.Result);
+            return result;
+        }
+
+        public static OASISResult<bool> SetAndReplaceAutoFailOverListForProviders(string providerList)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoFailOver", providerList);
+
+            result.InnerMessages.AddRange(listResult.InnerMessages);
+            result.IsWarning = listResult.IsWarning;
+            result.WarningCount += listResult.WarningCount;
+
+            _providerAutoFailOverList.Clear();
+            foreach (ProviderType providerType in listResult.Result)
+                _providerAutoFailOverList.Add(new EnumValue<ProviderType>(providerType));
+
+            return result;
+        }
+
+        public static OASISResult<bool> SetAndReplaceAutoFailOverListForProviders(IEnumerable<EnumValue<ProviderType>> providerList)
+        {
+            _providerAutoFailOverList = providerList.ToList();
+            return new OASISResult<bool>(true);
+        }
+
+        public static OASISResult<T> ValidateProviderList<T>(string listName, string providerList)
+        {
+            string[] providers = providerList.Split(',');
+            object providerTypeObject = null;
+
+            foreach (string provider in providers)
+            {
+                if (!Enum.TryParse(typeof(ProviderType), provider.Trim(), out providerTypeObject))
+                    return new OASISResult<T>() { Message = $"The ProviderType {provider.Trim()} passed in for the {listName} list is invalid. It must be one of the following types: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}.", IsError = true };
+            }
+
+            return new OASISResult<T>();
+        }
+
+        public static OASISResult<IEnumerable<ProviderType>> GetProvidersFromList(string listName, string providerList)
+        {
+            OASISResult<IEnumerable<ProviderType>> result = new OASISResult<IEnumerable<ProviderType>>();
+            List<ProviderType> providerTypes = new List<ProviderType>();
+            string[] providers = providerList.Split(",");
+            object providerTypeObject = null;
+            List<string> invalidProviderTypes = new List<string>();
+
+            foreach (string provider in providers)
+            {
+                if (Enum.TryParse(typeof(ProviderType), provider.Trim(), out providerTypeObject))
+                    providerTypes.Add((ProviderType)providerTypeObject);
+                else
+                {
+                    invalidProviderTypes.Add(provider.Trim());
+                    //ErrorHandling.HandleWarning(ref result, $"{provider.Trim()} listName} list is invalid.");
+                    ErrorHandling.HandleWarning(ref result, $"Error in GetProvidersFromList method in ProviderManager, the provider {provider.Trim()} specified in the {listName} list is invalid.");
+                }
+            }
+
+            if (result.WarningCount > 0)
+                result.Message = $"Error in GetProvidersFromList method in ProviderManager. {result.WarningCount} provider type(s) passed in for the {listName} list are invalid:\n\n{OASISResultHelper.BuildInnerMessageError(invalidProviderTypes, ", ", true)}.\n\nThey must be one of the following values: {EnumHelper.GetEnumValues(typeof(ProviderType))}";
+            //result.Message = $"Error in GetProvidersFromList method in ProviderManager. {result.WarningCount} provider type(s) passed in for the {listName} are invalid:\n\n{OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}.\n\nThey must be one of the following values: {EnumHelper.GetEnumValues(typeof(ProviderType))}";
+
+            result.Result = providerTypes;
+            return result;
+        }
+
+        public static OASISResult<IEnumerable<EnumValue<ProviderType>>> GetProvidersFromListAsEnumList(string listName, string providerList)
+        {
+            OASISResult<IEnumerable<EnumValue<ProviderType>>> result = new OASISResult<IEnumerable<EnumValue<ProviderType>>>();
+            OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList(listName, providerList);
+
+            if (!listResult.IsError && listResult.Result != null)
+                result = EnumHelper.ConvertToEnumValueList(listResult.Result);
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in GetProvidersFromListAsEnumList method in ProviderManager. Reason: {listResult.Message}", listResult.DetailedMessage);
+
+            return result;
         }
 
         public static bool SetAutoFailOverForAllProviders(bool addToFailOverList)
@@ -427,9 +552,49 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return SetAutoFailOverForProviders(addToFailOverList, _registeredProviderTypes.Select(x => x.Value).ToList());
         }
 
-        public static bool SetAutoLoadBalanceForProviders(bool addToLoadBalanceList, List<ProviderType> providers)
+        public static bool SetAutoLoadBalanceForProviders(bool addToLoadBalanceList, IEnumerable<ProviderType> providers)
         {
             return SetProviderList(addToLoadBalanceList, providers, _providerAutoLoadBalanceList);
+        }
+
+        public static OASISResult<bool> SetAutoLoadBalanceForProviders(bool addToLoadBalanceList, string providerList)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoLoadBalance", providerList);
+
+            result.InnerMessages.AddRange(listResult.InnerMessages);
+            result.IsWarning = listResult.IsWarning;
+            result.WarningCount += listResult.WarningCount;
+
+            result.Result = SetAutoLoadBalanceForProviders(addToLoadBalanceList, listResult.Result);
+            return result;
+        }
+
+        public static OASISResult<bool> SetAndReplaceAutoLoadBalanceListForProviders(string providerList)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoLoadBalance", providerList);
+
+            result.InnerMessages.AddRange(listResult.InnerMessages);
+            result.IsWarning = listResult.IsWarning;
+            result.WarningCount += listResult.WarningCount;
+
+            if (!listResult.IsError && listResult.Result != null)
+            {
+                _providerAutoLoadBalanceList.Clear();
+                foreach (ProviderType providerType in listResult.Result)
+                    _providerAutoLoadBalanceList.Add(new EnumValue<ProviderType>(providerType));
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in SetAndReplaceAutoLoadBalanceListForProviders method in ProviderManager. Reason: {listResult.Result}");
+
+            return result;
+        }
+
+        public static OASISResult<bool> SetAndReplaceAutoLoadBalanceListForProviders(IEnumerable<EnumValue<ProviderType>> providerList)
+        {
+            _providerAutoLoadBalanceList = providerList.ToList();
+            return new OASISResult<bool>(true);
         }
 
         public static bool SetAutoLoadBalanceForAllProviders(bool addToLoadBalanceList)
@@ -460,7 +625,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return GetProviderListAsString(GetProviderAutoLoadBalanceList());
         }
 
-        private static string GetProviderListAsString(List<EnumValue<ProviderType>> providerList)
+        public static string GetProviderListAsString(List<ProviderType> providerList)
+        {
+            return GetProviderListAsString(EnumHelper.ConvertToEnumValueList(providerList).Result.ToList());
+        }
+
+        public static string GetProviderListAsString(List<EnumValue<ProviderType>> providerList)
         {
             string list = "";
 
@@ -478,12 +648,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return list;
         }
 
+        //public static List<EnumValue<ProviderType>> GetProvidersThatAreAutoReplicating()
+        //{
+        //    return _providersThatAreAutoReplicating;
+        //}
+
         public static List<EnumValue<ProviderType>> GetProvidersThatAreAutoReplicating()
         {
+            //TODO: Handle OASISResult properly and make all methods return OASISResult ASAP!
+            //string providerListCache = GetProviderListAsString(_providersThatAreAutoReplicating);
+            //return GetProvidersFromListAsEnumList("AutoReplicate", providerListCache).Result.ToList();
+
             return _providersThatAreAutoReplicating;
         }
 
-        private static bool SetProviderList(bool add, List<ProviderType> providers, List<EnumValue<ProviderType>> listToAddTo)
+        private static bool SetProviderList(bool add, IEnumerable<ProviderType> providers, List<EnumValue<ProviderType>> listToAddTo)
         {
             foreach (ProviderType providerType in providers)
             {

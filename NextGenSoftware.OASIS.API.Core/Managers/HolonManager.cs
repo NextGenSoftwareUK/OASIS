@@ -84,14 +84,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
+            else
+            {
+                // Store the original holon for change tracking in STAR/COSMIC.
+                result.Result.Original = result.Result;
 
-            else if (result.Result.MetaData != null)
-                result.Result = (T)MapMetaData<T>(result.Result);
+                if (result.Result.MetaData != null)
+                    result.Result = (T)MapMetaData<T>(result.Result);
+            }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            result.Result.Original = result.Result;
             return result;
         }
 
@@ -123,11 +125,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
+            else
+                // Store the original holon for change tracking in STAR/COSMIC.
+                result.Result.Original = result.Result;
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            result.Result.Original = result.Result;
             return result;
         }
 
@@ -155,15 +157,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result == null)
             {
                 result.IsError = true;
-                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load the holon with id ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load the holon with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), string.Concat(".\n\nDetailed Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
+            else
+                // Store the original holon for change tracking in STAR/COSMIC.
+                result.Result.Original = result.Result;
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            result.Result.Original = result.Result;
             return result;
         }
 
@@ -195,13 +197,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
-            else if (result.Result.MetaData != null)
-                result.Result = (T)MapMetaData<T>(result.Result);
+            else
+            {
+                // Store the original holon for change tracking in STAR/COSMIC.
+                result.Result.Original = result.Result;
+
+                if (result.Result.MetaData != null)
+                    result.Result = (T)MapMetaData<T>(result.Result);
+            }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            result.Result.Original = result.Result;
             return result;
         }
 
@@ -233,11 +238,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
+            else
+                // Store the original holon for change tracking in STAR/COSMIC.
+                result.Result.Original = result.Result;
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            result.Result.Original = result.Result;
             return result;
         }
 
@@ -269,13 +274,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
-            else if (result.Result.MetaData != null)
-                result.Result = (T)MapMetaData<T>(result.Result);
+            else
+            {
+                // Store the original holon for change tracking in STAR/COSMIC.
+                result.Result.Original = result.Result;
+
+                if (result.Result.MetaData != null)
+                    result.Result = (T)MapMetaData<T>(result.Result);
+            }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            result.Result.Original = result.Result;
             return result;
         }
 
@@ -307,11 +315,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
+            else
+                // Store the original holon for change tracking in STAR/COSMIC.
+                result.Result.Original = result.Result;
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            result.Result.Original = result.Result;
             return result;
         }
 
@@ -343,13 +351,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
-            else if (result.Result.MetaData != null)
-                result.Result = (T)MapMetaData<T>(result.Result);
+            else
+            {
+                // Store the original holon for change tracking in STAR/COSMIC.
+                result.Result.Original = result.Result;
+
+                if (result.Result.MetaData != null)
+                    result.Result = (T)MapMetaData<T>(result.Result);
+            }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            result.Result.Original = result.Result;
             return result;
         }
 
@@ -381,13 +392,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
+            else
+            {
+                // Store the original holon for change tracking in STAR/COSMIC.
+                foreach (IHolon holon in result.Result)
+                    holon.Original = holon;
+            }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            foreach (IHolon holon in result.Result)
-                holon.Original = holon;
-
             return result;
         }
 
@@ -420,14 +432,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
             else
+            {
+                // Store the original holon for change tracking in STAR/COSMIC.
+                foreach (IHolon holon in result.Result)
+                    holon.Original = holon;
+
                 MapMetaData(result);
+            }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            foreach (IHolon holon in result.Result)
-                holon.Original = holon;
-
             return result;
         }
 
@@ -460,13 +473,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
+            else
+            {
+                // Store the original holon for change tracking in STAR/COSMIC.
+                foreach (IHolon holon in result.Result)
+                    holon.Original = holon;
+            }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            foreach (IHolon holon in result.Result)
-                holon.Original = holon;
-
             return result;
         }
 
@@ -499,14 +513,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
             else
+            {
                 MapMetaData(result);
 
+                // Store the original holon for change tracking in STAR/COSMIC.
+                foreach (IHolon holon in result.Result)
+                    holon.Original = holon;
+            }
+
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            foreach (IHolon holon in result.Result)
-                holon.Original = holon;
-
             return result;
         }
 
@@ -538,13 +553,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
+            else
+            {
+                // Store the original holon for change tracking in STAR/COSMIC.
+                foreach (IHolon holon in result.Result)
+                    holon.Original = holon;
+            }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            foreach (IHolon holon in result.Result)
-                holon.Original = holon;
-
             return result;
         }
 
@@ -577,14 +593,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
             else
+            {
                 MapMetaData(result);
 
+                // Store the original holon for change tracking in STAR/COSMIC.
+                foreach (IHolon holon in result.Result)
+                    holon.Original = holon;
+            }
+
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            foreach (IHolon holon in result.Result)
-                holon.Original = holon;
-
             return result;
         }
 
@@ -617,13 +634,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
+            else
+            {
+                // Store the original holon for change tracking in STAR/COSMIC.
+                foreach (IHolon holon in result.Result)
+                    holon.Original = holon;
+            }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            foreach (IHolon holon in result.Result)
-                holon.Original = holon;
-
             return result;
         }
 
@@ -656,14 +674,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
             else
+            {
                 MapMetaData(result);
 
+                // Store the original holon for change tracking in STAR/COSMIC.
+                foreach (IHolon holon in result.Result)
+                    holon.Original = holon;
+            }
+
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            foreach (IHolon holon in result.Result)
-                holon.Original = holon;
-
             return result;
         }
 
@@ -695,13 +714,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
+            else
+            {
+                // Store the original holon for change tracking in STAR/COSMIC.
+                foreach (IHolon holon in result.Result)
+                    holon.Original = holon;
+            }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            foreach (IHolon holon in result.Result)
-                holon.Original = holon;
-
             return result;
         }
 
@@ -734,14 +754,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
             else
+            {
                 MapMetaData(result);
 
+                // Store the original holon for change tracking in STAR/COSMIC.
+                foreach (IHolon holon in result.Result)
+                    holon.Original = holon;
+            }
+
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            foreach (IHolon holon in result.Result)
-                holon.Original = holon;
-
             return result;
         }
 
@@ -773,13 +794,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
+            else
+            {
+                // Store the original holon for change tracking in STAR/COSMIC.
+                foreach (IHolon holon in result.Result)
+                    holon.Original = holon;
+            }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            foreach (IHolon holon in result.Result)
-                holon.Original = holon;
-
             return result;
         }
 
@@ -812,14 +834,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
             else
+            {
                 MapMetaData(result);
 
+                // Store the original holon for change tracking in STAR/COSMIC.
+                foreach (IHolon holon in result.Result)
+                    holon.Original = holon;
+            }
+
             SwitchBackToCurrentProvider(currentProviderType, ref result);
-
-            // Store the original holon for change tracking in STAR/COSMIC.
-            foreach (IHolon holon in result.Result)
-                holon.Original = holon;
-
             return result;
         }
 
@@ -1583,7 +1606,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     result = providerResult.Result.LoadHolon(id, loadChildren, recursive, maxChildDepth, continueOnError, version);
-                    result.IsSaved = true;
+                    result.IsLoaded = true;
                 }
             }
             catch (Exception ex)
@@ -1628,7 +1651,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
                         result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
-                        result.IsSaved = true;
+                        result.IsLoaded = true;
                     }
                     else
                         ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
@@ -1650,39 +1673,45 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        //TODO: Finish Upgrading rest of HolonManager to work with this improved code (from AvatarManager):
         private async Task<OASISResult<IHolon>> LoadHolonForProviderTypeAsync(Guid id, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<IHolon> result = null)
         {
+            string errorMessageTemplate = "Error in LoadHolonForProviderTypeAsync method in HolonManager loading holon with id {0} for provider {1}. Reason: ";
+            string errorMessage = string.Format(errorMessageTemplate, id, providerType);
+
             try
             {
                 OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                errorMessage = string.Format(errorMessageTemplate, id, ProviderManager.CurrentStorageProviderType.Name);
 
-                if (providerResult.IsError)
+                if (!providerResult.IsError && providerResult.Result != null)
                 {
-                    LoggingManager.Log(providerResult.Message, LogType.Error);
+                    var task = providerResult.Result.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
-                    if (result != null)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        result.IsError = true;
-                        result.Message = providerResult.Message;
+                        if (task.Result.IsError || task.Result.Result == null)
+                        {
+                            if (string.IsNullOrEmpty(task.Result.Message))
+                                task.Result.Message = "No Holon Found.";
+
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                        }
+                        else
+                        {
+                            result.IsLoaded = true;
+                            result.Result = task.Result.Result;
+                        }
                     }
+                    else
+                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
-                else if (result != null)
-                {
-                    result = await providerResult.Result.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, version);
-                    result.IsSaved = true;
-                }
+                else
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                string errorMessage = string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
-
-                if (result != null)
-                {
-                    result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
-                }
-                else
-                    LoggingManager.Log(errorMessage, LogType.Error);
+                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message));
             }
 
             return result;
@@ -1714,7 +1743,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
                         result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
-                        result.IsSaved = true;
+                        result.IsLoaded = true;
                     }
                     else
                         ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
@@ -1755,7 +1784,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     result = providerResult.Result.LoadHolon(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version);
-                    result.IsSaved = true;
+                    result.IsLoaded = true;
                 }
             }
             catch (Exception ex)
@@ -1800,7 +1829,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
                         result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
-                        result.IsSaved = true;
+                        result.IsLoaded = true;
                     }
                     else
                         ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
@@ -1841,7 +1870,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     result = await providerResult.Result.LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version);
-                    result.IsSaved = true;
+                    result.IsLoaded = true;
                 }
             }
             catch (Exception ex)
@@ -1886,7 +1915,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
                         result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
-                        result.IsSaved = true;
+                        result.IsLoaded = true;
                     }
                     else
                         ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
@@ -1927,7 +1956,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     result = providerResult.Result.LoadHolonsForParent(id, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, version);
-                    result.IsSaved = true;
+                    result.IsLoaded = true;
                 }
             }
             catch (Exception ex)
@@ -1973,7 +2002,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                     {
                         result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonsResult.Result);
-                        result.IsSaved = true;
+                        result.IsLoaded = true;
                     }
                     else
                         ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult.Message}");
@@ -2014,7 +2043,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     result = await providerResult.Result.LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, version);
-                    result.IsSaved = true;
+                    result.IsLoaded = true;
                 }
             }
             catch (Exception ex)
@@ -2059,7 +2088,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                     {
                         result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonsResult.Result);
-                        result.IsSaved = true;
+                        result.IsLoaded = true;
                     }
                     else
                         ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult.Message}");
@@ -2100,7 +2129,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     result = providerResult.Result.LoadHolonsForParent(providerKey, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, version);
-                    result.IsSaved = true;
+                    result.IsLoaded = true;
                 }
             }
             catch (Exception ex)
@@ -2145,7 +2174,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
                         result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
-                        result.IsSaved = true;
+                        result.IsLoaded = true;
                     }
                     else
                         ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
@@ -2186,7 +2215,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     result = await providerResult.Result.LoadHolonsForParentAsync(providerKey, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, version);
-                    result.IsSaved = true;
+                    result.IsLoaded = true;
                 }
             }
             catch (Exception ex)
@@ -2229,7 +2258,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (!loadHolonsForParentResult.IsError && loadHolonsForParentResult.Result != null)
                     {
                         result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(loadHolonsForParentResult.Result);
-                        result.IsSaved = true;
+                        result.IsLoaded = true;
                     }
                     else
                     {
@@ -2273,7 +2302,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     result = providerResult.Result.LoadAllHolons(holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, version);
-                    result.IsSaved = true;
+                    result.IsLoaded = true;
                 }
             }
             catch (Exception ex)
@@ -2319,7 +2348,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                     {
                         result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonsResult.Result);
-                        result.IsSaved = true;
+                        result.IsLoaded = true;
                     }
                     else
                         ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult.Message}");
@@ -2360,7 +2389,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     result = await providerResult.Result.LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, version);
-                    result.IsSaved = true;
+                    result.IsLoaded = true;
                 }
             }
             catch (Exception ex)

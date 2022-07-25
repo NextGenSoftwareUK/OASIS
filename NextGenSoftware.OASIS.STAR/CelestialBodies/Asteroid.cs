@@ -11,6 +11,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public Asteroid(Guid id) : base(id, HolonType.Asteroid) {}
 
-        public Asteroid(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Asteroid) {} 
+        public Asteroid(Dictionary<ProviderType, string> providerKeys) : base(providerKeys, HolonType.Asteroid) {} 
     }
 }

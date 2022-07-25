@@ -12,10 +12,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
     public class OlandService : IOlandService
     {
-        private readonly OlandManager _olandManager;
+        private readonly OLANDManager _olandManager;
         public OlandService()
         {
-            _olandManager = new OlandManager();
+            _olandManager = new OLANDManager();
         }
         
         public async Task<OASISResult<IEnumerable<IOland>>> GetAllOlands()

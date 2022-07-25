@@ -141,7 +141,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                if (holonType != HolonType.All)
+                if (holonType == HolonType.All)
                 {
                     return await _dbContext.Holon.FindAsync(_ => true).Result.ToListAsync();
                 }
@@ -161,7 +161,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                if (holonType != HolonType.All)
+                if (holonType == HolonType.All)
                 {
                     return _dbContext.Holon.Find(_ => true).ToList();
                 }
@@ -171,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     return _dbContext.Holon.Find(filter).ToList();
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 throw;
             }
@@ -432,12 +432,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                if (AvatarManager.LoggedInAvatar != null)
-                    holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+                if (holon != null)
+                {
+                    if (AvatarManager.LoggedInAvatar != null)
+                        holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
-                holon.DeletedDate = DateTime.Now;
-                await _dbContext.Holon.ReplaceOneAsync(filter: g => g.Id == holon.Id, replacement: holon);
-                return true;
+                    holon.DeletedDate = DateTime.Now;
+                    await _dbContext.Holon.ReplaceOneAsync(filter: g => g.Id == holon.Id, replacement: holon);
+                    return true;
+                }
+                else
+                    return false;
             }
             catch
             {
@@ -449,12 +454,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                if (AvatarManager.LoggedInAvatar != null)
-                    holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+                if (holon != null)
+                {
+                    if (AvatarManager.LoggedInAvatar != null)
+                        holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
-                holon.DeletedDate = DateTime.Now;
-                _dbContext.Holon.ReplaceOne(filter: g => g.Id == holon.Id, replacement: holon);
-                return true;
+                    holon.DeletedDate = DateTime.Now;
+                    _dbContext.Holon.ReplaceOne(filter: g => g.Id == holon.Id, replacement: holon);
+                    return true;
+                }
+                else
+                    return false;
             }
             catch
             {

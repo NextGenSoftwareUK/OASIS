@@ -12,6 +12,7 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         public bool IsOASISBooted { get; set; }
         public AvatarManager Avatar { get; set; }
         public KeyManager Keys { get; set; }
+        public WalletManager Wallets { get; set; }
         public HolonManager Data { get; set; }
         public MapManager Map { get; set; }
         public OASISProviders Providers { get; private set; }
@@ -61,9 +62,12 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 
         private void BootOASIS(bool startApolloServer = true)
         {
-           // Map = new MapManager(ProviderManager.CurrentStorageProvider);
+            Map = new MapManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Avatar = new AvatarManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-            Data = new HolonManager(ProviderManager.CurrentStorageProvider);
+            Data = new HolonManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            Keys = new KeyManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            Wallets = new WalletManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+
             Providers = new OASISProviders(OASISBootLoader.OASISBootLoader.OASISDNA);
 
             if (startApolloServer)

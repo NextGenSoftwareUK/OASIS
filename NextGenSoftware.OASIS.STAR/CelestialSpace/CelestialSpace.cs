@@ -162,7 +162,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             //OASISResult<ICelestialBody> celestialBodyResult = null;
             
             //TODO: Find a way to use new generic version so can use ICelestialBody instead of IHolon.
-            OASISResult<IHolon> celestialBodyResult = null;
+            OASISResult<ICelestialBody> celestialBodyResult = null;
 
             foreach (ICelestialBody celestialBody in CelestialBodies)
             {
@@ -266,7 +266,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             IsSaving = true;
 
             if (!STAR.IsStarIgnited)
-                STAR.ShowStatusMessage(new EventArgs.StarStatusChangedEventArgs() { MessageType = Enums.StarStatusMessageType.Processing, Message = $"Creating CelestialSpace {this.Name}..." });
+                STAR.ShowStatusMessage(Enums.StarStatusMessageType.Processing, $"Creating CelestialSpace {this.Name}...");
 
             IStar star = GetCelestialSpaceNearestStar();
 
@@ -337,14 +337,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Result = result });
 
                 if (!STAR.IsStarIgnited)
-                    STAR.ShowStatusMessage(new EventArgs.StarStatusChangedEventArgs() { MessageType = Enums.StarStatusMessageType.Error, Message = $"Error Creating CelestialSpace {this.Name}. Reason: {result.Message}" });
+                    STAR.ShowStatusMessage(Enums.StarStatusMessageType.Error, $"Error Creating CelestialSpace {this.Name}. Reason: {result.Message}");
             }
             else
             {
                 result.IsSaved = true;
 
                 if (!STAR.IsStarIgnited)
-                    STAR.ShowStatusMessage(new EventArgs.StarStatusChangedEventArgs() { MessageType = Enums.StarStatusMessageType.Success, Message = $"CelestialSpace {this.Name} Created." });
+                    STAR.ShowStatusMessage(Enums.StarStatusMessageType.Success, $"CelestialSpace {this.Name} Created.");
             }
 
             IsSaving = false;

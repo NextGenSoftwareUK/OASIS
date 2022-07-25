@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<IAvatar>> RegisterAsync(RegisterRequest model, string origin);
         OASISResult<IAvatar> Register(RegisterRequest model, string origin);
         Task<OASISResult<bool>> VerifyEmail(string token);
-        Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model, string origin);
+        //Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model, string origin);
         Task<OASISResult<string>> ValidateResetToken(ValidateResetTokenRequest model);
         Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model);
         //Task<OASISResult<IEnumerable<IAvatar>>> GetAll();
