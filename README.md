@@ -39,7 +39,7 @@
   * [Sharing & Storing Your Data](#sharing---storing-your-data)
 - [OAPP Web UI Components](#oapp-web-ui-components)
 - [.NET HDK](#net-hdk)
-- [WEB5 STAR ODK](#web5-star-odk)
+- [WEB5 STAR ODK Omniverse Interoperable Metaverse Low Code Generator](#web5-star-odk)
 - [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
   * [ARC & Noomap Integration](#arc---noomap-integration)
   * [Node.JS Integration](#nodejs-integration)
@@ -668,7 +668,7 @@ This will allow managed C# code to be compiled into any native language includin
 The front-end is built in Unity, the middle layer is built in C#/.NET and the back-end is built-in Holochain. 
 
 <a name="web5-star-odk"></a>
-## WEB5 STAR ODK (OASIS Developer Kit)
+## WEB5 STAR ODK (OASIS Developer Kit) Omniverse Interoperable Metaverse Low Code Generator
 
 WEB 5 OASIS STAR OMNIVERSE is built on top of the OASIS API & .NET HDK and aggregates all the worlds data and expresses it within a cyberspace ontology using a cutting edge custom built ORM (Object Relational Mapper) called COSMIC. The STAR Omniverse is both a simulation & game of life and aggregates all metaverses into one fully integrated unified platform. It is also a fully integrated immersive interoperable metaverse Low Code Generator and soooooo much more.... ;-)
 
