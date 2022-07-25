@@ -11,19 +11,30 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 {
     public class Holon : HolonBase, IHolon, INotifyPropertyChanged
     {
+        public Holon(Guid id) : base(id) 
+        {
+            Init();
+        }
+
+        public Holon(string providerKey, ProviderType providerType) : base(providerKey, providerType) 
+        {
+            Init();
+        }
+
+        //public Holon(Dictionary<ProviderType, string> providerKeys) : base(providerKeys) 
+        //{
+        //    Init();
+        //}
+
+        public Holon(HolonType holonType) : base(holonType)
+        {
+            Init();
+        }
+
         public Holon() : base()
         {
             Init();
         }
-
-        public Holon(HolonType holonType) : base(holonType) 
-        {
-            Init();
-        }
-
-        public Holon(Guid id) : base(id) {}
-
-        public Holon(Dictionary<ProviderType, string> providerKey) : base(providerKey) {}
 
         public Guid ParentOmniverseId { get; set; } //The Omniverse this Holon belongs to.
         public IOmiverse ParentOmniverse { get; set; } //The Omniverse this Holon belongs to.

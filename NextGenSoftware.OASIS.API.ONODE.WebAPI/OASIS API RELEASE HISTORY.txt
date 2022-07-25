@@ -203,3 +203,13 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 All API responses now also include a new OASISVersion property so you always know the API version you are using. It is a version number followed by the current enviroment, e.g. v2.2.1 LIVE.
 
 ----------------------------------------------------------------------------------------------------------------------------
+2.2.2
+
+
+
+----------------------------------------------------------------------------------------------------------------------------
+2.2.3
+
+
+
+----------------------------------------------------------------------------------------------------------------------------

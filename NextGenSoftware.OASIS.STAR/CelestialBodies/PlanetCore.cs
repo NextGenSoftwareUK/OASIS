@@ -39,21 +39,21 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //    return AddMoonAsync(moon).Result; //TODO: Is this the best way of doing this?
         //}
 
-        public async Task<OASISResult<IEnumerable<IMoon>>> GetMoonsAsync(bool refresh = true, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public async Task<OASISResult<IEnumerable<IMoon>>> GetMoonsAsync(bool refresh = true, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IMoon>> result = new OASISResult<IEnumerable<IMoon>>();
-            OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(Planet.Moons, HolonType.Moon, refresh, loadChildren, recursive, maxChildDepth, continueOnError, version);
-            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IMoon>>.CopyResult(holonResult, ref result);
+            OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(Planet.Moons, HolonType.Moon, refresh, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IMoon>>.CopyResult(holonResult, result);
             result.Result = Mapper<IHolon, Moon>.MapBaseHolonProperties(holonResult.Result);
             return result;
         }
 
-        public OASISResult<IEnumerable<IMoon>> GetMoons(bool refresh = true, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public OASISResult<IEnumerable<IMoon>> GetMoons(bool refresh = true, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return GetMoonsAsync(refresh).Result; //TODO: Is this the best way of doing this?
+            return GetMoonsAsync(refresh, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType).Result; //TODO: Is this the best way of doing this?
         }
 
-        public async Task<OASISResult<IEnumerable<IMoon>>> SaveMoonsAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
+        public async Task<OASISResult<IEnumerable<IMoon>>> SaveMoonsAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IMoon>> result = new OASISResult<IEnumerable<IMoon>>();
 
@@ -67,15 +67,15 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 return result;
             }
             
-            OASISResult<IEnumerable<IHolon>> holonResult = await SaveHolonsAsync(Planet.Moons, true, saveChildren, recursive, maxChildDepth, continueOnError);
-            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IMoon>>.CopyResult(holonResult, ref result);
+            OASISResult<IEnumerable<IHolon>> holonResult = await SaveHolonsAsync(Planet.Moons, true, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IMoon>>.CopyResult(holonResult, result);
             result.Result = Mapper<IHolon, Moon>.MapBaseHolonProperties(holonResult.Result);
             return result;
         }
 
-        public OASISResult<IEnumerable<IMoon>> SaveMoons(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
+        public OASISResult<IEnumerable<IMoon>> SaveMoons(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
-            return SaveMoonsAsync(saveChildren, recursive, maxChildDepth, continueOnError).Result; //TODO: Is this the best way of doing this?
+            return SaveMoonsAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType).Result; //TODO: Is this the best way of doing this?
         }
     }
 }
