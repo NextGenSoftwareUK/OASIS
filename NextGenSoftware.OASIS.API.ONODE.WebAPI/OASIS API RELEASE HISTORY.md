@@ -391,7 +391,7 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - See Commit History for more details...
 
 ----------------------------------------------------------------------------------------------------------------------------
-## 2.2.3 (22/07/22)
+## 2.3.0 (22/07/22)
 
 - Improvements & upgrades to the Data API.
 - Finished upgrading the OASISEngine so now EVERY API call can fully customise the OASIS Engine for that call such as whether auto-load balance, auto-fail over, auto-replication is enabled, which providers to use for auto-replication, auto-load balance & auto-failover, whether to show the auto-replication, auto-load balance & auto-failover lists in the response returned & whether to wait for auto-replication result. This allows for greating power and flexability so the OASIS Engine behaviour can be customised by api call per avatar.
@@ -461,4 +461,11 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Bumped OASIS version to v2.3.0 in Startup and OASISDNA in WebAPI & STAR ODK.
 
 - See Commit History for more details...
+
+----------------------------------------------------------------------------------------------------------------------------
+## 2.3.1 (25/07/22)
+
+- Corrected previous version (from v2.2.3 to v2.3.0) in this release history (above).
+- Updated ref in Swagger documentation to point to this new md file rather than the older txt file.
+
 ----------------------------------------------------------------------------------------------------------------------------
