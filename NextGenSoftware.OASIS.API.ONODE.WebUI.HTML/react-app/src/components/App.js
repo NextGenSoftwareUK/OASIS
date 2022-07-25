@@ -16,7 +16,6 @@ import "react-toastify/dist/ReactToastify.css";
 import Avatar from "./popups/avatar";
 import DataScreen from "./popups/data-screen";
 import Seeds from "./popups/seeds";
-import ForgotPassword from "./forgotPassword";
 import ComingSoon from "./popups/comingsoon/ComingSoon";
 
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
@@ -31,6 +30,7 @@ import Map from "./popups/map";
 import Provider from "./popups/provider";
 import Nft from "./popups/nft";
 import NFT from "oasis-api/nft/nft";
+import ForgotPassword from "./pages/forgotPassword";
 
 class App extends React.Component {
   state = {
@@ -272,6 +272,7 @@ class App extends React.Component {
             <Router>
                 <Switch>
                     <Route exact path='/avatar/verify-email' component={VerifyToken} />
+                    <Route exact path='/avatar/forgot-password' component={ForgotPassword} />
                 </Switch>
 
                 <div className="main-container">
