@@ -1,7 +1,7 @@
 
 
 
-# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK / STAR ODK
+# WEB4 OASIS API / Our World / HoloNET / HoloUnity / .NET HDK / WEB5 STAR ODK
 
 ## Contents
 - [Introduction](#introduction)
@@ -205,7 +205,7 @@ The whole point of the OASIS API is to allow everything to be fully interoperabl
 
 It also allows full data redundancy and for it to be network independent so if one network goes down it can automatically switch to the next fastest node in your area regardless of what network it is on...
 
-WEB 5 OASIS STAR OMNIVERSE is built on top of the OASIS API and aggregates all the worlds data and expresses it within a cyberspace ontology using a cutting edge custom built ORM (Object Relational Mapper) called COSMIC. The STAR Omniverse is both a simulation & game of life and aggregates all metaverses into one fully integrated unified platform. It is also a fully integrated immersive interoperable metaverse Low Code Generator and soooooo much more.... ;-)
+<a href="https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/README.md#web5-star-odk">WEB 5 OASIS STAR OMNIVERSE</a> is built on top of the OASIS API and aggregates all the worlds data and expresses it within a cyberspace ontology using a cutting edge custom built ORM (Object Relational Mapper) called COSMIC. The STAR Omniverse is both a simulation & game of life and aggregates all metaverses into one fully integrated unified platform. It is also a fully integrated immersive interoperable metaverse Low Code Generator and soooooo much more.... ;-)
 
 Both WEB 4 & WEB 5 use machine learning AI to analyse all of the worlds data to generate useful insights, predictions & so much more!
 
@@ -684,16 +684,14 @@ STAR stands for Synergiser Transformer/Translator Aggregator Resolver.
 
 **Synergiser** - This is because it synergises all of what is out there including all tech, the entire worlds content, models of the Universe, us, creation, etc. 
 
-**Transformer/Translator **- Due to it transforming and translating the data between different OASIS Providers and into one unified language (COSMIC ORM), which is how you talk to STAR.
+**Transformer/Translator**- Due to it transforming and translating the data between different OASIS Providers and into one unified language (COSMIC ORM), which is how you talk to STAR.
 
 **Aggregator** - Due to it aggerating all the data together and into one unified model of all and into one unified language (COSMIC ORM).
 
 **Resolver** - This is because it resolves all of the data one one format to another as well as into the one unified language (COSMIC ORM),
 
 
-As part of this we have been building it's very own ORM (Object Relational Mapping) 
-
-system as an abstraction layer over all the OASIS Providers (whole Internet eventually). This ORM is called COSMIC (Computer Object-Orientated Super-Synergistic Machine Interface Code). It supports the same features as many popular ORM's such as change-management, version control, change tracking, etc.
+As part of this we have been building it's very own ORM (Object Relational Mapping) system as an abstraction layer over all the OASIS Providers (whole Internet eventually). This ORM is called COSMIC (Computer Object-Orientated Super-Synergistic Machine Interface Code). It supports the same features as many popular ORM's such as change-management, version control, change tracking, etc.
 
 What makes it pretty cool and unique (other than all the other exciting features above) is that is is modelled on Life! The root object is the Omiverse, this contains multiple multiverses, each of these contains dimensions. the 3rd dimension contains parallel Universes. Each Universe contains Galaxies, SloarSystems, Stars, SuperStars, GrandSuperStars, GreatGrandSuperStar, Planets, Moons, Stargates, Wormholes, Blackholes, Nebulas, Portals, Comets, Meteoroid's, Asteroids, Cosmic Rays, Galactic Waves, Cosmic Waves, Gravitational Waves, SpaceTime Distortion's, Temporal Rift's, Stardust, SpaceTime Abnormalities etc. The first Planet created is Our World and it's moons are the satellite apps/games/websites (OAPP's) that plug into it sharing the central avatar/karma system. Each celestial body (moon, planet, star, etc) are also OAPP's (OASIS Applications).
 
