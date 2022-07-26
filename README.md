@@ -919,6 +919,14 @@ Businesses can also implement OAPP's if they qualify as a benevolent organisatio
 
 H4OME is currently being built by the S7 Foundation, a partner for Our World & NextGen Software. It allows users to create Holonic Apps (HAPPS) using a quick and easy to use drag n drop interface. It allows blocks of code/functionality to be coupled together so works like a 4th Generation Programming Language. The blocks are currently written in Javascript. It is built on top of Holochain, IPFS & Ethereum just like the OASIS Engine so they are a very good fit for each other.
 
+### OASIS API Architectue Overview
+
+This project is built on the principle of multilayer architecture. Where the first Presentation layer is the API project - [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) ([http://api.oasisplatform.world/](http://api.oasisplatform.world/)). Other projects in the solution are providers or tests that plug into it. There is also the [OASIS.API.Core](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Core) project that contains the main OASIS Engine/Architecture and is where the Managers that control the API are, containing all the Business Logic (BLL). 
+
+Providers in various technologies and APIs are integrated, each of them is a library project (modules) that connects (links) with the [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) project (main Presentation layer). Each of the providers (projects) has a class that implements the [IOASISStorageProvider](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASIStorageProvider.cs) & [IOASISNET](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASISNETProvider.cs) interfaces and which inherits from the abstract class [OASISStorageBase](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/OASISStorageProviderBase.cs). 
+
+For more info check out the WIKI pages here: <br>
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Introduction-to-the-OASIS-API
 
 **NOTE: This is still a WIP, so the above is likely to evolve and change as we progress...**
 
