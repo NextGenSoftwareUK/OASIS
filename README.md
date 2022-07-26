@@ -931,8 +931,7 @@ Other projects in the solution are providers or tests that plug into it. There i
 
 Providers in various technologies and APIs are integrated, each of them is a library project (modules) that connects (links) with the [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) project (main Presentation layer). Each of the providers (projects) has a class that implements the [IOASISStorageProvider](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASIStorageProvider.cs) & [IOASISNET](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASISNETProvider.cs) interfaces and which inherits from the abstract class [OASISStorageBase](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/OASISStorageProviderBase.cs). 
 
-For more info check out the WIKI pages here: <br>
-https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Introduction-to-the-OASIS-API
+For more info check out the [WIKI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Introduction-to-the-OASIS-API) pages.
 
 **NOTE: This is still a WIP, so the above is likely to evolve and change as we progress...**
 
