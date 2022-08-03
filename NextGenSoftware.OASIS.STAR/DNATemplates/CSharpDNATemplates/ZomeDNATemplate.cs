@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.Zomes;
 
@@ -14,19 +14,34 @@ namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates
 
         }
 
-        public async Task<OASISResult<IHolon>> LoadHOLONAsync(Guid id)
+        public async Task<OASISResult<HOLON>> LoadHOLONAsync(Guid id)
         {
-            return await base.LoadHolonAsync(id);
+            return await base.LoadHolonAsync<HOLON>(id);
         }
 
-        public async Task<OASISResult<IHolon>> LoadHOLONAsync(string providerKey)
+        public OASISResult<HOLON> LoadHOLON(Guid id)
         {
-            return await base.LoadHolonAsync(providerKey);
+            return base.LoadHolon<HOLON>(id);
         }
 
-        public async Task<OASISResult<IHolon>> SaveHOLONAsync(IHolon holon)
+        public async Task<OASISResult<HOLON>> LoadHOLONAsync(ProviderType providerType, string providerKey)
         {
-            return await base.SaveHolonAsync(holon);
+            return await base.LoadHolonAsync<HOLON>(providerType, providerKey);
+        }
+
+        public OASISResult<HOLON> LoadHOLON(ProviderType providerType, string providerKey)
+        {
+            return base.LoadHolon<HOLON>(providerType, providerKey);
+        }
+
+        public async Task<OASISResult<HOLON>> SaveHOLONAsync(HOLON holon)
+        {
+            return await base.SaveHolonAsync<HOLON>(holon);
+        }
+
+        public OASISResult<HOLON> SaveHOLON(HOLON holon)
+        {
+            return base.SaveHolon<HOLON>(holon);
         }
     }
 }

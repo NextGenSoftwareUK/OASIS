@@ -17,7 +17,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Planet = planet;
         }
 
-        public PlanetCore(IPlanet planet, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //public PlanetCore(IPlanet planet, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //{
+        //    this.Planet = planet;
+        //}
+
+        public PlanetCore(IPlanet planet, string providerKey, ProviderType providerType) : base(providerKey, providerType)
         {
             this.Planet = planet;
         }

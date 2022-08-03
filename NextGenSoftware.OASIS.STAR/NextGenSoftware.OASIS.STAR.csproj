@@ -9,6 +9,7 @@
     <Compile Remove="DNATemplates\CSharpDNATemplates\Types\bool.cs" />
     <Compile Remove="DNATemplates\CSharpDNATemplates\Types\int.cs" />
     <Compile Remove="DNATemplates\CSharpDNATemplates\Types\string.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -82,6 +83,7 @@
     <None Include="DNATemplates\CSharpDNATemplates\Types\bool.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\Types\int.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\Types\string.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" />
   </ItemGroup>
 
   <ItemGroup>

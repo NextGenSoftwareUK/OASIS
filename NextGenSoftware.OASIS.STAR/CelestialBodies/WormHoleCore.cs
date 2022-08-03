@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
@@ -14,7 +13,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.WormHole = wormHole;
         }
 
-        public WormHoleCore(IWormHole wormHole, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //public WormHoleCore(IWormHole wormHole, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //{
+        //    this.WormHole = wormHole;
+        //}
+
+        public WormHoleCore(IWormHole wormHole, string providerKey, ProviderType providerType) : base(providerKey, providerType)
         {
             this.WormHole = wormHole;
         }

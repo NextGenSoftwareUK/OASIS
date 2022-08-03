@@ -51,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             this.RotationSpeed = source.RotationSpeed;
             this.TiltAngle = source.TiltAngle;
             this.NumberRegisteredAvatars = source.NumberRegisteredAvatars;
-            this.NunmerActiveAvatars = source.NunmerActiveAvatars;
+            this.NumberActiveAvatars = source.NumberActiveAvatars;
 
             this.GenesisType = source.GenesisType;
         }
@@ -88,7 +88,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             item.RotationSpeed = this.RotationSpeed;
             item.TiltAngle = this.TiltAngle;
             item.NumberRegisteredAvatars = this.NumberRegisteredAvatars;
-            item.NunmerActiveAvatars = this.NunmerActiveAvatars;
+            item.NumberActiveAvatars = this.NumberActiveAvatars;
 
             item.GenesisType = this.GenesisType;
 

@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public BlackHole(Guid id) : base(id, HolonType.BlackHole) { }
 
-        public BlackHole(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.BlackHole) {} 
+        //public BlackHole(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.BlackHole) {} 
+        public BlackHole(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.BlackHole, autoLoad) { }
     }
 }

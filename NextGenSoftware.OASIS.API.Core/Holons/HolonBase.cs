@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             Id = id;
         }
 
-        public HolonBase(string providerKey, ProviderType providerType = ProviderType.Default)
+        public HolonBase(string providerKey, ProviderType providerType)
         {
             if (providerType == ProviderType.Default)
                 providerType = ProviderManager.CurrentStorageProviderType.Value;

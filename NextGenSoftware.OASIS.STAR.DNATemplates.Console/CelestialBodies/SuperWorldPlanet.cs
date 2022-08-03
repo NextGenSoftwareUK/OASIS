@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
 
         //}
 
-        public SuperWorld() : base(new Guid("46966c5f-64e6-41aa-beb5-202644340821"))
+        public SuperWorld() : base(new Guid("b2281d6b-a9f3-41a8-b4ad-f18972371ccc"))
         {
 
         }

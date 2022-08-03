@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
@@ -18,7 +16,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         }
 
-        public Dimension(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Dimension) 
+        //public Dimension(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Dimension) 
+        //{
+
+        //}
+
+        public Dimension(string providerKey, ProviderType providerType) : base(providerKey, providerType, HolonType.Dimension)
         {
 
         }

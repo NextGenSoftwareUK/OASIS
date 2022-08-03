@@ -19,8 +19,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         public Galaxy() : base(HolonType.Galaxy) { }
 
-        public Galaxy(Guid id) : base(id, HolonType.Galaxy) { }
+        public Galaxy(Guid id, bool autoLoad = true) : base(id, HolonType.Galaxy, autoLoad) { }
 
-        public Galaxy(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Galaxy) { }
+        //public Galaxy(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Galaxy) { }
+        public Galaxy(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.CosmicWave, autoLoad) { }
     }
 }

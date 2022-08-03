@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
@@ -14,7 +13,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Asteroid = asteroid;
         }
 
-        public AsteroidCore(IAsteroid asteroid, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //public AsteroidCore(IAsteroid asteroid, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //{
+        //    this.Asteroid = asteroid;
+        //}
+
+        public AsteroidCore(IAsteroid asteroid, string providerKey, ProviderType providerType) : base(providerKey, providerType)
         {
             this.Asteroid = asteroid;
         }

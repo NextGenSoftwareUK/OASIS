@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public Meteroid(Guid id) : base(id, HolonType.Meteroid) {}
 
-        public Meteroid(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Meteroid) { } 
+        //public Meteroid(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Meteroid) { } 
+        public Meteroid(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.Meteroid, autoLoad) { }
     }
 }

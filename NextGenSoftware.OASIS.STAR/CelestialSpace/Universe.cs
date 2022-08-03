@@ -132,12 +132,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Init(dimension);
         }
 
-        public Universe(Guid id, IDimension dimension = null) : base(id, HolonType.Universe) 
+        public Universe(Guid id, IDimension dimension = null, bool autoLoad = true) : base(id, HolonType.Universe, autoLoad) 
         {
             Init(dimension);
         }
 
-        public Universe(Dictionary<ProviderType, string> providerKey, IDimension dimension = null) : base(providerKey, HolonType.Universe) 
+        //public Universe(Dictionary<ProviderType, string> providerKey, IDimension dimension = null) : base(providerKey, HolonType.Universe) 
+        public Universe(string providerKey, ProviderType providerType, IDimension dimension = null, bool autoLoad = true) : base(providerKey, providerType, HolonType.Universe, autoLoad)
         {
             Init(dimension);
         }

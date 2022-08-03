@@ -20,7 +20,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Star = star;
         }
 
-        public StarCore(IStar star, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //public StarCore(IStar star, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //{
+        //    this.Star = star;
+        //}
+
+        public StarCore(IStar star, string providerKey, ProviderType providerType) : base(providerKey, providerType)
         {
             this.Star = star;
         }
@@ -103,7 +108,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
             OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(Star.ParentSolarSystem.Planets, HolonType.Planet, refresh);
-            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IPlanet>>.CopyResult(holonResult, ref result);
+            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IPlanet>>.CopyResult(holonResult, result);
             result.Result = Mapper<IHolon, Planet>.MapBaseHolonProperties(holonResult.Result);
             return result;
         }
@@ -117,7 +122,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IEnumerable<IMoon>> result = new OASISResult<IEnumerable<IMoon>>();
             OASISResult<IEnumerable<IPlanet>> planetsResult = await GetAllPlanetsForSolarSystemAsync(refresh);
-            OASISResultHelper<IEnumerable<IPlanet>, IEnumerable<IMoon>>.CopyResult(planetsResult, ref result);
+            OASISResultHelper<IEnumerable<IPlanet>, IEnumerable<IMoon>>.CopyResult(planetsResult, result);
 
             if (!planetsResult.IsError)
             {

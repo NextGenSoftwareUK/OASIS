@@ -7,19 +7,19 @@ using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
 {
-    public class SuperWorld : Planet, IPlanet
+    public class TheJusticeLeagueAccademy : Moon, IMoon
     {
-        //public SuperWorld(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, autoLoad)
+        //public TheJusticeLeagueAccademy(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, autoLoad)
         //{
 
         //}
 
-        //public SuperWorld(Guid id, bool autoLoad = true) : base(id, autoLoad)
+        //public TheJusticeLeagueAccademy(Guid id, bool autoLoad = true) : base(id, autoLoad)
         //{
 
         //}
 
-        public SuperWorld() : base(new Guid("46966c5f-64e6-41aa-beb5-202644340821"))
+        public TheJusticeLeagueAccademy() : base(new Guid("40b51457-2560-4a80-a742-19214913fad6"))
         {
 
         }

@@ -12,7 +12,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public GreatGrandSuperStar(Guid id) : base(id) { }
 
         //public GreatGrandSuperStar(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.GreatGrandSuperStar){}
-        public GreatGrandSuperStar(Dictionary<ProviderType, string> providerKey) : base(providerKey) { }
+        //public GreatGrandSuperStar(Dictionary<ProviderType, string> providerKey) : base(providerKey) { }
+        public GreatGrandSuperStar(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, autoLoad) { }
 
         public GreatGrandSuperStar() : base(HolonType.GreatGrandSuperStar){ }
     }

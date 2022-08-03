@@ -14,7 +14,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.BlackHole = blackHole;
         }
 
-        public BlackHoleCore(IBlackHole blackHole, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //public BlackHoleCore(IBlackHole blackHole, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //{
+        //    this.BlackHole = blackHole;
+        //}
+
+        public BlackHoleCore(IBlackHole blackHole, string providerKey, ProviderType providerType) : base(providerKey, providerType)
         {
             this.BlackHole = blackHole;
         }

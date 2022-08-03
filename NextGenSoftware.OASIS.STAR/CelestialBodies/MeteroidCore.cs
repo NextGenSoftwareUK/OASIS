@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
@@ -14,9 +13,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Meteroid = asteroid;
         }
 
-        public MeteroidCore(IMeteroid asteroid, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //public MeteroidCore(IMeteroid meteroid, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //{
+        //    this.Meteroid = meteroid;
+        //}
+
+        public MeteroidCore(IMeteroid meteroid, string providerKey, ProviderType providerType) : base(providerKey, providerType)
         {
-            this.Meteroid = asteroid;
+            this.Meteroid = meteroid;
         }
 
         public MeteroidCore(IMeteroid asteroid, Guid id) : base(id)

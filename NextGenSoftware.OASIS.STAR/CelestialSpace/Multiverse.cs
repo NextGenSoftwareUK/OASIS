@@ -36,12 +36,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Init(omniverse);
         }
         
-        public Multiverse(Guid id, IOmiverse omniverse = null) : base(id, HolonType.Multiverse) 
+        public Multiverse(Guid id, IOmiverse omniverse = null, bool autoLoad = true) : base(id, HolonType.Multiverse, autoLoad) 
         {
             Init(omniverse);
         }
 
-        public Multiverse(Dictionary<ProviderType, string> providerKey, IOmiverse omniverse = null) : base(providerKey, HolonType.Multiverse) 
+        //public Multiverse(Dictionary<ProviderType, string> providerKey, IOmiverse omniverse = null) : base(providerKey, HolonType.Multiverse) 
+        public Multiverse(string providerKey, ProviderType providerType, IOmiverse omniverse = null, bool autoLoad = true) : base(providerKey, providerType, HolonType.Multiverse, autoLoad)
         {
             Init(omniverse);
         }

@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public int RotationSpeed { get; set; }
         public int TiltAngle { get; set; }
         public int NumberRegisteredAvatars { get; set; }
-        public int NunmerActiveAvatars { get; set; }
+        public int NumberActiveAvatars { get; set; }
 
         ICelestialBodyCore CelestialBodyCore { get; set; }
 
