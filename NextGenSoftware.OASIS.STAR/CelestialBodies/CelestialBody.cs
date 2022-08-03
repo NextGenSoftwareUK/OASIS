@@ -83,7 +83,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public int RotationSpeed { get; set; }
         public int TiltAngle { get; set; }
         public int NumberRegisteredAvatars { get; set; }
-        public int NunberActiveAvatars { get; set; }
+        public int NumberActiveAvatars { get; set; }
 
         public CelestialBody(Guid id, HolonType holonType, bool autoLoad = true) : base(id, holonType)
         {
@@ -95,10 +95,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             Initialize(autoLoad);
         }
 
-        public CelestialBody(Dictionary<ProviderType, string> providerKeys, HolonType holonType, bool autoLoad = true) : base(providerKeys, holonType)
-        {
-            Initialize(autoLoad);
-        }
+        //public CelestialBody(Dictionary<ProviderType, string> providerKeys, HolonType holonType, bool autoLoad = true) : base(providerKeys, holonType)
+        //{
+        //    Initialize(autoLoad);
+        //}
 
         public CelestialBody(HolonType holonType) : base(holonType)
         {

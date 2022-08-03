@@ -14,7 +14,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public StarBinaryType StarBinaryType { get; set; }
         public Star(HolonType holonType) : base(holonType) { }
         public Star(Guid id, bool autoLoad = true) : base(id, HolonType.Star, autoLoad) { }
-        public Star(Dictionary<ProviderType, string> providerKey, bool autoLoad = true) : base(providerKey, HolonType.Star, autoLoad) { }
+        //public Star(Dictionary<ProviderType, string> providerKey, bool autoLoad = true) : base(providerKey, HolonType.Star, autoLoad) { }
+        public Star(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.Star, autoLoad) { }
         public Star() : base(HolonType.Star) { }
     }
 }

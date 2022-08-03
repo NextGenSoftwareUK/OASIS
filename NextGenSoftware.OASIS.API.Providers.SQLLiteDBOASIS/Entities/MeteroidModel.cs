@@ -51,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             this.RotationSpeed = source.RotationSpeed;
             this.TiltAngle = source.TiltAngle;
             this.NumberRegisteredAvatars = source.NumberRegisteredAvatars;
-            this.NunmerActiveAvatars = source.NunmerActiveAvatars;
+            this.NumberActiveAvatars = source.NumberActiveAvatars;
 
             this.GenesisType = source.GenesisType;
         }

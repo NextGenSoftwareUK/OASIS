@@ -9,8 +9,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     {
         public CosmicRay() : base(HolonType.CosmicRay) { }
 
-        public CosmicRay(Guid id) : base(id, HolonType.CosmicRay) { }
+        public CosmicRay(Guid id, bool autoLoad = true) : base(id, HolonType.CosmicRay, autoLoad) { }
 
-        public CosmicRay(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.CosmicRay) { }
+        //public CosmicRay(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.CosmicRay) { }
+        public CosmicRay(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.CosmicRay, autoLoad) { }
     }
 }

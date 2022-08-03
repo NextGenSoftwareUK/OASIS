@@ -69,9 +69,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         public SolarSystem() : base(HolonType.SolarSystem) { }
 
-        public SolarSystem(Guid id) : base(id, HolonType.SolarSystem) { }
+        public SolarSystem(Guid id, bool autoLoad = true) : base(id, HolonType.SolarSystem, autoLoad) { }
 
-        public SolarSystem(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.SolarSystem) { }
+        //public SolarSystem(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.SolarSystem) { }
+        public SolarSystem(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.SolarSystem, autoLoad) { }
 
         private void RegisterAllCelestialBodies()
         {

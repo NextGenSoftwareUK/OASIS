@@ -30,8 +30,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         public GalaxyCluster() : base(HolonType.GalaxyCluster) { }
 
-        public GalaxyCluster(Guid id) : base(id, HolonType.GalaxyCluster) { }
+        public GalaxyCluster(Guid id, bool autoLoad = true) : base(id, HolonType.GalaxyCluster, autoLoad) { }
 
-        public GalaxyCluster(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.GalaxyCluster) { }
+        //public GalaxyCluster(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.GalaxyCluster) { }
+        public GalaxyCluster(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.GalaxyCluster, autoLoad) { }
     }
 }

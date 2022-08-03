@@ -25,7 +25,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Init(multiverse);
         }
 
-        public MultiverseDimension(Dictionary<ProviderType, string> providerKey, IMultiverse multiverse = null) : base(providerKey) 
+        //public MultiverseDimension(Dictionary<ProviderType, string> providerKey, IMultiverse multiverse = null) : base(providerKey) 
+        //{
+        //    Init(multiverse);
+        //}
+
+        public MultiverseDimension(string providerKey, ProviderType providerType, IMultiverse multiverse = null) : base(providerKey, providerType)
         {
             Init(multiverse);
         }

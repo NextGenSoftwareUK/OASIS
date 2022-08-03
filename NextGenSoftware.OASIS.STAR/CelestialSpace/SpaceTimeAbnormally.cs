@@ -9,8 +9,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     {
         public SpaceTimeAbnormally() : base(HolonType.SpaceTimeAbnormally) { }
 
-        public SpaceTimeAbnormally(Guid id) : base(id, HolonType.SpaceTimeAbnormally) { }
+        public SpaceTimeAbnormally(Guid id, bool autoLoad = true) : base(id, HolonType.SpaceTimeAbnormally, autoLoad) { }
 
-        public SpaceTimeAbnormally(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.SpaceTimeAbnormally) { }
+        //public SpaceTimeAbnormally(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.SpaceTimeAbnormally) { }
+        public SpaceTimeAbnormally(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.SpaceTimeAbnormally, autoLoad) { }
     }
 }

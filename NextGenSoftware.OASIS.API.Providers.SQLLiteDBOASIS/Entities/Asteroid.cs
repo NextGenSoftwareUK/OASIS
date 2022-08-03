@@ -45,6 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public GenesisType GenesisType { get; set; }
         public bool IsInitialized { get; }
         public List<IMoon> Moons { get; set; } = new List<IMoon>();
+        public int NumberActiveAvatars { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public Asteroid() { }
 

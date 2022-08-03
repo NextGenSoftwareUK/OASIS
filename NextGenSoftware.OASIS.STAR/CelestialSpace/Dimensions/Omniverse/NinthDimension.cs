@@ -17,7 +17,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Init(omniverse);
         }
 
-        public NinthDimension(Dictionary<ProviderType, string> providerKey, IOmiverse omniverse = null) : base(providerKey, omniverse)
+        //public NinthDimension(Dictionary<ProviderType, string> providerKey, IOmiverse omniverse = null) : base(providerKey, omniverse)
+        //{
+        //    Init(omniverse);
+        //}
+
+        public NinthDimension(string providerKey, ProviderType providerType, IOmiverse omniverse = null) : base(providerKey, providerType, omniverse)
         {
             Init(omniverse);
         }

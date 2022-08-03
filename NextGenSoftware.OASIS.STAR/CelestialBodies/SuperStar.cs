@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
@@ -11,7 +10,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //public SuperStar(Guid id) : base(id, HolonType.SuperStar){}
         public SuperStar(Guid id) : base(id) { }
 
-        public SuperStar(Dictionary<ProviderType, string> providerKey) : base(providerKey){}
+        //public SuperStar(Dictionary<ProviderType, string> providerKey) : base(providerKey){}
+        public SuperStar(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, autoLoad) { }
 
         public SuperStar() : base(HolonType.SuperStar){}
     }

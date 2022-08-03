@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
@@ -14,7 +13,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Moon = moon;
         }
 
-        public MoonCore(IMoon moon, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //public MoonCore(IMoon moon, Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        //{
+        //    this.Moon = moon;
+        //}
+
+        public MoonCore(IMoon moon, string providerKey, ProviderType providerType) : base(providerKey, providerType)
         {
             this.Moon = moon;
         }

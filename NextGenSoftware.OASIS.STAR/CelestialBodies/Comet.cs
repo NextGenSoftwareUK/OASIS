@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public Comet(Guid id) : base(id, HolonType.Comet) {}
 
-        public Comet(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Comet) {} 
+        //public Comet(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Comet) {} 
+        public Comet(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.Comet, autoLoad) { }
     }
 }
