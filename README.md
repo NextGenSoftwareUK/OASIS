@@ -61,6 +61,7 @@
   * [OAPP/HAPP](#oapp-happ)
   * [Business OAPP](#business-oapp)
   * [H4OME / ARC](#h4ome---arc)
+  * [WEB4 OASIS API Arcitecture Overview](#oasisapi-overview)
 - [Our World/OASIS Will Act As The Bridge For All (Legasy, IPFS, Holochain, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP & More!)](#our-world-oasis-will-act-as-the-bridge-for-all--legasy--ipfs--holochain--ethereum--solid--fediverse--mastodon--diaspora--webfinger--activitypub--xmpp---more--)
   * [Implement Your Own Storage/Network/Renderer Provider](#implement-your-own-storage-network-renderer-provider)
   * [Switch To A Different Provider In RealTime](#switch-to-a-different-provider-in-realtime)
@@ -179,6 +180,8 @@
 The core OASIS (Open Advanced Sensory Immersion System) API that powers Our World and manages the central profile/avatar/karma system that other satellite apps/games plug into it and share. This allows karma to be earnt in the satellite apps/games by doing good deeds or progressing self help apps for example.
 
 Various OASIS API functions and services can be accessed with this API such as Authentication, Karma, Avatars, Data, SEEDS, Wallets/Keys & more...
+
+This allows you to bridge between all of WEB2 & WEB3 Holochain, IPFS, MongoDB, SQLLite, Neo4j, Solana, Ethereum, EOS & ThreeFold with many more coming soon such as COSMOS, Polkadot, Polygon, SOLID, ActivityPub, Near & many more! :)
 
 [The OASIS API is a global universal API that aims to connect everything to everything](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-) to eliminate walled gardens/silos. There are a number of open protocols/platforms/networks (such as Gab, Mastodon, Diaspora, WebFinger,
  SOLID, Holochain, CEPTR Pluggable Protocol, Ethereum, Fediverse, ActivityPub, XMPP & more!) that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. 
@@ -919,6 +922,18 @@ Businesses can also implement OAPP's if they qualify as a benevolent organisatio
 
 H4OME is currently being built by the S7 Foundation, a partner for Our World & NextGen Software. It allows users to create Holonic Apps (HAPPS) using a quick and easy to use drag n drop interface. It allows blocks of code/functionality to be coupled together so works like a 4th Generation Programming Language. The blocks are currently written in Javascript. It is built on top of Holochain, IPFS & Ethereum just like the OASIS Engine so they are a very good fit for each other.
 
+<a name="oasisapi-overview"></a>
+### WEB4 OASIS API Architectue Overview
+
+This project is built on the principle of multilayer architecture. Where one of the first Presentation layer's is the REST API Service - [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) ([http://api.oasisplatform.world/](http://api.oasisplatform.world/)). 
+
+We plan to also add a gRPC and GraphQL endpoint soon. There is also the [WEB 5 STAR ODK](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#web5-star-odk) CLI endpoint: [NextGenSoftware.OASIS.STAR.CLI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.STAR.CLI) that is built on top of the OASIS API and is a Interoperable Metaverse Low Code Generator amongst many more things...
+	
+Other projects in the solution are providers or tests that plug into it. There is also the [OASIS.API.Core](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Core) project that contains the main OASIS Engine/Architecture and is where the Managers that control the API are, containing all the Business Logic (BLL). 
+
+Providers in various technologies and APIs are integrated, each of them is a library project (modules) that connects (links) with the [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) project (main Presentation layer). Each of the providers (projects) has a class that implements the [IOASISStorageProvider](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASIStorageProvider.cs) & [IOASISNET](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASISNETProvider.cs) interfaces and which inherits from the abstract class [OASISStorageBase](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/OASISStorageProviderBase.cs). 
+
+For more info check out the [WIKI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Introduction-to-the-OASIS-API) pages.
 
 **NOTE: This is still a WIP, so the above is likely to evolve and change as we progress...**
 
