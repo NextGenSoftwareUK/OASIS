@@ -29,14 +29,16 @@
   "CSharpTemplateHolonDNA": "HolonDNATemplate.cs",
   "CSharpTemplateIZomeDNA": "Interfaces\\IZomeDNATemplate.cs",
   "CSharpTemplateZomeDNA": "ZomeDNATemplate.cs",
-  "CSharpTemplateIStarDNA": "Interfaces\\IStarDNATemplate.cs",
-  "CSharpTemplateStarDNA": "StarDNATemplate.cs",
-  "CSharpTemplateIPlanetDNA": "Interfaces\\IPlanetDNATemplate.cs",
-  "CSharpTemplatePlanetDNA": "PlanetDNATemplate.cs",
-  "CSharpTemplateIMoonDNA": "Interfaces\\IMoonDNATemplate.cs",
-  "CSharpTemplateMoonDNA": "MoonDNATemplate.cs",
+  //"CSharpTemplateIStarDNA": "Interfaces\\IStarDNATemplate.cs",
+  //"CSharpTemplateStarDNA": "StarDNATemplate.cs",
+  //"CSharpTemplateIPlanetDNA": "Interfaces\\IPlanetDNATemplate.cs",
+  //"CSharpTemplatePlanetDNA": "PlanetDNATemplate.cs",
+  //"CSharpTemplateIMoonDNA": "Interfaces\\IMoonDNATemplate.cs",
+  //"CSharpTemplateMoonDNA": "MoonDNATemplate.cs",
   "CSharpTemplateICelestialBodyDNA": "Interfaces\\ICelestialBodyDNATemplate.cs",
   "CSharpTemplateCelestialBodyDNA": "CelestialBodyDNATemplate.cs",
+  "CSharpTemplateLoadHolonDNA": "LoadHolonDNATemplate.cs",
+  "CSharpTemplateSaveHolonDNA": "SaveHolonDNATemplate.cs",
   "CSharpTemplateInt": "types\\int.cs",
   "CSharpTemplateString": "types\\string.cs",
   "CSharpTemplateBool": "types\\bool.cs",
@@ -49,6 +51,6 @@
   //"OASISProviders": "HoloOASIS,MongoDBOASIS",
   //"HolochainConductorURI": "ws://localhost:8888",
   //"HoloNETClientType": "Desktop",
-  "HolochainVersion": "Redux"
+  "HolochainVersion": "RSM"
 }
    
