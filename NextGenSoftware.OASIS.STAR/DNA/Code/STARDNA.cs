@@ -47,14 +47,16 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string CSharpTemplateHolonDNA = "HolonDNATemplate.cs";
         public string CSharpTemplateIZomeDNA = @"Interfaces\IZomeDNATemplate.cs";
         public string CSharpTemplateZomeDNA = "ZomeDNATemplate.cs";
-        public string CSharpTemplateIStarDNA = @"Interfaces\IStarDNATemplate.cs";
-        public string CSharpTemplateStarDNA = "StarDNATemplate.cs";
-        public string CSharpTemplateIPlanetDNA = @"Interfaces\IPlanetDNATemplate.cs";
-        public string CSharpTemplatePlanetDNA = "PlanetDNATemplate.cs";
-        public string CSharpTemplateIMoonDNA = @"Interfaces\IMoonDNATemplate.cs";
-        public string CSharpTemplateMoonDNA = "MoonDNATemplate.cs";
+        //public string CSharpTemplateIStarDNA = @"Interfaces\IStarDNATemplate.cs";
+        //public string CSharpTemplateStarDNA = "StarDNATemplate.cs";
+        //public string CSharpTemplateIPlanetDNA = @"Interfaces\IPlanetDNATemplate.cs";
+        //public string CSharpTemplatePlanetDNA = "PlanetDNATemplate.cs";
+        //public string CSharpTemplateIMoonDNA = @"Interfaces\IMoonDNATemplate.cs";
+        //public string CSharpTemplateMoonDNA = "MoonDNATemplate.cs";
         public string CSharpTemplateICelestialBodyDNA = @"Interfaces\ICelestialBodyDNATemplate.cs";
         public string CSharpTemplateCelestialBodyDNA = "CelestialBodyDNATemplate.cs";
+        public string CSharpTemplateLoadHolonDNA = "LoadHolonDNATemplate.cs";
+        public string CSharpTemplateSaveHolonDNA = "SaveHolonDNATemplate.cs";
         public string CSharpTemplateInt = @"types\int.cs";
         public string CSharpTemplateString = @"types\string.cs";
         public string CSharpTemplateBool = @"types\bool.cs";
@@ -67,7 +69,7 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         // public string OASISProviders = "HoloOASIS,MongoDBOASIS";
         //public string HolochainConductorURI = "ws://localhost:8888";
         //public string HoloNETClientType = "Desktop";
-        public string HolochainVersion = "Redux"; //Valid values: Redux or RSM.
+        public string HolochainVersion = "RSM"; //Valid values: Redux or RSM.
     }
 
     /*

@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
     public class SuperHolon : Holon, ISuperHolon
     {
         
-  [CustomOASISProperty]
+   [CustomOASISProperty]
 public string SuperTestString { get; set; }
 
 [CustomOASISProperty]
