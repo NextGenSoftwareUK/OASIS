@@ -1,21 +1,14 @@
 import React from 'react';
 
 import { Modal } from 'react-bootstrap';
+import axios from "axios";
+import { toast } from "react-toastify";
 
 class PayWithSeeds extends React.Component {
+
     constructor(){
       super()
       this.state = {
-        // avatar: {
-        //     selected: false,
-        //     avatar: ''
-        // },
-        // username: {
-        //     selected: false,
-        //     username: '',
-        //     amount: '',
-        //     note: ''
-        // },
         group: '',
         avatar: '',
         seedUser: '',
@@ -24,10 +17,31 @@ class PayWithSeeds extends React.Component {
       }
     }
 
+    componentDidMount = () => {
+        this.loadAllAvatarData();
+    }
+
+    loadAllAvatarData = () => {
+        axios.get('https://api.oasisplatform.world/api/avatar/get-all-avatars')
+        .then(response => {
+            console.log(response)
+            if(response.data.isError) {
+                toast.error(response.data.message)
+            } else {
+                toast.success(response.data.result.message)
+            }
+            // this.props.history.goBack()
+            // console.log(this.props) 
+        })
+        .catch(error => {
+            console.log(error)
+        })
+    }
+
     handleChange = (e) => {
         console.log(e.target.value)
 
-        if(e.target.value == "avatar_section" || e.target.value == "username_section") {
+        if(e.target.value === "avatar_section" || e.target.value === "username_section") {
             this.setState({
                 group: e.target.value
             })
@@ -39,6 +53,7 @@ class PayWithSeeds extends React.Component {
     handleSubmit=(e) => {
       e.preventDefault()
     }
+
     render() {
         const { show, hide } = this.props;
 

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 
 import ManageOasisNft from './components/ManageOasisNft';
 import PurchaseOasisNft from './components/PurchaseOasisNft';

@@ -32,7 +32,7 @@ class OffChainManagement extends React.Component {
   toggleAllTags = (action) => {
     let tags = [...this.state.tagsList];
     tags.map((tag) => {
-      tag.status = action == "add" ? true : false;
+      tag.status = action === "add" ? true : false;
     });
 
     this.setState({
@@ -44,7 +44,7 @@ class OffChainManagement extends React.Component {
     let tags = [...this.state.tagsList];
 
     tags.map((tag) => {
-      tag.status = action == "add" ? true : false;
+      tag.status = action === "add" ? true : false;
     });
   };
 

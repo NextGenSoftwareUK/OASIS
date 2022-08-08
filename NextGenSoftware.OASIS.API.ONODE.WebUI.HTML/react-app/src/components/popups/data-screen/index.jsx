@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 
 import AddData from './components/AddData';
 import LoadData from './components/LoadData';

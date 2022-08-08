@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 
 import ManageMission from './components/ManageMission';
 import SearchMission from './components/SearchMission';
