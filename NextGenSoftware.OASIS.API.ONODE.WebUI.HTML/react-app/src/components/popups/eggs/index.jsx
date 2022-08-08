@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import ManageEggs from './components/ManageEggs';
 import SearchEggs from './components/SearchEggs';
 import ViewEggs from './components/ViewEggs';

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import Loader from "react-loader-spinner";
-import { AgGridColumn, AgGridReact } from 'ag-grid-react';
+// import Loader from "react-loader-spinner";
+import { AgGridReact } from 'ag-grid-react';
 import oasisApi from "oasis-api";
 
 class ViewKarma extends React.Component {

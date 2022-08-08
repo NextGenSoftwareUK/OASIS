@@ -1,11 +1,8 @@
 import React from "react";
-import axios from "axios";
 import ShowIcon from "../assets/images/visible-icon.svg";
 import HideIcon from "../assets/images/hidden-icon.svg";
 
 import ForgetPassword from "./ForgetPassword";
-
-import { ToastContainer, toast } from "react-toastify";
 
 import { Modal } from "react-bootstrap";
 import Loader from "react-loader-spinner";
@@ -46,7 +43,7 @@ export default class Login extends React.Component {
         this.setState({ loading: true })
         let data = {...this.state.form}
 
-        const headers = { 'Content-Type': 'application/json' }
+        // const headers = { 'Content-Type': 'application/json' }
 
         const auth = new oasisApi.Auth();
         auth.login(data)
@@ -92,17 +89,6 @@ export default class Login extends React.Component {
 
         return (
             <>
-                <ToastContainer
-                    position="top-center"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover 
-                />
                 <Formik
                     initialValues={this.initialValues}
                     validationSchema={this.validationSchema}

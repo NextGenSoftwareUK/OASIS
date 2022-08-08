@@ -2,7 +2,7 @@ import React from "react";
 
 import { Modal } from "react-bootstrap";
 
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 
 class OffChainManagement extends React.Component {
   state = {
@@ -32,7 +32,7 @@ class OffChainManagement extends React.Component {
   toggleAllTags = (action) => {
     let tags = [...this.state.tagsList];
     tags.map((tag) => {
-      tag.status = action == "add" ? true : false;
+      tag.status = action === "add" ? true : false;
     });
 
     this.setState({
@@ -44,7 +44,7 @@ class OffChainManagement extends React.Component {
     let tags = [...this.state.tagsList];
 
     tags.map((tag) => {
-      tag.status = action == "add" ? true : false;
+      tag.status = action === "add" ? true : false;
     });
   };
 
@@ -56,17 +56,6 @@ class OffChainManagement extends React.Component {
 
     return (
       <>
-        <ToastContainer
-          position="top-center"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
         <Modal
           centered
           className="custom-modal custom-popup-component"

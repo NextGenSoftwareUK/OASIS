@@ -3,10 +3,9 @@ import React from "react";
 import ShowIcon from '../assets/images/visible-icon.svg';
 import HideIcon from '../assets/images/hidden-icon.svg';
 
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import Loader from "react-loader-spinner";
 import { Modal } from 'react-bootstrap';
-import axios from "axios";
 import { Formik } from "formik";
 import oasisApi from "oasis-api";
 import * as Yup from "yup";
@@ -76,6 +75,13 @@ export default class Signup extends React.Component {
             auth.signup(data)
                 .then(response => {
                     console.log(response)
+                    console.log(response)
+                    
+                    if(response.error) {
+                        toast.error('Something went wrong!');
+                        return;
+                    }
+
                     if(response.data.result.isError) {
                         toast.error(response.data.result.message)
                         return;
@@ -101,17 +107,6 @@ export default class Signup extends React.Component {
 
         return (
             <>
-                <ToastContainer
-                    position="top-center"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                />
                 <Formik
                     initialValues={this.initialValues}
                     validationSchema={this.validationSchema}
