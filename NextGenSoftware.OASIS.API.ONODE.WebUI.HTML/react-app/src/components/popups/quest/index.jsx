@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 
 import ManageQuest from './components/ManageQuest';
 import SearchQuest from './components/SearchQuest';

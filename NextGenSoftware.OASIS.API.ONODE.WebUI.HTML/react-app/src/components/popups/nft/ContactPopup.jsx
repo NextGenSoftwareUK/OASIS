@@ -4,7 +4,30 @@ import { Modal } from 'react-bootstrap';
 
 import '../../../assets/scss/contact-popup.scss';
 
-import { AgGridColumn, AgGridReact } from 'ag-grid-react';
+import { AgGridReact } from 'ag-grid-react';
+
+var filterParams = {
+    comparator: function (filterLocalDateAtMidnight, cellValue) {
+        var dateAsString = cellValue;
+        if (dateAsString === null) return -1;
+        var dateParts = dateAsString.split('/');
+        var cellDate = new Date(
+            Number(dateParts[2]),
+            Number(dateParts[1]) - 1,
+            Number(dateParts[0])
+        );
+        if (filterLocalDateAtMidnight.getTime() === cellDate.getTime()) {
+            return 0;
+        }
+        if (cellDate < filterLocalDateAtMidnight) {
+            return -1;
+        }
+        if (cellDate > filterLocalDateAtMidnight) {
+            return 1;
+        }
+    },
+    browserDatePicker: true,
+};
 
 class ContactPopup extends React.Component {
 
@@ -121,25 +144,3 @@ class ContactPopup extends React.Component {
 }
  
 export default ContactPopup;
-var filterParams = {
-    comparator: function (filterLocalDateAtMidnight, cellValue) {
-        var dateAsString = cellValue;
-        if (dateAsString == null) return -1;
-        var dateParts = dateAsString.split('/');
-        var cellDate = new Date(
-            Number(dateParts[2]),
-            Number(dateParts[1]) - 1,
-            Number(dateParts[0])
-        );
-        if (filterLocalDateAtMidnight.getTime() === cellDate.getTime()) {
-            return 0;
-        }
-        if (cellDate < filterLocalDateAtMidnight) {
-            return -1;
-        }
-        if (cellDate > filterLocalDateAtMidnight) {
-            return 1;
-        }
-    },
-    browserDatePicker: true,
-};

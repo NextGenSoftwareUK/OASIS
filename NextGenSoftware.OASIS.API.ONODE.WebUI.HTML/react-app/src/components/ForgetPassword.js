@@ -41,15 +41,16 @@ export default class ForgetPassword extends React.Component {
             .then(response => {
                 this.setState({ loading: false })
                 console.log(response)
-                if (response.data.result.isError) {
+                if (response?.data?.result.isError) {
                     toast.error(response.data.result.message);
                     return
                 }
 
-                toast.success(response.data.result.message);
+                toast.success(response?.data?.result.message);
                 this.props.hide();
             })
             .catch(error => {
+                console.log(error)
                 toast.error(error.data.result.message);
                 this.setState({ loading: false })
             })

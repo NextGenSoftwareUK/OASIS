@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import data from './SidebarData';
 import SidebarMenuItem from './SidebarMenuItem';
 

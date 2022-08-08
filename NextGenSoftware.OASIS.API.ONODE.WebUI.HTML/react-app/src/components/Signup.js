@@ -6,7 +6,6 @@ import HideIcon from '../assets/images/hidden-icon.svg';
 import { ToastContainer, toast } from "react-toastify";
 import Loader from "react-loader-spinner";
 import { Modal } from 'react-bootstrap';
-import axios from "axios";
 import { Formik } from "formik";
 import oasisApi from "oasis-api";
 import * as Yup from "yup";
@@ -76,6 +75,13 @@ export default class Signup extends React.Component {
             auth.signup(data)
                 .then(response => {
                     console.log(response)
+                    console.log(response)
+                    
+                    if(response.error) {
+                        toast.error('Something went wrong!');
+                        return;
+                    }
+
                     if(response.data.result.isError) {
                         toast.error(response.data.result.message)
                         return;

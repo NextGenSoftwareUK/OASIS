@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import Add2dObjectMap from './components/Add2dObjectMap';
 import Add3dObjectMap from './components/Add3dObjectMap';
 import AddQuestToMap from './components/AddQuestToMap';

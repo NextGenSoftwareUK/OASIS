@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import ActivityPub from './components/ActivityPub';
 import CompareProviderSpeeds from './components/CompareProviderSpeeds';
 import Eosio from './components/Eosio';

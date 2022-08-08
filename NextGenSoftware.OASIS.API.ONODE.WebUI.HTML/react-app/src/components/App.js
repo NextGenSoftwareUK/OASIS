@@ -16,9 +16,8 @@ import "react-toastify/dist/ReactToastify.css";
 import Avatar from "./popups/avatar";
 import DataScreen from "./popups/data-screen";
 import Seeds from "./popups/seeds";
-import ComingSoon from "./popups/comingsoon/ComingSoon";
 
-import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 import VerifyToken from "./VerifyToken";
 import Game from "./popups/game";
@@ -29,7 +28,6 @@ import OAPP from "./popups/oapp";
 import Map from "./popups/map";
 import Provider from "./popups/provider";
 import Nft from "./popups/nft";
-import NFT from "oasis-api/nft/nft";
 import ForgotPassword from "./pages/forgotPassword";
 
 class App extends React.Component {

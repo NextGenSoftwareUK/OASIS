@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import oasisApi from "oasis-api"
 
 class SidebarMenuItem extends React.Component {
