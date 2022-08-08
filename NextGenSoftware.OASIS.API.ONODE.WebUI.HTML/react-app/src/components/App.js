@@ -13,6 +13,7 @@ import "../assets/scss/style.scss";
 
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 import Avatar from "./popups/avatar";
 import DataScreen from "./popups/data-screen";
 import Seeds from "./popups/seeds";
@@ -272,6 +273,18 @@ class App extends React.Component {
                     <Route exact path='/avatar/verify-email' component={VerifyToken} />
                     <Route exact path='/avatar/forgot-password' component={ForgotPassword} />
                 </Switch>
+
+                <ToastContainer
+                    position="top-center"
+                    autoClose={5000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover 
+                />
 
                 <div className="main-container">
                     <header>

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 
 import { Modal } from 'react-bootstrap';
 import Loader from 'react-loader-spinner';
@@ -62,17 +62,6 @@ export default class ForgetPassword extends React.Component {
 
         return (
             <>
-                <ToastContainer
-                    position="top-center"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover 
-                />
                 <Formik
                     initialValues={this.initialValues}
                     validationSchema={this.validationSchema}

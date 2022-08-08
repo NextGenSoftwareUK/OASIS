@@ -3,7 +3,7 @@ import React from "react";
 import ShowIcon from '../assets/images/visible-icon.svg';
 import HideIcon from '../assets/images/hidden-icon.svg';
 
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import Loader from "react-loader-spinner";
 import { Modal } from 'react-bootstrap';
 import { Formik } from "formik";
@@ -107,17 +107,6 @@ export default class Signup extends React.Component {
 
         return (
             <>
-                <ToastContainer
-                    position="top-center"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                />
                 <Formik
                     initialValues={this.initialValues}
                     validationSchema={this.validationSchema}

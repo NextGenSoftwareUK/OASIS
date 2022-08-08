@@ -4,8 +4,6 @@ import HideIcon from "../assets/images/hidden-icon.svg";
 
 import ForgetPassword from "./ForgetPassword";
 
-import { ToastContainer } from "react-toastify";
-
 import { Modal } from "react-bootstrap";
 import Loader from "react-loader-spinner";
 import { Formik } from "formik";
@@ -91,17 +89,6 @@ export default class Login extends React.Component {
 
         return (
             <>
-                <ToastContainer
-                    position="top-center"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover 
-                />
                 <Formik
                     initialValues={this.initialValues}
                     validationSchema={this.validationSchema}
