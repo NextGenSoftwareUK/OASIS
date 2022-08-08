@@ -206,7 +206,12 @@
                     overflow: hidden;
                     max-height: 0;
                     li {
+                        margin: 0 0 5px;
+                        &:last-child {
+                            margin: 0;
+                        }
                         a {
+                            line-height: 22px;
                             padding: 0 40px;
                             text-transform: capitalize;
                         }
