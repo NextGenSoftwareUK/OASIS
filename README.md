@@ -394,7 +394,7 @@ Check out more info below:<br><br>
 ## WEB 4 OASIS API Packages
 
 ### Javascript
-https://www.npmjs.com/package/oasis-api
+https://www.npmjs.com/package/oasis-api \
 https://github.com/NextGenSoftwareUK/OASIS-API-Javascipt-Package
 
 ### Unity
