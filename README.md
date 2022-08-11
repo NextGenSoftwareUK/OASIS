@@ -7,6 +7,10 @@
 - [Introduction](#introduction)
 - [Overview](#overview)
 - [Benefits Of Building On The WEB4 OASIS API](#web4-oasisapi-benefits)
+- [WEB4 OASIS API Packages](#web4-oasisapi-packages)
+  * [Javascript](#javascript)
+  * [Unity](#unity)
+  * [C#](#c#)
 - [Project Structure](#project-structure)
 - [The OASIS API & Karma System](#the-oasis-api---karma-system)
   * [Your Karma Level Effects Your Real Life Too!](#your-karma-level-effects-your-real-life-too-)
@@ -384,6 +388,21 @@ Check out more info below:<br><br>
 [First Production Release Of The WEB4 OASIS API](https://www.ourworldthegame.com/single-post/first-production-ready-release-of-web4-oasis-api-more) <br>
 [Annoucing WEB5 STAR ODK/HDK/COSMIC](https://www.ourworldthegame.com/single-post/announcing-star-odk-hdk-cosmic)  <br>
 [STAR ODK/HDK/COSMIC/OASIS API/Our World Update](https://www.ourworldthegame.com/single-post/star-odk-hdk-cosmic-oasis-api-our-world-update) 
+
+## WEB 4 OASIS API Packages
+
+### Javascript
+https://www.npmjs.com/package/oasis-api
+https://github.com/NextGenSoftwareUK/OASIS-API-Javascipt-Package
+
+### Unity
+
+https://github.com/NextGenSoftwareUK/OASIS-API-Unity-Package
+
+### C#
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK
+
 
 ## Project Structure
 
