@@ -26,7 +26,7 @@
   - [WEB/2D/3D/AR/VR/IR/Map/Meta Visusalization](#web2d3darvrirmapmeta-visusalization)
   - [Our World Geo-Location/AR/IR/Map UI (Game Of Games Engine)](#our-world-geo-locationarirmap-ui-game-of-games-engine)
   - [IR (Infinite Reality) Ready](#ir-infinite-reality-ready)
-  - [One World (VR) (Game Of Games Engine)](#one-world-vr-game-of-games-engine)
+  - [One World Open World MMO (VR) (Game Of Games Engine)](#one-world-open-world-mmo-vr-game-of-games-engine)
   - [XR/IR Unified Interface To The World](#xrir-unified-interface-to-the-world)
   - [ARC/HoloMap/Synergy Engine Integration](#archolomapsynergy-engine-integration)
   - [WEB 5 STAR OASIS Omniverse Interoperable Metaverse Low Code Generator](#web-5-star-oasis-omniverse-interoperable-metaverse-low-code-generator)
@@ -233,13 +233,16 @@ The WEB4 OASIS API connects & Integrates everything (all of WEB 2 & WEB 3) inclu
 
 The whole point of the OASIS API is to allow everything to be fully interoperable so data can be shared between any provider, the architecture opens the doors for many more use cases like importing and exporting your data between providers, aggregating all your data to remove all silos so better sense making and AI machine learning can be made to analyse and to make predictions, smart contract interoperability, etc
 
+
 ### HOT Swappable Plugin Architecture
 
 The OASIS API features a HOT Swappable Plugin Architecture meaning any OASIS Provider can be deployed and used at runtime without having to re-compile or deploy a ONODE (OASIS Node). 
 
+
 ### Full Redundancy/Zero Downtime/Impossible To Shutdown!
 
 It also allows full data redundancy and for it to be network independent so if one network goes down it can automatically switch to the next fastest node in your area regardless of what network it is on. So it will be impossible to shut the OASIS down, you need to shut the entire Internet down, goodluck with that! ;-)
+
 
 ### HTTP REST/gRPC/GraphQL/CLI/Native Endpoints
 
@@ -336,7 +339,7 @@ https://github.com/NextGenSoftwareUK/Our-World-Smartphone-Prototype-AR
 
 IR is what comes after AR, VR & XR. It is where the boundary between real and the virtual become one. More coming soon... ;-) 
 
-### One World (VR) (Game Of Games Engine)
+### One World Open World MMO (VR) (Game Of Games Engine)
 
 One World is Our World's cousin and is a Open World MMORPG set in the past allowing people to build whatever they can imagine unleashing their FULl creativity & potential! It uses bio-feedback technology allowing you to move objects with your mind with real force powers! :) You can also see other players avatar/chakras in real-time and so much more! You can medidate to make it rain to water your crops or to help your camp fire burn brighter! 
 
@@ -387,12 +390,6 @@ To summarize, WEB4 OASIS API aggregates all of the worlds data into a fully unif
 
 * **Maximum Integration & Interoprability.**
 
-* **HOT Swapable PlugIn Architecture.**
-
-* **HTTP REST/gRPC/GraphQL/CLI/Native Endpoints.**
-
-* **Javascript, Unity & C# Packages - More Coming...**
-
 * **Auto Load-balancing.**
 
 * **Auto Fail-over.**
@@ -403,9 +400,17 @@ To summarize, WEB4 OASIS API aggregates all of the worlds data into a fully unif
 
 * **Maximum Interopability/Aggregation.**
 
+* **HOT Swapable PlugIn Architecture.**
+
+* **HTTP REST/gRPC/GraphQL/CLI/Native Endpoints.**
+
+* **Javascript, Unity & C# Packages - More Coming...**
+
 * **Write Once, Deploy Everywhere Now & Forever.**
 
 * **One API To Rule Them All - The GOD Protocol/API.**
+
+* **Full Smart Contract Interoperability.**
 
 * **AI/Machine Learning Over All Of World's Aggregated Data.**
 
@@ -431,7 +436,7 @@ To summarize, WEB4 OASIS API aggregates all of the worlds data into a fully unif
 
 * **Our World Geo-Location/AR/IR/Map UI (Game of Games Engine).**
 
-* **One World VR (Game of Games Engine) UI.**
+* **One World Open World MMO (VR) (Game of Games Engine) UI.**
 
 * **Powerful Pick n Mix & Plug n Play UI Components.**
 
