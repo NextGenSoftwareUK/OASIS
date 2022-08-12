@@ -436,7 +436,7 @@ To summarize, WEB4 OASIS API aggregates all of the worlds data into a fully unif
 
 * **Our World Geo-Location/AR/IR/Map UI (Game of Games Engine).**
 
-* **One World Open World MMO (VR) (Game of Games Engine) UI.**
+* **One World Open World MMO (VR) UI (Game of Games Engine).**
 
 * **Powerful Pick n Mix & Plug n Play UI Components.**
 
