@@ -8,6 +8,7 @@
 - [Overview](#overview)
   - [Best Of All Worlds](#best-of-all-worlds)
   - [Maximum Interopability/Aggregation](#maximum-interopabilityaggregation)
+  - [HOT Swappable Plugin Architecture](#hot-swappable-plugin-architecture)
   - [Full Redundancy/Zero Downtime/Impossible To Shutdown!](#full-redundancyzero-downtimeimpossible-to-shutdown)
   - [Avatar API](#avatar-api)
   - [Karma API](#karma-api)
@@ -230,6 +231,10 @@ The WEB4 OASIS API connects & Integrates everything (all of WEB 2 & WEB 3) inclu
 
 The whole point of the OASIS API is to allow everything to be fully interoperable so data can be shared between any provider, the architecture opens the doors for many more use cases like importing and exporting your data between providers, aggregating all your data to remove all silos so better sense making and AI machine learning can be made to analyse and to make predictions, smart contract interoperability, etc
 
+### HOT Swappable Plugin Architecture
+
+The OASIS API features a HOT Swappable Plugin Architecture meaning any OASIS Provider can be deployed and used at runtime without having to re-compile or deploy a ONODE (OASIS Node). 
+
 ### Full Redundancy/Zero Downtime/Impossible To Shutdown!
 
 It also allows full data redundancy and for it to be network independent so if one network goes down it can automatically switch to the next fastest node in your area regardless of what network it is on. So it will be impossible to shut the OASIS down, you need to shut the entire Internet down, goodluck with that! ;-)
@@ -371,6 +376,12 @@ To summarize, WEB4 OASIS API aggregates all of the worlds data into a fully unif
 * **Karma API (full accountability/zero crime/dark net prove) System.**
 
 * **Maximum Integration & Interoprability.**
+
+* **HOT Swapable PlugIn Architecture.**
+
+* **HTTP REST/gRPC/GraphQL/CLI/Native Endpoints.
+
+* **Javascript, Unity & C# Packages - More Coming...*
 
 * **Auto Load-balancing.**
 
