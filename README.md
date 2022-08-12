@@ -8,7 +8,7 @@
 - [Overview](#overview)
   - [Best Of All Worlds](#best-of-all-worlds)
   - [Maximum Interopability/Aggregation](#maximum-interopabilityaggregation)
-  - [Full Redundancy/Zero Downtime](#full-redundancyzero-downtime)
+  - [Full Redundancy/Zero Downtime/Impossible To Shutdown!](#full-redundancyzero-downtimeimpossible-to-shutdown)
   - [Avatar API](#avatar-api)
   - [Karma API](#karma-api)
   - [Full Accountability/Zero Crime/Dark Net Prove](#full-accountabilityzero-crimedark-net-prove)
@@ -18,6 +18,7 @@
   - [Keys/Wallet API](#keyswallet-api)
   - [Works Offline/Local Networks (LAN, Bluetooth, Mesh Networks)](#works-offlinelocal-networks-lan-bluetooth-mesh-networks)
   - [One API To Rule Them All - The GOD Protocol/API](#one-api-to-rule-them-all---the-god-protocolapi)
+  - [Full Smart Contract Interoperability](#full-smart-contract-interoperability)
   - [Powerful Pick n Mix & Plug n Play UI Components](#powerful-pick-n-mix--plug-n-play-ui-components)
   - [WEB/2D/3D/AR/VR/IR/Map/Meta Visusalization](#web2d3darvrirmapmeta-visusalization)
   - [Our World Geo-Location/AR/IR/Map UI (Game Of Games Engine)](#our-world-geo-locationarirmap-ui-game-of-games-engine)
@@ -229,9 +230,9 @@ The WEB4 OASIS API connects & Integrates everything (all of WEB 2 & WEB 3) inclu
 
 The whole point of the OASIS API is to allow everything to be fully interoperable so data can be shared between any provider, the architecture opens the doors for many more use cases like importing and exporting your data between providers, aggregating all your data to remove all silos so better sense making and AI machine learning can be made to analyse and to make predictions, smart contract interoperability, etc
 
-### Full Redundancy/Zero Downtime
+### Full Redundancy/Zero Downtime/Impossible To Shutdown!
 
-It also allows full data redundancy and for it to be network independent so if one network goes down it can automatically switch to the next fastest node in your area regardless of what network it is on.
+It also allows full data redundancy and for it to be network independent so if one network goes down it can automatically switch to the next fastest node in your area regardless of what network it is on. So it will be impossible to shut the OASIS down, you need to shut the entire Internet down, goodluck with that! ;-)
 
 ### Avatar API
 
@@ -286,6 +287,10 @@ You can also of course fully manage every feature and option through the API its
 
 ### One API To Rule Them All - The GOD Protocol/API
 The OASIS API will allow you to connect into everything including e-commerce, trading, security, social networks, blockchains, holochain networks, etc. regardless of where they are running (WEB2 or WEB3/IoT).
+
+### Full Smart Contract Interoperability
+
+Smart Contracts will be supported across any of the supported providers (network/platform/API/protocol), so you only need to write the contract once for your OAPP and then deploy your OAPP once and it will then take care of deploying and running your app/smart contract across all supported providers (network/platform/API/protocol).
 
 ### Powerful Pick n Mix & Plug n Play UI Components
 
@@ -387,7 +392,7 @@ To summarize, WEB4 OASIS API aggregates all of the worlds data into a fully unif
 
 * **Intelligent Key Management/Backups/Redundancy (never lose your keys again!).**
 
-* **Full Redundancy/Zero Downtime.**
+* **Full Redundancy/Zero Downtime/Impossible To Shutdown!**
 
 * **Zero Lag.**
 
