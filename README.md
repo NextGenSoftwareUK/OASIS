@@ -379,9 +379,9 @@ To summarize, WEB4 OASIS API aggregates all of the worlds data into a fully unif
 
 * **HOT Swapable PlugIn Architecture.**
 
-* **HTTP REST/gRPC/GraphQL/CLI/Native Endpoints.
+* **HTTP REST/gRPC/GraphQL/CLI/Native Endpoints.**
 
-* **Javascript, Unity & C# Packages - More Coming...*
+* **Javascript, Unity & C# Packages - More Coming...**
 
 * **Auto Load-balancing.**
 
