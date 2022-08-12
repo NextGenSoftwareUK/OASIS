@@ -10,6 +10,8 @@
   - [Maximum Interopability/Aggregation](#maximum-interopabilityaggregation)
   - [HOT Swappable Plugin Architecture](#hot-swappable-plugin-architecture)
   - [Full Redundancy/Zero Downtime/Impossible To Shutdown!](#full-redundancyzero-downtimeimpossible-to-shutdown)
+  - [HTTP REST/gRPC/GraphQL/CLI/Native Endpoints](#http-restgrpcgraphqlclinative-endpoints)
+  - [Javascript, Unity & C# Packages](#javascript-unity--c-packages)
   - [Avatar API](#avatar-api)
   - [Karma API](#karma-api)
   - [Full Accountability/Zero Crime/Dark Net Prove](#full-accountabilityzero-crimedark-net-prove)
@@ -238,6 +240,14 @@ The OASIS API features a HOT Swappable Plugin Architecture meaning any OASIS Pro
 ### Full Redundancy/Zero Downtime/Impossible To Shutdown!
 
 It also allows full data redundancy and for it to be network independent so if one network goes down it can automatically switch to the next fastest node in your area regardless of what network it is on. So it will be impossible to shut the OASIS down, you need to shut the entire Internet down, goodluck with that! ;-)
+
+### HTTP REST/gRPC/GraphQL/CLI/Native Endpoints
+
+The OASIS API currently has a HTTP REST API, CLI & Native endpoints. gRPC & GraphQL are coming soon...
+
+### Javascript, Unity & C# Packages
+
+The OASIS API currently has a [Javascript](#javascript), [Unity](#unity) & [C#](#csharp) package, more are coming soon...
 
 ### Avatar API
 
