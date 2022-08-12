@@ -17,6 +17,7 @@
   - [SEEDS API](#seeds-api)
   - [Keys/Wallet API](#keyswallet-api)
   - [Works Offline/Local Networks (LAN, Bluetooth, Mesh Networks)](#works-offlinelocal-networks-lan-bluetooth-mesh-networks)
+  - [One API To Rule Them All](#one-api-to-rule-them-all)
   - [Powerful Pick n Mix & Plug n Play UI Components](#powerful-pick-n-mix--plug-n-play-ui-components)
   - [WEB/2D/3D/AR/VR/IR/Map/Meta Visusalization](#web2d3darvrirmapmeta-visusalization)
   - [Our World Geo-Location/AR/IR/Map UI (Game Of Games Engine)](#our-world-geo-locationarirmap-ui-game-of-games-engine)
@@ -276,6 +277,16 @@ It can also then sync your public key and wallet address etc when you go back on
 
 This same technology works across all of the API's (Avatar, Data, etc) so you can work offline if your connection to the internet goes down and will automatically sync once it goes back online. It even allows you to network over LAN, Bluetooth, Mesh Networks, etc.
 
+### OAPPS - Write Once, Deploy Everywhere
+OAPP's (OASIS Apps) that use the OASIS API can be deployed anywhere across any network, platform, API or protocol. This includes all of WEB2 (clouds, databases, etc),  Holochain, every popular blockchain, ActivityPub, IPFS, SOLID & many more... check the growing list of providers supported below.
+
+Gone are the days of having to write multiple dApps and having to spend lots of time setting up your dev environment for each one such as the network, wallet, account, etc. The OASIS API can manage all of this for you with one simple to use UI (web, desktop and Unity versions planned). The Unity UI will in fact be Our World and will be the most feature rich through the XR interface.
+
+You can also of course fully manage every feature and option through the API itself so you could even write your own UI to it if you so wished.
+
+### One API To Rule Them All - The GOD Protocol/API
+The OASIS API will allow you to connect into everything including e-commerce, trading, security, social networks, blockchains, holochain networks, etc. regardless of where they are running (WEB2 or WEB3/IoT).
+
 ### Powerful Pick n Mix & Plug n Play UI Components
 
 Soon you will also have a very powerful intuitive UI allowing anyone to build an OAPP through a simple intuitive to use drag n drop interface plugging together the various components (web, unity, unreal, metaverse & more) you need allowing you to focus on your ideas rather than on how to implement them. This will lower the barrier to entry for non-technical people, the perfect low-code solution!
@@ -365,6 +376,10 @@ To summarize, WEB4 OASIS API aggregates all of the worlds data into a fully unif
 * **Best Of All Worlds.**
 
 * **Maximum Interopability/Aggregation.**
+
+* **Write Once, Deploy Everywhere Now & Forever.**
+
+* **One API To Rule Them All - The GOD Protocol/API.**
 
 * **AI/Machine Learning Over All Of World's Aggregated Data.**
 
