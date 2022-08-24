@@ -1,8 +1,8 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+﻿using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using System;
 
-namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
+namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
     public class AvatarLoadedEventArgs : EventArgs
     {

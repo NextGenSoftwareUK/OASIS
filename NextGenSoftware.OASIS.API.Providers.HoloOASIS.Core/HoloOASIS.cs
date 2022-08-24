@@ -8,12 +8,12 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.WebSocket;
 
-namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
+namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
-    public abstract class HoloOASISBase : OASISStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISLocalStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
+    public class HoloOASIS : OASISStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISLocalStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private const string OURWORLD_ZOME = "our_world_core";
         private const string LOAD_Avatar_FUNC = "load_Avatar";
@@ -44,27 +44,32 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         public delegate void HoloOASISError(object sender, HoloOASISErrorEventArgs e);
         public event HoloOASISError OnHoloOASISError;
 
-        public HoloNETClientBase HoloNETClient { get; private set; }
+        public HoloNETClient HoloNETClient { get; private set; }
        
 
-        public HoloOASISBase(HoloNETClientBase holoNETClient)
+        public HoloOASIS(HoloNETClient holoNETClient)
         {
-            this.ProviderName = "HoloOASIS";
-            this.ProviderDescription = "Holochain Provider";
-            this.ProviderType = new EnumValue<ProviderType>(API.Core.Enums.ProviderType.HoloOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(API.Core.Enums.ProviderCategory.StorageLocalAndNetwork);
             this.HoloNETClient = holoNETClient;
-          //  _holochainURI = holochainURI;
+            Initialize();
+        }
+
+        public HoloOASIS(string holochainConductorURI)
+        {
+            HoloNETClient = new HoloNETClient("http://localhost:8888");
             Initialize();
         }
 
         public async Task Initialize()
         {
+            this.ProviderName = "HoloOASIS";
+            this.ProviderDescription = "Holochain Provider";
+            this.ProviderType = new EnumValue<ProviderType>(API.Core.Enums.ProviderType.HoloOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(API.Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+
             HoloNETClient.OnConnected += HoloOASIS_OnConnected;
             HoloNETClient.OnDisconnected += HoloOASIS_OnDisconnected;
             HoloNETClient.OnError += HoloNETClient_OnError;
             HoloNETClient.OnDataReceived += HoloOASIS_OnDataReceived;
-            HoloNETClient.OnGetInstancesCallBack += HoloOASIS_OnGetInstancesCallBack;
             HoloNETClient.OnSignalsCallBack += HoloOASIS_OnSignalsCallBack;
             HoloNETClient.OnZomeFunctionCallBack += HoloOASIS_OnZomeFunctionCallBack;
 
@@ -106,8 +111,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                         //if (string.IsNullOrEmpty(_savingAvatars[e.Id].HcAddressHash))
                         //{
                         //    //TODO: Forced to re-save the object with the address (wouldn't that create a new hash entry?!)
-                        _savingAvatars[e.Id].hc_address_hash = e.ZomeReturnData;
-                        _savingAvatars[e.Id].provider_key = e.ZomeReturnData; //Generic field for providers to store their key (in this case the address hash)
+                        _savingAvatars[e.Id].hc_address_hash = e.ZomeReturnData["address_hash"].ToString();
+                        _savingAvatars[e.Id].provider_key = e.ZomeReturnData["provider_key"].ToString(); //Generic field for providers to store their key (in this case the address hash)
 
                         //    SaveAvatarAsync(_savingAvatars[e.Id]);
                         //}
@@ -132,12 +137,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             
         }
 
-        private void HoloOASIS_OnGetInstancesCallBack(object sender, GetInstancesCallBackEventArgs e)
-        {
-            _hcinstance = e.Instances[0];
-            OnInitialized?.Invoke(this, new EventArgs());
-            _taskCompletionSourceGetInstance.SetResult(_hcinstance);
-        }
+        //private void HoloOASIS_OnGetInstancesCallBack(object sender, GetInstancesCallBackEventArgs e)
+        //{
+        //    _hcinstance = e.Instances[0];
+        //    OnInitialized?.Invoke(this, new EventArgs());
+        //    _taskCompletionSourceGetInstance.SetResult(_hcinstance);
+        //}
 
         private void HoloOASIS_OnDisconnected(object sender, DisconnectedEventArgs e)
         {
@@ -151,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
         private void HoloOASIS_OnConnected(object sender, ConnectedEventArgs e)
         {
-            HoloNETClient.GetHolochainInstancesAsync();
+           // HoloNETClient.GetHolochainInstancesAsync();
         }
 
         #region IOASISStorageProvider Implementation
@@ -252,7 +257,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 _currentId++;
                 //_savingAvatars[_currentId.ToString()] = ConvertAvatarToHoloOASISAvatar(hcAvatar);
                 _savingAvatars[_currentId.ToString()] = hcAvatar;
-                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, OURWORLD_ZOME, SAVE_Avatar_FUNC, new { entry = hcAvatar });
+                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), OURWORLD_ZOME, SAVE_Avatar_FUNC, new { entry = hcAvatar });
                 return new OASISResult<IAvatar>(await _taskCompletionSourceSaveAvatar.Task);
             }
 
