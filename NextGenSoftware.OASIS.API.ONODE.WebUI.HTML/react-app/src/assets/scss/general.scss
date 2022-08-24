@@ -247,6 +247,7 @@ option {
         }
     }
     button.submit-button {
+        position: relative;
         grid-gap: 10px;
         margin: 0;
         display: flex;
@@ -264,6 +265,10 @@ option {
         grid-column: 1/3;
         @media screen and (min-width:320px) and (max-width:767px) {
             width: 100%;
+        }
+        > div {
+            position: absolute;
+            right: 45px;
         }
     }
 }

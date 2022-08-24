@@ -27,7 +27,7 @@ class DonateSeeds extends React.Component {
     handleChange = (e) => {
         console.log(e.target.value)
 
-        if(e.target.value == "avatar_section" || e.target.value == "username_section") {
+        if(e.target.value === "avatar_section" || e.target.value === "username_section") {
             this.setState({
                 group: e.target.value
             })

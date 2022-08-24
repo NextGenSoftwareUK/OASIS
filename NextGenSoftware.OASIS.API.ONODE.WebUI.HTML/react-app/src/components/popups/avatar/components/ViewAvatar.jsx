@@ -1,10 +1,10 @@
 import React from "react";
-import axios from "axios";
-import { Modal, ModalBody } from "react-bootstrap";
+// import axios from "axios";
+import { Modal } from "react-bootstrap";
 
-import { login, getUserById } from "../../../../functions";
+// import { login, getUserById } from "../../../../functions";
 // import ReactGrid from "../../../ReactGrid";
-import { AgGridColumn, AgGridReact } from 'ag-grid-react'
+import { AgGridReact } from 'ag-grid-react'
 import '../../../../assets/scss/avatar-popup.scss';
 import oasisApi from "oasis-api";
 
