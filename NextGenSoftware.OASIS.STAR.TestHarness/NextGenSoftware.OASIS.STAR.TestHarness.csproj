@@ -934,6 +934,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.CLI.Engine\NextGenSoftware.CLI.Engine.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.STAR\NextGenSoftware.OASIS.STAR.csproj" />
   </ItemGroup>
 

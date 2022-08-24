@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
-using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
@@ -10,7 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
@@ -229,25 +228,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 {
                     case ProviderType.HoloOASIS:
                         {
-                            object hcVersion = null;
-
-                            if (Enum.TryParse(typeof(HolochainVersion),
-                                OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion, out hcVersion))
-                            {
-                                HoloOASIS holoOASIS =
-                                    new HoloOASIS(
+                            HoloOASIS holoOASIS = new HoloOASIS(
                                         overrideConnectionString == null
                                             ? OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString
-                                            : overrideConnectionString, (HolochainVersion)hcVersion);
-                                holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
-                                holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
-                                registeredProvider = holoOASIS;
-                            }
-                            else
-                                throw new ArgumentOutOfRangeException(
-                                    "OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion",
-                                    OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion,
-                                    "The HolochainVersion needs to be either RSM or Redux.");
+                                            : overrideConnectionString);
+
+                            holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
+                            holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
+                            registeredProvider = holoOASIS;
                         }
                         break;
 
@@ -600,7 +588,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         }
 
         private static void HoloOASIS_OnHoloOASISError(object sender,
-            API.Providers.HoloOASIS.Core.HoloOASISErrorEventArgs e)
+            API.Providers.HoloOASIS.HoloOASISErrorEventArgs e)
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
             //  throw new Exception(string.Concat("ERROR: HoloOASIS_OnHoloOASISError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNET.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNET.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));

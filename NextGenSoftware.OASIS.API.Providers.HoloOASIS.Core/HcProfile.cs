@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System;
 
-namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
+namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
     //public class Avatar : API.Core.Avatar, IAvatar
     //{

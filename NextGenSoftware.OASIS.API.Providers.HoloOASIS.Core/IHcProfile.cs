@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
+namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
     //public interface IAvatar : API.Core.IAvatar
     //{
