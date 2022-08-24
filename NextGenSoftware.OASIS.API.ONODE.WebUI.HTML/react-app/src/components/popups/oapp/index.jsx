@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import CreateOAPP from './components/CreateOAPP';
 import DeployOAPP from './components/DeployOAPP';
 import DownloadOurWorld from './components/DownloadOurWorld';

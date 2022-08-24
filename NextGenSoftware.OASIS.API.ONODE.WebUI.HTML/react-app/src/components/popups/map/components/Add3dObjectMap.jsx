@@ -1,9 +1,9 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { Modal } from "react-bootstrap";
 import '../../../../assets/scss/coming-soon.scss';
 import InfoIcon from '../../../../assets/images/icon-info.svg'
 
-class Add3dObjectMap extends Component {
+class Add3dObjectMap extends React.Component {
     state = {  } 
     render() { 
         const { show, hide } = this.props;

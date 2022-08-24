@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 
 import SearchProfiles from './components/SearchProfiles';
 import ViewAchievements from './components/ViewAchievements';
