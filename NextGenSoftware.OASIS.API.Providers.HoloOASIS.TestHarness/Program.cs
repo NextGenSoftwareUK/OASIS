@@ -1,15 +1,13 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
-using NextGenSoftware.WebSocket;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.WebSocket;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
 {
     class Program
     {
-        static Desktop.HoloOASIS _holoOASIS = new Desktop.HoloOASIS("ws://localhost:8888", HolochainVersion.Redux);
+        static HoloOASIS _holoOASIS = new HoloOASIS("ws://localhost:8888");
         //static Core.HcAvatar _savedAvatar;
         static Avatar _savedAvatar;
 
@@ -75,8 +73,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             Console.WriteLine(string.Concat("Email: ", e.Avatar.Email));
             //Console.WriteLine(string.Concat("DOB: ", e.Avatar.DOB));
           //  Console.WriteLine(string.Concat("Address: ", e.Avatar.Address));
-            Console.WriteLine(string.Concat("Karma: ", e.Avatar.Karma));
-            Console.WriteLine(string.Concat("Level: ", e.Avatar.Level));
+            //Console.WriteLine(string.Concat("Karma: ", e.Avatar.Karma));
+            //Console.WriteLine(string.Concat("Level: ", e.Avatar.Level));
         }
 
         private static async void _holoOASIS_OnInitialized(object sender, EventArgs e)
