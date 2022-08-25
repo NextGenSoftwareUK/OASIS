@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<PackageId>NextGenSoftware.Utilities</PackageId>
 	<Company>NextGen Software Ltd</Company>
@@ -12,10 +10,10 @@
 	<Summary>Utilities library used by other NextGen Software libraries.</Summary>
 	<Description>Utilities library used by other NextGen Software libraries.</Description>
 	<PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-	<PackageIcon>FinalLogo128.jpg</PackageIcon>
+	<PackageIcon>STARJPG.JPG</PackageIcon>
 	<Authors>David Ellams (NextGen Software Ltd)</Authors>
 	<PackageTags>utilities;net;unity</PackageTags>
-	<PackageReleaseNotes>Updated README.</PackageReleaseNotes>
+	<PackageReleaseNotes>Updated Logo.</PackageReleaseNotes>
 	<RepositoryType>git</RepositoryType>
 	<RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
 	<Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
@@ -23,12 +21,12 @@
 	<!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	<Version>1.0.1</Version>
+	<Version>1.0.3</Version>
 	<!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\FinalLogo128.jpg">
+    <None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\STAR\STARJPG.JPG">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

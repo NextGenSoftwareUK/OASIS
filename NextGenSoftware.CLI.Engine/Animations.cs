@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace NextGenSoftware.CLI.Engine
 {
 	public class ConsoleSpiner

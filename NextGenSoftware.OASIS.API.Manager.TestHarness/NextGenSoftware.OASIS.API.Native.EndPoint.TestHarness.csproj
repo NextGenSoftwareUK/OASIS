@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="OASIS_DNA.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="OASIS_DNA.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.CLI.Engine\NextGenSoftware.CLI.Engine.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Manager\NextGenSoftware.OASIS.API.Native.EndPoint.csproj" />
+  </ItemGroup>
+
+</Project>
