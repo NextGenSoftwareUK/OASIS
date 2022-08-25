@@ -1,30 +1,33 @@
-﻿using NextGenSoftware.OASIS.OASISBootLoader;
-using NextGenSoftware.OASIS.API.DNA;
+﻿using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-namespace NextGenSoftware.OASIS.API.Manager
+namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {
     public class OASISProviders
     {
-        SEEDSOASIS _SEEDS;
-        IPFSOASIS _IPFS;
+        EthereumOASIS _Ethereum;
+        SolanaOASIS _Solana;
         EOSIOOASIS _EOSIO;
         TelosOASIS _Telos;
+        SEEDSOASIS _SEEDS;
+        IPFSOASIS _IPFS;
         HoloOASIS _Holochain;
         MongoDBOASIS _MongoDB;
         Neo4jOASIS _Neo4j;
-        EthereumOASIS _Ethereum;
+        SQLLiteDBOASIS _sqlLiteDb;
         ThreeFoldOASIS _ThreeFold;
         AcitvityPubOASIS _ActivityPub;
         OASISDNA _OASISDNA;
@@ -47,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Manager
                             _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
                             _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
                             _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey
-                        ));
+                            ));
                         ProviderManager.RegisterProvider(_SEEDS);
                     }
                 }
@@ -75,6 +78,28 @@ namespace NextGenSoftware.OASIS.API.Manager
                     _EOSIO = (EOSIOOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.EOSIOOASIS);
 
                 return _EOSIO;
+            }
+        }
+
+        public SolanaOASIS Solana
+        {
+            get
+            {
+                if (_Solana == null)
+                    _Solana = (SolanaOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.SolanaOASIS);
+
+                return _Solana;
+            }
+        }
+
+        public EthereumOASIS Ethereum
+        {
+            get
+            {
+                if (_Ethereum == null)
+                    _Ethereum = (EthereumOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.EthereumOASIS);
+
+                return _Ethereum;
             }
         }
 
@@ -122,14 +147,14 @@ namespace NextGenSoftware.OASIS.API.Manager
             }
         }
 
-        public EthereumOASIS Ethereum
+        public SQLLiteDBOASIS SQLLiteDB
         {
             get
             {
-                if (_Ethereum == null)
-                    _Ethereum = (EthereumOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.EthereumOASIS);
+                if (_sqlLiteDb == null)
+                    _sqlLiteDb = (SQLLiteDBOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.SQLLiteDBOASIS);
 
-                return _Ethereum;
+                return _sqlLiteDb;
             }
         }
 

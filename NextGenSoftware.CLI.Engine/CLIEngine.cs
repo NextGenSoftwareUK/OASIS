@@ -1,4 +1,5 @@
 ﻿using NextGenSoftware.Utilities.ExtentionMethods;
+using System;
 using System.Drawing;
 
 namespace NextGenSoftware.CLI.Engine
@@ -6,7 +7,12 @@ namespace NextGenSoftware.CLI.Engine
     public static class CLIEngine
     {
         public static Spinner Spinner = new Spinner();
-       // public static Colorful.Console ColorfulConsole;
+        // public static Colorful.Console ColorfulConsole;
+
+        public static ConsoleColor SuccessMessageColour { get; set; } = ConsoleColor.Green;
+        public static ConsoleColor ErrorMessageColour { get; set; } = ConsoleColor.Red;
+        public static ConsoleColor MessageColour { get; set; } = ConsoleColor.Yellow;
+        public static ConsoleColor WorkingMessageColour { get; set; } = ConsoleColor.Yellow;
 
         public static void WriteAsciMessage(string message, Color color)
         {
@@ -48,11 +54,20 @@ namespace NextGenSoftware.CLI.Engine
 
         public static void ShowSuccessMessage(string message, bool lineSpace = true, bool noLineBreak = false, int intendBy = 1)
         {
-            ShowMessage(message, ConsoleColor.Green, lineSpace, noLineBreak, intendBy);
+            ShowMessage(message, SuccessMessageColour, lineSpace, noLineBreak, intendBy);
         }
 
         public static void ShowMessage(string message, bool lineSpace = true, bool noLineBreaks = false, int intendBy = 1)
         {
+            ShowMessage(message, MessageColour, lineSpace, noLineBreaks, intendBy);
+        }
+
+        public static void ShowMessage(string message, ConsoleColor color, bool lineSpace = true, bool noLineBreaks = false, int intendBy = 1)
+        {
+            ConsoleColor existingColour = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+            //ShowMessage(message, lineSpace, noLineBreaks, intendBy);
+
             if (Spinner.IsActive)
             {
                 Spinner.Stop();
@@ -70,19 +85,13 @@ namespace NextGenSoftware.CLI.Engine
                 Console.Write(string.Concat(indent, message));
             else
                 Console.WriteLine(string.Concat(indent, message));
-        }
 
-        public static void ShowMessage(string message, ConsoleColor color, bool lineSpace = true, bool noLineBreaks = false, int intendBy = 1)
-        {
-            ConsoleColor existingColour = Console.ForegroundColor;
-            Console.ForegroundColor = color;
-            ShowMessage(message, lineSpace, noLineBreaks, intendBy);
             Console.ForegroundColor = existingColour;
         }
 
         public static void ShowWorkingMessage(string message, bool lineSpace = true, int intendBy = 1)
         {
-            ShowMessage(message, lineSpace, true, intendBy);
+            ShowMessage(message, WorkingMessageColour, lineSpace, true, intendBy);
             Spinner.Start();
         }
 
@@ -94,7 +103,7 @@ namespace NextGenSoftware.CLI.Engine
 
         public static void ShowErrorMessage(string message, bool lineSpace = true, bool noLineBreak = false, int intendBy = 1)
         {
-            ShowMessage(message, ConsoleColor.Red, lineSpace, noLineBreak, intendBy);
+            ShowMessage(message, ErrorMessageColour, lineSpace, noLineBreak, intendBy);
         }
 
         public static string GetValidTitle(string message)
@@ -251,11 +260,13 @@ namespace NextGenSoftware.CLI.Engine
                 ShowMessage("What is your favourite colour? ", true, true);
                 string colour = Console.ReadLine();
                 colour = ExtensionMethods.ToPascalCase(colour);
-                object colourObj = null;
+                //object colourObj = null;
+               // ConsoleColor colourObj;
 
-                if (Enum.TryParse(typeof(ConsoleColor), colour, out colourObj))
+                //if (Enum.TryParse(typeof(ConsoleColor), colour, out colourObj))
+                if (Enum.TryParse(colour, out favColour))
                 {
-                    favColour = (ConsoleColor)colourObj;
+                   // favColour = (ConsoleColor)colourObj;
                     Console.ForegroundColor = favColour;
                     ShowMessage("Do you prefer to use your favourite colour? :) ", true, true);
 
@@ -272,11 +283,12 @@ namespace NextGenSoftware.CLI.Engine
                             ShowMessage("Which colour would you prefer? ", true, true);
                             colour = Console.ReadLine();
                             colour = ExtensionMethods.ToPascalCase(colour);
-                            colourObj = null;
+                            //colourObj = null;
 
-                            if (Enum.TryParse(typeof(ConsoleColor), colour, out colourObj))
+                            //if (Enum.TryParse(typeof(ConsoleColor), colour, out colourObj))
+                            if (Enum.TryParse(colour, out cliColour))
                             {
-                                cliColour = (ConsoleColor)colourObj;
+                                //cliColour = (ConsoleColor)colourObj;
                                 Console.ForegroundColor = cliColour;
                                 Spinner.Colour = cliColour;
 

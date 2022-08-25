@@ -11,19 +11,23 @@ using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 {
     public class OASISProviders
     {
-        SEEDSOASIS _SEEDS;
-        IPFSOASIS _IPFS;
+        EthereumOASIS _Ethereum;
+        SolanaOASIS _Solana;
         EOSIOOASIS _EOSIO;
         TelosOASIS _Telos;
+        SEEDSOASIS _SEEDS;
+        IPFSOASIS _IPFS;
         HoloOASIS _Holochain;
         MongoDBOASIS _MongoDB;
         Neo4jOASIS _Neo4j;
-        EthereumOASIS _Ethereum;
+        SQLLiteDBOASIS _sqlLiteDb;
         ThreeFoldOASIS _ThreeFold;
         AcitvityPubOASIS _ActivityPub;
         OASISDNA _OASISDNA;
@@ -77,6 +81,28 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
             }
         }
 
+        public SolanaOASIS Solana
+        {
+            get
+            {
+                if (_Solana == null)
+                    _Solana = (SolanaOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.SolanaOASIS);
+
+                return _Solana;
+            }
+        }
+
+        public EthereumOASIS Ethereum
+        {
+            get
+            {
+                if (_Ethereum == null)
+                    _Ethereum = (EthereumOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.EthereumOASIS);
+
+                return _Ethereum;
+            }
+        }
+
         public TelosOASIS Telos
         {
             get
@@ -121,14 +147,14 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
             }
         }
 
-        public EthereumOASIS Ethereum
+        public SQLLiteDBOASIS SQLLiteDB
         {
             get
             {
-                if (_Ethereum == null)
-                    _Ethereum = (EthereumOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.EthereumOASIS);
+                if (_sqlLiteDb == null)
+                    _sqlLiteDb = (SQLLiteDBOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.SQLLiteDBOASIS);
 
-                return _Ethereum;
+                return _sqlLiteDb;
             }
         }
 

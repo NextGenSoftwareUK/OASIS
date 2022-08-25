@@ -1,19 +1,28 @@
-﻿using NextGenSoftware.OASIS.OASISBootLoader;
-using NextGenSoftware.OASIS.API.DNA;
+﻿using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Apollo.Server;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.BLL.Managers;
 
-namespace NextGenSoftware.OASIS.API.Manager
+namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {
-    public static class OASISAPI
+    public class OASISAPI
     {
-        public static AvatarManager Avatar { get; set; }
-        public static HolonManager Data { get; set; }
-       // public static MapManager Map { get; set; }
-        public static OASISProviders Providers { get; private set; }
+        public bool IsOASISBooted { get; set; }
+        public AvatarManager Avatar { get; set; }
+        public KeyManager Keys { get; set; }
+        public WalletManager Wallets { get; set; }
+        public HolonManager Data { get; set; }
+        public MapManager Map { get; set; }
+        public MissionManager Missions { get; set; }
+        public QuestManager Quests { get; set; }
+        public ParkManager Parks { get; set; }
+        public OLANDManager OLAND { get; set; }
+        public SearchManager Search { get; set; }
+        public OASISProviders Providers { get; private set; }
 
-        public static OASISResult<bool> Initialize(OASISDNA OASISDNA, bool startApolloServer = true)
+        public OASISResult<bool> BootOASIS(OASISDNA OASISDNA, bool startApolloServer = true)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -22,12 +31,12 @@ namespace NextGenSoftware.OASIS.API.Manager
                 result = OASISBootLoader.OASISBootLoader.BootOASIS(OASISDNA);
 
             if (!result.IsError && result.Result)
-                Init(startApolloServer);
+                BootOASIS(startApolloServer);
 
             return result;
         }
 
-        public static OASISResult<bool> Initialize(string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
+        public OASISResult<bool> BootOASIS(string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -37,22 +46,44 @@ namespace NextGenSoftware.OASIS.API.Manager
 
             if (!result.IsError && result.Result)
             {
-                OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
-                Init(startApolloServer);
+                OASISResult<IOASISStorageProvider> bootLoaderResult = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+
+                if (bootLoaderResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = bootLoaderResult.Message;
+                }
+                else
+                    BootOASIS(startApolloServer);
             }
 
             return result;
         }
 
-        private static void Init(bool startApolloServer = true)
+        public OASISResult<bool> ShutdownOASIS()
         {
-          //  Map = new MapManager(ProviderManager.CurrentStorageProvider);
+            return OASISBootLoader.OASISBootLoader.ShutdownOASIS();
+        }
+
+        private void BootOASIS(bool startApolloServer = true)
+        {
+            Map = new MapManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            Missions = new MissionManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            Quests = new QuestManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            Parks = new ParkManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            OLAND = new OLANDManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            Search = new SearchManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Avatar = new AvatarManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-            Data = new HolonManager(ProviderManager.CurrentStorageProvider);
+            Data = new HolonManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            Keys = new KeyManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            Wallets = new WalletManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+
             Providers = new OASISProviders(OASISBootLoader.OASISBootLoader.OASISDNA);
 
             if (startApolloServer)
                 ApolloServer.StartServer();
+
+            IsOASISBooted = true;
 
             ////TODO: Move the mappings to an external config wrapper than is injected into the OASISAPIManager constructor above...
             //// Give HoloOASIS Store permission for the Name field (the field will only be stored on Holochain).
