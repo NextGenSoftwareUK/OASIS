@@ -13,7 +13,7 @@
 	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Native; Integrated</PackageTags>
-	  <PackageReleaseNotes>Initial Release targeting OASIS API v2.3.1 (Current LIVE REST version).</PackageReleaseNotes>
+	  <PackageReleaseNotes>Updated documentation.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
 	  <Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
@@ -21,7 +21,7 @@
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	  <Version>1.0.0</Version>
+	  <Version>1.0.1</Version>
 	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
 
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
