@@ -43,10 +43,9 @@
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.ONODE.BLL\NextGenSoftware.OASIS.API.ONODE.BLL.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" />
+    <!--<ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" />-->
     <ProjectReference Include="..\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -95,7 +94,7 @@
   <ItemGroup>
     <PackageReference Include="MappingGenerator" Version="1.22.3" />
     <PackageReference Include="Mapster" Version="7.2.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.6" />
+    <!--<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.8" />-->
   </ItemGroup>
 
 </Project>
