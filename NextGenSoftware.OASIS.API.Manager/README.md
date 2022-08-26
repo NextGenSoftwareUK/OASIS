@@ -9,3 +9,5 @@ Full documentation and source code can be found here:
 https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK
 
 Make sure you check out the Overview and Benefits Of Building On The WEB 4 OASIS API sections above! :) Thank you!
+
+**NOTE: It is taking some time to package up and deploy all the dependencies required for the OASIS Endpoint to run, so please bare with us whilst we do! Thank you! ;-)**
