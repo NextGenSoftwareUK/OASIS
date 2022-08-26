@@ -201,11 +201,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.Console", "NextGenSoftware.OASIS.STAR.DNATemplates.Console\NextGenSoftware.OASIS.STAR.DNATemplates.Console.csproj", "{8D9D2EE8-100C-46A4-9B11-45A6C17ADAE1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.CLI.Engine", "NextGenSoftware.CLI.Engine\NextGenSoftware.CLI.Engine.csproj", "{EF679A2E-F352-442F-B9A4-27774594F8EF}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Utilities", "NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj", "{CA664435-C56B-444C-842F-BA53A7E08871}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Native.EndPoint.TestHarness", "NextGenSoftware.OASIS.API.Manager.TestHarness\NextGenSoftware.OASIS.API.Native.EndPoint.TestHarness.csproj", "{87FE919E-F2EE-49E0-B54B-FD12DAE59E81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Native.EndPoint.TestHarness", "NextGenSoftware.OASIS.API.Manager.TestHarness\NextGenSoftware.OASIS.API.Native.EndPoint.TestHarness.csproj", "{87FE919E-F2EE-49E0-B54B-FD12DAE59E81}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1621,42 +1617,6 @@ Global
 		{8D9D2EE8-100C-46A4-9B11-45A6C17ADAE1}.Release|x64.Build.0 = Release|Any CPU
 		{8D9D2EE8-100C-46A4-9B11-45A6C17ADAE1}.Release|x86.ActiveCfg = Release|Any CPU
 		{8D9D2EE8-100C-46A4-9B11-45A6C17ADAE1}.Release|x86.Build.0 = Release|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Debug|x64.Build.0 = Debug|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Debug|x86.Build.0 = Debug|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Linux|x64.ActiveCfg = Debug|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Linux|x64.Build.0 = Debug|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Linux|x86.ActiveCfg = Debug|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Linux|x86.Build.0 = Debug|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Release|x64.ActiveCfg = Release|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Release|x64.Build.0 = Release|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Release|x86.ActiveCfg = Release|Any CPU
-		{EF679A2E-F352-442F-B9A4-27774594F8EF}.Release|x86.Build.0 = Release|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Debug|x64.Build.0 = Debug|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Debug|x86.Build.0 = Debug|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Linux|x64.ActiveCfg = Debug|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Linux|x64.Build.0 = Debug|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Linux|x86.ActiveCfg = Debug|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Linux|x86.Build.0 = Debug|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Release|x64.ActiveCfg = Release|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Release|x64.Build.0 = Release|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Release|x86.ActiveCfg = Release|Any CPU
-		{CA664435-C56B-444C-842F-BA53A7E08871}.Release|x86.Build.0 = Release|Any CPU
 		{87FE919E-F2EE-49E0-B54B-FD12DAE59E81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{87FE919E-F2EE-49E0-B54B-FD12DAE59E81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87FE919E-F2EE-49E0-B54B-FD12DAE59E81}.Debug|x64.ActiveCfg = Debug|Any CPU
