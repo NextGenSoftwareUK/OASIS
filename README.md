@@ -1813,17 +1813,21 @@ It is located in the `NextGenSoftware.OASIS.API.Core` project.
 
 #### Using The OASIS API Core
 
-The API is still being developed so at the time of writing,  only the`AvatarManager` is available.
+The API is constantly evolving so keeping the documentation in sync with the code is hard so please bare with us, in the meantime please check the codebase directly for latest changes. Thank you.
+
+You can now use the OASIS API either through the [REST API](https://api.osaisplatform.world) or through the [fully integrated native endpoint](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/releases).
+
+You can alternatively use the various OASIS API Managers contained in the [OASIS.API.Core](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Core) project directly.
 
 You start by instantiating the `AvatarManager` class:
 
 ````c#
 // Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
-// providers can be sweapped without having to re-compile.
+// providers can be swapped without having to re-compile. This work has now been completed with the OASISDNA.json file. 
 AvatarManager = new AvatarManager(new HoloOASIS("ws://localhost:8888"));
 ````
 
-The `AvatarManager` takes one param for the constructor of type [IOASISStorage](#ioasisstorage). This is where you inject in a Provider that implements the [IOASISStorage](#ioasisstorage) interface. Currently the only provider that has implemented this is the [HoloOASIS](#holooasis) provider. but expect more to follow soon...
+The `AvatarManager` takes one param for the constructor of type [IOASISStorage](#ioasisstorage). This is where you inject in a Provider that implements the [IOASISStorage](#ioasisstorage) interface. 
 
 ````c#
 public AvatarManager(IOASISStorage
@@ -1853,36 +1857,93 @@ The OASIS API currently has the following interfaces defined:
 
 |Interface|Description  |
 |--|--|
-|[IOASISStorage](#ioasisstorage)  | This is what a Storage Provider implements so the OASIS API can read & write the users profile/avatar to the storage medium/network. Currently only the HoloOASIS provider exists but more will follow soon...the first will be EthereumOASIS & SOLIDOASIS so the API can talk to both Ethereum & SOLID.  |
+|[IOASISStorage](#ioasisstorage)  | This is what a Storage Provider implements so the OASIS API can read & write the users profile/avatar to the storage medium/network. Check out the [full list](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#protocols-platforms-networks-supported--providers-) of providers that have implemented this interface.  |
 |[IOASISNET](#ioasisnet)| This is what a Network Provider implements so the OASIS API can share the users profile/avatar as well as fine Holons and players near them. 
 
-**NOTE: Currently the interfaces are pretty basic, but expect a LOT more to be added in the future...  Additional interfaces will also be added such as the IOASISRenderer interface.**
+**NOTE: The interfaces are evolving all the time so it is hard to keep the documentation up to date, so best to check in the codebase itself...  Additional interfaces will also be added such as the IOASISRenderer interface. There are now many more interfaces that need documenting but as we said best to check the codebase directly...**
 
 #### IOASISStorage  
 
-This is what a Storage Provider implements so the OASIS API can read & write the users profile/avatar to the storage medium/network. Currently only the [HoloOASIS](#holooasis) provider exists but more will follow soon...the first will be EthereumOASIS & SOLIDOASIS so the API can talk to both Ethereum & SOLID.
+This is what a Storage Provider implements so the OASIS API can read & write the users profile/avatar to the storage medium/network.
 
 ````c#
 namespace NextGenSoftware.OASIS.API.Core
 {
-    // This interface is responsible for persisting data/state to storage, this could be a local DB or other local 
-    // storage or through a distributed/decentralised provider such as IPFS or Holochain (these two implementations 
-    // will be implemented soon (IPFSOASIS & HoloOASIS).
-    public interface IOASISStorage
+    // This interface is responsbile for persisting data/state to storage, this could be a local DB or other local 
+    // storage or through a distributed/decentralised provider such as IPFS (IPFSOASIS Provider coming soon) or Holochain (HoloOASIS Provider implemented).
+    public interface IOASISStorageProvider : IOASISProvider
     {
-        Task<IProfile> LoadProfileAsync(string providerKey);
-        Task<IProfile> LoadProfileAsync(Guid Id);
-        Task<IProfile> LoadProfileAsync(string username, string password);
+        OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0);
+        OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0);
+        OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0);
+        OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0);
+        OASISResult<IAvatar> LoadAvatar(string username, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0);
+        OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0);
+        Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0);
+        OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0);
+        OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0);
+        OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0);
+        Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0);
+        Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0);
+        Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0);
+        OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0);
+        Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0);
+        // IAvatarThumbnail LoadAvatarThumbnail(Guid id);
+        // Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id);
+        OASISResult<IAvatar> SaveAvatar(IAvatar Avatar);
+        Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar);
+        OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar);
+        Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar);
+        OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true);
+        OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true);
+        OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true);
+        OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true); //TODO: Currently not used - may remove later? Is it needed?
+        Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true);
+        OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatarDetail Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null);
+        Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null);
+        OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(IAvatarDetail Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null);
+        Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(IAvatarDetail Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null);
 
-        //Task<bool> SaveProfileAsync(IProfile profile);
-        Task<IProfile> SaveProfileAsync(IProfile profile);
-        Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma);
-        Task<bool> RemoveKarmaFromProfileAsync(IProfile profile, int karma);
+        OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
+        Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
+        OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true);
+        Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true);
+        OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
 
-        event StorageProviderError OnStorageProviderError;
+      //  T LoadHolon<T>(Guid id) where T : IHolon;
+        Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
+        OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
+        Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
+        OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0);
+        Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0);
+        OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0);
+        Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0);
+        OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0);
+        Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0);
+        OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true);
+        OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true);
 
+        //TODO: Implement these methods ASAP - this is how we can share data across silos, then merge, aggregate, sense-make, perform actions on the full internet data, etc...
+        Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons); //Imports all data into the OASIS from a given provider (will then be auto-replicated to all providers). NOTE: The Provider will need to convert the providers raw data into a list of holons (holonize the data).
+        Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0); //Exports all data for a given avatar and provider. Version = 0 - Latest version. Version = -1 All versions.
+        Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0); //Exports all data for a given avatar and provider. Version = 0 - Latest version. Version = -1 All versions.
+        Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0); //Exports all data for a given avatar and provider. Version = 0 - Latest version. Version = -1 All versions.
+        Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0); //Exports all data for a given provider. Version = 0 - Latest version. Version = -1 All versions.
+
+        Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
+
+        public event StorageProviderError StorageProviderError;
         //TODO: Lots more to come! ;-)
-    }
 }
 ````
 
@@ -1910,8 +1971,6 @@ namespace NextGenSoftware.OASIS.API.Core
     }
 }
 ````
-
-Currently the [HoloOASIS](#holooasis) Provider defines some stubs for this interface, which will be fully implemented soon...
 
 | Item | Description  |
 |--|--|
