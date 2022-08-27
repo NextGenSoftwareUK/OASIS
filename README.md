@@ -141,34 +141,7 @@
 - [The Power Of Autism](#the-power-of-autism)
 - [Better Than A Fornite Clone! ;-)](#better-than-a-fornite-clone-----)
 - [HoloNET](#holonet)
-  * [How To Use HoloNET](#how-to-use-holonet)
-  * [The Power of .NET Async Methods](#the-power-of-net-async-methods)
-  * [Events](#events)
-    + [OnConnected](#onconnected)
-    + [OnDisconnected](#ondisconnected)
-    + [OnError](#onerror)
-    + [OnGetInstancesCallBack](#ongetinstancescallback)
-    + [OnDataReceived](#ondatareceived)
-    + [OnZomeFunctionCallBack](#onzomefunctioncallback)
-    + [OnSignalsCallBack](#onsignalscallback)
-  * [Methods](#methods)
-    + [Connect](#connect)
-    + [CallZomeFunctionAsync](#callzomefunctionasync)
-      - [Overload 1](#overload-1)
-      - [Overload 2](#overload-2)
-      - [Overload 3](#overload-3)
-      - [Overload 4](#overload-4)
-    + [ClearCache](#clearcache)
-    + [Disconnect](#disconnect)
-    + [GetHolochainInstancesAsync](#getholochaininstancesasync)
-      - [Overload 1](#overload-1-1)
-      - [Overload 2](#overload-2-1)
-    + [SendMessageAsync](#sendmessageasync)
-  * [Properties](#properties)
-    + [Config](#config)
-    + [Logger](#logger)
-    + [NetworkServiceProvider](#networkserviceprovider)
-    + [NetworkServiceProviderMode](#networkserviceprovidermode)
+- [HoloUnity](#holounity)
 - [HoloOASIS](#holooasis)
   * [Using HoloOASIS](#using-holooasis)
   * [Events](#events-1)
@@ -186,11 +159,6 @@
   * [Events](#events-2)
   * [Methods](#methods-2)
   * [Properties](#properties-2)
-- [HoloUnity](#holounity)
-  * [Using HoloUnity](#using-holounity)
-  * [Events](#events-3)
-  * [Methods](#methods-3)
-  * [Properties](#properties-3)
 - [Road Map](#road-map)
 - [Next Steps](#next-steps)
 - [Donations Welcome! :)](#donations-welcome----)
@@ -1651,6 +1619,10 @@ Read more on how to use the [Test Harness here](https://github.com/holochain-ope
 
 Read the [full documentaion here](https://github.com/holochain-open-dev/holochain-client-csharp).
 
+## HoloUnity
+
+Check out the [full documentation here](https://github.com/holochain-open-dev/holochain-client-csharp#holounity), which shows how to use HoloNET in Unity.
+	
 ## HoloOASIS
 
 `HoloOASIS` uses the [HoloNETClient](#holonet) to implement a Storage Provider ([IOASISStorage](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#ioasisstorage)) for the OASIS System. It will soon also implement a Network Provider ([IOASISNET](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#ioasisnet))
@@ -1832,11 +1804,7 @@ HoloOASIS contains the following properties:
 
 
 **More to come soon...**
-
-## HoloUnity
-
-Check out the [full documentation here](https://github.com/holochain-open-dev/holochain-client-csharp#holounity), which shows how to use HoloNET in Unity.
-
+	
 ## OASIS API Core
 
 This is where the main OASIS API is located and contains all of the interfaces that the various providers implement along with the base objects & managers to power the OASIS API.
@@ -1959,9 +1927,7 @@ Currently the [HoloOASIS](#holooasis) Provider defines some stubs for this inter
 
 **More to come soon...**
 
-## HoloUnity
 
-Check out the documentation here: https://github.com/holochain-open-dev/holochain-client-csharp/#holounity
 
 ## Road Map
 
