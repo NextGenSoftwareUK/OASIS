@@ -122,12 +122,37 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             throw new NotImplementedException();
         }
 
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
         public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
         {
             throw new NotImplementedException();
         }
 
         public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons)
         {
             throw new NotImplementedException();
         }
@@ -167,22 +192,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
         public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
         {
             throw new NotImplementedException();
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
         {
             throw new NotImplementedException();
         }

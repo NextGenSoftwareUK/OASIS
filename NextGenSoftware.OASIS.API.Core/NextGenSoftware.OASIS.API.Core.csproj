@@ -3,7 +3,36 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>NextGenSoftware.OASIS.API.Core</RootNamespace>
+	  <PackageId>NextGenSoftware.OASIS.API.Core</PackageId>
+	  <Company>NextGen Software Ltd</Company>
+	  <Product>WEB4 OASIS API Core</Product>
+	  <Title>WEB4 OASIS API Core</Title>
+	  <Summary>This is the heart of the OASIS and contains the core OASIS Engine, architecture, managers, interfaces, helpers, holons/objects, object model, enums, etc. It can be used directly in projects/apps if needed (you can use any of the Managers) but it is highly recommended you use the OASIS.API.Native.Integrated.EndPoint or REST API instead.</Summary>
+	  <Description>This is the heart of the OASIS and contains the core OASIS Engine, architecture, managers, interfaces, helpers, holons/objects, object model, enums, etc. It can be used directly in projects/apps if needed (you can use any of the Managers) but it is highly recommended you use the OASIS.API.Native.Integrated.EndPoint or REST API instead.</Description>
+	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
+	  <PackageTags>OASIS API; Native; Integrated; WEB4</PackageTags>
+	  <PackageReleaseNotes>Updated README</PackageReleaseNotes>
+	  <RepositoryType>git</RepositoryType>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <Version>1.0.1</Version>
+	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
+
+	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
 
   <ItemGroup>
     <None Remove="Logging\NLog\NLog.config" />
@@ -36,6 +65,13 @@
   <ItemGroup>
     <Folder Include="Interfaces\STAR\CelestialHolons\" />
     <Folder Include="Objects\Star" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
   </ItemGroup>
 
 </Project>

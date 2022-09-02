@@ -1,6 +1,6 @@
-﻿# NextGen Software WEB4 OASIS API Integrated EndPoint (Native)
+﻿# NextGen Software WEB4 OASIS API Core
 
-The OASIS API Integrated EndPoint. To be used to integrate the OASIS API directly into target applications (including Unity) instead of using the existing REST API. Can be used for offline/poor conncection use cases, etc. This version will also of of course be faster than the REST API. This version also contains some functionality not currently implemented in the REST API.
+This is the heart of the OASIS and contains the core OASIS Engine, architecture, managers, interfaces, helpers, holons/objects, object model, enums, etc. It can be used directly in projects/apps if needed (you can use any of the Managers) but it is highly recommended you use the [OASIS.API.Native.Integrated.EndPoint](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint) or REST API instead.
 
 Initial Release targeting OASIS API v2.3.1 (Current LIVE REST version):
 https://api.oasisplatform.world
