@@ -141,6 +141,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites
         public Guid PreviousVersionId { get; set; }
         public Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; }
         public Guid VersionId { get; set; }
+        public Dictionary<ProviderType, List<IProviderWallet>> ProviderWallets { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool IsSaving { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -184,7 +187,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites
             throw new NotImplementedException();
         }
 
+        public OASISResult<IAvatar> Save(AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IAvatar> SaveAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IAvatar>> SaveAsync(AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
             throw new NotImplementedException();
         }

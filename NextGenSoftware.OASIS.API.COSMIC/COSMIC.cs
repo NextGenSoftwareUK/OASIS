@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.API.COSMIC
 {
-    public class Class1
+    public class COSMIC
     {
     }
 }

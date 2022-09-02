@@ -76,6 +76,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entities
         public Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; }
         public EnumValue<OASISType> CreatedOASISType { get; set; }
         public Guid VersionId { get; set; }
+        public Guid ParentCelestialSpaceId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public ICelestialSpace ParentCelestialSpace { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Guid ParentCelestialBodyId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public ICelestialBody ParentCelestialBody { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool IsSaving { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

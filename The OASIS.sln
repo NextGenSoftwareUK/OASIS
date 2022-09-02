@@ -69,7 +69,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.IPFSOASIS", "NextGenSoftware.OASIS.API.Providers.IPFSOASIS\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj", "{5946D69A-6113-475A-8233-3017C963B16A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS", "NextGenSoftware.OASIS.API.Providers.AcitvityPub\NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS.csproj", "{B0A76E6A-8FC3-42FA-8C16-DDAF78173187}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS", "NextGenSoftware.OASIS.API.Providers.AcitvityPub\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.csproj", "{B0A76E6A-8FC3-42FA-8C16-DDAF78173187}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.BlockStackOASIS", "NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj", "{A012AF72-81F6-43F3-8419-E6281BAF23CA}"
 EndProject
@@ -131,7 +131,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness.csproj", "{26D52161-E6E6-49C0-91F5-B0FBBF4610ED}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Native.EndPoint", "NextGenSoftware.OASIS.API.Manager\NextGenSoftware.OASIS.API.Native.EndPoint.csproj", "{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Native.Integrated.EndPoint", "NextGenSoftware.OASIS.API.Manager\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj", "{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML", "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML\NextGenSoftware.OASIS.API.ONODE.WebUI.HTML.csproj", "{4DC61E07-A0C1-4952-9965-42B879C51BD5}"
 EndProject
@@ -201,7 +201,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.Console", "NextGenSoftware.OASIS.STAR.DNATemplates.Console\NextGenSoftware.OASIS.STAR.DNATemplates.Console.csproj", "{8D9D2EE8-100C-46A4-9B11-45A6C17ADAE1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Native.EndPoint.TestHarness", "NextGenSoftware.OASIS.API.Manager.TestHarness\NextGenSoftware.OASIS.API.Native.EndPoint.TestHarness.csproj", "{87FE919E-F2EE-49E0-B54B-FD12DAE59E81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Native.Integerated.EndPoint.TestHarness", "NextGenSoftware.OASIS.API.Manager.TestHarness\NextGenSoftware.OASIS.API.Native.Integerated.EndPoint.TestHarness.csproj", "{87FE919E-F2EE-49E0-B54B-FD12DAE59E81}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

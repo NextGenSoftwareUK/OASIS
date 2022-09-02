@@ -1,4 +1,4 @@
-﻿# NextGen Software OASIS API Integrated EndPoint (Native)
+﻿# NextGen Software WEB4 OASIS API Integrated EndPoint (Native)
 
 The OASIS API Integrated EndPoint. To be used to integrate the OASIS API directly into target applications (including Unity) instead of using the existing REST API. Can be used for offline/poor conncection use cases, etc. This version will also of of course be faster than the REST API. This version also contains some functionality not currently implemented in the REST API.
 

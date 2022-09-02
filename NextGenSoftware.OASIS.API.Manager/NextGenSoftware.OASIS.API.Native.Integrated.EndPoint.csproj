@@ -3,16 +3,16 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	  <PackageId>NextGenSoftware.OASIS.API.Native.EndPoint</PackageId>
+	  <PackageId>NextGenSoftware.OASIS.API.Native.Integrated.EndPoint</PackageId>
 	  <Company>NextGen Software Ltd</Company>
-	  <Product>OASIS API Native Integrated EndPoint</Product>
-	  <Title>OASIS API Native Integrated EndPoint</Title>
-	  <Summary>The OASIS API Native Integrated EndPoint. To be used to integrate the OASIS API directly into target applications (including Unity) instead of using the existing REST API. Can be used for offline/poor conncection use cases, etc. This version will also of of course be faster than the REST API. This version also contains some functionality not currently implemented in the REST API.</Summary>
-	  <Description>The OASIS API Native Integrated EndPoint. To be used to integrate the OASIS API directly into target applications (including Unity) instead of using the existing REST API. Can be used for offline/poor conncection use cases, etc. This version will also of of course be faster than the REST API. This version also contains some functionality not currently implemented in the REST API.</Description>
+	  <Product>WEB4 OASIS API Native Integrated EndPoint</Product>
+	  <Title>WEB4 OASIS API Native Integrated EndPoint</Title>
+	  <Summary>The OASIS API Native Integrated EndPoint. To be used to integrate the OASIS API directly into target applications (including Unity) instead of using the existing REST API. Can be used for offline/poor connection use cases, etc. This version will also of course be faster than the REST API. This version also contains some functionality not currently implemented in the REST API.</Summary>
+	  <Description>The OASIS API Native Integrated EndPoint. To be used to integrate the OASIS API directly into target applications (including Unity) instead of using the existing REST API. Can be used for offline/poor connection use cases, etc. This version will also of course be faster than the REST API. This version also contains some functionality not currently implemented in the REST API.</Description>
 	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
 	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
-	  <PackageTags>OASIS API; Native; Integrated</PackageTags>
+	  <PackageTags>OASIS API; Native; Integrated; WEB4 </PackageTags>
 	  <PackageReleaseNotes>Updated documentation.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
