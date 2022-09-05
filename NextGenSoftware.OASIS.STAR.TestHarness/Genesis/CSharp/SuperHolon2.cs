@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.STAR.TestHarness.Genesis.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
 {
-    public class SuperHolon : Holon, ISuperHolon
+    public class SuperHolon2 : Holon, ISuperHolon2
     {
         [CustomOASISProperty]
         public string SuperTestString { get; set; }

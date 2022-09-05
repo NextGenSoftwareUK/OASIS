@@ -22,14 +22,9 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string RustDNARSMTemplateFolder = @"NextGenSoftware.OASIS.STAR\RustDNATemplates\RSM";
         public string CSharpDNATemplateFolder = @"NextGenSoftware.OASIS.STAR\CSharpDNATemplates";
         public string CelestialBodyDNA = @"NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
-        public string GenesisRustFolder = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\Rust";
-        public string GenesisCSharpFolder = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\CSharp";
-        //public string RustDNAReduxTemplateFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\RustDNATemplates\Redux";
-        //public string RustDNARSMTemplateFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\RustDNATemplates\RSM";
-        //public string CSharpDNATemplateFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\CSharpDNATemplates";
-        //public string CelestialBodyDNA = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
-        //public string GenesisRustFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\Rust";
-        //public string GenesisCSharpFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\CSharp";
+        //public string GenesisRustFolder = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\Rust";
+        //public string GenesisCSharpFolder = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\CSharp";
+        public string GenesisFolder = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net6.0\Genesis";
         public string GenesisNamespace = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
         public string TemplateNamespace = "NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates";
         public string RustTemplateLib = @"core\lib.rs";

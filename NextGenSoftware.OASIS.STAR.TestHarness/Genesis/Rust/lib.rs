@@ -6,34 +6,34 @@ use holochain_entry_utils::HolochainEntry;
 
 // see https://developer.holochain.org/api/0.0.50-alpha4/hdk/ for info on using the hdk library
 
-impl HolochainEntry for SuperHolon {
+impl HolochainEntry for SuperHolon2 {
     fn entry_type() -> String {
-        String::from("super_holon")
+        String::from("super_holon2")
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, DefaultJson, Clone)]
-pub struct SuperHolon {
+pub struct SuperHolon2 {
 super_test_string: String,
 super_test_int: i32,
 super_test_bool: bool
 }
 
-impl HolochainEntry for SuperTest {
+impl HolochainEntry for SuperTest2 {
     fn entry_type() -> String {
-        String::from("super_test")
+        String::from("super_test2")
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, DefaultJson, Clone)]
-pub struct SuperTest {
+pub struct SuperTest2 {
 test_string: String,
 test_int: i32,
 test_bool: bool
 }
 
 #[zome]
-mod super_zome {
+mod super_zome2 
 #[entry_def]
 fn my_holon_def() -> ValidatingEntryType {
     entry!(
@@ -43,7 +43,7 @@ fn my_holon_def() -> ValidatingEntryType {
         validation_package: || {
             hdk::ValidationPackageDefinition::Entry
         },
-        validation: | _validation_data: hdk::EntryValidationData<MySuperHolon>| {
+        validation: | _validation_data: hdk::EntryValidationData<MySuperHolon2>| {
             Ok(())
         }
     )
@@ -70,9 +70,9 @@ fn delete_holon(address: Address) -> ZomeApiResult<Address> {
 fn update_my_entry(updated_entry: MyEntry, address: Address) -> ZomeApiResult<Address> {
     let mut my_entry: MyEntry = hdk::utils::get_as_type(address.clone())?;
     
-    super_holon.super_test_string=updated_entry.super_test_string;
-	super_holon.super_test_int=updated_entry.super_test_int;
-	super_holon.super_test_bool=updated_entry.super_test_bool;
+    super_holon2.super_test_string=updated_entry.super_test_string;
+	super_holon2.super_test_int=updated_entry.super_test_int;
+	super_holon2.super_test_bool=updated_entry.super_test_bool;
 
 
     let updated_address = hdk::update_entry(my_entry.clone().entry(), &address)?;
@@ -87,8 +87,8 @@ fn read_my_holon(address: Address) -> ZomeApiResult<MyEntry> {
 }
 
 #[zome_fn("hc_public")]
-fn create_holon(holon: SuperHolon) -> ZomeApiResult<Address> {
-    let holon = Entry::App("super_holon".into(), holon.into());
+fn create_holon(holon: SuperHolon2) -> ZomeApiResult<Address> {
+    let holon = Entry::App("super_holon2".into(), holon.into());
     let address = hdk::commit_entry(&holon)?;
     Ok(address)
 }
@@ -103,7 +103,7 @@ fn my_holon_def() -> ValidatingEntryType {
         validation_package: || {
             hdk::ValidationPackageDefinition::Entry
         },
-        validation: | _validation_data: hdk::EntryValidationData<MySuperTest>| {
+        validation: | _validation_data: hdk::EntryValidationData<MySuperTest2>| {
             Ok(())
         }
     )
@@ -130,9 +130,9 @@ fn delete_holon(address: Address) -> ZomeApiResult<Address> {
 fn update_my_entry(updated_entry: MyEntry, address: Address) -> ZomeApiResult<Address> {
     let mut my_entry: MyEntry = hdk::utils::get_as_type(address.clone())?;
     
-    super_test.test_string=updated_entry.test_string;
-	super_test.test_int=updated_entry.test_int;
-	super_test.test_bool=updated_entry.test_bool;
+    super_test2.test_string=updated_entry.test_string;
+	super_test2.test_int=updated_entry.test_int;
+	super_test2.test_bool=updated_entry.test_bool;
 
 
     let updated_address = hdk::update_entry(my_entry.clone().entry(), &address)?;
@@ -147,13 +147,13 @@ fn read_my_holon(address: Address) -> ZomeApiResult<MyEntry> {
 }
 
 #[zome_fn("hc_public")]
-fn create_holon(holon: SuperTest) -> ZomeApiResult<Address> {
-    let holon = Entry::App("super_test".into(), holon.into());
+fn create_holon(holon: SuperTest2) -> ZomeApiResult<Address> {
+    let holon = Entry::App("super_test2".into(), holon.into());
     let address = hdk::commit_entry(&holon)?;
     Ok(address)
 }
 
-
+{
     
     #[init]
     fn init() {

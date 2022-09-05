@@ -4,17 +4,17 @@ using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis.Interfaces
 {
-    public interface ISuperTest : IHolon
+    public interface ISuperHolon2 : IHolon
     {
 
         [CustomOASISProperty]
-        public string TestString { get; set; }
+        public string SuperTestString { get; set; }
 
         [CustomOASISProperty]
-        public int TestInt { get; set; }
+        public int SuperTestInt { get; set; }
 
         [CustomOASISProperty]
-        public bool TestBool { get; set; }
+        public bool SuperTestBool { get; set; }
 
     }
 }

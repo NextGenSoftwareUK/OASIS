@@ -5,16 +5,16 @@ using NextGenSoftware.OASIS.STAR.TestHarness.Genesis.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
 {
-    public class SuperHolon : Holon, ISuperHolon
+    public class SuperTest2 : Holon, ISuperTest2
     {
         [CustomOASISProperty]
-        public string SuperTestString { get; set; }
+        public string TestString { get; set; }
 
         [CustomOASISProperty]
-        public int SuperTestInt { get; set; }
+        public int TestInt { get; set; }
 
         [CustomOASISProperty]
-        public bool SuperTestBool { get; set; }
+        public bool TestBool { get; set; }
 
    }
 }

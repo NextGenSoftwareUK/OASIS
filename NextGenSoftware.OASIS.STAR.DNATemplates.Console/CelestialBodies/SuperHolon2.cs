@@ -1,10 +1,11 @@
 
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
+using NextGenSoftware.OASIS.STAR.TestHarness.Genesis.Interfaces;
 
-namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis.Interfaces
+namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
 {
-    public interface ISuperHolon : IHolon
+    public class SuperHolon2 : Holon, ISuperHolon2
     {
 
         [CustomOASISProperty]

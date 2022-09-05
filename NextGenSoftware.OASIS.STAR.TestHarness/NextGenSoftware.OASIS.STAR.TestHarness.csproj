@@ -933,11 +933,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Genesis\CSharp\" />
+    <PackageReference Include="NextGenSoftware.CLI.Engine" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NextGenSoftware.CLI.Engine" Version="1.1.0" />
+    <Folder Include="Genesis\" />
+    <Folder Include="Genesis\CSharp\" />
   </ItemGroup>
 
 </Project>

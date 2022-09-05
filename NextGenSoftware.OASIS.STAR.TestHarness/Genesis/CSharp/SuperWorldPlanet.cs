@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
 {
     public class SuperWorld : Planet, IPlanet
     {
-        public SuperWorld() : base(new Guid("b5f35a4b-51dc-43ec-9246-0accdde87622")) { }
+        public SuperWorld() : base(new Guid("23945d29-de71-4adb-84ce-99f43de6abce")) { }
  
         public OASISResult<SuperTest> LoadSuperTest(Guid id)
         {
@@ -69,6 +69,66 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
         public async Task<OASISResult<SuperHolon>> SaveSuperHolonAsync(SuperHolon holon)
         {
             return await base.CelestialBodyCore.SaveHolonAsync<SuperHolon>(holon);
+        }
+
+        public OASISResult<SuperTest2> LoadSuperTest2(Guid id)
+        {
+            return base.CelestialBodyCore.LoadHolon<SuperTest2>(id);
+        }
+
+        public async Task<OASISResult<SuperTest2>> LoadSuperTest2Async(Guid id)
+        {
+            return await base.CelestialBodyCore.LoadHolonAsync<SuperTest2>(id);
+        }
+
+        public OASISResult<SuperTest2> LoadSuperTest2(ProviderType providerType, string providerKey)
+        {
+            return base.CelestialBodyCore.LoadHolon<SuperTest2>(providerType, providerKey);
+        }
+
+        public async Task<OASISResult<SuperTest2>> LoadSuperTest2Async(ProviderType providerType, string providerKey)
+        {
+            return await base.CelestialBodyCore.LoadHolonAsync<SuperTest2>(providerType, providerKey);
+        }
+
+        public OASISResult<SuperTest2> SaveSuperTest2(SuperTest2 holon)
+        {
+            return base.CelestialBodyCore.SaveHolon<SuperTest2>(holon);
+        }
+
+        public async Task<OASISResult<SuperTest2>> SaveSuperTest2Async(SuperTest2 holon)
+        {
+            return await base.CelestialBodyCore.SaveHolonAsync<SuperTest2>(holon);
+        }
+
+        public OASISResult<SuperHolon2> LoadSuperHolon2(Guid id)
+        {
+            return base.CelestialBodyCore.LoadHolon<SuperHolon2>(id);
+        }
+
+        public async Task<OASISResult<SuperHolon2>> LoadSuperHolon2Async(Guid id)
+        {
+            return await base.CelestialBodyCore.LoadHolonAsync<SuperHolon2>(id);
+        }
+
+        public OASISResult<SuperHolon2> LoadSuperHolon2(ProviderType providerType, string providerKey)
+        {
+            return base.CelestialBodyCore.LoadHolon<SuperHolon2>(providerType, providerKey);
+        }
+
+        public async Task<OASISResult<SuperHolon2>> LoadSuperHolon2Async(ProviderType providerType, string providerKey)
+        {
+            return await base.CelestialBodyCore.LoadHolonAsync<SuperHolon2>(providerType, providerKey);
+        }
+
+        public OASISResult<SuperHolon2> SaveSuperHolon2(SuperHolon2 holon)
+        {
+            return base.CelestialBodyCore.SaveHolon<SuperHolon2>(holon);
+        }
+
+        public async Task<OASISResult<SuperHolon2>> SaveSuperHolon2Async(SuperHolon2 holon)
+        {
+            return await base.CelestialBodyCore.SaveHolonAsync<SuperHolon2>(holon);
         }
    }
 }

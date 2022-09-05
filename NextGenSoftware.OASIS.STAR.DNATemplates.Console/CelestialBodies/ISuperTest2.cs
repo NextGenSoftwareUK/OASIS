@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis.Interfaces
 {
-    public interface ISuperTest : IHolon
+    public interface ISuperTest2 : IHolon
     {
 
         [CustomOASISProperty]
