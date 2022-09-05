@@ -1,2 +1,2 @@
-﻿[CustomOASISProperty]
-public int variableName { get; set; }
+﻿        [CustomOASISProperty]
+        public int variableName { get; set; }

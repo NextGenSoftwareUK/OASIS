@@ -1,2 +1,2 @@
-﻿[CustomOASISProperty]
-public string variableName { get; set; }
+﻿        [CustomOASISProperty]
+        public string variableName { get; set; }

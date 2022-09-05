@@ -9,9 +9,11 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
 {
     public class SuperZome : ZomeBase, IZome
     {
-        public SuperZome() : base()
+        public SuperZome() : base(new Guid("00000000-0000-0000-0000-000000000000")) { }
+ 
+        public OASISResult<SuperTest> LoadSuperTest(Guid id)
         {
-
+            return base.LoadHolon<SuperTest>(id);
         }
 
         public async Task<OASISResult<SuperTest>> LoadSuperTestAsync(Guid id)
@@ -19,9 +21,9 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
             return await base.LoadHolonAsync<SuperTest>(id);
         }
 
-        public OASISResult<SuperTest> LoadSuperTest(Guid id)
+        public OASISResult<SuperTest> LoadSuperTest(ProviderType providerType, string providerKey)
         {
-            return base.LoadHolon<SuperTest>(id);
+            return base.LoadHolon<SuperTest>(providerType, providerKey);
         }
 
         public async Task<OASISResult<SuperTest>> LoadSuperTestAsync(ProviderType providerType, string providerKey)
@@ -29,9 +31,9 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
             return await base.LoadHolonAsync<SuperTest>(providerType, providerKey);
         }
 
-        public OASISResult<SuperTest> LoadSuperTest(ProviderType providerType, string providerKey)
+        public OASISResult<SuperTest> SaveSuperTest(SuperTest holon)
         {
-            return base.LoadHolon<SuperTest>(providerType, providerKey);
+            return base.SaveHolon<SuperTest>(holon);
         }
 
         public async Task<OASISResult<SuperTest>> SaveSuperTestAsync(SuperTest holon)
@@ -39,9 +41,34 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
             return await base.SaveHolonAsync<SuperTest>(holon);
         }
 
-        public OASISResult<SuperTest> SaveSuperTest(SuperTest holon)
+        public OASISResult<SuperHolon> LoadSuperHolon(Guid id)
         {
-            return base.SaveHolon<SuperTest>(holon);
+            return base.LoadHolon<SuperHolon>(id);
         }
-    }
+
+        public async Task<OASISResult<SuperHolon>> LoadSuperHolonAsync(Guid id)
+        {
+            return await base.LoadHolonAsync<SuperHolon>(id);
+        }
+
+        public OASISResult<SuperHolon> LoadSuperHolon(ProviderType providerType, string providerKey)
+        {
+            return base.LoadHolon<SuperHolon>(providerType, providerKey);
+        }
+
+        public async Task<OASISResult<SuperHolon>> LoadSuperHolonAsync(ProviderType providerType, string providerKey)
+        {
+            return await base.LoadHolonAsync<SuperHolon>(providerType, providerKey);
+        }
+
+        public OASISResult<SuperHolon> SaveSuperHolon(SuperHolon holon)
+        {
+            return base.SaveHolon<SuperHolon>(holon);
+        }
+
+        public async Task<OASISResult<SuperHolon>> SaveSuperHolonAsync(SuperHolon holon)
+        {
+            return await base.SaveHolonAsync<SuperHolon>(holon);
+        }
+   }
 }

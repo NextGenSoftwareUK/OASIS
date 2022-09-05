@@ -566,45 +566,45 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public static OASISResult<CoronalEjection> Light(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static OASISResult<CoronalEjection> Light(OAPPType OAPPType, GenesisType genesisType, string name, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
         {
-            return Light(type, name, (ICelestialBody)null, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+            return Light(OAPPType, genesisType, name, (ICelestialBody)null, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
         }
 
-        public static OASISResult<CoronalEjection> Light(GenesisType type, string name, IStar starToAddPlanetTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static OASISResult<CoronalEjection> Light(OAPPType OAPPType, GenesisType genesisType, string name, IStar starToAddPlanetTo = null, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
         {
-            return Light(type, name, (ICelestialBody)starToAddPlanetTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+            return Light(OAPPType, genesisType, name, (ICelestialBody)starToAddPlanetTo, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
         }
 
-        public static OASISResult<CoronalEjection> Light(GenesisType type, string name, IPlanet planetToAddMoonTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static OASISResult<CoronalEjection> Light(OAPPType OAPPType, GenesisType genesisType, string name, IPlanet planetToAddMoonTo = null, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
         {
-            return Light(type, name, (ICelestialBody)planetToAddMoonTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+            return Light(OAPPType, genesisType, name, (ICelestialBody)planetToAddMoonTo, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
         }
 
         //TODO: Create non async version of Light();
-        public static OASISResult<CoronalEjection> Light(GenesisType type, string name, ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static OASISResult<CoronalEjection> Light(OAPPType OAPPType, GenesisType genesisType, string name, ICelestialBody celestialBodyParent = null, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
         {
             //TODO: Implement Light version ASAP (I just don't know about duplicating every method again and again?!)
-            return LightAsync(type, name, celestialBodyParent, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace).Result;
+            return LightAsync(OAPPType, genesisType, name, celestialBodyParent, celestialBodyDNAFolder, genesisFolder, genesisNameSpace).Result;
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(OAPPType OAPPType, GenesisType genesisType, string name, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
-            return await LightAsync(type, name, (ICelestialBody)null, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+            return await LightAsync(OAPPType, genesisType, name, (ICelestialBody)null, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(GenesisType type, string name, IStar starToAddPlanetTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(OAPPType OAPPType, GenesisType genesisType, string name, IStar starToAddPlanetTo = null, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
         {
-            return await LightAsync(type, name, (ICelestialBody)starToAddPlanetTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+            return await LightAsync(OAPPType, genesisType, name, (ICelestialBody)starToAddPlanetTo, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(GenesisType type, string name, IPlanet planetToAddMoonTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(OAPPType OAPPType, GenesisType genesisType, string name, IPlanet planetToAddMoonTo = null, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
         {
-            return await LightAsync(type, name, (ICelestialBody)planetToAddMoonTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+            return await LightAsync(OAPPType, genesisType, name, (ICelestialBody)planetToAddMoonTo, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
         }
 
         //TODO: Create non async version of Light();
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(GenesisType type, string name, ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(OAPPType OAPPType, GenesisType genesisType, string name, ICelestialBody celestialBodyParent = null, string celestialBodyDNAFolder = "", string genesisFolder = "",  string genesisNameSpace = "")
         {
             //OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>();
             ICelestialBody newBody = null;
@@ -617,19 +617,19 @@ namespace NextGenSoftware.OASIS.STAR
             string holonFieldsClone = "";
             int nextLineToWrite = 0;
             bool firstField = true;
-            string iholonBuffer = "";
+            string iholonBufferCsharp = "";
             string zomeBufferCsharp = "";
             string celestialBodyBufferCsharp = "";
             bool firstHolon = true;
-            string rustDNAFolder = string.Empty;
+            string rustcelestialBodyDNAFolder = string.Empty;
 
             if (LoggedInAvatarDetail == null)
                 return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar is not logged in. Please log in before calling this command." };
 
-            if (LoggedInAvatarDetail.Level < 77 && type == GenesisType.Star)
+            if (LoggedInAvatarDetail.Level < 77 && genesisType == GenesisType.Star)
                 return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar must have reached level 77 before they can create stars. Please create a planet or moon instead..." };
 
-            if (LoggedInAvatarDetail.Level < 33 && type == GenesisType.Planet)
+            if (LoggedInAvatarDetail.Level < 33 && genesisType == GenesisType.Planet)
                 return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar must have reached level 33 before they can create planets. Please create a moon instead..." };
 
             //if (celestialBodyParent == null && type == GenesisType.Moon)
@@ -647,30 +647,30 @@ namespace NextGenSoftware.OASIS.STAR
                     return new OASISResult<CoronalEjection>() { IsError = true, Message = string.Concat("Error Igniting Inner Star. Reason: ", result.Message) };
             }
 
-            ValidateLightDNA(dnaFolder, genesisCSharpFolder, genesisRustFolder);
+            ValidateLightDNA(celestialBodyDNAFolder, genesisFolder);
 
             switch (STARDNA.HolochainVersion.ToUpper())
             {
                 case "REDUX":
-                    rustDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNAReduxTemplateFolder}";
+                    rustcelestialBodyDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNAReduxTemplateFolder}";
                     break;
 
                 case "RSM":
-                    rustDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNARSMTemplateFolder}";
+                    rustcelestialBodyDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNARSMTemplateFolder}";
                     break;
             }
 
-            string libTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateLib)).OpenText().ReadToEnd();
-            string createTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateCreate)).OpenText().ReadToEnd();
-            string readTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateRead)).OpenText().ReadToEnd();
-            string updateTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateUpdate)).OpenText().ReadToEnd();
-            string deleteTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateDelete)).OpenText().ReadToEnd();
-            string listTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateList)).OpenText().ReadToEnd();
-            string validationTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateValidation)).OpenText().ReadToEnd();
-            string holonTemplateRust = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateHolon)).OpenText().ReadToEnd();
-            string intTemplateRust = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateInt)).OpenText().ReadToEnd();
-            string stringTemplateRust = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateString)).OpenText().ReadToEnd();
-            string boolTemplateRust = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateBool)).OpenText().ReadToEnd();
+            string libTemplate = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateLib)).OpenText().ReadToEnd();
+            string createTemplate = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateCreate)).OpenText().ReadToEnd();
+            string readTemplate = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateRead)).OpenText().ReadToEnd();
+            string updateTemplate = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateUpdate)).OpenText().ReadToEnd();
+            string deleteTemplate = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateDelete)).OpenText().ReadToEnd();
+            string listTemplate = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateList)).OpenText().ReadToEnd();
+            string validationTemplate = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateValidation)).OpenText().ReadToEnd();
+            string holonTemplateRust = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateHolon)).OpenText().ReadToEnd();
+            string intTemplateRust = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateInt)).OpenText().ReadToEnd();
+            string stringTemplateRust = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateString)).OpenText().ReadToEnd();
+            string boolTemplateRust = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateBool)).OpenText().ReadToEnd();
 
             string iHolonTemplate = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIHolonDNA)).OpenText().ReadToEnd();
             string holonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateHolonDNA)).OpenText().ReadToEnd();
@@ -686,22 +686,26 @@ namespace NextGenSoftware.OASIS.STAR
             string BoolTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateBool)).OpenText().ReadToEnd();
 
             //If folder is not passed in via command line args then use default in config file.
-            if (string.IsNullOrEmpty(dnaFolder))
-                dnaFolder = $"{STARDNA.BasePath}\\{STARDNA.CelestialBodyDNA}";
+            if (string.IsNullOrEmpty(celestialBodyDNAFolder))
+                celestialBodyDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.CelestialBodyDNA}";
 
-            if (string.IsNullOrEmpty(genesisCSharpFolder))
-                genesisCSharpFolder = $"{STARDNA.BasePath}\\{STARDNA.GenesisCSharpFolder}";
+            if (string.IsNullOrEmpty(genesisFolder))
+                genesisFolder = $"{STARDNA.BasePath}\\{STARDNA.GenesisFolder}";
 
-            if (string.IsNullOrEmpty(genesisRustFolder))
-                genesisRustFolder = $"{STARDNA.BasePath}\\{STARDNA.GenesisRustFolder}";
+            //if (string.IsNullOrEmpty(genesisRustFolder))
+            //    genesisRustFolder = $"{STARDNA.BasePath}\\{STARDNA.GenesisRustFolder}";
 
             if (string.IsNullOrEmpty(genesisNameSpace))
                 genesisNameSpace = $"{STARDNA.BasePath}\\{STARDNA.GenesisNamespace}";
 
-            DirectoryInfo dirInfo = new DirectoryInfo(dnaFolder);
+
+            Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
+            Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust")); //TODO: Soon this will be generic depending on what the target OASIS Providers STAR has been configured to generate OAPP code for...
+
+            DirectoryInfo dirInfo = new DirectoryInfo(celestialBodyDNAFolder);
             FileInfo[] files = dirInfo.GetFiles();
 
-            switch (type)
+            switch (genesisType)
             {
                 case GenesisType.Moon:
                     {
@@ -882,17 +886,17 @@ namespace NextGenSoftware.OASIS.STAR
                             switch (parts[13].ToLower())
                             {
                                 case "string":
-                                    GenerateCSharpField(parts[14], StringTemplateCSharp, ref holonBufferCsharp);
+                                    GenerateCSharpField(parts[14], StringTemplateCSharp, ref holonBufferCsharp, ref iholonBufferCsharp);
                                     GenerateRustField(fieldName, stringTemplateRust, NodeType.String, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
                                     break;
 
                                 case "int":
-                                    GenerateCSharpField(parts[14], IntTemplateCsharp, ref holonBufferCsharp);
+                                    GenerateCSharpField(parts[14], IntTemplateCsharp, ref holonBufferCsharp, ref iholonBufferCsharp);
                                     GenerateRustField(fieldName, intTemplateRust, NodeType.Int, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
                                     break;
 
                                 case "bool":
-                                    GenerateCSharpField(parts[14], BoolTemplateCsharp, ref holonBufferCsharp);
+                                    GenerateCSharpField(parts[14], BoolTemplateCsharp, ref holonBufferCsharp, ref iholonBufferCsharp);
                                     GenerateRustField(fieldName, boolTemplateRust, NodeType.Bool, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
                                     break;
                             }
@@ -932,12 +936,12 @@ namespace NextGenSoftware.OASIS.STAR
 
                             holonName = holonName.ToPascalCase();
 
-                            File.WriteAllText(string.Concat(genesisCSharpFolder, "\\I", holonName, ".cs"), iholonBuffer);
-                            File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", holonName, ".cs"), holonBufferCsharp);
+                            File.WriteAllText(string.Concat(genesisFolder, "\\I", holonName, ".cs"), iholonBufferCsharp);
+                            File.WriteAllText(string.Concat(genesisFolder, "\\", holonName, ".cs"), holonBufferCsharp);
 
                             //TDOD: Finish putting in IZomeBuffer etc
-                            //   File.WriteAllText(string.Concat(genesisCSharpFolder, "\\I", holonName, ".cs"), izomeBuffer);
-                            // File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", zomeName, ".cs"), zomeBufferCsharp);
+                            //   File.WriteAllText(string.Concat(genesisFolder, "\\I", holonName, ".cs"), izomeBuffer);
+                            // File.WriteAllText(string.Concat(genesisFolder, "\\", zomeName, ".cs"), zomeBufferCsharp);
 
                             holonBufferRust = "";
                             holonBufferCsharp = "";
@@ -961,9 +965,12 @@ namespace NextGenSoftware.OASIS.STAR
                                 holonBufferCsharp = holonTemplateCsharp;
 
                             holonBufferCsharp = holonBufferCsharp.Replace("HolonDNATemplate", parts[10]);
-                            iholonBuffer = iHolonTemplate.Replace("IHolonDNATemplate", string.Concat("I", parts[10]));
+                            iholonBufferCsharp = iHolonTemplate.Replace("IHolonDNATemplate", string.Concat("I", parts[10]));
                             holonBufferCsharp = holonBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
-                            iholonBuffer = iholonBuffer.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
+                            iholonBufferCsharp = iholonBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
+
+                            //int endSpace = holonBufferCsharp.LastIndexOf("}");
+                            //holonBufferCsharp = string.Concat(holonBufferCsharp.Substring(0, endSpace - 8), holonBufferCsharp.Substring(endSpace - 6));
 
                             zomeBufferCsharp = zomeBufferCsharp.Insert(zomeBufferCsharp.Length - 7, string.Concat(loadHolonTemplateCsharp.Replace(".CelestialBodyCore", ""), "\n"));
                             zomeBufferCsharp = zomeBufferCsharp.Insert(zomeBufferCsharp.Length - 7, string.Concat(saveHolonTemplateCsharp.Replace(".CelestialBodyCore", ""), "\n"));
@@ -978,7 +985,7 @@ namespace NextGenSoftware.OASIS.STAR
                             celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("NAMESPACE", genesisNameSpace);
                             celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("ID", newBody.Id.ToString());
                             celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBodyDNATemplate", name.ToPascalCase());
-                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CELESTIALBODY", Enum.GetName(typeof(GenesisType), type));
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CELESTIALBODY", Enum.GetName(typeof(GenesisType), genesisType));
                             celestialBodyBufferCsharp = celestialBodyBufferCsharp.Insert(celestialBodyBufferCsharp.Length - 7, string.Concat(loadHolonTemplateCsharp, "\n"));
                             celestialBodyBufferCsharp = celestialBodyBufferCsharp.Insert(celestialBodyBufferCsharp.Length - 7, string.Concat(saveHolonTemplateCsharp, "\n"));
                             celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("HOLON", parts[10].ToPascalCase());
@@ -1014,13 +1021,13 @@ namespace NextGenSoftware.OASIS.STAR
                     reader.Close();
                     nextLineToWrite = 0;
 
-                    File.WriteAllText(string.Concat(genesisRustFolder, "\\lib.rs"), libBuffer);
-                    File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", zomeName, ".cs"), zomeBufferCsharp);
+                    File.WriteAllText(string.Concat(genesisFolder, "\\Rust\\lib.rs"), libBuffer);
+                    File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\", zomeName, ".cs"), zomeBufferCsharp);
                 }
             }
 
             // Remove any white space from the name.
-            File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), type), ".cs"), celestialBodyBufferCsharp);
+            File.WriteAllText(string.Concat(genesisFolder, "\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), genesisType), ".cs"), celestialBodyBufferCsharp);
 
           //  if (currentZome != null)
            //     newBody.CelestialBodyCore.Zomes.Add(currentZome);
@@ -1028,7 +1035,7 @@ namespace NextGenSoftware.OASIS.STAR
             //TODO: Need to save the collection of Zomes/Holons that belong to this planet here...
             //await newBody.SaveAsync(); // Need to save again so newly added zomes/holons/nodes are also saved. //TODO: NO NEED TO SAVE BECAUSE IT IS SAVED IN METHODS BELOW...
 
-            switch (type)
+            switch (genesisType)
             {
                 case GenesisType.Moon:
                     {
@@ -1419,8 +1426,8 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 ValidateFolder("", starDNA.BasePath, "STARDNA.BasePath");
                 ValidateFolder(starDNA.BasePath, starDNA.CelestialBodyDNA, "STARDNA.CelestialBodyDNA", true);
-                ValidateFolder(starDNA.BasePath, starDNA.GenesisCSharpFolder, "STARDNA.GenesisCSharpFolder", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.GenesisRustFolder, "STARDNA.GenesisRustFolder", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.GenesisFolder, "STARDNA.GenesisFolder", false, true);
+                //ValidateFolder(starDNA.BasePath, starDNA.GenesisRustFolder, "STARDNA.GenesisRustFolder", false, true);
                 ValidateFolder(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, "STARDNA.CSharpDNATemplateFolder");
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateHolonDNA, "STARDNA.CSharpTemplateHolonDNA");
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateZomeDNA, "STARDNA.CSharpTemplateZomeDNA");
@@ -1472,11 +1479,11 @@ namespace NextGenSoftware.OASIS.STAR
                 throw new ArgumentNullException("STARDNA is null, please check and try again.");
         }
 
-        private static void ValidateLightDNA(string dnaFolder, string genesisCSharpFolder, string genesisRustFolder)
+        private static void ValidateLightDNA(string celestialBodyDNAFolder, string genesisFolder)
         {
-            ValidateFolder("", dnaFolder, "dnaFolder");
-            ValidateFolder("", genesisCSharpFolder, "genesisCSharpFolder", false, true);
-            ValidateFolder("", genesisRustFolder, "genesisRustFolder", false, true);
+            ValidateFolder("", celestialBodyDNAFolder, "celestialBodyDNAFolder");
+            ValidateFolder("", genesisFolder, "genesisFolder", false, true);
+            //ValidateFolder("", genesisRustFolder, "genesisRustFolder", false, true);
         }
 
         private static void ValidateFolder(string basePath, string folder, string folderParam, bool checkIfContainsFiles = false, bool createIfDoesNotExist = false)
@@ -1560,10 +1567,13 @@ namespace NextGenSoftware.OASIS.STAR
             currentHolon.Nodes.Add(new Node { Id = Guid.NewGuid(), NodeName = fieldName.ToPascalCase(), NodeType = nodeType, ParentId = currentHolon.Id });
         }
 
-        private static void GenerateCSharpField(string fieldName, string fieldTemplate, ref string holonBufferCsharp)
+        private static void GenerateCSharpField(string fieldName, string fieldTemplate, ref string holonBufferCsharp, ref string iHolonBufferCsharp)
         {
-            int fieldsEnd = holonBufferCsharp.LastIndexOf("}") - 4;
+            int fieldsEnd = holonBufferCsharp.LastIndexOf("}") - 7;
             holonBufferCsharp = holonBufferCsharp.Insert(fieldsEnd, string.Concat(fieldTemplate.Replace("variableName", fieldName), "\n\n"));
+
+            fieldsEnd = iHolonBufferCsharp.LastIndexOf("}") - 7;
+            iHolonBufferCsharp = iHolonBufferCsharp.Insert(fieldsEnd, string.Concat(fieldTemplate.Replace("variableName", fieldName), "\n\n"));
         }
 
         private static OASISResult<bool> BootOASIS(string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)

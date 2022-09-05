@@ -7,6 +7,6 @@ namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates
 {
     public class HolonDNATemplate : Holon, IHolonDNATemplate
     {
-        
+
     }
 }
