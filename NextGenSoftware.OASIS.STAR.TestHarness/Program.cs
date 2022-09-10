@@ -23,6 +23,7 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using Ipfs;
 using MongoDB.Driver;
 using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.OASIS.STAR.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
@@ -30,11 +31,14 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
     {
         private const string defaultGenesisNamespace = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
         private const string celestialBodyDNAFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
-        private const string geneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis";
+        private const string geneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis2";
+        private const OAPPType DefaultOAPPType = OAPPType.Console;
+
         //private const string cSharpGeneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis\\CSharp";
         //private const string rustGenesisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis\\Rust";
         //private const string cSharpGeneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\Genesis\\CSharp";
         //private const string rustGenesisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\Genesis\\Rust";
+
 
         private static Planet _superWorld;
         private static Moon _jlaMoon;
@@ -120,13 +124,13 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         private static async Task Test(string celestialBodyDNAFolder, string geneisFolder)
         {
             //Passing in null for the ParentCelestialBody will default it to the default planet (Our World).
-            OASISResult<CoronalEjection> result = await GenerateCelestialBody("The Justice League Accademy", null, GenesisType.Moon, celestialBodyDNAFolder, geneisFolder, defaultGenesisNamespace);
+            OASISResult<CoronalEjection> result = await GenerateCelestialBody("The Justice League Accademy", null, DefaultOAPPType, GenesisType.Moon, celestialBodyDNAFolder, geneisFolder, defaultGenesisNamespace);
             
             if (result != null && !result.IsError && result.Result != null && result.Result.CelestialBody != null)
                 _jlaMoon = (Moon)result.Result.CelestialBody;
 
             //Passing in null for the ParentCelestialBody will default it to the default Star (Our Sun Sol).
-            result = await GenerateCelestialBody("Super World", null, GenesisType.Planet, celestialBodyDNAFolder, geneisFolder, defaultGenesisNamespace);
+            result = await GenerateCelestialBody("Super World", null, DefaultOAPPType, GenesisType.Planet, celestialBodyDNAFolder, geneisFolder, defaultGenesisNamespace);
 
             if (result != null && !result.IsError && result.Result != null && result.Result.CelestialBody != null)
             {
@@ -792,7 +796,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 CLIEngine.ShowErrorMessage($"Error Loading Holons. Reason: {result.Message}");
         }
 
-        private static async Task<OASISResult<CoronalEjection>> GenerateCelestialBody(string name, ICelestialBody parentCelestialBody, GenesisType genesisType, string celestialBodyDNAFolder, string genesisFolder, string genesisNameSpace)
+        private static async Task<OASISResult<CoronalEjection>> GenerateCelestialBody(string name, ICelestialBody parentCelestialBody, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder, string genesisFolder, string genesisNameSpace)
         {
             // Create (OAPP) by generating dynamic template/scaffolding code.
             string message = $"Generating {Enum.GetName(typeof(GenesisType), genesisType)} '{name}' (OAPP)";
@@ -803,7 +807,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             message = $"{message} ...";
 
             CLIEngine.ShowWorkingMessage(message);
-            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(Enums.OAPPType.CelestialBodies, genesisType, name, parentCelestialBody, celestialBodyDNAFolder, genesisFolder, genesisNameSpace).Result;
+            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPType, genesisType, name, parentCelestialBody, celestialBodyDNAFolder, genesisFolder, genesisNameSpace).Result;
 
             if (lightResult.IsError)
                 CLIEngine.ShowErrorMessage(string.Concat(" ERROR OCCURED. Error Message: ", lightResult.Message));
