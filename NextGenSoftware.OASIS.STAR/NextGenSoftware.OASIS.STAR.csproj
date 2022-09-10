@@ -77,7 +77,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DNATemplates\OAPPDNATemplates\NextGenSoftware.OASIS.STAR.DNATemplates.Console\CelestialBodies\" />
     <Folder Include="Interfaces\" />
   </ItemGroup>
 

@@ -4,12 +4,18 @@ namespace NextGenSoftware.OASIS.STAR.Enums
     public enum OAPPType
     {
         CelestialBodies,
-        ConsoleApp,
-        BlazorApp,
-        WebMVCApp,
-        MAUIApp,
-        UnityApp,
-        WinFormsApp,
+        Console,
+        Blazor,
+        WebMVC,
+        MAUI,
+        Unity,
+        WinForms,
+        WPF,
+        WindowsService,
+        RESTService,
+        gRPCService,
+        GraphQLService,
+        //ClassLibrary,
         Custom
     }
 }

@@ -649,16 +649,18 @@ namespace NextGenSoftware.OASIS.STAR
 
             ValidateLightDNA(celestialBodyDNAFolder, genesisFolder);
 
-            switch (STARDNA.HolochainVersion.ToUpper())
-            {
-                case "REDUX":
-                    rustcelestialBodyDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNAReduxTemplateFolder}";
-                    break;
+            //switch (STARDNA.HolochainVersion.ToUpper())
+            //{
+            //    case "REDUX":
+            //        rustcelestialBodyDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNAReduxTemplateFolder}";
+            //        break;
 
-                case "RSM":
-                    rustcelestialBodyDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNARSMTemplateFolder}";
-                    break;
-            }
+            //    case "RSM":
+            //        rustcelestialBodyDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNARSMTemplateFolder}";
+            //        break;
+            //}
+
+            rustcelestialBodyDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNARSMTemplateFolder}";
 
             string libTemplate = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateLib)).OpenText().ReadToEnd();
             string createTemplate = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateCreate)).OpenText().ReadToEnd();
@@ -698,10 +700,37 @@ namespace NextGenSoftware.OASIS.STAR
             if (string.IsNullOrEmpty(genesisNameSpace))
                 genesisNameSpace = $"{STARDNA.BasePath}\\{STARDNA.GenesisNamespace}";
 
+            //Setup the OAPP files from the relevant template.
+            if (OAPPType == OAPPType.CelestialBodies)
+            {
+                Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
+                Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust")); //TODO: Soon this will be generic depending on what the target OASIS Providers STAR has been configured to generate OAPP code for...
+            }     
+            else
+            { 
+                Directory.CreateDirectory(string.Concat(genesisFolder, "\\OAPP"));
+                
+                switch (OAPPType)
+                {
+                    case OAPPType.Blazor:
+                        CopyFolder(new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPBlazorTemplateDNA)), new DirectoryInfo(string.Concat(genesisFolder, "\\OAPP")));
+                        break;
 
-            Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
-            Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust")); //TODO: Soon this will be generic depending on what the target OASIS Providers STAR has been configured to generate OAPP code for...
+                    case OAPPType.Console:
+                        CopyFolder(new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPConsoleTemplateDNA)), new DirectoryInfo(string.Concat(genesisFolder, "\\OAPP")));
+                        break;
+                }
 
+                if (!Directory.Exists(string.Concat(genesisFolder, "\\OAPP\\", STARDNA.OAPPCelestialBodiesFolder)))
+                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\OAPP\\", STARDNA.OAPPCelestialBodiesFolder));
+                
+                Directory.CreateDirectory(string.Concat(genesisFolder, "\\OAPP\\", STARDNA.OAPPCelestialBodiesFolder, "\\CSharp"));
+                Directory.CreateDirectory(string.Concat(genesisFolder, "\\OAPP\\", STARDNA.OAPPCelestialBodiesFolder, "\\Rust"));
+
+
+                genesisFolder = string.Concat(genesisFolder, "\\OAPP\\", STARDNA.OAPPCelestialBodiesFolder);
+            }
+            
             DirectoryInfo dirInfo = new DirectoryInfo(celestialBodyDNAFolder);
             FileInfo[] files = dirInfo.GetFiles();
 
@@ -936,8 +965,8 @@ namespace NextGenSoftware.OASIS.STAR
 
                             holonName = holonName.ToPascalCase();
 
-                            File.WriteAllText(string.Concat(genesisFolder, "\\I", holonName, ".cs"), iholonBufferCsharp);
-                            File.WriteAllText(string.Concat(genesisFolder, "\\", holonName, ".cs"), holonBufferCsharp);
+                            File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\I", holonName, ".cs"), iholonBufferCsharp);
+                            File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\", holonName, ".cs"), holonBufferCsharp);
 
                             //TDOD: Finish putting in IZomeBuffer etc
                             //   File.WriteAllText(string.Concat(genesisFolder, "\\I", holonName, ".cs"), izomeBuffer);
@@ -1027,7 +1056,7 @@ namespace NextGenSoftware.OASIS.STAR
             }
 
             // Remove any white space from the name.
-            File.WriteAllText(string.Concat(genesisFolder, "\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), genesisType), ".cs"), celestialBodyBufferCsharp);
+            File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), genesisType), ".cs"), celestialBodyBufferCsharp);
 
           //  if (currentZome != null)
            //     newBody.CelestialBodyCore.Zomes.Add(currentZome);
@@ -1438,28 +1467,42 @@ namespace NextGenSoftware.OASIS.STAR
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateString, "STARDNA.CSharpTemplateString");
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateBool, "STARDNA.CSharpTemplateBool");
 
-                switch (starDNA.HolochainVersion.ToUpper())
-                {
-                    case "REDUX":
-                        {
-                            ValidateFolder(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, "STARDNA.RustDNAReduxTemplateFolder");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateRead, "STARDNA.RustTemplateRead");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateUpdate, "STARDNA.RustTemplateUpdate");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateList, "STARDNA.RustTemplateList");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateValidation, "STARDNA.RustTemplateValidation");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateInt, "STARDNA.RustTemplateInt");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateString, "STARDNA.RustTemplateString");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateBool, "STARDNA.RustTemplateBool");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateHolon, "STARDNA.RustTemplateHolon");
-                        }
-                        break;
+                ValidateFolder(starDNA.BasePath, starDNA.OAPPBlazorTemplateDNA, "STARDNA.OAPPBlazorTemplateDNA", true);
+                ValidateFolder(starDNA.BasePath, starDNA.OAPPConsoleTemplateDNA, "STARDNA.OAPPConsoleTemplateDNA", true);
+                //ValidateFolder(starDNA.BasePath, starDNA.OAPPCustomTemplateDNA, "STARDNA.OAPPCustomTemplateDNA", true);
+                //ValidateFolder(starDNA.BasePath, starDNA.OAPPGraphQLServiceTemplateDNA, "STARDNA.OAPPGraphQLServiceTemplateDNA", true);
+                //ValidateFolder(starDNA.BasePath, starDNA.OAPPgRPCServiceTemplateDNA, "STARDNA.OAPPgRPCServiceTemplateDNA", true);
+                //ValidateFolder(starDNA.BasePath, starDNA.OAPPMAUITemplateDNA, "STARDNA.OAPPMAUITemplateDNA", true);
+                //ValidateFolder(starDNA.BasePath, starDNA.OAPPRESTServiceTemplateDNA, "STARDNA.OAPPRESTServiceTemplateDNA", true);
+                //ValidateFolder(starDNA.BasePath, starDNA.OAPPUnityTemplateDNA, "STARDNA.OAPPUnityTemplateDNA", true);
+                //ValidateFolder(starDNA.BasePath, starDNA.OAPPWebMVCTemplateDNA, "STARDNA.OAPPWebMVCTemplateDNA", true);
+                //ValidateFolder(starDNA.BasePath, starDNA.OAPPWindowsServiceTemplateDNA, "STARDNA.OAPPWindowsServiceTemplateDNA", true);
+                //ValidateFolder(starDNA.BasePath, starDNA.OAPPWinFormsTemplateDNA, "STARDNA.OAPPWinFormsTemplateDNA", true);
+                //ValidateFolder(starDNA.BasePath, starDNA.OAPPWPFTemplateDNA, "STARDNA.OAPPWPFTemplateDNA", true);
 
-                    case "RSM":
-                        {
-                            ValidateFolder(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, "STARDNA.RustDNARSMTemplateFolder");
+
+                //switch (starDNA.HolochainVersion.ToUpper())
+                //{
+                //    case "REDUX":
+                //        {
+                //            ValidateFolder(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, "STARDNA.RustDNAReduxTemplateFolder");
+                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
+                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
+                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
+                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateRead, "STARDNA.RustTemplateRead");
+                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateUpdate, "STARDNA.RustTemplateUpdate");
+                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateList, "STARDNA.RustTemplateList");
+                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateValidation, "STARDNA.RustTemplateValidation");
+                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateInt, "STARDNA.RustTemplateInt");
+                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateString, "STARDNA.RustTemplateString");
+                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateBool, "STARDNA.RustTemplateBool");
+                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateHolon, "STARDNA.RustTemplateHolon");
+                //        }
+                //        break;
+
+                //    case "RSM":
+                //        {
+                ValidateFolder(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, "STARDNA.RustDNARSMTemplateFolder");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
@@ -1471,9 +1514,9 @@ namespace NextGenSoftware.OASIS.STAR
                             ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateString, "STARDNA.RustTemplateString");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateBool, "STARDNA.RustTemplateBool");
                             ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateHolon, "STARDNA.RustTemplateHolon");
-                        }
-                        break;
-                }
+                //        }
+                //        break;
+                //}
             }
             else
                 throw new ArgumentNullException("STARDNA is null, please check and try again.");
@@ -1486,15 +1529,15 @@ namespace NextGenSoftware.OASIS.STAR
             //ValidateFolder("", genesisRustFolder, "genesisRustFolder", false, true);
         }
 
-        private static void ValidateFolder(string basePath, string folder, string folderParam, bool checkIfContainsFiles = false, bool createIfDoesNotExist = false)
+        private static void ValidateFolder(string basePath, string folder, string folderParam, bool checkIfContainsFilesOrFolder = false, bool createIfDoesNotExist = false)
         {
             string path = string.IsNullOrEmpty(basePath) ? folder : $"{basePath}\\{folder}";
 
             if (string.IsNullOrEmpty(folder))
-                throw new ArgumentNullException(folderParam, string.Concat("The ", folderParam, " param in the StarDNA is null, please double check and try again."));
+                throw new ArgumentNullException(folderParam, string.Concat("The ", folderParam, " param in the STARDNA is null, please double check and try again."));
 
-            if (checkIfContainsFiles && Directory.GetFiles(path).Length == 0)
-                throw new InvalidOperationException(string.Concat("The ", folderParam, " folder (", path, ") in the StarDNA is empty."));
+            if (checkIfContainsFilesOrFolder && Directory.GetFiles(path).Length == 0 && Directory.GetDirectories(path).Length == 0)
+                throw new InvalidOperationException(string.Concat("The ", folderParam, " folder (", path, ") in the STARDNA is empty."));
 
             if (!Directory.Exists(path))
             {
@@ -1510,7 +1553,7 @@ namespace NextGenSoftware.OASIS.STAR
             string path = $"{basePath}\\{folder}";
 
             if (string.IsNullOrEmpty(file))
-                throw new ArgumentNullException(fileParam, string.Concat("The ", fileParam, " param in the StarDNA is null, please double check and try again."));
+                throw new ArgumentNullException(fileParam, string.Concat("The ", fileParam, " param in the STARDNA is null, please double check and try again."));
 
             if (!File.Exists(string.Concat(path, "\\", file)))
                 throw new FileNotFoundException(string.Concat("The ", fileParam, " file is not valid, the file does not exist, please double check and try again."), string.Concat(path, "\\", file));
@@ -2463,6 +2506,24 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OnStarError?.Invoke(null, new StarErrorEventArgs() { Reason = errorMessage });
             ErrorHandling.HandleError(ref result, errorMessage);
+        }
+
+        private static void CopyFolder(DirectoryInfo source, DirectoryInfo target)
+        {
+            foreach (DirectoryInfo dir in source.GetDirectories())
+            {
+                if (dir.Name != "bin" && dir.Name != "obj")
+                {
+                    if (!Directory.Exists(dir.Name))
+                        CopyFolder(dir, target.CreateSubdirectory(dir.Name));
+                }
+            }
+
+            foreach (FileInfo file in source.GetFiles())
+            {
+                if (!File.Exists(Path.Combine(target.FullName, file.Name)))
+                    file.CopyTo(Path.Combine(target.FullName, file.Name));
+            }
         }
     }
 }
