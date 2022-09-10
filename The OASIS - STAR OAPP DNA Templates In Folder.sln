@@ -193,19 +193,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.LocalFileOASIS", "NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj", "{F02EADE3-44B5-4448-9BCC-8C507A7033C9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Server", "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor\Server\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Server.csproj", "{1CE34DC3-267B-4FE1-8534-950C98E12441}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Server", "STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor\Server\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Server.csproj", "{1CE34DC3-267B-4FE1-8534-950C98E12441}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Client", "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor\Client\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Client.csproj", "{C373A762-6422-4208-B7CB-D1A2F7AA2684}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Client", "STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor\Client\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Client.csproj", "{C373A762-6422-4208-B7CB-D1A2F7AA2684}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Shared", "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor\Shared\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Shared.csproj", "{A8A48156-9C0D-4712-9199-6DE6E3921709}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Shared", "STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor\Shared\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Shared.csproj", "{A8A48156-9C0D-4712-9199-6DE6E3921709}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console", "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.csproj", "{8D9D2EE8-100C-46A4-9B11-45A6C17ADAE1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console", "STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.csproj", "{8D9D2EE8-100C-46A4-9B11-45A6C17ADAE1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Native.Integerated.EndPoint.TestHarness", "NextGenSoftware.OASIS.API.Manager.TestHarness\NextGenSoftware.OASIS.API.Native.Integerated.EndPoint.TestHarness.csproj", "{87FE919E-F2EE-49E0-B54B-FD12DAE59E81}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL", "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL.csproj", "{BDC988FB-9712-4CB3-BF55-9AA7197335B7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL", "STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL.csproj", "{BDC988FB-9712-4CB3-BF55-9AA7197335B7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.NuGet", "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.NuGet\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.NuGet.csproj", "{D3064BDE-E430-46CA-BEF4-2CB71B85718D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.NuGet", "STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.NuGet\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.NuGet.csproj", "{D3064BDE-E430-46CA-BEF4-2CB71B85718D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "STAR OAPP DNA Templates", "STAR OAPP DNA Templates", "{38E178B8-D781-4B3C-969D-04DC9553C2D9}"
 EndProject
