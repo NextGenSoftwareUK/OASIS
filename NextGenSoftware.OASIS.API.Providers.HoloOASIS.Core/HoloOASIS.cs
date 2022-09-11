@@ -66,6 +66,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             this.ProviderType = new EnumValue<ProviderType>(API.Core.Enums.ProviderType.HoloOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(API.Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
+            HoloNETClient.Config.ShowHolochainConductorWindow = true;
+            HoloNETClient.Config.HolochainConductorMode = HolochainConductorModeEnum.UseEmbedded;
             HoloNETClient.OnConnected += HoloOASIS_OnConnected;
             HoloNETClient.OnDisconnected += HoloOASIS_OnDisconnected;
             HoloNETClient.OnError += HoloNETClient_OnError;
@@ -73,12 +75,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             HoloNETClient.OnSignalsCallBack += HoloOASIS_OnSignalsCallBack;
             HoloNETClient.OnZomeFunctionCallBack += HoloOASIS_OnZomeFunctionCallBack;
 
-           // HoloNETClient.Config.AutoStartConductor = true;
-          //  HoloNETClient.Config.AutoShutdownConductor = true;
-          //  HoloNETClient.Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe");
-         //   HoloNETClient.Config.FullPathToHolochainAppDNA = string.Concat(Directory.GetCurrentDirectory(), "\\our_world\\dist\\our_world.dna.json"); 
+            // HoloNETClient.Config.AutoStartConductor = true;
+            //  HoloNETClient.Config.AutoShutdownConductor = true;
+            //  HoloNETClient.Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe");
+            //   HoloNETClient.Config.FullPathToHolochainAppDNA = string.Concat(Directory.GetCurrentDirectory(), "\\our_world\\dist\\our_world.dna.json"); 
+
             
-            //await HoloNETClient.Connect();
+            await HoloNETClient.Connect();
         }
 
         private void HoloNETClient_OnError(object sender, HoloNETErrorEventArgs e)
