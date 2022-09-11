@@ -215,6 +215,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS Runtime", "OASIS Runt
 		OASIS Runtime\OASIS Runtime (With Holochain Conductors Not Embedded) v2.3.1.zip = OASIS Runtime\OASIS Runtime (With Holochain Conductors Not Embedded) v2.3.1.zip
 	EndProjectSection
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "NextGenSoftware.OASIS.Runtime.Setup", "NextGenSoftware.OASIS.Runtime.Setup\NextGenSoftware.OASIS.Runtime.Setup.vdproj", "{18BD778F-1989-43C6-AC32-33C6AEC448BE}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "NextGenSoftware.OASIS.Runtime.Setup2", "NextGenSoftware.OASIS.Runtime.Setup2\NextGenSoftware.OASIS.Runtime.Setup2.vdproj", "{0A93B6B2-555F-4C3A-B144-885A1F4A2B99}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1683,6 +1687,24 @@ Global
 		{D3064BDE-E430-46CA-BEF4-2CB71B85718D}.Release|x64.Build.0 = Release|Any CPU
 		{D3064BDE-E430-46CA-BEF4-2CB71B85718D}.Release|x86.ActiveCfg = Release|Any CPU
 		{D3064BDE-E430-46CA-BEF4-2CB71B85718D}.Release|x86.Build.0 = Release|Any CPU
+		{18BD778F-1989-43C6-AC32-33C6AEC448BE}.Debug|Any CPU.ActiveCfg = Debug
+		{18BD778F-1989-43C6-AC32-33C6AEC448BE}.Debug|x64.ActiveCfg = Debug
+		{18BD778F-1989-43C6-AC32-33C6AEC448BE}.Debug|x86.ActiveCfg = Debug
+		{18BD778F-1989-43C6-AC32-33C6AEC448BE}.Linux|Any CPU.ActiveCfg = Debug
+		{18BD778F-1989-43C6-AC32-33C6AEC448BE}.Linux|x64.ActiveCfg = Debug
+		{18BD778F-1989-43C6-AC32-33C6AEC448BE}.Linux|x86.ActiveCfg = Debug
+		{18BD778F-1989-43C6-AC32-33C6AEC448BE}.Release|Any CPU.ActiveCfg = Release
+		{18BD778F-1989-43C6-AC32-33C6AEC448BE}.Release|x64.ActiveCfg = Release
+		{18BD778F-1989-43C6-AC32-33C6AEC448BE}.Release|x86.ActiveCfg = Release
+		{0A93B6B2-555F-4C3A-B144-885A1F4A2B99}.Debug|Any CPU.ActiveCfg = Debug
+		{0A93B6B2-555F-4C3A-B144-885A1F4A2B99}.Debug|x64.ActiveCfg = Debug
+		{0A93B6B2-555F-4C3A-B144-885A1F4A2B99}.Debug|x86.ActiveCfg = Debug
+		{0A93B6B2-555F-4C3A-B144-885A1F4A2B99}.Linux|Any CPU.ActiveCfg = Debug
+		{0A93B6B2-555F-4C3A-B144-885A1F4A2B99}.Linux|x64.ActiveCfg = Debug
+		{0A93B6B2-555F-4C3A-B144-885A1F4A2B99}.Linux|x86.ActiveCfg = Debug
+		{0A93B6B2-555F-4C3A-B144-885A1F4A2B99}.Release|Any CPU.ActiveCfg = Release
+		{0A93B6B2-555F-4C3A-B144-885A1F4A2B99}.Release|x64.ActiveCfg = Release
+		{0A93B6B2-555F-4C3A-B144-885A1F4A2B99}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
