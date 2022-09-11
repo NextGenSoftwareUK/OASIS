@@ -211,7 +211,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "STAR OAPP DNA Templates", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS Runtime", "OASIS Runtime", "{942850A0-AB9D-4E39-A87C-D046CD2737EA}"
 	ProjectSection(SolutionItems) = preProject
-		OASIS Runtime\OASIS Runtime v2.3.1.zip = OASIS Runtime\OASIS Runtime v2.3.1.zip
+		OASIS Runtime\OASIS Runtime (With Holochain Conductors Embedded) v2.3.1.zip = OASIS Runtime\OASIS Runtime (With Holochain Conductors Embedded) v2.3.1.zip
+		OASIS Runtime\OASIS Runtime (With Holochain Conductors Not Embedded) v2.3.1.zip = OASIS Runtime\OASIS Runtime (With Holochain Conductors Not Embedded) v2.3.1.zip
 	EndProjectSection
 EndProject
 Global
