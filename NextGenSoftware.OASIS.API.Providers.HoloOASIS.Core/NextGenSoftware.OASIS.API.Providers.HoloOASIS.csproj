@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NextGenSoftware.Holochain.HoloNET.Client" Version="1.1.2" />
+    <PackageReference Include="NextGenSoftware.Holochain.HoloNET.Client.Embedded" Version="1.1.9" />
   </ItemGroup>
 
   <ItemGroup>
