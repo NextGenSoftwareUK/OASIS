@@ -14,6 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Program.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="OASIS_DNA.json" />
   </ItemGroup>
 
@@ -23,6 +27,10 @@
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Program.cs" />
   </ItemGroup>
 
   <ItemGroup>
