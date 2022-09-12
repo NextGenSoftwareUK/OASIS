@@ -1,41 +1,24 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.STAR.TestHarness.Genesis;
+using {OAPPNAMESPACE};
 
-Console.WriteLine("NextGen Software STAR DNA Template Console");
+Console.WriteLine("{OAPPNAME} Console");
 
 Console.WriteLine("Saving Test Holon...");
-SuperWorld superWorld = new SuperWorld();
-OASISResult<SuperTest> holonResult = await superWorld.SaveSuperTestAsync(new SuperTest() { Name = "Test Holon" });
+{CELESTIALBODY} {CELESTIALBODYVAR} = new {CELESTIALBODY}();
+OASISResult<{HOLON}> saveHolonResult = await {CELESTIALBODYVAR}.Save{HOLON}Async(new {HOLON}() { Name = "Test Holon" });
 
-if (!holonResult.IsError && holonResult.Result != null)
+if (!saveHolonResult.IsError && saveHolonResult.Result != null)
 {
-    Console.WriteLine($"Test Holon Saved. Id: {holonResult.Result.Id}, Created Date: {holonResult.Result.CreatedDate}");
-    SuperTest testHolon = holonResult.Result;
+    Console.WriteLine($"Test Holon Saved. Id: {saveHolonResult.Result.Id}, Created Date: {saveHolonResult.Result.CreatedDate}");
+    {HOLON} testHolon = saveHolonResult.Result;
 
     Console.WriteLine("Loading Test Holon...");
-    OASISResult<SuperTest> superTestResult = await superWorld.LoadSuperTestAsync(testHolon.Id);
+    OASISResult<{HOLON}> loadHolonResult = await {CELESTIALBODYVAR}.Load{HOLON}Async(testHolon.Id);
 
-    if (!superTestResult.IsError && superTestResult.Result != null)
+    if (!loadHolonResult.IsError && loadHolonResult.Result != null)
     {
-        testHolon = superTestResult.Result;
+        testHolon = loadHolonResult.Result;
         Console.WriteLine($"Test Holon Loaded. Id: {testHolon.Id}, Created Date: {testHolon.CreatedDate}");
     }
 }
-
-//OASISResult<IHolon> holonResult = await superWorld.SaveSuperTestAsync(new SuperTest() { Name = "Test Holon" });
-
-//if (!holonResult.IsError && holonResult.Result != null)
-//{
-//    Console.WriteLine($"Test Holon Saved. Id: {holonResult.Result.Id}, Created Date: {holonResult.Result.CreatedDate}");
-//    SuperTest testHolon = (SuperTest)holonResult.Result;
-
-//    Console.WriteLine("Loading Test Holon...");
-//    OASISResult<SuperTest> superTestResult = await superWorld.LoadSuperTestAsync(testHolon.Id);
-
-//    if (!superTestResult.IsError && superTestResult.Result != null)
-//    {
-//        testHolon = superTestResult.Result;
-//        Console.WriteLine($"Test Holon Loaded. Id: {testHolon.Id}, Created Date: {testHolon.CreatedDate}");
-//    }
-//}
