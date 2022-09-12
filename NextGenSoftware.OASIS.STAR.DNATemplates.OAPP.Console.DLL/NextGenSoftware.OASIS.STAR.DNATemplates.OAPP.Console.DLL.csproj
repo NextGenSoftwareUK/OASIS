@@ -8,13 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="OASIS DLLs\**" />
-    <EmbeddedResource Remove="OASIS DLLs\**" />
-    <None Remove="OASIS DLLs\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="OASIS_DNA.json" />
+    <Compile Remove="Program.cs" />  <!-- TODO: Need to make sure to remove this line when generating OAPP from this template -->
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +17,10 @@
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Program.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -8,16 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="OASIS DLLs\**" />
-    <EmbeddedResource Remove="OASIS DLLs\**" />
-    <None Remove="OASIS DLLs\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Program.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="OASIS_DNA.json" />
   </ItemGroup>
 
@@ -27,10 +17,6 @@
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Program.cs" />
   </ItemGroup>
 
   <ItemGroup>
