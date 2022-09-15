@@ -497,4 +497,8 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="CelestialBodies\" />
+  </ItemGroup>
+
 </Project>
