@@ -24,6 +24,7 @@ using Ipfs;
 using MongoDB.Driver;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.STAR.Enums;
+using System.IO;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
@@ -31,14 +32,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
     {
         private const string defaultGenesisNamespace = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
         private const string celestialBodyDNAFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
-        private const string geneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis2";
+        private const string geneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis";
         private const OAPPType DefaultOAPPType = OAPPType.Console;
-
-        //private const string cSharpGeneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis\\CSharp";
-        //private const string rustGenesisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis\\Rust";
-        //private const string cSharpGeneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\Genesis\\CSharp";
-        //private const string rustGenesisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\Genesis\\Rust";
-
 
         private static Planet _superWorld;
         private static Moon _jlaMoon;
@@ -124,13 +119,17 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         private static async Task Test(string celestialBodyDNAFolder, string geneisFolder)
         {
             //Passing in null for the ParentCelestialBody will default it to the default planet (Our World).
-            OASISResult<CoronalEjection> result = await GenerateCelestialBody("The Justice League Accademy", null, DefaultOAPPType, GenesisType.Moon, celestialBodyDNAFolder, geneisFolder, defaultGenesisNamespace);
-            
+            OASISResult<CoronalEjection> result = await GenerateCelestialBody("The Justice League Academy", null, DefaultOAPPType, GenesisType.Moon, celestialBodyDNAFolder, Path.Combine(geneisFolder, "JLA"), "NextGenSoftware.OASIS.OAPPS.JLA");
+
+            // Currenly the JLA Moon and Our World Planet share the same Zome/Holon DNA (celestialBodyDNAFolder) but they can also have their own zomes/holons if they wish...
+            // TODO: In future you will also be able to define the full CelestialBody DNA seperatley (cs/json) for each planet, moon, star etc where they can also define additional meta data for the moon/planet/star as well as their own zomes/holons like we have now, plus they can also refer to existing holons/zomes either in a folder (like we have now) or in STARNET Library using the GUID.
+            // They will still be able to use a shared zomes/holons DNA folder as it is now if they wish or a combo of the two approaches...
+
             if (result != null && !result.IsError && result.Result != null && result.Result.CelestialBody != null)
                 _jlaMoon = (Moon)result.Result.CelestialBody;
 
             //Passing in null for the ParentCelestialBody will default it to the default Star (Our Sun Sol).
-            result = await GenerateCelestialBody("Super World", null, DefaultOAPPType, GenesisType.Planet, celestialBodyDNAFolder, geneisFolder, defaultGenesisNamespace);
+            result = await GenerateCelestialBody("Our World", null, DefaultOAPPType, GenesisType.Planet, celestialBodyDNAFolder, Path.Combine(geneisFolder, "Our World"), "NextGenSoftware.OASIS.OAPPS.OurWorld");
 
             if (result != null && !result.IsError && result.Result != null && result.Result.CelestialBody != null)
             {
@@ -161,8 +160,6 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     CLIEngine.ShowErrorMessage($"An Error Occured Loading Zomes/Holons. Reason: {zomesResult.Message}");
                     finished = true;
                 }
-
-                //_spinner.Stop();
 
                 while (!finished) { }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text.RegularExpressions;
@@ -622,6 +623,8 @@ namespace NextGenSoftware.OASIS.STAR
             string celestialBodyBufferCsharp = "";
             bool firstHolon = true;
             string rustcelestialBodyDNAFolder = string.Empty;
+            string OAPPFolder = "";
+            List<string> holonNames = new List<string>();
 
             if (LoggedInAvatarDetail == null)
                 return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar is not logged in. Please log in before calling this command." };
@@ -700,35 +703,46 @@ namespace NextGenSoftware.OASIS.STAR
             if (string.IsNullOrEmpty(genesisNameSpace))
                 genesisNameSpace = $"{STARDNA.BasePath}\\{STARDNA.GenesisNamespace}";
 
-            //Setup the OAPP files from the relevant template.
+            if (string.IsNullOrEmpty(genesisNameSpace))
+                genesisNameSpace = string.Concat(name, "OAPP");
+
+                //Setup the OAPP files from the relevant template.
             if (OAPPType == OAPPType.CelestialBodies)
             {
-                Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
-                Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust")); //TODO: Soon this will be generic depending on what the target OASIS Providers STAR has been configured to generate OAPP code for...
+                if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp")))
+                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
+
+                if (!Directory.Exists(string.Concat(genesisFolder, "\\Rust")))
+                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust")); //TODO: Soon this will be generic depending on what the target OASIS Providers STAR has been configured to generate OAPP code for...
             }     
             else
-            { 
-                Directory.CreateDirectory(string.Concat(genesisFolder, "\\OAPP"));
+            {
+                OAPPFolder = string.Concat(genesisFolder, "\\", name, " OAPP");
+                
+                if (!Directory.Exists(OAPPFolder))
+                    Directory.CreateDirectory(string.Concat(OAPPFolder));
                 
                 switch (OAPPType)
                 {
                     case OAPPType.Blazor:
-                        CopyFolder(new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPBlazorTemplateDNA)), new DirectoryInfo(string.Concat(genesisFolder, "\\OAPP")));
+                        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPBlazorTemplateDNA)), new DirectoryInfo(OAPPFolder));
                         break;
 
                     case OAPPType.Console:
-                        CopyFolder(new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPConsoleTemplateDNA)), new DirectoryInfo(string.Concat(genesisFolder, "\\OAPP")));
+                        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPConsoleTemplateDNA)), new DirectoryInfo(OAPPFolder));
                         break;
                 }
 
-                if (!Directory.Exists(string.Concat(genesisFolder, "\\OAPP\\", STARDNA.OAPPCelestialBodiesFolder)))
-                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\OAPP\\", STARDNA.OAPPCelestialBodiesFolder));
+                genesisFolder = string.Concat(OAPPFolder, "\\", STARDNA.OAPPCelestialBodiesFolder);
+
+                if (!Directory.Exists(genesisFolder))
+                    Directory.CreateDirectory(genesisFolder);
                 
-                Directory.CreateDirectory(string.Concat(genesisFolder, "\\OAPP\\", STARDNA.OAPPCelestialBodiesFolder, "\\CSharp"));
-                Directory.CreateDirectory(string.Concat(genesisFolder, "\\OAPP\\", STARDNA.OAPPCelestialBodiesFolder, "\\Rust"));
+                if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp")))
+                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
 
-
-                genesisFolder = string.Concat(genesisFolder, "\\OAPP\\", STARDNA.OAPPCelestialBodiesFolder);
+                if (!Directory.Exists(string.Concat(genesisFolder, "\\Rust")))
+                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust"));
             }
             
             DirectoryInfo dirInfo = new DirectoryInfo(celestialBodyDNAFolder);
@@ -1040,8 +1054,9 @@ namespace NextGenSoftware.OASIS.STAR
                             };
 
                             Mapper.MapParentCelestialBodyProperties(newBody, currentHolon);
-                            currentZome.Holons.Add((Holon)currentHolon); 
+                            currentZome.Holons.Add((Holon)currentHolon);
 
+                            holonNames.Add(holonName);
                             holonName = holonName.ToSnakeCase();
                             holonReached = true;
                         }
@@ -1058,11 +1073,9 @@ namespace NextGenSoftware.OASIS.STAR
             // Remove any white space from the name.
             File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), genesisType), ".cs"), celestialBodyBufferCsharp);
 
-          //  if (currentZome != null)
-           //     newBody.CelestialBodyCore.Zomes.Add(currentZome);
-
-            //TODO: Need to save the collection of Zomes/Holons that belong to this planet here...
-            //await newBody.SaveAsync(); // Need to save again so newly added zomes/holons/nodes are also saved. //TODO: NO NEED TO SAVE BECAUSE IT IS SAVED IN METHODS BELOW...
+            // Currently the OAPP Name is the same as the CelestialBody name (each CelestialBody is a seperate OAPP), but in future a OAPP may be able to contain more than one celestialBody...
+            // TODO: Currently the OAPP templates only contain sample load/save for one holon... this may change in future... likely will... ;-) Want to show for every zome/holon inside the celestialbody...
+            ApplyOAPPTemplate(OAPPFolder, genesisNameSpace, name, name, holonNames[0]);
 
             switch (genesisType)
             {
@@ -2508,22 +2521,111 @@ namespace NextGenSoftware.OASIS.STAR
             ErrorHandling.HandleError(ref result, errorMessage);
         }
 
-        private static void CopyFolder(DirectoryInfo source, DirectoryInfo target)
+        private static void CopyFolder(string OAPPNameSpace, DirectoryInfo source, DirectoryInfo target)
         {
+            foreach (FileInfo file in source.GetFiles())
+            {
+                if (!File.Exists(Path.Combine(target.FullName, file.Name)))
+                {
+                    if (file.Extension == ".csproj")
+                        file.CopyTo(Path.Combine(target.FullName, string.Concat(OAPPNameSpace, ".csproj")));
+                    else
+                        file.CopyTo(Path.Combine(target.FullName, file.Name));
+                }
+            }
+
             foreach (DirectoryInfo dir in source.GetDirectories())
             {
                 if (dir.Name != "bin" && dir.Name != "obj")
                 {
-                    if (!Directory.Exists(dir.Name))
-                        CopyFolder(dir, target.CreateSubdirectory(dir.Name));
+                    if (!Directory.Exists(Path.Combine(target.FullName, dir.Name)))
+                        CopyFolder(OAPPNameSpace, dir, target.CreateSubdirectory(dir.Name));
                 }
             }
+        }
 
-            foreach (FileInfo file in source.GetFiles())
+        private static void ApplyOAPPTemplate(string OAPPFolder, string oAppNameSpace, string oAppName, string celestialBodyName, string holonName)
+        {
+            foreach (DirectoryInfo dir in new DirectoryInfo(OAPPFolder).GetDirectories())
             {
-                if (!File.Exists(Path.Combine(target.FullName, file.Name)))
-                    file.CopyTo(Path.Combine(target.FullName, file.Name));
+                if (dir.Name != "bin" && dir.Name != "obj")
+                    ApplyOAPPTemplate(dir.FullName, oAppNameSpace, oAppName, celestialBodyName, holonName);
+            }
+            
+            if (!OAPPFolder.Contains("CelestialBodies"))
+            {                
+                foreach (FileInfo file in new DirectoryInfo(OAPPFolder).GetFiles("*.csproj"))
+                {
+                    int lineNumber = 1;
+                    string line = null;
+
+                    using (TextReader tr = File.OpenText(file.FullName))
+                    using (TextWriter tw = File.CreateText(string.Concat(file.FullName, ".temp")))
+                    {
+                        while ((line = tr.ReadLine()) != null)
+                        {
+                            line = line.Replace("<Compile Remove=\"Program.cs\" />", "");
+                           
+                            tw.WriteLine(line);
+                            lineNumber++;
+                        }
+                    }
+
+                    File.Delete(file.FullName);
+                    File.Move(string.Concat(file.FullName, ".temp"), file.FullName);
+                }
+
+                //TODO: use multiple file extention wildcards so only need one file loop...
+                foreach (FileInfo file in new DirectoryInfo(OAPPFolder).GetFiles("*.cs"))
+                {
+                    int lineNumber = 1;
+                    string line = null;
+
+                    using (TextReader tr = File.OpenText(file.FullName))
+                    using (TextWriter tw = File.CreateText(string.Concat(file.FullName, ".temp")))
+                    {
+                        while ((line = tr.ReadLine()) != null)
+                        {
+                            celestialBodyName = celestialBodyName.Replace(" ", "");
+                            line = line.Replace("{OAPPNAMESPACE}", oAppNameSpace);
+                            line = line.Replace("{OAPPNAME}", oAppName);
+                            line = line.Replace("{CELESTIALBODY}", celestialBodyName.ToPascalCase());
+                            line = line.Replace("{CELESTIALBODYVAR}", celestialBodyName.ToCamelCase());
+                            line = line.Replace("{HOLON}", holonName.ToPascalCase());
+
+                            tw.WriteLine(line);
+                            lineNumber++;
+                        }
+                    }
+
+                    File.Delete(file.FullName);
+                    File.Move(string.Concat(file.FullName, ".temp"), file.FullName);
+                }
             }
         }
+
+        //private void ReplaceInTemplate(string OAPPFolder, string fileExtention)
+        //{
+        //    foreach (FileInfo file in new DirectoryInfo(OAPPFolder).GetFiles($"*.{fileExtention}"))
+        //    {
+        //        int lineNumber = 1;
+        //        string line = null;
+
+        //        using (TextReader tr = File.OpenText(file.FullName))
+        //        using (TextWriter tw = File.CreateText(string.Concat(file.FullName, ".temp")))
+        //        {
+        //            while ((line = tr.ReadLine()) != null)
+        //            {
+        //                line = line.Replace("<Compile Remove=\"Program.cs\" />", "");
+
+        //                tw.WriteLine(line);
+        //                lineNumber++;
+        //            }
+        //        }
+
+        //        File.Delete(file.FullName);
+        //        File.Move(string.Concat(file.FullName, ".temp"), file.FullName);
+        //    }
+        //}
     }
 }

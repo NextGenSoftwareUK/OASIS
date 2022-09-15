@@ -2,7 +2,7 @@
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using {OAPPNAMESPACE};
 
-Console.WriteLine("{OAPPNAME} Console");
+Console.WriteLine("Welcome To The {OAPPNAME} Console");
 
 Console.WriteLine("Saving Test Holon...");
 {CELESTIALBODY} {CELESTIALBODYVAR} = new {CELESTIALBODY}();

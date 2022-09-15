@@ -14,6 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Program.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="OASIS_DNA.json" />
   </ItemGroup>
 
@@ -27,6 +31,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.STAR\NextGenSoftware.OASIS.STAR.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="CelestialBodies\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Program.cs" />
   </ItemGroup>
 
 </Project>
