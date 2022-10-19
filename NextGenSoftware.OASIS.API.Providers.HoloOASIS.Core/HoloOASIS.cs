@@ -15,9 +15,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
     public class HoloOASIS : OASISStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISLocalStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
-        private const string OURWORLD_ZOME = "our_world_core";
-        private const string LOAD_Avatar_FUNC = "load_Avatar";
-        private const string SAVE_Avatar_FUNC = "save_Avatar";
+        private const string OASIS_ZOME = "oasis";
+        private const string LOAD_Avatar_FUNC = "get_entry_avatar";
+        private const string SAVE_Avatar_FUNC = "create_entry_avatar";
 
         private int _currentId = 0;
         private Dictionary<string, HcAvatar> _savingAvatars = new Dictionary<string, HcAvatar>();
@@ -63,8 +63,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             this.ProviderName = "HoloOASIS";
             this.ProviderDescription = "Holochain Provider";
-            this.ProviderType = new EnumValue<ProviderType>(API.Core.Enums.ProviderType.HoloOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(API.Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HoloOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
             HoloNETClient.Config.ShowHolochainConductorWindow = true;
             HoloNETClient.Config.HolochainConductorMode = HolochainConductorModeEnum.UseEmbedded;
@@ -100,7 +100,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 switch (e.ZomeFunction)
                 {
                     case LOAD_Avatar_FUNC:
-                        HcAvatar hcAvatar = JsonConvert.DeserializeObject<HcAvatar>(string.Concat("{", e.ZomeReturnData, "}"));
+                        //HcAvatar hcAvatar = JsonConvert.DeserializeObject<HcAvatar>(string.Concat("{", e.ZomeReturnData, "}"));
+                        HcAvatar hcAvatar = e.Entry.EntryDataObject as HcAvatar;
                         OnPlayerAvatarLoaded?.Invoke(this, new AvatarLoadedEventArgs {HcAvatar = hcAvatar, Avatar = ConvertHcAvatarToAvatar(hcAvatar) });
 
                         //TODO: Want to use these eventually so the async methods can return the results without having to use events/callbacks!
@@ -170,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
             {
-                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, OURWORLD_ZOME, LOAD_Avatar_FUNC, new { address = AvatarEntryHash });
+                await HoloNETClient.CallZomeFunctionAsync(OASIS_ZOME, LOAD_Avatar_FUNC, AvatarEntryHash, typeof(HcAvatar));
                 return new OASISResult<IAvatar>(await _taskCompletionSourceLoadAvatar.Task);
             }
 
@@ -184,7 +185,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
             {
                 //TODO: Implement in HC/Rust
-                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, OURWORLD_ZOME, LOAD_Avatar_FUNC, new { id });
+                await HoloNETClient.CallZomeFunctionAsync(OASIS_ZOME, LOAD_Avatar_FUNC, new { id },);
                 return new OASISResult<IAvatar>(await _taskCompletionSourceLoadAvatar.Task);
             }
 

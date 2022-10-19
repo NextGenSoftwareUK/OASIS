@@ -1,7 +1,6 @@
 ﻿using System;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 
-namespace NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces
+namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface ISampleHolon : IHolon
     {

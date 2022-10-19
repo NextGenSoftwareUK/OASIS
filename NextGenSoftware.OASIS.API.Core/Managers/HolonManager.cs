@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
@@ -2838,53 +2837,56 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 PropertyInfo propInfo = typeof(T).GetProperty(key);
 
-                if (propInfo.PropertyType == typeof(Guid))
-                    propInfo.SetValue(holon, new Guid(holon.MetaData[key]));
+                if (propInfo != null)
+                {
+                    if (propInfo.PropertyType == typeof(Guid))
+                        propInfo.SetValue(holon, new Guid(holon.MetaData[key]));
 
-                else if (propInfo.PropertyType == typeof(bool))
-                    propInfo.SetValue(holon, Convert.ToBoolean(holon.MetaData[key]));
+                    else if (propInfo.PropertyType == typeof(bool))
+                        propInfo.SetValue(holon, Convert.ToBoolean(holon.MetaData[key]));
 
-                else if (propInfo.PropertyType == typeof(DateTime))
-                    propInfo.SetValue(holon, Convert.ToDateTime(holon.MetaData[key]));
+                    else if (propInfo.PropertyType == typeof(DateTime))
+                        propInfo.SetValue(holon, Convert.ToDateTime(holon.MetaData[key]));
 
-                else if (propInfo.PropertyType == typeof(int))
-                    propInfo.SetValue(holon, Convert.ToInt32(holon.MetaData[key]));
+                    else if (propInfo.PropertyType == typeof(int))
+                        propInfo.SetValue(holon, Convert.ToInt32(holon.MetaData[key]));
 
-                else if (propInfo.PropertyType == typeof(long))
-                    propInfo.SetValue(holon, Convert.ToInt64(holon.MetaData[key]));
+                    else if (propInfo.PropertyType == typeof(long))
+                        propInfo.SetValue(holon, Convert.ToInt64(holon.MetaData[key]));
 
-                else if (propInfo.PropertyType == typeof(float))
-                    propInfo.SetValue(holon, Convert.ToDouble(holon.MetaData[key])); //TODO: Check if this is right?! :)
+                    else if (propInfo.PropertyType == typeof(float))
+                        propInfo.SetValue(holon, Convert.ToDouble(holon.MetaData[key])); //TODO: Check if this is right?! :)
 
-                else if (propInfo.PropertyType == typeof(double))
-                    propInfo.SetValue(holon, Convert.ToDouble(holon.MetaData[key]));
+                    else if (propInfo.PropertyType == typeof(double))
+                        propInfo.SetValue(holon, Convert.ToDouble(holon.MetaData[key]));
 
-                else if (propInfo.PropertyType == typeof(decimal))
-                    propInfo.SetValue(holon, Convert.ToDecimal(holon.MetaData[key]));
+                    else if (propInfo.PropertyType == typeof(decimal))
+                        propInfo.SetValue(holon, Convert.ToDecimal(holon.MetaData[key]));
 
-                else if (propInfo.PropertyType == typeof(UInt16))
-                    propInfo.SetValue(holon, Convert.ToUInt16(holon.MetaData[key]));
+                    else if (propInfo.PropertyType == typeof(UInt16))
+                        propInfo.SetValue(holon, Convert.ToUInt16(holon.MetaData[key]));
 
-                else if (propInfo.PropertyType == typeof(UInt32))
-                    propInfo.SetValue(holon, Convert.ToUInt32(holon.MetaData[key]));
+                    else if (propInfo.PropertyType == typeof(UInt32))
+                        propInfo.SetValue(holon, Convert.ToUInt32(holon.MetaData[key]));
 
-                else if (propInfo.PropertyType == typeof(UInt64))
-                    propInfo.SetValue(holon, Convert.ToUInt64(holon.MetaData[key]));
+                    else if (propInfo.PropertyType == typeof(UInt64))
+                        propInfo.SetValue(holon, Convert.ToUInt64(holon.MetaData[key]));
 
-                else if (propInfo.PropertyType == typeof(Single))
-                    propInfo.SetValue(holon, Convert.ToSingle(holon.MetaData[key]));
+                    else if (propInfo.PropertyType == typeof(Single))
+                        propInfo.SetValue(holon, Convert.ToSingle(holon.MetaData[key]));
 
-                else if (propInfo.PropertyType == typeof(char))
-                    propInfo.SetValue(holon, Convert.ToChar(holon.MetaData[key]));
+                    else if (propInfo.PropertyType == typeof(char))
+                        propInfo.SetValue(holon, Convert.ToChar(holon.MetaData[key]));
 
-                else if (propInfo.PropertyType == typeof(byte))
-                    propInfo.SetValue(holon, Convert.ToByte(holon.MetaData[key]));
+                    else if (propInfo.PropertyType == typeof(byte))
+                        propInfo.SetValue(holon, Convert.ToByte(holon.MetaData[key]));
 
-                else if (propInfo.PropertyType == typeof(sbyte))
-                    propInfo.SetValue(holon, Convert.ToSByte(holon.MetaData[key]));
+                    else if (propInfo.PropertyType == typeof(sbyte))
+                        propInfo.SetValue(holon, Convert.ToSByte(holon.MetaData[key]));
 
-                else
-                    propInfo.SetValue(holon, holon.MetaData[key]);
+                    else
+                        propInfo.SetValue(holon, holon.MetaData[key]);
+                }
 
                 //TODO: Add any other missing types...
             }
