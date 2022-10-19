@@ -1,4 +1,5 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
@@ -16,6 +17,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
         public MapManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
 
+        }
+
+        public IOASISMapProvider CurrentMapProvider { get; set; }
+        public MapProviderType CurrentMapProviderType { get; set; }
+
+        public void SetCurrentMapProvider(MapProviderType mapProviderType)
+        {
+            CurrentMapProviderType = mapProviderType;
+        }
+
+        public void SetCurrentMapProvider(IOASISMapProvider mapProvider)
+        {
+            CurrentMapProvider = mapProvider;
+            CurrentMapProviderType = mapProvider.MapProviderType;
         }
 
         public bool Draw3DObjectOnMap(object obj, float x, float y)
@@ -63,22 +78,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
             return true;
         }
 
-        public bool PamMapLeft(float value)
+        public bool PanMapLeft(float value)
         {
             return true;
         }
 
-        public bool PamMapRight(float value)
+        public bool PanMapRight(float value)
         {
             return true;
         }
 
-        public bool PamMapUp(float value)
+        public bool PanMapUp(float value)
         {
             return true;
         }
 
-        public bool PamMapDown(float value)
+        public bool PanMapDown(float value)
         {
             return true;
         }

@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
+﻿using NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces;
+using System.Collections.Generic;
 
-namespace NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces
+namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IMissionData : IHolon
     {
-        List<Mission> Missions { get; set; }
+        public List<IMission> Missions { get; set; }
     }
 }
