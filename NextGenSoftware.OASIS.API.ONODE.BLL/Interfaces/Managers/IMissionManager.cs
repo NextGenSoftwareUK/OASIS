@@ -1,4 +1,5 @@
 ﻿using System;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces

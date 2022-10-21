@@ -185,7 +185,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
             {
                 //TODO: Implement in HC/Rust
-                await HoloNETClient.CallZomeFunctionAsync(OASIS_ZOME, LOAD_Avatar_FUNC, new { id },);
+               // await HoloNETClient.CallZomeFunctionAsync(OASIS_ZOME, LOAD_Avatar_FUNC, new { id });
                 return new OASISResult<IAvatar>(await _taskCompletionSourceLoadAvatar.Task);
             }
 
@@ -261,7 +261,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 _currentId++;
                 //_savingAvatars[_currentId.ToString()] = ConvertAvatarToHoloOASISAvatar(hcAvatar);
                 _savingAvatars[_currentId.ToString()] = hcAvatar;
-                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), OURWORLD_ZOME, SAVE_Avatar_FUNC, new { entry = hcAvatar });
+                //await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), OURWORLD_ZOME, SAVE_Avatar_FUNC, new { entry = hcAvatar });
                 return new OASISResult<IAvatar>(await _taskCompletionSourceSaveAvatar.Task);
             }
 

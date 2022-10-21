@@ -4,7 +4,33 @@
     ViewData["Title"] = "Home page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<H1>NEXTGENSOFTWARE OASIS API REST SERVICE WEB API TEST HARNESS V1.0</H1>
+
+<input type="button" value="Get Weather Forecast" onclick="FetchRemote('https://localhost:5001','/weatherforecast', 'GET')"/><br />
+<input type="button" value="Get Terms" onclick="FetchRemote('https://localhost:5001','/api/avatar/get-terms', 'GET')"/><br />
+<input type="button" value="Refresh Token" onclick="FetchRemote('https://localhost:5001','/api/avatar/refresh-token', 'POST')"/><br />
+<input type="button" value="Login" onclick="Login('https://localhost:5001', 'davidellams@hotmail.com', 'test!')"/><br />
+<input type="button" value="Login Using NPM Package" onclick="LoginUsingNPMPackage('davidellams@hotmail.com', 'test!')"/><br />
+
+<br />
+<form action="http://localhost:5001" method="POST">
+    <label>
+        Host: <input type="text" name="host" placeholder="https://localhost:5001" /> <br />
+    </label>
+    <label>
+        Username: <input type="text" name="username" placeholder="davidellams@hotmail.com" /> <br />
+    </label>
+    <label>
+        Password: <input type="text" name="password" placeholder="test!" /> <br />
+    </label>
+    <input type="submit" value="Submit" />
+</form>
+
+<br />
+<input type="button" value="Login Using Form" onclick="LoginUsingForm()"/><br />
+
+<div>
+    <span id='remoteResponse'></span>
 </div>
+
+<script src="~/js/site.js"></script>

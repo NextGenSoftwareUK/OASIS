@@ -1,12 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters;
@@ -20,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
     public class Startup
     {
         private const string VERSION = "WEB 4 OASIS API v2.3.1";
-        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+        //readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
         public Startup(IConfiguration configuration)
         {
@@ -32,11 +30,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            LoggingManager.Log("Starting up The OASIS... (REST API)", Core.Enums.LogType.Info);
-            LoggingManager.Log("Test Debug", Core.Enums.LogType.Debug);
-            LoggingManager.Log("Test Info", Core.Enums.LogType.Info);
-            LoggingManager.Log("Test Warning", Core.Enums.LogType.Warn);
-            LoggingManager.Log("Test Error", Core.Enums.LogType.Error);
+            
 
             // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
             //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
@@ -96,45 +90,49 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
 
-            services.AddCors(options =>
-            {
-                options.AddPolicy(MyAllowSpecificOrigins,
-                builder =>
-                {
-                    builder.WithOrigins("https://localhost:44371").AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-                });
-            });
+            //services.AddCors(options =>
+            //{
+            //    options.AddPolicy(MyAllowSpecificOrigins,
+            //    builder =>
+            //    {
+            //        builder.WithOrigins("https://localhost:44371").AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+            //        builder.WithOrigins("https://localhost").AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+            //    });
+            //});
 
-          //  services.AddControllers();
+            //  services.AddControllers();
 
             //TODO: Don't think this is used anymore? Take out...
             // configure basic authentication 
-          //  services.AddAuthentication("BasicAuthentication")
-           //     .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
+            //  services.AddAuthentication("BasicAuthentication")
+            //     .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         //public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext context)
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            LoggingManager.Log("Starting up The OASIS... (REST API)", Core.Enums.LogType.Info);
+            LoggingManager.Log("Test Debug", Core.Enums.LogType.Debug);
+            LoggingManager.Log("Test Info", Core.Enums.LogType.Info);
+            LoggingManager.Log("Test Warning", Core.Enums.LogType.Warn);
+            LoggingManager.Log("Test Error", Core.Enums.LogType.Error);
+
             // migrate database changes on startup (includes initial db creation)
             //context.Database.Migrate();
 
-//            IApplicationBuilder app, IHostingEnvironment env)
-//{
-//                app.UseDeveloperExceptionPage();
-//                app.UseStaticFiles();
-//                app.UseMvcWithDefaultRoute();
-//            }
+            //            IApplicationBuilder app, IHostingEnvironment env)
+            //{
+            //                app.UseDeveloperExceptionPage();
+            //                app.UseStaticFiles();
+            //                app.UseMvcWithDefaultRoute();
+            //            }
 
 
             // generated swagger json and swagger ui middleware
             app.UseSwagger();
             app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", VERSION));
 
-           // Program.IsDevEnviroment = env.IsDevelopment();
-
-          //  if (env.IsDevelopment())
             app.UseDeveloperExceptionPage();
             app.UseStaticFiles();
            // app.UseMvcWithDefaultRoute();
@@ -151,8 +149,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 .AllowAnyHeader()
                 .AllowCredentials());
 
-           //TODO: Was this, check later...
-           // app.UseCors(MyAllowSpecificOrigins);
+            //TODO: Was this, check later...
+            //app.UseCors(MyAllowSpecificOrigins);
 
             app.UseAuthorization();
 
