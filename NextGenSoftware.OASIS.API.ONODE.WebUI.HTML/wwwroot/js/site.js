@@ -3,16 +3,19 @@
 
 ////const oasisAuth = new Auth();
 const remoteResponse = document.getElementById('remoteResponse');
-const remoteHost = document.getElementByName('remoteHost');
-const username = document.getElementByName('username');
-const password = document.getElementByName('password');
+const username = document.getElementById('username').value;
+const password = document.getElementById('password').value;
 
-function FetchRemote(remoteHost, path, httpMethod) {
-    //const remoteResponse = document.getElementById('remoteResponse');
+function FetchRemote(path, httpMethod) {
+    var remoteHost = document.getElementById('remoteHost').value;
+    console.log("Making call to: " + `${remoteHost}${path}` + "...");
+    console.log("v1");
 
     fetch(`${remoteHost}${path}`,
         {
-            method: httpMethod,
+            method: httpMethod
+            //crossorigin: true,
+            //mode: 'no-cors'
         }).then(response => {
             if (response.ok) {
                 response.text().then(text => {
@@ -20,19 +23,21 @@ function FetchRemote(remoteHost, path, httpMethod) {
                 });
             }
             else {
-                remoteResponse.innerText = response.status;
+                remoteResponse.innerText = response.text;
             }
         })
         .catch(() => remoteResponse.innerText = 'An error occurred, might be CORS?! :) Press F12 to open the web debug tools');
 }
 
-function Login(remoteHost, username, password)
+function Login(username, password)
 {
+    var remoteHost = document.getElementById('remoteHost').value;
     sendData(remoteHost, '/api/avatar/authenticate', { username: username, password: password });
 }
 
 function LoginUsingForm()
 {
+    var remoteHost = document.getElementById('remoteHost').value;
     sendData(remoteHost, '/api/avatar/authenticate', { username: username, password: password });
 }
 
@@ -41,9 +46,7 @@ function sendData(remoteHost, path, data) {
     console.log('remoteHost:' + remoteHost);
     console.log('data:' + data);
 
-
     const XHR = new XMLHttpRequest();
-
     const urlEncodedDataPairs = [];
 
     // Turn the data object into an array of URL-encoded key/value pairs.
@@ -57,13 +60,11 @@ function sendData(remoteHost, path, data) {
 
     // Define what happens on successful data submission
     XHR.addEventListener('load', (event) => {
-        alert('SUCCESS');
         remoteResponse.innerText = XHR.response;
     });
 
     // Define what happens in case of error
-XHR.addEventListener('error', (event) => {
-        alert('ERROR');
+    XHR.addEventListener('error', (event) => {
         remoteResponse.innerText = XHR.response;
     });
 
@@ -71,7 +72,11 @@ XHR.addEventListener('error', (event) => {
     XHR.open('POST', `${remoteHost}${path}`);
 
     // Add the required HTTP header for form data POST requests
-    XHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    //XHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    XHR.setRequestHeader('Content-Type', 'text/plain');
+
+
+    console.log("sending data: " + urlEncodedData);
 
     // Finally, send our data.
     XHR.send(urlEncodedData);
