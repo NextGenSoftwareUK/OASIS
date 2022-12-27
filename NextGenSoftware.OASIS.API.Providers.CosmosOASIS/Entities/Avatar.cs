@@ -141,9 +141,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites
         public Guid PreviousVersionId { get; set; }
         public Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; }
         public Guid VersionId { get; set; }
-        public Dictionary<ProviderType, List<IProviderWallet>> ProviderWallets { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public bool IsSaving { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        //public Dictionary<ProviderType, List<IProviderWallet>> ProviderWallets { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Dictionary<ProviderType, List<IProviderWallet>> ProviderWallets { get; set; } = new Dictionary<ProviderType, List<IProviderWallet>>();
+        //public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>();
+        //public bool IsSaving { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool IsSaving { get; set; } = false;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
