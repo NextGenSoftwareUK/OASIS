@@ -12,8 +12,8 @@
 	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
 	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
-	  <PackageTags>OASIS API; Native; Integrated; WEB4 </PackageTags>
-	  <PackageReleaseNotes>Updated documentation.</PackageReleaseNotes>
+	  <PackageTags>OASIS API; Native; Integrated; WEB3; WEB4; ActivityPub; AzureCosmosDB; BlockStack; Chainlink; COSMOS; Elrond; EOSIO; Ethereum; Hashgraph; Holochain; IPFS; MapBox; MongoDB; Neo4j; OrionProtocol; PLAN; Scuttlebutt; SEEDS; SOLANA; SOLID; SqlLiteDB; Telos; ThreeFold; TRON; WRLD3D </PackageTags>
+	  <PackageReleaseNotes>Updated README &amp; Tags</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
 	  <Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
@@ -21,7 +21,7 @@
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	  <Version>1.0.2</Version>
+	  <Version>1.0.3</Version>
 	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
 
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>

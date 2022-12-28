@@ -1,5 +1,5 @@
 ﻿
-using NextGenSoftware.WebSocket;
+using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS
 {

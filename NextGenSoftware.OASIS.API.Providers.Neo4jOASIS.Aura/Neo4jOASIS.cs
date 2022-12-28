@@ -469,99 +469,99 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             }
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
-        {
-            try
-            {
-                var session = _driver.AsyncSession(WithDatabase);
+        //public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
+        //{
+        //    try
+        //    {
+        //        var session = _driver.AsyncSession(WithDatabase);
 
-                return await session.ReadTransactionAsync(async transaction =>
-                {
-                    var cursor = await transaction.RunAsync(@"
-                            MATCH (av:Avatar)
-                            WHERE TOLOWER(av.username) CONTAINS TOLOWER($userName)
-                                AND TOLOWER(av.password) CONTAINS TOLOWER($Password)
-                            RETURN av.FirstName AS firstname,av.LastName AS lastname",
-                        new { userName = username, Password = password }
-                    );
+        //        return await session.ReadTransactionAsync(async transaction =>
+        //        {
+        //            var cursor = await transaction.RunAsync(@"
+        //                    MATCH (av:Avatar)
+        //                    WHERE TOLOWER(av.username) CONTAINS TOLOWER($userName)
+        //                        AND TOLOWER(av.password) CONTAINS TOLOWER($Password)
+        //                    RETURN av.FirstName AS firstname,av.LastName AS lastname",
+        //                new { userName = username, Password = password }
+        //            );
 
-                    var avList = await cursor.ToListAsync(record => new Avatar
-                    {
-                        FirstName = record["firstname"].As<string>(),
-                        LastName = record["lastname"].As<string>()
-                    });
-                    IAvatar objAv = new Avatar();
-                    if (avList != null)
-                    {
-                        if (avList.Count > 0)
-                        {
-                            objAv = avList[0];
-                        }
-                    }
+        //            var avList = await cursor.ToListAsync(record => new Avatar
+        //            {
+        //                FirstName = record["firstname"].As<string>(),
+        //                LastName = record["lastname"].As<string>()
+        //            });
+        //            IAvatar objAv = new Avatar();
+        //            if (avList != null)
+        //            {
+        //                if (avList.Count > 0)
+        //                {
+        //                    objAv = avList[0];
+        //                }
+        //            }
 
-                    return new OASISResult<IAvatar>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Loaded Successfully",
-                        Result = objAv
-                    };
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatar>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
-            }
-        }
+        //            return new OASISResult<IAvatar>
+        //            {
+        //                IsLoaded = true,
+        //                IsError = false,
+        //                Message = "Avatar Loaded Successfully",
+        //                Result = objAv
+        //            };
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new OASISResult<IAvatar>
+        //        {
+        //            IsLoaded = false,
+        //            IsError = true,
+        //            Message = ex.ToString(),
+        //        };
+        //    }
+        //}
 
-        public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
-        {
-            try
-            {
-                var session = _driver.Session(WithDatabase);
+        //public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
+        //{
+        //    try
+        //    {
+        //        var session = _driver.Session(WithDatabase);
 
-                return session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (av:Avatar)
-                            WHERE TOLOWER(av.username) CONTAINS TOLOWER($userName)
-                                AND TOLOWER(av.password) CONTAINS TOLOWER($Password)
-                            RETURN av.FirstName AS firstname,av.LastName AS lastname",
-                        new { userName = username, Password = password }
-                    );
+        //        return session.ReadTransaction(transaction =>
+        //        {
+        //            var cursor = transaction.Run(@"
+        //                    MATCH (av:Avatar)
+        //                    WHERE TOLOWER(av.username) CONTAINS TOLOWER($userName)
+        //                        AND TOLOWER(av.password) CONTAINS TOLOWER($Password)
+        //                    RETURN av.FirstName AS firstname,av.LastName AS lastname",
+        //                new { userName = username, Password = password }
+        //            );
 
-                    IAvatar obj = (from d in cursor
-                                   select new Avatar
-                                   {
-                                       FirstName = d["firstname"].As<string>(),
-                                       LastName = d["lastname"].As<string>()
-                                   }).FirstOrDefault();
+        //            IAvatar obj = (from d in cursor
+        //                           select new Avatar
+        //                           {
+        //                               FirstName = d["firstname"].As<string>(),
+        //                               LastName = d["lastname"].As<string>()
+        //                           }).FirstOrDefault();
 
 
-                    return new OASISResult<IAvatar>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Loaded successfully",
-                        Result = obj,
-                    };
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatar>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
-            }
-        }
+        //            return new OASISResult<IAvatar>
+        //            {
+        //                IsLoaded = true,
+        //                IsError = false,
+        //                Message = "Avatar Loaded successfully",
+        //                Result = obj,
+        //            };
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new OASISResult<IAvatar>
+        //        {
+        //            IsLoaded = false,
+        //            IsError = true,
+        //            Message = ex.ToString(),
+        //        };
+        //    }
+        //}
 
         public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
         {
