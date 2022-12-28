@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entities
 {
     public class Holon : Entity, IHolon
     {
-        //public new Guid Id { get { return Guid.Parse(base.Id); } set { base.Id = $"{value}"; } }
+        public Guid HolonId { get; set;  }
         public string Name { get; set; }
         public string Description { get; set; }
         public IHolon Original { get; set; }
@@ -76,12 +76,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entities
         public Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; }
         public EnumValue<OASISType> CreatedOASISType { get; set; }
         public Guid VersionId { get; set; }
-        public Guid ParentCelestialSpaceId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public ICelestialSpace ParentCelestialSpace { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public Guid ParentCelestialBodyId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public ICelestialBody ParentCelestialBody { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public bool IsSaving { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        //public Guid ParentCelestialSpaceId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Guid ParentCelestialSpaceId { get; set; } = Guid.NewGuid();
+        //public ICelestialSpace ParentCelestialSpace { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public ICelestialSpace ParentCelestialSpace { get; set ; }
+        //public Guid ParentCelestialBodyId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Guid ParentCelestialBodyId { get; set; } = Guid.NewGuid();
+        //public ICelestialBody ParentCelestialBody { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public ICelestialBody ParentCelestialBody { get ; set ; }
+        //public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>();
+        //public bool IsSaving { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool IsSaving { get; set; } = false;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
