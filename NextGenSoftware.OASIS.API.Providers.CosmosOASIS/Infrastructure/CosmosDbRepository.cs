@@ -7,16 +7,19 @@ using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Exceptions;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
     public abstract class CosmosDbRepository<T> : IRepository<T>, IDocumentCollectionContext<T> where T : Entity
     {
         private readonly ICosmosDbClientFactory _cosmosDbClientFactory;
+        private readonly Microsoft.Azure.Cosmos.Container _cosmosDbContainer;
 
         protected CosmosDbRepository(ICosmosDbClientFactory cosmosDbClientFactory)
         {
-            _cosmosDbClientFactory = cosmosDbClientFactory;
+            _cosmosDbClientFactory = cosmosDbClientFactory;                      
         }
 
         public async Task<T> GetByIdAsync(string id)
@@ -24,12 +27,40 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             try
             {
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
+                
                 var document = await cosmosDbClient.ReadDocumentAsync(id, new RequestOptions
                 {
                     PartitionKey = ResolvePartitionKey(id)
+                    //PartitionKey = new PartitionKey(id)
                 });
-
+                //var document = await cosmosDbClient.ReadDocumentAsync(id);
                 return JsonConvert.DeserializeObject<T>(document.ToString());
+            }
+            catch (DocumentClientException e)
+            {
+                if (e.StatusCode == HttpStatusCode.NotFound)
+                {
+                    throw new EntityNotFoundException();
+                }
+
+                throw;
+            }
+        }
+
+        public List<T> GetListAsync()
+        {
+            try
+            {
+                var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
+
+                var av= cosmosDbClient.ReadAllDocumentsAsync();
+                var objList = av.ToList();
+                List<T> avatars = new List<T>();
+                foreach (var item in objList)
+                {
+                    avatars.Add(JsonConvert.DeserializeObject<T>(item.ToString()));
+                }
+                return avatars;
             }
             catch (DocumentClientException e)
             {

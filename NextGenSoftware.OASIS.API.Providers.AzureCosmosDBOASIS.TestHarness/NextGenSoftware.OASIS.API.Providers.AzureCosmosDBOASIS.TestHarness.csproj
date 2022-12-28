@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.COSMOSOASIS\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="OASIS_DNA.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

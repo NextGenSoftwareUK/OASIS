@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
@@ -21,9 +23,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         public async Task<Document> ReadDocumentAsync(string documentId, RequestOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
-        {
+        {            
             return await _documentClient.ReadDocumentAsync(
                 UriFactory.CreateDocumentUri(_databaseName, _collectionName, documentId), options, cancellationToken);
+        }
+
+        public IQueryable<Document> ReadAllDocumentsAsync()
+        {            
+            return _documentClient.CreateDocumentQuery<Document>(UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName).ToString(), "SELECT * FROM root r ");            
         }
 
         public async Task<Document> CreateDocumentAsync(object document, RequestOptions options = null,
