@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
+using NextGenSoftware.Logging;
+//using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.WebSocket;
 
 namespace NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS
@@ -114,16 +116,16 @@ namespace NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS
         private void HandleError(string message, Exception exception)
         {
             message = string.Concat(message, "\nError Details: ", exception != null ? exception.ToString() : "");
-            Logger.Log(message, LogType.Error);
+            Logger.Log(message, Logging.LogType.Error);
 
             OnError?.Invoke(this, new WebSocketErrorEventArgs { EndPoint = WebSocket.EndPoint, Reason = message, ErrorDetails = exception });
 
             switch (Config.ErrorHandlingBehaviour)
             {
-                case ErrorHandlingBehaviour.AlwaysThrowExceptionOnError:
+                case Logging.ErrorHandlingBehaviour.AlwaysThrowExceptionOnError:
                     throw new WebSocket.WebSocketException(message, exception, WebSocket.EndPoint);
 
-                case ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent:
+                case Logging.ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent:
                     {
                         if (OnError == null)
                             throw new WebSocket.WebSocketException(message, exception, WebSocket.EndPoint);
