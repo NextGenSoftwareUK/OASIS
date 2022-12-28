@@ -32,12 +32,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         public async Task EnsureDbSetupAsync()
         {
             await _documentClient.ReadDatabaseAsync(UriFactory.CreateDatabaseUri(_databaseName));
-
+            
             foreach (var collectionName in _collectionNames)
             {
                 await _documentClient.ReadDocumentCollectionAsync(
                     UriFactory.CreateDocumentCollectionUri(_databaseName, collectionName));
             }
+            
         }
     }
 }
