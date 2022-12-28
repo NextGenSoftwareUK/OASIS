@@ -1,4 +1,7 @@
-﻿using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
+﻿using Microsoft.Azure.Documents;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces
@@ -9,5 +12,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces
         Task<T> AddAsync(T entity);
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
+        List<T> GetListAsync();
     }
 }
