@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entities;
 using System.Linq;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 {
@@ -66,6 +67,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             dbClientFactory = null;
             avatarRepository = null;
+            avatarDetailRepository = null;
+            holonRepository = null;
             return base.DeActivateProvider();
         }
 
@@ -73,12 +76,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                var avatarList = avatarRepository.GetListAsync();
-                var avatar = avatarList.Where(a => a.AvatarId == id).FirstOrDefault();
-                if (avatar != null)
-                {
-                    avatarRepository.DeleteAsync(avatar).Wait();
-                }
+                avatarRepository.DeleteAsync(id.ToString()).Wait();
+
+
+                //var avatarList = avatarRepository.GetListAsync();
+                //var avatar = avatarList.Where(a => a.AvatarId == id).FirstOrDefault();
+                //if (avatar != null)
+                //{
+                //    avatarRepository.DeleteAsync(avatar).Wait();
+                //}
                 return new OASISResult<bool> { IsError = false, Result = true };
             }
             catch (Exception ex)
@@ -91,12 +97,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                var avatarList = avatarRepository.GetListAsync();
-                var avatar = avatarList.Where(a => a.AvatarId == new Guid(providerKey)).FirstOrDefault();
-                if (avatar != null)
-                {
-                    avatarRepository.DeleteAsync(avatar).Wait();
-                }
+                //Normally the providerKey is different to the Id but in this case they are the same since Azure uses GUID's the same as the OASIS does for ID.
+                avatarRepository.DeleteAsync(providerKey).Wait();
+
+                //var avatarList = avatarRepository.GetListAsync();
+                //var avatar = avatarList.Where(a => a.AvatarId == new Guid(providerKey)).FirstOrDefault();
+                //if (avatar != null)
+                //{
+                //    avatarRepository.DeleteAsync(avatar).Wait();
+                //}
                 return new OASISResult<bool> { IsError = false, Result = true };
             }
             catch (Exception ex)
@@ -109,11 +118,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                var avatar =await avatarRepository.GetByIdAsync(id.ToString());
-                if (avatar != null)
-                {                    
-                    await avatarRepository.DeleteAsync(avatar);
-                }
+                await avatarRepository.DeleteAsync(id.ToString());
+
+                //var avatar =await avatarRepository.GetByIdAsync(id.ToString());
+                //if (avatar != null)
+                //{                    
+                //    await avatarRepository.DeleteAsync(avatar);
+                //}
                 return new OASISResult<bool> { IsError = false, Result = true };
             }
             catch (Exception ex) {
@@ -125,11 +136,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                var avatar = await avatarRepository.GetByIdAsync(providerKey);
-                if (avatar != null)
-                {
-                    await avatarRepository.DeleteAsync(avatar);
-                }
+                //Normally the providerKey is different to the Id but in this case they are the same since Azure uses GUID's the same as the OASIS does for ID.
+                await avatarRepository.DeleteAsync(providerKey);
+
+                //var avatar = await avatarRepository.GetByIdAsync(providerKey);
+                //if (avatar != null)
+                //{
+                //    await avatarRepository.DeleteAsync(avatar);
+                //}
                 return new OASISResult<bool> { IsError = false, Result = true };
             }
             catch (Exception ex)
@@ -142,6 +156,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO: May want to cache this in future?
                 var avatarList = avatarRepository.GetListAsync();
                 var avatar = avatarList.Where(a => a.Email == avatarEmail).FirstOrDefault();
                 if (avatar != null)
@@ -160,6 +175,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO: May want to cache this in future?
                 var avatarList = avatarRepository.GetListAsync();
                 var avatar = avatarList.Where(a => a.Email == avatarEmail).FirstOrDefault();
                 if (avatar != null)
@@ -178,6 +194,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO: May want to cache this in future?
                 var avatarList = avatarRepository.GetListAsync();
                 var avatar = avatarList.Where(a => a.Username == avatarUsername).FirstOrDefault();
                 if (avatar != null)
@@ -196,6 +213,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO: May want to cache this in future?
                 var avatarList = avatarRepository.GetListAsync();
                 var avatar = avatarList.Where(a => a.Username == avatarUsername).FirstOrDefault();
                 if (avatar != null)
@@ -214,12 +232,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                var holonList = holonRepository.GetListAsync();
-                var holon = holonList.Where(a => a.HolonId == id).FirstOrDefault();
-                if (holon != null)
-                {
-                    holonRepository.DeleteAsync(holon).Wait();
-                }
+                holonRepository.DeleteAsync(id.ToString()).Wait();
+
+                //var holonList = holonRepository.GetListAsync();
+                //var holon = holonList.Where(a => a.HolonId == id).FirstOrDefault();
+                //if (holon != null)
+                //{
+                //    holonRepository.DeleteAsync(holon).Wait();
+                //}
                 return new OASISResult<bool> { IsError = false, Result = true };
             }
             catch (Exception ex)
@@ -232,12 +252,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                var holonList = holonRepository.GetListAsync();
-                var holon = holonList.Where(a => a.HolonId ==new Guid(providerKey)).FirstOrDefault();
-                if (holon != null)
-                {
-                    holonRepository.DeleteAsync(holon).Wait();
-                }
+                holonRepository.DeleteAsync(providerKey).Wait();
+
+                //var holonList = holonRepository.GetListAsync();
+                //var holon = holonList.Where(a => a.HolonId ==new Guid(providerKey)).FirstOrDefault();
+                //if (holon != null)
+                //{
+                //    holonRepository.DeleteAsync(holon).Wait();
+                //}
                 return new OASISResult<bool> { IsError = false, Result = true };
             }
             catch (Exception ex)
@@ -250,12 +272,33 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                var holonList = holonRepository.GetListAsync();
-                var holon = holonList.Where(a => a.HolonId == id).FirstOrDefault();
-                if (holon != null)
+                if (softDelete)
                 {
-                    await holonRepository.DeleteAsync(holon);
+                    Holon holon = await holonRepository.GetByIdAsync(id.ToString());
+
+                    if (holon != null)
+                    {
+                        holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.AvatarId;
+                        holon.DeletedDate = DateTime.Now;
+
+                        await holonRepository.UpdateAsync(holon);
+                        return new OASISResult<bool> { IsError = false, Result = true };
+                    }
+                    else
+                        return new OASISResult<bool> { IsError = true, Result = false, Message = $"Holon was not found for id {id}" };
                 }
+                else
+                {
+                    await holonRepository.DeleteAsync(id.ToString());
+                    return new OASISResult<bool> { IsError = false, Result = true };
+                }
+
+                //var holonList = holonRepository.GetListAsync();
+                //var holon = holonList.Where(a => a.HolonId == id).FirstOrDefault();
+                //if (holon != null)
+                //{
+                //    await holonRepository.DeleteAsync(holon);
+                //}
                 return new OASISResult<bool> { IsError = false, Result = true };
             }
             catch (Exception ex)
@@ -268,13 +311,34 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                var holonList = holonRepository.GetListAsync();
-                var holon = holonList.Where(a => a.HolonId == new Guid(providerKey)).FirstOrDefault();
-                if (holon != null)
+                if (softDelete)
                 {
-                    await holonRepository.DeleteAsync(holon);
+                    Holon holon = await holonRepository.GetByIdAsync(providerKey);
+
+                    if (holon != null)
+                    {
+                        holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.AvatarId;
+                        holon.DeletedDate = DateTime.Now;
+
+                        await holonRepository.UpdateAsync(holon);
+                        return new OASISResult<bool> { IsError = false, Result = true };
+                    }
+                    else
+                        return new OASISResult<bool> { IsError = true, Result = false, Message = $"Holon was not found for providerKey {providerKey}" };
                 }
-                return new OASISResult<bool> { IsError = false, Result = true };
+                else
+                {
+                    await holonRepository.DeleteAsync(providerKey.ToString());
+                    return new OASISResult<bool> { IsError = false, Result = true };
+                }
+
+                //var holonList = holonRepository.GetListAsync();
+                //var holon = holonList.Where(a => a.HolonId == new Guid(providerKey)).FirstOrDefault();
+                //if (holon != null)
+                //{
+                //    await holonRepository.DeleteAsync(holon);
+                //}
+                
             }
             catch (Exception ex)
             {
@@ -852,7 +916,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             try
             {
                 var holonList = holonRepository.GetListAsync();
-                var holonFiltered = holonList.Where(h => h.HolonType == type && h.Id==id).ToList();
+                var holonFiltered = holonList.Where(h => h.HolonType == type && h.ParentHolonId==id).ToList();
                 if (holonList.Count <= 0)
                 {
                     return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = false, Message = "No record found" };
@@ -864,7 +928,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = false, Message = ex.Message };
+                return new OASISResult<IEnumerable<IHolon>> { IsError = true, IsLoaded = false, Message = ex.Message };
             }
         }
 
@@ -873,7 +937,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             try
             {
                 var holonList = holonRepository.GetListAsync();
-                var holonFiltered = holonList.Where(h => h.HolonType == type && h.Id == new Guid(providerKey)).ToList();
+                var holonFiltered = holonList.Where(h => h.HolonType == type && h.ParentHolonId == new Guid(providerKey)).ToList();
                 if (holonList.Count <= 0)
                 {
                     return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = false, Message = "No record found" };
@@ -885,7 +949,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = false, Message = ex.Message };
+                return new OASISResult<IEnumerable<IHolon>> { IsError = true, IsLoaded = false, Message = ex.Message };
             }
         }
 
@@ -894,7 +958,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             try
             {
                 var holonList = holonRepository.GetListAsync();
-                var holonFiltered = holonList.Where(h => h.HolonType == type && h.Id == id).ToList();
+                var holonFiltered = holonList.Where(h => h.HolonType == type && h.ParentHolonId == id).ToList();
                 if (holonList.Count <= 0)
                 {
                     return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = false, Message = "No record found" };
@@ -906,7 +970,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = false, Message = ex.Message };
+                return new OASISResult<IEnumerable<IHolon>> { IsError = true, IsLoaded = false, Message = ex.Message };
             }
         }
 
@@ -915,7 +979,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             try
             {
                 var holonList = holonRepository.GetListAsync();
-                var holonFiltered = holonList.Where(h => h.HolonType == type && h.Id == new Guid(providerKey)).ToList();
+                var holonFiltered = holonList.Where(h => h.HolonType == type && h.ParentHolonId == new Guid(providerKey)).ToList();
                 if (holonList.Count <= 0)
                 {
                     return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = false, Message = "No record found" };
@@ -927,7 +991,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = false, Message = ex.Message };
+                return new OASISResult<IEnumerable<IHolon>> { IsError = true, IsLoaded = false, Message = ex.Message };
             }
         }
 
@@ -941,6 +1005,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 objAvatar.LastName = Avatar.LastName;
                 objAvatar.Title = Avatar.Title;
                 objAvatar.AvatarId = Avatar.AvatarId;
+
+                //TODO: Where are the rest of the properties?
+
                 avatarRepository.AddAsync(objAvatar).Wait();
                 return new OASISResult<IAvatar>
                 { IsSaved = true, IsError = false, Result = objAvatar };

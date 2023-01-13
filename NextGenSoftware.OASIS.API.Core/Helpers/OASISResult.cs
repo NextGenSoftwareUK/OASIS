@@ -74,8 +74,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             {
                 _isWarning = value;
 
-                if (ErrorHandling.ThrowExceptionsOnWarnings && !string.IsNullOrEmpty(Message))
-                    throw new Exception(Message);
+                //if (ErrorHandling.ThrowExceptionsOnWarnings && !string.IsNullOrEmpty(Message))
+                //    throw new Exception(Message);
             }
         }
 
@@ -92,8 +92,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             {
                 _message = value;
 
-                if (ErrorHandling.ThrowExceptionsOnErrors && IsError)
-                    throw new Exception(Message);
+                //if (ErrorHandling.ThrowExceptionsOnErrors && IsError)
+                //    throw new Exception(Message);
             }
         }
 
