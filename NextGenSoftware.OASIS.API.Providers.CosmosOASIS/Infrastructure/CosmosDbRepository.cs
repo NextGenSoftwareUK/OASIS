@@ -78,6 +78,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             try
             {
                 entity.Id = GenerateId(entity);
+
+                //Normally the providerKey is different to the Id but in this case they are the same since Azure uses GUID's the same as the OASIS does for ID.
+                entity.ProviderKey = entity.Id.ToString();
+
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
                 var document = await cosmosDbClient.CreateDocumentAsync(entity);
                 return JsonConvert.DeserializeObject<T>(document.ToString());
@@ -113,12 +117,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         public async Task DeleteAsync(T entity)
         {
+            await DeleteAsync(entity.Id.ToString());
+        }
+
+        public async Task DeleteAsync(string id)
+        {
             try
             {
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
-                await cosmosDbClient.DeleteDocumentAsync(entity.Id.ToString(), new RequestOptions
+                await cosmosDbClient.DeleteDocumentAsync(id, new RequestOptions
                 {
-                    PartitionKey = ResolvePartitionKey(entity.Id.ToString())
+                    PartitionKey = ResolvePartitionKey(id)
                 });
             }
             catch (DocumentClientException e)
