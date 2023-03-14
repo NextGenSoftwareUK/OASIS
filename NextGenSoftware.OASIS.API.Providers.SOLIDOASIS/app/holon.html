@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="./public/main.css" rel="stylesheet">
+
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+    <title>Holon Profile</title>
+</head>
+<body>
+
+    <section class="bg-white dark:bg-gray-900">
+        <div class="py-8 px-4 mx-auto max-w-7xl lg:py-16">
+            <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Add a new Holon</h2>
+            <div>
+                <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                    <div class="sm:col-span-2">
+                        <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
+                        <input type="text" name="name" id="name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Holon name" required="">
+                    </div>
+                    
+                    <div>
+                        <label for="category" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Holon Type</label>
+                        <select id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                            <option selected="">Select category</option>
+                            <option value='All'>All</option>
+                            <option value='Player'>Player</option>
+                            <option value='Avatar'>Avatar</option>
+                            <option value='Avatar Detail'>Avatar Detail</option>
+                            <option value='Quest'>Quest</option>
+                            <option value='Mission'>Mission</option>
+                            <option value='Park'>Park</option>
+                            <option value='Building'>Building</option>
+                            <option value='Restaurant'>Restaurant</option>
+                            <option value='Cafe'>Cafe</option>
+                            <option value='Train Station'>Train Station</option>
+                            <option value='Underground Station'>Underground Station</option>
+                            <option value='Bus Station'>Bus Station</option>
+                            <option value='Great Grand Super Star'>Great Grand Super Star</option>
+                            <option value='Grand Super Star'>Grand Super Star</option>
+                            <option value='Super Star'>Super Star</option>
+                            <option value='Star'>Star</option>
+                            <option value='Planet'>Planet</option>
+                            <option value='Moon'>Moon</option>
+                            <option value='Asterovalue'>Asterovalue</option>
+                            <option value='Comet'>Comet</option>
+                            <option value='Meterovalue'>Meterovalue</option>
+                            <option value='Nebula'>Nebula</option>
+                            <option value='Zome'>Zome</option>
+                            <option value='Holon'>Holon</option>
+                            <option value='Omniverse'>Omniverse</option>
+                            <option value='SuperVerse'>SuperVerse</option>
+                            <option value='Multiverse'>Multiverse</option>
+                            <option value='Universe'>Universe</option>
+                            <option value='Galaxy Cluster'>Galaxy Cluster</option>
+                            <option value='Galaxy'>Galaxy</option>
+                            <option value='Solar System'>Solar System</option>
+                            <option value='Dimension'>Dimension</option>
+                            <option value='WormHole'>Worm Hole</option>
+                            <option value='BlackHole'>Black Hole</option>
+                            <option value='Portal'>Portal</option>
+                            <option value='Star Gate'>Star Gate</option>
+                            <option value='Space Time Distortion'>Space Time Distortion</option>
+                            <option value='Space Time Abnormally'>Space Time Abnormally</option>
+                            <option value='Temporal Rift'>Temporal Rift</option>
+                            <option value='Star Dust'>Star Dust</option>
+                            <option value='Cosmic Wave'>Cosmic Wave</option>
+                            <option value='Cosmic Ray'>Cosmic Ray</option>
+                        </select>
+                    </div>
+                    
+                    <div class="w-full">
+                        <label for="price" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Version</label>
+                        <input type="number" name="price" id="price" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="v1" required="">
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label for="description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
+                        <textarea id="description" rows="8" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Holon description here"></textarea>
+                    </div>
+                </div>
+                <button id="successButton" data-modal-toggle="successModal" data-modal-toggle="successModal" class="inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white bg-primary-700 rounded-lg focus:ring-4 focus:ring-primary-200 dark:focus:ring-primary-900 hover:bg-primary-800" type="button">
+                    Add Holon
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <div class="mb-8 bg-white dark:bg-gray-900">
+        <div class="py-8 px-4 mx-auto max-w-7xl lg:py-1">
+            <table class="min-w-full text-left text-sm font-light">
+                <thead class="border-b font-medium dark:border-neutral-500">
+                    <tr>
+                        <th scope="col" class="px-6 py-4">Holon Id</th>
+                        <th scope="col" class="px-6 py-4">Name</th>
+                        <th scope="col" class="px-6 py-4">Holon Type</th>
+                        <th scope="col" class="px-6 py-4">Version</th>
+                        <th scope="col" class="px-6 py-4">Description</th>
+                        <th scope="col" class="px-6 py-4">Date Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        class="border-b transition duration-300 ease-in-out hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600">
+                        <td class="whitespace-nowrap px-6 py-4 font-medium">1</td>
+                        <td class="whitespace-nowrap px-6 py-4">Mark</td>
+                        <td class="whitespace-nowrap px-6 py-4">Otto</td>
+                        <td class="whitespace-nowrap px-6 py-4">@mdo</td>
+                        <td class="whitespace-nowrap px-6 py-4">@mdo</td>
+                        <td class="whitespace-nowrap px-6 py-4">2023-11-01</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>
