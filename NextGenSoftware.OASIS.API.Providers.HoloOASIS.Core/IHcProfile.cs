@@ -10,8 +10,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
     
     public interface IHcAvatar
     {
-        Guid id { get; set; }
-        Guid user_id { get; set; } //TODO: Remember to add this to the HC Rust code...
+       // Guid id { get; set; }
+        //Guid user_id { get; set; } //TODO: Remember to add this to the HC Rust code...
         string username { get; set; }
         string password { get; set; }
         string email { get; set; }
@@ -24,6 +24,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         // public int Karma { get; private set; }
         int karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         int level { get; set; }
-        string hc_address_hash { get; set; }
+        //string hc_address_hash { get; set; }
     }
 }
