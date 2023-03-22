@@ -278,9 +278,37 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
 
 
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>(avatar);
 
+            try
+            {
+                //Make sure HoloNET is Initialized.
+                await HcAvatar.WaitTillHoloNETInitializedAsync();
+
+                if (avatar.Id == Guid.Empty)
+                    avatar.Id = Guid.NewGuid();
+
+                HcAvatar = (HcAvatar)ConvertAvatarToHoloOASISAvatar(avatar, HcAvatar);
+
+                //If you do not want to use Reflection then we would do it like this passing in our own params object.
+                await HcAvatar.SaveAsync(new 
+                {
+                    email = HcAvatar.email,
+                    first_name = HcAvatar.first_name,
+                    last_name = HcAvatar.last_name
+                });
+
+                //Otherwise we could just use this dyanmic version (which uses reflection) to dyamically build the params object (but we need to make sure properties have the HolochainFieldName attribute).
+                await HcAvatar.SaveAsync();
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured saving the avatar in the HoloOASIS Provider. Reason: {ex}");
+            }
+            
+            return result;
 
             /*
             await _taskCompletionSourceGetInstance.Task;
@@ -586,21 +614,37 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         //    };
         //}
 
-        private HcAvatar ConvertAvatarToHoloOASISAvatar(IAvatar Avatar)
+        //private HcAvatar ConvertAvatarToHoloOASISAvatar(IAvatar Avatar)
+        //{
+        //    return new HcAvatar
+        //    {
+        //        email = Avatar.Email,
+        //        first_name = Avatar.FirstName,
+        //        hc_address_hash = string.Empty,
+        //        holon_type = Avatar.HolonType,
+        //        id = Avatar.Id,
+        //        last_name = Avatar.LastName,
+        //        password = Avatar.Password,
+        //        provider_key = Avatar.ProviderUniqueStorageKey == null ? string.Empty : Avatar.ProviderUniqueStorageKey[API.Core.Enums.ProviderType.HoloOASIS],
+        //        title = Avatar.Title,
+        //        username = Avatar.Username
+        //    };
+        //}
+
+        private IHcAvatar ConvertAvatarToHoloOASISAvatar(IAvatar avatar, IHcAvatar hcAvatar)
         {
-            return new HcAvatar
-            {
-                email = Avatar.Email,
-                first_name = Avatar.FirstName,
-                hc_address_hash = string.Empty,
-                holon_type = Avatar.HolonType,
-                id = Avatar.Id,
-                last_name = Avatar.LastName,
-                password = Avatar.Password,
-                provider_key = Avatar.ProviderUniqueStorageKey == null ? string.Empty : Avatar.ProviderUniqueStorageKey[API.Core.Enums.ProviderType.HoloOASIS],
-                title = Avatar.Title,
-                username = Avatar.Username
-            };
+            hcAvatar.email = avatar.Email;
+            hcAvatar.first_name = avatar.FirstName;
+            //hcAvatar.hc_address_hash = string.Empty,
+            hcAvatar.holon_type = avatar.HolonType;
+            //hcAvatar.id = Avatar.Id;
+            hcAvatar.last_name = avatar.LastName;
+            hcAvatar.password = avatar.Password;
+            hcAvatar.provider_key = avatar.ProviderUniqueStorageKey == null ? string.Empty : avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.HoloOASIS];
+            hcAvatar.title = avatar.Title;
+            hcAvatar.username = avatar.Username;
+            
+            return hcAvatar;
         }
 
         private Avatar ConvertHcAvatarToAvatar(HcAvatar hcAvatar)
