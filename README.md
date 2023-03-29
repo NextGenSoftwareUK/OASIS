@@ -28,7 +28,6 @@
   - [IR (Infinite Reality) Ready](#ir-infinite-reality-ready)
   - [One World Open World MMO (VR) (Game Of Games Engine)](#one-world-open-world-mmo-vr-game-of-games-engine)
   - [XR/IR Unified Interface To The World](#xrir-unified-interface-to-the-world)
-  - [ARC/HoloMap/Synergy Engine Integration](#archolomapsynergy-engine-integration)
   - [WEB 5 STAR OASIS Omniverse Interoperable Metaverse Low Code Generator](#web-5-star-oasis-omniverse-interoperable-metaverse-low-code-generator)
   - [AI/Machine Learning Over All Of World's Aggregated Data](#aimachine-learning-over-all-of-worlds-aggregated-data)
   - [Summary](#summary)
@@ -74,9 +73,7 @@
 - [.NET HDK](#net-hdk)
 - [WEB5 STAR ODK Omniverse Interoperable Metaverse Low Code Generator](#web5-star-odk)
 - [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
-  * [ARC & Noomap Integration](#arc---noomap-integration)
-  * [Node.JS Integration](#nodejs-integration)
-- [ARC, Noomap & IWG (Infinite World Game) Will Be Fully Integrated](#arc--noomap---iwg--infinite-world-game--will-be-fully-integrated)
+- [Node.JS Integration](#nodejs-integration)
 - [Turbocharge the Holochain ecosystem!](#turbocharge-the-holochain-ecosystem-)
 - [The OASIS Architecture](#the-oasis-architecture)
   * [Open Modular Design](#open-modular-design)
@@ -91,7 +88,6 @@
   * [OAPP/hAPP](#oapp-happ)
   * [OAPP/HAPP](#oapp-happ)
   * [Business OAPP](#business-oapp)
-  * [H4OME / ARC](#h4ome---arc)
   * [WEB4 OASIS API Arcitecture Overview](#oasisapi-overview)
 - [Our World/OASIS Will Act As The Bridge For All (Legasy, IPFS, Holochain, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP & More!)](#our-world-oasis-will-act-as-the-bridge-for-all--legasy--ipfs--holochain--ethereum--solid--fediverse--mastodon--diaspora--webfinger--activitypub--xmpp---more--)
   * [Implement Your Own Storage/Network/Renderer Provider](#implement-your-own-storage-network-renderer-provider)
@@ -321,12 +317,6 @@ Our World & One World are like the XR/IR Unified Interface into all of these hAp
 
 Both One World (desktop/console) & Our World (smartphone) players can interact in real-time through time portals and much more...
 
-### ARC/HoloMap/Synergy Engine Integration
-
-We will be implementing the ARC (Augmented Reality Computer) Membrane allowing the revolutionary next-gen operating system to fully interface & integrate with the 3D Map & Avatar/Karma system as well as render its own 3D interfaces and 2D HUD overlays on top of the map, etc.
-
-We will also port HoloMap (previously called Noomap) to Unity and will implement a Synergy Engine allowing people to easily find and match solutions/desires/passions and to also find various solution providers, which again will be fully integrated with the 3D Map & Avatar/Karma system.
-
 ### WEB 5 STAR OASIS Omniverse Interoperable Metaverse Low Code Generator
 
 [The WEB 5 STAR OASIS Omniverse Interoperable Metaverse Low Code Generator](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#web5-star-odk) is built on top of the OASIS API and aggregates all the worlds data and expresses it within a cyberspace ontology using a cutting edge custom built ORM (Object Relational Mapper) called COSMIC. The STAR Omniverse is both a simulation & game of life and aggregates all metaverses into one fully integrated unified platform. It is also a fully integrated immersive interoperable metaverse Low Code Generator and soooooo much more.... ;-)
@@ -504,14 +494,13 @@ The projects within this repo should be pretty self explanatory from their names
 |[NextGenSoftware.Holochain.HoloNET.Client.Unity](#holonet)| The Unity implementation of the HoloNETClient. This will use a Unity compatible logger soon...
 |[NextGenSoftware.Holochain.HoloNET.Client.TestHarness](#holonet)| The Test Harness for the HoloNETClient. This includes load tests for Holochain. So far looking good, the conductor is very fast! ;-)
 |[NextGenSoftware.Holochain.HoloNET.HDK](#net-hdk)| A placeholder for the .NET HDK (Holochain Development Kit). 
-|NextGenSoftware.NodeManager| A library to allow .NET code to call Node.js methods and retuen data from them. This is currently used by the ARC Membrane and Apollo Client/Server projects.
+|NextGenSoftware.NodeManager| A library to allow .NET code to call Node.js methods and retuen data from them. This is currently used by Apollo Client/Server projects.
 |[NextGenSoftware.OASIS.API.Core](#the-oasis-api---karma-system)| The core code for the OASIS API itself. This is where the Providers are injected and is the core part of the system.
 |NextGenSoftware.OASIS.API.Core.Apollo.Client| Uses the NextGenSoftware.NodeManager library to call the Node.js Apollo GraphQL Client. This in turn calls the NextGenSoftware.OASIS.API.Core.Apollo.Server library, which wraps around the NextGenSoftware.OASIS.API.Core.WebAPI (REST API).
 |NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness| The test harness for the Apollo Client library.
 |NextGenSoftware.OASIS.API.Core.Apollo.Server| Uses the NextGenSoftware.NodeManager library to call the Node.js Apollo GraphQL Server, which wraps around the NextGenSoftware.OASIS.API.Core.WebAPI (REST API).
 |NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness| The test harness for the Apollo Server library.
-|[NextGenSoftware.OASIS.API.Core.ARC.Membrane](#arc---noomap-integration)| This contains the DeviceManager,PsyberManager & MappingManager allowing ARC to talk to any device and access all of it's hardware such as Bluetooth. It will also provide a wrapper around Unity allowing ARC to render it's 2D & 3D UI to Unity. It will also allow ARC to access the Our World 3D Map.
-|[NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS](#arc---noomap-integration)| This is for testing purposes to simulate the ARC Core (written in NodeJS). It will test calls to the DeviceManager, PsyberManager & MappingManager.
+|[NextGenSoftware.OASIS.API.Core.NodeJS](#nodejs)| This is to bridge between nodejs and .NET.
 |[NextGenSoftware.OASIS.API.Core.TestHarness](#the-oasis-api---karma-system)| This is a Test Harness for the main OASIS API.
 |[NextGenSoftware.OASIS.API.FrontEnd.Web](#the-oasis-api---karma-system)| This is the Web front-end for the OASIS API and will show the user's Avatar/Profile along with their Karma levels (and where the karma came from). It will also show what Satellite apps/games/websites that are using the API. This will form the foundation of the NextGen Social Network (a sub-component of Our World).
 |[NextGenSoftware.OASIS.API.FrontEnd.Unity](#holounity)| This shows how the OASIS API is used in Unity to render the users profile data to the 3D Avatar.
@@ -1004,32 +993,13 @@ https://www.ourworldthegame.com/single-post/first-production-ready-release-of-we
 https://www.ourworldthegame.com/single-post/announcing-star-odk-hdk-cosmic  <br>
 https://www.ourworldthegame.com/single-post/star-odk-hdk-cosmic-oasis-api-our-world-update 
 	
-	
-<a name="arc---noomap-integration"></a>
-### ARC & Noomap Integration
-
-The middle layer will also soon interface with the amazing ARC (Augmented Reality Computer) operating system being built by my good friend and cosmic brother Chris Lacombe over at S7 Foundation (previously called Noomap). He is also the creator of Noomap, a 3D fractal mind mapping tool that has some communities very excited! :)
-
-http://noomap.info/
-
-http://iwg.life/s7foundation/
-
-ARC is currently being built in NodeJS and utilises a Semantic Graph to store and represent it's data, it will also contain a revolutionary AI system. We cannot say more on this at the moment because Chris wants to keep this project under the radar at the moment...
-
 ### Node.JS Integration
 
-The OASIS Architecture will interface to ARC/Node.JS using Edge.js:
+The OASIS Architecture will interface to Node.JS using Edge.js:
 
 https://github.com/tjanczuk/edge
 
 This will allow both .NET and NodeJS to run in the same process and make cross function calls as if they were native.
-
-We are working very closely with Chris & S7 to fully synergise & intrgrate ARC & Noomap into the OASIS Architecture & Our World.
-
-<a name="arc--noomap---iwg--infinite-world-game--will-be-fully-integrated"></a>
-## ARC, Noomap & IWG (Infinite World Game) Will Be Fully Integrated
-
-ARC, Noomap & IWG will be fully integrated into the OASIS Architecture. The IWG is VERY similar to Our World and has a LOT of overlap and is something we are currently exploring and synergising but it looks like they will for a start share the same central avatar/profile/karma system that is currently being built in this very repo.
 
 <a name="turbocharge-the-holochain-ecosystem-"></a>
 ## Turbocharge the Holochain ecosystem!
@@ -1051,16 +1021,15 @@ Our World will run on its own private secure network called ONET (OASIS Network)
 
 Our World/OASIS & ONET can even distribute the computing power across the gamers machines so if some machines are struggling, they can borrow processing power from fellow gamers with more powerful rigs (if they give permission of course!). Sounding like the OASIS from Ready Player One (book version) yet? ;-)
 
-It will also run on IPFS, the Ethereum blockchain, DAOStack ARC & H4OME.
+It will also run on IPFS, Ethereum, Solana, EOS, Holochain, MongoDB, Neo4j, SQLLite, ThreeFold, SOLID and many more!
 
-**Our World is also a HApp (H4OME App), a HoloChain App & a DApp (Ethereum Distributed App), SOLID app implementing all of their respective interfaces.**
+**Our World will run on all of WEB2 and WEB3 via the WEB4 OASIS API**
 
 **It will also allow any HApp, HoloChain App, DApp, SOLID App to plug into Our World where they can share their data (as well as connect to the central avatar/profile) or even their full UI within the Our World VR/AR/XR/IR (Infinite Reality) world/universe. It will also allow any other legacy apps/games/systems to plug in using a HTTP API that implements the OAPI (OASIS API). It will act as the bridge between all the upcoming nextgen technology as well as supporting legacy systems until they are also migrated to the new nextgen internet**
 
 **All of these apps that plug into the OASIS Engine (Our World) will be known as OApps (OASIS Apps). As well as these OApps being able to share their data/UI with any other OApp, they can also take advantage of the OASIS Asset Store where users can buy various add-ons for your app/game.**
 
-**By supporting
- everything Our World/OASIS will help act as a bridge between the old and the new world.**
+**By supporting everything Our World/OASIS will help act as a bridge between the old and the new world.**
 
 NextGen Software & Our World themselves will also be a DAO (Distributed Anonymous Organisation) registered with DAOStack meaning we can self-govern and cut out the expensive middlemen such as banks, lawyers, accountants, managers, contracts etc. This technology will allow us to realise our long-held dreams of running a flat decentralised organisation where every voice is heard, respected and is counted as an equal. This also prevents fraud, mistakes and corruption from occurring as is all too common now days.
 
@@ -1153,11 +1122,6 @@ An OAPP can also be a HAPP, which means it can plug into both the H4OME & OASIS 
 ### Business OAPP
 
 Businesses can also implement OAPP's if they qualify as a benevolent organisation doing good for the people and the planet. They also have a central profile, which also has karma, the more good deeds they do for the people and the planet, the more karma they earn. The higher their karma the bigger and better location of virtual space they will be allocated within Our World. The higher their karma the more premium advertising space they will also be allocated, which will be very limited within Our World since we do not wish to bombard users with adverts as others do. Unlike others, money is not the currency Our World, karma is so they cannot buy their way in. This will encourage organisations to do more to help solve the worlds problems.
-
-<a name="h4ome---arc"></a>
-### H4OME / ARC
-
-H4OME is currently being built by the S7 Foundation, a partner for Our World & NextGen Software. It allows users to create Holonic Apps (HAPPS) using a quick and easy to use drag n drop interface. It allows blocks of code/functionality to be coupled together so works like a 4th Generation Programming Language. The blocks are currently written in Javascript. It is built on top of Holochain, IPFS & Ethereum just like the OASIS Engine so they are a very good fit for each other.
 
 <a name="oasisapi-overview"></a>
 ### WEB4 OASIS API Architectue Overview
