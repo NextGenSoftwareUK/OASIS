@@ -11,8 +11,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
     public interface IHcAvatar
     {
-        // Guid id { get; set; }
+        //Guid id { get; set; }
         //Guid user_id { get; set; } //TODO: Remember to add this to the HC Rust code...
+        string id { get; set; }
         string username { get; set; }
         string password { get; set; }
         string email { get; set; }
