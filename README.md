@@ -228,17 +228,9 @@ This karma is then redeemed for real world goods & services such as for a free s
 
 It also unlocks new gifts and super powers for your avatar in the Our World/One World games that plug into the API, they are the first worlds of the new upcoming OASIS Omniverse (network of metaverses).
 
-### Full Accountability/Zero Crime/Dark Net Prove
-
-The extra benefit of this is that everyone is fully accountable for their actions where their karma & how they earnt/lost it is fully visible to all. There can be no hiding in the OASIS, it makes crime & the dark net impossible!
-
 ### Data API
 
 It also features the powerful [Data API](https://www.ourworldthegame.com/single-post/web4-oasis-api-v2-3-1-released-with-new-improved-data-api-and-lots-more) allowing data to be shared between the above providers giving full interoperability. It also has powerful features such as auto-fail over, auto-load balancing and auto-replication across the providers so if one node goes down in your local area it will automatically switch to the next fastest node in your area independent of the network it belongs to, this way the OASIS API never has any downtime and will always be super fast and not reliant on only one network. This also applies for all the other API's such as the Avatar API etc. With unity consciousness the possibilities are limitless!
-
-### Future Prove! Never Need To Learn A New Tech Stack/Language Again!
-
-The OASIS API is very intuitive and easy to use hiding away the complexities of the lower-level networks/protocols/platforms/API's but at the same time gives full power and control to power users who wish to dive deeper into the lower-level tech. This also means you do not need to keep learning new tech/APIs/programming languages etc, from now on you only ever need to use the very intuitive powerful OASIS API and the rest is taken care of for you! Also, even if a newer version of one network/API comes out like Holochain RSM or Ethereum 2, you do not need to do anything to port your app to the latest version, the OASIS will take care of this for you. This saves you valuable time to focus on bringing your idea to life! Happy Days! :)
 
 ### SEEDS API
 
@@ -255,6 +247,18 @@ Because of the auto replication the private keys are automatically backed up to 
 You will never lose your keys again! ;-)
 
 It can also then sync your public key and wallet address etc when you go back online. With this architecture it opens the doors to many new use cases...
+
+### Providers API
+
+This allows users/admins to fully control and configure the full power of the OASIS API (ONODE's) such as auto-replication, auto-failover, auto load-balancing, providers, error handling, logging and so much more!
+
+### Full Accountability/Zero Crime/Dark Net Prove
+
+The extra benefit of this is that everyone is fully accountable for their actions where their karma & how they earnt/lost it is fully visible to all. There can be no hiding in the OASIS, it makes crime & the dark net impossible!
+
+### Future Prove! Never Need To Learn A New Tech Stack/Language Again!
+
+The OASIS API is very intuitive and easy to use hiding away the complexities of the lower-level networks/protocols/platforms/API's but at the same time gives full power and control to power users who wish to dive deeper into the lower-level tech. This also means you do not need to keep learning new tech/APIs/programming languages etc, from now on you only ever need to use the very intuitive powerful OASIS API and the rest is taken care of for you! Also, even if a newer version of one network/API comes out like Holochain RSM or Ethereum 2, you do not need to do anything to port your app to the latest version, the OASIS will take care of this for you. This saves you valuable time to focus on bringing your idea to life! Happy Days! :)
 
 ### Works Offline/Local Networks (LAN, Bluetooth, Mesh Networks)
 
