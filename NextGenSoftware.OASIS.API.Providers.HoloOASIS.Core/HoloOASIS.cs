@@ -13,6 +13,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
     public class HoloOASIS : OASISStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISLocalStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
+        private const string ZOME_LOAD_FUNCTION_BY_ID = "get_entry_avatar_by_id";
+        private const string ZOME_LOAD_FUNCTION_BY_USERNAME = "get_entry_avatar_by_username";
+        private const string ZOME_DELETE_FUNCTION_BY_ID = "delete_entry_avatar_by_id";
+        private const string ZOME_DELETE_FUNCTION_BY_USERNAME = "delete_entry_avatar_by_username";
+        private const string ZOME_DELETE_FUNCTION_BY_EMAIL = "delete_entry_avatar_by_email";
+
         private bool _useReflectionForSaving = false;
         public delegate void Initialized(object sender, EventArgs e);
         public event Initialized OnInitialized;
@@ -28,14 +34,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public HoloNETClient HoloNETClient { get; private set; }
 
-        public HoloOASIS(HoloNETClient holoNETClient, bool useReflectionForSaving = false)
+        public HoloOASIS(HoloNETClient holoNETClient, bool useReflectionForSaving = true)
         {
             _useReflectionForSaving = useReflectionForSaving;
             this.HoloNETClient = holoNETClient;
             Initialize();
         }
 
-        public HoloOASIS(string holochainConductorURI, bool useReflectionForSaving = false)
+        public HoloOASIS(string holochainConductorURI, bool useReflectionForSaving = true)
         {
             _useReflectionForSaving = useReflectionForSaving;
             HoloNETClient = new HoloNETClient(holochainConductorURI);
@@ -257,8 +263,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
                 if (hcAvatar != null)
                 {
-                    //TODO: Implement ability to be able to load an entry by a custom field in HoloNET/HoloNETAuditEntryBaseClass/HoloNETEntryBaseClass.
-                    ZomeFunctionCallBackEventArgs response = await hcAvatar.LoadAsync();
+                    hcAvatar.ZomeLoadEntryFunction = ZOME_LOAD_FUNCTION_BY_ID;
+                    ZomeFunctionCallBackEventArgs response = await hcAvatar.LoadAsync(id.ToString());
 
                     if (response != null)
                     {
@@ -281,27 +287,47 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 ErrorHandling.HandleError(ref result, $"Error loading avatar with id {id} for HoloOASIS Provider. Reason: {ex}.");
             }
 
-            
-
-
-            //TODO: Implement ability to be able to load an entry by a custom field in HoloNET/HoloNETAuditEntryBaseClass/HoloNETEntryBaseClass.
-            //await HcAvatar.LoadAsync(AvatarEntryHash);
-
-            //await _taskCompletionSourceGetInstance.Task;
-
-            //if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
-            //{
-            //    //TODO: Implement in HC/Rust
-            //   // await HoloNETClient.CallZomeFunctionAsync(OASIS_ZOME, LOAD_Avatar_FUNC, new { id });
-            //    return new OASISResult<IAvatar>(await _taskCompletionSourceLoadAvatar.Task);
-            //}
-
             return result;
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
         {
-            throw new NotImplementedException();
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+
+            try
+            {
+                //HcAvatar hcAvatar = await InitHcAvatar(id);
+
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                await hcAvatar.WaitTillHoloNETInitializedAsync();
+
+                if (hcAvatar != null)
+                {
+                    hcAvatar.ZomeLoadEntryFunction = ZOME_LOAD_FUNCTION_BY_USERNAME;
+                    ZomeFunctionCallBackEventArgs response = await hcAvatar.LoadAsync(username);
+
+                    if (response != null)
+                    {
+                        if (response.IsCallSuccessful && !response.IsError)
+                        {
+                            result.Result = response.Entry.EntryDataObject;
+                            hcAvatar = null;
+                            //hcAvatar.CloseAsync()
+                            //DisposeHcAvatar(id);
+                        }
+                        else
+                            ErrorHandling.HandleError(ref result, $"Error loading avatar with username {username} for HoloOASIS Provider. Reason: { response.Message }");
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"Error loading avatar with username {username} for HoloOASIS Provider. Reason: Unknown.");
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Error loading avatar with username {username} for HoloOASIS Provider. Reason: {ex}.");
+            }
+
+            return result;
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
@@ -310,9 +336,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             try
             {
-                //Make sure HoloNET is Initialized.
                 HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-                await hcAvatar.WaitTillHoloNETInitializedAsync();
 
                 if (avatar.Id == Guid.Empty)
                     avatar.Id = Guid.NewGuid();
@@ -347,44 +371,148 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return result;
         }
 
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>(false);
+
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_FUNCTION_BY_ID;
+                await hcAvatar.DeleteAsync(id.ToString());
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with id {id} in the HoloOASIS Provider. Reason: {ex}");
+            }
+
+            return result;
+        }
+
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            OASISResult<bool> result = new OASISResult<bool>(false);
+
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_FUNCTION_BY_ID;
+                hcAvatar.Delete(id.ToString());
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with id {id} in the HoloOASIS Provider. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>(false);
+
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                await hcAvatar.DeleteAsync(providerKey);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with providerKey (entryHash) {providerKey} in the HoloOASIS Provider. Reason: {ex}");
+            }
+
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            OASISResult<bool> result = new OASISResult<bool>(false);
+
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_FUNCTION_BY_ID;
+                hcAvatar.Delete(providerKey);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with providerKey (entryHash) {providerKey} in the HoloOASIS Provider. Reason: {ex}");
+            }
+
+            return result;
         }
 
-        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            throw new NotImplementedException();
-        }
+            OASISResult<bool> result = new OASISResult<bool>(false);
 
-        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            throw new NotImplementedException();
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_FUNCTION_BY_EMAIL;
+                await hcAvatar.DeleteAsync(avatarEmail);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with email {avatarEmail} in the HoloOASIS Provider. Reason: {ex}");
+            }
+
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            OASISResult<bool> result = new OASISResult<bool>(false);
+
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_FUNCTION_BY_EMAIL;
+                hcAvatar.Delete(avatarEmail);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with email {avatarEmail} in the HoloOASIS Provider. Reason: {ex}");
+            }
+
+            return result;
         }
 
-        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            OASISResult<bool> result = new OASISResult<bool>(false);
+
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_FUNCTION_BY_USERNAME;
+                await hcAvatar.DeleteAsync(avatarUsername);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with username {avatarUsername} in the HoloOASIS Provider. Reason: {ex}");
+            }
+
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            throw new NotImplementedException();
-        }
+            OASISResult<bool> result = new OASISResult<bool>(false);
 
-        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            throw new NotImplementedException();
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_FUNCTION_BY_USERNAME;
+                hcAvatar.Delete(avatarUsername);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with username {avatarUsername} in the HoloOASIS Provider. Reason: {ex}");
+            }
+
+            return result;
         }
 
         public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
