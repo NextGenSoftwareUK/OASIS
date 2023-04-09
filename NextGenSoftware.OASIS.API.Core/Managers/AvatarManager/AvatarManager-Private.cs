@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             string message;
 
-            var resetUrl = $"{OASISWebSiteURL}/#/avatar/reset-password?token={avatar.ResetToken}";
+            var resetUrl = $"{OASISWebSiteURL}/avatar/reset-password?token={avatar.ResetToken}";
             message =
                 $@"<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
                              <p><a href=""{resetUrl}"">{resetUrl}</a></p>";
@@ -89,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private void SendVerificationEmail(IAvatar avatar)
         {
-            var verifyUrl = $"{OASISWebSiteURL}/#/avatar/verify-email?token={avatar.VerificationToken}";
+            var verifyUrl = $"{OASISWebSiteURL}/avatar/verify-email?token={avatar.VerificationToken}";
             string message = $@"<p>Please click the below link to verify your email address:</p>
                              <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
 
