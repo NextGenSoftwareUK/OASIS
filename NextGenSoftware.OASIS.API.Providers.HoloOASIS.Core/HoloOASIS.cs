@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         private const string ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION = "delete_entry_avatar_by_email";
         private const string ZOME_LOAD_HOLON_BY_ID_FUNCTION = "get_entry_holon_by_id";
 
-        private bool _useReflectionForSaving = false;
+        private bool _useReflection = false;
         public delegate void Initialized(object sender, EventArgs e);
         public event Initialized OnInitialized;
 
@@ -36,16 +36,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public HoloNETClient HoloNETClient { get; private set; }
 
-        public HoloOASIS(HoloNETClient holoNETClient, bool useReflectionForSaving = true)
+        public HoloOASIS(HoloNETClient holoNETClient, bool useReflection = true)
         {
-            _useReflectionForSaving = useReflectionForSaving;
+            _useReflection = useReflection;
             this.HoloNETClient = holoNETClient;
             Initialize();
         }
 
-        public HoloOASIS(string holochainConductorURI, bool useReflectionForSaving = true)
+        public HoloOASIS(string holochainConductorURI, bool useReflection = true)
         {
-            _useReflectionForSaving = useReflectionForSaving;
+            _useReflection = useReflection;
             HoloNETClient = new HoloNETClient(holochainConductorURI);
             Initialize();
         }
@@ -363,22 +363,22 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            return await ExecuteOperationAsync<IEnumerable<IAvatarDetail>>(ListOperationEnum.ReadList, "avatars", "listanchor", ZOME_LOAD_ALL_AVATARS_DETAIL_FUNCTION, version);
+            return await ExecuteOperationAsync<IEnumerable<IAvatar>>(CollectionOperationEnum.ReadCollection, "avatars", "listanchor", ZOME_LOAD_ALL_AVATARS_FUNCTION, version);
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            throw new NotImplementedException();
+            return ExecuteOperation<IEnumerable<IAvatar>>(CollectionOperationEnum.ReadCollection, "avatars", "listanchor", ZOME_LOAD_ALL_AVATARS_FUNCTION, version);
         }
 
-        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
-            throw new NotImplementedException();
+            return await ExecuteOperationAsync<IEnumerable<IAvatarDetail>>(CollectionOperationEnum.ReadCollection, "avatar details", "listanchor", ZOME_LOAD_ALL_AVATAR_DETAILS_FUNCTION, version);
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            throw new NotImplementedException();
+            return ExecuteOperation<IEnumerable<IAvatarDetail>>(CollectionOperationEnum.ReadCollection, "avatar details", "listanchor", ZOME_LOAD_ALL_AVATAR_DETAILS_FUNCTION, version);
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
@@ -392,10 +392,111 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 if (avatar.Id == Guid.Empty)
                     avatar.Id = Guid.NewGuid();
 
+                //hcAvatar = (HcAvatar)ConvertAvatarToHoloOASISAvatar(avatar, hcAvatar);
+
+                //If it is configured to not use Reflection then we would do it like this passing in our own params object.
+                if (!_useReflection)
+                {
+                    await hcAvatar.SaveAsync(new
+                    {
+                        id = avatar.Id.ToString(),
+                        username = avatar.Username,
+                        password = avatar.Password,
+                        email = avatar.Email,
+                        title = avatar.Title,
+                        first_name = avatar.FirstName,
+                        last_name = avatar.LastName,
+                        provider_unique_storage_key = avatar.ProviderUniqueStorageKey,
+                        holon_type = avatar.HolonType
+                        
+                        //TODDO: Finish mapping rest of the properties.
+                    });
+
+                    //await hcAvatar.SaveAsync(new
+                    //{
+                    //    id = hcAvatar.Id.ToString(),
+                    //    username = hcAvatar.Username,
+                    //    password = hcAvatar.Password,
+                    //    email = hcAvatar.Email,
+                    //    title = hcAvatar.Title,
+                    //    first_name = hcAvatar.FirstName,
+                    //    last_name = hcAvatar.LastName,
+                    //    provider_key = hcAvatar.ProviderKey,
+                    //    holon_type = hcAvatar.HolonType
+                    //});
+                }
+                else
+                {
+                    hcAvatar = (HcAvatar)ConvertAvatarToHoloOASISAvatar(avatar, hcAvatar);
+
+                    //Otherwise we could just use this dyanmic version (which uses reflection) to dyamically build the params object (but we need to make sure properties have the HolochainFieldName attribute).
+                    await hcAvatar.SaveAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured saving the avatar in the HoloOASIS Provider. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>(avatar);
+
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+
+                if (avatar.Id == Guid.Empty)
+                    avatar.Id = Guid.NewGuid();
+
                 hcAvatar = (HcAvatar)ConvertAvatarToHoloOASISAvatar(avatar, hcAvatar);
 
                 //If it is configured to not use Reflection then we would do it like this passing in our own params object.
-                if (!_useReflectionForSaving)
+                if (!_useReflection)
+                {
+                     hcAvatar.Save(new
+                    {
+                        id = hcAvatar.Id.ToString(),
+                        username = hcAvatar.Username,
+                        password = hcAvatar.Password,
+                        email = hcAvatar.Email,
+                        title = hcAvatar.Title,
+                        first_name = hcAvatar.FirstName,
+                        last_name = hcAvatar.LastName,
+                        provider_key = hcAvatar.ProviderKey,
+                        holon_type = hcAvatar.HolonType
+                    });
+                }
+                else
+                    //Otherwise we could just use this dyanmic version (which uses reflection) to dyamically build the params object (but we need to make sure properties have the HolochainFieldName attribute).
+                    hcAvatar.Save();
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured saving the avatar in the HoloOASIS Provider. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+        {
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>(avatarDetail);
+
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+
+                if (avatarDetail.Id == Guid.Empty)
+                    avatarDetail.Id = Guid.NewGuid();
+
+                hcAvatar = (HcAvatar)ConvertAvatarDetailToHoloOASISAvatar(avatarDetail, hcAvatar);
+
+                //If it is configured to not use Reflection then we would do it like this passing in our own params object.
+                if (!_useReflection)
                 {
                     await hcAvatar.SaveAsync(new
                     {
@@ -420,16 +521,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             }
 
             return result;
-        }
-
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
-        {
-            throw new NotImplementedException();
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
@@ -961,8 +1052,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             hcAvatar.Title = avatar.Title;
             hcAvatar.FirstName = avatar.FirstName;
             hcAvatar.LastName = avatar.LastName;
-            hcAvatar.ProviderKey = avatar.ProviderUniqueStorageKey == null ? string.Empty : avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.HoloOASIS];
+            hcAvatar.ProviderUniqueStorageKey = avatar.ProviderUniqueStorageKey == null ? string.Empty : avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.HoloOASIS];
             hcAvatar.HolonType = avatar.HolonType;
+
+            //TODO: Finish mapping
 
             return hcAvatar;
         }
@@ -979,10 +1072,22 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 Password = hcAvatar.Password,
                 Title = hcAvatar.Title,
                 Username = hcAvatar.Username
+                
+                //TODO: Finish mapping
             };
 
-            avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.HoloOASIS] = hcAvatar.ProviderKey;
+            avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.HoloOASIS] = hcAvatar.ProviderUniqueStorageKey;
             return avatar;
+        }
+
+        private IHcAvatarDetail ConvertAvatarDetailToHoloOASISAvatarDetail(IAvatarDetail avatarDetail, IHcAvatarDetail hcAvatarDetail)
+        {
+            hcAvatarDetail.Id = avatarDetail.Id;
+            hcAvatarDetail.Username = avatarDetail.Username;
+            hcAvatarDetail.Email = avatarDetail.Email;
+            //TODO: Finish implementing...
+    
+            return hcAvatarDetail;
         }
 
         private async Task<OASISResult<T>> ExecuteOperationAsync<T>(OperationEnum operation, string objectName, string fieldName, string fieldValue, string zomeFunctionName = "", int version = 0) where T : IHolonBase
@@ -996,6 +1101,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
                 if (hcAvatar != null)
                 {
+                    //if (T.Id == Guid.Empty)
+                    //    T.Id = Guid.NewGuid();
+
+                    //hcAvatar = (HcAvatar)ConvertAvatarToHoloOASISAvatar(T, hcAvatar);
+
                     //If it is not null then override the zome function, otherwise it will use the defaults passed in via the constructors for HcAvatar.
                     if (!string.IsNullOrEmpty(zomeFunctionName))
                     {
@@ -1004,7 +1114,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                             case OperationEnum.Create:
                                 {
                                     hcAvatar.ZomeCreateEntryFunction = zomeFunctionName;
-                                    response = await hcAvatar.SaveAsync(fieldValue);
+                                    response = await hcAvatar.SaveAsync(response);
                                 }
                                 break;
 
@@ -1249,8 +1359,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return result;
         }
 
-        /*
-        private async Task<OASISResult<T>> LoadAsync<T>(string objectName, string fieldName, string fieldValue, string zomeLoadFunctionName, int version = 0) where T : IHolon
+        
+        private async Task<OASISResult<T>> LoadAsync<T>(string objectName, string fieldName, string fieldValue, string zomeLoadFunctionName = "", int version = 0) where T : IHolonBase, new()
         {
             OASISResult<T> result = new OASISResult<T>();
 
@@ -1266,7 +1376,43 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     if (response != null)
                     {
                         if (response.IsCallSuccessful && !response.IsError)
-                            result.Result = response.Entry.EntryDataObject;
+                        {
+                            if (_useReflection)
+                            {
+                                switch (objectName)
+                                {
+                                    case "avatar":
+                                        result.Result = (T)ConvertHcAvatarToAvatar(hcAvatar);
+                                        break;
+                                }
+
+                                //result.Result = hcAvatar;
+                                //result.Result = response.Entry.EntryDataObject;
+                            }
+                            else
+                            {
+                                switch (objectName)
+                                {
+                                    case "avatar":
+                                        {
+                                            //Avatar avatar = new Avatar()
+                                            //{
+                                            //    FirstName = response.KeyValuePair["first_name"],
+                                            //    LastName = response.KeyValuePair["last_name"]
+                                            //};
+
+                                            //result.Result = (T)avatar;
+
+                                            //result.Result = new Avatar()
+                                            //{
+                                            //    FirstName = response.KeyValuePair["first_name"],
+                                            //    LastName = response.KeyValuePair["last_name"],
+                                            //};
+                                        }
+                                        break;
+                                }
+                            }
+                        }
                         else
                             ErrorHandling.HandleError(ref result, $"Error loading {objectName} with {fieldName} {fieldValue} for HoloOASIS Provider. Reason: { response.Message }");
                     }
@@ -1282,7 +1428,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return result;
         }
 
-        private OASISResult<T> Load<T>(string objectName, string fieldName, string fieldValue, string zomeLoadFunctionName, int version = 0) where T : IHolon
+        private OASISResult<T> Load<T>(string objectName, string fieldName, string fieldValue, string zomeLoadFunctionName = "", int version = 0) where T : IHolon
         {
             OASISResult<T> result = new OASISResult<T>();
 
@@ -1313,7 +1459,47 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             return result;
         }
-        */
+
+        //private async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        //{
+        //    OASISResult<IAvatar> result = new OASISResult<IAvatar>(avatar);
+
+        //    try
+        //    {
+        //        HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+
+        //        if (avatar.Id == Guid.Empty)
+        //            avatar.Id = Guid.NewGuid();
+
+        //        hcAvatar = (HcAvatar)ConvertAvatarToHoloOASISAvatar(avatar, hcAvatar);
+
+        //        //If it is configured to not use Reflection then we would do it like this passing in our own params object.
+        //        if (!_useReflection)
+        //        {
+        //            await hcAvatar.SaveAsync(new
+        //            {
+        //                id = hcAvatar.Id.ToString(),
+        //                username = hcAvatar.Username,
+        //                password = hcAvatar.Password,
+        //                email = hcAvatar.Email,
+        //                title = hcAvatar.Title,
+        //                first_name = hcAvatar.FirstName,
+        //                last_name = hcAvatar.LastName,
+        //                provider_key = hcAvatar.ProviderKey,
+        //                holon_type = hcAvatar.HolonType
+        //            });
+        //        }
+        //        else
+        //            //Otherwise we could just use this dyanmic version (which uses reflection) to dyamically build the params object (but we need to make sure properties have the HolochainFieldName attribute).
+        //            await hcAvatar.SaveAsync();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ErrorHandling.HandleError(ref result, $"An unknwon error has occured saving the avatar in the HoloOASIS Provider. Reason: {ex}");
+        //    }
+
+        //    return result;
+        //}
 
         /*
         private async Task<OASISResult<IAvatar>> LoadAvatarByXAsync(string fieldName, string fieldValue, string zomeLoadFunctionName, int version = 0)
