@@ -2,24 +2,24 @@
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.Holochain.HoloNET.Client.TestHarness;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using System;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
-    //public class Avatar : API.Core.Avatar, IAvatar
-    //{
-    //    public string HcAddressHash { get; set; }
-    //}
-
-    
     public class HcAvatar : HoloNETAuditEntryBaseClass, IHcAvatar
     {
         public HcAvatar() : base("oasis", "get_entry_avatar", "create_entry_avatar", "update_entry_avatar", "delete_entry_avatar") { }
         public HcAvatar(HoloNETClient holoNETClient) : base("oasis", "get_entry_avatar", "create_entry_avatar", "update_entry_avatar", "delete_entry_avatar", holoNETClient) { }
 
+
+        #region IAvatar Properties
+
         [HolochainFieldName("id")]
         public Guid Id { get; set; }
-        //public Guid user_id { get; set; } //TODO: Remember to add this to the HC Rust code...
 
         [HolochainFieldName("username")]
         public string Username { get; set; }
@@ -39,39 +39,67 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         [HolochainFieldName("last_name")]
         public string LastName { get; set; }
 
-        //[HolochainFieldName("dob")]
-        //public string DOB { get; set; }
+        public EnumValue<AvatarType> AvatarType { get; set; }
+        public bool AcceptTerms { get; set; }
+        public bool IsVerified { get; }
+        public string JwtToken { get; set; }
+        public DateTime? PasswordReset { get; set; }
+        public string RefreshToken { get; set; }
+        public List<RefreshToken> RefreshTokens { get; set; }
+        public string ResetToken { get; set; }
+        public DateTime? ResetTokenExpires { get; set; }
+        public string VerificationToken { get; set; }
+        public DateTime? Verified { get; set; }
+        public DateTime? LastBeamedIn { get; set; }
+        public DateTime? LastBeamedOut { get; set; }
+        public bool IsBeamedIn { get; set; }
 
-        //[HolochainFieldName("address")]
-        //public string Address { get; set; }
+        #endregion
 
-        //[HolochainFieldName("karma")]
-        //public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
+        #region IHolonBase Properties
 
-        //[HolochainFieldName("level")]
-        //public int Level { get; set; }
-
-        [HolochainFieldName("provider_key")]
-        public string ProviderKey { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
 
         [HolochainFieldName("holon_type")]
         public HolonType HolonType { get; set; }
 
+        [HolochainFieldName("provider_key")]
+        public string ProviderUniqueStorageKey { get; set; }
 
-        /*
-        public string id { get; set; }
-        public string username { get; set; }
-        public string password { get; set; }
-        public string email { get; set; }
-        public string title { get; set; }
-        public string first_name { get; set; }
-        public string last_name { get; set; }
-        public string dob { get; set; }
-        public string address { get; set; }
-        public int karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
-        public int level { get; set; }
-        public string provider_key { get; set; }
-        public HolonType holon_type { get; set; }
-        */
+        [HolochainFieldName("previous_version_provider_unique_storage_key")]
+        public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get; set; }
+
+        [HolochainFieldName("provider_wallets")]
+        public Dictionary<ProviderType, List<IProviderWallet>> ProviderWallets { get; set; }
+
+        [HolochainFieldName("provider_username")]
+        public Dictionary<ProviderType, string> ProviderUsername { get; set; }
+
+        [HolochainFieldName("provider_meta_data")]
+        public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; }
+
+        [HolochainFieldName("meta_data")]
+        public Dictionary<string, string> MetaData { get; set; }
+        public int Version { get; set; }
+        public Guid VersionId { get; set; }
+        public Guid PreviousVersionId { get; set; }
+        public bool IsActive { get; set; }
+        public bool IsChanged { get; set; }
+        public bool IsNewHolon { get; set; }
+        public bool IsSaving { get; set; }
+        public IHolon Original { get; set; }
+
+        //Part of HoloNETAuditEntryBaseClass so no need to re-define here.
+        //Guid CreatedByAvatarId { get; set; }
+        //DateTime CreatedDate { get; set; }
+        //Guid ModifiedByAvatarId { get; set; }
+        //DateTime ModifiedDate { get; set; }
+        //Guid DeletedByAvatarId { get; set; }
+        //DateTime DeletedDate { get; set; }
+        public EnumValue<ProviderType> CreatedProviderType { get; set; }
+        public EnumValue<OASISType> CreatedOASISType { get; set; }
+
+        #endregion
     }
 }
