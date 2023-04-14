@@ -1,6 +1,5 @@
 ﻿
 using NextGenSoftware.Holochain.HoloNET.Client;
-using NextGenSoftware.Holochain.HoloNET.Client.TestHarness;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -14,6 +13,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
     {
         public HcAvatarDetail() : base("oasis", "get_entry_avatar_detail", "create_entry_avatar_detail", "update_entry_avatar_detail", "delete_entry_avatar_detail") { }
         public HcAvatarDetail(HoloNETClient holoNETClient) : base("oasis", "get_entry_avatar_detail", "create_entry_avatar_detail", "update_entry_avatar_detail", "delete_entry_avatar_detail", holoNETClient) { }
+
+        #region IAvatarDetail Properties
 
         [HolochainFieldName("id")]
         public Guid Id { get; set; }
@@ -88,5 +89,62 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         public ConsoleColor STARCLIColour { get; set; }
         public IAvatarStats Stats { get; set; }
         public IAvatarSuperPowers SuperPowers { get; set; }
+
+        #endregion
+
+        #region IHolonBase Properties
+
+        public string Name { get; set; }
+        public string Description { get; set; }
+
+        [HolochainFieldName("holon_type")]
+        public HolonType HolonType { get; set; }
+
+        [HolochainFieldName("provider_key")]
+        public string ProviderUniqueStorageKey { get; set; }
+
+        [HolochainFieldName("previous_version_provider_unique_storage_key")]
+        public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get; set; }
+
+        [HolochainFieldName("provider_wallets")]
+        public Dictionary<ProviderType, List<IProviderWallet>> ProviderWallets { get; set; }
+
+        [HolochainFieldName("provider_username")]
+        public Dictionary<ProviderType, string> ProviderUsername { get; set; }
+
+        [HolochainFieldName("provider_meta_data")]
+        public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; }
+
+        [HolochainFieldName("meta_data")]
+        public Dictionary<string, string> MetaData { get; set; }
+
+        [HolochainFieldName("version")]
+        public int Version { get; set; }
+
+        [HolochainFieldName("version_id")]
+        public Guid VersionId { get; set; }
+
+        [HolochainFieldName("previous_version_id")]
+        public Guid PreviousVersionId { get; set; }
+
+        [HolochainFieldName("is_active")]
+        public bool IsActive { get; set; }
+
+
+        //Part of HoloNETAuditEntryBaseClass so no need to re-define here.
+        //Guid CreatedByAvatarId { get; set; }
+        //DateTime CreatedDate { get; set; }
+        //Guid ModifiedByAvatarId { get; set; }
+        //DateTime ModifiedDate { get; set; }
+        //Guid DeletedByAvatarId { get; set; }
+        //DateTime DeletedDate { get; set; }
+
+        [HolochainFieldName("created_provider_type")]
+        public EnumValue<ProviderType> CreatedProviderType { get; set; }
+
+        [HolochainFieldName("created_oasis_type")]
+        public EnumValue<OASISType> CreatedOASISType { get; set; }
+
+        #endregion
     }
 }
