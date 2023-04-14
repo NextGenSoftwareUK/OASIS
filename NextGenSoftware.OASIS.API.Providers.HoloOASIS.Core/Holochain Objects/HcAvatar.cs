@@ -1,6 +1,5 @@
 ﻿
 using NextGenSoftware.Holochain.HoloNET.Client;
-using NextGenSoftware.Holochain.HoloNET.Client.TestHarness;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -81,14 +80,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         [HolochainFieldName("meta_data")]
         public Dictionary<string, string> MetaData { get; set; }
+
+        [HolochainFieldName("version")]
         public int Version { get; set; }
+
+        [HolochainFieldName("version_id")]
         public Guid VersionId { get; set; }
+
+        [HolochainFieldName("previous_version_id")]
         public Guid PreviousVersionId { get; set; }
+
+        [HolochainFieldName("is_active")]
         public bool IsActive { get; set; }
-        public bool IsChanged { get; set; }
-        public bool IsNewHolon { get; set; }
-        public bool IsSaving { get; set; }
-        public IHolon Original { get; set; }
+
 
         //Part of HoloNETAuditEntryBaseClass so no need to re-define here.
         //Guid CreatedByAvatarId { get; set; }
@@ -97,7 +101,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         //DateTime ModifiedDate { get; set; }
         //Guid DeletedByAvatarId { get; set; }
         //DateTime DeletedDate { get; set; }
+
+        [HolochainFieldName("created_provider_type")]
         public EnumValue<ProviderType> CreatedProviderType { get; set; }
+
+        [HolochainFieldName("created_oasis_type")]
         public EnumValue<OASISType> CreatedOASISType { get; set; }
 
         #endregion

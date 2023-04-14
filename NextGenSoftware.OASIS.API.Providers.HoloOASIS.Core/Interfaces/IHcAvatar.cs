@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
-    public interface IHcAvatar
+    public interface IHcAvatar : IHcObject
     {
         #region IAvatar Properties
 
@@ -50,10 +50,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         Guid VersionId { get; set; }
         Guid PreviousVersionId { get; set; }
         bool IsActive { get; set; }
-        bool IsChanged { get; set; }
-        bool IsNewHolon { get; set; }
-        bool IsSaving { get; set; }
-        IHolon Original { get; set; }
         string CreatedBy { get; set; }
         DateTime CreatedDate { get; set; }
         string ModifiedBy { get; set; }
