@@ -1033,7 +1033,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         #endregion
 
-        #region 
+        #region Private Methods
 
         private IHcAvatar ConvertAvatarToHoloOASISAvatar(IAvatar avatar, IHcAvatar hcAvatar)
         {
@@ -1132,6 +1132,38 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.HoloOASIS] = keyValuePair["provider_unique_storage_key"];
             return avatarDetail;
+        }
+
+        private dynamic ConvertAvatarToParamsObject(IAvatar avatar)
+        {
+            return new
+            {
+                id = avatar.Id.ToString(),
+                username = avatar.Username,
+                password = avatar.Password,
+                email = avatar.Email,
+                title = avatar.Title,
+                first_name = avatar.FirstName,
+                last_name = avatar.LastName,
+                provider_unique_storage_key = avatar.ProviderUniqueStorageKey,
+                holon_type = avatar.HolonType
+
+                //TODDO: Finish mapping rest of the properties.
+            };
+        }
+
+        private dynamic ConvertAvatarDetailToParamsObject(IAvatarDetail avatar)
+        {
+            return new
+            {
+                id = avatar.Id.ToString(),
+                username = avatar.Username,
+                email = avatar.Email,
+                provider_unique_storage_key = avatar.ProviderUniqueStorageKey,
+                holon_type = avatar.HolonType
+
+                //TODDO: Finish mapping rest of the properties.
+            };
         }
 
         private async Task<OASISResult<T>> ExecuteOperationAsync<T>(OperationEnum operation, string objectName, string fieldName, string fieldValue, string zomeFunctionName = "", int version = 0) where T : IHolonBase
@@ -1429,7 +1461,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     if (!string.IsNullOrEmpty(zomeLoadFunctionName))
                         hcObject.ZomeLoadEntryFunction = zomeLoadFunctionName;
 
-                    result = HandleResponse(await hcObject.LoadAsync(fieldValue, _useReflection), hcObjectType, fieldName, fieldValue, hcObject, result);
+                    result = HandleLoadResponse(await hcObject.LoadAsync(fieldValue, _useReflection), hcObjectType, fieldName, fieldValue, hcObject, result);
                 }
             }
             catch (Exception ex)
@@ -1466,7 +1498,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     if (!string.IsNullOrEmpty(zomeLoadFunctionName))
                         hcObject.ZomeLoadEntryFunction = zomeLoadFunctionName;
 
-                    result = HandleResponse(hcObject.Load(fieldValue, _useReflection), hcObjectType, fieldName, fieldValue, hcObject, result);
+                    result = HandleLoadResponse(hcObject.Load(fieldValue, _useReflection), hcObjectType, fieldName, fieldValue, hcObject, result);
                 }
             }
             catch (Exception ex)
@@ -1477,44 +1509,61 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return result;
         }
 
-        private async Task<OASISResult<T>> SaveAsync<T>(T holon) where T : IHolonBase
+        private async Task<OASISResult<T>> SaveAsync<T>(HcObjectTypeEnum hcObjectType, T holon) where T : IHolonBase
         {
             OASISResult<T> result = new OASISResult<T>();
 
             try
             {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                IHcObject hcObject = null;
+                ZomeFunctionCallBackEventArgs response = null;
+
+                switch (hcObjectType)
+                {
+                    case HcObjectTypeEnum.Avatar:
+                        hcObject = new HcAvatar(HoloNETClient);
+                        break;
+
+                    case HcObjectTypeEnum.AvatarDetail:
+                        hcObject = new HcAvatarDetail(HoloNETClient);
+                        break;
+                }
 
                 if (holon.Id == Guid.Empty)
                     holon.Id = Guid.NewGuid();
 
-                //hcAvatar = (HcAvatar)ConvertAvatarToHoloOASISAvatar(avatar, hcAvatar);
-
                 //If it is configured to not use Reflection then we would do it like this passing in our own params object.
                 if (!_useReflection)
                 {
-                    await hcAvatar.SaveAsync(new
+                    switch (hcObjectType)
                     {
-                        id = avatar.Id.ToString(),
-                        username = avatar.Username,
-                        password = avatar.Password,
-                        email = avatar.Email,
-                        title = avatar.Title,
-                        first_name = avatar.FirstName,
-                        last_name = avatar.LastName,
-                        provider_unique_storage_key = avatar.ProviderUniqueStorageKey,
-                        holon_type = avatar.HolonType
+                        case HcObjectTypeEnum.Avatar:
+                            response = await hcObject.SaveAsync(ConvertAvatarToParamsObject((IAvatar)holon));
+                            break;
 
-                        //TODDO: Finish mapping rest of the properties.
-                    });
+                        case HcObjectTypeEnum.AvatarDetail:
+                            response = await hcObject.SaveAsync(ConvertAvatarDetailToParamsObject((IAvatarDetail)holon));
+                            break;
+                    }
                 }
                 else
                 {
-                    hcAvatar = (HcAvatar)ConvertAvatarToHoloOASISAvatar(avatar, hcAvatar);
+                    switch (hcObjectType)
+                    {
+                        case HcObjectTypeEnum.Avatar:
+                            hcObject = ConvertAvatarToHoloOASISAvatar((IAvatar)holon, (IHcAvatar)hcObject);
+                            break;
+
+                        case HcObjectTypeEnum.AvatarDetail:
+                            hcObject = ConvertAvatarDetailToHoloOASISAvatarDetail((IAvatarDetail)holon, (IHcAvatarDetail)hcObject);
+                            break;
+                    }
 
                     //Otherwise we could just use this dyanmic version (which uses reflection) to dyamically build the params object (but we need to make sure properties have the HolochainFieldName attribute).
-                    await hcAvatar.SaveAsync();
+                    response = await hcObject.SaveAsync();
                 }
+
+
             }
             catch (Exception ex)
             {
@@ -1524,7 +1573,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return result;
         }
 
-        private OASISResult<T> HandleResponse<T>(ZomeFunctionCallBackEventArgs response, HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, IHcObject hcObject, OASISResult<T> result) where T : IHolonBase
+        private OASISResult<T> HandleLoadResponse<T>(ZomeFunctionCallBackEventArgs response, HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, IHcObject hcObject, OASISResult<T> result) where T : IHolonBase
         {
             if (response != null)
             {
@@ -1564,6 +1613,50 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             }
             else
                 ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} for HoloOASIS Provider. Reason: Unknown.");
+
+            return result;
+        }
+
+        private OASISResult<T> HandleSaveResponse<T>(ZomeFunctionCallBackEventArgs response, HcObjectTypeEnum hcObjectType, IHolonBase holon, IHcObject hcObject, OASISResult<T> result) where T : IHolonBase
+        {
+            if (response != null)
+            {
+                if (response.IsCallSuccessful && !response.IsError)
+                {
+                    if (_useReflection)
+                    {
+                        switch (hcObjectType)
+                        {
+                            case HcObjectTypeEnum.Avatar:
+                                result.Result = (T)ConvertHcAvatarToAvatar((IHcAvatar)hcObject);
+                                break;
+
+                            case HcObjectTypeEnum.AvatarDetail:
+                                result.Result = (T)ConvertHcAvatarDetailToAvatarDetail((IHcAvatarDetail)hcObject);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        // Not using reflection for the HoloOASIS use case may be more efficient because it uses very slightly less code and has small performance improvement.
+                        // However, using relection would suit other use cases better (would use a lot less code because HoloNET would manage all the mappings (from the Holochain Conductor KeyValue pair data response) for you) such as where object mapping to external objects (like the OASIS) is not required. Please see HoloNET Test Harness for more examples of this...
+                        switch (hcObjectType)
+                        {
+                            case HcObjectTypeEnum.Avatar:
+                                result.Result = (T)ConvertKeyValuePairToAvatar(response.KeyValuePair);
+                                break;
+
+                            case HcObjectTypeEnum.AvatarDetail:
+                                result.Result = (T)ConvertKeyValuePairToAvatarDetail(response.KeyValuePair);
+                                break;
+                        }
+                    }
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} for HoloOASIS Provider. Reason: { response.Message }");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} for HoloOASIS Provider. Reason: Unknown.");
 
             return result;
         }
