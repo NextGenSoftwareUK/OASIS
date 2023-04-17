@@ -1,7 +1,7 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
-    public enum OperationEnum
+    public enum HcOperationEnum
     {
         Create,
         Read,
