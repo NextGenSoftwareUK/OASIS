@@ -57,163 +57,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             this.ProviderDescription = "Holochain Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HoloOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
-
-            //HcAvatar.OnLoaded += HcAvatar_OnLoaded;
-            //HcAvatar.OnSaved += HcAvatar_OnSaved;
-            //HcAvatar.OnError += HcAvatar_OnError;
-            //HcAvatar.OnClosed += HcAvatar_OnClosed;
-            //HcAvatar.OnInitialized += HcAvatar_OnInitialized;
-
-            //await HcAvatar.WaitTillHoloNETInitializedAsync();
-
-            //HoloNETClient.Config.ShowHolochainConductorWindow = true;
-            //HoloNETClient.Config.HolochainConductorMode = HolochainConductorModeEnum.UseEmbedded;
-            //HoloNETClient.OnConnected += HoloOASIS_OnConnected;
-            //HoloNETClient.OnDisconnected += HoloOASIS_OnDisconnected;
-            //HoloNETClient.OnError += HoloNETClient_OnError;
-            //HoloNETClient.OnDataReceived += HoloOASIS_OnDataReceived;
-            //HoloNETClient.OnSignalCallBack += HoloOASIS_OnSignalCallBack;
-            //HoloNETClient.OnZomeFunctionCallBack += HoloOASIS_OnZomeFunctionCallBack;
-
-            // HoloNETClient.Config.AutoStartConductor = true;
-            //  HoloNETClient.Config.AutoShutdownConductor = true;
-            //  HoloNETClient.Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe");
-            //   HoloNETClient.Config.FullPathToHolochainAppDNA = string.Concat(Directory.GetCurrentDirectory(), "\\our_world\\dist\\our_world.dna.json"); 
-
-
-            //await HoloNETClient.ConnectAsync();
         }
-
-        //private async Task<HcAvatar> InitHcAvatar(Guid id)
-        //{
-        //    HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-        //    //hcAvatar.OnLoaded += HcAvatar_OnLoaded;
-        //    //hcAvatar.OnSaved += HcAvatar_OnSaved;
-        //    //hcAvatar.OnError += HcAvatar_OnError;
-        //    //hcAvatar.OnClosed += HcAvatar_OnClosed;
-        //    //hcAvatar.OnInitialized += HcAvatar_OnInitialized;
-
-        //    await hcAvatar.WaitTillHoloNETInitializedAsync();
-        //    _hcAvatars[id.ToString()] = hcAvatar;
-
-        //    return hcAvatar;
-        //}
-
-        //private void DisposeHcAvatar(Guid id)
-        //{
-        //    //_hcAvatars[id.ToString()].OnLoaded -= HcAvatar_OnLoaded;
-        //    //_hcAvatars[id.ToString()].OnSaved -= HcAvatar_OnSaved;
-        //    //_hcAvatars[id.ToString()].OnError -= HcAvatar_OnError;
-        //    //_hcAvatars[id.ToString()].OnClosed -= HcAvatar_OnClosed;
-        //    //_hcAvatars[id.ToString()].OnInitialized -= HcAvatar_OnInitialized;
-        //    _hcAvatars[id.ToString()] = null;
-        //    _hcAvatars.Remove(id.ToString());
-        //}
-
-        //private void HcAvatar_OnInitialized(object sender, ReadyForZomeCallsEventArgs e)
-        //{
-
-        //}
-
-        //private void HcAvatar_OnClosed(object sender, HoloNETShutdownEventArgs e)
-        //{
-
-        //}
-
-        //private void HcAvatar_OnError(object sender, HoloNETErrorEventArgs e)
-        //{
-        //    HandleError("Error occured in HoloNET. See ErrorDetial for reason.", null, e);
-        //}
-
-        //private void HcAvatar_OnSaved(object sender, ZomeFunctionCallBackEventArgs e)
-        //{
-
-        //}
-
-        //private void HcAvatar_OnLoaded(object sender, ZomeFunctionCallBackEventArgs e)
-        //{
-
-        //}
-
-        //private void HoloNETClient_OnError(object sender, HoloNETErrorEventArgs e)
-        //{
-        //    HandleError("Error occured in HoloNET. See ErrorDetial for reason.", null, e);
-        //    //OnHoloOASISError?.Invoke(this, new ErrorEventArgs { EndPoint = HoloNETClient.EndPoint, Reason = "Error occured in HoloNET. See ErrorDetial for reason.", HoloNETErrorDetails = e });
-        //}
-
-        /*
-        private void HoloOASIS_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
-        {
-            if (!e.IsCallSuccessful)
-                HandleError(string.Concat("Zome function ", e.ZomeFunction, " on zome ", e.Zome, " returned an error. Error Details: ", e.ZomeReturnData), null, null);
-                //OnHoloOASISError?.Invoke(this, new ErrorEventArgs() { EndPoint = HoloNETClient.EndPoint, Reason = string.Concat("Zome function ", e.ZomeFunction, " on zome ", e.Zome, " returned an error. Error Details: ", e.ZomeReturnData) });
-            else
-            {
-                switch (e.ZomeFunction)
-                {
-                    case LOAD_Avatar_FUNC:
-                        //HcAvatar hcAvatar = JsonConvert.DeserializeObject<HcAvatar>(string.Concat("{", e.ZomeReturnData, "}"));
-                        HcAvatar hcAvatar = e.Entry.EntryDataObject as HcAvatar;
-                        OnPlayerAvatarLoaded?.Invoke(this, new AvatarLoadedEventArgs {HcAvatar = hcAvatar, Avatar = ConvertHcAvatarToAvatar(hcAvatar) });
-
-                        //TODO: Want to use these eventually so the async methods can return the results without having to use events/callbacks!
-                         _taskCompletionSourceLoadAvatar.SetResult(ConvertHcAvatarToAvatar(JsonConvert.DeserializeObject<HcAvatar>(string.Concat("{", e.ZomeReturnData, "}"))));
-                        break;
-
-                    case SAVE_Avatar_FUNC:
-                        // TODO: Eventually want to return the Avatar object from HC with the HCAddressHash set when I work out how! ;-)
-                        // The dictonary below can then be removed.
-
-                        //if (string.IsNullOrEmpty(_savingAvatars[e.Id].HcAddressHash))
-                        //{
-                        //    //TODO: Forced to re-save the object with the address (wouldn't that create a new hash entry?!)
-                        _savingAvatars[e.Id].hc_address_hash = e.ZomeReturnData["address_hash"].ToString();
-                        _savingAvatars[e.Id].provider_key = e.ZomeReturnData["provider_key"].ToString(); //Generic field for providers to store their key (in this case the address hash)
-
-                        //    SaveAvatarAsync(_savingAvatars[e.Id]);
-                        //}
-                        //else
-                        //{
-
-                        Avatar Avatar = ConvertHcAvatarToAvatar(_savingAvatars[e.Id]);
-                        OnPlayerAvatarSaved?.Invoke(this, new AvatarSavedEventArgs { Avatar = Avatar, HcAvatar = _savingAvatars[e.Id] });
-                        _taskCompletionSourceSaveAvatar.SetResult(Avatar);
-                        _savingAvatars.Remove(e.Id);
-                        //}
-
-                        //TODO: Want to use these eventually so the async methods can return the results without having to use events/callbacks!
-                        // _taskCompletionSourceIAvatar.SetResult(JsonConvert.DeserializeObject<IAvatar>(e.ZomeReturnData));
-                        break;
-                }
-            }
-        }
-
-        private void HoloOASIS_OnSignalCallBack(object sender, SignalCallBackEventArgs e)
-        {
-            
-        }
-
-        //private void HoloOASIS_OnGetInstancesCallBack(object sender, GetInstancesCallBackEventArgs e)
-        //{
-        //    _hcinstance = e.Instances[0];
-        //    OnInitialized?.Invoke(this, new EventArgs());
-        //    _taskCompletionSourceGetInstance.SetResult(_hcinstance);
-        //}
-
-        private void HoloOASIS_OnDisconnected(object sender, DisconnectedEventArgs e)
-        {
-            
-        }
-
-        private void HoloOASIS_OnDataReceived(object sender, HoloNETDataReceivedEventArgs e)
-        {
-            
-        }
-
-        private void HoloOASIS_OnConnected(object sender, ConnectedEventArgs e)
-        {
-           // HoloNETClient.GetHolochainInstancesAsync();
-        }*/
 
         #region IOASISStorageProvider Implementation
 
@@ -234,72 +78,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-
-                if (hcAvatar != null)
-                {
-                    //ProviderKey is the entry hash.
-                    ZomeFunctionCallBackEventArgs response = await hcAvatar.LoadAsync(providerKey);
-
-                    if (response != null)
-                    {
-                        if (response.IsCallSuccessful && !response.IsError)
-                        {
-                            result.Result = response.Entry.EntryDataObject;
-                            hcAvatar = null;
-                        }
-                        else
-                            ErrorHandling.HandleError(ref result, $"Error loading avatar with providerKey (entryhash) {providerKey} for HoloOASIS Provider. Reason: { response.Message }");
-                    }
-                    else
-                        ErrorHandling.HandleError(ref result, $"Error loading avatar with providerKey (entryhash) {providerKey} for HoloOASIS Provider. Reason: Unknown.");
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"Error loading avatar with providerKey (entryhash) {providerKey} for HoloOASIS Provider. Reason: {ex}.");
-            }
-
-            return result;
+            //ProviderKey is the entry hash.
+            return await LoadAsync<IAvatar>(HcObjectTypeEnum.Avatar, "providerKey (entryhash)", providerKey);
         }
 
         public override OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-
-                if (hcAvatar != null)
-                {
-                    //ProviderKey is the entry hash.
-                    ZomeFunctionCallBackEventArgs response = hcAvatar.Load(providerKey);
-
-                    if (response != null)
-                    {
-                        if (response.IsCallSuccessful && !response.IsError)
-                        {
-                            result.Result = response.Entry.EntryDataObject;
-                            hcAvatar = null;
-                        }
-                        else
-                            ErrorHandling.HandleError(ref result, $"Error loading avatar with providerKey (entryhash) {providerKey} for HoloOASIS Provider. Reason: { response.Message }");
-                    }
-                    else
-                        ErrorHandling.HandleError(ref result, $"Error loading avatar with providerKey (entryhash) {providerKey} for HoloOASIS Provider. Reason: Unknown.");
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"Error loading avatar with providerKey (entryhash) {providerKey} for HoloOASIS Provider. Reason: {ex}.");
-            }
-
-            return result;
+            //ProviderKey is the entry hash.
+            return Load<IAvatar>(HcObjectTypeEnum.Avatar, "providerKey (entryhash)", providerKey);
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -328,42 +114,50 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return await ExecuteOperationAsync<IAvatar>(HcOperationEnum.Read, "avatar", "email", avatarUsername, ZOME_LOAD_AVATAR_BY_USERNAME_FUNCTION, version);
+            //return await ExecuteOperationAsync<IAvatar>(HcOperationEnum.Read, "avatar", "username", avatarUsername, ZOME_LOAD_AVATAR_BY_USERNAME_FUNCTION, version);
+            return await LoadAsync<IAvatar>(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_LOAD_AVATAR_BY_USERNAME_FUNCTION);
         }
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
-            return ExecuteOperation<IAvatar>(HcOperationEnum.Read, "avatar", "email", avatarUsername, ZOME_LOAD_AVATAR_BY_USERNAME_FUNCTION, version);
+            //return ExecuteOperation<IAvatar>(HcOperationEnum.Read, "avatar", "email", avatarUsername, ZOME_LOAD_AVATAR_BY_USERNAME_FUNCTION, version);
+            return Load<IAvatar>(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_LOAD_AVATAR_BY_USERNAME_FUNCTION);
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            return await ExecuteOperationAsync<IAvatarDetail>(HcOperationEnum.Read, "avatar detail", "id", id.ToString(), ZOME_LOAD_AVATAR_DETAIL_BY_ID_FUNCTION, version);
+            //return await ExecuteOperationAsync<IAvatarDetail>(HcOperationEnum.Read, "avatar detail", "id", id.ToString(), ZOME_LOAD_AVATAR_DETAIL_BY_ID_FUNCTION, version);
+            return await LoadAsync<IAvatar>(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_LOAD_AVATAR_DETAIL_BY_ID_FUNCTION);
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            return ExecuteOperation<IAvatarDetail>(HcOperationEnum.Read, "avatar detail", "id", id.ToString(), ZOME_LOAD_AVATAR_DETAIL_BY_ID_FUNCTION, version);
+            //return ExecuteOperation<IAvatarDetail>(HcOperationEnum.Read, "avatar detail", "id", id.ToString(), ZOME_LOAD_AVATAR_DETAIL_BY_ID_FUNCTION, version);
+            return Load<IAvatar>(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_LOAD_AVATAR_DETAIL_BY_ID_FUNCTION);
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            return await ExecuteOperationAsync<IAvatarDetail>(HcOperationEnum.Read, "avatar detail", "email", avatarEmail, ZOME_LOAD_AVATAR_DETAIL_BY_EMAIL_FUNCTION, version);
+            //return await ExecuteOperationAsync<IAvatarDetail>(HcOperationEnum.Read, "avatar detail", "email", avatarEmail, ZOME_LOAD_AVATAR_DETAIL_BY_EMAIL_FUNCTION, version);
+            return await LoadAsync<IAvatar>(HcObjectTypeEnum.Avatar, "email", email, ZOME_LOAD_AVATAR_DETAIL_BY_EMAIL_FUNCTION);
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
-            return ExecuteOperation<IAvatarDetail>(HcOperationEnum.Read, "avatar detail", "email", avatarEmail, ZOME_LOAD_AVATAR_DETAIL_BY_EMAIL_FUNCTION, version);
+            //return ExecuteOperation<IAvatarDetail>(HcOperationEnum.Read, "avatar detail", "email", avatarEmail, ZOME_LOAD_AVATAR_DETAIL_BY_EMAIL_FUNCTION, version);
+            return Load<IAvatar>(HcObjectTypeEnum.Avatar, "email", email, ZOME_LOAD_AVATAR_DETAIL_BY_EMAIL_FUNCTION);
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return await ExecuteOperationAsync<IAvatarDetail>(HcOperationEnum.Read, "avatar detail", "username", avatarUsername, ZOME_LOAD_AVATAR_DETAIL_BY_USERNAME_FUNCTION, version);
+            //return await ExecuteOperationAsync<IAvatarDetail>(HcOperationEnum.Read, "avatar detail", "username", avatarUsername, ZOME_LOAD_AVATAR_DETAIL_BY_USERNAME_FUNCTION, version);
+            return Load<IAvatar>(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_LOAD_AVATAR_DETAIL_BY_USERNAME_FUNCTION);
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            return ExecuteOperation<IAvatarDetail>(HcOperationEnum.Read, "avatar detail", "username", avatarUsername, ZOME_LOAD_AVATAR_DETAIL_BY_USERNAME_FUNCTION, version);
+            //return ExecuteOperation<IAvatarDetail>(HcOperationEnum.Read, "avatar detail", "username", avatarUsername, ZOME_LOAD_AVATAR_DETAIL_BY_USERNAME_FUNCTION, version);
+            return Load<IAvatar>(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_LOAD_AVATAR_DETAIL_BY_USERNAME_FUNCTION);
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
@@ -388,355 +182,114 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>(avatar);
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-
-                if (avatar.Id == Guid.Empty)
-                    avatar.Id = Guid.NewGuid();
-
-                //hcAvatar = (HcAvatar)ConvertAvatarToHoloOASISAvatar(avatar, hcAvatar);
-
-                //If it is configured to not use Reflection then we would do it like this passing in our own params object.
-                if (!_useReflection)
-                {
-                    await hcAvatar.SaveAsync(new
-                    {
-                        id = avatar.Id.ToString(),
-                        username = avatar.Username,
-                        password = avatar.Password,
-                        email = avatar.Email,
-                        title = avatar.Title,
-                        first_name = avatar.FirstName,
-                        last_name = avatar.LastName,
-                        provider_unique_storage_key = avatar.ProviderUniqueStorageKey,
-                        holon_type = avatar.HolonType
-                        
-                        //TODDO: Finish mapping rest of the properties.
-                    });
-                }
-                else
-                {
-                    hcAvatar = (HcAvatar)ConvertAvatarToHoloOASISAvatar(avatar, hcAvatar);
-
-                    //Otherwise we could just use this dyanmic version (which uses reflection) to dyamically build the params object (but we need to make sure properties have the HolochainFieldName attribute).
-                    await hcAvatar.SaveAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured saving the avatar in the HoloOASIS Provider. Reason: {ex}");
-            }
-
-            return result;
+            return await SaveAsync(HcObjectTypeEnum.Avatar, avatar);
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>(avatar);
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-
-                if (avatar.Id == Guid.Empty)
-                    avatar.Id = Guid.NewGuid();
-
-                hcAvatar = (HcAvatar)ConvertAvatarToHoloOASISAvatar(avatar, hcAvatar);
-
-                //If it is configured to not use Reflection then we would do it like this passing in our own params object.
-                if (!_useReflection)
-                {
-                     hcAvatar.Save(new
-                    {
-                        id = hcAvatar.Id.ToString(),
-                        username = hcAvatar.Username,
-                        password = hcAvatar.Password,
-                        email = hcAvatar.Email,
-                        title = hcAvatar.Title,
-                        first_name = hcAvatar.FirstName,
-                        last_name = hcAvatar.LastName,
-                        provider_key = hcAvatar.ProviderKey,
-                        holon_type = hcAvatar.HolonType
-                    });
-                }
-                else
-                    //Otherwise we could just use this dyanmic version (which uses reflection) to dyamically build the params object (but we need to make sure properties have the HolochainFieldName attribute).
-                    hcAvatar.Save();
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured saving the avatar in the HoloOASIS Provider. Reason: {ex}");
-            }
-
-            return result;
+            return Save(HcObjectTypeEnum.Avatar, avatar);
         }
 
-        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>(avatarDetail);
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-
-                if (avatarDetail.Id == Guid.Empty)
-                    avatarDetail.Id = Guid.NewGuid();
-
-                hcAvatar = (HcAvatar)ConvertAvatarDetailToHoloOASISAvatar(avatarDetail, hcAvatar);
-
-                //If it is configured to not use Reflection then we would do it like this passing in our own params object.
-                if (!_useReflection)
-                {
-                    await hcAvatar.SaveAsync(new
-                    {
-                        id = hcAvatar.Id.ToString(),
-                        username = hcAvatar.Username,
-                        password = hcAvatar.Password,
-                        email = hcAvatar.Email,
-                        title = hcAvatar.Title,
-                        first_name = hcAvatar.FirstName,
-                        last_name = hcAvatar.LastName,
-                        provider_key = hcAvatar.ProviderKey,
-                        holon_type = hcAvatar.HolonType
-                    });
-                }
-                else
-                    //Otherwise we could just use this dyanmic version (which uses reflection) to dyamically build the params object (but we need to make sure properties have the HolochainFieldName attribute).
-                    await hcAvatar.SaveAsync();
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured saving the avatar in the HoloOASIS Provider. Reason: {ex}");
-            }
-
-            return result;
+            return await SaveAsync(HcObjectTypeEnum.AvatarDetail, avatarDetail);
         }
 
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
         {
-            throw new NotImplementedException();
+            return Save(HcObjectTypeEnum.AvatarDetail, avatarDetail);
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-                hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_AVATAR_BY_ID_FUNCTION;
-                await hcAvatar.DeleteAsync(id.ToString());
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with id {id} in the HoloOASIS Provider. Reason: {ex}");
-            }
-
-            return result;
+            return await DeleteAsync(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_DELETE_AVATAR_BY_ID_FUNCTION, softDelete);
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-                hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_AVATAR_BY_ID_FUNCTION;
-                hcAvatar.Delete(id.ToString());
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with id {id} in the HoloOASIS Provider. Reason: {ex}");
-            }
-
-            return result;
+            return Delete(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_DELETE_AVATAR_BY_ID_FUNCTION, softDelete);
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-                await hcAvatar.DeleteAsync(providerKey);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with providerKey (entryHash) {providerKey} in the HoloOASIS Provider. Reason: {ex}");
-            }
-
-            return result;
+            return await DeleteAsync(HcObjectTypeEnum.Avatar, "providerKey (entryHash)", providerKey, "", softDelete);
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-                hcAvatar.Delete(providerKey);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with providerKey (entryHash) {providerKey} in the HoloOASIS Provider. Reason: {ex}");
-            }
-
-            return result;
+            return Delete(HcObjectTypeEnum.Avatar, "providerKey (entryHash)", providerKey, "", softDelete);
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-                hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION;
-                await hcAvatar.DeleteAsync(avatarEmail);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with email {avatarEmail} in the HoloOASIS Provider. Reason: {ex}");
-            }
-
-            return result;
+            return await DeleteAsync(HcObjectTypeEnum.Avatar, "email", avatarEmail, ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION, softDelete);
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-                hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION;
-                hcAvatar.Delete(avatarEmail);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with email {avatarEmail} in the HoloOASIS Provider. Reason: {ex}");
-            }
-
-            return result;
+            return Delete(HcObjectTypeEnum.Avatar, "email", avatarEmail, ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION, softDelete);
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-                hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION;
-                await hcAvatar.DeleteAsync(avatarUsername);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with username {avatarUsername} in the HoloOASIS Provider. Reason: {ex}");
-            }
-
-            return result;
+            return await DeleteAsync(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION, softDelete);
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-                hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION;
-                hcAvatar.Delete(avatarUsername);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the avatar with username {avatarUsername} in the HoloOASIS Provider. Reason: {ex}");
-            }
-
-            return result;
+            return Delete(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION, softDelete);
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-
-            try
-            {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
-
-                if (hcAvatar != null)
-                {
-                    hcAvatar.ZomeLoadEntryFunction = ZOME_LOAD_HOLON_FUNCTION_BY_ID;
-                    ZomeFunctionCallBackEventArgs response = await hcAvatar.LoadAsync(id.ToString());
-
-                    if (response != null)
-                    {
-                        if (response.IsCallSuccessful && !response.IsError)
-                            result.Result = response.Entry.EntryDataObject;
-                        else
-                            ErrorHandling.HandleError(ref result, $"Error loading holon with id {id} for HoloOASIS Provider. Reason: { response.Message }");
-                    }
-                    else
-                        ErrorHandling.HandleError(ref result, $"Error loading holon with id {id} for HoloOASIS Provider. Reason: Unknown.");
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"Error loading holon with id {id} for HoloOASIS Provider. Reason: {ex}.");
-            }
-
-            return result;
+            return await LoadAsync<IHolon>(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_LOAD_HOLON_FUNCTION_BY_ID, version, new { loadChildren = loadChildren, recursive = recursive, maxChildDepth = maxChildDepth, continueOnError = continueOnError});
         }
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return Load<IHolon>(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_LOAD_HOLON_FUNCTION_BY_ID, version, new { loadChildren = loadChildren, recursive = recursive, maxChildDepth = maxChildDepth, continueOnError = continueOnError });
         }
 
-        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return await LoadAsync<IHolon>(HcObjectTypeEnum.Holon, "providerKey (entryHash)", providerKey, "", version, new { loadChildren = loadChildren, recursive = recursive, maxChildDepth = maxChildDepth, continueOnError = continueOnError });
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return Load<IHolon>(HcObjectTypeEnum.Holon, "providerKey (entryHash)", providerKey, "", version, new { loadChildren = loadChildren, recursive = recursive, maxChildDepth = maxChildDepth, continueOnError = continueOnError });
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            //return await ExecuteOperationAsync<IEnumerable<IHolon>>(CollectionOperationEnum.ReadCollection, "holons", "listanchor", ZOME_LOAD_HOLONS_FOR_PARENT_FUNCTION, version);
+            return await LoadCollectionAsync("holons", "holons_anchor", ZOME_LOAD_HOLONS_FOR_PARENT_BY_ID_FUNCTION, version, new { id = id, type = type, loadChildren = loadChildren, recursive = recursive, maxChildDepth = maxChildDepth, continueOnError = continueOnError });
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            //return ExecuteOperation<IEnumerable<IHolon>>(CollectionOperationEnum.ReadCollection, "holons", "listanchor", ZOME_LOAD_HOLONS_FOR_PARENT_FUNCTION, version);
+            return LoadCollection("holons", "holons_anchor", ZOME_LOAD_HOLONS_FOR_PARENT_BY_ID_FUNCTION, version, new { id = id, type = type, loadChildren = loadChildren, recursive = recursive, maxChildDepth = maxChildDepth, continueOnError = continueOnError });
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return await LoadCollectionAsync("holons", "holons_anchor", ZOME_LOAD_HOLONS_FOR_PARENT_BY_PROVIDER_KEY_FUNCTION, version, new { providerKey = providerKey, type = type, loadChildren = loadChildren, recursive = recursive, maxChildDepth = maxChildDepth, continueOnError = continueOnError });
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadCollection("holons", "holons_anchor", ZOME_LOAD_HOLONS_FOR_PARENT_BY_PROVIDER_KEY_FUNCTION, version, new { providerKey = providerKey, type = type, loadChildren = loadChildren, recursive = recursive, maxChildDepth = maxChildDepth, continueOnError = continueOnError });
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return await LoadCollectionAsync("holons", "holons_anchor", ZOME_LOAD_ALL_HOLONS_FUNCTION, version, new { type = type, loadChildren = loadChildren, recursive = recursive, maxChildDepth = maxChildDepth, continueOnError = continueOnError });
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadCollection("holons", "holons_anchor", ZOME_LOAD_ALL_HOLONS_FUNCTION, version, new { type = type, loadChildren = loadChildren, recursive = recursive, maxChildDepth = maxChildDepth, continueOnError = continueOnError });
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
@@ -1166,6 +719,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             };
         }
 
+        /*
         private async Task<OASISResult<T>> ExecuteOperationAsync<T>(HcOperationEnum operation, string objectName, string fieldName, string fieldValue, string zomeFunctionName = "", int version = 0) where T : IHolonBase
         {
             OASISResult<T> result = new OASISResult<T>();
@@ -1299,6 +853,63 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             }
 
             return result;
+        }*/
+
+
+        private async Task<OASISResult<IEnumerable<T>>> LoadCollectionAsync<T>(string collectionName, string collectionAnchor, string zomeFunctionName = "", int version = 0, dynamic additionalParams = null) where T : IHolonBase
+        {
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+
+            //TODO: Need to implement loading collections in HoloNET ASAP! :)
+
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                ZomeFunctionCallBackEventArgs response = null;
+
+                if (hcAvatar != null)
+                {
+                    //If it is not null then override the zome function, otherwise it will use the defaults passed in via the constructors for HcAvatar.
+                    if (!string.IsNullOrEmpty(zomeFunctionName))
+                        hcAvatar.ZomeLoadCollectionFunction = zomeFunctionName;
+
+                    result = HandleLoadCollectionResponse(await hcAvatar.LoadCollectionAsync(collectionAnchor, version, additionalParams), collectionName, collectionAnchor, result);
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: {ex}.");
+            }
+
+            return result;
+        }
+
+        private OASISResult<IEnumerable<T>> LoadCollection<T>(string collectionName, string collectionAnchor, string zomeFunctionName = "", int version = 0, dynamic additionalParams = null) where T : IHolonBase
+        {
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+
+            //TODO: Need to implement loading collections in HoloNET ASAP! :)
+
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                ZomeFunctionCallBackEventArgs response = null;
+
+                if (hcAvatar != null)
+                {
+                    //If it is not null then override the zome function, otherwise it will use the defaults passed in via the constructors for HcAvatar.
+                    if (!string.IsNullOrEmpty(zomeFunctionName))
+                        hcAvatar.ZomeLoadCollectionFunction = zomeFunctionName;
+
+                    result = HandleLoadCollectionResponse(hcAvatar.LoadCollection(collectionAnchor, version, additionalParams), collectionName, collectionAnchor, result);
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: {ex}.");
+            }
+
+            return result;
         }
 
         private async Task<OASISResult<IEnumerable<T>>> ExecuteOperationAsync<T>(CollectionOperationEnum operation, string collectionName, string collectionAnchor, string zomeFunctionName = "", int version = 0) where T : IHolonBase
@@ -1319,33 +930,47 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     {
                         switch (operation)
                         {
-                            case CollectionOperationEnum.CreateCollection:
-                                {
-                                    hcAvatar.ZomeCreateEntryCollectionFunction = zomeFunctionName;
-                                    response = await hcAvatar.SaveCollectionAsync(collectionAnchor);
-                                }
-                                break;
+                            //case CollectionOperationEnum.CreateCollection:
+                            //    {
+                            //        hcAvatar.ZomeCreateEntryCollectionFunction = zomeFunctionName;
+                            //        response = await hcAvatar.SaveCollectionAsync(collectionAnchor);
+                            //    }
+                            //    break;
 
                             case CollectionOperationEnum.ReadCollection:
                                 {
-                                    hcAvatar.ZomeLoadEntryCollectionFunction = zomeFunctionName;
+                                    hcAvatar.ZomeLoadCollectionFunction = zomeFunctionName;
                                     response = await hcAvatar.LoadCollectionAsync(collectionAnchor);
+                                }
+                                break;
+
+                            case CollectionOperationEnum.AddToCollection:
+                                {
+                                    hcAvatar.ZomeAddToCollectionFunction = zomeFunctionName;
+                                    response = await hcAvatar.AddToCollectionAsync(collectionAnchor);
                                 }
                                 break;
 
                             case CollectionOperationEnum.UpdateCollection:
                                 {
-                                    hcAvatar.ZomeUpdateEntryCollectionFunction = zomeFunctionName;
-                                    response = await hcAvatar.SaveCollectionAsync(collectionAnchor);
+                                    hcAvatar.ZomeUpdateCollectionFunction = zomeFunctionName;
+                                    response = await hcAvatar.UpdateCollectionAsync(collectionAnchor);
                                 }
                                 break;
 
-                            case CollectionOperationEnum.DeleteCollection:
+                            case CollectionOperationEnum.RemoveFromCollection:
                                 {
-                                    hcAvatar.ZomeDeleteEntryCollectionFunction = zomeFunctionName;
-                                    response = await hcAvatar.DeleteCollectionAsync(collectionAnchor);
+                                    hcAvatar.ZomeRemoveFromCollectionFunction = zomeFunctionName;
+                                    response = await hcAvatar.RemoveFromCollectionAsync(collectionAnchor);
                                 }
                                 break;
+
+                                //case CollectionOperationEnum.DeleteCollection:
+                                //    {
+                                //        hcAvatar.ZomeDeleteEntryCollectionFunction = zomeFunctionName;
+                                //        response = await hcAvatar.DeleteCollectionAsync(collectionAnchor);
+                                //    }
+                                //    break;
                         }
                     }
 
@@ -1354,15 +979,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                         if (response.IsCallSuccessful && !response.IsError)
                             result.Result = response.Entry.EntryDataObject;
                         else
-                            ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} for HoloOASIS Provider. Reason: { response.Message }");
+                            ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperationAsync method in the HoloOASIS Provider. Reason: { response.Message }");
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} for HoloOASIS Provider. Reason: Unknown.");
+                        ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperationAsync method in the HoloOASIS Provider. Reason: Unknown.");
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} for HoloOASIS Provider. Reason: {ex}.");
+                ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperationAsync method in the HoloOASIS Provider. Reason: {ex}.");
             }
 
             return result;
@@ -1386,33 +1011,47 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     {
                         switch (operation)
                         {
-                            case CollectionOperationEnum.CreateCollection:
-                                {
-                                    hcAvatar.ZomeCreateEntryCollectionFunction = zomeFunctionName;
-                                    response = hcAvatar.SaveCollection(collectionAnchor);
-                                }
-                                break;
+                            //case CollectionOperationEnum.CreateCollection:
+                            //    {
+                            //        hcAvatar.ZomeCreateEntryCollectionFunction = zomeFunctionName;
+                            //        response = await hcAvatar.SaveCollectionAsync(collectionAnchor);
+                            //    }
+                            //    break;
 
                             case CollectionOperationEnum.ReadCollection:
                                 {
-                                    hcAvatar.ZomeLoadEntryFunction = zomeFunctionName;
-                                    response = hcAvatar.LoadCollection(collectionAnchor);
+                                    hcAvatar.ZomeLoadCollectionFunction = zomeFunctionName;
+                                    response = await hcAvatar.LoadCollectionAsync(collectionAnchor);
+                                }
+                                break;
+
+                            case CollectionOperationEnum.AddToCollection:
+                                {
+                                    hcAvatar.ZomeAddToCollectionFunction = zomeFunctionName;
+                                    response = await hcAvatar.AddToCollectionAsync(collectionAnchor);
                                 }
                                 break;
 
                             case CollectionOperationEnum.UpdateCollection:
                                 {
-                                    hcAvatar.ZomeUpdateEntryCollectionFunction = zomeFunctionName;
-                                    response = hcAvatar.SaveCollection(collectionAnchor);
+                                    hcAvatar.ZomeUpdateCollectionFunction = zomeFunctionName;
+                                    response = await hcAvatar.UpdateCollectionAsync(collectionAnchor);
                                 }
                                 break;
 
-                            case CollectionOperationEnum.DeleteCollection:
+                            case CollectionOperationEnum.RemoveFromCollection:
                                 {
-                                    hcAvatar.ZomeDeleteEntryCollectionFunction = zomeFunctionName;
-                                    response = hcAvatar.DeleteCollection(collectionAnchor);
+                                    hcAvatar.ZomeRemoveFromCollectionFunction = zomeFunctionName;
+                                    response = await hcAvatar.RemoveFromCollectionAsync(collectionAnchor);
                                 }
                                 break;
+
+                                //case CollectionOperationEnum.DeleteCollection:
+                                //    {
+                                //        hcAvatar.ZomeDeleteEntryCollectionFunction = zomeFunctionName;
+                                //        response = await hcAvatar.DeleteCollectionAsync(collectionAnchor);
+                                //    }
+                                //    break;
                         }
                     }
 
@@ -1421,21 +1060,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                         if (response.IsCallSuccessful && !response.IsError)
                             result.Result = response.Entry.EntryDataObject;
                         else
-                            ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} for HoloOASIS Provider. Reason: { response.Message }");
+                            ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperation method in the HoloOASIS Provider. Reason: { response.Message }");
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} for HoloOASIS Provider. Reason: Unknown.");
+                        ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperation method in the HoloOASIS Provider. Reason: Unknown.");
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} for HoloOASIS Provider. Reason: {ex}.");
+                ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperation method in the HoloOASIS Provider. Reason: {ex}.");
             }
 
             return result;
         }
 
-        private async Task<OASISResult<T>> LoadAsync<T>(HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, string zomeLoadFunctionName = "", int version = 0) where T : IHolonBase
+        private async Task<OASISResult<T>> LoadAsync<T>(HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, string zomeLoadFunctionName = "", int version = 0, object additionalParams = null) where T : IHolonBase
         {
             OASISResult<T> result = new OASISResult<T>();
 
@@ -1461,18 +1100,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     if (!string.IsNullOrEmpty(zomeLoadFunctionName))
                         hcObject.ZomeLoadEntryFunction = zomeLoadFunctionName;
 
+                    //result = HandleLoadResponse(hcObject.Load(fieldValue, _useReflection, version, additionalParams), hcObjectType, fieldName, fieldValue, hcObject, result); //TODO: Once HoloNET has been upgraded to support these params we can uncomment this line and remove the one below...
                     result = HandleLoadResponse(await hcObject.LoadAsync(fieldValue, _useReflection), hcObjectType, fieldName, fieldValue, hcObject, result);
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldValue} for HoloOASIS Provider. Reason: {ex}.");
+                ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldValue} in the LoadAsync method in the HoloOASIS Provider. Reason: {ex}.");
             }
 
             return result;
         }
 
-        private OASISResult<T> Load<T>(HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, string zomeLoadFunctionName = "", int version = 0) where T : IHolonBase
+        private OASISResult<T> Load<T>(HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, string zomeLoadFunctionName = "", int version = 0, object additionalParams = null) where T : IHolonBase
         {
             OASISResult<T> result = new OASISResult<T>();
 
@@ -1498,12 +1138,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     if (!string.IsNullOrEmpty(zomeLoadFunctionName))
                         hcObject.ZomeLoadEntryFunction = zomeLoadFunctionName;
 
+                    //result = HandleLoadResponse(hcObject.Load(fieldValue, _useReflection, version, additionalParams), hcObjectType, fieldName, fieldValue, hcObject, result); //TODO: Once HoloNET has been upgraded to support these params we can uncomment this line and remove the one below...
                     result = HandleLoadResponse(hcObject.Load(fieldValue, _useReflection), hcObjectType, fieldName, fieldValue, hcObject, result);
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldValue} for HoloOASIS Provider. Reason: {ex}.");
+                ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldValue} in the Load method in the HoloOASIS Provider. Reason: {ex}.");
             }
 
             return result;
@@ -1568,7 +1209,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the HoloOASIS Provider. Reason: {ex}");
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the SaveAsync method in HoloOASIS Provider. Reason: {ex}");
             }
 
             return result;
@@ -1633,78 +1274,55 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the HoloOASIS Provider. Reason: {ex}");
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the Save method in HoloOASIS Provider. Reason: {ex}");
             }
 
             return result;
         }
 
-        //private OASISResult<T> HandleResponse<T>(HcOperationEnum hcOperationEnum, ZomeFunctionCallBackEventArgs response, HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, IHcObject hcObject, OASISResult<T> result) where T : IHolonBase
-        //{
-        //    string operationText = "";
+        private async Task<OASISResult<bool>> DeleteAsync(HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, string zomeDeleteFunctionName = "", bool softDelete = true, object additionalParams = null)
+        {
+            OASISResult<bool> result = new OASISResult<bool>(false);
 
-        //    switch (hcOperationEnum)
-        //    {
-        //        case HcOperationEnum.Create:
-        //            operationText = "creating";
-        //            break;
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
 
-        //        case HcOperationEnum.Delete:
-        //            operationText = "deleting";
-        //            break;
+                if (!string.IsNullOrEmpty(zomeDeleteFunctionName))
+                    hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_AVATAR_BY_ID_FUNCTION;
 
-        //        case HcOperationEnum.Update:
-        //            operationText = "updating";
-        //            break;
+                //hcAvatar.Delete(fieldValue, softDelete, additionalParams); //TODO: Once HoloNET has been upgraded to support these params we can uncomment this line and remove the one below...
+                await hcAvatar.DeleteAsync(fieldValue);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the DeleteAsync method in HoloOASIS Provider. Reason: {ex}");
+            }
 
-        //        case HcOperationEnum.Read:
-        //            operationText = "loading";
-        //            break;
-        //    }
+            return result;
+        }
 
+        private OASISResult<bool> Delete(HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, string zomeDeleteFunctionName = "", bool softDelete = true, object additionalParams = null)
+        {
+            OASISResult<bool> result = new OASISResult<bool>(false);
 
-        //    if (response != null)
-        //    {
-        //        if (response.IsCallSuccessful && !response.IsError)
-        //        {
-        //            if (_useReflection)
-        //            {
-        //                switch (hcObjectType)
-        //                {
-        //                    case HcObjectTypeEnum.Avatar:
-        //                        result.Result = (T)ConvertHcAvatarToAvatar((IHcAvatar)hcObject);
-        //                        break;
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
 
-        //                    case HcObjectTypeEnum.AvatarDetail:
-        //                        result.Result = (T)ConvertHcAvatarDetailToAvatarDetail((IHcAvatarDetail)hcObject);
-        //                        break;
-        //                }
-        //            }
-        //            else
-        //            {
-        //                // Not using reflection for the HoloOASIS use case may be more efficient because it uses very slightly less code and has small performance improvement.
-        //                // However, using relection would suit other use cases better (would use a lot less code because HoloNET would manage all the mappings (from the Holochain Conductor KeyValue pair data response) for you) such as where object mapping to external objects (like the OASIS) is not required. Please see HoloNET Test Harness for more examples of this...
-        //                switch (hcObjectType)
-        //                {
-        //                    case HcObjectTypeEnum.Avatar:
-        //                        result.Result = (T)ConvertKeyValuePairToAvatar(response.KeyValuePair);
-        //                        break;
+                if (!string.IsNullOrEmpty(zomeDeleteFunctionName))
+                    hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_AVATAR_BY_ID_FUNCTION;
 
-        //                    case HcObjectTypeEnum.AvatarDetail:
-        //                        result.Result = (T)ConvertKeyValuePairToAvatarDetail(response.KeyValuePair);
-        //                        break;
-        //                }
-        //            }
-        //        }
-        //        else
-        //            ErrorHandling.HandleError(ref result, $"Error {operationText} {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} for HoloOASIS Provider. Reason: { response.Message }");
-        //    }
-        //    else
-        //        ErrorHandling.HandleError(ref result, $"Error {operationText} {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} for HoloOASIS Provider. Reason: Unknown.");
+                //hcAvatar.Delete(fieldValue, softDelete, additionalParams); //TODO: Once HoloNET has been upgraded to support these params we can uncomment this line and remove the one below...
+                hcAvatar.Delete(fieldValue);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the Delete method in HoloOASIS Provider. Reason: {ex}");
+            }
 
-        //    return result;
-        //}
-
+            return result;
+        }
 
         private OASISResult<T> HandleLoadResponse<T>(ZomeFunctionCallBackEventArgs response, HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, IHcObject hcObject, OASISResult<T> result) where T : IHolonBase
         {
@@ -1742,10 +1360,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     }
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} for HoloOASIS Provider. Reason: { response.Message }");
+                    ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the HandleLoadResponse method in the HoloOASIS Provider. Reason: { response.Message }");
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} for HoloOASIS Provider. Reason: Unknown.");
+                ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the HandleLoadResponse method in the HoloOASIS Provider. Reason: Unknown.");
 
             return result;
         }
@@ -1786,10 +1404,25 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     }
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} for HoloOASIS Provider. Reason: { response.Message }");
+                    ErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the HandleSaveResponse method in the HoloOASIS Provider. Reason: { response.Message }");
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} for HoloOASIS Provider. Reason: Unknown.");
+                ErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the HandleSaveResponse method in the HoloOASIS Provider. Reason: Unknown.");
+
+            return result;
+        }
+
+        private OASISResult<T> HandleLoadCollectionResponse<T>(ZomeFunctionCallBackEventArgs response, string collectionName, string collectionAnchor, OASISResult<T> result) where T : IHolonBase
+        {
+            if (response != null)
+            {
+                if (response.IsCallSuccessful && !response.IsError)
+                    result.Result = response.Entry.EntryDataObject;
+                else
+                    ErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: { response.Message }");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: Unknown.");
 
             return result;
         }

@@ -3,9 +3,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
     public enum CollectionOperationEnum
     {
-        CreateCollection,
+        //CreateCollection,
         ReadCollection,
+        AddToCollection,
         UpdateCollection,
-        DeleteCollection
+        RemoveFromCollection
+        //DeleteCollection
     }
 }
