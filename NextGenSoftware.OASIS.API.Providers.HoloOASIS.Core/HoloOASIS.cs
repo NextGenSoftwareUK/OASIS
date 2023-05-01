@@ -1100,7 +1100,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     if (!string.IsNullOrEmpty(zomeLoadFunctionName))
                         hcObject.ZomeLoadEntryFunction = zomeLoadFunctionName;
 
-                    //result = HandleLoadResponse(hcObject.Load(fieldValue, _useReflection, version, additionalParams), hcObjectType, fieldName, fieldValue, hcObject, result); //TODO: Once HoloNET has been upgraded to support these params we can uncomment this line and remove the one below...
+                    //result = HandleLoadResponse(hcObject.Load(fieldValue, fieldName, _useReflection, version, additionalParams), hcObjectType, fieldName, fieldValue, hcObject, result); //TODO: Once HoloNET has been upgraded to support these params we can uncomment this line and remove the one below...
                     result = HandleLoadResponse(await hcObject.LoadAsync(fieldValue, _useReflection), hcObjectType, fieldName, fieldValue, hcObject, result);
                 }
             }
@@ -1138,7 +1138,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     if (!string.IsNullOrEmpty(zomeLoadFunctionName))
                         hcObject.ZomeLoadEntryFunction = zomeLoadFunctionName;
 
-                    //result = HandleLoadResponse(hcObject.Load(fieldValue, _useReflection, version, additionalParams), hcObjectType, fieldName, fieldValue, hcObject, result); //TODO: Once HoloNET has been upgraded to support these params we can uncomment this line and remove the one below...
+                    //result = HandleLoadResponse(hcObject.Load(fieldValue, fieldName, _useReflection, version, additionalParams), hcObjectType, fieldName, fieldValue, hcObject, result); //TODO: Once HoloNET has been upgraded to support these params we can uncomment this line and remove the one below...
                     result = HandleLoadResponse(hcObject.Load(fieldValue, _useReflection), hcObjectType, fieldName, fieldValue, hcObject, result);
                 }
             }
@@ -1291,7 +1291,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 if (!string.IsNullOrEmpty(zomeDeleteFunctionName))
                     hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_AVATAR_BY_ID_FUNCTION;
 
-                //hcAvatar.Delete(fieldValue, softDelete, additionalParams); //TODO: Once HoloNET has been upgraded to support these params we can uncomment this line and remove the one below...
+                //hcAvatar.Delete(fieldValue, fieldName, softDelete, additionalParams); //TODO: Once HoloNET has been upgraded to support these params we can uncomment this line and remove the one below...
                 await hcAvatar.DeleteAsync(fieldValue);
             }
             catch (Exception ex)
@@ -1313,7 +1313,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 if (!string.IsNullOrEmpty(zomeDeleteFunctionName))
                     hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_AVATAR_BY_ID_FUNCTION;
 
-                //hcAvatar.Delete(fieldValue, softDelete, additionalParams); //TODO: Once HoloNET has been upgraded to support these params we can uncomment this line and remove the one below...
+                //hcAvatar.Delete(fieldValue, fieldName, softDelete, additionalParams); //TODO: Once HoloNET has been upgraded to support these params we can uncomment this line and remove the one below...
                 hcAvatar.Delete(fieldValue);
             }
             catch (Exception ex)
@@ -1329,36 +1329,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             if (response != null)
             {
                 if (response.IsCallSuccessful && !response.IsError)
-                {
-                    if (_useReflection)
-                    {
-                        switch (hcObjectType)
-                        {
-                            case HcObjectTypeEnum.Avatar:
-                                result.Result = (T)ConvertHcAvatarToAvatar((IHcAvatar)hcObject);
-                                break;
-
-                            case HcObjectTypeEnum.AvatarDetail:
-                                result.Result = (T)ConvertHcAvatarDetailToAvatarDetail((IHcAvatarDetail)hcObject);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        // Not using reflection for the HoloOASIS use case may be more efficient because it uses very slightly less code and has small performance improvement.
-                        // However, using relection would suit other use cases better (would use a lot less code because HoloNET would manage all the mappings (from the Holochain Conductor KeyValue pair data response) for you) such as where object mapping to external objects (like the OASIS) is not required. Please see HoloNET Test Harness for more examples of this...
-                        switch (hcObjectType)
-                        {
-                            case HcObjectTypeEnum.Avatar:
-                                result.Result = (T)ConvertKeyValuePairToAvatar(response.KeyValuePair);
-                                break;
-
-                            case HcObjectTypeEnum.AvatarDetail:
-                                result.Result = (T)ConvertKeyValuePairToAvatarDetail(response.KeyValuePair);
-                                break;
-                        }
-                    }
-                }
+                    result = ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
                 else
                     ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the HandleLoadResponse method in the HoloOASIS Provider. Reason: { response.Message }");
             }
@@ -1373,41 +1344,76 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             if (response != null)
             {
                 if (response.IsCallSuccessful && !response.IsError)
-                {
-                    if (_useReflection)
-                    {
-                        switch (hcObjectType)
-                        {
-                            case HcObjectTypeEnum.Avatar:
-                                result.Result = (T)ConvertHcAvatarToAvatar((IHcAvatar)hcObject);
-                                break;
-
-                            case HcObjectTypeEnum.AvatarDetail:
-                                result.Result = (T)ConvertHcAvatarDetailToAvatarDetail((IHcAvatarDetail)hcObject);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        // Not using reflection for the HoloOASIS use case may be more efficient because it uses very slightly less code and has small performance improvement.
-                        // However, using relection would suit other use cases better (would use a lot less code because HoloNET would manage all the mappings (from the Holochain Conductor KeyValue pair data response) for you) such as where object mapping to external objects (like the OASIS) is not required. Please see HoloNET Test Harness for more examples of this...
-                        switch (hcObjectType)
-                        {
-                            case HcObjectTypeEnum.Avatar:
-                                result.Result = (T)ConvertKeyValuePairToAvatar(response.KeyValuePair);
-                                break;
-
-                            case HcObjectTypeEnum.AvatarDetail:
-                                result.Result = (T)ConvertKeyValuePairToAvatarDetail(response.KeyValuePair);
-                                break;
-                        }
-                    }
-                }
+                    result = ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
                 else
                     ErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the HandleSaveResponse method in the HoloOASIS Provider. Reason: { response.Message }");
             }
             else
                 ErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the HandleSaveResponse method in the HoloOASIS Provider. Reason: Unknown.");
+
+            return result;
+        }
+
+        private OASISResult<T> HandleDeleteResponse<T>(ZomeFunctionCallBackEventArgs response, HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, IHcObject hcObject, OASISResult<T> result, string methodName) where T : IHolonBase
+        {
+            if (response != null)
+            {
+                if (response.IsCallSuccessful && !response.IsError)
+                    result = ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
+                else
+                    ErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the HoloOASIS Provider. Reason: { response.Message }");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the HoloOASIS Provider. Reason: Unknown.");
+
+            return result;
+        }
+
+        private OASISResult<T> HandleResponse<T>(ZomeFunctionCallBackEventArgs response, HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, IHcObject hcObject, OASISResult<T> result, string methodName) where T : IHolonBase
+        {
+            if (response != null)
+            {
+                if (response.IsCallSuccessful && !response.IsError)
+                    result = ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
+                else
+                    ErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the HoloOASIS Provider. Reason: { response.Message }");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the HoloOASIS Provider. Reason: Unknown.");
+
+            return result;
+        }
+
+        private OASISResult<T> ConvertHCResponseToOASISResult<T>(ZomeFunctionCallBackEventArgs response, HcObjectTypeEnum hcObjectType, IHcObject hcObject, OASISResult<T> result) where T : IHolonBase
+        {
+            if (_useReflection)
+            {
+                switch (hcObjectType)
+                {
+                    case HcObjectTypeEnum.Avatar:
+                        result.Result = (T)ConvertHcAvatarToAvatar((IHcAvatar)hcObject);
+                        break;
+
+                    case HcObjectTypeEnum.AvatarDetail:
+                        result.Result = (T)ConvertHcAvatarDetailToAvatarDetail((IHcAvatarDetail)hcObject);
+                        break;
+                }
+            }
+            else
+            {
+                // Not using reflection for the HoloOASIS use case may be more efficient because it uses very slightly less code and has small performance improvement.
+                // However, using relection would suit other use cases better (would use a lot less code because HoloNET would manage all the mappings (from the Holochain Conductor KeyValue pair data response) for you) such as where object mapping to external objects (like the OASIS) is not required. Please see HoloNET Test Harness for more examples of this...
+                switch (hcObjectType)
+                {
+                    case HcObjectTypeEnum.Avatar:
+                        result.Result = (T)ConvertKeyValuePairToAvatar(response.KeyValuePair);
+                        break;
+
+                    case HcObjectTypeEnum.AvatarDetail:
+                        result.Result = (T)ConvertKeyValuePairToAvatarDetail(response.KeyValuePair);
+                        break;
+                }
+            }
 
             return result;
         }
