@@ -394,7 +394,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
-                    var task = providerResult.Result.LoadAvatarAsync(username, version);
+                    //var task = providerResult.Result.LoadAvatarAsync(username, version);
+                    var task = providerResult.Result.LoadAvatarByUsernameAsync(username, version);
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
