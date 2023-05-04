@@ -1,4 +1,5 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
+﻿using NextGenSoftware.Holochain.HoloNET.Client;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -8,7 +9,7 @@ using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
-    public interface IHcAvatarDetail : IHcObject
+    public interface IHcAvatarDetail : IHoloNETAuditEntryBaseClass // : IHcObject
     {
         #region IAvatarDetail Properties
         Guid Id { get; set; }
