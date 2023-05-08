@@ -655,7 +655,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             }
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             try
             {
@@ -704,7 +704,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             }
         }
 
-        public override OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
             try
             {

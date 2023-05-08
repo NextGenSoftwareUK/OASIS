@@ -250,12 +250,12 @@
 //            //}
 //        }
 
-//        public override IAvatar LoadAvatarForProviderKey(string providerKey)
+//        public override IAvatar LoadAvatarByProviderKey(string providerKey)
 //        {
 //            throw new NotImplementedException();
 //        }
 
-//        public override Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
+//        public override Task<IAvatar> LoadAvatarByProviderKeyAsync(string providerKey)
 //        {
 //            throw new NotImplementedException();
 //        }

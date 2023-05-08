@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness
 
             Avatar avatar2 = (Avatar)ipfs.LoadAvatarByUsername("qqq");
 
-            Avatar avatar3 = (Avatar)ipfs.LoadAvatarForProviderKey("QmS21Kp5q2FMN5GwZhUpwsdGwRiaTp5T77ARDgbzxE5jVV");
+            Avatar avatar3 = (Avatar)ipfs.LoadAvatarByProviderKey("QmS21Kp5q2FMN5GwZhUpwsdGwRiaTp5T77ARDgbzxE5jVV");
 
             Avatar avatar4 = (Avatar)ipfs.LoadAvatar(Guid.Parse("f4d209e7-d985-4687-b04c-d29520aadcff"));
             

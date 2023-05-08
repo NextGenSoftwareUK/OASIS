@@ -12,8 +12,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
     // storage or through a distributed/decentralised provider such as IPFS (IPFSOASIS Provider coming soon) or Holochain (HoloOASIS Provider implemented).
     public interface IOASISStorageProvider : IOASISProvider
     {
-        Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0);
-        OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0);
+        OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0);
         Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0);
         OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0);
         Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0);

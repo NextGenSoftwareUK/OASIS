@@ -1,33 +1,44 @@
-﻿using NextGenSoftware.OASIS.API.Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
-namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
+// OASIS Provider Template that can be used to create new OASIS Providers.
+// Make sure you change all refrences to ProviderName to the name of your provider.
+// You may not need to implement all of the interfaces depending on what your provider is for. Simply comment out or remove interfaces not needed along with the method stubs below.
+namespace NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS
 {
-    public class PLANOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
+    public class ProviderNameOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar, IOASISLocalStorageProvider
     {
-        public PLANOASIS()
+        //customParams needed for the provider such as host, connectionstring, network, etc. These are passed in by the OASISBootLoader and are defined in the OASISDNA.json file.
+        //NOTE: You can pass any number (and of any type) of params as you wish, you just need to make sure they are also defined in the relevant section of the OASISDNA.json file and then passed in through the OASISBootLoader.
+        public ProviderNameOASIS(string customParams)
         {
-            this.ProviderName = "PLANOASIS";
-            this.ProviderDescription = "PLAN Provider";
-            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PLANOASIS);
+            this.ProviderName = "ProviderNameOASIS";
+            this.ProviderDescription = "ProviderName Provider";
+            //this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ProviderNameOASIS); //uncomment this line and make sure the enum is set to the correct one for your provider (you will need to add your provider to the enum list).
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
         #region IOASISStorageProvider Implementation
+        //This the bare minium set of methods a Provider needs to implement to be able to read/write to The OASIS (part of the OASISStorageProviderBase and IOASISStorageProvider interface).
 
         public override OASISResult<bool> ActivateProvider()
         {
+            //This is called anytime the provider is started by the OASISBootLoader.
+            //Here you will make connections, instantiate objects, readers, writers etc and any other setup needed.
+            //NOTE: The OASIS may activate and deactivate any provider at anytime so the ActivateProvider and DeActivateProvider may be called multiple times whereas the setup code in the constructor is done only once.
             return null;
         }
 
         public override OASISResult<bool> DeActivateProvider()
         {
+            //This is called anytime the provider is shutdown by the OASISBootLoader.
+            //Here you will close connections, datasets, readers, writers, de-allocate objects/memory etc.
             return null;
         }
 
@@ -334,6 +345,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         #endregion
 
         #region IOASISNET Implementation
+        //Comment out these methods if the provider does not provide network geo-location functionality (also make sure you remove the IOASISNET from the class declaration at the top).
 
         OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
         {
@@ -348,6 +360,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         #endregion
 
         #region IOASISSuperStar
+        //Comment out these methods if the provider does not provide native code generation for STAR ODK Low Code Generator functionality (also make sure you remove the IOASISSuperStar from the class declaration at the top).
+
         public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
             throw new NotImplementedException();
@@ -356,6 +370,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         #endregion
 
         #region IOASISBlockchainStorageProvider
+        //Comment out these methods if the provider does not provide blockchain functionality (also make sure you remove the IOASISBlockchainStorageProvider from the class declaration at the top).
 
         public OASISResult<string> SendTransaction(IWalletTransaction transation)
         {
@@ -440,6 +455,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         #endregion
 
         #region IOASISNFTProvider
+        //Comment out these methods if the provider does not provide any NFT functionality (also make sure you remove the IOASISNFTProvider from the class declaration at the top).
 
         public OASISResult<bool> SendNFT(IWalletTransaction transation)
         {
@@ -453,8 +469,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         #endregion
 
-        /*
         #region IOASISLocalStorageProvider
+        //Comment out these methods if the provider does store data locally (also make sure you remove the IOASISLocalStorageProvider from the class declaration at the top).
 
         public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarById(Guid id)
         {
@@ -476,6 +492,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
-        #endregion*/
+        #endregion
     }
 }

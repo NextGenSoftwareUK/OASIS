@@ -195,13 +195,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         }
 
 
-        public override async Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
+        public override async Task<IAvatar> LoadAvatarByProviderKeyAsync(string providerKey)
         {
             OASISResult<IAvatar> repoResult = await avatarRepository.GetAvatarAsync(providerKey);
             return repoResult.Result;
         }
 
-        public override IAvatar LoadAvatarForProviderKey(string providerKey)
+        public override IAvatar LoadAvatarByProviderKey(string providerKey)
         {
             OASISResult<IAvatar> repoResult = avatarRepository.GetAvatar(providerKey);
             return repoResult.Result;

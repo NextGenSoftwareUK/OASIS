@@ -22,7 +22,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
     //TODO: Implement OASISResult properly on below methods! :)
-    public class IPFSOASIS : OASISStorageProviderBase, IOASISNETProvider
+    public class IPFSOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
         public IpfsClient IPFSClient;
         //public IpfsEngine IPFSEngine; //= new IpfsEngine();
@@ -596,12 +596,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         }
 
 
-        public override OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            return LoadAvatarForProviderKeyAsync(providerKey).Result;
+            return LoadAvatarByProviderKeyAsync(providerKey).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             return await LoadAvatarAsync(providerKey);
         }

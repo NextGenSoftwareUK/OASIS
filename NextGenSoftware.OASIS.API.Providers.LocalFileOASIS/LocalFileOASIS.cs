@@ -517,12 +517,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
+        public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             throw new NotImplementedException();
         }

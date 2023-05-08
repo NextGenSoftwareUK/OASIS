@@ -1,19 +1,20 @@
 ﻿using Microsoft.Azure.Documents.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure;
-using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
-using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entities;
 using System.Linq;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
+//using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entities;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 {
@@ -346,26 +347,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
         public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
         {
             try
@@ -392,11 +373,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons)
-        {
-            throw new NotImplementedException();
-        }
-
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
             throw new NotImplementedException();
@@ -419,7 +395,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 }
                 else
                 {
-                    return new OASISResult<IEnumerable<IAvatar>> { IsError = false, IsLoaded = true, Message = "Avatar fetched", Result = avtarFilterd };
+                    return new OASISResult<IEnumerable<IAvatar>> { IsError = false, IsLoaded = true, Message = "Avatar fetched", Result = (IEnumerable<IAvatar>)avtarFilterd };
                 }
             }
             catch (Exception ex)
@@ -440,7 +416,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 }
                 else
                 {
-                    return new OASISResult<IEnumerable<IAvatar>> { IsError = false, IsLoaded = true, Message = "Avatar fetched", Result = avtarFilterd };
+                    return new OASISResult<IEnumerable<IAvatar>> { IsError = false, IsLoaded = true, Message = "Avatar fetched", Result = (IEnumerable<IAvatar>)avtarFilterd };
                 }
             }
             catch (Exception ex)
@@ -512,26 +488,26 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
         }
 
-        public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
-        {
-            try
-            {
-                var avatarList = avatarRepository.GetListAsync();
-                var avatar = avatarList.Where(a => a.Username == username).FirstOrDefault();
-                if (avatar == null)
-                {
-                    return new OASISResult<IAvatar> { IsError = false, IsLoaded = false, Message = "No record found" };
-                }
-                else
-                {
-                    return new OASISResult<IAvatar> { IsError = false, IsLoaded = true, Message = "Avatar fetched", Result = avatar };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatar> { IsError = true, IsLoaded = false, Message = ex.Message };
-            }
-        }
+        //public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
+        //{
+        //    try
+        //    {
+        //        var avatarList = avatarRepository.GetListAsync();
+        //        var avatar = avatarList.Where(a => a.Username == username).FirstOrDefault();
+        //        if (avatar == null)
+        //        {
+        //            return new OASISResult<IAvatar> { IsError = false, IsLoaded = false, Message = "No record found" };
+        //        }
+        //        else
+        //        {
+        //            return new OASISResult<IAvatar> { IsError = false, IsLoaded = true, Message = "Avatar fetched", Result = avatar };
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new OASISResult<IAvatar> { IsError = true, IsLoaded = false, Message = ex.Message };
+        //    }
+        //}
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
@@ -554,26 +530,26 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
-        {
-            try
-            {
-                var avatarList = avatarRepository.GetListAsync();
-                var avatar = avatarList.Where(a => a.Username == username).FirstOrDefault();
-                if (avatar == null)
-                {
-                    return new OASISResult<IAvatar> { IsError = false, IsLoaded = false, Message = "No record found" };
-                }
-                else
-                {
-                    return new OASISResult<IAvatar> { IsError = false, IsLoaded = true, Message = "Avatar fetched", Result = avatar };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatar> { IsError = true, IsLoaded = false, Message = ex.Message };
-            }
-        }
+        //public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
+        //{
+        //    try
+        //    {
+        //        var avatarList = avatarRepository.GetListAsync();
+        //        var avatar = avatarList.Where(a => a.Username == username).FirstOrDefault();
+        //        if (avatar == null)
+        //        {
+        //            return new OASISResult<IAvatar> { IsError = false, IsLoaded = false, Message = "No record found" };
+        //        }
+        //        else
+        //        {
+        //            return new OASISResult<IAvatar> { IsError = false, IsLoaded = true, Message = "Avatar fetched", Result = avatar };
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new OASISResult<IAvatar> { IsError = true, IsLoaded = false, Message = ex.Message };
+        //    }
+        //}
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
@@ -785,7 +761,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
         }
 
-        public override OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
             try
             {
@@ -806,7 +782,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
         }
 
-        public async override Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
+        public async override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             try
             {
@@ -995,22 +971,28 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
         }
 
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
             try
             {
-                Avatar objAvatar = new Avatar();
-                objAvatar.Name = Avatar.Name;
-                objAvatar.FirstName = Avatar.FirstName;
-                objAvatar.LastName = Avatar.LastName;
-                objAvatar.Title = Avatar.Title;
-                objAvatar.AvatarId = Avatar.AvatarId;
+                //Avatar objAvatar = new Avatar();
+                ////objAvatar.Name = Avatar.Name;
+                //objAvatar.FirstName = Avatar.FirstName;
+                //objAvatar.LastName = Avatar.LastName;
+                //objAvatar.Title = Avatar.Title;
+                //objAvatar.AvatarId = Avatar.AvatarId;
 
-                //TODO: Where are the rest of the properties?
+                ////TODO: Where are the rest of the properties?
 
-                avatarRepository.AddAsync(objAvatar).Wait();
+                //avatarRepository.AddAsync(objAvatar).Wait();
+
+                avatarRepository.AddAsync(avatar).Wait();
+
                 return new OASISResult<IAvatar>
-                { IsSaved = true, IsError = false, Result = objAvatar };
+                { 
+                    IsSaved = true,
+                    Result = avatar
+                };
             }
             catch (Exception ex)
             {
@@ -1174,6 +1156,61 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         }
 
         public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
             throw new NotImplementedException();
         }
