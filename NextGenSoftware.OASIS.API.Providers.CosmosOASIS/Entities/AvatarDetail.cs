@@ -12,7 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
-namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites
+namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entities
 {
     public class AvatarDetail : Entity, IAvatarDetail
     {        

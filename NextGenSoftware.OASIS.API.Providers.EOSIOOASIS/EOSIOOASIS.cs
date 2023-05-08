@@ -14,7 +14,6 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.CurrencyBalance;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetTableRows;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persistence;
@@ -22,8 +21,7 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Repository;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
-    public class EOSIOOASIS : OASISStorageProviderBase, IOASISBlockchainStorageProvider, IOASISSmartContractProvider,
-        IOASISNFTProvider, IOASISNETProvider, IOASISSuperStar
+    public class EOSIOOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private static readonly Dictionary<Guid, GetAccountResponseDto> _avatarIdToEOSIOAccountLookup = new();
         private readonly IEosClient _eosClient;
@@ -232,42 +230,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        //public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
-        //{
-        //    var rows = await ChainAPI.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", username, username, 1, 2);
-
-        //    if (rows.rows.Count == 0)
-        //        return null;
-
-        //    var AvatarRow = (EOSIOAccountTableRow)rows.rows[0];
-        //    var Avatar = AvatarRow.ToAvatar();
-
-        //    Avatar.Password = StringCipher.Decrypt(Avatar.Password);
-        //    return new OASISResult<IAvatar>(Avatar);
-        //}
-
-        //public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey,
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey,
             int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
             throw new NotImplementedException();
         }
@@ -650,18 +619,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         }
 
         public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams,
-            bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
-            int version = 0)
         {
             throw new NotImplementedException();
         }
@@ -1067,40 +1024,347 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        public override async Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons)
+        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             throw new NotImplementedException();
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
             throw new NotImplementedException();
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
         {
             throw new NotImplementedException();
         }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        #region IOASISNET Implementation
+
+        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        {
+            throw new NotImplementedException();
+        }
+
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+
+        #region IOASISSuperStar
 
         public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
             throw new NotImplementedException();
         }
+
+        #endregion
+
+        #region IOASISBlockchainStorageProvider
+
+        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public OASISResult<string> SendTransaction(IWalletTransaction transaction)
+        {
+            return SendTransactionAsync(transaction).Result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transaction)
+        {
+            return await _transferRepository.TransferEosToken(
+                transaction.FromWalletAddress, transaction.ToWalletAddress, transaction.Amount);
+        }
+
+        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            var result = new OASISResult<string>();
+            string errorMessage = "Error in SendTransactionByIdAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromAvatarResult = await AvatarManager.LoadAvatarAsync(fromAvatarId);
+            var toAvatarResult = await AvatarManager.LoadAvatarAsync(toAvatarId);
+
+            if (fromAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                    fromAvatarResult.Exception);
+                return result;
+            }
+
+            if (toAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                    toAvatarResult.Exception);
+                return result;
+            }
+
+            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
+
+            if (result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+
+            return result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            var result = new OASISResult<string>();
+            string errorMessage = "Error in SendTransactionByUsernameAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromAvatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(fromAvatarUsername);
+            var toAvatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(toAvatarUsername);
+
+            if (fromAvatarDetailResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarDetailResult.Message),
+                    fromAvatarDetailResult.Exception);
+                return result;
+            }
+
+            if (toAvatarDetailResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarDetailResult.Message),
+                    toAvatarDetailResult.Exception);
+                return result;
+            }
+
+            var fromAvatarResult = await AvatarManager.LoadAvatarAsync(fromAvatarDetailResult.Result.Id);
+            var toAvatarResult = await AvatarManager.LoadAvatarAsync(toAvatarDetailResult.Result.Id);
+
+            if (fromAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                    fromAvatarResult.Exception);
+                return result;
+            }
+
+            if (toAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                    toAvatarResult.Exception);
+                return result;
+            }
+
+            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
+
+            if (result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+
+            return result;
+        }
+
+        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            var result = new OASISResult<string>();
+            string errorMessage = "Error in SendTransactionByEmailAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromAvatarResult = await AvatarManager.LoadAvatarByEmailAsync(fromAvatarEmail);
+            var toAvatarResult = await AvatarManager.LoadAvatarByEmailAsync(toAvatarEmail);
+
+            if (fromAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                    fromAvatarResult.Exception);
+                return result;
+            }
+
+            if (toAvatarResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                    toAvatarResult.Exception);
+                return result;
+            }
+
+            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
+
+            if (result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+
+            return result;
+        }
+
+        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
+        }
+
+        public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId,
+            decimal amount)
+        {
+            var result = new OASISResult<string>();
+            string errorMessage =
+                "Error in SendTransactionByDefaultWalletAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromWalletResult =
+                await WalletManager.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
+            var toWalletResult =
+                await WalletManager.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
+
+            if (fromWalletResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message),
+                    fromWalletResult.Exception);
+                return result;
+            }
+
+            if (toWalletResult.IsError)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message),
+                    toWalletResult.Exception);
+                return result;
+            }
+
+            var senderAvatarAccountName = fromWalletResult.Result.Name;
+            var receiverAvatarAccountName = toWalletResult.Result.Name;
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName,
+                amount);
+
+            if (result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+
+            return result;
+        }
+
+        #endregion
+
+        #region IOASISNFTProvider
+
+        public OASISResult<bool> SendNFT(IWalletTransaction transation)
+        {
+            return SendNFTAsync(transation).Result;
+        }
+
+        public async Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
+        {
+            return await _transferRepository.TransferEosNft(
+                transation.FromWalletAddress,
+                transation.ToWalletAddress,
+                transation.Amount,
+                "SYS");
+        }
+
+        #endregion
+
+        //#region IOASISLocalStorageProvider
+
+        //public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarById(Guid id)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public OASISResult<bool> SaveProviderWalletsForAvatarById(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //#endregion
 
         public async Task<GetAccountResponseDto> GetEOSIOAccountAsync(string eosioAccountName)
         {
@@ -1232,199 +1496,5 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 .Result;
         }
         
-        public OASISResult<bool> SendNFT(IWalletTransaction transation)
-        {
-            return SendNFTAsync(transation).Result;
-        }
-
-        public async Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
-        {
-            return await _transferRepository.TransferEosNft(
-                transation.FromWalletAddress,
-                transation.ToWalletAddress,
-                transation.Amount,
-                "SYS");
-        }
-
-        public OASISResult<string> SendTransaction(IWalletTransaction transaction)
-        {
-            return SendTransactionAsync(transaction).Result;
-        }
-
-        public async Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transaction)
-        {
-            return await _transferRepository.TransferEosToken(
-                transaction.FromWalletAddress, transaction.ToWalletAddress, transaction.Amount);
-        }
-
-        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
-        {
-            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
-        }
-
-        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
-        {
-            var result = new OASISResult<string>();
-            string errorMessage = "Error in SendTransactionByIdAsync method in EosioOasis sending transaction. Reason: ";
-
-            var fromAvatarResult = await AvatarManager.LoadAvatarAsync(fromAvatarId);
-            var toAvatarResult = await AvatarManager.LoadAvatarAsync(toAvatarId);
-                
-            if (fromAvatarResult.IsError)
-            {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
-                    fromAvatarResult.Exception);
-                return result;
-            }
-
-            if (toAvatarResult.IsError)
-            {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
-                    toAvatarResult.Exception);
-                return result;
-            }
-
-            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
-            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
-            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
-            
-            if(result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
-            
-            return result;
-        }
-
-        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
-        {
-            var result = new OASISResult<string>();
-            string errorMessage = "Error in SendTransactionByUsernameAsync method in EosioOasis sending transaction. Reason: ";
-
-            var fromAvatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(fromAvatarUsername);
-            var toAvatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(toAvatarUsername);
-            
-            if (fromAvatarDetailResult.IsError)
-            {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarDetailResult.Message),
-                    fromAvatarDetailResult.Exception);
-                return result;
-            }
-
-            if (toAvatarDetailResult.IsError)
-            {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarDetailResult.Message),
-                    toAvatarDetailResult.Exception);
-                return result;
-            }
-            
-            var fromAvatarResult = await AvatarManager.LoadAvatarAsync(fromAvatarDetailResult.Result.Id);
-            var toAvatarResult = await AvatarManager.LoadAvatarAsync(toAvatarDetailResult.Result.Id);
-
-            if (fromAvatarResult.IsError)
-            {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
-                    fromAvatarResult.Exception);
-                return result;
-            }
-
-            if (toAvatarResult.IsError)
-            {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
-                    toAvatarResult.Exception);
-                return result;
-            }
-            
-            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
-            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
-            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
-            
-            if(result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
-            
-            return result;
-        }
-
-        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
-        {
-            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
-        }
-
-        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
-        {
-            var result = new OASISResult<string>();
-            string errorMessage = "Error in SendTransactionByEmailAsync method in EosioOasis sending transaction. Reason: ";
-
-            var fromAvatarResult = await AvatarManager.LoadAvatarByEmailAsync(fromAvatarEmail);
-            var toAvatarResult = await AvatarManager.LoadAvatarByEmailAsync(toAvatarEmail);
-                
-            if (fromAvatarResult.IsError)
-            {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
-                    fromAvatarResult.Exception);
-                return result;
-            }
-
-            if (toAvatarResult.IsError)
-            {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
-                    toAvatarResult.Exception);
-                return result;
-            }
-
-            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
-            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
-            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
-            
-            if(result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
-            
-            return result;
-        }
-
-        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
-        {
-            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
-        }
-
-        public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
-        {
-            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
-        }
-
-        public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId,
-            decimal amount)
-        {
-            var result = new OASISResult<string>();
-            string errorMessage =
-                "Error in SendTransactionByDefaultWalletAsync method in EosioOasis sending transaction. Reason: ";
-
-            var fromWalletResult =
-                await WalletManager.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
-            var toWalletResult =
-                await WalletManager.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
-
-            if (fromWalletResult.IsError)
-            {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message),
-                    fromWalletResult.Exception);
-                return result;
-            }
-
-            if (toWalletResult.IsError)
-            {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message),
-                    toWalletResult.Exception);
-                return result;
-            }
-
-            var senderAvatarAccountName = fromWalletResult.Result.Name;
-            var receiverAvatarAccountName = toWalletResult.Result.Name;
-            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName,
-                amount);
-
-            if (result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
-
-            return result;
-        }
     }
 }

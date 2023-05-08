@@ -52,8 +52,8 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0);
         public abstract Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0);
         public abstract OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0);
-        public abstract Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0);
-        public abstract OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0);
+        public abstract Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0);
+        public abstract OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0);
         public abstract Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0);
         public abstract OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0);
         public abstract Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0);

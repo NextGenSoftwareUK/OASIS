@@ -13,7 +13,7 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositorie
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 {
-    public class SQLLiteDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISLocalStorageProvider, IOASISNETProvider, IOASISSuperStar
+    public class SQLLiteDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider, IOASISLocalStorageProvider, IOASISNETProvider, IOASISSuperStar
     {
         private readonly DataContext _appDataContext;
 
@@ -258,15 +258,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             return result;
         }
 
-        public override OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            var result = _avatarRepository.LoadAvatarForProviderKey(providerKey, version);
+            var result = _avatarRepository.LoadAvatarByProviderKey(providerKey, version);
             return result;
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
+        public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
-            var result = _avatarRepository.LoadAvatarForProviderKeyAsync(providerKey, version);
+            var result = _avatarRepository.LoadAvatarByProviderKeyAsync(providerKey, version);
             return result;
         }
 

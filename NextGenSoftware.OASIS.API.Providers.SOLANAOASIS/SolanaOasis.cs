@@ -15,7 +15,7 @@ using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.So
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 {
-    public class SolanaOASIS : OASISStorageProviderBase, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISNETProvider
+    public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISNETProvider
     {
         private readonly ISolanaRepository _solanaRepository;
         private readonly ISolanaService _solanaService;
@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             _solanaService = new SolanaService();
         }
         
-        public override async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
             try
@@ -73,9 +73,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             return result;
         }
 
-        public override OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            return LoadAvatarForProviderKeyAsync(providerKey, version).Result;
+            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
         public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)

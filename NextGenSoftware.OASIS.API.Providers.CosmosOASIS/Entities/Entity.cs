@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites
+namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entities
 {
 	public abstract class Entity
 	{

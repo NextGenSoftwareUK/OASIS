@@ -125,7 +125,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness
 
             Console.WriteLine("Run_SaveAndLoadAvatar()->LoadAvatarAsync()");
             var transactionHashProviderKey = saveAvatarResult.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS];
-            var loadAvatarResult = await solanaOasis.LoadAvatarForProviderKeyAsync(transactionHashProviderKey);
+            var loadAvatarResult = await solanaOasis.LoadAvatarByProviderKeyAsync(transactionHashProviderKey);
             
             if (loadAvatarResult.IsError)
             {

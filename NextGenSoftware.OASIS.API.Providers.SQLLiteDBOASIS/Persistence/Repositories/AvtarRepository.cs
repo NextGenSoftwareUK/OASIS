@@ -1014,7 +1014,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
         }
 
-        public async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             //try
             //{
@@ -1027,7 +1027,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             throw new NotImplementedException();
         }
 
-        public OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
+        public OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
             //try
             //{

@@ -5,14 +5,15 @@ using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
-using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
+//using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Exceptions;
 using System.Collections.Generic;
 using System.Linq;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
-    public abstract class CosmosDbRepository<T> : IRepository<T>, IDocumentCollectionContext<T> where T : Entity
+    public abstract class CosmosDbRepository<T> : IRepository<T>, IDocumentCollectionContext<T> where T : IHolonBase //Entity
     {
         private readonly ICosmosDbClientFactory _cosmosDbClientFactory;
         private readonly Microsoft.Azure.Cosmos.Container _cosmosDbContainer;
@@ -80,7 +81,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                 entity.Id = GenerateId(entity);
 
                 //Normally the providerKey is different to the Id but in this case they are the same since Azure uses GUID's the same as the OASIS does for ID.
-                entity.ProviderKey = entity.Id.ToString();
+                entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS] = entity.Id.ToString();
 
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
                 var document = await cosmosDbClient.CreateDocumentAsync(entity);

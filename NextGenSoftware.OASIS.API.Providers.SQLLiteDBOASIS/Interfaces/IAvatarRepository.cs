@@ -50,9 +50,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
 
         Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0);
 
-        Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0);
 
-        OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0);
+        OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0);
         OASISResult<IAvatar> SaveAvatar(IAvatar avatar);
         Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar);
     }

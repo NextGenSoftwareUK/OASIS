@@ -11,7 +11,7 @@ using NextGenSoftware.Holochain.HoloNET.Client;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
-    public class HoloOASIS : OASISStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISLocalStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
+    public class HoloOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar, IOASISLocalStorageProvider
     {
         private const string ZOME_LOAD_AVATAR_BY_ID_FUNCTION = "get_entry_avatar_by_id";
         private const string ZOME_LOAD_AVATAR_BY_USERNAME_FUNCTION = "get_entry_avatar_by_username";
@@ -79,18 +79,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return base.DeActivateProvider();
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
-        {
-            //ProviderKey is the entry hash.
-            return await LoadAsync<IAvatar>(HcObjectTypeEnum.Avatar, "providerKey (entryhash)", providerKey);
-        }
-
-        public override OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
-        {
-            //ProviderKey is the entry hash.
-            return Load<IAvatar>(HcObjectTypeEnum.Avatar, "providerKey (entryhash)", providerKey);
-        }
-
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
             //return await ExecuteOperationAsync<IAvatar>(OperationEnum.Read, "avatar", "id", id.ToString(), ZOME_LOAD_AVATAR_BY_ID_FUNCTION);
@@ -102,6 +90,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             //return ExecuteOperation<IAvatar>(OperationEnum.Read, "avatar", "id", id.ToString(), ZOME_LOAD_AVATAR_BY_ID_FUNCTION);
             return Load<IAvatar>(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_LOAD_AVATAR_BY_ID_FUNCTION);
         }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            //ProviderKey is the entry hash.
+            return await LoadAsync<IAvatar>(HcObjectTypeEnum.Avatar, "providerKey (entryhash)", providerKey);
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
+        {
+            //ProviderKey is the entry hash.
+            return Load<IAvatar>(HcObjectTypeEnum.Avatar, "providerKey (entryhash)", providerKey);
+        }
+
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
@@ -448,6 +449,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             throw new NotImplementedException();
         }
 
+        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
             throw new NotImplementedException();
@@ -458,12 +469,32 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             throw new NotImplementedException();
         }
 
+        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
             throw new NotImplementedException();
         }
 
         public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
             throw new NotImplementedException();
         }

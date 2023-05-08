@@ -210,12 +210,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return _avatarRepository.Delete(x => x.Email == avatarEmail, softDelete);
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(providerKey));
         }
 
-        public override OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
             return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(providerKey));
         }
