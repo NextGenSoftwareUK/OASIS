@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
+﻿
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces
 {
-    public interface IAvatarDetailRepository : IRepository<AvatarDetail> 
+    public interface IAvatarDetailRepository : IRepository<IAvatarDetail> 
     {
     }
 }

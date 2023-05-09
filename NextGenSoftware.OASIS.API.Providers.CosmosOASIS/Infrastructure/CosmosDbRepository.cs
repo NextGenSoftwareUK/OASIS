@@ -98,6 +98,30 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             }
         }
 
+        public T Add(T entity)
+        {
+            try
+            {
+                entity.Id = GenerateId(entity);
+
+                //Normally the providerKey is different to the Id but in this case they are the same since Azure uses GUID's the same as the OASIS does for ID.
+                entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS] = entity.Id.ToString();
+
+                var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
+                var document = cosmosDbClient.CreateDocument(entity);
+                return JsonConvert.DeserializeObject<T>(document.ToString());
+            }
+            catch (DocumentClientException e)
+            {
+                if (e.StatusCode == HttpStatusCode.Conflict)
+                {
+                    throw new EntityAlreadyExistsException();
+                }
+
+                throw;
+            }
+        }
+
         public async Task UpdateAsync(T entity)
         {
             try
