@@ -1,15 +1,13 @@
-﻿using Microsoft.Azure.Documents;
-using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
-using System;
+﻿using System;
+using Microsoft.Azure.Documents;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
-    public interface IDocumentCollectionContext<in T> where T : Entity
+    public interface IDocumentCollectionContext<in T> where T : IHolonBase
     {
-        string CollectionName { get; }
-
-        Guid GenerateId(T entity);
-
-        PartitionKey ResolvePartitionKey(string entityId);
+        public string CollectionName { get; }
+        public Guid GenerateId(T entity);
+        public PartitionKey ResolvePartitionKey(string entityId);
     }
 }

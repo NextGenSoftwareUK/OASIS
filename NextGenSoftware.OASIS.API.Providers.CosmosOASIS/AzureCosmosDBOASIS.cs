@@ -975,24 +975,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                //Avatar objAvatar = new Avatar();
-                ////objAvatar.Name = Avatar.Name;
-                //objAvatar.FirstName = Avatar.FirstName;
-                //objAvatar.LastName = Avatar.LastName;
-                //objAvatar.Title = Avatar.Title;
-                //objAvatar.AvatarId = Avatar.AvatarId;
-
-                ////TODO: Where are the rest of the properties?
-
-                //avatarRepository.AddAsync(objAvatar).Wait();
-
-                avatarRepository.AddAsync(avatar).Wait();
-
-                return new OASISResult<IAvatar>
-                { 
-                    IsSaved = true,
-                    Result = avatar
-                };
+                IAvatar objAvatar = avatarRepository.AddAsync(avatar).Result;
+                return new OASISResult<IAvatar> { IsSaved = true, Result = objAvatar };
             }
             catch (Exception ex)
             {
@@ -1000,43 +984,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
         }
 
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
             try
             {
-                Avatar objAvatar = new Avatar();
-                objAvatar.Name = Avatar.Name;
-                objAvatar.FirstName = Avatar.FirstName;
-                objAvatar.LastName = Avatar.LastName;
-                objAvatar.Title = Avatar.Title;
-                objAvatar.AvatarId = Avatar.AvatarId;
-                objAvatar.ProviderPrivateKey= new Dictionary<ProviderType, string>
-                            { {Core.Enums.ProviderType.AzureCosmosDBOASIS,"AzureDB" } };
-                objAvatar.ProviderPublicKey = new Dictionary<ProviderType, string>
-                            { {Core.Enums.ProviderType.AzureCosmosDBOASIS,"AzureDB" } };
-                objAvatar = await avatarRepository.AddAsync(objAvatar);
-                return new OASISResult<IAvatar> 
-                           { IsSaved = true,IsError=false,Result= objAvatar };
+                IAvatar objAvatar = await avatarRepository.AddAsync(avatar);
+                return new OASISResult<IAvatar> { IsSaved = true, IsError = false, Result = objAvatar };
             }
             catch (Exception ex)
             {
-                return new OASISResult<IAvatar> { IsSaved = false,IsError=true,Message=ex.Message };
+                return new OASISResult<IAvatar> { IsSaved = false, IsError=true, Message = ex.Message };
             }
         }
 
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
         {
             try
             {
-                AvatarDetail objAvatar = new AvatarDetail();
-                objAvatar.Name = Avatar.Name;
-                objAvatar.Username = Avatar.Username;
-                objAvatar.Email = Avatar.Email;
-                objAvatar.Address = Avatar.Address;
-                objAvatar.Country = Avatar.Country;
-                avatarDetailRepository.AddAsync(objAvatar).Wait();
-                return new OASISResult<IAvatarDetail>
-                { IsSaved = true, IsError = false, Result = objAvatar };
+                IAvatarDetail objAvatar = avatarDetailRepository.AddAsync(avatarDetail).Result;
+                return new OASISResult<IAvatarDetail> { IsSaved = true, Result = objAvatar };
             }
             catch (Exception ex)
             {
@@ -1044,19 +1010,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
         }
 
-        public async override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        public async override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
             try
             {
-                AvatarDetail objAvatar = new AvatarDetail();
-                objAvatar.Name = Avatar.Name;
-                objAvatar.Username = Avatar.Username;
-                objAvatar.Email = Avatar.Email;
-                objAvatar.Address = Avatar.Address;
-                objAvatar.Country = Avatar.Country;                
-                objAvatar = await avatarDetailRepository.AddAsync(objAvatar);
-                return new OASISResult<IAvatarDetail>
-                { IsSaved = true, IsError = false, Result = objAvatar };
+                IAvatarDetail objAvatar = await avatarDetailRepository.AddAsync(avatarDetail);
+                return new OASISResult<IAvatarDetail> { IsSaved = true, Result = objAvatar };
             }
             catch (Exception ex)
             {
@@ -1068,15 +1027,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                Holon objHolon = new Holon
-                {
-                    Name = holon.Name,
-                    Description = holon.Description,
-                };
-
-                holonRepository.AddAsync(objHolon).Wait();
-                return new OASISResult<IHolon>
-                { IsSaved = true, IsError = false, Result = objHolon };
+                IHolon objHolon = holonRepository.AddAsync(holon).Result;
+                return new OASISResult<IHolon> { IsSaved = true, Result = objHolon };
             }
             catch (Exception ex)
             {
@@ -1088,15 +1040,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                Holon objHolon = new Holon
-                {
-                    Name = holon.Name,
-                    Description = holon.Description,
-                };
-
-                objHolon = await holonRepository.AddAsync(objHolon);
-                return new OASISResult<IHolon>
-                { IsSaved = true, IsError = false, Result = objHolon };
+                IHolon objHolon = await holonRepository.AddAsync(holon);
+                return new OASISResult<IHolon> { IsSaved = true, Result = objHolon };
             }
             catch (Exception ex)
             {
@@ -1106,21 +1051,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
         {
-            try
             {
-                foreach (var holon in holons)
-                {
-                    Holon objHolon = new Holon
-                    {
-                        Name = holon.Name,
-                        Description = holon.Description,
-                    };
-                    holonRepository.AddAsync(objHolon).Wait();
-                }               
+                List<IHolon> savedHolons = new List<IHolon>();
 
-                
-                return new OASISResult<IEnumerable<IHolon>>
-                { IsSaved = true, IsError = false, Result = holons };
+                if (holons != null)
+                {
+                    foreach (var holon in holons)
+                        savedHolons.Add(holonRepository.AddAsync(holon).Result);
+                }
+
+                return new OASISResult<IEnumerable<IHolon>> { IsSaved = true, IsError = false, Result = savedHolons };
             }
             catch (Exception ex)
             {
@@ -1132,22 +1072,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                List<IHolon> savedHolons = new List<IHolon>();
+
                 if (holons != null)
                 {
                     foreach (var holon in holons)
-                    {
-                        Holon objHolon = new Holon
-                        {
-                            Name = holon.Name,
-                            Description = holon.Description,
-                        };
-
-                        objHolon = await holonRepository.AddAsync(objHolon);
-                    }
+                        savedHolons.Add(await holonRepository.AddAsync(holon));
                 }
                 
-                return new OASISResult<IEnumerable<IHolon>>
-                { IsSaved = true, IsError = false, Result = holons };
+                return new OASISResult<IEnumerable<IHolon>> { IsSaved = true, IsError = false, Result = savedHolons };
             }
             catch (Exception ex)
             {

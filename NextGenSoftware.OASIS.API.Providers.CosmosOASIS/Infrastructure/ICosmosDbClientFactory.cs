@@ -2,6 +2,6 @@
 {
     public interface ICosmosDbClientFactory
     {
-        ICosmosDbClient GetClient(string collectionName);        
+        public ICosmosDbClient GetClient(string collectionName);        
     }
 }
