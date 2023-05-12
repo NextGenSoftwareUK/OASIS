@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces
@@ -9,7 +10,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces
         Task<T> AddAsync(T entity);
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
-        Task DeleteAsync(string id);
-        List<T> GetListAsync();
+        Task DeleteAsync(Guid id);
+        Task DeleteAsync(string providerKey);
+        //Task<List<T>> GetListAsync();
+        List<T> GetList();
     }
 }
