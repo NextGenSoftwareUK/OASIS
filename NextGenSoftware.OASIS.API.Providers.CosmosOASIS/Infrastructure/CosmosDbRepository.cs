@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
     public abstract class CosmosDbRepository<T> : IRepository<T>, IDocumentCollectionContext<T> where T : IHolonBase //Entity
     {
         private readonly ICosmosDbClientFactory _cosmosDbClientFactory;
-        private readonly Microsoft.Azure.Cosmos.Container _cosmosDbContainer;
+        //private readonly Microsoft.Azure.Cosmos.Container _cosmosDbContainer;
 
         protected CosmosDbRepository(ICosmosDbClientFactory cosmosDbClientFactory)
         {
@@ -48,19 +48,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             }
         }
 
-        public List<T> GetListAsync()
+        public List<T> GetList()
         {
             try
             {
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
 
-                var av= cosmosDbClient.ReadAllDocumentsAsync();
+                var av = cosmosDbClient.ReadAllDocuments();
                 var objList = av.ToList();
                 List<T> avatars = new List<T>();
+
                 foreach (var item in objList)
-                {
                     avatars.Add(JsonConvert.DeserializeObject<T>(item.ToString()));
-                }
+
                 return avatars;
             }
             catch (DocumentClientException e)
@@ -98,30 +98,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             }
         }
 
-        public T Add(T entity)
-        {
-            try
-            {
-                entity.Id = GenerateId(entity);
-
-                //Normally the providerKey is different to the Id but in this case they are the same since Azure uses GUID's the same as the OASIS does for ID.
-                entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS] = entity.Id.ToString();
-
-                var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
-                var document = cosmosDbClient.CreateDocument(entity);
-                return JsonConvert.DeserializeObject<T>(document.ToString());
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == HttpStatusCode.Conflict)
-                {
-                    throw new EntityAlreadyExistsException();
-                }
-
-                throw;
-            }
-        }
-
         public async Task UpdateAsync(T entity)
         {
             try
@@ -142,17 +118,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         public async Task DeleteAsync(T entity)
         {
-            await DeleteAsync(entity.Id.ToString());
+            //await DeleteAsync(entity.Id.ToString());
+            await DeleteAsync(entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]);
         }
 
-        public async Task DeleteAsync(string id)
+        public async Task DeleteAsync(Guid id)
+        {
+            //Because ProviderKey and Id are both the same (GUID) we can just do this... :)
+            await DeleteAsync(id.ToString());
+        }
+
+        public async Task DeleteAsync(string providerKey)
         {
             try
             {
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
-                await cosmosDbClient.DeleteDocumentAsync(id, new RequestOptions
+                await cosmosDbClient.DeleteDocumentAsync(providerKey, new RequestOptions
                 {
-                    PartitionKey = ResolvePartitionKey(id)
+                    PartitionKey = ResolvePartitionKey(providerKey)
                 });
             }
             catch (DocumentClientException e)

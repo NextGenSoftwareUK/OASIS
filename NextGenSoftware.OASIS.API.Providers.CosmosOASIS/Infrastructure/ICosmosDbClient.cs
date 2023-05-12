@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
     public interface ICosmosDbClient
     {
-        public IQueryable<Document> ReadAllDocumentsAsync();
+        public IQueryable<Document> ReadAllDocuments();
         Task<Document> ReadDocumentAsync(string documentId, RequestOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken));
 
