@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entities;
 
-Console.WriteLine("Hello, World!");
+Console.WriteLine("NextGen Software Ltd AzureCosmosDBOASIS Provider Test Harness");
 
 string url = "https://localhost:8081";
 string authKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
@@ -14,6 +14,15 @@ AzureCosmosDBOASIS obj = new AzureCosmosDBOASIS(new Uri(url), authKey, "nextgen"
 obj.ActivateProvider();
 
 Console.WriteLine("cosmos db connected successfully");
+
+//TODO: NEED TO TEST THIS WORKS ASAP!
+OASISResult<IAvatar> result = obj.LoadAvatarByEmail("davidellams@hotmail.com");
+
+if (result != null && !result.IsError && result.Result != null)
+    Console.WriteLine($"Avatar Loaded By Email Using Email {result.Result.Email}. Result: Id: {result.Result.Id}, Name: {result.Result.Name}");
+else
+    Console.WriteLine($"Error Loading Avatar By Email! Reason: {result.Result.Message}");
+
 Avatar av = new Avatar()
 { 
     FirstName="Hiren",

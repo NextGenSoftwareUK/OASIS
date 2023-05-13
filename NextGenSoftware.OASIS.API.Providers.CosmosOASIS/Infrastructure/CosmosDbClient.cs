@@ -27,6 +27,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                 UriFactory.CreateDocumentUri(_databaseName, _collectionName, documentId), options, cancellationToken);
         }
 
+        public Document ReadDocumentByField(string fieldName, string fieldValue, RequestOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return _documentClient.CreateDocumentQuery<Document>(UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName).ToString(), string.Concat("SELECT * FROM root r where ", fieldName, "=", fieldValue)).FirstOrDefault();
+        }
+
         public IQueryable<Document> ReadAllDocuments()
         {            
             return _documentClient.CreateDocumentQuery<Document>(UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName).ToString(), "SELECT * FROM root r ");

@@ -7,6 +7,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces
     public interface IRepository<T> //where T : Entity
     {
         Task<T> GetByIdAsync(string id);
+        T GetByField(string fieldName, string fieldValue);
         Task<T> AddAsync(T entity);
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);

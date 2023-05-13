@@ -4,8 +4,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
@@ -257,10 +259,15 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return base.HasHolonChanged(checkChildren);
         }
 
-        public bool LoadChildHolons()
+        public OASISResult<IEnumerable<IHolon>> LoadChildHolons(HolonType holonType = HolonType.All, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, bool cache = true)
         {
-            //TODO: IMPLEMENT ASAP!
-            return true;
+            //TODO: Need to test this works as expected! ;-)
+            OASISResult<IEnumerable<IHolon>> result = HolonManager.Instance.LoadAllHolons(holonType, true, recursive, maxChildDepth, continueOnError, version, ProviderType.Default, cache);
+
+            if (result != null && !result.IsError && result.Result != null)
+                this.Children = result.Result.Where(x => x.ParentHolonId == Id).ToList();
+
+            return result;
         }
 
         /*
