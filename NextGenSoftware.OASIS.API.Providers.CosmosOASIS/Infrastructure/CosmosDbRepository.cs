@@ -48,6 +48,31 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             }
         }
 
+        public T GetByField(string fieldName, string fieldValue)
+        {
+            try
+            {
+                var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
+
+                //var document = await cosmosDbClient.ReadDocumentByField(fieldName, fieldValue, new RequestOptions
+                //{
+                //    PartitionKey = ResolvePartitionKey(id)
+                //});
+
+                var document = cosmosDbClient.ReadDocumentByField(fieldName, fieldValue);
+                return JsonConvert.DeserializeObject<T>(document.ToString());
+            }
+            catch (DocumentClientException e)
+            {
+                if (e.StatusCode == HttpStatusCode.NotFound)
+                {
+                    throw new EntityNotFoundException();
+                }
+
+                throw;
+            }
+        }
+
         public List<T> GetList()
         {
             try

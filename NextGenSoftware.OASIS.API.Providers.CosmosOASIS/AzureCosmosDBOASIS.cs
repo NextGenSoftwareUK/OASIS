@@ -512,14 +512,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             return LoadAllAvatars(version);
         }
 
-        //public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        //public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, int version = 0)
         {
-            return LoadAllHolonsAsync(type, version).Result;
+            //return LoadAllHolonsAsync(type, version).Result;
+            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version).Result;
         }
 
-        //public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        //public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, int version = 0)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             string errorMessage = "Error occured in LoadAllHolonsAsync method in AzureCosmosDBOASIS Provider. Reason: ";
@@ -540,10 +541,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 //{
                 //    foreach (IHolon holon in holonsFiltered)
                 //    {
-                //        OASISResult<IEnumerable<IHolon>> holonsResult = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version);
-
-                //        if (!holonsResult.IsError && holonsResult.Result != null)
-                //            allHolonsToReturn.AddRange(holonsResult.Result);
+                //        //TODO: NEED TO COME BACK TO THIS!
+                //        //THIS METHOD WILL CALL LOADALLHOLONS ON HOLON WHICH COULD CAUSE INFINITE RECURSION AND STACK OVERFLOW! ;-)
+                //        //PLUS NEED TO THINK ABOUT CACHING AND EFFICIENCY ETC... LOTS TO THINK ABOUT AND DONT HAVE TIME FOR THIS JUST YET! ;-)
+                //        holon.LoadChildHolons(type, recursive, maxChildDepth, continueOnError, true);
                 //    }
                 //}
 
@@ -610,8 +611,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                var avatarList = avatarRepository.GetList();
-                var avatar = avatarList.Where(a => a.Email == avatarEmail).FirstOrDefault();
+                //TODO: Need to test to make sure this works!
+                IAvatar avatar = avatarRepository.GetByField("Email", avatarEmail);
+
+                //var avatarList = avatarRepository.GetList();
+                //var avatar = avatarList.Where(a => a.Email == avatarEmail).FirstOrDefault();
+
                 if (avatar == null)
                 {
                     return new OASISResult<IAvatar> { IsError = false, IsLoaded = false, Message = "No record found" };

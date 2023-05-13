@@ -15,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     public class HolonManager : OASISManager
     {
         private static HolonManager _instance = null;
+        private OASISResult<IEnumerable<IHolon>> _allHolonsCache = null;
 
         //public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
@@ -33,6 +34,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public HolonManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
 
+        }
+
+        public void ClearCache()
+        {
+            _allHolonsCache.Result = null;
+            _allHolonsCache = null;
         }
 
         /// <summary>
@@ -685,7 +692,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true)
         {
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
@@ -720,11 +727,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     holon.Original = holon;
             }
 
+            if (cache)
+                _allHolonsCache = result;
+
             SwitchBackToCurrentProvider(currentProviderType, ref result);
             return result;
         }
 
-        public OASISResult<IEnumerable<T>> LoadAllHolons<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public OASISResult<IEnumerable<T>> LoadAllHolons<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon, new()
         {
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
