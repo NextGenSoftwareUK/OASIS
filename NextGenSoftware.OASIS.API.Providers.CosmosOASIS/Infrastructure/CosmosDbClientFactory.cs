@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
@@ -29,16 +30,34 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             return new CosmosDbClient(_databaseName, collectionName, _documentClient);
         }
 
-        public async Task EnsureDbSetupAsync()
+        public async Task<OASISResult<bool>> EnsureDbSetupAsync()
         {
-            await _documentClient.ReadDatabaseAsync(UriFactory.CreateDatabaseUri(_databaseName));
-            
-            foreach (var collectionName in _collectionNames)
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
             {
-                await _documentClient.ReadDocumentCollectionAsync(
-                    UriFactory.CreateDocumentCollectionUri(_databaseName, collectionName));
+                await _documentClient.ReadDatabaseAsync(UriFactory.CreateDatabaseUri(_databaseName));
+
+                foreach (var collectionName in _collectionNames)
+                {
+                    DocumentCollection collection = await _documentClient.ReadDocumentCollectionAsync(
+                        UriFactory.CreateDocumentCollectionUri(_databaseName, collectionName));
+
+                    if (collection == null)
+                    {
+                        result.Message = $"Error occured in EnsureDbSetupAsync method in AzureCosmosDBOASIS Provider. Reason: collection {collection} is null.";
+                        result.IsError = true;
+                        return result;
+                    }
+                }
             }
-            
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync method in AzureCosmosDBOASIS Provider. Reason: {ex}");
+            }
+
+            result.Result = true;
+            return result;
         }
     }
 }

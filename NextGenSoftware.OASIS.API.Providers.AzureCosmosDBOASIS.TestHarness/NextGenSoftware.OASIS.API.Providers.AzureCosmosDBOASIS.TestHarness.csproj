@@ -11,10 +11,4 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.COSMOSOASIS\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="OASIS_DNA.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

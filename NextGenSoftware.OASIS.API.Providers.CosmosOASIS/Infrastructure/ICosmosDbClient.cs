@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         Task<Document> ReadDocumentAsync(string documentId, RequestOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken));
 
-        public Document ReadDocumentByField(string fieldName, string fieldValue, RequestOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
+        public Document ReadDocumentByField(string fieldName, string fieldValue, int version = 0, RequestOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
 
         public Task<Document> CreateDocumentAsync(object document, RequestOptions options = null,
             bool disableAutomaticIdGeneration = false,

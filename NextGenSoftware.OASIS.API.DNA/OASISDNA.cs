@@ -63,6 +63,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string AutoFailOverProviders { get; set; }
         public string AutoLoadBalanceProviders { get; set; }
         public string OASISProviderBootType { get; set; }
+        public AzureOASISProviderSettings AzureCosmosDBOASIS { get; set; }
         public HoloOASISProviderSettings HoloOASIS { get; set; }
         public MongoDBOASISProviderSettings MongoDBOASIS { get; set; }
         public EOSIOASISProviderSettings EOSIOOASIS { get; set; }
@@ -163,5 +164,13 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class LocalFileOASISSettings
     {
         public string FilePath { get; set; }
+    }
+
+    public class AzureOASISProviderSettings
+    {
+        public string ServiceEndpoint { get; set; }
+        public string AuthKey { get; set; }
+        public string DBName { get; set; }
+        public string CollectionNames { get; set; }
     }
 }
