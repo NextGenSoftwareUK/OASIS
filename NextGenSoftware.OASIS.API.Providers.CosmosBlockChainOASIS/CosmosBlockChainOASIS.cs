@@ -26,7 +26,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         #region IOASISStorageProvider Implementation
 
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            return null;
+        }
+
         public override OASISResult<bool> ActivateProvider()
+        {
+            return null;
+        }
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
             return null;
         }

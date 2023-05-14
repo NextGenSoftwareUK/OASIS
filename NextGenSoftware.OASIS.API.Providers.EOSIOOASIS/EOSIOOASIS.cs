@@ -88,8 +88,23 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
         }
 
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            //TODO: NEED TO FIX THIS ASAP!
+
+            // Get server state. Just need to receive correct response, otherwise exception would be thrown.
+            var nodeInfo = _eosClient.GetNodeInfo().Result;
+
+            // Response was received, but payload was incorrect.
+            if (nodeInfo == null || !nodeInfo.IsNodeInfoCorrect()) return new OASISResult<bool>(false);
+
+            return await base.ActivateProviderAsync();
+        }
+
         public override OASISResult<bool> ActivateProvider()
         {
+            //TODO: NEED TO FIX THIS ASAP!
+
             // Get server state. Just need to receive correct response, otherwise exception would be thrown.
             var nodeInfo = _eosClient.GetNodeInfo().Result;
 
@@ -97,6 +112,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             if (nodeInfo == null || !nodeInfo.IsNodeInfoCorrect()) return new OASISResult<bool>(false);
 
             return base.ActivateProvider();
+        }
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            _eosClient.Dispose();
+            return await base.DeActivateProviderAsync();
         }
 
         public override OASISResult<bool> DeActivateProvider()

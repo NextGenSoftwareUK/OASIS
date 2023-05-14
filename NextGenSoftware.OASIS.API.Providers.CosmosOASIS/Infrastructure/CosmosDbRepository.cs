@@ -48,7 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             }
         }
 
-        public T GetByField(string fieldName, string fieldValue)
+        public T GetByField(string fieldName, string fieldValue, int version = 0)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                 //    PartitionKey = ResolvePartitionKey(id)
                 //});
 
-                var document = cosmosDbClient.ReadDocumentByField(fieldName, fieldValue);
+                var document = cosmosDbClient.ReadDocumentByField(fieldName, fieldValue, version);
                 return JsonConvert.DeserializeObject<T>(document.ToString());
             }
             catch (DocumentClientException e)

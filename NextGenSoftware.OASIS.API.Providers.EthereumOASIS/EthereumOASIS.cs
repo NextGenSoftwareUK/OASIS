@@ -19,9 +19,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
     public class EthereumOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider
     {
-        public readonly Web3 Web3Client;
-        private readonly NextGenSoftwareOASISService _nextGenSoftwareOasisService;
-        private readonly Account _oasisAccount;
+        public Web3 Web3Client;
+        private NextGenSoftwareOASISService _nextGenSoftwareOasisService;
+        private Account _oasisAccount;
         private KeyManager _keyManager;
         private WalletManager _walletManager;
 
@@ -48,21 +48,66 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 return _walletManager;
             }
         }
-        
+
+        public string HostURI { get; set; }
+        public string ChainPrivateKey { get; set; }
+        public BigInteger ChainId { get; set; }
+        public string ContractAddress { get; set; }
+
+
         public EthereumOASIS(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
         {
             this.ProviderName = "EthereumOASIS";
             this.ProviderDescription = "Ethereum Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EthereumOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            this.HostURI = hostUri;
+            this.ChainPrivateKey = chainPrivateKey;
+            this.ChainId = chainId;
+            this.ContractAddress = contractAddress;
+        }
 
-            if (!string.IsNullOrEmpty(hostUri) && !string.IsNullOrEmpty(chainPrivateKey) && chainId > 0)
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
             {
-                _oasisAccount = new Account(chainPrivateKey, chainId);
-                Web3Client = new Web3(_oasisAccount, hostUri);
+                if (!string.IsNullOrEmpty(HostURI) && !string.IsNullOrEmpty(ChainPrivateKey) && ChainId > 0)
+                {
+                    _oasisAccount = new Account(ChainPrivateKey, ChainId);
+                    Web3Client = new Web3(_oasisAccount, HostURI);
 
-                _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(Web3Client, contractAddress);
+                    _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(Web3Client, ContractAddress);
+                }
             }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync in EthereumOASIS Provider. Reason: {ex}");
+            }
+
+            if (result.IsError)
+                return result;
+
+            return await base.ActivateProviderAsync();
+        }
+
+        public override OASISResult<bool> ActivateProvider()
+        {
+            return ActivateProviderAsync().Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            _oasisAccount = null;
+            Web3Client = null;
+            _nextGenSoftwareOasisService = null;
+            return await base.DeActivateProviderAsync();
+        }
+
+        public override OASISResult<bool> DeActivateProvider()
+        {
+            return DeActivateProviderAsync().Result;
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
@@ -1167,6 +1212,36 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
             return result;
+        }
+
+        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            throw new NotImplementedException();
         }
     }
 }

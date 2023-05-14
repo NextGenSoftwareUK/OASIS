@@ -40,25 +40,86 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
         public override OASISResult<bool> ActivateProvider()
         {
-            if (dbClientFactory == null)
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occured in ActivateProviderAsync method in AzureCosmosDBOASIS Provider. Reason:";
+
+            try
             {
-                var documentClient = new DocumentClient(serviceEndpoint, authKey, new JsonSerializerSettings
+                if (dbClientFactory == null)
                 {
-                    NullValueHandling = NullValueHandling.Ignore,
-                    DefaultValueHandling = DefaultValueHandling.Ignore,
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                });
-                documentClient.OpenAsync().Wait();
+                    var documentClient = new DocumentClient(serviceEndpoint, authKey, new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        DefaultValueHandling = DefaultValueHandling.Ignore,
+                        ContractResolver = new CamelCasePropertyNamesContractResolver()
+                    });
 
-                dbClientFactory = new CosmosDbClientFactory(databaseName, collectionNames, documentClient);
-                dbClientFactory.EnsureDbSetupAsync().Wait();
+                    documentClient.OpenAsync().Wait();
 
-                avatarRepository = new AvatarRepository(dbClientFactory);
-                holonRepository = new HolonRepository(dbClientFactory);
-                avatarDetailRepository = new AvatarDetailRepository(dbClientFactory);
+                    dbClientFactory = new CosmosDbClientFactory(databaseName, collectionNames, documentClient);
+                    OASISResult<bool> ensureDbSetupResult = dbClientFactory.EnsureDbSetupAsync().Result;
+
+                    if (ensureDbSetupResult.IsError || !ensureDbSetupResult.Result)
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from EnsureDbSetupAsync: {ensureDbSetupResult.Message}.");
+                    else
+                    {
+                        avatarRepository = new AvatarRepository(dbClientFactory);
+                        holonRepository = new HolonRepository(dbClientFactory);
+                        avatarDetailRepository = new AvatarDetailRepository(dbClientFactory);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.");
             }
 
+            if (result.IsError)
+                return result;
+
             return base.ActivateProvider();
+        }
+
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occured in ActivateProviderAsync method in AzureCosmosDBOASIS Provider. Reason:";
+
+            try
+            {
+                if (dbClientFactory == null)
+                {
+                    var documentClient = new DocumentClient(serviceEndpoint, authKey, new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        DefaultValueHandling = DefaultValueHandling.Ignore,
+                        ContractResolver = new CamelCasePropertyNamesContractResolver()
+                    });
+
+                    await documentClient.OpenAsync();
+
+                    dbClientFactory = new CosmosDbClientFactory(databaseName, collectionNames, documentClient);
+                    OASISResult<bool> ensureDbSetupResult = await dbClientFactory.EnsureDbSetupAsync();
+
+                    if (ensureDbSetupResult.IsError || !ensureDbSetupResult.Result)
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from EnsureDbSetupAsync: {ensureDbSetupResult.Message}.");
+                    else
+                    {
+                        avatarRepository = new AvatarRepository(dbClientFactory);
+                        holonRepository = new HolonRepository(dbClientFactory);
+                        avatarDetailRepository = new AvatarDetailRepository(dbClientFactory);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.");
+            }
+
+            if (result.IsError)
+                return result;
+
+            return await base.ActivateProviderAsync();
         }
 
         public override OASISResult<bool> DeActivateProvider()
@@ -70,19 +131,21 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             return base.DeActivateProvider();
         }
 
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            dbClientFactory = null;
+            avatarRepository = null;
+            avatarDetailRepository = null;
+            holonRepository = null;
+            return await base.DeActivateProviderAsync();
+        }
+
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
             try
             {
+                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
                 avatarRepository.DeleteAsync(id.ToString()).Wait();
-
-
-                //var avatarList = avatarRepository.GetList();
-                //var avatar = avatarList.Where(a => a.AvatarId == id).FirstOrDefault();
-                //if (avatar != null)
-                //{
-                //    avatarRepository.DeleteAsync(avatar).Wait();
-                //}
                 return new OASISResult<bool> { IsError = false, Result = true };
             }
             catch (Exception ex)
@@ -95,15 +158,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
                 //Normally the providerKey is different to the Id but in this case they are the same since Azure uses GUID's the same as the OASIS does for ID.
                 avatarRepository.DeleteAsync(providerKey).Wait();
-
-                //var avatarList = avatarRepository.GetList();
-                //var avatar = avatarList.Where(a => a.AvatarId == new Guid(providerKey)).FirstOrDefault();
-                //if (avatar != null)
-                //{
-                //    avatarRepository.DeleteAsync(avatar).Wait();
-                //}
                 return new OASISResult<bool> { IsError = false, Result = true };
             }
             catch (Exception ex)
@@ -116,13 +173,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
                 await avatarRepository.DeleteAsync(id.ToString());
-
-                //var avatar =await avatarRepository.GetByIdAsync(id.ToString());
-                //if (avatar != null)
-                //{                    
-                //    await avatarRepository.DeleteAsync(avatar);
-                //}
                 return new OASISResult<bool> { IsError = false, Result = true };
             }
             catch (Exception ex) {
@@ -136,12 +188,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 //Normally the providerKey is different to the Id but in this case they are the same since Azure uses GUID's the same as the OASIS does for ID.
                 await avatarRepository.DeleteAsync(providerKey);
-
-                //var avatar = await avatarRepository.GetByIdAsync(providerKey);
-                //if (avatar != null)
-                //{
-                //    await avatarRepository.DeleteAsync(avatar);
-                //}
                 return new OASISResult<bool> { IsError = false, Result = true };
             }
             catch (Exception ex)
@@ -154,6 +200,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
                 //TODO: May want to cache this in future?
                 var avatarList = avatarRepository.GetList();
                 var avatar = avatarList.Where(a => a.Email == avatarEmail).FirstOrDefault();
@@ -173,6 +220,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
                 //TODO: May want to cache this in future?
                 var avatarList = avatarRepository.GetList();
                 var avatar = avatarList.Where(a => a.Email == avatarEmail).FirstOrDefault();
@@ -192,6 +240,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
                 //TODO: May want to cache this in future?
                 var avatarList = avatarRepository.GetList();
                 var avatar = avatarList.Where(a => a.Username == avatarUsername).FirstOrDefault();
@@ -211,6 +260,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
                 //TODO: May want to cache this in future?
                 var avatarList = avatarRepository.GetList();
                 var avatar = avatarList.Where(a => a.Username == avatarUsername).FirstOrDefault();
@@ -470,11 +520,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
+            //TODO HB: implement...
             throw new NotImplementedException();
         }
 
         public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
+            //TODO HB: implement...
             throw new NotImplementedException();
         }
 
@@ -569,6 +621,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
                 IAvatar avatar = avatarRepository.GetByIdAsync(id.ToString()).Result;
 
                 if (avatar == null)
@@ -590,8 +643,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
                 var avatar = await avatarRepository.GetByIdAsync(Id.ToString());
-                //var avatar=avatarList.Where(a=>a.AvatarId==Id).FirstOrDefault();
+                
                 if (avatar == null)
                 {
                     return new OASISResult<IAvatar> { IsError = false, IsLoaded = false, Message = "No record found" };
@@ -611,8 +665,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
                 //TODO: Need to test to make sure this works!
-                IAvatar avatar = avatarRepository.GetByField("Email", avatarEmail);
+                IAvatar avatar = avatarRepository.GetByField("Email", avatarEmail, version);
 
                 //var avatarList = avatarRepository.GetList();
                 //var avatar = avatarList.Where(a => a.Email == avatarEmail).FirstOrDefault();
@@ -636,6 +691,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
                 var avatarList = avatarRepository.GetList();
                 var avatar = avatarList.Where(a => a.Email == avatarEmail).FirstOrDefault();
                 if (avatar == null)
@@ -657,6 +713,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
                 var avatarList = avatarRepository.GetList();
                 var avatar = avatarList.Where(a => a.Username == avatarUsername).FirstOrDefault();
                 if (avatar == null)
@@ -678,6 +735,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
                 var avatarList = avatarRepository.GetList();
                 var avatar = avatarList.Where(a => a.Username == avatarUsername).FirstOrDefault();
                 if (avatar == null)
@@ -699,6 +757,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
                 IAvatarDetail avatarDetail = avatarDetailRepository.GetByIdAsync(id.ToString()).Result;
 
                 if (avatarDetail == null)
@@ -720,6 +779,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
                 IAvatarDetail avatarDetail = avatarDetailRepository.GetByIdAsync(id.ToString()).Result;
 
                 if (avatarDetail == null)
@@ -741,6 +801,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
                 var avatarDetList = avatarDetailRepository.GetList();
                 var avatar = avatarDetList.Where(a => a.Email == avatarEmail).FirstOrDefault();
                 if (avatar == null)
@@ -762,6 +823,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
                 var avatarDetList = avatarDetailRepository.GetList();
                 var avatar = avatarDetList.Where(a => a.Email == avatarEmail).FirstOrDefault();
                 if (avatar == null)
@@ -783,6 +845,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
                 var avatarDetList = avatarDetailRepository.GetList();
                 var avatar = avatarDetList.Where(a => a.Username == avatarUsername).FirstOrDefault();
                 if (avatar == null)
@@ -804,6 +867,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
                 var avatarDetList = avatarDetailRepository.GetList();
                 var avatar = avatarDetList.Where(a => a.Username == avatarUsername).FirstOrDefault();
                 if (avatar == null)
@@ -823,210 +887,114 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+
             try
             {
-                var avatarList = avatarRepository.GetList();
+                IAvatar avatar = avatarRepository.GetByField("Id", providerKey, version);
+
+                //var avatarList = avatarRepository.GetList();
                 //var avatar = avatarList.Where(a => a.Id == new Guid(providerKey)).FirstOrDefault(); //The ID and ProviderUniqueStorageKey are the same for Azure because Azure uses GUID for ID's like OASIS does.
-                var avatar = avatarList.Where(a => a.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS] == providerKey).FirstOrDefault();
+                //var avatar = avatarList.Where(a => a.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS] == providerKey).FirstOrDefault();
+                
                 if (avatar == null)
-                {
-                    return new OASISResult<IAvatar> { IsError = false, IsLoaded = false, Message = "No record found" };
-                }
+                    result.Message = "No record found in LoadAvatarByProviderKey method in AzureCosmosDbOASIS Provider.";
                 else
                 {
-                    return new OASISResult<IAvatar> { IsError = false, IsLoaded = true, Message = "Avatar fetched", Result = avatar };
+                    result.Result = avatar;
+                    result.Message = "Avatar fetched in LoadAvatarByProviderKey method in AzureCosmosDbOASIS Provider.";
                 }
             }
             catch (Exception ex)
             {
-                return new OASISResult<IAvatar> { IsError = true, IsLoaded = false, Message = ex.Message };
+                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByProviderKey method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
+
+            return result;
         }
 
         public async override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
-            try
-            {
-                var avatarList = avatarRepository.GetList();
-                //var avatar = avatarList.Where(a => a.Id == new Guid(providerKey)).FirstOrDefault(); //The ID and ProviderUniqueStorageKey are the same for Azure because Azure uses GUID for ID's like OASIS does.
-                var avatar = avatarList.Where(a => a.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS] == providerKey).FirstOrDefault();
-                if (avatar == null)
-                {
-                    return new OASISResult<IAvatar> { IsError = false, IsLoaded = false, Message = "No record found" };
-                }
-                else
-                {
-                    return new OASISResult<IAvatar> { IsError = false, IsLoaded = true, Message = "Avatar fetched", Result = avatar };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatar> { IsError = true, IsLoaded = false, Message = ex.Message };
-            }
+            return LoadAvatarByProviderKey(providerKey, version);
         }
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            try
-            {
-                var holon = holonRepository.GetByIdAsync(id.ToString()).Result;
-
-                if (holon == null)
-                {
-                    return new OASISResult<IHolon> { IsError = false, IsLoaded = false, Message = "No record found in LoadHolonAsync method in AzureCOSMOSDBOASIS." };
-                }
-                else
-                {
-                    return new OASISResult<IHolon> { IsError = false, IsLoaded = true, Message = "Holon fetched in LoadHolonAsync method in AzureCOSMOSDBOASIS.", Result = holon };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IHolon> { IsError = true, IsLoaded = false, Message = $"Error occured in LoadHolonAsync method in AzureCOSMOSDBOASIS loading holon. Reason: {ex.Message }." };
-            }
+            return LoadHolon(id.ToString(), loadChildren, recursive, maxChildDepth, continueOnError, version);
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+
             try
             {
                 var holon = holonRepository.GetByIdAsync(providerKey).Result;
 
-                if (holon != null)
-                    return new OASISResult<IHolon> { IsError = false, IsLoaded = true, Message = "Holon fetched in LoadHolon method in AzureCOSMOSDBOASIS.", Result = holon };
+                if (holon == null)
+                    result.Message = "No holons found in LoadHolon method in AzureCOSMOSDBOASIS.";
                 else
-                    return new OASISResult<IHolon> { IsError = false, IsLoaded = false, Message = "No record found in LoadHolon method in AzureCOSMOSDBOASIS." };
+                {
+                    result.Result = holon;
+                    result.Message = "Holon fetched in LoadHolon method in AzureCOSMOSDBOASIS.";
+                }
             }
             catch (Exception ex)
             {
-                return new OASISResult<IHolon> { IsError = true, IsLoaded = false, Message = $"Error occured in LoadHolon method in AzureCOSMOSDBOASIS loading holon. Reason: {ex.Message }." };
+                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadHolon method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
+
+            return result;
         }
 
         public async override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            try
-            {
-                var holon = await holonRepository.GetByIdAsync(id.ToString());
-                
-                if (holon == null)
-                {
-                    return new OASISResult<IHolon> { IsError = false, IsLoaded = false, Message = "No record found in LoadHolonAsync method in AzureCOSMOSDBOASIS." };
-                }
-                else
-                {
-                    return new OASISResult<IHolon> { IsError = false, IsLoaded = true, Message = "Holon fetched in LoadHolonAsync method in AzureCOSMOSDBOASIS.", Result = holon };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IHolon> { IsError = true, IsLoaded = false, Message = $"Error occured in LoadHolonAsync method in AzureCOSMOSDBOASIS loading holon. Reason: {ex.Message }." };
-            }
+            return LoadHolon(id.ToString(), loadChildren, recursive, maxChildDepth, continueOnError, version);
         }
 
         public async override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            try
-            {
-                var holon = await holonRepository.GetByIdAsync(providerKey);
-
-                if (holon == null)
-                {
-                    return new OASISResult<IHolon> { IsError = false, IsLoaded = false, Message = "No record found" };
-                }
-                else
-                {
-                    return new OASISResult<IHolon> { IsError = false, IsLoaded = true, Message = "Holon fetched", Result = holon };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IHolon> { IsError = true, IsLoaded = false, Message = ex.Message };
-            }
+            return LoadHolon(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            try
-            {
-                var holonList = holonRepository.GetList();
-                var holonFiltered = holonList.Where(h => h.HolonType == type && h.ParentHolonId==id).ToList();
-                if (holonList.Count <= 0)
-                {
-                    return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = false, Message = "No record found" };
-                }
-                else
-                {
-                    return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = true, Message = "Holons fetched", Result = holonFiltered };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IEnumerable<IHolon>> { IsError = true, IsLoaded = false, Message = ex.Message };
-            }
+            return LoadHolonsForParent(id.ToString(), type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
             try
             {
                 var holonList = holonRepository.GetList();
-                var holonFiltered = holonList.Where(h => h.HolonType == type && h.ParentHolonId == new Guid(providerKey)).ToList();
+                var holonFiltered = holonList.Where(h => h.HolonType == type && h.ParentHolonId.ToString() == providerKey).ToList();
+
                 if (holonList.Count <= 0)
-                {
-                    return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = false, Message = "No record found" };
-                }
+                    result.Message = "No holons found in LoadHolonsForParent method in AzureCOSMOSDBOASIS.";
                 else
                 {
-                    return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = true, Message = "Holons fetched", Result = holonFiltered };
+                    result.Result = holonFiltered;
+                    result.Message = "Holons fetched in LoadHolonsForParent method in AzureCOSMOSDBOASIS.";
                 }
             }
             catch (Exception ex)
             {
-                return new OASISResult<IEnumerable<IHolon>> { IsError = true, IsLoaded = false, Message = ex.Message };
+                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadHolonsForParent method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
+
+            return result;
         }
 
         public async override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            try
-            {
-                var holonList = holonRepository.GetList();
-                var holonFiltered = holonList.Where(h => h.HolonType == type && h.ParentHolonId == id).ToList();
-                if (holonList.Count <= 0)
-                {
-                    return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = false, Message = "No record found" };
-                }
-                else
-                {
-                    return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = true, Message = "Holons fetched", Result = holonFiltered };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IEnumerable<IHolon>> { IsError = true, IsLoaded = false, Message = ex.Message };
-            }
+            return LoadHolonsForParent(id.ToString(), type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version);
         }
 
         public async override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            try
-            {
-                var holonList = holonRepository.GetList();
-                var holonFiltered = holonList.Where(h => h.HolonType == type && h.ParentHolonId == new Guid(providerKey)).ToList();
-                if (holonList.Count <= 0)
-                {
-                    return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = false, Message = "No record found" };
-                }
-                else
-                {
-                    return new OASISResult<IEnumerable<IHolon>> { IsError = false, IsLoaded = true, Message = "Holons fetched", Result = holonFiltered };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IEnumerable<IHolon>> { IsError = true, IsLoaded = false, Message = ex.Message };
-            }
+            return LoadHolonsForParent(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version);
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)

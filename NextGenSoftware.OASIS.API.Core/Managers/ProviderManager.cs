@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -355,6 +356,32 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        public static async Task<OASISResult<bool>> ActivateProviderAsync(ProviderType type)
+        {
+            return await ActivateProviderAsync(_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type));
+        }
+
+        public static async Task<OASISResult<bool>> ActivateProviderAsync(IOASISProvider provider)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            if (provider != null)
+            {
+                try
+                {
+                    result = await provider.ActivateProviderAsync();
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandling.HandleError(ref result, string.Concat("Error Activating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
+                }
+            }
+            else
+                ErrorHandling.HandleError(ref result, "Error Activating Provider. Provider passed in is null!");
+
+            return result;
+        }
+
         public static OASISResult<bool> ActivateProvider(ProviderType type)
         {
             return ActivateProvider(_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type));
@@ -395,6 +422,32 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 try
                 {
                     result = provider.DeActivateProvider();
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandling.HandleError(ref result, string.Concat("Error DeActivating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
+                }
+            }
+            else
+                ErrorHandling.HandleError(ref result, "Error DeActivating Provider. Provider passed in is null!");
+
+            return result;
+        }
+
+        public static async Task<OASISResult<bool>> DeActivateProviderAsync(ProviderType type)
+        {
+            return await DeActivateProviderAsync(_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type));
+        }
+
+        public static async Task<OASISResult<bool>> DeActivateProviderAsync(IOASISProvider provider)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            if (provider != null)
+            {
+                try
+                {
+                    result = await provider.DeActivateProviderAsync();
                 }
                 catch (Exception ex)
                 {

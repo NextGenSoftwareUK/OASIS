@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
@@ -59,6 +60,18 @@ namespace NextGenSoftware.OASIS.API.Core
         }
 
         virtual public OASISResult<bool> DeActivateProvider()
+        {
+            ProviderActivated = false;
+            return new OASISResult<bool>(true);
+        }
+
+        virtual public async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            ProviderActivated = true;
+            return new OASISResult<bool>(true);
+        }
+
+        virtual public async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
             ProviderActivated = false;
             return new OASISResult<bool>(true);

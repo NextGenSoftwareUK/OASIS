@@ -27,11 +27,26 @@ namespace NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS
         #region IOASISStorageProvider Implementation
         //This the bare minium set of methods a Provider needs to implement to be able to read/write to The OASIS (part of the OASISStorageProviderBase and IOASISStorageProvider interface).
 
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            //This is called anytime the provider is started by the OASISBootLoader.
+            //Here you will make connections, instantiate objects, readers, writers etc and any other setup needed.
+            //NOTE: The OASIS may activate and deactivate any provider at anytime so the ActivateProvider and DeActivateProvider may be called multiple times whereas the setup code in the constructor is done only once.
+            return null;
+        }
+
         public override OASISResult<bool> ActivateProvider()
         {
             //This is called anytime the provider is started by the OASISBootLoader.
             //Here you will make connections, instantiate objects, readers, writers etc and any other setup needed.
             //NOTE: The OASIS may activate and deactivate any provider at anytime so the ActivateProvider and DeActivateProvider may be called multiple times whereas the setup code in the constructor is done only once.
+            return null;
+        }
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            //This is called anytime the provider is shutdown by the OASISBootLoader.
+            //Here you will close connections, datasets, readers, writers, de-allocate objects/memory etc.
             return null;
         }
 

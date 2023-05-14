@@ -8,12 +8,13 @@ using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
-using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
+using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
@@ -365,6 +366,19 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             localFileOASIS.StorageProviderError += LocalFileOASIS_StorageProviderError;
                             registeredProvider = localFileOASIS;
                         }break;
+
+                    case ProviderType.AzureCosmosDBOASIS:
+                        {
+                            AzureCosmosDBOASIS azureCosmosDBOASIS = new AzureCosmosDBOASIS(
+                                new Uri(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.ServiceEndpoint), 
+                                OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.AuthKey,
+                                OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.DBName,
+                                ListHelper.ConvertToList(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.CollectionNames));
+
+                            azureCosmosDBOASIS.StorageProviderError += LocalFileOASIS_StorageProviderError;
+                            registeredProvider = azureCosmosDBOASIS;
+                        }
+                        break;
                 }
 
                 if (registeredProvider != null)
