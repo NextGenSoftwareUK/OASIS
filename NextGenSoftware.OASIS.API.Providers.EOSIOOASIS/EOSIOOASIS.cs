@@ -24,16 +24,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
     public class EOSIOOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private static readonly Dictionary<Guid, GetAccountResponseDto> _avatarIdToEOSIOAccountLookup = new();
-        private readonly IEosClient _eosClient;
-        private readonly IEosProviderRepository<AvatarDetailDto> _avatarDetailRepository;
-        private readonly IEosProviderRepository<AvatarDto> _avatarRepository;
-        private readonly IEosProviderRepository<HolonDto> _holonRepository;
-        private readonly IEosTransferRepository _transferRepository;
+        private IEosClient _eosClient;
+        private IEosProviderRepository<AvatarDetailDto> _avatarDetailRepository;
+        private IEosProviderRepository<AvatarDto> _avatarRepository;
+        private IEosProviderRepository<HolonDto> _holonRepository;
+        private IEosTransferRepository _transferRepository;
         private AvatarManager _avatarManager;
         private KeyManager _keyManager;
         private WalletManager _walletManager;
 
         public ChainAPI ChainAPI => new ChainAPI();
+
+        public string HostURI { get; set; }
+        public string EOSAccountName { get; set; }
+        public string EOSChainId { get; set; }
+        public string EOSAccountPk { get; set; }
 
         public EOSIOOASIS(string hostUri, string eosAccountName, string eosChainId, string eosAccountPk)
         {
@@ -45,11 +50,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EOSIOOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            _eosClient = new EosClient(new Uri(hostUri));
-            _holonRepository = new HolonEosProviderRepository(_eosClient, eosAccountName, hostUri, eosChainId, eosAccountPk);
-            _avatarDetailRepository = new AvatarDetailEosProviderRepository(_eosClient, eosAccountName,hostUri, eosChainId, eosAccountPk);
-            _avatarRepository = new AvatarEosProviderRepository(_eosClient, eosAccountName, hostUri, eosChainId, eosAccountPk);
-            _transferRepository = new EosTransferRepository(eosAccountName, hostUri, eosChainId, eosAccountPk);
+            HostURI = hostUri;
+            EOSAccountName = eosAccountName;
+            EOSChainId = eosChainId;
+            EOSAccountPk = eosAccountPk;
+
+            //_eosClient = new EosClient(new Uri(hostUri));
+            //_holonRepository = new HolonEosProviderRepository(_eosClient, eosAccountName, hostUri, eosChainId, eosAccountPk);
+            //_avatarDetailRepository = new AvatarDetailEosProviderRepository(_eosClient, eosAccountName,hostUri, eosChainId, eosAccountPk);
+            //_avatarRepository = new AvatarEosProviderRepository(_eosClient, eosAccountName, hostUri, eosChainId, eosAccountPk);
+            //_transferRepository = new EosTransferRepository(eosAccountName, hostUri, eosChainId, eosAccountPk);
         }
 
         private AvatarManager AvatarManager
@@ -90,26 +100,62 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            //TODO: NEED TO FIX THIS ASAP!
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occured in ActivateProviderAsync method in EOSIOOASIS Provider. Reason:";
 
-            // Get server state. Just need to receive correct response, otherwise exception would be thrown.
-            var nodeInfo = _eosClient.GetNodeInfo().Result;
+            try
+            {
+                _eosClient = new EosClient(new Uri(HostURI));
+                _holonRepository = new HolonEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                _avatarDetailRepository = new AvatarDetailEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                _avatarRepository = new AvatarEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                _transferRepository = new EosTransferRepository(EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
 
-            // Response was received, but payload was incorrect.
-            if (nodeInfo == null || !nodeInfo.IsNodeInfoCorrect()) return new OASISResult<bool>(false);
+                // Get server state. Just need to receive correct response, otherwise exception would be thrown.
+                var nodeInfo = await _eosClient.GetNodeInfo();
+
+                // Response was received, but payload was incorrect.
+                if (nodeInfo == null || !nodeInfo.IsNodeInfoCorrect())
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} NodeInfo Received Incorrect.");
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
+            }
+
+            if (result.IsError)
+                return result;
 
             return await base.ActivateProviderAsync();
         }
 
         public override OASISResult<bool> ActivateProvider()
         {
-            //TODO: NEED TO FIX THIS ASAP!
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occured in ActivateProvider method in EOSIOOASIS Provider. Reason:";
 
-            // Get server state. Just need to receive correct response, otherwise exception would be thrown.
-            var nodeInfo = _eosClient.GetNodeInfo().Result;
+            try
+            {
+                _eosClient = new EosClient(new Uri(HostURI));
+                _holonRepository = new HolonEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                _avatarDetailRepository = new AvatarDetailEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                _avatarRepository = new AvatarEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                _transferRepository = new EosTransferRepository(EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
 
-            // Response was received, but payload was incorrect.
-            if (nodeInfo == null || !nodeInfo.IsNodeInfoCorrect()) return new OASISResult<bool>(false);
+                // Get server state. Just need to receive correct response, otherwise exception would be thrown.
+                var nodeInfo = _eosClient.GetNodeInfo().Result;
+
+                // Response was received, but payload was incorrect.
+                if (nodeInfo == null || !nodeInfo.IsNodeInfoCorrect())
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} NodeInfo Received Incorrect.");
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
+            }
+
+            if (result.IsError)
+                return result;
 
             return base.ActivateProvider();
         }
@@ -117,12 +163,24 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
             _eosClient.Dispose();
+            _eosClient = null;
+            _holonRepository = null;
+            _avatarDetailRepository = null;
+            _avatarRepository = null;
+            _transferRepository = null;
+
             return await base.DeActivateProviderAsync();
         }
 
         public override OASISResult<bool> DeActivateProvider()
         {
             _eosClient.Dispose();
+            _eosClient = null;
+            _holonRepository = null;
+            _avatarDetailRepository = null;
+            _avatarRepository = null;
+            _transferRepository = null;
+
             return base.DeActivateProvider();
         }
 
