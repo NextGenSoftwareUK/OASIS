@@ -14,8 +14,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 {
     public class OLANDManager : OASISManager
     {
-        private readonly HolonManager _holonManager = null;
-
         public OLANDManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
 
@@ -23,16 +21,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 
         public OLANDManager(OASISDNA OASISDNA = null) : base(OASISDNA)
         {
-            var result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
 
-            //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
-            if (result.IsError)
-            {
-                string errorMessage = string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message);
-                ErrorHandling.HandleError(ref result, errorMessage, true, false, true);
-            }
-            else
-                _holonManager = new HolonManager(result.Result);
         }
         
         public async Task<OASISResult<IEnumerable<IOland>>> LoadAllOlands()
@@ -40,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
             var response = new OASISResult<IEnumerable<IOland>>();
             try
             {
-                var loadResult = await _holonManager.LoadAllHolonsAsync();
+                var loadResult = await Data.LoadAllHolonsAsync();
                 if (loadResult.IsError)
                 {
                     response.IsError = true;
@@ -82,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
             var response = new OASISResult<IOland>();
             try
             {
-                var loadResult = await _holonManager.LoadHolonAsync(olandId);
+                var loadResult = await Data.LoadHolonAsync(olandId);
                 if (loadResult.IsError)
                 {
                     response.IsError = true;
@@ -122,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 
         public async Task<OASISResult<bool>> DeleteOland(Guid olandId)
         {
-            return await _holonManager.DeleteHolonAsync(olandId);
+            return await Data.DeleteHolonAsync(olandId);
         }
 
         public async Task<OASISResult<string>> SaveOland(IOland request)
@@ -147,7 +136,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                         [nameof(IOland.TopSize)] = request.TopSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
                     }
                 };
-                var saveResult = await _holonManager.SaveHolonAsync(olandHolon);
+                var saveResult = await Data.SaveHolonAsync(olandHolon);
                 if (saveResult.IsError)
                 {
                     response.IsError = true;
@@ -194,7 +183,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                     }
                 };
                 
-                var saveResult = await _holonManager.SaveHolonAsync(olandHolon);
+                var saveResult = await Data.SaveHolonAsync(olandHolon);
                 if (saveResult.IsError)
                 {
                     response.IsError = true;
@@ -243,7 +232,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                     }
                 };
                 
-                var saveResult = await _holonManager.SaveHolonAsync(olandHolon);
+                var saveResult = await Data.SaveHolonAsync(olandHolon);
                 if (saveResult.IsError)
                 {
                     response.IsError = true;

@@ -23,8 +23,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
     public class CreateNftTransactionRequest
     {
         public NftProvider NftProvider { get; set; }
-        public ExchangeTokenRequest SolanaExchange { get; set; }
-        public PurchaseRequestModel CargoExchange { get; set; }
+        public string MintWalletAddress { get; set; }
+        public string FromWalletAddress { get; set; }
+        public string ToWalletAddress { get; set; }
+        public int Amount { get; set; }
+        public string MemoText { get; set; }
+
+        //public ExchangeTokenRequest SolanaExchange { get; set; }
+        //public PurchaseRequestModel CargoExchange { get; set; }
     }
 
     public class NftTransactionRespone

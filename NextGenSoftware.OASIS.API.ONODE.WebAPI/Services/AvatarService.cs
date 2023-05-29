@@ -22,7 +22,7 @@ using BC = BCrypt.Net.BCrypt;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
-    //TODO: Want to phase this out, now needed, moving more and more code into AvatarManager.
+    //TODO: Want to phase this out, not needed, moving more and more code into AvatarManager.
     public class AvatarService : IAvatarService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;

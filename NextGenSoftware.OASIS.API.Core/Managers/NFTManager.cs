@@ -1,22 +1,35 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Threading.Tasks;
+﻿//using NextGenSoftware.OASIS.API.DNA;
+//using NextGenSoftware.OASIS.API.Core.Interfaces;
 //using NextGenSoftware.OASIS.API.Core.Helpers;
 //using NextGenSoftware.OASIS.API.Core.Objects;
-//using NextGenSoftware.OASIS.API.ONODE.BLL.Managers;
-//using NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
-//using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
-//using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Cargo;
-//using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
+//using System.Collections.Generic;
+//using System.Threading.Tasks;
+//using System;
 
-//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
+//namespace NextGenSoftware.OASIS.API.Core.Managers
 //{
-//    //TODO: PLEASE MOVE TO OASIS.CORE ASAP, ALL SERVICES SHOULD BE CONVERTED TO MANAGERS IN OASIS.CORE so they can be shared by other endpoints such as gRPC, GraphQL etc...
-//    public class NftService : INftService
+//    public class NFTManager : OASISManager
 //    {
-//        private readonly ISolanaService _solanaService;
-//        private readonly ICargoService _cargoService;
+//        private static NFTManager _instance = null;
+
+//        public static NFTManager Instance
+//        {
+//            get
+//            {
+//                if (_instance == null)
+//                    _instance = new NFTManager(ProviderManager.CurrentStorageProvider);
+
+//                return _instance;
+//            }
+//        }
+
+//        public NFTManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
+//        {
+
+//        }
+
+//        //private readonly ISolanaService _solanaService;
+//        //private readonly ICargoService _cargoService;
 
 //        private readonly OLANDManager _olandManager;
 
@@ -49,7 +62,7 @@
 //            { 409600, 6912000 },
 //            { 819200, 13824000 },
 //        };
-        
+
 //        public NftService(ISolanaService solanaService, ICargoService cargoService)
 //        {
 //            _solanaService = solanaService;
@@ -140,7 +153,7 @@
 //                    ErrorHandling.HandleError(ref response, response.Message);
 //                    return response;
 //                }
-                
+
 //                var cargoPurchaseResponse = await _cargoService.PurchaseCargoSale(new PurchaseRequestModel(request.CargoSaleId));
 //                if (cargoPurchaseResponse.IsError)
 //                {
@@ -177,5 +190,8 @@
 //            }
 //            return response;
 //        }
+
+
+//        //TODO: Lots more coming soon! ;-)
 //    }
 //}
