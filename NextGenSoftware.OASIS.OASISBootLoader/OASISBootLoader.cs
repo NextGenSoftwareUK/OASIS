@@ -116,7 +116,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return result;
         }
 
-        public static OASISResult<IOASISStorageProvider> GetAndActivateDefaultProvider()
+        public static OASISResult<IOASISStorageProvider> GetAndActivateDefaultStorageProvider()
         {
             OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
 
@@ -136,7 +136,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                 foreach (EnumValue<ProviderType> providerType in ProviderManager.GetProviderAutoFailOverList())
                 {
-                    OASISResult<IOASISStorageProvider> providerManagerResult = GetAndActivateProvider(providerType.Value);
+                    OASISResult<IOASISStorageProvider> providerManagerResult = GetAndActivateStorageProvider(providerType.Value);
 
                     if ((providerManagerResult.IsError || providerManagerResult.Result == null))
                     {
@@ -173,7 +173,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return result;
         }
 
-        public static OASISResult<IOASISStorageProvider> GetAndActivateProvider(ProviderType providerType,
+        public static OASISResult<IOASISStorageProvider> GetAndActivateStorageProvider(ProviderType providerType,
             string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
         {
             OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
