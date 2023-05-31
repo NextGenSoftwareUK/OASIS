@@ -80,9 +80,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
         //    _olandManager = new OLANDManager();
         //}
 
-        public async Task<OASISResult<NFTTransactionRespone>> CreateNftTransaction(INFTWalletTransaction request)
+        public async Task<OASISResult<TransactionRespone>> CreateNftTransaction(INFTWalletTransaction request)
         {
-            OASISResult<NFTTransactionRespone> result = new OASISResult<NFTTransactionRespone>();
+            OASISResult<TransactionRespone> result = new OASISResult<TransactionRespone>();
             IOASISNFTProvider provider = null;
             string errorMessage = "Error occured in CreateNftTransaction in NFTManager. Reason:";
 

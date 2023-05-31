@@ -31,7 +31,7 @@
 //            get
 //            {
 //                if (_mapManager == null)
-//                    _mapManager = new MapManager(GetAndActivateDefaultProvider());
+//                    _mapManager = new MapManager(GetAndActivateDefaultStorageProvider());
 
 //                return _mapManager;
 //            }

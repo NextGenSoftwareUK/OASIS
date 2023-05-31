@@ -9,6 +9,7 @@ using EosSharp.Core.Providers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Repository;
 using Action = EosSharp.Core.Api.v1.Action;
 
@@ -32,10 +33,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             });
         }
         
-        public async Task<OASISResult<string>> TransferEosToken(string fromAccountName, string toAccountName, decimal amount)
+        public async Task<OASISResult<TransactionRespone>> TransferEosToken(string fromAccountName, string toAccountName, decimal amount)
         {
-            var result = new OASISResult<string>();
-            string errorMessageTemplate = "Error was occured while executing a transfer request! Reason: {0}";
+            var result = new OASISResult<TransactionRespone>();
+            string errorMessageTemplate = "Error occured while executing a transfer request! Reason: {0}";
 
             try
             {
@@ -65,12 +66,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                         }
                     }
                 });
-                result.Result = pushTransactionResult;
-                LoggingManager.Log(
-                    "Transferring token request was sent. " +
-                    $"Received transaction hash response: {pushTransactionResult}. " +
-                    $"Transfer token from: from: {fromAccountName}, to: {toAccountName}, amount: {amount}",
-                    LogType.Info);
+                
+                result.Result.TransactionResult = pushTransactionResult;
+                ErrorHandling.CheckForTransactionErrors(ref result);
+
+                if (!result.IsError)
+                {
+                    result.Message = "Transferring token request was successful. " +
+                        $"Received transaction hash response: {pushTransactionResult}. " +
+                        $"Transfer token from: from: {fromAccountName}, to: {toAccountName}, amount: {amount}";
+
+                    LoggingManager.Log(result.Message, LogType.Info);
+                }
             }
             catch (ApiException e)
             {
@@ -90,10 +97,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             return result;
         }
 
-        public async Task<OASISResult<bool>> TransferEosNft(string fromAccountName, string toAccountName, decimal amount, string nftSymbol)
+        public async Task<OASISResult<TransactionRespone>> TransferEosNft(string fromAccountName, string toAccountName, decimal amount, string nftSymbol)
         {            
-            var result = new OASISResult<bool>();
-            string errorMessageTemplate = "Error was occured while executing a transfer nft request! Reason: {0}";
+            var result = new OASISResult<TransactionRespone>();
+            string errorMessageTemplate = "Error occured whilst executing a transfer nft request! Reason: {0}";
 
             try
             {
@@ -123,12 +130,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                         }
                     }
                 });
-                result.Result = true;
-                LoggingManager.Log(
-                    "Transferring nft request was sent. " +
+
+                result.Result.TransactionResult = pushNftTransactionResult;
+                ErrorHandling.CheckForTransactionErrors(ref result, true, errorMessageTemplate.Substring(0, errorMessageTemplate.Length - 4));
+
+                if (!result.IsError)
+                {
+                    result.Message = "Transferring nft request was successful. " +
                     $"Received transaction hash response: {pushNftTransactionResult}. " +
-                    $"Transfer nft {nftSymbol} from: from: {fromAccountName}, to: {toAccountName}, amount: {amount}",
-                    LogType.Info);
+                    $"Transfer nft {nftSymbol} from: from: {fromAccountName}, to: {toAccountName}, amount: {amount}";
+
+                    LoggingManager.Log(result.Message, LogType.Info);
+                }
             }
             catch (ApiException e)
             {

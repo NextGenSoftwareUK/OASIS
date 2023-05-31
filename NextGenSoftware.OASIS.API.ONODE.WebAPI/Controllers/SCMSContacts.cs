@@ -17,21 +17,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet]
         public async Task<OASISResult<IEnumerable<Contact>>> GetAllContacts()
         {
-            GetAndActivateDefaultProvider();
+            GetAndActivateDefaultStorageProvider();
             return await _scmsRepository.GetAllContacts();
         }
 
         [HttpGet("get-all-contacts-for-sequence-and-phase/{sequenceNo}/{phaseNo}")]
         public async Task<OASISResult<IEnumerable<Contact>>> GetAllContactsForSequenceAndPhase(int sequenceNo, int phaseNo)
         {
-            GetAndActivateDefaultProvider();
+            GetAndActivateDefaultStorageProvider();
             return await _scmsRepository.GetAllContacts(sequenceNo, phaseNo, false);
         }
 
         [HttpGet("get-all-contacts-for-sequence-and-phase/{sequenceNo}/{phaseNo}/{loadPhase}")]
         public async Task<OASISResult<IEnumerable<Contact>>> GetAllContactsForSequenceAndPhase(int sequenceNo, int phaseNo, bool loadPhase = false)
         {
-            GetAndActivateDefaultProvider();
+            GetAndActivateDefaultStorageProvider();
             return await _scmsRepository.GetAllContacts(sequenceNo, phaseNo, loadPhase);
         }
     }

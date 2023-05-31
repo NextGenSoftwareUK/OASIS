@@ -30,10 +30,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 if (_SearchManager == null)
                 {
-                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
 
                     if (result.IsError)
-                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message), true, false, true);
 
                     _SearchManager = new SearchManager(result.Result);
                 }

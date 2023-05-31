@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.ONODE.BLL\NextGenSoftware.OASIS.API.ONODE.BLL.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.ONODE.BLL\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
   </ItemGroup>
 
 </Project>

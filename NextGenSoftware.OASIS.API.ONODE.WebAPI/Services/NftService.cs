@@ -49,7 +49,7 @@
 //            { 409600, 6912000 },
 //            { 819200, 13824000 },
 //        };
-        
+
 //        public NftService(ISolanaService solanaService, ICargoService cargoService)
 //        {
 //            _solanaService = solanaService;
@@ -140,7 +140,7 @@
 //                    ErrorHandling.HandleError(ref response, response.Message);
 //                    return response;
 //                }
-                
+
 //                var cargoPurchaseResponse = await _cargoService.PurchaseCargoSale(new PurchaseRequestModel(request.CargoSaleId));
 //                if (cargoPurchaseResponse.IsError)
 //                {
