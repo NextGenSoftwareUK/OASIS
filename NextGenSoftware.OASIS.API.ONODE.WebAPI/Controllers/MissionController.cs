@@ -24,7 +24,7 @@
 //            get
 //            {
 //                if (_missionManager == null)
-//                    _missionManager = new MissionManager(GetAndActivateDefaultProvider());
+//                    _missionManager = new MissionManager(GetAndActivateDefaultStorageProvider());
 
 //                return _missionManager;
 //            }

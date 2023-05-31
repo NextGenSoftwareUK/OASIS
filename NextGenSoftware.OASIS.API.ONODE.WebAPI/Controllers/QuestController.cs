@@ -23,7 +23,7 @@
 //            get
 //            {
 //                if (_questManager == null)
-//                    _questManager = new QuestManager(GetAndActivateDefaultProvider());
+//                    _questManager = new QuestManager(GetAndActivateDefaultStorageProvider());
 
 //                return _questManager;
 //            }

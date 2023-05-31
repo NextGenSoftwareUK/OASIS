@@ -159,11 +159,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External Libs", "External L
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IpfsHttpClient", "External Libs\net-ipfs-http-client-master\src\IpfsHttpClient.csproj", "{BED5A5DF-4F4C-46F0-BCAE-08838FC6671A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.BLL", "NextGenSoftware.OASIS.API.ONODE.BLL\NextGenSoftware.OASIS.API.ONODE.BLL.csproj", "{3F69AB31-C967-424C-8F41-62476BFA56F8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.Core", "NextGenSoftware.OASIS.API.ONODE.BLL\NextGenSoftware.OASIS.API.ONODE.Core.csproj", "{3F69AB31-C967-424C-8F41-62476BFA56F8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.COSMIC", "NextGenSoftware.OASIS.API.COSMIC\NextGenSoftware.OASIS.API.COSMIC.csproj", "{CF5FDC98-BC26-45FA-9B69-DBC56104EB4B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness", "NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness\NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness.csproj", "{05D1141B-FA9D-42A2-9E32-8A9555AE0210}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.Core.TestHarness", "NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness\NextGenSoftware.OASIS.API.ONODE.Core.TestHarness.csproj", "{05D1141B-FA9D-42A2-9E32-8A9555AE0210}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS", "NextGenSoftware.OASIS.API.Providers.COSMOSOASIS\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj", "{272D6882-9ADE-4587-82E7-C728E2B5DA61}"
 EndProject
