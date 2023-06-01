@@ -1,7 +1,7 @@
 
 using System;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar
 {
     public class LinkProviderKeyToAvatarParams : ProviderKeyForAvatarParams
     {

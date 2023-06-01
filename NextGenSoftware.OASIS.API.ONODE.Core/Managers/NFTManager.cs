@@ -8,9 +8,9 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONODE.BLL.Objects;
+using NextGenSoftware.OASIS.API.ONode.Core.Objects;
 
-namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
+namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
     public class NFTManager : OASISManager
     {

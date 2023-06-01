@@ -876,5 +876,35 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         {
             throw new NotImplementedException();
         }
+
+        OASISResult<TransactionRespone> IOASISBlockchainStorageProvider.SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<OASISResult<TransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<OASISResult<TransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        OASISResult<TransactionRespone> IOASISBlockchainStorageProvider.SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<OASISResult<TransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        OASISResult<TransactionRespone> IOASISBlockchainStorageProvider.SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

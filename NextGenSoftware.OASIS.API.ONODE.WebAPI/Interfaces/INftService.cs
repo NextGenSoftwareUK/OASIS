@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces
 {
     public interface INftService
     {

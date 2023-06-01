@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces;
+﻿using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces

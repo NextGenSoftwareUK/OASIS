@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/eosio")]

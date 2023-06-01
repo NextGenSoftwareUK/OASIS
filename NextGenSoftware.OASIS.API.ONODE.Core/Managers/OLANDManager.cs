@@ -10,7 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
 
-namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
+namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
     public class OLANDManager : OASISManager
     {

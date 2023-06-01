@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-	  <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
+	  <TargetFramework>net6.0</TargetFramework>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.SOLIDOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API SOLID OASIS Provider</Product>

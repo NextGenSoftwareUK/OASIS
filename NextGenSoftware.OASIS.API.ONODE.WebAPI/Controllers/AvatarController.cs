@@ -10,13 +10,13 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -509,7 +509,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Upload's the avatar's portrait (2D Image), which is displayed on the web portal or on web OAPP's.
+        /// Upload's the avatar's portrait (2D Image), which is displayed on the web portal or on web OApp's.
         /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
         /// </summary>
         /// <param name="avatarPortrait"></param>
@@ -526,7 +526,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Upload's an avatar's portrait (2D Image), which is displayed on the web portal or on web OAPP's.
+        /// Upload's an avatar's portrait (2D Image), which is displayed on the web portal or on web OApp's.
         /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
         /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
         /// </summary>

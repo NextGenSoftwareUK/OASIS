@@ -1,10 +1,10 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
-using NextGenSoftware.OASIS.API.ONODE.BLL.Managers;
+using NextGenSoftware.OASIS.API.ONode.Core.Holons;
+using NextGenSoftware.OASIS.API.ONode.Core.Managers;
 
-namespace NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces
+namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces
 {
     public interface IMapManager : IOASISManager
     {

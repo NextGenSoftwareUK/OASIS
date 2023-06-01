@@ -2,7 +2,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using NextGenSoftware.OASIS.API.Core;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI
 {
     public class Contact : Avatar
     {

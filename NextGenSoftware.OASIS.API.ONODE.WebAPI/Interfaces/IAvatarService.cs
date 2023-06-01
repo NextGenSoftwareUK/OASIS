@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces
 {
     public interface IAvatarService
     {

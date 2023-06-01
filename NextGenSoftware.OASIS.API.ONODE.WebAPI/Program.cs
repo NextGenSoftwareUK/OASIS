@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI
 {
     public class Program
     {

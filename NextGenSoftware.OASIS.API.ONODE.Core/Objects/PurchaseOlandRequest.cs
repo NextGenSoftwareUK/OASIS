@@ -1,7 +1,7 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
 using System;
 
-namespace NextGenSoftware.OASIS.API.ONODE.BLL.Objects
+namespace NextGenSoftware.OASIS.API.ONode.Core.Objects
 {
     public class PurchaseOlandRequest
     {

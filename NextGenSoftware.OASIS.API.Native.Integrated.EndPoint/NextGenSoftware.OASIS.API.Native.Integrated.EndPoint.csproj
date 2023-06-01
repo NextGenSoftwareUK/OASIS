@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	  <PackageId>NextGenSoftware.OASIS.API.Native.Integrated.EndPoint</PackageId>
 	  <Company>NextGen Software Ltd</Company>
@@ -36,7 +36,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.ONODE.BLL\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONode.Core.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
   </ItemGroup>
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces
 {
     public interface ISCMSRepository
     {

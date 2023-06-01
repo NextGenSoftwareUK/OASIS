@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "NextGenSoftware.OASIS.API.ONODE.OPORTAL": {
+    "NextGenSoftware.OASIS.API.ONode.OPORTAL": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

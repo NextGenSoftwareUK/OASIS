@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
     public abstract class CelestialBody<T> : CelestialHolon, ICelestialBody where T : ICelestialBody, new()
     {
-        public ICelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the star/planet/moon/etc (OAPP), which links to all the other stars/planets/moons/etc/zomes/holons...
+        public ICelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the star/planet/moon/etc (OApp), which links to all the other stars/planets/moons/etc/zomes/holons...
                                                                   // public GenesisType GenesisType { get; set; }
                                                                   //public OASISAPIManager OASISAPI = new OASISAPIManager(new List<IOASISProvider>() { new SEEDSOASIS() });
         public event CelestialBodyLoaded OnCelestialBodyLoaded;
@@ -782,19 +782,19 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             // return Star.Flare(this);
         }
 
-        // Activate & Launch - Launch & activate the planet (OAPP) by shining the star's light upon it...
+        // Activate & Launch - Launch & activate the planet (OApp) by shining the star's light upon it...
         public void Shine()
         {
             // Star.Shine(this);
         }
 
-        // Deactivate the planet (OAPP)
+        // Deactivate the planet (OApp)
         public void Dim()
         {
             //Star.Dim(this);
         }
 
-        // Deploy the planet (OAPP)
+        // Deploy the planet (OApp)
         public void Seed()
         {
             //Star.Seed(this);
@@ -806,25 +806,25 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             //Star.Twinkle(this);
         }
 
-        // Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*
+        // Highlight the Planet (OApp) in the OApp Store (StarNET). *Admin Only*
         public void Radiate()
         {
             //Star.Radiate(this);
         }
 
-        // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
+        // Show how much light the planet (OApp) is emitting into the solar system (StarNET/HoloNET)
         public void Emit()
         {
             // Star.Emit(this);
         }
 
-        // Show stats of the Planet (OAPP).
+        // Show stats of the Planet (OApp).
         public void Reflect()
         {
             // Star.Reflect(this);
         }
 
-        // Upgrade/update a Planet (OAPP).
+        // Upgrade/update a Planet (OApp).
         public void Evolve()
         {
             //Star.Evolve(this);
@@ -1595,9 +1595,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             // If the zome or holon is not stored in the cache yet then add it now...
             // Currently the collection will fill up as the individual zome loads each holon.
-            // They can call the LoadAll function to load all Holons and Zomes linked to this Planet (OAPP).
+            // They can call the LoadAll function to load all Holons and Zomes linked to this Planet (OApp).
 
-            //TODO: Now all zomes and holons belonging to a planet (OAPP) are loaded in init method using hc anchor pattern.
+            //TODO: Now all zomes and holons belonging to a planet (OApp) are loaded in init method using hc anchor pattern.
             //Maybe it can be a setting to choose between lazy loading (loading only as needed) or to prefetch and load everything up front.
             //Pros and Cons to both methods, Lazy loading = quicker init load time and less memory but then if you start loading lots of zomes/holons after, that's a lot more network traffic, etc.
             //Loading up front- Longer init load time and uses more memory but then all data cached so no more loading or network traffic needed.
