@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.ONODE.BLL.Objects
+namespace NextGenSoftware.OASIS.API.ONode.Core.Objects
 {
     public class PurchaseOlandResponse
     {

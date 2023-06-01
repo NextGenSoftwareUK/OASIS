@@ -2,9 +2,9 @@
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 
-namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
+namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
     public abstract class OASISManager : IOASISManager
     {

@@ -1,4 +1,4 @@
-﻿namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models
+﻿namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Models
 {
     public sealed class ManageOlandUnitRequestDto
     {

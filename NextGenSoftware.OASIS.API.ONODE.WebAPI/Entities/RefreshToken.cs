@@ -2,7 +2,7 @@
 //using System;
 //using System.ComponentModel.DataAnnotations;
 
-//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
+//namespace NextGenSoftware.OASIS.API.ONode.WebAPI
 //{
 //    [Owned]
 //    public class RefreshToken

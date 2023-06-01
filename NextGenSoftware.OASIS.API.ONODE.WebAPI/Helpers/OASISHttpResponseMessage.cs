@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
 {
     public class OASISHttpResponseMessage<T> : HttpResponseMessage
     {

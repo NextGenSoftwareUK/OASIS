@@ -2,7 +2,7 @@ using System.Net;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
 {
     public static class HttpResponseHelper
     {

@@ -5,8 +5,4 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.ONODE.BLL\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
-  </ItemGroup>
-
 </Project>

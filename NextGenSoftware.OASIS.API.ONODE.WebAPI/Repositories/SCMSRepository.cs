@@ -6,9 +6,9 @@ using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Repositories
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
 {
     public class SCMSRepository : ISCMSRepository
     {

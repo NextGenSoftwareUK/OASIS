@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Apollo.Server;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.BLL.Managers;
+using NextGenSoftware.OASIS.API.ONode.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {

@@ -2,7 +2,7 @@
 using System;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/share")]

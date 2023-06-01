@@ -143,7 +143,7 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Fixed a bug in all methods in AvatarManager where the response from load/save methods on an OASIS Provider were not being handled properly.
 - Added AutoMapper to OASIS.API.Core to be used in UpdateAvatarDetailAsync method.
 - Added Automapper config to UpdateAvatarDetailAsync method.
-- Upgraded AutoMapper to v11 in OASIS.API.ONODE.WebAPI project so matches the version added to OASIS.API.Core.
+- Upgraded AutoMapper to v11 in OASIS.API.ONode.WebAPI project so matches the version added to OASIS.API.Core.
 
 https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/cf1cf1b0ab282acabf7af64d2d50df530962c492
 - Removed where clause restriction on OASISResultCollectionToCollection helper so can be used for mapping any objects and not just holons.

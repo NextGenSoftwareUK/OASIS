@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using System;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI
 {
     public class Avatar : BaseEntity
     {

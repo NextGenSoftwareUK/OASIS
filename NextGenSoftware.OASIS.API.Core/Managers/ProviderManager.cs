@@ -281,7 +281,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return new OASISResult<IOASISStorageProvider>(CurrentStorageProvider);
         }
 
-        // Called from ONODE.WebAPI.OASISProviderManager.
+        // Called from ONode.WebAPI.OASISProviderManager.
         public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(IOASISProvider OASISProvider)
         {
             if (OASISProvider != CurrentStorageProvider)
@@ -298,7 +298,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return new OASISResult<IOASISStorageProvider>(CurrentStorageProvider);
         }
 
-        // Called from ONODE.WebAPI.OASISProviderManager.
+        // Called from ONode.WebAPI.OASISProviderManager.
         //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
         public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = false)
         {
