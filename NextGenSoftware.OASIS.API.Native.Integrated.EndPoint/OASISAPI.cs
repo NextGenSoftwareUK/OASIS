@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 
             if (!result.IsError && result.Result)
             {
-                OASISResult<IOASISStorageProvider> bootLoaderResult = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+                OASISResult<IOASISStorageProvider> bootLoaderResult = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
 
                 if (bootLoaderResult.IsError)
                 {
