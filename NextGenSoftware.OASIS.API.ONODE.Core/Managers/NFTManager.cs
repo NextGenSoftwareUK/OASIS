@@ -187,6 +187,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     return response;
                 }
 
+                //TODO: Re-write this so is generic.
+                /*
                 var cargoPurchaseResponse = await _cargoService.PurchaseCargoSale(new PurchaseRequestModel(request.CargoSaleId));
                 if (cargoPurchaseResponse.IsError)
                 {
@@ -211,7 +213,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     CargoSaleId = request.CargoSaleId,
                     IsSucceedPurchase = !cargoPurchaseResponse.IsError
                 });
+
                 response.Result = new PurchaseOlandResponse(purchaseOlandResult.Result);
+                */
             }
             catch (Exception e)
             {

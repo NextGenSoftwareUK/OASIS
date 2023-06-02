@@ -112,11 +112,11 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI
         //public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext context)
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            LoggingManager.Log("Starting up The OASIS... (REST API)", Core.Enums.LogType.Info);
-            LoggingManager.Log("Test Debug", Core.Enums.LogType.Debug);
-            LoggingManager.Log("Test Info", Core.Enums.LogType.Info);
-            LoggingManager.Log("Test Warning", Core.Enums.LogType.Warn);
-            LoggingManager.Log("Test Error", Core.Enums.LogType.Error);
+            LoggingManager.Log("Starting up The OASIS... (REST API)", API.Core.Enums.LogType.Info);
+            LoggingManager.Log("Test Debug", API.Core.Enums.LogType.Debug);
+            LoggingManager.Log("Test Info", API.Core.Enums.LogType.Info);
+            LoggingManager.Log("Test Warning", API.Core.Enums.LogType.Warn);
+            LoggingManager.Log("Test Error", API.Core.Enums.LogType.Error);
 
             // migrate database changes on startup (includes initial db creation)
             //context.Database.Migrate();

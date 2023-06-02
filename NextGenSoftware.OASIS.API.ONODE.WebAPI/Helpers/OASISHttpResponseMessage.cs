@@ -113,7 +113,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
         {
             get
             {
-                return Core.Managers.ProviderManager.CurrentStorageProviderType.Name;
+                return ProviderManager.CurrentStorageProviderType.Name;
             }
         }
 

@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Transactions;
 using EosSharp;
 using EosSharp.Core;
+using EosSharp.Core.Api.v1;
 using EosSharp.Core.Exceptions;
 using EosSharp.Core.Providers;
-//using EosSharp.Core;
-//using EosSharp.Core.Api.v1;
-//using EosSharp.Core.Exceptions;
-//using EosSharp.Core.Providers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -44,9 +40,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
 
             try
             {
-                var pushTransactionResult = await _eos.CreateTransaction(new Transaction
+                var pushTransactionResult = await _eos.CreateTransaction(new EosSharp.Core.Api.v1.Transaction
                 {
-                    actions = new List<Action>
+                    actions = new List<EosSharp.Core.Api.v1.Action>
                     {
                         new()
                         {
@@ -108,9 +104,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
 
             try
             {
-                var pushNftTransactionResult = await _eos.CreateTransaction(new Transaction
+                var pushNftTransactionResult = await _eos.CreateTransaction(new EosSharp.Core.Api.v1.Transaction
                 {
-                    actions = new List<Action>
+                    actions = new List<EosSharp.Core.Api.v1.Action>
                     {
                         new()
                         {

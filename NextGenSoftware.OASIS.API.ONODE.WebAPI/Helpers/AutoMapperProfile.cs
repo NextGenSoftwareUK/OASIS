@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
             //CreateMap<CreateRequest, Core.Avatar>();
             //CreateMap<RegisterRequest, IAvatar>();
             CreateMap<CreateRequest, IAvatar>();
-            CreateMap<Core.Holons.Avatar, IAvatar>();
+            CreateMap<API.Core.Holons.Avatar, IAvatar>();
 
             CreateMap<UpdateRequest, IAvatar>()
                 .ForAllMembers(x => x.Condition(
