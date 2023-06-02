@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
     {
         private const string defaultGenesisNamespace = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
         private const string celestialBodyDNAFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
-        private const string geneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis";
+        private const string geneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net7.0\\Genesis";
         private const OAPPType DefaultOAPPType = OAPPType.Console;
 
         private static Planet _superWorld;

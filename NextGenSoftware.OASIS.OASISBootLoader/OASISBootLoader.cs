@@ -370,7 +370,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     case ProviderType.AzureCosmosDBOASIS:
                         {
                             AzureCosmosDBOASIS azureCosmosDBOASIS = new AzureCosmosDBOASIS(
-                                new Uri(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.ServiceEndpoint), 
+                                new Uri(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.ServiceEndpoint),
                                 OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.AuthKey,
                                 OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.DBName,
                                 ListHelper.ConvertToList(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.CollectionNames));
