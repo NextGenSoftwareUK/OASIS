@@ -1066,7 +1066,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 //TODO: Ideally need a new overload for LoadAvatar that takes the provider key.
                 //TODO: In the meantime should we cache the full list of Avatars? Could take up a LOT of memory so probably not good idea?
-                OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.LoadAllAvatars(false, true, providerType);
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.LoadAllAvatars(false, true, true, providerType);
 
                 if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {
@@ -1175,7 +1175,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!_providerPublicKeyToAvatarLookup.ContainsKey(key))
             {
                 //TODO: Need to cache loading all avatars.
-                OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.LoadAllAvatars(false, true, providerType);
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.LoadAllAvatars(false, true, true, providerType);
 
                 if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {

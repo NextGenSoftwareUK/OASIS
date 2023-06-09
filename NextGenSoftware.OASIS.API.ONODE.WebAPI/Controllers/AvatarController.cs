@@ -666,7 +666,6 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
-        //[Authorize]
         [HttpGet("get-all-avatars")]
         public async Task<OASISHttpResponseMessage<IEnumerable<IAvatar>>> GetAll()
         {
@@ -690,31 +689,61 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Get's all avatars within The OASIS.
-        /// Only works for logged in &amp; authenticated Wizards (Admins). Use Authenticate endpoint first to obtain a JWT Token.
+        /// Get's a list of all of the avatar names within The OASIS.
+        /// Only works for logged in &amp; authenticated users. Use Authenticate endpoint first to obtain a JWT Token.
         /// </summary>
+        /// <param name="removeDuplicates">Set removeDuplicates to true if you wish to remove duplicates (default)</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get-all-avatar-names")]
-        public async Task<OASISHttpResponseMessage<IEnumerable<IAvatar>>> GetAllAvatarNames()
+        [HttpGet("get-all-avatar-names/{removeDuplicates}")]
+        public async Task<OASISHttpResponseMessage<IEnumerable<string>>> GetAllAvatarNames(bool removeDuplicates = true)
         {
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAllAvatarsAsync());
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAllAvatarNamesAsync(removeDuplicates));
         }
 
         /// <summary>
-        /// Get's all avatars within The OASIS. 
-        /// Only works for logged in &amp; authenticated Wizards (Admins). Use Authenticate endpoint first to obtain a JWT Token.
+        /// Get's a list of all of the avatar names within The OASIS.
+        /// Only works for logged in &amp; authenticated users. Use Authenticate endpoint first to obtain a JWT Token.
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="removeDuplicates">Set removeDuplicates to true if you wish to remove duplicates (default)</param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("get-all-avatar-names/{removeDuplicates}/{providerType}/{setGlobally}")]
+        public async Task<OASISHttpResponseMessage<IEnumerable<string>>> GetAllAvatarNames(bool removeDuplicates, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetAllAvatarNames(removeDuplicates);
+        }
+
+        /// <summary>
+        /// Get's a list of all of the avatar names within The OASIS along with their respective id's.
+        /// Only works for logged in &amp; authenticated users. Use Authenticate endpoint first to obtain a JWT Token.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("get-all-avatar-names-with-ids")]
+        public async Task<OASISHttpResponseMessage<Dictionary<string,string>>> GetAllAvatarNamesWithIds()
+        {
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAllAvatarNamesWithIdsAsync());
+        }
+
+        /// <summary>
+        /// Get's a list of all of the avatar names within The OASIS along with their respective id's.
+        /// Only works for logged in &amp; authenticated users. Use Authenticate endpoint first to obtain a JWT Token.
         /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
         /// </summary>
         /// <param name="providerType"></param>
         /// <param name="setGlobally"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get-all-avatar-names/{providerType}/{setGlobally}")]
-        public async Task<OASISHttpResponseMessage<IEnumerable<IAvatar>>> GetAllAvatarNames(ProviderType providerType, bool setGlobally = false)
+        [HttpGet("get-all-avatar-names-with-ids/{providerType}/{setGlobally}")]
+        public async Task<OASISHttpResponseMessage<Dictionary<string,string>>> GetAllAvatarNamesWithIds(ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return await GetAll();
+            return await GetAllAvatarNamesWithIds();
         }
 
         /// <summary>

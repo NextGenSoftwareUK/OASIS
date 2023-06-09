@@ -283,8 +283,6 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             return await Task.Run(() => AvatarManager.VerifyEmail(token));
         }
 
-        
-
         public async Task<OASISResult<string>> ValidateResetToken(ValidateResetTokenRequest model)
         {
             var result = new OASISResult<string>();
@@ -334,8 +332,17 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                         return response;
                     }
 
+                    //int salt = 12;
+                    //string passwordHash = BC.HashPassword(model.OldPassword, salt);
+
+                    //if (!BC.Verify(avatar.Password, passwordHash))
+                    //{
+                    //    ErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
+                    //    return response;
+                    //}
+
                     // update password and remove reset token
-                    avatar.Password = BC.HashPassword(model.Password);
+                    avatar.Password = BC.HashPassword(model.NewPassword);
                     avatar.PasswordReset = DateTime.UtcNow;
                     avatar.ResetToken = null;
                     avatar.ResetTokenExpires = null;
