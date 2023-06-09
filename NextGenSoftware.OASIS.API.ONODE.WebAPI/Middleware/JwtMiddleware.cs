@@ -68,8 +68,22 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Middleware
                 ErrorHandling.HandleError(ref exceptionResponse, exceptionResponse.Message, ex.Message);
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
-                await context.Response.Body.WriteAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse)));
-                context.Response.ContentLength = context.Response.Body.Length;
+
+                byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse));
+                await context.Response.Body.WriteAsync(body);
+                //await context.Response.Body.WriteAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse)));
+
+                try
+                {
+                    //context.Response.ContentLength = body.Length;
+
+                    //if (context.Response.Body.CanRead)
+                    //    context.Response.ContentLength = context.Response.Body.Length;
+                }
+                catch (Exception e)
+                {
+
+                }
             }
         }
     }

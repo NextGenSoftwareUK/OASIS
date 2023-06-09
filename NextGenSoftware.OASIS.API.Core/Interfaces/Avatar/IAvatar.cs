@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string FirstName { get; set; }
         string LastName { get; set; }
         string FullName { get; }
+        string FullNameWithTitle { get; }
         string Username { get; set; }
         string Email { get; set; }
         string Password { get; set; }

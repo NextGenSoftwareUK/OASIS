@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -740,7 +741,89 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        //TODO: Not sure if it is a security vulerability exposing the list of avatar names? I dont think it is? Needs more thought...
+        public OASISResult<IEnumerable<string>> LoadAllAvatarNames(bool removeDuplicates = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        {
+            OASISResult<IEnumerable<string>> result = new OASISResult<IEnumerable<string>>();
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false, true, true, providerType, version);
+
+            if (!avatarsResult.IsError && avatarsResult.Result != null)
+            {
+                if (removeDuplicates)
+                    result.Result = avatarsResult.Result.Select(x => x.FullName).Distinct().ToList();
+                else
+                    result.Result = avatarsResult.Result.Select(x => x.FullName).ToList();
+
+                result.IsLoaded = true;
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in LoadAllAvatarNames calling LoadAllAvatars. Reason:{avatarsResult.Message}");
+
+            return result;
+        }
+
+        //TODO: Not sure if it is a security vulerability exposing the list of avatar names? I dont think it is? Needs more thought...
+        public async Task<OASISResult<IEnumerable<string>>> LoadAllAvatarNamesAsync(bool removeDuplicates = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        {
+            OASISResult<IEnumerable<string>> result = new OASISResult<IEnumerable<string>>();
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync(false, true, true, providerType, version);
+
+            if (!avatarsResult.IsError && avatarsResult.Result != null)
+            {
+                if (removeDuplicates)
+                    result.Result = avatarsResult.Result.Select(x => x.FullName).Distinct().ToList();
+                else
+                    result.Result = avatarsResult.Result.Select(x => x.FullName).ToList();
+
+                result.IsLoaded = true;
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in LoadAllAvatarNamesAsync calling LoadAllAvatarsAsync. Reason:{avatarsResult.Message}");
+
+            return result;
+        }
+
+        //TODO: Not sure if it is a security vulerability exposing the list of avatar names along with their Ids? I dont think it is? Needs more thought...
+        public OASISResult<Dictionary<string,string>> LoadAllAvatarNamesWithIds(ProviderType providerType = ProviderType.Default, int version = 0)
+        {
+            OASISResult<Dictionary<string, string>> result = new OASISResult<Dictionary<string, string>>();
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false, true, true, providerType, version);
+
+            if (!avatarsResult.IsError && avatarsResult.Result != null)
+            {
+                //List<IAvatar> avatars = avatarsResult.Result.OrderBy(x => x.FullName).ToList();
+
+                foreach (var avatar in avatarsResult.Result)
+                    result.Result[avatar.FullName] = avatar.Id.ToString();
+
+                result.IsLoaded = true;
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in LoadAllAvatarNamesWithIds calling LoadAllAvatars. Reason:{avatarsResult.Message}");
+
+            return result;
+        }
+
+        //TODO: Not sure if it is a security vulerability exposing the list of avatar names along with their Ids? I dont think it is? Needs more thought...
+        public async Task<OASISResult<Dictionary<string, string>>> LoadAllAvatarNamesWithIdsAsync(ProviderType providerType = ProviderType.Default, int version = 0)
+        {
+            OASISResult<Dictionary<string, string>> result = new OASISResult<Dictionary<string, string>>(new Dictionary<string, string>());
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync(false, true, true, providerType, version);
+
+            if (!avatarsResult.IsError && avatarsResult.Result != null)
+            {
+                foreach (var avatar in avatarsResult.Result)
+                    result.Result[avatar.FullName] = avatar.Id.ToString();
+
+                result.IsLoaded = true;
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in LoadAllAvatarNamesWithIdsAsync calling LoadAllAvatarsAsync. Reason:{avatarsResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(bool loadPrivateKeys = false, bool hideAuthDetails = true, bool orderByName = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -781,6 +864,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (hideAuthDetails)
                         result.Result = HideAuthDetails(result.Result);
+
+                    if (orderByName)
+                        result.Result = result.Result.OrderBy(x => x.FullName);
                 }
 
                 // Set the current provider back to the original provider.
@@ -795,7 +881,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        public async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(bool loadPrivateKeys = false, bool hideAuthDetails = true, bool orderByName = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -836,6 +922,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (hideAuthDetails)
                         result.Result = HideAuthDetails(result.Result);
+
+                    if (orderByName)
+                        result.Result = result.Result.OrderBy(x => x.FullName);
                 }
 
                 // Set the current provider back to the original provider.

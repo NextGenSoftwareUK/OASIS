@@ -7,12 +7,16 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security
         [Required]
         public string Token { get; set; }
 
-        [Required]
-        [MinLength(6)]
-        public string Password { get; set; }
+        //[Required]
+        //[MinLength(6)]
+       // public string OldPassword { get; set; }
 
         [Required]
-        [Compare("Password")]
-        public string ConfirmPassword { get; set; }
+        [MinLength(6)]
+        public string NewPassword { get; set; }
+
+        [Required]
+        [Compare("NewPassword")]
+        public string ConfirmNewPassword { get; set; }
     }
 }
