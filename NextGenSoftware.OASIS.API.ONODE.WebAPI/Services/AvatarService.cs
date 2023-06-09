@@ -348,7 +348,8 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                         return response;
                     }
 
-                    response.Result = "Password reset successful, you can now login";
+                    response.Message = "Password reset successful, you can now login";
+                    response.Result = response.Message;
                 }
                 else
                     ErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);

@@ -666,6 +666,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
+        //[Authorize]
         [HttpGet("get-all-avatars")]
         public async Task<OASISHttpResponseMessage<IEnumerable<IAvatar>>> GetAll()
         {
@@ -683,6 +684,34 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [Authorize(AvatarType.Wizard)]
         [HttpGet("get-all-avatars/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IEnumerable<IAvatar>>> GetAll(ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetAll();
+        }
+
+        /// <summary>
+        /// Get's all avatars within The OASIS.
+        /// Only works for logged in &amp; authenticated Wizards (Admins). Use Authenticate endpoint first to obtain a JWT Token.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("get-all-avatar-names")]
+        public async Task<OASISHttpResponseMessage<IEnumerable<IAvatar>>> GetAllAvatarNames()
+        {
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAllAvatarsAsync());
+        }
+
+        /// <summary>
+        /// Get's all avatars within The OASIS. 
+        /// Only works for logged in &amp; authenticated Wizards (Admins). Use Authenticate endpoint first to obtain a JWT Token.
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("get-all-avatar-names/{providerType}/{setGlobally}")]
+        public async Task<OASISHttpResponseMessage<IEnumerable<IAvatar>>> GetAllAvatarNames(ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetAll();
