@@ -33,8 +33,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             Password = password;
         }
 
-        private async Task<bool> Connect()
+        /*
+        private async Task<OASISResult<bool>> ConnectAsync()
         {
+            OASISResult<bool>
             try
             {
                 _driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
@@ -48,21 +50,22 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 return false;
             }
         }
-        private async Task Disconnect()
+        private async Task DisconnectAsync()
         {
             //TODO: Find if there is a disconnect/shutdown function?
             await _driver.CloseAsync();
             _driver = null;
-        }
+        }*/
+
         public override OASISResult<bool> ActivateProvider()
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
             try
             {
-                Connect().Wait();
-                base.ActivateProvider();
-                result.Result = true;
+                _driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
+                _driver.VerifyConnectivityAsync().Wait();
+                result = base.ActivateProvider();
             }
             catch (Exception ex)
             {
@@ -71,23 +74,65 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
             return result;
         }
+
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                _driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
+                await _driver.VerifyConnectivityAsync();
+                result = await base.ActivateProviderAsync();
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Unknwon error occured whilst activating neo4j provider: {ex}");
+            }
+
+            return result;
+        }
+
         public override OASISResult<bool> DeActivateProvider()
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
             try
             {
-                Disconnect().Wait();
-                base.DeActivateProvider();
-                result.Result = true;
+                if (_driver != null)
+                    _driver.CloseAsync().Wait();
+
+                _driver = null;
+                result = base.DeActivateProvider();
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Unknwon error occured whilst activating neo4j provider: {ex}");
+                ErrorHandling.HandleError(ref result, $"Unknwon error occured whilst dactivating neo4j provider: {ex}");
             }
 
             return result;
         }
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                if (_driver != null)
+                    await _driver.CloseAsync();
+                
+                _driver = null;
+                result = await base.DeActivateProviderAsync();
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Unknwon error occured whilst dactivating neo4j provider: {ex}");
+            }
+
+            return result;
+        }
+
         private static void WithDatabase(SessionConfigBuilder sessionConfigBuilder)
         {
             //var neo4jVersion = System.Environment.GetEnvironmentVariable("NEO4J_VERSION") ?? "";
