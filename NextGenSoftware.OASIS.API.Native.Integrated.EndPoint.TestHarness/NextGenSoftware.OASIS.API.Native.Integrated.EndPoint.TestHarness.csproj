@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Manager\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj" />
   </ItemGroup>
 
 </Project>

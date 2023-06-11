@@ -742,17 +742,27 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //TODO: Not sure if it is a security vulerability exposing the list of avatar names? I dont think it is? Needs more thought...
-        public OASISResult<IEnumerable<string>> LoadAllAvatarNames(bool removeDuplicates = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        public OASISResult<IEnumerable<string>> LoadAllAvatarNames(bool removeDuplicates = true, bool includeUsernames = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IEnumerable<string>> result = new OASISResult<IEnumerable<string>>();
             OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false, true, true, providerType, version);
 
             if (!avatarsResult.IsError && avatarsResult.Result != null)
             {
-                if (removeDuplicates)
-                    result.Result = avatarsResult.Result.Select(x => x.FullName).Distinct().ToList();
+                if (includeUsernames)
+                {
+                    List<string> avatarNames = new List<string>();
+
+                    foreach (var avatar in avatarsResult.Result)
+                        avatarNames.Add($"{avatar.FullName} ({avatar.Username})");
+                }
                 else
-                    result.Result = avatarsResult.Result.Select(x => x.FullName).ToList();
+                {
+                    if (removeDuplicates)
+                        result.Result = avatarsResult.Result.Select(x => x.FullName).Distinct().ToList();
+                    else
+                        result.Result = avatarsResult.Result.Select(x => x.FullName).ToList();
+                }
 
                 result.IsLoaded = true;
             }
@@ -763,17 +773,27 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //TODO: Not sure if it is a security vulerability exposing the list of avatar names? I dont think it is? Needs more thought...
-        public async Task<OASISResult<IEnumerable<string>>> LoadAllAvatarNamesAsync(bool removeDuplicates = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        public async Task<OASISResult<IEnumerable<string>>> LoadAllAvatarNamesAsync(bool removeDuplicates = true, bool includeUsernames = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IEnumerable<string>> result = new OASISResult<IEnumerable<string>>();
             OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync(false, true, true, providerType, version);
 
             if (!avatarsResult.IsError && avatarsResult.Result != null)
             {
-                if (removeDuplicates)
-                    result.Result = avatarsResult.Result.Select(x => x.FullName).Distinct().ToList();
+                if (includeUsernames)
+                {
+                    List<string> avatarNames = new List<string>();
+
+                    foreach (var avatar in avatarsResult.Result)
+                        avatarNames.Add($"{avatar.FullName} ({avatar.Username})");
+                }
                 else
-                    result.Result = avatarsResult.Result.Select(x => x.FullName).ToList();
+                {
+                    if (removeDuplicates)
+                        result.Result = avatarsResult.Result.Select(x => x.FullName).Distinct().ToList();
+                    else
+                        result.Result = avatarsResult.Result.Select(x => x.FullName).ToList();
+                }
 
                 result.IsLoaded = true;
             }
@@ -784,17 +804,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //TODO: Not sure if it is a security vulerability exposing the list of avatar names along with their Ids? I dont think it is? Needs more thought...
-        public OASISResult<Dictionary<string,string>> LoadAllAvatarNamesWithIds(ProviderType providerType = ProviderType.Default, int version = 0)
+        public OASISResult<Dictionary<string,List<string>>> LoadAllAvatarNamesWithIds(bool includeUsernames = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            OASISResult<Dictionary<string, string>> result = new OASISResult<Dictionary<string, string>>();
+            OASISResult<Dictionary<string, List<string>>> result = new OASISResult<Dictionary<string, List<string>>>();
             OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false, true, true, providerType, version);
 
             if (!avatarsResult.IsError && avatarsResult.Result != null)
             {
-                //List<IAvatar> avatars = avatarsResult.Result.OrderBy(x => x.FullName).ToList();
-
                 foreach (var avatar in avatarsResult.Result)
-                    result.Result[avatar.FullName] = avatar.Id.ToString();
+                {
+                    if (!result.Result.ContainsKey(avatar.FullName))
+                        result.Result[avatar.FullName] = new List<string>();
+
+                    if (includeUsernames)
+                        result.Result[avatar.FullName].Add($"{avatar.Id} ({avatar.Username})");
+                    else
+                        result.Result[avatar.FullName].Add(avatar.Id.ToString());
+                }
 
                 result.IsLoaded = true;
             }
@@ -805,15 +831,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //TODO: Not sure if it is a security vulerability exposing the list of avatar names along with their Ids? I dont think it is? Needs more thought...
-        public async Task<OASISResult<Dictionary<string, string>>> LoadAllAvatarNamesWithIdsAsync(ProviderType providerType = ProviderType.Default, int version = 0)
+        public async Task<OASISResult<Dictionary<string, List<string>>>> LoadAllAvatarNamesWithIdsAsync(bool includeUsernames = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            OASISResult<Dictionary<string, string>> result = new OASISResult<Dictionary<string, string>>(new Dictionary<string, string>());
+            OASISResult<Dictionary<string, List<string>>> result = new OASISResult<Dictionary<string, List<string>>>(new Dictionary<string, List<string>>());
             OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync(false, true, true, providerType, version);
 
             if (!avatarsResult.IsError && avatarsResult.Result != null)
             {
                 foreach (var avatar in avatarsResult.Result)
-                    result.Result[avatar.FullName] = avatar.Id.ToString();
+                {
+                    if (!result.Result.ContainsKey(avatar.FullName))
+                        result.Result[avatar.FullName] = new List<string>();
+
+                    if (includeUsernames)
+                        result.Result[avatar.FullName].Add($"{avatar.Id} ({avatar.Username})");
+                    else
+                        result.Result[avatar.FullName].Add(avatar.Id.ToString());
+                }
 
                 result.IsLoaded = true;
             }

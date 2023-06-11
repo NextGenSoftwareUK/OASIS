@@ -695,10 +695,10 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// <param name="removeDuplicates">Set removeDuplicates to true if you wish to remove duplicates (default)</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get-all-avatar-names/{removeDuplicates}")]
-        public async Task<OASISHttpResponseMessage<IEnumerable<string>>> GetAllAvatarNames(bool removeDuplicates = true)
+        [HttpGet("get-all-avatar-names/{removeDuplicates}/{includeUserNames}")]
+        public async Task<OASISHttpResponseMessage<IEnumerable<string>>> GetAllAvatarNames(bool removeDuplicates = true, bool includeUserNames = true)
         {
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAllAvatarNamesAsync(removeDuplicates));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAllAvatarNamesAsync(removeDuplicates, includeUserNames));
         }
 
         /// <summary>
@@ -711,11 +711,11 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get-all-avatar-names/{removeDuplicates}/{providerType}/{setGlobally}")]
-        public async Task<OASISHttpResponseMessage<IEnumerable<string>>> GetAllAvatarNames(bool removeDuplicates, ProviderType providerType, bool setGlobally = false)
+        [HttpGet("get-all-avatar-names/{removeDuplicates}/{includeUserNames}/{providerType}/{setGlobally}")]
+        public async Task<OASISHttpResponseMessage<IEnumerable<string>>> GetAllAvatarNames(bool removeDuplicates, bool includeUserNames, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return await GetAllAvatarNames(removeDuplicates);
+            return await GetAllAvatarNames(removeDuplicates, includeUserNames);
         }
 
         /// <summary>
@@ -725,7 +725,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-all-avatar-names-with-ids")]
-        public async Task<OASISHttpResponseMessage<Dictionary<string,string>>> GetAllAvatarNamesWithIds()
+        public async Task<OASISHttpResponseMessage<Dictionary<string, List<string>>>> GetAllAvatarNamesWithIds()
         {
             return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAllAvatarNamesWithIdsAsync());
         }
@@ -740,7 +740,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("get-all-avatar-names-with-ids/{providerType}/{setGlobally}")]
-        public async Task<OASISHttpResponseMessage<Dictionary<string,string>>> GetAllAvatarNamesWithIds(ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<Dictionary<string, List<string>>>> GetAllAvatarNamesWithIds(ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await GetAllAvatarNamesWithIds();

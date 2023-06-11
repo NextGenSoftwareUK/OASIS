@@ -69,8 +69,11 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Middleware
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
 
-                byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse));
+                //byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse));
+                byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject("test error"));
+
                 await context.Response.Body.WriteAsync(body);
+                //await context.Response.Body.WriteAsync(body);
                 //await context.Response.Body.WriteAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse)));
 
                 try
