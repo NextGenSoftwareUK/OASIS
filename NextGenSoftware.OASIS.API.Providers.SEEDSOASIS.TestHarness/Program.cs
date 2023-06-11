@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             SEEDSOASIS seedsOASIS = new SEEDSOASIS(new TelosOASIS.TelosOASIS("https://node.hypha.earth", "", "", ""));
 
             // Will initialize the default OASIS Provider defined OASIS_DNA config file.
-            OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(); //TODO: TEMP - Take out once EOSIOOASIS has rest of AvatarManager methods implemented.
+            OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(); //TODO: TEMP - Take out once EOSIOOASIS has rest of AvatarManager methods implemented.
 
             Console.WriteLine("Getting Balance for account davidsellams...");
             string balance = seedsOASIS.GetBalanceForTelosAccount("davidsellams");

@@ -15,7 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.STAR\NextGenSoftware.OASIS.STAR.csproj" />
-    <ProjectReference Include="..\Shared\NextGenSoftware.OASIS.STAR.DNATemplates.WebBlazor.Shared.csproj" />
+    <ProjectReference Include="..\Shared\NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WebBlazor.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
