@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             {
                 //origin = GetOrigin(origin);
 
-                result = await AvatarManager.RegisterAsync(model.Title, model.FirstName, model.LastName, model.Email, model.Password,
+                result = await AvatarManager.RegisterAsync(model.Title, model.FirstName, model.LastName, model.Email, model.Password, model.Username,
                     (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), model.CreatedOASISType);
             }
 
@@ -244,7 +244,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             {
                 //origin = GetOrigin(origin);
 
-                result = AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password,
+                result = AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password, model.Username,
                     (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), model.CreatedOASISType);
             }
 

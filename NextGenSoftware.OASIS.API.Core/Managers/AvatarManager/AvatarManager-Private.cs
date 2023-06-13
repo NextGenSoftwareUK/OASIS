@@ -12,6 +12,7 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using System.Text;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -120,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             );
         }
 
-        private OASISResult<IAvatar> PrepareToRegisterAvatar(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, OASISType createdOASISType)
+        private async Task<OASISResult<IAvatar>> PrepareToRegisterAvatarAsync(string avatarTitle, string firstName, string lastName, string email, string password, string username, AvatarType avatarType, OASISType createdOASISType)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
 
@@ -131,7 +132,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 return result;
             }
 
-            //TODO: {PERFORMANCE} Add this method to the providers so more efficient.
             OASISResult<bool> checkIfEmailExistsResult = CheckIfEmailIsAlreadyInUse(email);
             
             if (checkIfEmailExistsResult.Result)
@@ -142,13 +142,50 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             result.Result = new Avatar() { Id = Guid.NewGuid(), IsNewHolon = true, FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), CreatedOASISType = new EnumValue<OASISType>(createdOASISType) };
-            result.Result.Username = result.Result.Email; //Default the username to their email (they can change this later in Avatar Profile screen).
+            //result.Result.Username = result.Result.Email; //Default the username to their email (they can change this later in Avatar Profile screen).
 
-            //result.Result.CreatedDate = DateTime.UtcNow;
+
+            OASISResult<bool> checkIfUsernameExistsResult = CheckIfUsernameIsAlreadyInUse(email);
+
+            if (checkIfUsernameExistsResult.Result)
+            {
+                result.IsError = true;
+                result.Message = checkIfUsernameExistsResult.Message;
+                return result;
+            }
+
+            result.Result.Username = username;
             result.Result.VerificationToken = randomTokenString();
 
             // hash password
             result.Result.Password = BC.HashPassword(password);
+
+            //TODO: URGENT PERFORMANCE: Need to either cache this in future or add ability to query/search all avatars at the provider level so we dont need to keep pulling back the full list everytime!
+            /*
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync();
+
+            if (!avatarsResult.IsError && avatarsResult.Result != null)
+            {
+                List<IAvatar> avatars = avatarsResult.Result.Where(x => x.Username == result.Result.FullName).ToList();
+
+                //If noone with this name has created an avatar yet then set their username as their name as a default (they can then change it later).
+                if (avatars.Count == 0)
+                    result.Result.Username = result.Result.FullName;
+                else
+                {
+                    //If the username is already in use then add the current date, hopefully noone with the same name tries to create an avatar at the EXACT same time! lol ;-)
+                    result.Result.Username = $"{result.Result.FullName} {DateTime.Now.Day}{DateTime.Now.Month}{DateTime.Now.Year}{DateTime.Now.Hour}{DateTime.Now.Minute}{DateTime.Now.Second}";
+                }
+
+                //result.Result.CreatedDate = DateTime.UtcNow;
+                result.Result.VerificationToken = randomTokenString();
+
+                // hash password
+                result.Result.Password = BC.HashPassword(password);
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in PrepareToRegisterAvatarAsync method in AvatarManager calling LoadAllAvatarsAsync. Reason: {avatarsResult.Message}");
+            */
 
             return result;
         }
