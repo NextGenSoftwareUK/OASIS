@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
     {
        // [Key]
         public int Id { get; set; }
-        public Avatar Avatar { get; set; }
+        public IAvatar Avatar { get; set; }
         public string Token { get; set; }
         public DateTime Expires { get; set; }
         public bool IsExpired => DateTime.UtcNow >= Expires;
