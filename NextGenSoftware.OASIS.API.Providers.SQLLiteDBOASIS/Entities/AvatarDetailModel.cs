@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public OASISType CreatedOASISType { get; set; }
         public ProviderType CreatedProviderType { get; set; }
 
-        public int Karma { get; set; }
+        public long Karma { get; set; }
         public int XP { get; set; }
         public int Level{set; get;}
 

@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Manager;
+//using NextGenSoftware.OASIS.API.Manager;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Core.TestHarness
 {
@@ -16,12 +19,25 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
             Console.WriteLine("NextGenSoftware.OASIS.API.Core Test Harness v1.1");
             Console.WriteLine("");
 
+            Console.WriteLine($"For Karma Score 1 I would be Level {LevelManager.GetLevelFromKarma(1)}");
+            Console.WriteLine($"For Karma Score 777 I would be Level {LevelManager.GetLevelFromKarma(777)}");
+            Console.WriteLine($"For Karma Score 2222 I would be Level {LevelManager.GetLevelFromKarma(2222)}");
+            Console.WriteLine($"For Karma Score 8888888 I would be Level {LevelManager.GetLevelFromKarma(8888888)}");
+            Console.WriteLine($"For Karma Score 1004100756606 I would be Level {LevelManager.GetLevelFromKarma(1004100756606)}");
+            Console.WriteLine($"For Karma Score 1004100756607 I would be Level {LevelManager.GetLevelFromKarma(1004100756607)}");
+            Console.WriteLine($"For Karma Score 1004100756608 I would be Level {LevelManager.GetLevelFromKarma(1004100756608)}");
+            Console.WriteLine($"For Karma Score 1255125945857 I would be Level {LevelManager.GetLevelFromKarma(1255125945857)}");
+            Console.WriteLine($"For Karma Score 1255125945858 I would be Level {LevelManager.GetLevelFromKarma(1255125945858)}");
+            Console.WriteLine($"For Karma Score 1255125945859 I would be Level {LevelManager.GetLevelFromKarma(1255125945859)}");
+            Console.WriteLine($"For Karma Score 777777777777777777 I would be Level {LevelManager.GetLevelFromKarma(777777777777777777)}");
+            Console.WriteLine($"For Karma Score 8888888888888888888888888888 I would be Level {LevelManager.GetLevelFromKarma(999999999999999999)}"); //Max supported karma is 9 Quintillion but current max level is 99 (1255125945858 karma, around 1.2 trillion)
+
             //By default it will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
             //OASISAPI.Initialize("OASIS_DNA_Override.json");
-            OASISAPI.Initialize();
+            OASISAPI.BootOASIS();
 
             //Init with the Holochain Provider.
-            OASISBootLoader.OASISBootLoader.GetAndActivateProvider(ProviderType.HoloOASIS, null, false, true);
+            OASISBootLoader.OASISBootLoader.GetAndActivateStorageProvider(ProviderType.HoloOASIS, null, false, true);
             //ProviderManager.ActivateProvider(ProviderType.HoloOASIS); // Can also do it this way.
 
             //OASISAPI.Init(new List<IOASISProvider> { new HoloOASIS("ws://localhost:8888", Holochain.HoloNET.Client.Core.HolochainVersion.Redux) }, OASISConfigManager.OASISDNA);
@@ -76,8 +92,6 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
                 //Console.WriteLine(string.Concat("Karma: ", avatarResult.Result.Karma));
                 //Console.WriteLine(string.Concat("Level: ", avatarResult.Result.Level));
             }
-
-
 
             Console.ReadKey();
         }

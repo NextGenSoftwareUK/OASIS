@@ -48,7 +48,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         HumanDesign HumanDesign { get; set; }
         string Portrait { get; set; }
         List<InventoryItem> Inventory { get; set; }
-        int Karma { get; set; }
+        long Karma { get; set; }
         List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
         string Landline { get; set; }
         int Level { get; }
