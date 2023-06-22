@@ -1,7 +1,7 @@
 //using System;
 //using System.Collections.Generic;
 
-//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
+//namespace NextGenSoftware.OASIS.API.ONode.WebAPI
 //{
 //    public class Account
 //    {

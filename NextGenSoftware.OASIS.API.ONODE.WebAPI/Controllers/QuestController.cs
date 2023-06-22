@@ -7,7 +7,7 @@
 //using NextGenSoftware.OASIS.API.Core.Managers;
 //using NextGenSoftware.OASIS.API.Core.Interfaces;
 
-//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+//namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 //{
 //    [Route("api/quest")]
 //    [ApiController]
@@ -23,7 +23,7 @@
 //            get
 //            {
 //                if (_questManager == null)
-//                    _questManager = new QuestManager(GetAndActivateDefaultProvider());
+//                    _questManager = new QuestManager(GetAndActivateDefaultStorageProvider());
 
 //                return _questManager;
 //            }

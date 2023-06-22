@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/core")]
@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Generate a new Moon (OAPP) PREVIEW - COMING SOON...
+        /// Generate a new Moon (OApp) PREVIEW - COMING SOON...
         /// </summary>
         /// <returns></returns>
         [Authorize]

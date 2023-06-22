@@ -8,7 +8,7 @@
 //using NextGenSoftware.OASIS.API.Core.Interfaces;
 //using NextGenSoftware.OASIS.API.Core.Managers;
 
-//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+//namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 //{
 //    [Route("api/mission")]
 //    [ApiController]
@@ -24,7 +24,7 @@
 //            get
 //            {
 //                if (_missionManager == null)
-//                    _missionManager = new MissionManager(GetAndActivateDefaultProvider());
+//                    _missionManager = new MissionManager(GetAndActivateDefaultStorageProvider());
 
 //                return _missionManager;
 //            }

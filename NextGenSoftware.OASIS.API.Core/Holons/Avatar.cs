@@ -64,7 +64,15 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         {
             get
             {
-                return string.Concat(Title, " ", FirstName, " ", LastName);
+                return string.Concat(FirstName, " ", LastName).Trim();
+            }
+        }
+
+        public string FullNameWithTitle
+        {
+            get
+            {
+                return string.Concat(Title, " ", FirstName, " ", LastName).Trim();
             }
         }
 

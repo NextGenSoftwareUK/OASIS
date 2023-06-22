@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
 
 namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 {

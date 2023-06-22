@@ -7,10 +7,10 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
     public class OASISControllerBase : ControllerBase
     {
@@ -34,13 +34,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         }
 
-        protected IOASISStorageProvider GetAndActivateDefaultProvider()
+        protected IOASISStorageProvider GetAndActivateDefaultStorageProvider()
         {
-            OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+            OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
 
             //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
             if (result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+                ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message), true, false, true);
 
             return result.Result;
         }
@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // TODO: Everywhere I have had to just return the .Result object of OASISResult we need to check for errors and handle correcty.
             // Or maybe better in this case and in the Managers (AvatarManager/HolonManager) just change the return types to OASISResult<T> and pass it up to show any errors/messages to UI if needed...
             // But in meantime if you need to show any errors just throw an exception (ONLY TEMP!)
-            return OASISBootLoader.OASISBootLoader.GetAndActivateProvider(providerType, null, false, setGlobally).Result;
+            return OASISBootLoader.OASISBootLoader.GetAndActivateStorageProvider(providerType, null, false, setGlobally).Result;
         }
 
         protected IOASISStorageProvider GetAndActivateProvider(ProviderType providerType, string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // TODO: Everywhere I have had to just return the .Result object of OASISResult we need to check for errors and handle correcty.
             // Or maybe better in this case and in the Managers (AvatarManager/HolonManager) just change the return types to OASISResult<T> and pass it up to show any errors/messages to UI if needed...
             // But in meantime if you need to show any errors just throw an exception (ONLY TEMP!)
-            return OASISBootLoader.OASISBootLoader.GetAndActivateProvider(providerType, customConnectionString, forceRegister, setGlobally).Result;
+            return OASISBootLoader.OASISBootLoader.GetAndActivateStorageProvider(providerType, customConnectionString, forceRegister, setGlobally).Result;
         }
 
         protected OASISConfigResult<T> ConfigureOASISEngine<T>(OASISRequest request)

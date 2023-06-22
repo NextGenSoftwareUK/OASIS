@@ -4,12 +4,13 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.ONODE.BLL.Managers;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONode.Core.Managers;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 {
+    //TODO: PLEASE MOVE TO OASIS.CORE ASAP, ALL SERVICES SHOULD BE CONVERTED TO MANAGERS IN OASIS.CORE so they can be shared by other endpoints such as gRPC, GraphQL etc...
     public class OlandService : IOlandService
     {
         private readonly OLANDManager _olandManager;

@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public Guid AvatarId { get; set; }
         public DateTime Date { get; set; }
         public int Karma { get; set; } // Calculated from the KarmaType.
-        public int TotalKarma { get; set; } // The new karma value for the avatar.
+        public long TotalKarma { get; set; } // The new karma value for the avatar.
         public string KarmaSourceTitle { get; set; } //Name of the app/website/game etc.
         public string KarmaSourceDesc { get; set; }
         public string WebLink { get; set; }

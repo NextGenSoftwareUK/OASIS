@@ -14,15 +14,15 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
 using BC = BCrypt.Net.BCrypt;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 {
-    //TODO: Want to phase this out, now needed, moving more and more code into AvatarManager.
+    //TODO: Want to phase this out, not needed, moving more and more code into AvatarManager.
     public class AvatarService : IAvatarService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -47,10 +47,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             {
                 if (_searchManager == null)
                 {
-                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
 
                     if (result.IsError)
-                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message), true, false, true);
 
                     _searchManager = new SearchManager(result.Result);
                 }
@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             {
                 //origin = GetOrigin(origin);
 
-                result = await AvatarManager.RegisterAsync(model.Title, model.FirstName, model.LastName, model.Email, model.Password,
+                result = await AvatarManager.RegisterAsync(model.Title, model.FirstName, model.LastName, model.Email, model.Password, model.Username,
                     (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), model.CreatedOASISType);
             }
 
@@ -244,7 +244,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             {
                 //origin = GetOrigin(origin);
 
-                result = AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password,
+                result = AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password, model.Username,
                     (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), model.CreatedOASISType);
             }
 
@@ -282,8 +282,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             return await Task.Run(() => AvatarManager.VerifyEmail(token));
         }
-
-        
 
         public async Task<OASISResult<string>> ValidateResetToken(ValidateResetTokenRequest model)
         {
@@ -334,8 +332,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                         return response;
                     }
 
+                    //int salt = 12;
+                    //string passwordHash = BC.HashPassword(model.OldPassword, salt);
+
+                    //if (!BC.Verify(avatar.Password, passwordHash))
+                    //{
+                    //    ErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
+                    //    return response;
+                    //}
+
                     // update password and remove reset token
-                    avatar.Password = BC.HashPassword(model.Password);
+                    avatar.Password = BC.HashPassword(model.NewPassword);
                     avatar.PasswordReset = DateTime.UtcNow;
                     avatar.ResetToken = null;
                     avatar.ResetTokenExpires = null;
@@ -348,7 +355,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                         return response;
                     }
 
-                    response.Result = "Password reset successful, you can now login";
+                    response.Message = "Password reset successful, you can now login";
+                    response.Result = response.Message;
                 }
                 else
                     ErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);

@@ -205,13 +205,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, string username, AvatarType avatarType, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
 
             try
             {
-                result = PrepareToRegisterAvatar(avatarTitle, firstName, lastName, email, password, avatarType, createdOASISType);
+                result = PrepareToRegisterAvatarAsync(avatarTitle, firstName, lastName, email, password, username, avatarType, createdOASISType).Result;
 
                 if (result != null && !result.IsError && result.Result != null)
                 {
@@ -254,14 +254,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IAvatar>> RegisterAsync(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        public async Task<OASISResult<IAvatar>> RegisterAsync(string avatarTitle, string firstName, string lastName, string email, string password, string username, AvatarType avatarType, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
 
             try
             {
-                result = PrepareToRegisterAvatar(avatarTitle, firstName, lastName, email, password, avatarType, createdOASISType);
-
+                result = await PrepareToRegisterAvatarAsync(avatarTitle, firstName, lastName, email, password, username, avatarType, createdOASISType);
 
                 if (result != null && !result.IsError && result.Result != null)
                 {
@@ -500,6 +499,31 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (result.Result && sendMail)
                 SendAlreadyRegisteredEmail(email, result.Message);
+
+            return result;
+        }
+
+        public OASISResult<bool> CheckIfUsernameIsAlreadyInUse(string username)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IAvatar> existingAvatarResult = LoadAvatar(username);
+
+            if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
+            {
+                //If the avatar has previously been deleted (soft deleted) then allow them to create a new avatar with the same email address.
+                if (existingAvatarResult.Result.DeletedDate != DateTime.MinValue)
+                {
+                    result.Result = true;
+                    ErrorHandling.HandleError(ref result, $"The avatar using username {username} was deleted on {existingAvatarResult.Result.DeletedDate} by avatar with id {existingAvatarResult.Result.DeletedByAvatarId}, please contact support (to either restore your old avatar or permanently delete your old avatar so you can then re-use your old email address to create a new avatar) or create a new avatar with a new email address.");
+                }
+                else
+                {
+                    result.Result = true;
+                    ErrorHandling.HandleError(ref result, $"Sorry, the username {username} is already in use, please use another one.");
+                }
+            }
+            else
+                result.Message = $"Username {username} not in use.";
 
             return result;
         }

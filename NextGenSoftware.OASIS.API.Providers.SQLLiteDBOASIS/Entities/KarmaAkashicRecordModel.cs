@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
         public DateTime Date { get; set; }
         public int Karma { get; set; }
-        public int TotalKarma { get; set; }
+        public long TotalKarma { get; set; }
         public string KarmaSourceTitle { get; set; }
         public string KarmaSourceDesc { get; set; }
         public string WebLink { get; set; }

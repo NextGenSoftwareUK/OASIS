@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Program.cs" />  <!-- TODO: Need to make sure to remove this line when generating OAPP from this template -->
+    <Compile Remove="Program.cs" />  <!-- TODO: Need to make sure to remove this line when generating OApp from this template -->
   </ItemGroup>
 
   <ItemGroup>
@@ -318,8 +318,8 @@
     <Reference Include="NextGenSoftware.OASIS.API.DNA">
       <HintPath>OASIS Runtime\2.3.1\NextGenSoftware.OASIS.API.DNA.dll</HintPath>
     </Reference>
-    <Reference Include="NextGenSoftware.OASIS.API.ONODE.BLL">
-      <HintPath>OASIS Runtime\2.3.1\NextGenSoftware.OASIS.API.ONODE.BLL.dll</HintPath>
+    <Reference Include="NextGenSoftware.OASIS.API.ONode.Core">
+      <HintPath>OASIS Runtime\2.3.1\NextGenSoftware.OASIS.API.ONode.Core.dll</HintPath>
     </Reference>
     <Reference Include="NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS">
       <HintPath>OASIS Runtime\2.3.1\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.dll</HintPath>
@@ -390,8 +390,8 @@
     <Reference Include="NextGenSoftware.OASIS.STAR">
       <HintPath>OASIS Runtime\2.3.1\NextGenSoftware.OASIS.STAR.dll</HintPath>
     </Reference>
-    <Reference Include="NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console">
-      <HintPath>OASIS Runtime\2.3.1\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.dll</HintPath>
+    <Reference Include="NextGenSoftware.OASIS.STAR.DNATemplates.OApp.Console">
+      <HintPath>OASIS Runtime\2.3.1\NextGenSoftware.OASIS.STAR.DNATemplates.OApp.Console.dll</HintPath>
     </Reference>
     <Reference Include="NextGenSoftware.Utilities">
       <HintPath>OASIS Runtime\2.3.1\NextGenSoftware.Utilities.dll</HintPath>

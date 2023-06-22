@@ -3,7 +3,7 @@
 //using System.Threading.Tasks;
 //using MongoDB.Driver;
 
-//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
+//namespace NextGenSoftware.OASIS.API.ONode.WebAPI
 //{
 //    public class SCMSService : ISCMSService
 //    {
