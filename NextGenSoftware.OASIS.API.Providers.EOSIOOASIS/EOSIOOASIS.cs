@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.CurrencyBalance;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
@@ -1189,12 +1190,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         #region IOASISBlockchainStorageProvider
 
-        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public OASISResult<TransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public async Task<OASISResult<TransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
             throw new NotImplementedException();
         }
@@ -1204,7 +1205,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public OASISResult<TransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
             throw new NotImplementedException();
         }
@@ -1214,31 +1215,31 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public OASISResult<TransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
             throw new NotImplementedException();
         }
 
 
-        public OASISResult<string> SendTransaction(IWalletTransaction transaction)
+        public OASISResult<TransactionRespone> SendTransaction(IWalletTransaction transaction)
         {
             return SendTransactionAsync(transaction).Result;
         }
 
-        public async Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transaction)
+        public async Task<OASISResult<TransactionRespone>> SendTransactionAsync(IWalletTransaction transaction)
         {
             return await _transferRepository.TransferEosToken(
                 transaction.FromWalletAddress, transaction.ToWalletAddress, transaction.Amount);
         }
 
-        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<TransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<TransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            var result = new OASISResult<string>();
+            var result = new OASISResult<TransactionRespone>();
             string errorMessage = "Error in SendTransactionByIdAsync method in EosioOasis sending transaction. Reason: ";
 
             var fromAvatarResult = await AvatarManager.LoadAvatarAsync(fromAvatarId);
@@ -1268,9 +1269,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public async Task<OASISResult<TransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            var result = new OASISResult<string>();
+            var result = new OASISResult<TransactionRespone>();
             string errorMessage = "Error in SendTransactionByUsernameAsync method in EosioOasis sending transaction. Reason: ";
 
             var fromAvatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(fromAvatarUsername);
@@ -1317,14 +1318,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public OASISResult<TransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
             return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
         }
 
-        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public async Task<OASISResult<TransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            var result = new OASISResult<string>();
+            var result = new OASISResult<TransactionRespone>();
             string errorMessage = "Error in SendTransactionByEmailAsync method in EosioOasis sending transaction. Reason: ";
 
             var fromAvatarResult = await AvatarManager.LoadAvatarByEmailAsync(fromAvatarEmail);
@@ -1354,20 +1355,20 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public OASISResult<TransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
-        public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<TransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId,
+        public async Task<OASISResult<TransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId,
             decimal amount)
         {
-            var result = new OASISResult<string>();
+            var result = new OASISResult<TransactionRespone>();
             string errorMessage =
                 "Error in SendTransactionByDefaultWalletAsync method in EosioOasis sending transaction. Reason: ";
 
@@ -1405,12 +1406,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<bool> SendNFT(IWalletTransaction transation)
+        public OASISResult<TransactionRespone> SendNFT(INFTWalletTransaction transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
+        public async Task<OASISResult<TransactionRespone>> SendNFTAsync(INFTWalletTransaction transation)
         {
             return await _transferRepository.TransferEosNft(
                 transation.FromWalletAddress,
@@ -1574,6 +1575,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return KeyManager.GetAvatarForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS)
                 .Result;
         }
-        
+
+        Task<OASISResult<TransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<OASISResult<TransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

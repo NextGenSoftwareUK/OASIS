@@ -16,7 +16,7 @@
         "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation"
       }
     },
-    "NextGenSoftware.OASIS.API.ONODE.WebUI.MVC": {
+    "NextGenSoftware.OASIS.API.ONode.WebUI.MVC": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

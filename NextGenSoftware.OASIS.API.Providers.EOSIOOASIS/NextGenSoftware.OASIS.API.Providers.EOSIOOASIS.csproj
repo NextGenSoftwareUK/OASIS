@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	  <PropertyGroup>
-		  <TargetFramework>net6.0</TargetFramework>
+		  <TargetFramework>net7.0</TargetFramework>
 		  <PackageId>NextGenSoftware.OASIS.API.Providers.EOSIOOASIS</PackageId>
 		  <Company>NextGen Software Ltd</Company>
 		  <Product>WEB4 OASIS API EOSIO OASIS Provider</Product>
@@ -44,8 +44,6 @@
     <PackageReference Include="eos-sharp" Version="2.2.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.6" />
-	<PackageReference Include="NLog" Version="4.7.9" />
-    <PackageReference Include="NLog.Config" Version="4.7.9" />
     <!--<PackageReference Include="NLog" Version="4.7.3" />
     <PackageReference Include="NLog.Config" Version="4.7.3" />-->
   </ItemGroup>
@@ -56,7 +54,10 @@
 
   <ItemGroup>
     <Reference Include="EosSharp">
-      <HintPath>..\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\OASIS Runtime\2.3.1\EosSharp.dll</HintPath>
+      <HintPath>..\NextGenSoftware.OASIS.STAR.DNATemplates.OApp.Console.DLL\OASIS Runtime\2.3.1\EosSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="EosSharp.Core">
+      <HintPath>..\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\OASIS Runtime\2.3.1\EosSharp.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
 

@@ -6,9 +6,9 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -22,10 +22,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 if (_keyManager == null)
                 {
-                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
 
                     if (result.IsError)
-                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message), true, false, true);
 
                     _keyManager = new KeyManager(result.Result);
                 }

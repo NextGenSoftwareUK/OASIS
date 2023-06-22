@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
     {
         private const string defaultGenesisNamespace = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
         private const string celestialBodyDNAFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
-        private const string geneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net6.0\\Genesis";
+        private const string geneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net7.0\\Genesis";
         private const OAPPType DefaultOAPPType = OAPPType.Console;
 
         private static Planet _superWorld;
@@ -190,29 +190,29 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 //OR
                 //CoronalEjection ejection = Star.Flare(ourWorld);
 
-                // Activate & Launch - Launch & activate the planet (OAPP) by shining the star's light upon it...
+                // Activate & Launch - Launch & activate the planet (OApp) by shining the star's light upon it...
                 STAR.Shine(result.Result.CelestialBody);
                 result.Result.CelestialBody.Shine();
 
-                // Deactivate the planet (OAPP)
+                // Deactivate the planet (OApp)
                 STAR.Dim(result.Result.CelestialBody);
 
-                // Deploy the planet (OAPP)
+                // Deploy the planet (OApp)
                 STAR.Seed(result.Result.CelestialBody);
 
                 // Run Tests
                 STAR.Twinkle(result.Result.CelestialBody);
 
-                // Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*
+                // Highlight the Planet (OApp) in the OApp Store (StarNET). *Admin Only*
                 STAR.Radiate(result.Result.CelestialBody);
 
-                // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
+                // Show how much light the planet (OApp) is emitting into the solar system (StarNET/HoloNET)
                 STAR.Emit(result.Result.CelestialBody);
 
-                // Show stats of the Planet (OAPP).
+                // Show stats of the Planet (OApp).
                 STAR.Reflect(result.Result.CelestialBody);
 
-                // Upgrade/update a Planet (OAPP).
+                // Upgrade/update a Planet (OApp).
                 STAR.Evolve(result.Result.CelestialBody);
 
                 // Import/Export hApp, dApp & others.
@@ -227,7 +227,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 // Reserved For Future Use...
                 STAR.Super(result.Result.CelestialBody);
 
-                // Delete a planet (OAPP).
+                // Delete a planet (OApp).
                 STAR.Dust(result.Result.CelestialBody);
             }
         }
@@ -795,8 +795,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static async Task<OASISResult<CoronalEjection>> GenerateCelestialBody(string name, ICelestialBody parentCelestialBody, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder, string genesisFolder, string genesisNameSpace)
         {
-            // Create (OAPP) by generating dynamic template/scaffolding code.
-            string message = $"Generating {Enum.GetName(typeof(GenesisType), genesisType)} '{name}' (OAPP)";
+            // Create (OApp) by generating dynamic template/scaffolding code.
+            string message = $"Generating {Enum.GetName(typeof(GenesisType), genesisType)} '{name}' (OApp)";
 
             if (genesisType == GenesisType.Moon && parentCelestialBody != null)
                 message = $"{message} For Planet '{parentCelestialBody.Name}'";
@@ -1296,18 +1296,18 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine("   star extinguish = Extinguish SuperStar & Shutdown The OASIS");
             Console.WriteLine("   star beamin = Log in");
             Console.WriteLine("   star beamout = Log out");
-            Console.WriteLine("   star light -dnaFolder -cSharpGeneisFolder -rustGenesisFolder = Creates a new Planet (OAPP) at the given folder genesis locations, from the given OAPP DNA.");
-            Console.WriteLine("   star light -transmute -hAppDNA -cSharpGeneisFolder -rustGenesisFolder = Creates a new Planet (OAPP) at the given folder genesis locations, from the given hApp DNA.");
-            Console.WriteLine("   star flare -planetName = Build a planet (OAPP).");
-            Console.WriteLine("   star shine -planetName = Launch & activate a planet (OAPP) by shining the star's light upon it...");
-            Console.WriteLine("   star dim -planetName = Deactivate a planet (OAPP).");
-            Console.WriteLine("   star seed -planetName = Deploy a planet (OAPP).");
-            Console.WriteLine("   star twinkle -planetName = Deactivate a planet (OAPP).");
-            Console.WriteLine("   star dust -planetName = Delete a planet (OAPP).");
-            Console.WriteLine("   star radiate -planetName = Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*");
-            Console.WriteLine("   star emit -planetName = Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)");
-            Console.WriteLine("   star reflect -planetName = Show stats of the Planet (OAPP).");
-            Console.WriteLine("   star evolve -planetName = Upgrade/update a Planet (OAPP).");
+            Console.WriteLine("   star light -dnaFolder -cSharpGeneisFolder -rustGenesisFolder = Creates a new Planet (OApp) at the given folder genesis locations, from the given OApp DNA.");
+            Console.WriteLine("   star light -transmute -hAppDNA -cSharpGeneisFolder -rustGenesisFolder = Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
+            Console.WriteLine("   star flare -planetName = Build a planet (OApp).");
+            Console.WriteLine("   star shine -planetName = Launch & activate a planet (OApp) by shining the star's light upon it...");
+            Console.WriteLine("   star dim -planetName = Deactivate a planet (OApp).");
+            Console.WriteLine("   star seed -planetName = Deploy a planet (OApp).");
+            Console.WriteLine("   star twinkle -planetName = Deactivate a planet (OApp).");
+            Console.WriteLine("   star dust -planetName = Delete a planet (OApp).");
+            Console.WriteLine("   star radiate -planetName = Highlight the Planet (OApp) in the OApp Store (StarNET). *Admin Only*");
+            Console.WriteLine("   star emit -planetName = Show how much light the planet (OApp) is emitting into the solar system (StarNET/HoloNET)");
+            Console.WriteLine("   star reflect -planetName = Show stats of the Planet (OApp).");
+            Console.WriteLine("   star evolve -planetName = Upgrade/update a Planet (OApp).");
             Console.WriteLine("   star mutate -planetName = Import/Export hApp, dApp & others.");
             Console.WriteLine("   star love -planetName = Send/Receive Love.");
             Console.WriteLine("   star burst = View network stats/management/settings.");

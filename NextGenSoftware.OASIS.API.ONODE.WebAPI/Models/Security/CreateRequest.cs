@@ -1,7 +1,7 @@
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security
 {
     public class CreateRequest
     {
@@ -20,6 +20,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
         [Required]
         [EmailAddress]
         public string Email { get; set; }
+
+        [Required]
+        public string Username { get; set; }
 
         [Required]
         [MinLength(6)]

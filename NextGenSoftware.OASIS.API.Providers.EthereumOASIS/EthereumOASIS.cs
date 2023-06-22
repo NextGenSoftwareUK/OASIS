@@ -14,6 +14,7 @@ using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
@@ -997,14 +998,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         }
 
 
-        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<TransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<TransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            var result = new OASISResult<string>();
+            var result = new OASISResult<TransactionRespone>();
             string errorMessage = "Error in SendTransactionByIdAsync method in EthereumOASIS sending transaction. Reason: ";
 
             var senderAvatarPrivateKeysResult = KeyManager.GetProviderPrivateKeysForAvatarById(fromAvatarId, Core.Enums.ProviderType.EthereumOASIS);
@@ -1034,9 +1035,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public async Task<OASISResult<TransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            var result = new OASISResult<string>();
+            var result = new OASISResult<TransactionRespone>();
             string errorMessage = "Error in SendTransactionByUsernameAsync method in EthereumOASIS sending transaction. Reason: ";
 
             var senderAvatarPrivateKeysResult = KeyManager.GetProviderPrivateKeysForAvatarByUsername(fromAvatarUsername, Core.Enums.ProviderType.EthereumOASIS);
@@ -1066,14 +1067,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public OASISResult<TransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
             return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
         }
 
-        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public async Task<OASISResult<TransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            var result = new OASISResult<string>();
+            var result = new OASISResult<TransactionRespone>();
             string errorMessage = "Error in SendTransactionByEmailAsync method in EthereumOASIS sending transaction. Reason: ";
 
             var senderAvatarPrivateKeysResult = KeyManager.GetProviderUniqueStorageKeyForAvatarByEmail(fromAvatarEmail, Core.Enums.ProviderType.EthereumOASIS);
@@ -1103,19 +1104,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public OASISResult<TransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
-        public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<TransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<TransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            var result = new OASISResult<string>();
+            var result = new OASISResult<TransactionRespone>();
             string errorMessage = "Error in SendTransactionByDefaultWalletAsync method in EthereumOASIS sending transaction. Reason: ";
 
             var senderAvatarPrivateKeysResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.EthereumOASIS);
@@ -1145,14 +1146,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public OASISResult<string> SendTransaction(IWalletTransaction transaction)
+        public OASISResult<TransactionRespone> SendTransaction(IWalletTransaction transaction)
         {
             return SendTransactionAsync(transaction).Result;
         }
         
-        public async Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transaction)
+        public async Task<OASISResult<TransactionRespone>> SendTransactionAsync(IWalletTransaction transaction)
         {
-            var result = new OASISResult<string>();
+            var result = new OASISResult<TransactionRespone>();
             string errorMessage = "Error in SendTransactionAsync method in EthereumOASIS sending transaction. Reason: ";
             
             try
@@ -1168,10 +1169,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     ErrorHandling.HandleError(ref result, result.Message);
                     return result;
                 }
-                
-                result.IsError = false;
-                result.IsSaved = true;
-                result.Result = transactionResult.TransactionHash;
+
+                result.Result.TransactionResult = transactionResult.TransactionHash;
+                ErrorHandling.CheckForTransactionErrors(ref result, true, errorMessage);
             }
             catch (RpcResponseException ex)
             {
@@ -1185,9 +1185,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
         
-        private async Task<OASISResult<string>> SendEthereumTransaction(string senderAccountPrivateKey, string receiverAccountAddress, decimal amount)
+        private async Task<OASISResult<TransactionRespone>> SendEthereumTransaction(string senderAccountPrivateKey, string receiverAccountAddress, decimal amount)
         {
-            var result = new OASISResult<string>();
+            var result = new OASISResult<TransactionRespone>();
             string errorMessage = "Error in SendEthereumTransaction method in EthereumOASIS sending transaction. Reason: ";
             try
             {
@@ -1203,9 +1203,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                result.IsError = false;
-                result.IsSaved = true;
-                result.Result = transactionResult.TransactionHash;
+                result.Result.TransactionResult = transactionResult.TransactionHash;
+                ErrorHandling.CheckForTransactionErrors(ref result, true, errorMessage);
             }
             catch (Exception ex)
             {
@@ -1214,33 +1213,39 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public OASISResult<TransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
+            //TODO: Implement ASAP!
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public Task<OASISResult<TransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
+            //TODO: Implement ASAP!
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public Task<OASISResult<TransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
+            //TODO: Implement ASAP!
             throw new NotImplementedException();
         }
 
-        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public OASISResult<TransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
+            //TODO: Implement ASAP!
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public Task<OASISResult<TransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
+            //TODO: Implement ASAP!
             throw new NotImplementedException();
         }
 
-        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public OASISResult<TransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
+            //TODO: Implement ASAP!
             throw new NotImplementedException();
         }
     }

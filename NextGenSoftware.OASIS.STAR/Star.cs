@@ -704,20 +704,20 @@ namespace NextGenSoftware.OASIS.STAR
                 genesisNameSpace = $"{STARDNA.BasePath}\\{STARDNA.GenesisNamespace}";
 
             if (string.IsNullOrEmpty(genesisNameSpace))
-                genesisNameSpace = string.Concat(name, "OAPP");
+                genesisNameSpace = string.Concat(name, "OApp");
 
-                //Setup the OAPP files from the relevant template.
+                //Setup the OApp files from the relevant template.
             if (OAPPType == OAPPType.CelestialBodies)
             {
                 if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp")))
                     Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
 
                 if (!Directory.Exists(string.Concat(genesisFolder, "\\Rust")))
-                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust")); //TODO: Soon this will be generic depending on what the target OASIS Providers STAR has been configured to generate OAPP code for...
+                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust")); //TODO: Soon this will be generic depending on what the target OASIS Providers STAR has been configured to generate OApp code for...
             }     
             else
             {
-                OAPPFolder = string.Concat(genesisFolder, "\\", name, " OAPP");
+                OAPPFolder = string.Concat(genesisFolder, "\\", name, " OApp");
                 
                 if (!Directory.Exists(OAPPFolder))
                     Directory.CreateDirectory(string.Concat(OAPPFolder));
@@ -1073,8 +1073,8 @@ namespace NextGenSoftware.OASIS.STAR
             // Remove any white space from the name.
             File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), genesisType), ".cs"), celestialBodyBufferCsharp);
 
-            // Currently the OAPP Name is the same as the CelestialBody name (each CelestialBody is a seperate OAPP), but in future a OAPP may be able to contain more than one celestialBody...
-            // TODO: Currently the OAPP templates only contain sample load/save for one holon... this may change in future... likely will... ;-) Want to show for every zome/holon inside the celestialbody...
+            // Currently the OApp Name is the same as the CelestialBody name (each CelestialBody is a seperate OApp), but in future a OApp may be able to contain more than one celestialBody...
+            // TODO: Currently the OApp templates only contain sample load/save for one holon... this may change in future... likely will... ;-) Want to show for every zome/holon inside the celestialbody...
             ApplyOAPPTemplate(OAPPFolder, genesisNameSpace, name, name, holonNames[0]);
 
             switch (genesisType)
@@ -1308,7 +1308,7 @@ namespace NextGenSoftware.OASIS.STAR
             return new CoronalEjection();
         }
 
-        //Activate & Launch - Launch & activate a planet (OAPP) by shining the star's light upon it...
+        //Activate & Launch - Launch & activate a planet (OApp) by shining the star's light upon it...
         public static void Shine(ICelestialBody body)
         {
 
@@ -1352,13 +1352,13 @@ namespace NextGenSoftware.OASIS.STAR
 
         }
 
-        // Delete Planet (OAPP)
+        // Delete Planet (OApp)
         public static void Dust(ICelestialBody body)
         {
 
         }
 
-        // Delete Planet (OAPP)
+        // Delete Planet (OApp)
         public static void Dust(string bodyName)
         {
 
@@ -1385,7 +1385,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         }
 
-        // Highlight the Planet (OAPP) in the OAPP Store (StarNET)
+        // Highlight the Planet (OApp) in the OApp Store (StarNET)
         public static void Radiate(ICelestialBody body)
         {
 
@@ -1396,7 +1396,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         }
 
-        // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
+        // Show how much light the planet (OApp) is emitting into the solar system (StarNET/HoloNET)
         public static void Emit(ICelestialBody body)
         {
 
@@ -1407,7 +1407,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         }
 
-        // Show stats of the Planet (OAPP)
+        // Show stats of the Planet (OApp)
         public static void Reflect(ICelestialBody body)
         {
 
@@ -2050,7 +2050,7 @@ namespace NextGenSoftware.OASIS.STAR
 
 
         /// <summary>
-        /// Create's the OASIS Omniverse along with a new default Multiverse (with it's GrandSuperStar) containing the ThirdDimension containing UniversePrime (simulation) and the MagicVerse (contains OAPP's), which itself contains a default GalaxyCluster containing a default Galaxy (along with it's SuperStar) containing a default SolarSystem (along wth it's Star) containing a default planet (Our World).
+        /// Create's the OASIS Omniverse along with a new default Multiverse (with it's GrandSuperStar) containing the ThirdDimension containing UniversePrime (simulation) and the MagicVerse (contains OApp's), which itself contains a default GalaxyCluster containing a default Galaxy (along with it's SuperStar) containing a default SolarSystem (along wth it's Star) containing a default planet (Our World).
         /// </summary>
         /// <param name="result"></param>
         /// <returns></returns>
@@ -2282,7 +2282,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         /*
         /// <summary>
-        /// Create's the OASIS Omniverse along with a new default Multiverse (with it's GrandSuperStar) containing the ThirdDimension containing UniversePrime (simulation) and the MagicVerse (contains OAPP's), which itself contains a default GalaxyCluster containing a default Galaxy (along with it's SuperStar) containing a default SolarSystem (along wth it's Star) containing a default planet (Our World).
+        /// Create's the OASIS Omniverse along with a new default Multiverse (with it's GrandSuperStar) containing the ThirdDimension containing UniversePrime (simulation) and the MagicVerse (contains OApp's), which itself contains a default GalaxyCluster containing a default Galaxy (along with it's SuperStar) containing a default SolarSystem (along wth it's Star) containing a default planet (Our World).
         /// </summary>
         /// <param name="result"></param>
         /// <returns></returns>

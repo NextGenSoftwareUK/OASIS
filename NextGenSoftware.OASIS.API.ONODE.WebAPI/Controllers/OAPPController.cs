@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/oapp")]
@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Get's all OAPP's installed for the current logged in avatar. PREVIEW - COMING SOON...
+        /// Get's all OApp's installed for the current logged in avatar. PREVIEW - COMING SOON...
         /// </summary>
         /// <param name="avatar"></param>
         /// <returns></returns>

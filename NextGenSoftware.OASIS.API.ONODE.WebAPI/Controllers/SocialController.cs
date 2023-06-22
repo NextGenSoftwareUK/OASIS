@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/social")]

@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers.Admin
 {
     [Route("api/admin/[controller]")]
     [ApiController]

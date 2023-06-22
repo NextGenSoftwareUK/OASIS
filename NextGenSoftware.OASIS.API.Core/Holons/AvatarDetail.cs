@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
        
       //  public EnumValue<OASISType> CreatedOASISType { get; set; }
         // public int Karma { get; private set; }
-        public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
+        public long Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         public int XP { get; set; }
         public IOmiverse Omniverse { get; set; } //We have all of creation inside of us... ;-)
         public List<AvatarGift> Gifts { get; set; } = new List<AvatarGift>();
@@ -99,21 +99,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         {
             get
             {
-                if (this.Karma > 0 && this.Karma < 100)
-                    return 1;
-
-                if (this.Karma >= 100 && this.Karma < 200)
-                    return 2;
-
-                if (this.Karma >= 200 && this.Karma < 300)
-                    return 3;
-
-                if (this.Karma >= 777)
-                    return 99;
-
-                //TODO: Add all the other levels here, all the way up to 100 for now! ;=)
-
-                return 1; //Default.
+                return LevelManager.GetLevelFromKarma(Karma);
             }
         }
 

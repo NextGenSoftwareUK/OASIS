@@ -8,7 +8,7 @@
 //using NextGenSoftware.OASIS.API.Core.Managers;
 //using NextGenSoftware.OASIS.API.Core.Objects;
 
-//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+//namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 //{
 
 
@@ -31,7 +31,7 @@
 //            get
 //            {
 //                if (_mapManager == null)
-//                    _mapManager = new MapManager(GetAndActivateDefaultProvider());
+//                    _mapManager = new MapManager(GetAndActivateDefaultStorageProvider());
 
 //                return _mapManager;
 //            }

@@ -281,7 +281,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return new OASISResult<IOASISStorageProvider>(CurrentStorageProvider);
         }
 
-        // Called from ONODE.WebAPI.OASISProviderManager.
+        // Called from ONode.WebAPI.OASISProviderManager.
         public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(IOASISProvider OASISProvider)
         {
             if (OASISProvider != CurrentStorageProvider)
@@ -298,7 +298,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return new OASISResult<IOASISStorageProvider>(CurrentStorageProvider);
         }
 
-        // Called from ONODE.WebAPI.OASISProviderManager.
+        // Called from ONode.WebAPI.OASISProviderManager.
         //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
         public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = false)
         {
@@ -328,10 +328,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         OASISResult<bool> deactivateProviderResult = DeActivateProvider(CurrentStorageProvider);
 
-                        if (deactivateProviderResult.IsError)
+                        if (deactivateProviderResult != null && deactivateProviderResult.IsError || deactivateProviderResult == null)
                         {
-                           // result.IsError = true; // TODO: Think its not an error as long as it can activate a provider below?
-                            result.Message = deactivateProviderResult.Message;
+                            result.IsWarning = true; // TODO: Think its not an error as long as it can activate a provider below?
+                            result.Message = deactivateProviderResult != null ? deactivateProviderResult.Message : "Unknown error (deactivateProviderResult was null!)";
                         }
                     }
 
@@ -341,10 +341,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     OASISResult<bool> activateProviderResult = ActivateProvider(CurrentStorageProvider);
 
-                    if (activateProviderResult.IsError)
+                    if (activateProviderResult != null && activateProviderResult.IsError || activateProviderResult == null)
                     {
                         result.IsError = true;
-                        result.Message = activateProviderResult.Message;
+                        result.Message = activateProviderResult != null ? activateProviderResult.Message : "Unknown error (activateProviderResult was null!)";
                     }
 
                     if (setGlobally)

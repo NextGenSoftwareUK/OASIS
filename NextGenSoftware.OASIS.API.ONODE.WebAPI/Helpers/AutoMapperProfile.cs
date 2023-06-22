@@ -1,8 +1,8 @@
 using AutoMapper;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
 {
     public class AutoMapperProfile : Profile
     {
@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             //CreateMap<CreateRequest, Core.Avatar>();
             //CreateMap<RegisterRequest, IAvatar>();
             CreateMap<CreateRequest, IAvatar>();
-            CreateMap<Core.Holons.Avatar, IAvatar>();
+            CreateMap<API.Core.Holons.Avatar, IAvatar>();
 
             CreateMap<UpdateRequest, IAvatar>()
                 .ForAllMembers(x => x.Condition(

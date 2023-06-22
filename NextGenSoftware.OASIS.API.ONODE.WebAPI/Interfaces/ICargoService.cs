@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
+namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces
 {
     public interface ICargoService
     {

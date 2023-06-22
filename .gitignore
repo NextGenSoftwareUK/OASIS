@@ -266,3 +266,4 @@ __pycache__/
 .DS_Store
 NextGenSoftware.OASIS.API.ONODE.WebUI.HTML/react-app/yarn.lock
 *.map
+/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS_DNA.json

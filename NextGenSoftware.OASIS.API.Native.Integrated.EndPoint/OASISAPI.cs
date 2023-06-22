@@ -3,26 +3,26 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Apollo.Server;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.BLL.Managers;
+using NextGenSoftware.OASIS.API.ONode.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {
     public class OASISAPI
     {
-        public bool IsOASISBooted { get; set; }
-        public AvatarManager Avatar { get; set; }
-        public KeyManager Keys { get; set; }
-        public WalletManager Wallets { get; set; }
-        public HolonManager Data { get; set; }
-        public MapManager Map { get; set; }
-        public MissionManager Missions { get; set; }
-        public QuestManager Quests { get; set; }
-        public ParkManager Parks { get; set; }
-        public OLANDManager OLAND { get; set; }
-        public SearchManager Search { get; set; }
-        public OASISProviders Providers { get; private set; }
+        public static bool IsOASISBooted { get; set; }
+        public static AvatarManager Avatar { get; set; }
+        public static KeyManager Keys { get; set; }
+        public static WalletManager Wallets { get; set; }
+        public static HolonManager Data { get; set; }
+        public static MapManager Map { get; set; }
+        public static MissionManager Missions { get; set; }
+        public static QuestManager Quests { get; set; }
+        public static ParkManager Parks { get; set; }
+        public static OLANDManager OLAND { get; set; }
+        public static SearchManager Search { get; set; }
+        public static OASISProviders Providers { get; private set; }
 
-        public OASISResult<bool> BootOASIS(OASISDNA OASISDNA, bool startApolloServer = true)
+        public static OASISResult<bool> BootOASIS(OASISDNA OASISDNA, bool startApolloServer = true)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             return result;
         }
 
-        public OASISResult<bool> BootOASIS(string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
+        public static OASISResult<bool> BootOASIS(string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 
             if (!result.IsError && result.Result)
             {
-                OASISResult<IOASISStorageProvider> bootLoaderResult = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+                OASISResult<IOASISStorageProvider> bootLoaderResult = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
 
                 if (bootLoaderResult.IsError)
                 {
@@ -60,12 +60,12 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             return result;
         }
 
-        public OASISResult<bool> ShutdownOASIS()
+        public static OASISResult<bool> ShutdownOASIS()
         {
             return OASISBootLoader.OASISBootLoader.ShutdownOASIS();
         }
 
-        private void BootOASIS(bool startApolloServer = true)
+        private static void BootOASIS(bool startApolloServer = true)
         {
             Map = new MapManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Missions = new MissionManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
