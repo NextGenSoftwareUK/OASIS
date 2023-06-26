@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
@@ -24,9 +25,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
         }
         
-        public async Task<OASISResult<IEnumerable<IOland>>> LoadAllOlands()
+        public async Task<OASISResult<IEnumerable<IOLand>>> LoadAllOlands()
         {
-            var response = new OASISResult<IEnumerable<IOland>>();
+            var response = new OASISResult<IEnumerable<IOLand>>();
             try
             {
                 var loadResult = await Data.LoadAllHolonsAsync();
@@ -42,15 +43,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 
                 var olandsEntity = loadResult.Result.Select(holon => new Oland 
                 {
-                    Discount = Convert.ToDecimal(holon.MetaData[nameof(IOland.Discount)].Replace(",", ".")),
-                    Id = Guid.Parse(holon.MetaData[nameof(IOland.Id)]),
-                    Price = Convert.ToDecimal(holon.MetaData[nameof(IOland.Price)].Replace(",", ".")),
-                    IsRemoved = bool.Parse(holon.MetaData[nameof(IOland.IsRemoved)]),
-                    OlandsCount = int.Parse(holon.MetaData[nameof(IOland.OlandsCount)]),
-                    PreviousId = Guid.Parse(holon.MetaData[nameof(IOland.PreviousId)]),
-                    RightSize = Convert.ToDecimal(holon.MetaData[nameof(IOland.RightSize)].Replace(",", ".")),
-                    TopSize = Convert.ToDecimal(holon.MetaData[nameof(IOland.TopSize)].Replace(",", ".")),
-                    UnitOfMeasure = holon.MetaData[nameof(IOland.UnitOfMeasure)]
+                    Discount = Convert.ToDecimal(holon.MetaData[nameof(IOLand.Discount)].Replace(",", ".")),
+                    Id = Guid.Parse(holon.MetaData[nameof(IOLand.Id)]),
+                    Price = Convert.ToDecimal(holon.MetaData[nameof(IOLand.Price)].Replace(",", ".")),
+                    IsRemoved = bool.Parse(holon.MetaData[nameof(IOLand.IsRemoved)]),
+                    OlandsCount = int.Parse(holon.MetaData[nameof(IOLand.OlandsCount)]),
+                    PreviousId = Guid.Parse(holon.MetaData[nameof(IOLand.PreviousId)]),
+                    RightSize = Convert.ToDecimal(holon.MetaData[nameof(IOLand.RightSize)].Replace(",", ".")),
+                    TopSize = Convert.ToDecimal(holon.MetaData[nameof(IOLand.TopSize)].Replace(",", ".")),
+                    UnitOfMeasure = holon.MetaData[nameof(IOLand.UnitOfMeasure)]
                 });
                 response.Result = olandsEntity;
             }
@@ -66,9 +67,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return response;
         }
 
-        public async Task<OASISResult<IOland>> LoadOland(Guid olandId)
+        public async Task<OASISResult<IOLand>> LoadOland(Guid olandId)
         {
-            var response = new OASISResult<IOland>();
+            var response = new OASISResult<IOLand>();
             try
             {
                 var loadResult = await Data.LoadHolonAsync(olandId);
@@ -84,15 +85,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 var olandEntity = new Oland()
                 {
-                    Discount = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOland.Discount)].Replace(",", ".")),
-                    Id = Guid.Parse(loadResult.Result.MetaData[nameof(IOland.Id)]),
-                    Price = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOland.Price)].Replace(",", ".")),
-                    IsRemoved = bool.Parse(loadResult.Result.MetaData[nameof(IOland.IsRemoved)]),
-                    OlandsCount = int.Parse(loadResult.Result.MetaData[nameof(IOland.OlandsCount)]),
-                    PreviousId = Guid.Parse(loadResult.Result.MetaData[nameof(IOland.PreviousId)]),
-                    RightSize = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOland.RightSize)].Replace(",", ".")),
-                    TopSize = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOland.TopSize)].Replace(",", ".")),
-                    UnitOfMeasure = loadResult.Result.MetaData[nameof(IOland.UnitOfMeasure)]
+                    Discount = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOLand.Discount)].Replace(",", ".")),
+                    Id = Guid.Parse(loadResult.Result.MetaData[nameof(IOLand.Id)]),
+                    Price = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOLand.Price)].Replace(",", ".")),
+                    IsRemoved = bool.Parse(loadResult.Result.MetaData[nameof(IOLand.IsRemoved)]),
+                    OlandsCount = int.Parse(loadResult.Result.MetaData[nameof(IOLand.OlandsCount)]),
+                    PreviousId = Guid.Parse(loadResult.Result.MetaData[nameof(IOLand.PreviousId)]),
+                    RightSize = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOLand.RightSize)].Replace(",", ".")),
+                    TopSize = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOLand.TopSize)].Replace(",", ".")),
+                    UnitOfMeasure = loadResult.Result.MetaData[nameof(IOLand.UnitOfMeasure)]
                 };
 
                 response.Result = olandEntity;
@@ -114,7 +115,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return await Data.DeleteHolonAsync(olandId);
         }
 
-        public async Task<OASISResult<string>> SaveOland(IOland request)
+        public async Task<OASISResult<string>> SaveOland(IOLand request)
         {
             var response = new OASISResult<string>();
             try
@@ -125,15 +126,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     IsNewHolon = true,
                     MetaData =
                     {
-                        [nameof(IOland.UnitOfMeasure)] = request.UnitOfMeasure,
-                        [nameof(IOland.Discount)] = request.Discount.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
-                        [nameof(IOland.Id)] = request.Id.ToString(),
-                        [nameof(IOland.Price)] = request.Price.ToString(CultureInfo.CurrentCulture).Replace(".", ","),
-                        [nameof(IOland.IsRemoved)] = request.IsRemoved.ToString(CultureInfo.CurrentCulture),
-                        [nameof(IOland.OlandsCount)] = request.OlandsCount.ToString(CultureInfo.CurrentCulture),
-                        [nameof(IOland.PreviousId)] = request.PreviousId.ToString(),
-                        [nameof(IOland.RightSize)] = request.RightSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
-                        [nameof(IOland.TopSize)] = request.TopSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
+                        [nameof(IOLand.UnitOfMeasure)] = request.UnitOfMeasure,
+                        [nameof(IOLand.Discount)] = request.Discount.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
+                        [nameof(IOLand.Id)] = request.Id.ToString(),
+                        [nameof(IOLand.Price)] = request.Price.ToString(CultureInfo.CurrentCulture).Replace(".", ","),
+                        [nameof(IOLand.IsRemoved)] = request.IsRemoved.ToString(CultureInfo.CurrentCulture),
+                        [nameof(IOLand.OlandsCount)] = request.OlandsCount.ToString(CultureInfo.CurrentCulture),
+                        [nameof(IOLand.PreviousId)] = request.PreviousId.ToString(),
+                        [nameof(IOLand.RightSize)] = request.RightSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
+                        [nameof(IOLand.TopSize)] = request.TopSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
                     }
                 };
                 var saveResult = await Data.SaveHolonAsync(olandHolon);
@@ -159,7 +160,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return response;
         }
 
-        public async Task<OASISResult<string>> UpdateOland(IOland request)
+        public async Task<OASISResult<string>> UpdateOland(IOLand request)
         {
             var response = new OASISResult<string>();
             try
@@ -171,15 +172,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     IsNewHolon = false,
                     MetaData =
                     {
-                        [nameof(IOland.UnitOfMeasure)] = request.UnitOfMeasure,
-                        [nameof(IOland.Discount)] = request.Discount.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
-                        [nameof(IOland.Id)] = request.Id.ToString(),
-                        [nameof(IOland.Price)] = request.Price.ToString(CultureInfo.CurrentCulture).Replace(".", ","),
-                        [nameof(IOland.IsRemoved)] = request.IsRemoved.ToString(CultureInfo.CurrentCulture),
-                        [nameof(IOland.OlandsCount)] = request.OlandsCount.ToString(CultureInfo.CurrentCulture),
-                        [nameof(IOland.PreviousId)] = request.PreviousId.ToString(),
-                        [nameof(IOland.RightSize)] = request.RightSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
-                        [nameof(IOland.TopSize)] = request.TopSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
+                        [nameof(IOLand.UnitOfMeasure)] = request.UnitOfMeasure,
+                        [nameof(IOLand.Discount)] = request.Discount.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
+                        [nameof(IOLand.Id)] = request.Id.ToString(),
+                        [nameof(IOLand.Price)] = request.Price.ToString(CultureInfo.CurrentCulture).Replace(".", ","),
+                        [nameof(IOLand.IsRemoved)] = request.IsRemoved.ToString(CultureInfo.CurrentCulture),
+                        [nameof(IOLand.OlandsCount)] = request.OlandsCount.ToString(CultureInfo.CurrentCulture),
+                        [nameof(IOLand.PreviousId)] = request.PreviousId.ToString(),
+                        [nameof(IOLand.RightSize)] = request.RightSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
+                        [nameof(IOLand.TopSize)] = request.TopSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
                     }
                 };
                 
@@ -206,7 +207,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return response;
         }
 
-        public async Task<OASISResult<string>> PurchaseOland(IOlandPurchase olandPurchase)
+        public async Task<OASISResult<string>> PurchaseOland(IOLandPurchase olandPurchase)
         {
             var response = new OASISResult<string>();
             
@@ -218,17 +219,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     IsNewHolon = true,
                     MetaData =
                     {
-                        [nameof(IOlandPurchase.Id)] = olandPurchase.Id.ToString(),
-                        [nameof(IOlandPurchase.OlandId)] = olandPurchase.OlandId.ToString(),
-                        [nameof(IOlandPurchase.AvatarId)] = olandPurchase.AvatarId.ToString(),
-                        [nameof(IOlandPurchase.AvatarUsername)] = olandPurchase.AvatarUsername,
-                        [nameof(IOlandPurchase.Tiles)] = olandPurchase.Tiles,
-                        [nameof(IOlandPurchase.WalletAddress)] = olandPurchase.WalletAddress,
-                        [nameof(IOlandPurchase.PurchaseDate)] = olandPurchase.PurchaseDate.ToString(CultureInfo.InvariantCulture),
-                        [nameof(IOlandPurchase.TransactionHash)] = olandPurchase.TransactionHash,
-                        [nameof(IOlandPurchase.CargoSaleId)] = olandPurchase.CargoSaleId,
-                        [nameof(IOlandPurchase.IsSucceedPurchase)] = olandPurchase.IsSucceedPurchase.ToString(),
-                        [nameof(IOlandPurchase.ErrorMessage)] = olandPurchase.ErrorMessage
+                        [nameof(IOLandPurchase.Id)] = olandPurchase.Id.ToString(),
+                        [nameof(IOLandPurchase.OlandId)] = olandPurchase.OlandId.ToString(),
+                        [nameof(IOLandPurchase.AvatarId)] = olandPurchase.AvatarId.ToString(),
+                        [nameof(IOLandPurchase.AvatarUsername)] = olandPurchase.AvatarUsername,
+                        [nameof(IOLandPurchase.Tiles)] = olandPurchase.Tiles,
+                        [nameof(IOLandPurchase.WalletAddress)] = olandPurchase.WalletAddress,
+                        [nameof(IOLandPurchase.PurchaseDate)] = olandPurchase.PurchaseDate.ToString(CultureInfo.InvariantCulture),
+                        [nameof(IOLandPurchase.TransactionHash)] = olandPurchase.TransactionHash,
+                        [nameof(IOLandPurchase.CargoSaleId)] = olandPurchase.CargoSaleId,
+                        [nameof(IOLandPurchase.IsSucceedPurchase)] = olandPurchase.IsSucceedPurchase.ToString(),
+                        [nameof(IOLandPurchase.ErrorMessage)] = olandPurchase.ErrorMessage
                     }
                 };
                 
