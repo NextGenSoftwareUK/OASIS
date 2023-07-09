@@ -767,7 +767,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get-all-avatar-names-grouped-by-name/{includeUsernames}/{includeIds}{providerType}/{setGlobally}")]
+        [HttpGet("get-all-avatar-names-grouped-by-name/{includeUsernames}/{includeIds}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<Dictionary<string, List<string>>>> GetAllAvatarNamesGroupedByName(bool includeUsernames, bool includeIds, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);

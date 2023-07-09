@@ -243,6 +243,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FrontEnd", "FrontEnd", "{7C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.TestHarness.csproj", "{BA30124B-393E-4DA6-A31F-963F385B6FA7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Logos", "Logos", "{DCBD628A-D094-43E4-8FA5-13A2B0F44C23}"
+	ProjectSection(SolutionItems) = preProject
+		Images\Logos\OASISLogo128.jpg = Images\Logos\OASISLogo128.jpg
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

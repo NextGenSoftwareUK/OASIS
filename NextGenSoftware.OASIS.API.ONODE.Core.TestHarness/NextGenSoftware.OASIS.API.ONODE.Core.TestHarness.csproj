@@ -5,4 +5,9 @@
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONode.Core.csproj" />
+  </ItemGroup>
+
 </Project>
