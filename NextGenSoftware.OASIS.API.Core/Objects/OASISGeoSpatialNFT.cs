@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {
-    public class OASISGEONFT : OASISNFT, IOASISGEONFT
+    public class OASISGeoSpatialNFT : OASISNFT, IOASISGeoSpatialNFT
     {
         public long Lat { get; set; }
         public long Long { get; set; }
