@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         public string Password { get; set; }
         public bool IsVersionControlEnabled { get; set; } = false;
 
-        public IDriver _driver;
+        public IDriver Driver { get; set; }
 
         public Neo4jOASIS(string host, string username, string password)
         {
@@ -39,9 +39,9 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             OASISResult<bool>
             try
             {
-                _driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
+                Driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
 
-                await _driver.VerifyConnectivityAsync();
+                await Driver.VerifyConnectivityAsync();
                 return true;
             }
             catch (Exception ex)
@@ -53,8 +53,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         private async Task DisconnectAsync()
         {
             //TODO: Find if there is a disconnect/shutdown function?
-            await _driver.CloseAsync();
-            _driver = null;
+            await Driver.CloseAsync();
+            Driver = null;
         }*/
 
         public override OASISResult<bool> ActivateProvider()
@@ -63,8 +63,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
             try
             {
-                _driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
-                _driver.VerifyConnectivityAsync().Wait();
+                Driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
+                Driver.VerifyConnectivityAsync().Wait();
                 result = base.ActivateProvider();
             }
             catch (Exception ex)
@@ -81,8 +81,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
             try
             {
-                _driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
-                await _driver.VerifyConnectivityAsync();
+                Driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
+                await Driver.VerifyConnectivityAsync();
                 result = await base.ActivateProviderAsync();
             }
             catch (Exception ex)
@@ -99,10 +99,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
             try
             {
-                if (_driver != null)
-                    _driver.CloseAsync().Wait();
+                if (Driver != null)
+                    Driver.CloseAsync().Wait();
 
-                _driver = null;
+                Driver = null;
                 result = base.DeActivateProvider();
             }
             catch (Exception ex)
@@ -119,10 +119,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
             try
             {
-                if (_driver != null)
-                    await _driver.CloseAsync();
+                if (Driver != null)
+                    await Driver.CloseAsync();
                 
-                _driver = null;
+                Driver = null;
                 result = await base.DeActivateProviderAsync();
             }
             catch (Exception ex)
@@ -161,7 +161,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -201,7 +201,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -242,7 +242,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -285,7 +285,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -334,7 +334,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -383,7 +383,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -432,7 +432,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -475,7 +475,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -518,7 +518,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         //{
         //    try
         //    {
-        //        var session = _driver.AsyncSession(WithDatabase);
+        //        var session = Driver.AsyncSession(WithDatabase);
 
         //        return await session.ReadTransactionAsync(async transaction =>
         //        {
@@ -568,7 +568,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         //{
         //    try
         //    {
-        //        var session = _driver.Session(WithDatabase);
+        //        var session = Driver.Session(WithDatabase);
 
         //        return session.ReadTransaction(transaction =>
         //        {
@@ -613,7 +613,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -656,7 +656,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -705,7 +705,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -754,7 +754,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -797,7 +797,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -840,7 +840,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -883,7 +883,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -926,7 +926,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -975,7 +975,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -1024,7 +1024,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -1073,7 +1073,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -1114,7 +1114,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -1154,7 +1154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 var avatarList = session.ReadTransaction(transaction =>
                 {
@@ -1241,7 +1241,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 if (Avatar.AvatarId == Guid.Empty)
                     Avatar.AvatarId = Guid.NewGuid();
@@ -1334,7 +1334,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 var avatarList = session.ReadTransaction(transaction =>
                 {
@@ -1420,7 +1420,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 if (AvatarDetail.Id == Guid.Empty)
                     AvatarDetail.Id = Guid.NewGuid();
@@ -1510,7 +1510,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 var avatarList = session.ReadTransaction(transaction =>
                 {
@@ -1563,7 +1563,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 var avatarList = session.ReadTransaction(transaction =>
                 {
@@ -1616,7 +1616,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 var avatarList = session.ReadTransaction(transaction =>
                 {
@@ -1670,7 +1670,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 var avatarList = await session.ReadTransactionAsync(async transaction =>
                 {
@@ -1725,7 +1725,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 var avatarList = await session.ReadTransactionAsync(async transaction =>
                 {
@@ -1780,7 +1780,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 var avatarList = await session.ReadTransactionAsync(async transaction =>
                 {
@@ -1835,7 +1835,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 var avatarList = session.ReadTransaction(transaction =>
                 {
@@ -1888,7 +1888,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 var avatarList = await session.ReadTransactionAsync(async transaction =>
                 {
@@ -1944,7 +1944,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -1988,7 +1988,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -2038,7 +2038,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -2082,7 +2082,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -2132,7 +2132,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -2176,7 +2176,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -2219,7 +2219,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -2263,7 +2263,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -2306,7 +2306,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 return session.ReadTransaction(transaction =>
                 {
@@ -2348,7 +2348,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 return await session.ReadTransactionAsync(async transaction =>
                 {
@@ -2389,7 +2389,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 var holonList = session.ReadTransaction(transaction =>
                 {
@@ -2470,7 +2470,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 var holonList = await session.ReadTransactionAsync(async transaction =>
                 {
@@ -2562,7 +2562,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 var holonList = session.ReadTransaction(transaction =>
                 {
@@ -2616,7 +2616,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 var holonList = await session.ReadTransactionAsync(async transaction =>
                 {
@@ -2670,7 +2670,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.Session(WithDatabase);
+                var session = Driver.Session(WithDatabase);
 
                 var holonList = session.ReadTransaction(transaction =>
                 {
@@ -2723,7 +2723,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             try
             {
-                var session = _driver.AsyncSession(WithDatabase);
+                var session = Driver.AsyncSession(WithDatabase);
 
                 var holonList = await session.ReadTransactionAsync(async transaction =>
                 {

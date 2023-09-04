@@ -8,10 +8,10 @@ namespace NextGenSoftware.OASIS.STAR.DNA
     {
         //Default values that are used to generate a new STARDNA.json file if it is not found.
 
-        public string BasePath = @"C:\Users\\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK";
+        public string BasePath = @"C:\Users\\USER\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK";
         //public string RustDNAReduxTemplateFolder = @"NextGenSoftware.OASIS.STAR\RustDNATemplates\Redux";
-        public string RustDNARSMTemplateFolder = @"NextGenSoftware.OASIS.STAR\RustDNATemplates\RSM";
-        public string CSharpDNATemplateFolder = @"NextGenSoftware.OASIS.STAR\CSharpDNATemplates";
+        public string RustDNARSMTemplateFolder = @"NextGenSoftware.OASIS.STAR\DNATemplates\RustDNATemplates\RSM";
+        public string CSharpDNATemplateFolder = @"NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates";
         public string CelestialBodyDNA = @"NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
         //public string GenesisRustFolder = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\Rust";
         //public string GenesisCSharpFolder = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\CSharp";
