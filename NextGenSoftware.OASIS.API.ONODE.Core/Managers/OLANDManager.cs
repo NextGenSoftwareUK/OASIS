@@ -227,9 +227,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         [nameof(IOLandPurchase.WalletAddress)] = olandPurchase.WalletAddress,
                         [nameof(IOLandPurchase.PurchaseDate)] = olandPurchase.PurchaseDate.ToString(CultureInfo.InvariantCulture),
                         [nameof(IOLandPurchase.TransactionHash)] = olandPurchase.TransactionHash,
-                        [nameof(IOLandPurchase.CargoSaleId)] = olandPurchase.CargoSaleId,
+                        //[nameof(IOLandPurchase.CargoSaleId)] = olandPurchase.CargoSaleId,
                         [nameof(IOLandPurchase.IsSucceedPurchase)] = olandPurchase.IsSucceedPurchase.ToString(),
-                        [nameof(IOLandPurchase.ErrorMessage)] = olandPurchase.ErrorMessage
+                        //[nameof(IOLandPurchase.ErrorMessage)] = olandPurchase.ErrorMessage
                     }
                 };
                 

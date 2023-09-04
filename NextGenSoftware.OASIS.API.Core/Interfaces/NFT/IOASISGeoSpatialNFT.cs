@@ -1,6 +1,6 @@
 ﻿namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
 {
-    public interface IOASISGEONFT
+    public interface IOASISGeoSpatialNFT
     {
         long Lat { get; set; }
         long Long { get; set; }

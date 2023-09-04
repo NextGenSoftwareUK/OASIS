@@ -36,7 +36,8 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
             return result;
         }
 
-        public OASISResult<bool> BootOASIS(string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
+        //public OASISResult<bool> BootOASIS(string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
+        public OASISResult<bool> BootOASIS(string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = false)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 

@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {
-    public class Oland : IOland
+    public class Oland : IOLand
     {
         public Guid Id { get; set; }
         public decimal Price { get; set; }

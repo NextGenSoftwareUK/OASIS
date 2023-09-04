@@ -25,6 +25,7 @@ using MongoDB.Driver;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.STAR.Enums;
 using System.IO;
+using Neo4j.Driver;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
@@ -381,7 +382,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 CLIEngine.ShowErrorMessage($"Error occured loading avatars. Reason: {avatarsResult.Message}");
 
             CLIEngine.ShowWorkingMessage("Loading All Avatars Only For The MongoDBOASIS Provider...");
-            avatarsResult = STAR.OASISAPI.Avatar.LoadAllAvatars(false, true, ProviderType.MongoDBOASIS); // Only loads from MongoDB.
+            avatarsResult = STAR.OASISAPI.Avatar.LoadAllAvatars(false, true, true, ProviderType.MongoDBOASIS); // Only loads from MongoDB.
 
             if (!avatarsResult.IsError && avatarsResult.Result != null)
                 CLIEngine.ShowSuccessMessage($"{avatarsResult.Result.Count()} Avatars Loaded.");
@@ -461,7 +462,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating Holochain Tests...");
 
-                if (!STAR.OASISAPI.Providers.Holochain.ProviderActivated)
+                if (!STAR.OASISAPI.Providers.Holochain.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating Holochain Provider...");
                     STAR.OASISAPI.Providers.Holochain.ActivateProvider();
@@ -475,7 +476,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     CLIEngine.ShowSuccessMessage($"Avatar Loaded Successfully. Id: {avatarResultHolochain.Result.Id}");
 
                 CLIEngine.ShowWorkingMessage("Calling Test Zome Function on HoloNET Client...");
-                await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.Config.AgentPubKey, "our_world_core", "load_holons", null);
+                //await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.Config.AgentPubKey, "our_world_core", "load_holons", null);
+                await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync("our_world_core", "load_holons", null);
             }
             catch (Exception ex)
             {
@@ -489,7 +491,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating IPFS Tests...");
 
-                if (!STAR.OASISAPI.Providers.IPFS.ProviderActivated)
+                if (!STAR.OASISAPI.Providers.IPFS.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating IPFS Provider...");
                     STAR.OASISAPI.Providers.IPFS.ActivateProvider();
@@ -515,7 +517,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating Ethereum Tests...");
 
-                if (!STAR.OASISAPI.Providers.Ethereum.ProviderActivated)
+                if (!STAR.OASISAPI.Providers.Ethereum.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating Ethereum Provider...");
                     STAR.OASISAPI.Providers.Ethereum.ActivateProvider();
@@ -538,7 +540,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating EOSIO Tests...");
 
-                if (!STAR.OASISAPI.Providers.EOSIO.ProviderActivated)
+                if (!STAR.OASISAPI.Providers.EOSIO.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating EOSIO Provider...");
                     STAR.OASISAPI.Providers.EOSIO.ActivateProvider();
@@ -562,7 +564,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating Neo4j (Graph DB) Tests...");
 
-                if (!STAR.OASISAPI.Providers.Neo4j.ProviderActivated)
+                if (!STAR.OASISAPI.Providers.Neo4j.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating Neo4j Provider...");
                     STAR.OASISAPI.Providers.Neo4j.ActivateProvider();
@@ -570,8 +572,26 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 }
 
                 CLIEngine.ShowWorkingMessage("Executing Graph Cypher Test...");
-                await STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
-                Avatar newAvatar = STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
+
+                var session = STAR.OASISAPI.Providers.Neo4j.Driver.AsyncSession();
+
+                await session.ReadTransactionAsync(async transaction =>
+                {
+                    var cursor = await transaction.RunAsync(@"
+                            MATCH (av:Avatar)                        
+                            RETURN av.FirstName AS firstname,av.LastName AS lastname"
+                    );
+
+                    IEnumerable<IAvatar> objList = await cursor.ToListAsync(record => new Avatar
+                    {
+                        FirstName = record["firstname"].As<string>(),
+                        LastName = record["lastname"].As<string>()
+                    });
+                });
+
+                //await STAR.OASISAPI.Providers.Neo4j.Driver.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
+                //await STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
+                //Avatar newAvatar = STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
             }
             catch (Exception ex)
             {
@@ -585,7 +605,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating MongoDB Tests...");
 
-                if (!STAR.OASISAPI.Providers.MongoDB.ProviderActivated)
+                if (!STAR.OASISAPI.Providers.MongoDB.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating MongoDB Provider...");
                     STAR.OASISAPI.Providers.MongoDB.ActivateProvider();
@@ -615,7 +635,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating SEEDS Tests...");
 
-                if (!STAR.OASISAPI.Providers.SEEDS.ProviderActivated)
+                if (!STAR.OASISAPI.Providers.SEEDS.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating SEEDS Provider...");
                     STAR.OASISAPI.Providers.SEEDS.ActivateProvider();
@@ -851,7 +871,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 if (holon.Nodes != null)
                 {
-                    foreach (INode node in holon.Nodes)
+                    foreach (API.Core.Interfaces.INode node in holon.Nodes)
                     {
                         Console.WriteLine("");
                         Console.WriteLine(string.Concat("    Node Name: ", node.NodeName, " Node Id: ", node.Id, " Node Type: ", Enum.GetName(node.NodeType)));
@@ -1075,6 +1095,38 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             return email;
         }
 
+        private static string GetValidUsername(string message, bool checkIfUsernameAlreadyInUse = true)
+        {
+            bool usernameValid = false;
+            string username = "";
+
+            while (!usernameValid)
+            {
+                CLIEngine.ShowMessage(string.Concat("", message), true, true);
+                username = Console.ReadLine();
+
+                if (checkIfUsernameAlreadyInUse)
+                {
+                    CLIEngine.ShowWorkingMessage("Checking if username already in use...");
+
+                    OASISResult<bool> checkIfUsernameAlreadyInUseResult = STAR.OASISAPI.Avatar.CheckIfUsernameIsAlreadyInUse(username);
+
+                    if (checkIfUsernameAlreadyInUseResult.Result)
+                        CLIEngine.ShowErrorMessage(checkIfUsernameAlreadyInUseResult.Message);
+                    else
+                    {
+                        usernameValid = true;
+                        CLIEngine.Spinner.Stop();
+                        CLIEngine.ShowMessage("", false);
+                    }
+                }
+                else
+                    usernameValid = true;
+            }
+
+            return username;
+        }
+
         //private static string GetValidPassword()
         //{
         //    string password = "";
@@ -1195,11 +1247,12 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             CLIEngine.ShowMessage(string.Concat("Nice to meet you ", firstName, ". :)"));
             string lastName = CLIEngine.GetValidInput(string.Concat("What is your last name ", firstName, "? "));
             string email = GetValidEmail("What is your email address? ", true);
+            string username = GetValidUsername("What username would you like? ", true);
             CLIEngine.GetValidColour(ref favColour, ref cliColour);
             string password = CLIEngine.GetValidPassword();
             CLIEngine.ShowWorkingMessage("Creating Avatar...");
 
-            OASISResult<IAvatar> createAvatarResult = STAR.CreateAvatar(title, firstName, lastName, email, password, cliColour, favColour);
+            OASISResult<IAvatar> createAvatarResult = STAR.CreateAvatar(title, firstName, lastName, email, username, password, cliColour, favColour);
             CLIEngine.ShowMessage("");
 
             if (createAvatarResult.IsError)

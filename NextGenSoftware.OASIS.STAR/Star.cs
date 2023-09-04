@@ -448,21 +448,21 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public static OASISResult<IAvatar> CreateAvatar(string title, string firstName, string lastName, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        public static OASISResult<IAvatar> CreateAvatar(string title, string firstName, string lastName, string email, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             if (!IsStarIgnited)
                 IgniteStar();
 
-            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
+            return OASISAPI.Avatar.Register(title, firstName, lastName, email, password, username, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
         }
 
-        public static async Task<OASISResult<IAvatar>> CreateAvatarAsync(string title, string firstName, string lastName, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        public static async Task<OASISResult<IAvatar>> CreateAvatarAsync(string title, string firstName, string lastName, string email, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             if (!IsStarIgnited)
                 IgniteStar();
 
             //TODO: Implement Async version of Register and call instead of below:
-            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
+            return OASISAPI.Avatar.Register(title, firstName, lastName, email, username, password, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
         }
 
         public static OASISResult<IAvatar> BeamIn(string username, string password)
@@ -485,84 +485,154 @@ namespace NextGenSoftware.OASIS.STAR
 
             OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress);
 
-            if (!result.IsError)
-            {
-                LoggedInAvatar = (Avatar)result.Result;
-                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = OASISAPI.Avatar.LoadAvatarDetail(LoggedInAvatar.Id);
+            result = new OASISResult<IAvatar>();
 
-                if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
-                {
-                    LoggedInAvatarDetail = loggedInAvatarDetailResult.Result;
+            LoggedInAvatar = new Avatar();
+ 
+                    LoggedInAvatarDetail = new AvatarDetail();
+                    LoggedInAvatarDetail.Karma = 777777;
+                    LoggedInAvatarDetail.XP = 2222222;
 
-                    if (username == "davidellams@hotmail.com" || username == "davidellams@gmail.com")
-                    {
-                        LoggedInAvatarDetail = new AvatarDetail();
-                        LoggedInAvatarDetail.Karma = 777777;
-                        LoggedInAvatarDetail.XP = 2222222;
+                    LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                    LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                    LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
 
-                        LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-                        LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-                        LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                    LoggedInAvatarDetail.HumanDesign.Type = "Generator";
+                    LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
+                    LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
 
-                        LoggedInAvatarDetail.HumanDesign.Type = "Generator";
-                        LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
-                        LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
+                    LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Spell" });
+                    LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Speed Spell" });
+                    LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Srength Spell" });
 
-                        LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Spell" });
-                        LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Speed Spell" });
-                        LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Srength Spell" });
+                    LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Becoming Superman!" });
+                    LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Completing STAR!" });
 
-                        LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Becoming Superman!" });
-                        LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Completing STAR!" });
+                    LoggedInAvatarDetail.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
 
-                        LoggedInAvatarDetail.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
+                    LoggedInAvatarDetail.Aura.Brightness = 99;
+                    LoggedInAvatarDetail.Aura.Level = 77;
+                    LoggedInAvatarDetail.Aura.Progress = 88;
+                    LoggedInAvatarDetail.Aura.Size = 10;
+                    LoggedInAvatarDetail.Aura.Value = 777;
 
-                        LoggedInAvatarDetail.Aura.Brightness = 99;
-                        LoggedInAvatarDetail.Aura.Level = 77;
-                        LoggedInAvatarDetail.Aura.Progress = 88;
-                        LoggedInAvatarDetail.Aura.Size = 10;
-                        LoggedInAvatarDetail.Aura.Value = 777;
+                    LoggedInAvatarDetail.Chakras.Root.Level = 77;
+                    LoggedInAvatarDetail.Chakras.Root.Progress = 99;
+                    LoggedInAvatarDetail.Chakras.Root.XP = 8783;
 
-                        LoggedInAvatarDetail.Chakras.Root.Level = 77;
-                        LoggedInAvatarDetail.Chakras.Root.Progress = 99;
-                        LoggedInAvatarDetail.Chakras.Root.XP = 8783;
+                    LoggedInAvatarDetail.Attributes.Dexterity = 99;
+                    LoggedInAvatarDetail.Attributes.Endurance = 99;
+                    LoggedInAvatarDetail.Attributes.Intelligence = 99;
+                    LoggedInAvatarDetail.Attributes.Magic = 99;
+                    LoggedInAvatarDetail.Attributes.Speed = 99;
+                    LoggedInAvatarDetail.Attributes.Strength = 99;
+                    LoggedInAvatarDetail.Attributes.Toughness = 99;
+                    LoggedInAvatarDetail.Attributes.Vitality = 99;
+                    LoggedInAvatarDetail.Attributes.Wisdom = 99;
 
-                        LoggedInAvatarDetail.Attributes.Dexterity = 99;
-                        LoggedInAvatarDetail.Attributes.Endurance = 99;
-                        LoggedInAvatarDetail.Attributes.Intelligence = 99;
-                        LoggedInAvatarDetail.Attributes.Magic = 99;
-                        LoggedInAvatarDetail.Attributes.Speed = 99;
-                        LoggedInAvatarDetail.Attributes.Strength = 99;
-                        LoggedInAvatarDetail.Attributes.Toughness = 99;
-                        LoggedInAvatarDetail.Attributes.Vitality = 99;
-                        LoggedInAvatarDetail.Attributes.Wisdom = 99;
+                    LoggedInAvatarDetail.Stats.Energy.Current = 99;
+                    LoggedInAvatarDetail.Stats.Energy.Max = 99;
+                    LoggedInAvatarDetail.Stats.HP.Current = 99;
+                    LoggedInAvatarDetail.Stats.HP.Max = 99;
+                    LoggedInAvatarDetail.Stats.Mana.Current = 99;
+                    LoggedInAvatarDetail.Stats.Mana.Max = 99;
+                    LoggedInAvatarDetail.Stats.Staminia.Current = 99;
+                    LoggedInAvatarDetail.Stats.Staminia.Max = 99;
 
-                        LoggedInAvatarDetail.Stats.Energy.Current = 99;
-                        LoggedInAvatarDetail.Stats.Energy.Max = 99;
-                        LoggedInAvatarDetail.Stats.HP.Current = 99;
-                        LoggedInAvatarDetail.Stats.HP.Max = 99;
-                        LoggedInAvatarDetail.Stats.Mana.Current = 99;
-                        LoggedInAvatarDetail.Stats.Mana.Max = 99;
-                        LoggedInAvatarDetail.Stats.Staminia.Current = 99;
-                        LoggedInAvatarDetail.Stats.Staminia.Max = 99;
+                    LoggedInAvatarDetail.SuperPowers.AstralProjection = 99;
+                    LoggedInAvatarDetail.SuperPowers.BioLocatation = 88;
+                    LoggedInAvatarDetail.SuperPowers.Flight = 99;
+                    LoggedInAvatarDetail.SuperPowers.FreezeBreath = 88;
+                    LoggedInAvatarDetail.SuperPowers.HeatVision = 99;
+                    LoggedInAvatarDetail.SuperPowers.Invulerability = 99;
+                    LoggedInAvatarDetail.SuperPowers.SuperSpeed = 99;
+                    LoggedInAvatarDetail.SuperPowers.SuperStrength = 99;
+                    LoggedInAvatarDetail.SuperPowers.XRayVision = 99;
+                    LoggedInAvatarDetail.SuperPowers.Teleportation = 99;
+                    LoggedInAvatarDetail.SuperPowers.Telekineseis = 99;
 
-                        LoggedInAvatarDetail.SuperPowers.AstralProjection = 99;
-                        LoggedInAvatarDetail.SuperPowers.BioLocatation = 88;
-                        LoggedInAvatarDetail.SuperPowers.Flight = 99;
-                        LoggedInAvatarDetail.SuperPowers.FreezeBreath = 88;
-                        LoggedInAvatarDetail.SuperPowers.HeatVision = 99;
-                        LoggedInAvatarDetail.SuperPowers.Invulerability = 99;
-                        LoggedInAvatarDetail.SuperPowers.SuperSpeed = 99;
-                        LoggedInAvatarDetail.SuperPowers.SuperStrength = 99;
-                        LoggedInAvatarDetail.SuperPowers.XRayVision = 99;
-                        LoggedInAvatarDetail.SuperPowers.Teleportation = 99;
-                        LoggedInAvatarDetail.SuperPowers.Telekineseis = 99;
+                    LoggedInAvatarDetail.Skills.Computers = 99;
+                    LoggedInAvatarDetail.Skills.Engineering = 99;
+    
 
-                        LoggedInAvatarDetail.Skills.Computers = 99;
-                        LoggedInAvatarDetail.Skills.Engineering = 99;
-                    }
-                }
-            }
+            //if (!result.IsError)
+            //{
+            //    LoggedInAvatar = (Avatar)result.Result;
+            //    OASISResult<IAvatarDetail> loggedInAvatarDetailResult = OASISAPI.Avatar.LoadAvatarDetail(LoggedInAvatar.Id);
+
+            //    if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
+            //    {
+            //        LoggedInAvatarDetail = loggedInAvatarDetailResult.Result;
+
+            //        if (username == "davidellams@hotmail.com" || username == "davidellams@gmail.com")
+            //        {
+            //            LoggedInAvatarDetail = new AvatarDetail();
+            //            LoggedInAvatarDetail.Karma = 777777;
+            //            LoggedInAvatarDetail.XP = 2222222;
+
+            //            LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+            //            LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+            //            LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+
+            //            LoggedInAvatarDetail.HumanDesign.Type = "Generator";
+            //            LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
+            //            LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
+
+            //            LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Spell" });
+            //            LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Speed Spell" });
+            //            LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Srength Spell" });
+
+            //            LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Becoming Superman!" });
+            //            LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Completing STAR!" });
+
+            //            LoggedInAvatarDetail.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
+
+            //            LoggedInAvatarDetail.Aura.Brightness = 99;
+            //            LoggedInAvatarDetail.Aura.Level = 77;
+            //            LoggedInAvatarDetail.Aura.Progress = 88;
+            //            LoggedInAvatarDetail.Aura.Size = 10;
+            //            LoggedInAvatarDetail.Aura.Value = 777;
+
+            //            LoggedInAvatarDetail.Chakras.Root.Level = 77;
+            //            LoggedInAvatarDetail.Chakras.Root.Progress = 99;
+            //            LoggedInAvatarDetail.Chakras.Root.XP = 8783;
+
+            //            LoggedInAvatarDetail.Attributes.Dexterity = 99;
+            //            LoggedInAvatarDetail.Attributes.Endurance = 99;
+            //            LoggedInAvatarDetail.Attributes.Intelligence = 99;
+            //            LoggedInAvatarDetail.Attributes.Magic = 99;
+            //            LoggedInAvatarDetail.Attributes.Speed = 99;
+            //            LoggedInAvatarDetail.Attributes.Strength = 99;
+            //            LoggedInAvatarDetail.Attributes.Toughness = 99;
+            //            LoggedInAvatarDetail.Attributes.Vitality = 99;
+            //            LoggedInAvatarDetail.Attributes.Wisdom = 99;
+
+            //            LoggedInAvatarDetail.Stats.Energy.Current = 99;
+            //            LoggedInAvatarDetail.Stats.Energy.Max = 99;
+            //            LoggedInAvatarDetail.Stats.HP.Current = 99;
+            //            LoggedInAvatarDetail.Stats.HP.Max = 99;
+            //            LoggedInAvatarDetail.Stats.Mana.Current = 99;
+            //            LoggedInAvatarDetail.Stats.Mana.Max = 99;
+            //            LoggedInAvatarDetail.Stats.Staminia.Current = 99;
+            //            LoggedInAvatarDetail.Stats.Staminia.Max = 99;
+
+            //            LoggedInAvatarDetail.SuperPowers.AstralProjection = 99;
+            //            LoggedInAvatarDetail.SuperPowers.BioLocatation = 88;
+            //            LoggedInAvatarDetail.SuperPowers.Flight = 99;
+            //            LoggedInAvatarDetail.SuperPowers.FreezeBreath = 88;
+            //            LoggedInAvatarDetail.SuperPowers.HeatVision = 99;
+            //            LoggedInAvatarDetail.SuperPowers.Invulerability = 99;
+            //            LoggedInAvatarDetail.SuperPowers.SuperSpeed = 99;
+            //            LoggedInAvatarDetail.SuperPowers.SuperStrength = 99;
+            //            LoggedInAvatarDetail.SuperPowers.XRayVision = 99;
+            //            LoggedInAvatarDetail.SuperPowers.Teleportation = 99;
+            //            LoggedInAvatarDetail.SuperPowers.Telekineseis = 99;
+
+            //            LoggedInAvatarDetail.Skills.Computers = 99;
+            //            LoggedInAvatarDetail.Skills.Engineering = 99;
+            //        }
+            //    }
+            //}
 
             return result;
         }
