@@ -1076,19 +1076,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatarNames.Add(name.Trim());
             }
 
-            //if (includeUsernames)
-            //{
-            //    foreach (var avatar in avatars)
-            //        avatarNames.Add($"{avatar.FullName} ({avatar.Username})");
-            //}
-            //else
-            //{
-            //    if (removeDuplicates)
-            //        avatarNames = avatars.Select(x => x.FullName).Distinct().ToList();
-            //    else
-            //        avatarNames = avatars.Select(x => x.FullName).ToList();
-            //}
-
+            avatarNames = avatarNames.Distinct().ToList();
             return avatarNames;
         }
     }

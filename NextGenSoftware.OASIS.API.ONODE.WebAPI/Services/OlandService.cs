@@ -19,12 +19,12 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             _olandManager = new OLANDManager();
         }
         
-        public async Task<OASISResult<IEnumerable<IOland>>> GetAllOlands()
+        public async Task<OASISResult<IEnumerable<IOLand>>> GetAllOlands()
         {
             return await _olandManager.LoadAllOlands();
         }
 
-        public async Task<OASISResult<IOland>> GetOland(Guid olandId)
+        public async Task<OASISResult<IOLand>> GetOland(Guid olandId)
         {
             return await _olandManager.LoadOland(olandId);
         }

@@ -9,8 +9,8 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces
 {
     public interface IOlandService
     {
-        Task<OASISResult<IEnumerable<IOland>>> GetAllOlands();
-        Task<OASISResult<IOland>> GetOland(Guid id);
+        Task<OASISResult<IEnumerable<IOLand>>> GetAllOlands();
+        Task<OASISResult<IOLand>> GetOland(Guid id);
         Task<OASISResult<bool>> DeleteOland(Guid id);
         Task<OASISResult<string>> CreateOland(ManageOlandUnitRequestDto request);
         Task<OASISResult<string>> UpdateOland(ManageOlandUnitRequestDto request, Guid id);

@@ -15,7 +15,8 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers.Admin
     public class OLandUnitController : OASISControllerBase
     {
         private readonly IOlandService _olandService;
-        public OlandUnitController(IOlandService olandService)
+
+        public OLandUnitController(IOlandService olandService)
         {
             _olandService = olandService;
         }
