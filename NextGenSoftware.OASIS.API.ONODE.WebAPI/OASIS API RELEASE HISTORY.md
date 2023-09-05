@@ -470,3 +470,481 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Corrected typeo in Data API swagger documentation.
 
 ----------------------------------------------------------------------------------------------------------------------------
+## 2.4.0 (04/08/23)
+
+A brief summary of the massive amount of work that has gone into this release is detailed below, this does not include everything, just a few highlights, please see the full commit history further down for the full list.
+
+- Added 2 new methods to the Avatar API: get-all-avatar-names and get-all-avatar-names-grouped-by-name that both have 2 params allowing you to specify whether to also include usernames and id's (if both are false it will only return their full name). Full name is made up of FirstName and LastName fields and both are NOT unique because people share the same first and last names, the username and email fields ARE unique however.
+- Related to above, new accounts/avatars now need to specify a unique username when creating a avatar. Previous versions only needed an email, which was then used as the default username (which they could then change later). The issue with this was that the new Avatar API methods above return their username so would expose user's private email addresses! So this has now been fixed. Old accounts will have the username changed to their fullname (if there are more than one sharing this name then it will add a 1,2,3 etc to the end to make it unique), they can then login and change it to whatever they like (but it needs to be unique).
+- Updated the email templates used in the Avatar API, which are in turn used for methods such as register, authenticate, verify-email etc.
+- Implemented new LevelManager which dynamically calculates the avatar's level based on their karma score (previously it was hard-coded and only supported upto level 10! It now supports infinite levels).
+- As part of the above, Karma is now a long rather than an int supporting much higer avatar levels. The maximum karma score is now 9,223,372,036,854,775,807, we don't even think Budaha himself could have achived this! ;-)
+- Avatar has new FullNameWithTitle property.
+- Renamed Password to NewPassword and ConfirmPassword to ConfirmNewPassword for reset-password Avatar API method.
+- Fixed a bug in reset-password Avatar API method where the message response was being set in the Result property instead of the Message one.
+- Various fixes/improvements to the Avatar API.
+- Added new AzureCosmosDBOASIS OASIS Provider adding support for the Azure Cosmos DB Cloud service from Microsoft, allowing people to import/export their cloud data to the OASIS as well as store their OASIS Avatar & data to the cloud if they wish (could be used as a backup or redundancy in case their local copies get lost or corrupted etc).
+- Neo4j OASIS Provider has been re-written from scratch with many improvements/fixes etc.
+- HoloOSIS Provider has also been re-written from scatch with many improvements/fixes to work with the latest HoloNET (world's first .NET/Unity client for Holochain). This is a pre-release and so is still a WIP so it is not quite ready to be used yet, but will be in a future version soon...
+- New NFT API has been partially implemented and will be officially rolled out in a upcoming release... This will include the new OASIS Geo-NFT API and many other unique world first's that are being implemented in our AR Geo-location game Our World.
+- As part of above, added new INFTWalletTransaction interface.
+- Added a new MemoText property to IWalletTransaction interface.
+- All SendTraction and SendTractionAsync methods in IOASISBlockchainStorageProvider interface in OASIS.Core now return OASISResult<TransactionRespone> instead of OASISResult<bool>.
+- Added HostURI, EOSAccountName, EOSChainId & EOSAccountPk properties to EOSIOOASIS Provider.
+- Re-wrote and improved ActivateProviderAsync, ActivateProvider, DeActivateProviderAsync & DeActivateProvider methods in EOSIOOASIS Provider.
+- Implemented new async versions for ActivateProvider and DeActivateProvider so these sometimes time intensive operations can now be done asyncally so can be done in the background and not block/slow down the OASIS Arcitecture (follows best practices).
+- Various other older core OASIS Architecture methods have also been upgraded to async versions giving yet further performance and stability improvements.
+- Added ActivateProviderAsync & DeActivateProviderAsync methods to BlockStackOASIS, ChainlinkOASIS, CosmosBlockchainOASIS, AzureCosmosDBOASIS, ElrondOASIS, EOSIOOASIS, EthereumOASIS, HashgraphOASIS, PLANOASIS, ScuttlebuttOASIS, SOLIDOASIS, ThreeFoldOASIS & TRONOASIS providers.
+- Improved and upgraded the OASIS Interfaces that the various OASIS Providers use such as IOASISStorageProvider, IOASISBlockchainStorageProvider, IOASISDBStorageProvider, IOASISLocalStorageProvider, IOASISNETProvider, IOASISNFTProvider, IOASISProvider etc. 
+- Releated to above all methods in the core IOASISStorageProvider interface now have additional async versions of their methods giving yet further performance/stability improvements.
+- Releated to above upgraded all of the OASIS Providers to use the new interface versions.
+- Added ActivateProviderAsync & DeActivateProviderAsync methods to BlockStackOASIS, ChainlinkOASIS, CosmosBlockchainOASIS, AzureCosmosDBOASIS, ElrondOASIS, EOSIOOASIS, EthereumOASIS, HashgraphOASIS, PLANOASIS, ScuttlebuttOASIS, SOLIDOASIS, ThreeFoldOASIS & TRONOASIS providers.
+- Added HostURI, ChainPrivateKey, ChainId & ContractAddress properties to EthereumOASIS Provider.
+- Refactored EthereumOASIS Provider so setup/init code is now done in the ActivateProviderAsync & ActivateProvider methods rather than the constructor giving further performance/stability improvements.
+- Added Search, SearchAsync, Import, ImportAsync, ExportAllDataForAvatarByIdAsync, ExportAllDataForAvatarById, ExportAllDataForAvatarByUsername, ExportAllDataForAvatarByUsernameAsync, ExportAllDataForAvatarByEmail, ExportAllDataForAvatarByEmailAsync, ExportAll & ExportAllAsync methods to IPFSOASIS, LocalFileOASIS, MongoDBOASIS, Neo4jOASIS, SolanaOASIS & SQLLiteDBOASIS providers.
+- Added new overloads to SendTransactionById method in IOASISBlockchainStorageProvider interface that takes a token in OASIS.API.Core.
+- Renamed LoadAvatarForProviderKeyAsync to LoadAvatarByProviderKeyAsync and LoadAvatarForProviderKey method to LoadAvatarByProviderKey in IOASISStorageProvider interface and OASISStorageProviderBase in OASIS.API.Core.
+- Updated ActivityPubOASIS, AzureCosmosDBOASIS, BlockStackOASIS, ChainLinkOASIS, CosmosBlockchainOASIS, ElrondOASIS, HashgraphOASIS, HoloOASIS, IPFSOASIS, LocalFileOASIS, MongoDBOASIS, Neo4jOASIS, PLANOASIS, ScuttlebuttOASIS, SolanaOASIS, SOLIDOASIS, EOSOASIS, EthereumOASIS, SQLLiteDBOASIS, TelosOASIS, ThreeFoldOASIS & TRONOASOS providers to reflect the above changes as well as other improvements, better layout, etc.
+- Added new OASIS Provider Template making it easier for devs to jump in and build new OASIS Providers. https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS and https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/OASIS-Provider-Template.
+- Related to above the Provider Development section on our WIKI has also been updated: https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Provider-Development.
+- Created and released new OASIS Runtime: https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/releases/tag/OASIS-Runtime-v2.3.1. This allows the OASIS Runtime to be embedded and integrated directly into any c# project (app, game, website, service etc) and so can also work offline unlike the REST API Service.
+- Related to above created new NextGenSoftware.OASIS.API.Native.EndPoint NuGet Package (users OASIS Runtime under the hood just like the REST API Service does) to be used to integrate the OASIS API direcly in your app bypassing the existing REST API. Can be used for offline/poor conncection use cases, etc. This version will also of of course be faster than the REST API. This version also contains some functionality not currently implemented in the REST API.
+- Improved the OASIS Architecture generally.
+- Upgraded OASIS API/OASIS Architecture and all OASIS Providers to the latest and fastest version (v7) of .NET yet! Giving yet more performance/stability improvements & making it even more secure!
+- Various stability/performance improvments.
+- Improved error handling/reporting.
+- Various under the hood improvements/bug fixes.
+
+
+Below is the changelog/commit history for commits related to the OASIS API, there has been many more than this over the past year, these have been mostly related to STAR ODK Omniverse Interoperable Metaverse Low Code Generator.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/ba670757c2487d51a7cc2719892efde3557d8e12
+- Moved old version of HoloNET (Redux) into Archive folder.
+- Extracted out the generic CLI Engine from the STAR CLI project into its own re-usable project.
+- Changed HoloOASIS namespace from NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core to NextGenSoftware.OASIS.API.Providers.HoloOASIS.
+- Renamed HoloOASISBase to HoloOASIS and is no longer abstract (Desktop/Unity versions/projects have now also been removed to to the latest version of HoloNET no longer needing them to be seperate because of the new logging strategy).
+- Updated OASISBootLoader to work with the latest changes to HoloOASIS Provider.
+- ExtentionMethods in STAR have now been moved into new generic re-usable NextGenSoftware.Utilities project. Need to move other helper methods etc in OASIS.API.CORE ASAP.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/3c3c5bb30d2f263116e2f957534dc20e78d7310f
+- CLI.Engine- Added global MessageColour, WorkingMessageColour, Error…MessageColour &amp; SuccessMessageColour, which are used in the ShowMessage, ShowWorkingMessage, ShowSuccessMessage &amp; ShowErrorMessageColour methods. The colour can be overidden per call to each method if needed.
+- Updated CLI.Engine Package and bumped to v1.1.0.
+- Created new NextGenSoftware.OASIS.API.Native.EndPoint NuGet Package to be used to integrate the OASIS API direcly in your app bypassing the existing REST API. Can be used for offline/poor conncection use cases, etc. This version will also of of course be faster than the REST API. This version also contains some functionality not currently implemented in the REST API.
+- Updated OASISAPIManager used in new NextGenSoftware.OASIS.API.Native.EndPoint package. Added Map, Missions, Quests, Parks, OLAND, Search, Wallets, Keys & more!
+- Added Solana, SQLLite & more to OASISProviders used in new NextGenSoftware.OASIS.API.Native.EndPoint package.
+- Added new README to NextGenSoftware.OASIS.API.Native.EndPoint package.
+- Created new NextGenSoftware.OASIS.API.Native.EndPoint.TestHarness project.
+- Removed older SearchManager in ONODE.BLL project (the version in OASIS.API.Core is more up to date).
+- Added EFCore ref to OASISBootLoader, needed for SQLLiteDBOASIS Provider.
+- Updated OASISAPIManager in STAR ODK to now also include Missions, Quests, Parks, OLAND & Search.
+- Added Solana & SQLLiteDB to OASISProviders in STAR ODK.
+- Fixed bugs in ExtentionMethods in NextGenSoftware.Utilities.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/ed04fe85608b064062183bf805c32eee8261e715
+- Removed older NextGenSoftware.OASIS.Providers.HoloOASIS.Desktop & NextGenSoftware.OASIS.Providers.HoloOASIS.Unity projects.
+- Created NuGet Package for NextGenSoftware.OASIS.BootLoader.
+- Created README for new NuGet Package NextGenSoftware.OASIS.BootLoader.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/782ab9a08493fd93106ffb678423faf31160c71f
+- Updated HoloOASIS to latest version of HoloNET (v1.1.9 Embedded).
+- Created new OASIS Runtimes:
+- OASIS Runtime (With Holochain Conductors Embedded) v2.3.1
+- OASIS Runtime (With Holochain Conductors Not Embedded) v2.3.1
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/960a997ead93a49c1f8252bf0bf6d9131ace3d1a
+- Added missing OASIS Runtimes to OASIS Solution file.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/35b76bf0e0825b5e2d02aed8c579f6cfc50cce97
+- Added NextGenSoftware.OASIS.Runtime.Setup projects to enable installing the new OASIS Runtime into the GAC (Global Assembly Cache) on a target machine meaning OAPP's won't need to come bundled with the runtime and can just use the version in the GAC resulting in MUCH smaller OAPPS (20 MB- 40 MB).
+- Need to finish setting it up, still a WIP... not top priority at the moment... need to finish Holochain integrations first with HoloOASIS etc...
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/788c73df76df29df89126aaa94f481ee7560a0dd
+- Renamed NextGenSoftware.OASIS.API.Manager to NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.
+- Renamed OASISManager to OASISAPI in NextGenSoftware.OASIS.API.Native.Integrated.EndPoint project.
+- Updated NextGenSoftware.OASIS.API.Native.Integrated.EndPoint README.
+- Renamed NextGenSoftware.OASIS.API.Manager.TestHarness to NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.TestHarness.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/87a8895c1063451ff2edaa612ea6d94b866e3444
+- Added new MapProviderType enum.
+- Moved IBuilding & IQuest interfaces from OASIS.ONODE.BLL to OASIS.API.Core.
+- Added new IOASISMapProvider interface, which map providers will implement in Our World such as MapBox, WRLD3D, etc allowing the mapping provider to be switched in real-time in the game and across the OASIS...
+- Added additional null check to MapMetaData function in HolonManager making more robust.
+- Added new CurrentMapProviderType & CurrentMapProvider properties to IMapManager/MapManager in OASIS.ONODE.BLL.
+- Added new SetCurrentMapProvider method overloads to IMapManager/MapManager in OASIS.ONODE.BLL.
+- Started upgrading HoloOASIS Provider to work with latest version of HoloNET.
+- Implemented IOASISMapProvider interface in MapBoxOASIS Provider.
+- Created new WRLD3DOASIS Provider that implements IOASISMapProvider interface.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/ad03baca39596cdf1f0c8cad3d2ca5efe228d9df
+Azure Cosmos DB Provider
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/71add0310cfa7a8adde533861872bb299f81cdcd
+- Updated NextGenSoftware.OASIS.API.Native.Integrated.EndPoint ReleasNotes.
+- Bumped NextGenSoftware.OASIS.API.Native.Integrated.EndPoint to v1.0.3.
+- Updated NextGenSoftware.OASIS.API.Native.Integrated.EndPoint README.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.EthereumOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.EthereumOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.HoloOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.HoloOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.IPFSOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.IPFSOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.MapBoxOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.MapBoxOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.
+- Removed redundant methods from Neo4jOASIS Provider.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS.
+- Fixed bugs in OrionProtocolOASIS Provider.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.PLANOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.PLANOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.ScuttleButtOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.ScuttleButtOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.TelosOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.TelosOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.TRONOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.TRONOASIS.
+- Added NuGet Deployment metadata to NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS.
+- Added README to NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/7028a527299b7d27d6edb2f360ffae5357c57e82
+- Made some corrections to the AzureCosmosDBOASIS Provider.
+- IsWarning property setter in OASISResult no longer throws exceptions.
+- Message property setter in OASISResult no longer throws exceptions.
+- Added ProviderKey property to Entity class in  AzureCosmosDBOASIS Provider.
+- ProviderKey is now set in AddAsync method in  CosmosDbRepository AzureCosmosDBOASIS Provider.
+- Added new DeleteAsync overload that takes a id in  CosmosDbRepository in AzureCosmosDBOASIS Provider.
+- Fixed a bug in DeActivateProvider method in AzureCosmosDBOASIS Provider where avatarDetailRepository and holonRepository were not nulled in AzureCosmosDBOASIS Provider.
+- Fixed bugs in DeleteAvatar, DeleteAvatarAsync, DeleteHolon & DeleteHolonAsync methods where they were loading the full list rather than deleting directly in AzureCosmosDBOASIS Provider.
+- Also fixed bugs DeleteHolonAsync methods where softDelete was not being handled in AzureCosmosDBOASIS Provider.
+- LoadHolonsForParent methods were loading with id rather than parentHolonId in AzureCosmosDBOASIS Provider.
+- LoadHolonsForParent methods Error handling did not set IsError to true in AzureCosmosDBOASIS Provider.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/4790abf834400b1230ad3c8add059bb6deb6088b
+- Started upgrading HoloOASIS Provider to the latest HoloNET version (v2.1.2).
+- HcAvatar now extends HoloNETAuditEntryBaseClass.
+- Removed id & user_id from HcAvatar & IHCAvatar interface.
+- Renamed HcProfile to HcAvatar.
+- Added HcAvatar property to HoloOASIS.
+- HcAvatar is now initialized in the Initialize method in HoloOASIS.
+- Removed older redudant HoloNET code.
+- Updated LoadAvatarAsync method to work with latest HoloNET code (HcAvatar/HoloNETAuditEntryBaseClass).
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/e041bb74e383ea64b4e59e32019f74d8ef51b4a4
+- Continued upgrading HoloOASIS Provider to work with the latest version of HoloNET.
+- Re-wrote SaveAvatarAsync method in HoloOASIS.
+- Re-wrote ConvertAvatarToHoloOASISAvatar method in HoloOASIS.
+- Added provider_key & holon_type to IHcAvatar interface.
+- Renamed IHcProfile interface to IHcAvatar.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/ebd3a957aa8aa5c17b8497a58f7a1248b0f038d4
+- Added HcAvatar constructor that takes a HoloNETClient instance to HcAvatar.
+- Added id property to HcAvatar.
+- Renamed property uername to username in HcAvatar.
+- Renamed property pssword to password in HcAvatar.
+- Removed HcAvatar & _savingAvatars properties from HoloOASIS.
+- Removed HcAvatar from HoloOASIS constructors and Initialize method.
+- Added LoadAvatarForProviderKey method to HoloOASIS.
+- Re-wroteLoadAvatarAsync method in HoloOASIS to work with the latest HoloNET.
+- Re-wrote SaveAvatarAsync method in HoloOASIS to work with the latest HoloNET.
+- Updated ConvertAvatarToHoloOASISAvatar method in HoloOASIS.
+- Added id property to IHCAvatar.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/7533412721a547651e09a7de7822d46a3426f851
+- Added HolochainFieldName attributes to each property in HcAvatar and made them all Pascal Case.
+- Removed Karma, Level, Address & DOB from HcAvatar and IHcAvatar because these have been removed to AvatarDetail.
+- Made each property Pascal Case in IHcAvatar.
+- Added new useReflectionForSaving param to the constrcutors in HoloOASIS.
+- Updated SaveAvatarAsync method in HoloOASIS.
+- Updated ConvertAvatarToHoloOASISAvatar method in HoloOASIS.
+- Updated ConvertHcAvatarToAvatar method in HoloOASIS.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/132d27c604231c497fbbbeff5a93452c84d72e4e
+- Updated email templates that are sent when a user first registers to verify their email address as well as when they request to reset their password on AvatarManager.
+- Added ZOME_LOAD_FUNCTION_BY_ID, ZOME_LOAD_FUNCTION_BY_USERNAME, ZOME_DELETE_FUNCTION_BY_ID, ZOME_DELETE_FUNCTION_BY_USERNAME & ZOME_DELETE_FUNCTION_BY_EMAIL constants to HoloOASIS.
+- HoloOASIS constructors now default to using reflection.
+- Updated/Added LoadAvatarAsync, SaveAvatarAsync, DeleteAvatarAsync, DeleteAvatar, DeleteAvatarByEmailAsync, DeleteAvatarByEmail, DeleteAvatarByUsernameAsync & DeleteAvatarByUsername method overloads in HoloOASIS.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/872b521ecb3b12d4735b98136db7f8dfb30bd202
+- Tidied up and re-ordered methods in IOASISStorageProvider interface.
+- Removed obsolete LoadAvatarAsync and Load method overloads that take username in IOASISStorageProvider interface.
+- Added Search, ImportAsync, ExportAllDataForAvatarByIdAsync,ExportAllDataForAvatarByUsernameAsync & ExportAllDataForAvatarByEmailAsync methods to IOASISStorageProvider interface.
+- Added CollectionOperationEnum to HoloOASIS Provider.
+- Added OperationEnum to HoloOASIS Provdier.
+- Re-wrote and made HoloOASIS much more efficient, now uses much less code so is easier to mantian in future.
+- Re-wrote LoadAvatarAsync, LoadAvatar, LoadAvatarByEmailAsync, LoadAvatarByEmail, LoadAvatarByUsernameAsync, LoadAvatarByUsername, LoadAvatarDetailAsync, LoadAvatarDetail, LoadAvatarDetailByEmailAsync, LoadAvatarDetailByEmail, LoadAvatarDetailByUsernameAsync, LoadAvatarDetailByUsername, LoadAllAvatarsAsync
+- Added Search, ImportAsync, Import, ExportAllDataForAvatarByIdAsync, ExportAllDataForAvatarById, ExportAllDataForAvatarByUsernameAsync & ExportAllDataForAvatarByUsername methods to HoloOASIS Provider.
+- Added new generic ExecuteOperationAsync & ExecuteOperation methods to HoloOASIS Provider that all other HoloNET operations now use making it much more efficient.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/cc3ea30417cf3021331161dfd6612dbba529b324
+- Added additional properites to HcAvatar & IHcAvatar in HoloOASIS so now fully maps the full OASIS Avatar object and HolonBase it extends.
+- Created HcAvatarDetail & IHcAvatarDetail in HoloOASIS so now fully maps the full OASIS AvatarDetail object and HolonBase it extends.
+- Renamed _useReflectionForSaving to _useReflection in HoloOASIS.
+- Updated LoadAllAvatarsAsync, LoadAllAvatars, LoadAllAvatarDetailsAsync, LoadAllAvatarDetails, SaveAvatarAsync, SaveAvatar, SaveAvatarDetailAsync, ConvertAvatarToHoloOASISAvatar, LoadAsync & Load methods in HoloOASIS Provider.
+- Added ConvertAvatarDetailToHoloOASISAvatarDetail to HoloOASIS Provider.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/6fcd57bdbb7cd7d72572d89404c7c194ed81c7fc
+- Added HcObjectTypeEnum to HoloOASIS Provider.
+- Added new IHcObject interface HoloOASIS Provider to allow to make the code even more generic and efficient.
+- IHcAvatar and IHcAvatarDetail interfaces now extend the new IHcObject interface.
+- Moved IHcAvatar, IHcAvatarDetail & IHcObject interfaces to new Interfaces folder.
+- Finished implementing missing properties from IHolonBase interface to HcAvatarDetail in HoloOASIS Provider.
+- Updated LoadAvatarAsync, LoadAvatar, LoadAvatarByEmailAsync & LoadAvatarByEmail methods in HoloOASIS Provider.
+- Changed ConvertHcAvatarToAvatar method return type to IAvatar in HoloOASIS Provider.
+- Added ConvertKeyValuePairToAvatar method to HoloOASIS Provider.
+- Added ConvertHcAvatarDetailToAvatarDetail method to HoloOASIS Provider.
+- Added ConvertKeyValuePairToAvatarDetail method to HoloOASIS Provider.
+- Updated generic LoadAsync & Load methods in HoloOASIS Provider to make it even more efficient so all load operations now go through it.
+- Added new HandleResponse method to HoloOASIS Provider.
+- Started adding new generic SaveAsync method to HoloOASIS Provider.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/0f51e452b901a64ea32722b493d679c2510e2d7a
+- Added new ConvertAvatarToParamsObject, ConvertAvatarDetailToParamsObject methods to HoloOASIS Provider.
+- Updated LoadAsync & Load methods in HoloOASIS Provider.
+- Re-wrote and improved SaveAsync method in HoloOASIS Provider.
+- Renamed HandleResponse to HandleLoadResponse in HoloOASIS Provider.
+- Added HandleSaveResponse method to HoloOASIS Provider.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/2bdefb4db118ccd5f5faf05b37fa20b51b8e104f
+- Renamed OperationEnum to HcOperationEnum in HoloOASIS Provider.
+- Updated SaveAsync method in HoloOASIS Provider.
+- Added new Save method to HoloOASIS Provider.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/8b48403e818d96161f6c3f86318fcb25ec44edd8
+- Renamed CreateCollection to AddToCollection and DeleteCollection to RemoveFromCollection in CollectionOperationEnum in HoloOASIS Provider.
+- Removed redundant code from HoloOASIS Provider.
+- Made HoloOASIS Provider more efficient and uses a lot less code now thanks to more generic functions.
+- Re-wrote LoadAvatarForProviderKeyAsync, LoadAvatarForProviderKey, SaveAvatarAsync, SaveAvatar, SaveAvatarDetailAsync, DeleteAvatarAsync, DeleteAvatar, DeleteAvatarAsync, DeleteAvatar, DeleteAvatarByEmailAsync, DeleteAvatarByUsernameAsync, DeleteAvatarByUsername & LoadHolonAsync methods in HoloOASIS Provider so uses less code and is more efficient thanks to more generic functions.
+- Updated LoadAvatarByUsernameAsync, LoadAvatarByUsername, LoadAvatarDetailAsync, LoadAvatarDetail, LoadAvatarDetailByEmailAsync, LoadAvatarDetailByEmail, LoadAvatarDetailByUsernameAsync, LoadAvatarDetailByUsername, ExecuteOperationAsync & ExecuteOperation methods in HoloOASIS Provider.
+- Added new LoadHolon, LoadHolonAsync, LoadHolon, LoadHolonsForParentAsync, LoadHolonsForParent, LoadHolonsForParentAsync, LoadHolonsForParent, LoadAllHolonsAsync & LoadAllHolons methods to HoloOASIS Provider.
+- Added new generic LoadCollectionAsync, LoadCollection, DeleteAsync, Delete & HandleLoadCollectionResponse methods to HoloOASIS Provider.
+- Added new additionalParams params to LoadAsync & Load methods in HoloOASIS Provider.
+- Improved Error Logging/Handing in HoloOASIS Provider.
+- Updated HoloNET nuget package used in HoloOASIS Provider to latest version (v2.1.4).
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/1329d21ea6ee16d82395f0e0e5b118c7b1615ce0
+- Re-wrote HandleLoadResponse method in HoloOASIS Provider making it more efficient.
+- Re-wrote HandleDeleteResponse method in HoloOASIS Provider making it more efficient.
+- Re-wrote HandleSaveResponse method in HoloOASIS Provider making it more efficient.
+- Adding new generic HandleResponse method to HoloOASIS Provider.
+- Added new generic ConvertHCResponseToOASISResult method to HoloOASIS Provider.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/4d53b2c76f281e3f2c6e3974396cbcab43112e49
+- Changed LoadAvatarAsync to LoadAvatarByUsernameAsync in LoadAvatarForProviderAsync method in AvatarManager OASIS.API.Core.
+- Removed HcProfile from HoloOASIS Provider.
+- IHcAvatar & IHcAvatarDetail interfaces now extend IHoloNETAuditEntryBaseClass interface instead of IHcObject interface.
+- Removed now redundant IHcObject.
+- Added ZOME_LOAD_AVATAR_DETAIL_BY_USERNAME_FUNCTION, ZOME_LOAD_AVATAR_DETAIL_BY_EMAIL_FUNCTION & ZOME_LOAD_HOLON_FUNCTION_BY_ID constants to HoloOASIS Provider.
+- Fixed LoadAvatarDetailAsync, LoadAvatarDetail, LoadAvatarDetailByEmailAsync, LoadAvatarDetailByEmail, LoadAvatarDetailByUsernameAsync & LoadAvatarDetailByUsername methods in HoloOASIS Provider.
+- Swapped all IHcObject interfaces to IHoloNETAuditEntryBaseClass interface in LoadAsync, Load,  SaveAsync, Save, HandleLoadResponse, HandleSaveResponse, HandleDeleteResponse, HandleResponse & ConvertHCResponseToOASISResult methods.
+- Temp commented out ExecuteOperation, ExecuteOperationAsync, LoadCollection & LoadCollectionAsync methods in HoloOASIS Provider. They are WIP and will be finished later...
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/4964cc675b8f02717871de7abe386fd96fd3801d
+- Added new overloads to SendTransactionById method in IOASISBlockchainStorageProvider interface that takes a token in OASIS.API.Core.
+- Renamed LoadAvatarForProviderKeyAsync to LoadAvatarByProviderKeyAsync and LoadAvatarForProviderKey method to LoadAvatarByProviderKey in IOASISStorageProvider interface and OASISStorageProviderBase in OASIS.API.Core.
+- Updated ActivityPubOASIS, AzureCosmosDBOASIS, BlockStackOASIS, ChainLinkOASIS, CosmosBlockchainOASIS, ElrondOASIS, HashgraphOASIS, HoloOASIS, IPFSOASIS, LocalFileOASIS, MongoDBOASIS, Neo4jOASIS, PLANOASIS, ScuttlebuttOASIS, SolanaOASIS, SOLIDOASIS, EOSOASIS, EthereumOASIS, SQLLiteDBOASIS, TelosOASIS, ThreeFoldOASIS & TRONOASOS providers to reflect the above changes as well as other improvements, better layout, etc.
+- Added new OASIS Provider Template project that others can copy and adapt when they wish to create a new OASIS Provider,
+- Upgrading and improving AzureCosmosDBOASIS Proviider (WIP).
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/09a4a2af77c38bc3fe7805b3ea0a85673226b4d5
+- Continued working on AzureCosmosDBOASIS provider.
+- Removed AvatarDetaiil, Entity & Holon entities.
+- AvatarDetailRepository now uses IAvatarDetail instead of AvatarDetail.
+- AvatarRepository now uses IAvatar instead of Avatar.
+- HolonRepository now uses IHolon instead of Holon.
+- Added public to all methods in ICosmosDbClient, ICosmosDbClientFactory & IDocumentCollectionContext interfaces.
+- IAvatarDetailRepository interface now uses IAvatarDetail instead of AvatarDetail.
+- IAvatarRepository interface now uses IAvatar instead of Avatar.
+- IHolonRepository interface now uses IHolon instead of Holon.
+- Rewrote SaveAvatar, SaveAvatarAsync, SaveAvatarDetail, SaveAvatarDetailAsync, SaveHolon, SaveHolonAsync, SaveHolons & SaveHolonsAsync methods in AzureCosmosDBOASIS.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/3f74e1e61faec98ed56ea6cfef7d14e0c331c2b8
+- Continued work on AzureCosmosDBOASIS Provider.
+- Renamed ReadAllDocumentsAsync to ReadAllDocuments.
+- Renamed GetListAsync to GetList.
+- Added new DeleteAsync overload that takes a Guid to CosmosDbRepository and ICosmosDbRepository interface.
+- Rewrote DeleteHolon, DeleteHolonAsync, LoadAllAvatars, LoadAllAvatarsAsync, LoadAllHolons, LoadAllHolonsAsync, LoadAvatar, LoadAvatarAsync, LoadAvatarDetail, LoadAvatarDetailAsync, LoadAvatarByProviderKey, LoadAvatarByProviderKeyAsync, LoadHolon & LoadHolonAsync methods in AzureCosmosDBOASIS making them more efficient, improved error handling/reporting etc.
+- Fixed multiple bugs.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/66465c38ef290842d2057a837bfb204bc0719cbf
+- Finished implementing LoadChildHolons method for Holon in OASIS.API.Core.
+- Added caching to LoadAllHolons and LoadAllHolonsAsync methods in HolonManager in OASIS.API.Core.
+- Added new LoadAvatarByEmail test to AzureCosmosDBOASIS Provider Test Harness.
+- Added new ReadDocumentByField method to CosmosDbClient and ICosmosDbClient interface in AzureCosmosDbOASIS Provider.
+- Added new GetByField method CosmosDbRepository and IRepository interface in AzureCosmosDbOASIS Provider.
+- Added new ReadDocumentByField method to ICosmosDbClient interface in AzureCosmosDbOASIS Provider.
+- Updated LoadAllHolonsAsync and LoadAllHolons methods in AzureCosmosDbOASIS provider.
+- Added ImportAsync, Import, ExportAllDataForAvatarByIdAsync, ExportAllDataForAvatarById, ExportAllDataForAvatarByUsernameAsync, ExportAllDataForAvatarByUsername, ExportAllDataForAvatarByEmailAsync, ExportAllDataForAvatarByEmail, ExportAllAsync, ExportAll, SearchAsync & Search methods to EthereumOASIS Provider.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/92d3a7bbf1045357392cfb1cceb5e5a0c4eac5ab
+- Added new ConvertToList method to new ListHelper in OASIS.API.Core.
+- Added new ActivateProviderAsync and DeActivateProviderAsync methods to IOASISProvider interface in OASIS.API.Core.
+- Added new ActivateProviderAsync and DeActivateProviderAsync methods to ProviderManager in OASIS.API.Core.
+- Added new ActivateProviderAsync and DeActivateProviderAsync methods to OASISProvider in OASIS.API.Core.
+- Added new AzureCosmosDBOASIS section to OASIS.DNA and updated OASISDNA.json for OASIS Web API and STAR ODK.
+- Bumped WEB 4 OASIS API to v2.4.0.
+- Added AzureCosmosDBOASIS to intro text to WEB4 OASIS API.
+- Removed OASISDNA.json from AzureCosmosDBOASIS Test Harness.
+- Added ActivateProviderAsync & DeActivateProviderAsync methods to BlockStackOASIS, ChainlinkOASIS, CosmosBlockchainOASIS, AzureCosmosDBOASIS, ElrondOASIS, EOSIOOASIS, EthereumOASIS, HashgraphOASIS, PLANOASIS, ScuttlebuttOASIS, SOLIDOASIS, ThreeFoldOASIS & TRONOASIS providers.
+- Added HostURI, ChainPrivateKey, ChainId & ContractAddress properties to EthereumOASIS Provider.
+- Refactored EthereumOASIS Provider so setup/init code is now done in the ActivateProviderAsync & ActivateProvider methods rather than the constructor.
+- Removed LoadAvatar overloads that take a username and/or password from IPFSOASIS, LocalFileOASIS, MongoDBOASIS, Neo4jOASIS, SolanaOASIS & SQLLiteDBOASIS providers.
+- Added Search, SearchAsync, Import, ImportAsync, ExportAllDataForAvatarByIdAsync, ExportAllDataForAvatarById, ExportAllDataForAvatarByUsername, ExportAllDataForAvatarByUsernameAsync, ExportAllDataForAvatarByEmail, ExportAllDataForAvatarByEmailAsync, ExportAll & ExportAllAsync methods to IPFSOASIS, LocalFileOASIS, MongoDBOASIS, Neo4jOASIS, SolanaOASIS & SQLLiteDBOASIS providers.
+- Added ActivateProviderAsync & DeActivateProviderAsync methods to OASIS Provider Template.
+- Added AzureCosmosDBOASIS Provider to OASISBootLoader.
+- Added AzureCosmosDBOASIS Provider Init code to RegisterProvider method in OASISBootLoader.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/2928a137456813a4bd3991317906106c2d44c900
+- Added HostURI, EOSAccountName, EOSChainId & EOSAccountPk properties to EOSIOOASIS Provider.
+- Re-wrote and improved ActivateProviderAsync, ActivateProvider, DeActivateProviderAsync & DeActivateProvider methods in EOSIOOASIS Provider.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/439edfeb4d420b21ca0607a38a921083896ad154
+- Lots done on upgrading the OASIS NFT Architecture and API's...
+- SendNFT and SendNFTAsync methods on IOASISNFTProvider now take a INFTWalletTransaction param instead of IWalletTransaction. They also return OASISResult<TransactionRespone > instead of OASISResult<bool> in OASIS.API.Core.
+- Renamed ProviderActivated to IsProviderActivated in IOASISProvider interface in OASIS.API.Core.
+- Created a new INFTWalletTransaction interface that extends the IWalletTransaction interface and adds the MintWalletAddress property in OASIS.API.Core.
+- Added a new MemoText property to IWalletTransaction interface in OASIS.API.Core.
+- Added new TransactionRespone object to OASIS.API.Core.
+- All SendTraction and SendTractionAsync methods in IOASISBlockchainStorageProvider interface in OASIS.Core now return OASISResult<TransactionRespone> instead of OASISResult<bool> in OASIS.API.Core.
+- Added new NFTManager to OASIS.API.ONODE.BLL. (WIP).
+- Updated the constructors for OASISManager in OASIS.API.ONODE.BLL.
+- Added new HandleDNA method to OASISManager in OASIS.API.ONODE.BLL.
+- Upgraded OLANDManager in OASIS.API.ONODE.BLL.
+- Moved PurchaseOlandRequest and PurchaseOlandResponse from OASIS.API.ONODE.WebAPI to OASIS.API.ONODE.BLL.
+- Mid-way through moving the older NftService in OASIS.API.ONODE.WebAPI to OASIS.API.ONODE.BLL.
+- Added AzureCosmosDBDBOASIS to AutoReplicationProviders, AutoFailOverProviders & AutoLoadBalanceProviders lists in OASIS_DNA.json in STAR ODK.
+- Added OASIS.API.ONODE.WebAPI/OASIS_DNA.json to gitignore file.
+- Renamed GetAndActivateDefaultProvider to GetAndActivateDefaultStorageProvider in OASISBookLoader.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/1d5df5e1efec249cbf1cb36d3407638be0d36798
+- Started upgradding OASIS to .NET 7 making it even faster, more reliable, secure than ever! :).NET 7 is the fastest .NET yet!
+- Added CheckForTransactionErrors method to ErrorHandling in NextGenSoftware.OASIS.Core.
+- SendNFT & SendNFTAsync methods in IOASISNFTProvider interface now return OASISResult<TransactionRespone> instead of OASISResult<NFTTransactionRespone>.
+- Renamed NFTTransactionRespone to TransactionRespone in OASIS.Core.
+- Renamed ProviderActivated to IsProviderActivated in OASISProvider in OASIS.Core.
+- CreateNftTransaction in NFTManager in OASIS.API.ONODE.Core now returns OASISResult<TransactionRespone> instead of OASISResult<NFTTransactionRespone>.
+- Renamed NextGenSoftware.OASIS.API.ONODE.BLL to NextGenSoftware.OASIS.API.ONODE.Core.
+- Renamed NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness to NextGenSoftware.OASIS.API.ONODE.Core.TestHarness.
+- Renamed all instances of GetAndActivateDefaultProvider to GetAndActivateDefaultStorageProvider across the OASIS.
+- Removed CargoService and NftService from Startup in NextGenSoftware.OASIS.API.ONODE.WebAPI.
+- Updated all OASIS Providers to reflect latest changes to IOASISNFTProvider and IOASISBlockchainStorageProvider interfaces.
+- Improved error handling/reporting in EOSOASIS, SolanaOASIS & EthereumOASIS Providers.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/84c87ac50f32e2e90a3203ce065f3fed1bcc168a
+- Resolved all build errors and finally successfully upgraded to .NET 7! :)
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/5f58cf11639b47fdb3c807b37fbc1a29edc5ea13
+- Fixed bugs in SetAndActivateCurrentStorageProvider method in ProviderManager making it even more robust with improved error handling etc.
+- Started adding new GetAllAvatarNames methods to AvatarController in ONode.WebAPI.
+- Fixed a bug in ResetPassword method in AvatarService where the message was being set in the Result property instead of the Message one.
+- Removed Connect and Disconnect methods in the Neo4jOASIS Provider.
+- Re-wrote ActivateProvider and DeActivateProvider methods in Neo4jOASIS Provider fixing a number of bugs and improved error handling/reporting etc.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/d9bbd6628ef719efa1ef71ea47e4ddce3b9bd652
+- Added new FullNameWithTitle property to Avatar and IAvatar in OASIS.API.Core.
+- Added new LoadAllAvatarNames/LoadAllAvatarNamesAsync &  LoadAllAvatarNamesWithIds/LoadAllAvatarNamesWithIdsAsync methods to AvatarManager in OASIS.API.Core.
+- LoadAllAvatars & LoadAllAvatarsAsync methods now takes an optional orderByName param in AvatarManager in OASIS.API.Core.
+- Updated KeyManager in OASIS.API.Core to work with latest changes above.
+- Added new GetAllAvatarNames and GetAllAvatarNamesWithIds methods to AvatarController in OASIS.API.Core.
+- Trying to fix new annoying error in AttachAccountToContext method in JwtMiddleware in WebAPI, not sure why this is an issue now because nothing has been changed in this area! Arghhh
+- Renamed Password to NewPassword and ConfirmPassword to ConfirmNewPassword in ResetPasswordRequest which is used in ResetPassword method in AvatarController in WebAPI.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/a97ae238b250d182b9a26cf84a7ec9d351501c7e
+- Added new optional includeUsernames param to LoadAllAvatarNames/LoadAllAvatarNamesAsync method in AvatarManager in OASIS.API.Core.
+- Added new optional includeUsernames param to LoadAllAvatarNamesWithIds/LoadAllAvatarNamesWithIdsAsync method in AvatarManager in OASIS.API.Core.
+- Fixed ref to NextGenSoftware.OASIS.API.Native.Integrated.EndPoint in NextGenSoftware.OASIS.API.Core.TestHarness.
+- Fixed ref to NextGenSoftware.OASIS.API.Native.Integrated.EndPoint in NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.TestHarness.
+- Added new includeUserNames param to GetAllAvatarNames method in AvatarController.
+- GetAllAvatarNamesWithIds now returns Dictionary<string, List<string>>> instead of Dictionary<string,string>>.
+- Trying to fix annoying new issue in the JwtMiddleware after upgrading to .NET 7 in the REST ONODE Web API.
+- Renamed GetAndActivateDefaultProvider to GetAndActivateDefaultStorageProvider in NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness.
+- Removed NextGenSoftware.OASIS.API.Providers.EOSIOOASIS-OLD from NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness.
+- Fixed ref to OASISLogo in NextGenSoftware.OASIS.OASISBootLoader.
+- Renamed GetAndActivateDefaultProvider to GetAndActivateDefaultStorageProvider in OASISAPIManager.
+- Fixed ref to NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WebBlazor.Shared in NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WebBlazor.Client.
+- Fixed ref to NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WebBlazor.Shared and NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WebBlazor.Client in NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WebBlazor.Server.
+- Added ref to NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura in OASISProviders in STAR ODK.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/12fa7ab108aed812642479204b5c80176c461985
+- Added includeIds param and removed removeDuplicates param from LoadAllAvatarNames & LoadAllAvatarNamesAsync methods in AvatarManager in OASIS.API.Core.
+- Renamed LoadAllAvatarNamesWithIds to LoadAllAvatarNamesGroupedByName and LoadAllAvatarNamesWithIdsAsync to LoadAllAvatarNamesGroupedByNameAsync in AvatarManager in OASIS.API.Core.
+- Added new includeUsernames and includeIds params to LoadAllAvatarNamesGroupedByName  and LoadAllAvatarNamesGroupedByNameAsync methods in AvatarController in REST WebAPI.
+- Added new generic GroupAvatarNames and ProcessAvatarNames methods to AvatarManager in OASIS.API.Core.
+- Refactored and improved LoadAllAvatarNamesGroupedByName /LoadAllAvatarNamesGroupedByNameAsync to use new generic GroupAvatarNames  method so is now more efficient and uses less code.
+- Refactored and improved LoadAllAvatarNames/LoadAllAvatarNamesAsync to use new generic ProcessAvatarNames method so is now more efficient and uses less code.
+- Renamed PrepareToRegisterAvatar method to PrepareToRegisterAvatarAsync and made async in AvatarManager in OASIS.API.Core.
+- Added new CheckIfUsernameIsAlreadyInUse method to AvatarManager in OASIS.API.Core.
+- Refactored PrepareToRegisterAvatarAsync to call new CheckIfUsernameIsAlreadyInUse method to ensure username is unique in AvatarManager in OASIS.API.Core.
+- Added new username param to PrepareToRegisterAvatarAsync, Register and RegisterAsync methods in AvatarManager in OASIS.API.Core.
+- Removed removeDuplicates param and added new includeIds param to GetAllAvatarNames method in AvatarController in REST WebAPI.
+- Renamed GetAllAvatarNamesWithIds method to GetAllAvatarNamesGroupedByName in AvatarController in REST WebAPI.
+- Added new includeUsernames and includeIds params to GetAllAvatarNamesGroupedByName method in AvatarController in REST WebAPI.
+- Added Username property to CreateRequest object in  REST WebAPI.
+- Updated RegisterAsync method in AvatarService in REST WebAPI to pass the new username param to the RegisterAsync method on AvatarManager.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/911d48719df4b7bb695e6926537b2bccc3646cd2
+- Finished implementing new LevelManager which can now dynamically calculate the level for each karma score from a dynamically generated LevelLookup. It also contains a LevelThresholdWeighting property which controls how easy/hard it is to level up.
+- As part of the above work, Karma has now been changed from an int to a long in AvatarDetail, IAvatarDetail interface & KarmaAkashicRecord.
+- Added new AvatarBasicView which will be used in new api calls in the avatar api to list avatars to standard users (and will be used for the OASIS Avatar Directory, avatar lookup/searches, leader boards, etc.
+- Fixed bugs in NextGenSoftware.OASIS.API.Core.TestHarness.
+- Added new LevelManager tests to NextGenSoftware.OASIS.API.Core.TestHarness.
+- Fixed ref issue for the OASIS Logo in NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.
+- Made all methods and properties static in OASISAPI helper in NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.
+- Made Karma long in SolanaAvatarDetailDto in SolanaOASIS Provider.
+- Made karma long in AvatarDetailModel and KarmaAkashicRecordModel in SQLLiteDBOASIS Provider.
+- Made karma long in AvatarDetail in MongoDBOASIS Provider.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/4a12c391d4faa80b6814ce06387703dc563d04b0
+- Upgrading NFT API on OASIS API again.
+- Added IOASISGEONFT interface to OASIS.API.Core.
+- Added IOASISNFT interface to OASIS.API.Core.
+- Added IOLand interface to OASIS.API.Core.
+- Added IOLandPurchase interface to OASIS.API.Core.
+- Added OASISGEONFT to Objects in OASIS.API.Core.
+- Added OASISNFT to Objects in OASIS.API.Core.
+- Added OLand to Objects in OASIS.API.Core.
+- Added OLandPurchase to Objects in OASIS.API.Core.
+- Updated OLANDManager in OASIS.API.ONODE.Core.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/2ca66ec6bf51984903dc9792882296a9190ea668
+- Added the OASIS logo into a new solution folder Images/Logos so all projects can then refrence this for their NuGet packages and so will never have issue finding the correct logo/image again.
+- Fixed the NextGenSoftware.OASIS.API.ONODE.Core.TestHarness project.
+- Fixed a bug in the get-all-avatar-names-grouped-by-name avatar api function.
+- Changed return type from OASISResult<int> to OASISResult<long> for GetKarmaForAvatar function in KarmaController in OASIS.API.ONODE.WebApi.
+- NextGenSoftware.OASIS.OASISBootLoader now references new Images/Logo/OASISLogo128.jpg.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/b7aff5c8b66aab1a94289ef1479612d19e6d4a50
+- Renamed IOASISGEONFT to IOASISGeoSpatialNFT.
+- Renamed OASISGEONFT to OASISGeoSpatialNFT.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/d3791cefd3f2f67bc27edc54b47a4920d944c050
+- Renamed IOASISGEONFT to IOASISGeoSpatialNFT.
+- Renamed IOland to IOLand.
+- Updated PurchaseOland function in OLANDManger so it no longer updates the CargoSaleId. Also removed ErrorMessage because this is part of OASISResult.
+- Renamed _driver to Driver and converted to a public getter; setter on Neo4jOASIS OASIS Provider.
+- Temp set startApolloServer param to false in BootOASIS function in OASISAPIManager in STAR ODK.
+- Set OASIS_DNA.json and CelestialBodyDNA.json CopyToOutputDirectory config setting to "PreserveNewest" in NextGenSoftware.OASIS.STAR,csproj.
+- Added a new string email param to the CreateAvatar/CreateAvatarAsync functions in STAR.cs in STAR ODK because the email use to be used as the default username but now these can be different.
+- Updated STAR ODK Test Harness so the OASIS Provider tests now use IsProviderActivated instead of ProviderActivated.
+- Updated Neo4j OASIS Provider tests in STAR ODK Test Harness to work with latest changes to the Neo4j OASIS Provider.
+- Added new GetValidUsername function to STAR ODK Test Harness, which in turn calls through to the new CheckIfUsernameIsAlreadyInUse function on the AvatarManager in the OASIS API to ensure the new username is unique.
+
+----------------------------------------------------------------------------------------------------------------------------
