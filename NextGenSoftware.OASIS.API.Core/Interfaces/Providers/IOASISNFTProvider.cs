@@ -1,5 +1,6 @@
 ﻿
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using System.Threading.Tasks;
 
