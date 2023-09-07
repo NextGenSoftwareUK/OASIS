@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
