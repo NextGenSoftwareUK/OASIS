@@ -51,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         {
             OASISResult<TransactionRespone> result = new OASISResult<TransactionRespone>();
             IOASISNFTProvider provider = null;
-            string errorMessage = "Error occured in CreateNftTransaction in NFTManager. Reason:";
+            string errorMessage = "Error occured in CreateNftTransactionAsync in NFTManager. Reason:";
 
             try
             {

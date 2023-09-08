@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONode.Core.Objects;
@@ -20,6 +21,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         private INFTManager _nftManager;
 
         //TODO: Move this to a DB (use OASIS Data API) so this data is dynamic and can be changed at runtime!
+        //TODO: But better still is to replace this lookup and unit price above with an algorithm to calculate the price with a bigger and bigger discount the more that is purchased... similar to what I did for the level/karma score...
         /// <summary>
         /// Key: OLAND Count
         /// Value: Price
@@ -58,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             _nftManager = nftManager;
         }
 
-        public async Task<OASISResult<IEnumerable<IOLand>>> LoadAllOlands()
+        public async Task<OASISResult<IEnumerable<IOLand>>> LoadAllOlandsAsync()
         {
             var response = new OASISResult<IEnumerable<IOLand>>();
             try
@@ -100,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return response;
         }
 
-        public async Task<OASISResult<IOLand>> LoadOland(Guid olandId)
+        public async Task<OASISResult<IOLand>> LoadOlandAsync(Guid olandId)
         {
             var response = new OASISResult<IOLand>();
             try
@@ -143,12 +145,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return response;
         }
 
-        public async Task<OASISResult<bool>> DeleteOland(Guid olandId)
+        public async Task<OASISResult<bool>> DeleteOlandAsync(Guid olandId)
         {
             return await Data.DeleteHolonAsync(olandId);
         }
 
-        public async Task<OASISResult<string>> SaveOland(IOLand request)
+        public async Task<OASISResult<string>> SaveOlandAsync(IOLand request)
         {
             var response = new OASISResult<string>();
             try
@@ -193,7 +195,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return response;
         }
 
-        public async Task<OASISResult<string>> UpdateOland(IOLand request)
+        public async Task<OASISResult<string>> UpdateOlandAsync(IOLand request)
         {
             var response = new OASISResult<string>();
             try
@@ -240,20 +242,21 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return response;
         }
 
-        public async Task<OASISResult<string>> PurchaseOland(IOLandPurchase olandPurchase)
+        public async Task<OASISResult<Guid>> PurchaseOlandAsync(IOLandPurchase olandPurchase)
         {
-            var response = new OASISResult<string>();
+            var response = new OASISResult<Guid>();
             
             try
             {
-                olandPurchase.Id = new Guid();
+                Guid olandPurchaseId = new Guid();
+
                 var olandHolon = new Holon
                 {
-                    IsNewHolon = true,
+                   // IsNewHolon = true,
                     MetaData =
                     {
-                        [nameof(IOLandPurchase.Id)] = olandPurchase.Id.ToString(),
-                        [nameof(IOLandPurchase.OlandId)] = olandPurchase.OlandId.ToString(),
+                        [nameof(olandPurchaseId)] = olandPurchaseId.ToString(),
+                        [nameof(IOLandPurchase.OlandIds)] = ListHelper.ConvertFromList(olandPurchase.OlandIds),
                         [nameof(IOLandPurchase.AvatarId)] = olandPurchase.AvatarId.ToString(),
                         [nameof(IOLandPurchase.AvatarUsername)] = olandPurchase.AvatarUsername,
                         [nameof(IOLandPurchase.Tiles)] = olandPurchase.Tiles,
@@ -267,29 +270,25 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 };
                 
                 var saveResult = await Data.SaveHolonAsync(olandHolon);
+
                 if (saveResult.IsError)
                 {
-                    response.IsError = true;
-                    response.IsSaved = false;
-                    response.Result = null;
                     response.Message = saveResult.Message;
                     ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
+                else
+                    response.Result = olandPurchaseId;
             }
             catch (Exception e)
             {
-                response.Exception = e;
-                response.Message = e.Message;
-                response.IsError = true;
-                response.IsSaved = false;
-                response.Result = null;
-                ErrorHandling.HandleError(ref response, e.Message);
+                ErrorHandling.HandleError(ref response, e.Message, e);
             }
+
             return response;
         }
 
-        public async Task<OASISResult<int>> GetOlandPrice(int count, string couponCode)
+        public async Task<OASISResult<int>> GetOlandPriceAsync(int count, string couponCode = null)
         {
             var response = new OASISResult<int>();
 
@@ -298,8 +297,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 if (count <= 0)
                     ErrorHandling.HandleError(ref response, "Count property need's to be greater then zero!");
                 else
-                    response.Result = OlandByCountPrice.ContainsKey(count)
-                    ? OlandByCountPrice[count]
+                    response.Result = _OlandByCountPrice.ContainsKey(count)
+                    ? _OlandByCountPrice[count]
                     : OlandUnitPrice * count;
             }
             catch (Exception e)
@@ -310,7 +309,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return response;
         }
 
-        public async Task<OASISResult<PurchaseOlandResponse>> PurchaseOland(PurchaseOlandRequest request)
+        public async Task<OASISResult<PurchaseOlandResponse>> PurchaseOlandAsync(PurchaseOlandRequest request)
         {
             var response = new OASISResult<PurchaseOlandResponse>();
             try
@@ -324,13 +323,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     return response;
                 }
 
-                //TODO: Re-write this so is generic.
-                await _nftManager.CreateNftTransactionAsync(new NFTWalletTransaction()
+                OASISResult<TransactionRespone> nftTransactionResponse = await _nftManager.CreateNftTransactionAsync(new NFTWalletTransaction()
                 {
-                    Amount = 0, //TODO: Need to derive price from the tiles selected. //request.Tiles
+                    Amount = Convert.ToDecimal(await GetOlandPriceAsync(request.OlandIds.Count)), //TODO:Currently only fixed sizes of OLANDS are supported, need to make dyanmic so any number of OLANDs can be used...
                     Date = DateTime.Now,
                     FromWalletAddress = null, //TODO: Need to either pre-mint OLAND NFT's and then use FromWalletAddress of the NFT or mint on the fly and then use the new address...
-                    MemoText = "0 OLAND's", //TODO: Need to dervive from the tiles selected.
+                    MemoText = $"{request.OlandIds.Count} OLAND(s) with OLANDID's {ListHelper.ConvertFromList(request.OlandIds)} for Avatar {request.AvatarUsername} with AvatarID {request.AvatarId}", //TODO: Need to dervive from the tiles selected.
                     MintWalletAddress = null, //TODO: Need to either pre-mint OLAND NFT's and then use FromWalletAddress of the NFT or mint on the fly and then use the new address...
                     ToWalletAddress = request.WalletAddress,
                     ProviderType = request.ProviderType,
@@ -347,23 +345,27 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 //    return response;
                 //}
 
-                var purchaseOlandResult = await PurchaseOland(new OlandPurchase()
+                if (nftTransactionResponse.Result != null && !nftTransactionResponse.IsError)
                 {
-                    PurchaseDate = DateTime.Now,
-                    Id = Guid.NewGuid(),
-                    Tiles = request.Tiles,
-                    AvatarId = request.AvatarId,
-                    AvatarUsername = request.AvatarUsername,
-                    WalletAddress = request.WalletAddress,
-                    OlandId = request.OlandId,
-                    TransactionHash = cargoPurchaseResponse.Result.TransactionHash,
-                    ErrorMessage = cargoPurchaseResponse.Message,
-                    CargoSaleId = request.CargoSaleId,
-                    IsSucceedPurchase = !cargoPurchaseResponse.IsError
-                });
+                    var purchaseOlandResult = await PurchaseOlandAsync(new OLandPurchase()
+                    {
+                        PurchaseDate = DateTime.Now,
+                        Tiles = request.Tiles,
+                        AvatarId = request.AvatarId,
+                        AvatarUsername = request.AvatarUsername,
+                        WalletAddress = request.WalletAddress,
+                        OlandIds = request.OlandIds,
+                        TransactionHash = nftTransactionResponse.Result.TransactionResult,
+                        IsSucceedPurchase = true
+                    });
 
-                response.Result = new PurchaseOlandResponse(purchaseOlandResult.Result);
-                
+                    response.Result = new PurchaseOlandResponse()
+                    {
+                        OLandPurchaseId = purchaseOlandResult.Result,
+                        OlandIds = request.OlandIds,
+                        TransactionHash = nftTransactionResponse.Result.TransactionResult
+                    };
+                }
             }
             catch (Exception e)
             {

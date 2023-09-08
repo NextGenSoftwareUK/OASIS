@@ -1,5 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
-using System;
+﻿
 using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Core.Helpers
@@ -12,6 +11,16 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             string[] parts = commaDelimitedList.Split(',');
             list.AddRange(parts);
             return list;
+        }
+
+        public static string ConvertFromList<T>(List<T> list)
+        {
+            string items = "";
+            foreach (T id in list)
+                items = string.Concat(items, id.ToString(), ",");
+
+            items = items.Substring(0, items.Length - 1);
+            return items;
         }
     }
 }
