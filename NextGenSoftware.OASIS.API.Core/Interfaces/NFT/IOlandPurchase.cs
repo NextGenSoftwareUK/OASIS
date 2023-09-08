@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
 {
     public interface IOLandPurchase
     {
-        public Guid Id { get; set; }
-        public Guid OlandId { get; set; }
+       // public Guid Id { get; set; }
+        public List<Guid> OlandIds { get; set; }
         public Guid AvatarId { get; set; }
         public string AvatarUsername { get; set; }
         public string Tiles { get; set; }
