@@ -1,5 +1,4 @@
 ﻿
-using System;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
@@ -11,7 +10,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public string ToWalletAddress { get; set; }
         public string Token { get; set; }
         public string MemoText { get; set; }
-        public DateTime Date { get; set; }
         public ProviderType ProviderType { get; set; }
     }
 }

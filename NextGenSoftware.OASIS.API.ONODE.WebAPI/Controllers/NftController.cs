@@ -1,8 +1,11 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.ONode.Core.Managers;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONode.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
@@ -11,13 +14,6 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
     [Authorize]
     public class NftController : OASISControllerBase
     {
-        //private readonly INftService _nftService;
-
-        //public NftController(INftService nftService)
-        //{
-        //    _nftService = nftService;
-        //}
-
         public NftController()
         {
            
@@ -25,7 +21,21 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 
         [HttpPost]
         [Route("CreateNftTransaction")]
-        public async Task<OASISResult<NftTransactionRespone>> CreateNftTransaction(CreateNftTransactionRequest request)
+        public async Task<OASISResult<TransactionRespone>> CreateNftTransaction(CreateNftTransactionRequest request)
+        {
+            return await NFTManager.Instance.CreateNftTransactionAsync(request);
+        }
+
+        [HttpPost]
+        [Route("CreateNftTransaction")]
+        public async Task<OASISResult<TransactionRespone>> CreateNftTransaction(NFTWalletTransaction request)
+        {
+            return await NFTManager.Instance.CreateNftTransactionAsync(request);
+        }
+
+        [HttpPost]
+        [Route("MintNft")]
+        public async Task<OASISResult<TransactionRespone>> MintNft(NFTWalletTransaction request)
         {
             return await NFTManager.Instance.CreateNftTransactionAsync(request);
         }

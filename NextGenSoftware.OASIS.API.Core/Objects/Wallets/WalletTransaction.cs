@@ -12,7 +12,6 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public string ToWalletAddress { get; set; }
         public string Token { get; set; }
         public string MemoText { get; set; }
-        public DateTime Date { get; set; }
         public ProviderType ProviderType { get; set; }
     }
 }

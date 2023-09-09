@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+﻿using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {
