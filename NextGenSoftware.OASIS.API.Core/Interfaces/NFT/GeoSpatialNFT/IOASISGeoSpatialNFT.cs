@@ -1,4 +1,4 @@
-﻿namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
+﻿namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT
 {
     public interface IOASISGeoSpatialNFT : IOASISNFT
     {

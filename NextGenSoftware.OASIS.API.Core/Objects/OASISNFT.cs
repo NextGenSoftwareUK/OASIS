@@ -14,12 +14,13 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         /// The wallet address
         /// </summary>
         public string MintedByAddress { get; set; }
+        public string Hash { get; set; }
         public decimal Price { get; set; }
         public decimal Discount { get; set; }
-
         public byte[] Thumbnail { get; set; }
-
-        public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>();
+        public string ThumbnailUrl { get; set; }
+        public string Token { get; set; } //TODO: Should be dervied from the OnChainProvider so may not need this?
+        public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
 
         /// <summary>
         /// The Blockchain to store the token on.
