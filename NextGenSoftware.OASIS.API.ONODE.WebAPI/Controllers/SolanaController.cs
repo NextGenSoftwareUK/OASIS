@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [Route("Mint")]
         public async Task<OASISResult<MintNftResult>> MintNft([FromBody] MintNftRequest request)
         {
-            return await _solanaService.MintNft(request);
+            return await _solanaService.MintNftAsync(request);
         }
 
         /// <summary>

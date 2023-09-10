@@ -19,8 +19,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers
         OASISResult<TransactionRespone> MintNft(IMintNFTTransaction request);
         Task<OASISResult<IOASISNFT>> LoadNftAsync(Guid id, NFTProviderType NFTProviderType);
         OASISResult<IOASISNFT> LoadNft(Guid id, NFTProviderType NFTProviderType);
-        IOASISNFTProvider GetNFTProvider<T>(NFTProviderType NFTProviderType, ref OASISResult<T> result, string errorMessage);
-        IOASISNFTProvider GetNFTProvider<T>(ProviderType providerType, ref OASISResult<T> result, string errorMessage);
+        OASISResult<IOASISNFTProvider> GetNFTProvider(NFTProviderType NFTProviderType, string errorMessage = "");
+        OASISResult<IOASISNFTProvider> GetNFTProvider(ProviderType providerType, string errorMessage = "");
         NFTProviderType GetNFTProviderTypeFromProviderType(ProviderType providerType);
         ProviderType GetProviderTypeFromNFTProviderType(NFTProviderType nftProviderType);
     }

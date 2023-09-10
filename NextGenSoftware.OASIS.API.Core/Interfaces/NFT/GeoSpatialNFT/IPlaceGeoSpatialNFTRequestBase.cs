@@ -1,4 +1,6 @@
-﻿namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
+
+namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT
 {
     public interface IPlaceGeoSpatialNFTRequestBase
     {
@@ -8,5 +10,6 @@
         public bool PermSpawn { get; set; }
         public int GlobalSpawnQuantity { get; set; }
         public int PlayerSpawnQuantity { get; set; }
+        public ProviderType ProviderType { get; set; }
     }
 }

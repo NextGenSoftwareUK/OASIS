@@ -1,7 +1,6 @@
-﻿
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+﻿using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
-namespace NextGenSoftware.OASIS.API.Core.Objects
+namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
 {
     public class NFTWalletTransaction : WalletTransaction, INFTWalletTransaction
     {

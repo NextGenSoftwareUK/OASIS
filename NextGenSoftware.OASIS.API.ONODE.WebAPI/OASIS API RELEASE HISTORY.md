@@ -470,7 +470,7 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Corrected typeo in Data API swagger documentation.
 
 ----------------------------------------------------------------------------------------------------------------------------
-## 2.4.0 (09/09/23)
+## 3.0.0 (09/09/23)
 
 A brief summary of the massive amount of work that has gone into this release is detailed below, this does not include everything, just a few highlights, please see the full commit history further down for the full list.
 
@@ -486,7 +486,8 @@ A brief summary of the massive amount of work that has gone into this release is
 - Added new AzureCosmosDBOASIS OASIS Provider adding support for the Azure Cosmos DB Cloud service from Microsoft, allowing people to import/export their cloud data to the OASIS as well as store their OASIS Avatar & data to the cloud if they wish (could be used as a backup or redundancy in case their local copies get lost or corrupted etc).
 - Neo4j OASIS Provider has been re-written from scratch with many improvements/fixes etc.
 - HoloOSIS Provider has also been re-written from scatch with many improvements/fixes to work with the latest HoloNET (world's first .NET/Unity client for Holochain). This is a pre-release and so is still a WIP so it is not quite ready to be used yet, but will be in a future version soon...
-- New NFT API has been partially implemented and will be officially rolled out in a upcoming release... This will include the new OASIS Geo-NFT API and many other unique world first's that are being implemented in our AR Geo-location game Our World.
+- New NFT API - This allows mass interoperability between NFT's across all chains and even web2 as well as IPFS, Holochain and more! It introduces a new global generic NFT Standard (The OASISNFT) as well as the OASISGeoSpatialNFT standard. It also includes the new cross-chain OASIS Geo-NFT API and many other unique world first's that are being implemented in our AR Geo-location game Our World.
+- New OLAND NFT API - Related to above, it also includes a new OLAND NFT API allowing people to purchase virtual land in Our World and The OASIS. This is built on top of the new NFT API.
 - As part of above, added new INFTWalletTransaction interface.
 - Added a new MemoText property to IWalletTransaction interface.
 - All SendTraction and SendTractionAsync methods in IOASISBlockchainStorageProvider interface in OASIS.Core now return OASISResult<TransactionRespone> instead of OASISResult<bool>.

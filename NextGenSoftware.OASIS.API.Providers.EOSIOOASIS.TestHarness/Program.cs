@@ -429,10 +429,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
             Console.WriteLine("Run_SendNftAsync-->ActivateProvider()");
             eosioOasis.ActivateProvider();
 
-            var sendNftRequest = new WalletTransaction()
+            var sendNftRequest = new NFTWalletTransaction()
             {
                 Amount = 0.001m,
-                Date = DateTime.Now,
+                //Date = DateTime.Now,
                 ProviderType = ProviderType.EOSIOOASIS,
                 FromWalletAddress = _oasisEosAccount,
                 ToWalletAddress = _oasisEosAccount2
@@ -461,7 +461,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
             var walletTransaction = new WalletTransaction()
             {
                 Amount = 0.001m,
-                Date = DateTime.Now,
+               // Date = DateTime.Now,
                 ProviderType = ProviderType.EOSIOOASIS,
                 FromWalletAddress = _oasisEosAccount,
                 ToWalletAddress = _oasisEosAccount2

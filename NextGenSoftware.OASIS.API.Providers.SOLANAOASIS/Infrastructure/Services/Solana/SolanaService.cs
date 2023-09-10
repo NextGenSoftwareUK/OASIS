@@ -79,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             return response;
         }
         
-        public async Task<OASISResult<MintNftResult>> MintNft(MintNftRequest mintNftRequest)
+        public async Task<OASISResult<MintNftResult>> MintNftAsync(MintNftRequest mintNftRequest)
         {
             var response = new OASISResult<MintNftResult>();
             try
