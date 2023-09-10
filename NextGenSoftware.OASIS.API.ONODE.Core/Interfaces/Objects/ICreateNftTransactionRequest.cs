@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Objects
         public string FromWalletAddress { get; set; }
         public string ToWalletAddress { get; set; }
         public int Amount { get; set; }
-        public string Token { get; set; }
+        //public string Token { get; set; }
         public string MemoText { get; set; }
     }
 }

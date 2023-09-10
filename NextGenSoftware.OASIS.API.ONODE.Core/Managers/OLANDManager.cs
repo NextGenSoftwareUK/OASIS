@@ -7,7 +7,9 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers;
@@ -19,6 +21,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
     {
         private const int OlandUnitPrice = 17;
         private INFTManager _nftManager;
+        private static OLandManager _instance = null;
+
+        public static OLandManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new OLandManager(NFTManager.Instance, ProviderManager.CurrentStorageProvider);
+
+                return _instance;
+            }
+        }
 
         //TODO: Move this to a DB (use OASIS Data API) so this data is dynamic and can be changed at runtime!
         //TODO: But better still is to replace this lookup and unit price above with an algorithm to calculate the price with a bigger and bigger discount the more that is purchased... similar to what I did for the level/karma score...
@@ -326,7 +340,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 OASISResult<TransactionRespone> nftTransactionResponse = await _nftManager.CreateNftTransactionAsync(new NFTWalletTransaction()
                 {
                     Amount = Convert.ToDecimal(await GetOlandPriceAsync(request.OlandIds.Count)), //TODO:Currently only fixed sizes of OLANDS are supported, need to make dyanmic so any number of OLANDs can be used...
-                    Date = DateTime.Now,
+                    //Date = DateTime.Now,
                     FromWalletAddress = null, //TODO: Need to either pre-mint OLAND NFT's and then use FromWalletAddress of the NFT or mint on the fly and then use the new address...
                     MemoText = $"{request.OlandIds.Count} OLAND(s) with OLANDID's {ListHelper.ConvertFromList(request.OlandIds)} for Avatar {request.AvatarUsername} with AvatarID {request.AvatarId}", //TODO: Need to dervive from the tiles selected.
                     MintWalletAddress = null, //TODO: Need to either pre-mint OLAND NFT's and then use FromWalletAddress of the NFT or mint on the fly and then use the new address...

@@ -45,6 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Extensions
         {
             if (holonDto == null)
                 throw new ArgumentNullException(nameof(holonDto));
+
             return new Holon()
             {
                 Id = holonDto.Id,
@@ -54,6 +55,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Extensions
                 Version = holonDto.Version,
                 IsActive = holonDto.IsDeleted,
                 PreviousVersionId = holonDto.PreviousVersionId
+                
+                //TODO: This needs finishing!
             };
         }
     }

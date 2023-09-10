@@ -6,7 +6,9 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
@@ -762,7 +764,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             
             try
             {
-                var solanaNftTransactionResult = await _solanaService.MintNft(new MintNftRequest()
+                var solanaNftTransactionResult = await _solanaService.MintNftAsync(new MintNftRequest()
                 {
                     Amount = (ulong) transation.Amount,
                     FromAccount = new BaseAccountRequest()
@@ -904,6 +906,157 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         }
 
         OASISResult<TransactionRespone> IOASISBlockchainStorageProvider.SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<TransactionRespone> MintNFT(IMintNFTTransaction transation)
+        {
+            return MintNFTAsync(transation).Result;
+        }
+
+        public async Task<OASISResult<TransactionRespone>> MintNFTAsync(IMintNFTTransaction transation)
+        {
+            if (transation == null)
+                throw new ArgumentNullException(nameof(transation));
+
+            var result = new OASISResult<TransactionRespone>();
+            var errorMessageTemplate = "Error was occured in MintNFTAsync in SolanaOASIS minting NFT. Reason: ";
+
+            try
+            {
+                var solanaNftTransactionResult = await _solanaService.MintNftAsync(new MintNftRequest()
+                {
+                    Amount = (ulong)transation.Price,
+                    MintAccount = new BaseAccountRequest()
+                    {
+                        PublicKey = transation.MintWalletAddress
+                    },
+                    ToAccount = new BaseAccountRequest()
+                    {
+                        PublicKey = transation.MintWalletAddress
+                    },
+
+                    MemoText = $"Minted NFT with title {transation.Title} by AvatarId {transation.MintedByAvatarId} for price {transation.Price}."
+                });
+
+                if (solanaNftTransactionResult.IsError ||
+                    string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
+                {
+                    ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, solanaNftTransactionResult.Message), solanaNftTransactionResult.Exception);
+                    return result;
+                }
+
+                result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
+                ErrorHandling.CheckForTransactionErrors(ref result);
+            }
+            catch (Exception e)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, e.Message), e);
+            }
+
+            return result;
+        }
+
+        public OASISResult<IOASISNFT> LoadNFT(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<OASISResult<IOASISNFT>> LoadNFTAsync(Guid id)
+        {
+            var result = new OASISResult<IOASISNFT>();
+
+            try
+            {
+                var solanaHolonDto = await _solanaRepository.GetAsync<SolanaHolonDto>(id.ToString()); //TODO: Need to think how this will work more...
+
+                result.IsLoaded = true;
+                result.IsError = false;
+                IHolon holon = solanaHolonDto.GetHolon();
+
+                if (holon != null) 
+                {
+                    result.Result = new OASISNFT()
+                    {
+                         //TODO: Come back to this! ;-)
+                    };
+                }
+            }
+            catch (Exception e)
+            {
+                ErrorHandling.HandleError(ref result, e.Message);
+            }
+
+            return result;
+        }
+
+        public OASISResult<IOASISNFT> LoadNFT(string hash)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IOASISNFT>> LoadNFTAsync(string hash)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForAvatar(Guid avatarId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForMintAddress(string mintWalletAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<List<IOASISNFT>> LoadAllNFTsForAvatar(Guid avatarId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<List<IOASISNFT>> LoadAllNFTsForMintAddress(string mintWalletAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IOASISGeoSpatialNFT> PlaceGeoNFT(IPlaceGeoSpatialNFTRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceGeoSpatialNFTRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IOASISGeoSpatialNFT> MintAndPlaceGeoNFT(IMintAndPlaceGeoSpatialNFTRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IOASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceGeoSpatialNFTRequest request)
         {
             throw new NotImplementedException();
         }

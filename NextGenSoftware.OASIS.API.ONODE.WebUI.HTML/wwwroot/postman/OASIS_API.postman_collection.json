@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "a1065653-d330-4549-b03c-3ada31c70def",
-		"name": "OASIS API v2.3.1",
+		"name": "OASIS API v3.0.0",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "10731858"
 	},
@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Mr\",\r\n    \"firstName\": \"David\",\r\n    \"lastName\": \"Ellams\",\r\n    \"email\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password!\",\r\n    \"confirmPassword\": \"my-super-secret-password!\",\r\n    \"acceptTerms\": true,\r\n    \"AvatarType\": \"Wizard\"\r\n}",
+							"raw": "{\r\n    \"title\": \"Mr\",\r\n    \"firstName\": \"David\",\r\n    \"lastName\": \"Ellams\",\r\n    \"email\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password!\",\r\n    \"confirmPassword\": \"my-super-secret-password!\",\r\n    \"acceptTerms\": true,\r\n    \"AvatarType\": \"Wizard\",\r\n    \"AutoFailOverMode\": \"OFF\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -259,7 +259,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIxODhjYTQyLWVmNTUtNGNiYi04MWI5LTllOTg0YThlOWVjYiIsIm5iZiI6MTY1NTc4NjYwNCwiZXhwIjoxNjU1Nzg3NTA0LCJpYXQiOjE2NTU3ODY2MDR9.vZL0Nmj959A3SkNZLFgiGxAzYe91AhjzHCJDWYLG_NE",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMGNmOWZjLTU3NTAtNGQzZS1iZWIwLWYyMmRlMmM4YWJhNyIsIm5iZiI6MTY1OTY1MDM5OCwiZXhwIjoxNjU5NjUxMjk4LCJpYXQiOjE2NTk2NTAzOTh9._6lWShIe-kROwAPLXNXB-7WRuMld8nSs4bSTxsJXmpQ",
 									"type": "string"
 								}
 							]
@@ -297,7 +297,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgyYWZmNjBmLTk1ZTUtNDZmZS1iMGI5LTk0ZmViNTdmNzc5NCIsIm5iZiI6MTY0OTEwNzE3NywiZXhwIjoxNjQ5MTA4MDc3LCJpYXQiOjE2NDkxMDcxNzd9.AHMH1dFMZVz1G7dunPXhV9u7eGXTsQNTSHc28dqFcBc",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZjZDFiMDE3LTdmM2MtNDc1OC1hMjIyLThjMTM3Mzk4Y2JhOCIsIm5iZiI6MTY4NjM0Mzc0NSwiZXhwIjoxNjg2MzQ0NjQ1LCJpYXQiOjE2ODYzNDM3NDV9._Gigqa-3eX8uATqNFhrAZKipYU0vsprJ33PTQ_n_hYI",
 									"type": "string"
 								}
 							]
@@ -306,7 +306,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"token\": \"851EC5D903D2C4C9F91ADDB0FF6EAEA147DCADE3C3CEE26ABCACDC28599CF1B4CAE599D6465801F9\",\r\n    \"password\": \"new-super-secret-password\",\r\n    \"confirmPassword\": \"new-super-secret-password\"\r\n}",
+							"raw": "{\r\n    \"token\": \"BCD26D9EB5B46C3EEB13E07E177BECE37BD6052EEDC1F2B62BAC7254892EC9554FDE47E85FCD9C06\",\r\n    \"newPassword\": \"new-super-secret-password\",\r\n    \"confirmNewPassword\": \"new-super-secret-password\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -537,6 +537,68 @@
 								"api",
 								"avatar",
 								"get-all-avatars"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Avatar Names",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZjZDFiMDE3LTdmM2MtNDc1OC1hMjIyLThjMTM3Mzk4Y2JhOCIsIm5iZiI6MTY5Mzg2OTA0NywiZXhwIjoxNjkzODY5OTQ3LCJpYXQiOjE2OTM4NjkwNDd9.xvMayJcOlxIirolgM1TgOsSiH3WcNrlPVCFjMspkwjU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/get-all-avatar-names/true/true",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"get-all-avatar-names",
+								"true",
+								"true"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Avatar Names Grouped By Name",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZjZDFiMDE3LTdmM2MtNDc1OC1hMjIyLThjMTM3Mzk4Y2JhOCIsIm5iZiI6MTY5Mzg2OTA0NywiZXhwIjoxNjkzODY5OTQ3LCJpYXQiOjE2OTM4NjkwNDd9.xvMayJcOlxIirolgM1TgOsSiH3WcNrlPVCFjMspkwjU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/get-all-avatar-names-grouped-by-name/true/true",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"get-all-avatar-names-grouped-by-name",
+								"true",
+								"true"
 							]
 						}
 					},
@@ -6343,6 +6405,495 @@
 								"api",
 								"solana",
 								"getnftwallet"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "NFT",
+			"item": [
+				{
+					"name": "load-nft-by-id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/nft/load-nft-by-id/fcd1b017-7f3c-4758-a222-8c137398cba8/Solana",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nft",
+								"load-nft-by-id",
+								"fcd1b017-7f3c-4758-a222-8c137398cba8",
+								"Solana"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "load-nft-by-hash",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/nft/load-nft-by-hash/fcd1b017-7f3c-4758-a222-8c137398cba8/Solana",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nft",
+								"load-nft-by-hash",
+								"fcd1b017-7f3c-4758-a222-8c137398cba8",
+								"Solana"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "load-all-nfts-for_avatar",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/nft/load-all-nfts-for_avatar/fcd1b017-7f3c-4758-a222-8c137398cba8/Solana",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nft",
+								"load-all-nfts-for_avatar",
+								"fcd1b017-7f3c-4758-a222-8c137398cba8",
+								"Solana"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "load-all-nfts-for_mint-wallet-address",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/nftl/oad-all-nfts-for_mint-wallet-address/fcd1b017-7f3c-4758-a222-8c137398cba8/Solana",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nftl",
+								"oad-all-nfts-for_mint-wallet-address",
+								"fcd1b017-7f3c-4758-a222-8c137398cba8",
+								"Solana"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "load-all-geo-nfts-for_avatar",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/nft/lload-all-geo-nfts-for_avatar/fcd1b017-7f3c-4758-a222-8c137398cba8/Solana",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nft",
+								"lload-all-geo-nfts-for_avatar",
+								"fcd1b017-7f3c-4758-a222-8c137398cba8",
+								"Solana"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "load-all-geo-nfts-for_mint-wallet-address",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/nftl/load-all-geo-nfts-for_mint-wallet-address/fcd1b017-7f3c-4758-a222-8c137398cba8/Solana",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nftl",
+								"load-all-geo-nfts-for_mint-wallet-address",
+								"fcd1b017-7f3c-4758-a222-8c137398cba8",
+								"Solana"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-provider-type-from-nft-provider-type",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/nft/get-provider-type-from-nft-provider-type/Solana",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nft",
+								"get-provider-type-from-nft-provider-type",
+								"Solana"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-nft-provider-type-from-provider-type",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/nft/get-nft-provider-type-from-provider-type/SolanaOASIS",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nft",
+								"get-nft-provider-type-from-provider-type",
+								"SolanaOASIS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-nft-provider-from-nft-provider-type",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/nft/get-nft-provider-from-nft-provider-type/Solana",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nft",
+								"get-nft-provider-from-nft-provider-type",
+								"Solana"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-nft-provider-from-provider-type",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/nft/get-nft-provider-from-provider-type/SolanaOASIS",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nft",
+								"get-nft-provider-from-provider-type",
+								"SolanaOASIS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create-nft-transation",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"NFTProviderType\": \"Solana\",\r\n    \"MintWalletAddress\": \"\",\r\n    \"FromWalletAddress\": \"\",\r\n    \"ToWalletAddress\": \"\",\r\n    \"Amount\": 77,\r\n    \"MemoText\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/nft/create-nft-transation",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nft",
+								"create-nft-transation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "mint-nft",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"MintWalletAddress\": \"\",\r\n    \"MintedByAvatarId\": \"\",\r\n    \"Title\": \"\",\r\n    \"Description\": \"\",\r\n    \"Thumbnail\": null,\r\n    \"ThumbnailUrl\": \"\",\r\n    \"Price\": 77,\r\n    \"Discount\": 0,\r\n    \"NumberToMint\": 1,\r\n    \"MetaData\": null,\r\n    \"OnChainProvider\": \"SolanaOASIS\",\r\n    \"OffChainProvider\": \"HoloOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/nft/mint-nft",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nft",
+								"mint-nft"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "place-geo-nft",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"OASISNFTId\": \"\",\r\n    \"NFTHash\": \"\",\r\n    \"NFTURL\": \"\",\r\n    \"AvatarId\": \"\",\r\n    \"Lat\": 77,\r\n    \"Long\": 77,\r\n    \"AllowOtherPlayersToAlsoCollect\": true,\r\n    \"PermSpawn\": true,\r\n    \"GlobalSpawnQuantity\": 77,\r\n    \"PlayerSpawnQuantity\": 1,\r\n    \"ProviderType\": \"SolanaOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/nft/place-geo-nft",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nft",
+								"place-geo-nft"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "mint-and-place-geo-nft",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"MintWalletAddress\": \"\",\r\n    \"MintedByAvatarId\": \"\",\r\n    \"Title\": \"\",\r\n    \"Description\": \"\",\r\n    \"Thumbnail\": null,\r\n    \"ThumbnailUrl\": \"\",\r\n    \"Price\": 77,\r\n    \"Discount\": 0,\r\n    \"NumberToMint\": 1,\r\n    \"MetaData\": null,\r\n    \"OnChainProvider\": \"SolanaOASIS\",\r\n    \"OffChainProvider\": \"HoloOASIS\",\r\n    \"Lat\": 77,\r\n    \"Long\": 77,\r\n    \"AllowOtherPlayersToAlsoCollect\": true,\r\n    \"PermSpawn\": true,\r\n    \"GlobalSpawnQuantity\": 77,\r\n    \"PlayerSpawnQuantity\": 1,\r\n    \"ProviderType\": \"SolanaOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/nft/mint-and-place-geo-nft",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"nft",
+								"mint-and-place-geo-nft"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "OLAND NFT",
+			"item": [
+				{
+					"name": "get-oland-price",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/oland/get-oland-price",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"oland",
+								"get-oland-price"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "load-oland",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/oland/load-all-oland",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"oland",
+								"load-all-oland"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "load-all-olands",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/oland/load-all-olands",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"oland",
+								"load-all-olands"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "purchase-oland",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"OlandIds\": \"\",\r\n    \"AvatarId\": \"\",\r\n    \"AvatarUsername\": \"\",\r\n    \"Tiles\": \"\",\r\n    \"WalletAddress\": null,\r\n    \"ProviderType\": \"SolanaOASIS\",\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/oland/purchase-oland",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"oland",
+								"purchase-oland"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "save-oland",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Id\": \"\",\r\n    \"Price\": 77,\r\n    \"Discount\": 0,\r\n    \"OlandsCount\": 7,\r\n    \"TopSize\": 10,\r\n    \"RightSize\": 10,\r\n    \"UnitOfMeasure\": \"m\",\r\n    \"IsRemoved\": false,\r\n    \"PreviousId\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/oland/save-oland",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"oland",
+								"save-oland"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update-oland",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Id\": \"\",\r\n    \"Price\": 77,\r\n    \"Discount\": 0,\r\n    \"OlandsCount\": 7,\r\n    \"TopSize\": 10,\r\n    \"RightSize\": 10,\r\n    \"UnitOfMeasure\": \"m\",\r\n    \"IsRemoved\": false,\r\n    \"PreviousId\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/oland/update-oland",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"oland",
+								"update-oland"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete-oland",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/oland/delete-oland/cd1b017-7f3c-4758-a222-8c137398cba8",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"oland",
+								"delete-oland",
+								"cd1b017-7f3c-4758-a222-8c137398cba8"
 							]
 						}
 					},

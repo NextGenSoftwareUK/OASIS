@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 
 namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 {
@@ -466,6 +467,97 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             throw new NotImplementedException();
         }
 
+        public OASISResult<TransactionRespone> MintNFT(IMintNFTTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<TransactionRespone>> MintNFTAsync(IMintNFTTransaction transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IOASISNFT> LoadNFT(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IOASISNFT>> LoadNFTAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IOASISNFT> LoadNFT(string hash)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IOASISNFT>> LoadNFTAsync(string hash)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForAvatar(Guid avatarId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForMintAddress(string mintWalletAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public OASISResult<List<IOASISNFT>> LoadAllNFTsForAvatar(Guid avatarId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<List<IOASISNFT>> LoadAllNFTsForMintAddress(string mintWalletAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IOASISGeoSpatialNFT> PlaceGeoNFT(IPlaceGeoSpatialNFTRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceGeoSpatialNFTRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IOASISGeoSpatialNFT> MintAndPlaceGeoNFT(IMintAndPlaceGeoSpatialNFTRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IOASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceGeoSpatialNFTRequest request)
+        {
+            throw new NotImplementedException();
+        }
+       
         #endregion
 
         /*
