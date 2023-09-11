@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.WebAPI", "NextGenSoftware.OASIS.API.ONODE.WebAPI\NextGenSoftware.OASIS.API.ONode.WebAPI.csproj", "{A8131B22-06EC-424A-B689-9411C8176BE8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.WebAPI", "NextGenSoftware.OASIS.API.ONode.WebAPI\NextGenSoftware.OASIS.API.ONode.WebAPI.csproj", "{A8131B22-06EC-424A-B689-9411C8176BE8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.FrontEnd.Web", "NextGenSoftware.OASIS.API.FrontEnd\NextGenSoftware.OASIS.API.FrontEnd.Web.csproj", "{C50D7EA1-3B3C-4529-9317-55A5083DB560}"
 EndProject
