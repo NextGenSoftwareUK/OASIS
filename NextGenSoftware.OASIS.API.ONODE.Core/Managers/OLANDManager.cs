@@ -92,15 +92,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 
                 var olandsEntity = loadResult.Result.Select(holon => new Oland 
                 {
-                    Discount = Convert.ToDecimal(holon.MetaData[nameof(IOLand.Discount)].Replace(",", ".")),
-                    Id = Guid.Parse(holon.MetaData[nameof(IOLand.Id)]),
-                    Price = Convert.ToDecimal(holon.MetaData[nameof(IOLand.Price)].Replace(",", ".")),
-                    IsRemoved = bool.Parse(holon.MetaData[nameof(IOLand.IsRemoved)]),
-                    OlandsCount = int.Parse(holon.MetaData[nameof(IOLand.OlandsCount)]),
-                    PreviousId = Guid.Parse(holon.MetaData[nameof(IOLand.PreviousId)]),
-                    RightSize = Convert.ToDecimal(holon.MetaData[nameof(IOLand.RightSize)].Replace(",", ".")),
-                    TopSize = Convert.ToDecimal(holon.MetaData[nameof(IOLand.TopSize)].Replace(",", ".")),
-                    UnitOfMeasure = holon.MetaData[nameof(IOLand.UnitOfMeasure)]
+                    Discount = Convert.ToDecimal(holon.MetaData[nameof(IOLand.Discount)].ToString().Replace(",", ".")),
+                    Id = Guid.Parse(holon.MetaData[nameof(IOLand.Id)].ToString()),
+                    Price = Convert.ToDecimal(holon.MetaData[nameof(IOLand.Price)].ToString().Replace(",", ".")),
+                    IsRemoved = bool.Parse(holon.MetaData[nameof(IOLand.IsRemoved)].ToString()),
+                    OlandsCount = int.Parse(holon.MetaData[nameof(IOLand.OlandsCount)].ToString()),
+                    PreviousId = Guid.Parse(holon.MetaData[nameof(IOLand.PreviousId)].ToString()),
+                    RightSize = Convert.ToDecimal(holon.MetaData[nameof(IOLand.RightSize)].ToString().Replace(",", ".")),
+                    TopSize = Convert.ToDecimal(holon.MetaData[nameof(IOLand.TopSize)].ToString().Replace(",", ".")),
+                    UnitOfMeasure = holon.MetaData[nameof(IOLand.UnitOfMeasure)].ToString()
                 });
                 response.Result = olandsEntity;
             }
@@ -134,15 +134,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 var olandEntity = new Oland()
                 {
-                    Discount = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOLand.Discount)].Replace(",", ".")),
-                    Id = Guid.Parse(loadResult.Result.MetaData[nameof(IOLand.Id)]),
-                    Price = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOLand.Price)].Replace(",", ".")),
-                    IsRemoved = bool.Parse(loadResult.Result.MetaData[nameof(IOLand.IsRemoved)]),
-                    OlandsCount = int.Parse(loadResult.Result.MetaData[nameof(IOLand.OlandsCount)]),
-                    PreviousId = Guid.Parse(loadResult.Result.MetaData[nameof(IOLand.PreviousId)]),
-                    RightSize = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOLand.RightSize)].Replace(",", ".")),
-                    TopSize = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOLand.TopSize)].Replace(",", ".")),
-                    UnitOfMeasure = loadResult.Result.MetaData[nameof(IOLand.UnitOfMeasure)]
+                    Discount = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOLand.Discount)].ToString().Replace(",", ".")),
+                    Id = Guid.Parse(loadResult.Result.MetaData[nameof(IOLand.Id)].ToString()),
+                    Price = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOLand.Price)].ToString().Replace(",", ".")),
+                    IsRemoved = bool.Parse(loadResult.Result.MetaData[nameof(IOLand.IsRemoved)].ToString()),
+                    OlandsCount = int.Parse(loadResult.Result.MetaData[nameof(IOLand.OlandsCount)].ToString()),
+                    PreviousId = Guid.Parse(loadResult.Result.MetaData[nameof(IOLand.PreviousId)].ToString()),
+                    RightSize = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOLand.RightSize)].ToString().Replace(",", ".")),
+                    TopSize = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOLand.TopSize)].ToString().Replace(",", ".")),
+                    UnitOfMeasure = loadResult.Result.MetaData[nameof(IOLand.UnitOfMeasure)].ToString()
                 };
 
                 response.Result = olandEntity;
@@ -337,7 +337,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     return response;
                 }
 
-                OASISResult<TransactionRespone> nftTransactionResponse = await _nftManager.CreateNftTransactionAsync(new NFTWalletTransaction()
+                OASISResult<NFTTransactionRespone> nftTransactionResponse = await _nftManager.CreateNftTransactionAsync(new NFTWalletTransaction()
                 {
                     Amount = Convert.ToDecimal(await GetOlandPriceAsync(request.OlandIds.Count)), //TODO:Currently only fixed sizes of OLANDS are supported, need to make dyanmic so any number of OLANDs can be used...
                     //Date = DateTime.Now,

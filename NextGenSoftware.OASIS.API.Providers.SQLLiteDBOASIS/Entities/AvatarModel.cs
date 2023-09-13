@@ -141,7 +141,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             if (this.MetaData == null)
                 this.MetaData = new List<MetaDataModel>();
 
-            foreach (KeyValuePair<string, string> item in source.MetaData){
+            foreach (KeyValuePair<string, object> item in source.MetaData){
 
                 MetaDataModel metaModel=new MetaDataModel(item.Key,item.Value);
                 metaModel.OwnerId=this.Id;

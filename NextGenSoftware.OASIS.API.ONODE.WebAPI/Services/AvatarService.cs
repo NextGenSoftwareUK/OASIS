@@ -11,8 +11,10 @@ using Microsoft.IdentityModel.Tokens;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
@@ -946,26 +948,26 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             });
         }
 
-        public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams)
-        {
-            var response = new OASISResult<ISearchResults>();
+        //public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams)
+        //{
+        //    var response = new OASISResult<ISearchResults>();
 
-            try
-            {
-                searchParams.SearchAvatarsOnly = true;
+        //    try
+        //    {
+        //        searchParams.SearchAvatarsOnly = true;
 
-                if (string.IsNullOrEmpty(searchParams.SearchQuery))
-                    ErrorHandling.HandleError(ref response, "SearchQuery field is empty");
-                else
-                    response = await SearchManager.SearchAsync(searchParams);
-            }
-            catch (Exception e)
-            {
-                ErrorHandling.HandleError(ref response, $"Unknown error occured in Search method in AvatarService. Reason: {e}", e);
-            }
+        //        if (string.IsNullOrEmpty(searchParams.SearchQuery))
+        //            ErrorHandling.HandleError(ref response, "SearchQuery field is empty");
+        //        else
+        //            response = await SearchManager.SearchAsync(searchParams);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ErrorHandling.HandleError(ref response, $"Unknown error occured in Search method in AvatarService. Reason: {e}", e);
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
         //public async Task<OASISResult<bool>> LinkProviderKeyToAvatar(Guid avatarId, ProviderType providerType, string key)
         //{

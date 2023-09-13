@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 
 // OASIS Provider Template that can be used to create new OASIS Providers.
 // Make sure you change all refrences to ProviderName to the name of your provider.
@@ -390,82 +391,82 @@ namespace NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS
         #region IOASISBlockchainStorageProvider
         //Comment out these methods if the provider does not provide blockchain functionality (also make sure you remove the IOASISBlockchainStorageProvider from the class declaration at the top).
 
-        public OASISResult<TransactionRespone> SendTransaction(IWalletTransaction transation)
+        public OASISResult<NFTTransactionRespone> SendTransaction(IWalletTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<TransactionRespone>> SendTransactionAsync(IWalletTransaction transation)
+        public Task<OASISResult<NFTTransactionRespone>> SendTransactionAsync(IWalletTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<TransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<NFTTransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<OASISResult<TransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<NFTTransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<TransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public OASISResult<NFTTransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<OASISResult<TransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public async Task<OASISResult<NFTTransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<OASISResult<TransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public async Task<OASISResult<NFTTransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<TransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public OASISResult<NFTTransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<OASISResult<TransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public async Task<OASISResult<NFTTransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<TransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public OASISResult<NFTTransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<OASISResult<TransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public async Task<OASISResult<NFTTransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<TransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public OASISResult<NFTTransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<OASISResult<TransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public async Task<OASISResult<NFTTransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<TransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public OASISResult<NFTTransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<TransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<NFTTransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<OASISResult<TransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<NFTTransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             throw new NotImplementedException();
         }
@@ -475,22 +476,22 @@ namespace NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS
         #region IOASISNFTProvider
         //Comment out these methods if the provider does not provide any NFT functionality (also make sure you remove the IOASISNFTProvider from the class declaration at the top).
 
-        public OASISResult<TransactionRespone> SendNFT(INFTWalletTransaction transation)
+        public OASISResult<NFTTransactionRespone> SendNFT(INFTWalletTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<TransactionRespone>> SendNFTAsync(INFTWalletTransaction transation)
+        public Task<OASISResult<NFTTransactionRespone>> SendNFTAsync(INFTWalletTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<TransactionRespone> MintNFT(IMintNFTTransaction transation)
+        public OASISResult<NFTTransactionRespone> MintNFT(IMintNFTTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<TransactionRespone>> MintNFTAsync(IMintNFTTransaction transation)
+        public Task<OASISResult<NFTTransactionRespone>> MintNFTAsync(IMintNFTTransaction transation)
         {
             throw new NotImplementedException();
         }

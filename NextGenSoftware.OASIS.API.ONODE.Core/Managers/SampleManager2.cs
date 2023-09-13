@@ -67,10 +67,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             if (!holonResult.IsError && holonResult.Result != null)
             {
                 result.Result = Mapper<IHolon, PurchaseNFTHolon>.MapBaseHolonProperties(holonResult.Result);
-                result.Result.WalletAddress = result.Result.MetaData["WalletAddress"];
-                result.Result.AvatarUsername = result.Result.MetaData["AvatarUsername"];
+                result.Result.WalletAddress = result.Result.MetaData["WalletAddress"].ToString();
+                result.Result.AvatarUsername = result.Result.MetaData["AvatarUsername"].ToString();
                 result.Result.AvatarId = new Guid(result.Result.MetaData["AvatarId"].ToString());
-                result.Result.JsonSelectedTiles = result.Result.MetaData["AvatarId"];
+                result.Result.JsonSelectedTiles = result.Result.MetaData["AvatarId"].ToString();
             }
             else
                 OASISResultHelper<IHolon, PurchaseNFTHolon>.CopyResult(holonResult, result);

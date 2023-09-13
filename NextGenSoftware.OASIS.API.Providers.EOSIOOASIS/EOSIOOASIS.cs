@@ -11,8 +11,10 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.CurrencyBalance;
@@ -1202,7 +1204,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public async Task<OASISResult<TransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
             throw new NotImplementedException();
         }
@@ -1212,7 +1214,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public async Task<OASISResult<TransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
             throw new NotImplementedException();
         }
@@ -1408,26 +1410,40 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<TransactionRespone> SendNFT(INFTWalletTransaction transation)
+        public OASISResult<NFTTransactionRespone> SendNFT(INFTWalletTransaction transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<TransactionRespone>> SendNFTAsync(INFTWalletTransaction transation)
+        public async Task<OASISResult<NFTTransactionRespone>> SendNFTAsync(INFTWalletTransaction transation)
         {
-            return await _transferRepository.TransferEosNft(
+            OASISResult<NFTTransactionRespone> result = new OASISResult<NFTTransactionRespone>();
+
+            OASISResult<TransactionRespone> transferResult = await _transferRepository.TransferEosNft(
                 transation.FromWalletAddress,
                 transation.ToWalletAddress,
                 transation.Amount,
                 "SYS");
+
+            OASISResultHelper<TransactionRespone, NFTTransactionRespone>.CopyResult(transferResult, result);
+            result.Result.TransactionResult = transferResult.Result.TransactionResult;
+            result.Result.OASISNFT = null; //TODO: We may want to look up/pass the NFT MetaData in future...
+
+            return result;
+
+            //return await _transferRepository.TransferEosNft(
+            //    transation.FromWalletAddress,
+            //    transation.ToWalletAddress,
+            //    transation.Amount,
+            //    "SYS");
         }
 
-        public OASISResult<TransactionRespone> MintNFT(IMintNFTTransaction transation)
+        public OASISResult<NFTTransactionRespone> MintNFT(IMintNFTTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<TransactionRespone>> MintNFTAsync(IMintNFTTransaction transation)
+        public Task<OASISResult<NFTTransactionRespone>> MintNFTAsync(IMintNFTTransaction transation)
         {
             throw new NotImplementedException();
         }

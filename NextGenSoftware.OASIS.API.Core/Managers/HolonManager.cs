@@ -2850,7 +2850,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (propInfo != null)
                 {
                     if (propInfo.PropertyType == typeof(Guid))
-                        propInfo.SetValue(holon, new Guid(holon.MetaData[key]));
+                        propInfo.SetValue(holon, new Guid(holon.MetaData[key].ToString()));
 
                     else if (propInfo.PropertyType == typeof(bool))
                         propInfo.SetValue(holon, Convert.ToBoolean(holon.MetaData[key]));

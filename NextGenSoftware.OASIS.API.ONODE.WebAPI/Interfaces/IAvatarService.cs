@@ -2,7 +2,9 @@
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
@@ -47,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces
         Task<OASISResult<string>> GetAvatarUmaJsonByUsername(string username);
         Task<OASISResult<string>> GetAvatarUmaJsonByEmail(string mail);
         Task<OASISResult<IAvatar>> GetLoggedInAvatar();
-        Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams);
+        //Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams);
         //Task<OASISResult<bool>> LinkProviderKeyToAvatar(Guid avatarId, ProviderType providerType, string key);
         //Task<OASISResult<bool>> LinkPrivateProviderKeyToAvatar(Guid avatarId, ProviderType providerType, string key);
         //Task<OASISResult<string>> GetProviderKeyForAvatar(string avatarUsername, ProviderType providerType);

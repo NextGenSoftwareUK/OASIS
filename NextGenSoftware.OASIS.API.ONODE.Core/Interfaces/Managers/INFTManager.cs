@@ -11,14 +11,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers
 {
     public interface INFTManager
     {
-        Task<OASISResult<TransactionRespone>> CreateNftTransactionAsync(CreateNftTransactionRequest request);
-        OASISResult<TransactionRespone> CreateNftTransaction(CreateNftTransactionRequest request);
-        Task<OASISResult<TransactionRespone>> CreateNftTransactionAsync(INFTWalletTransaction request);
-        OASISResult<TransactionRespone> CreateNftTransaction(INFTWalletTransaction request);
-        Task<OASISResult<TransactionRespone>> MintNftAsync(IMintNFTTransaction request);
-        OASISResult<TransactionRespone> MintNft(IMintNFTTransaction request);
-        Task<OASISResult<IOASISNFT>> LoadNftAsync(Guid id, NFTProviderType NFTProviderType);
-        OASISResult<IOASISNFT> LoadNft(Guid id, NFTProviderType NFTProviderType);
+        Task<OASISResult<NFTTransactionRespone>> CreateNftTransactionAsync(CreateNftTransactionRequest request);
+        OASISResult<NFTTransactionRespone> CreateNftTransaction(CreateNftTransactionRequest request);
+        Task<OASISResult<NFTTransactionRespone>> CreateNftTransactionAsync(INFTWalletTransaction request);
+        OASISResult<NFTTransactionRespone> CreateNftTransaction(INFTWalletTransaction request);
+        Task<OASISResult<NFTTransactionRespone>> MintNftAsync(IMintNFTTransaction request);
+        OASISResult<NFTTransactionRespone> MintNft(IMintNFTTransaction request);
+        Task<OASISResult<IOASISNFT>> LoadNftAsync(Guid id, ProviderType providerType);
+        OASISResult<IOASISNFT> LoadNft(Guid id, ProviderType providerType);
+        Task<OASISResult<IOASISNFT>> LoadNftAsync(string hash, ProviderType providerType);
+        OASISResult<IOASISNFT> LoadNft(string hash, ProviderType providerType);
         OASISResult<IOASISNFTProvider> GetNFTProvider(NFTProviderType NFTProviderType, string errorMessage = "");
         OASISResult<IOASISNFTProvider> GetNFTProvider(ProviderType providerType, string errorMessage = "");
         NFTProviderType GetNFTProviderTypeFromProviderType(ProviderType providerType);

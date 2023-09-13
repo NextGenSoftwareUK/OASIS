@@ -9,11 +9,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
     {
         [Required, Key]
         public string Property { get; set; }
-        public string Value { get; set; }
+        public object Value { get; set; }
         public string OwnerId{ set; get; }
 
         public MetaDataModel(){}
-        public MetaDataModel(string Id, String value){
+        public MetaDataModel(string Id, object value){
             this.Property = Id;
             this.Value = value;
         }
