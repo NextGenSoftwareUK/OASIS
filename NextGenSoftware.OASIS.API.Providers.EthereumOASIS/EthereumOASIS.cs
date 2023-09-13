@@ -15,6 +15,8 @@ using Nethereum.Web3.Accounts;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {

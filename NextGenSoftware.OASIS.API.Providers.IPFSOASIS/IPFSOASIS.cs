@@ -18,6 +18,9 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using MailKit.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -286,23 +289,69 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return new OASISResult<IAvatar>(await SaveAvatarToFile(avatar));
         }
 
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchTerm, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        //TODO: Just like the MongoDBOASIS SearchAync implementation, this is a WIP and only shows a small example of how to use the OASIS Search Architecture.
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
-            OASISResult<IEnumerable<IAvatar>> avatars = await LoadAllAvatarsAsync();
-            OASISResult<IEnumerable<IHolon>> holons = await LoadAllHolonsAsync();
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync();
+            OASISResult<IEnumerable<IHolon>> holonsResult = await LoadAllHolonsAsync();
+            List<IAvatar> avatars = new List<IAvatar>();
+            List<IHolon> holons = new List<IHolon>();
 
-            avatars = new OASISResult<IEnumerable<IAvatar>>(avatars.Result.Where(a =>
-                a.Name.Contains(searchTerm.SearchQuery) | a.Description.Contains(searchTerm.SearchQuery)).ToList());
+            if (avatarsResult.Result != null && !avatarsResult.IsError)
+                avatars = avatarsResult.Result.ToList();
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in IPFSOASIS in SearchAsync loading the avatars. Reason: {avatarsResult.Message}");
 
-            holons = new OASISResult<IEnumerable<IHolon>>(holons.Result.Where(h =>
-                h.Name.Contains(searchTerm.SearchQuery) | h.Description.Contains(searchTerm.SearchQuery)).ToList());
+            if (holonsResult.Result != null && !holonsResult.IsError)
+                holons = holonsResult.Result.ToList();
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in IPFSOASIS in SearchAsync loading the holons. Reason: {holonsResult.Message}");
 
-            foreach (var h in holons.Result)
-                result.Result.SearchResultHolons.Add((Holon) h);
+            if (!result.IsError)
+            {
+                foreach (ISearchGroupBase searchGroup in searchParams.SearchGroups)
+                {
+                    ISearchTextGroup searchTextGroup = searchGroup as ISearchTextGroup;
 
-            foreach (var ava in avatars.Result)
-                result.Result.SearchResultHolons.Add((Holon) ava);
+                    if (searchTextGroup != null)
+                    {
+                        if (searchTextGroup.SearchAvatars)
+                        {
+                            if (searchTextGroup.AvatarSerachParams.FirstName)
+                            {
+                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                                   a.FirstName.Contains(searchTextGroup.SearchQuery)).ToList());
+                            }
+
+                            if (searchTextGroup.AvatarSerachParams.LastName)
+                            {
+                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                                   a.LastName.Contains(searchTextGroup.SearchQuery)).ToList());
+                            }
+
+                            //TODO: Implement remaining properties.
+                        }
+
+                        if (searchTextGroup.SearchHolons)
+                        {
+                            if (searchTextGroup.HolonSearchParams.Name)
+                            {
+                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                                   a.Name.Contains(searchTextGroup.SearchQuery)).ToList());
+                            }
+
+                            if (searchTextGroup.HolonSearchParams.Description)
+                            {
+                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                                   a.Description.Contains(searchTextGroup.SearchQuery)).ToList());
+                            }
+
+                            //TODO: Implement remaining properties.
+                        }
+                    }
+                }
+            }
 
             return result;
         }

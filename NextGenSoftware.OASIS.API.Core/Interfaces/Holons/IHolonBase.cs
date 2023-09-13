@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         HolonType HolonType { get; set; }
         Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; }
         Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; }
-        Dictionary<string, string> MetaData { get; set; }
+        Dictionary<string, object> MetaData { get; set; }
         int Version { get; set; }
         Guid VersionId { get; set; }
         Guid PreviousVersionId { get; set; }

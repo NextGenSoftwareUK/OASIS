@@ -11,6 +11,8 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 {
@@ -435,12 +437,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             throw new NotImplementedException();
         }
 
-        public OASISResult<TransactionRespone> SendNFT(INFTWalletTransaction transation)
+        public OASISResult<NFTTransactionRespone> SendNFT(INFTWalletTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<bool>> SendNFTAsync(INFTWalletTransaction transation)
+        public Task<OASISResult<NFTTransactionRespone>> SendNFTAsync(INFTWalletTransaction transation)
         {
             throw new NotImplementedException();
         }
@@ -560,17 +562,17 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             throw new NotImplementedException();
         }
 
-        Task<OASISResult<TransactionRespone>> IOASISNFTProvider.SendNFTAsync(INFTWalletTransaction transation)
+        Task<OASISResult<NFTTransactionRespone>> IOASISNFTProvider.SendNFTAsync(INFTWalletTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<TransactionRespone> MintNFT(IMintNFTTransaction transation)
+        public OASISResult<NFTTransactionRespone> MintNFT(IMintNFTTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<TransactionRespone>> MintNFTAsync(IMintNFTTransaction transation)
+        public Task<OASISResult<NFTTransactionRespone>> MintNFTAsync(IMintNFTTransaction transation)
         {
             throw new NotImplementedException();
         }

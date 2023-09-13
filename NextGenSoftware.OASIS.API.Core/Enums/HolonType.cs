@@ -46,6 +46,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         StarDust,
         CosmicWave,
         CosmicRay,
-        GravitationalWave
+        GravitationalWave,
+        NFT
     }
 }

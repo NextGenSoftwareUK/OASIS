@@ -6,6 +6,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 {

@@ -9,7 +9,10 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
@@ -885,7 +888,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("search")]
         public async Task<OASISHttpResponseMessage<ISearchResults>> SearchAvatar(SearchParams searchParams)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.Search(searchParams));
+            return HttpResponseHelper.FormatResponse(await SearchManager.Instance.SearchAsync(searchParams));
         }
 
         /// <summary>

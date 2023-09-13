@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 {
@@ -458,22 +459,22 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<TransactionRespone> SendNFT(INFTWalletTransaction transation)
+        public OASISResult<NFTTransactionRespone> SendNFT(INFTWalletTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<TransactionRespone>> SendNFTAsync(INFTWalletTransaction transation)
+        public Task<OASISResult<NFTTransactionRespone>> SendNFTAsync(INFTWalletTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<TransactionRespone> MintNFT(IMintNFTTransaction transation)
+        public OASISResult<NFTTransactionRespone> MintNFT(IMintNFTTransaction transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<TransactionRespone>> MintNFTAsync(IMintNFTTransaction transation)
+        public Task<OASISResult<NFTTransactionRespone>> MintNFTAsync(IMintNFTTransaction transation)
         {
             throw new NotImplementedException();
         }

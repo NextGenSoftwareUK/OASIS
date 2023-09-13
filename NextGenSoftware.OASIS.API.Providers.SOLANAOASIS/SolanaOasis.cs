@@ -4,11 +4,14 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
@@ -749,17 +752,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             return result;
         }
 
-        public OASISResult<TransactionRespone> SendNFT(INFTWalletTransaction transation)
+        public OASISResult<NFTTransactionRespone> SendNFT(INFTWalletTransaction transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<TransactionRespone>> SendNFTAsync(INFTWalletTransaction transation)
+        public async Task<OASISResult<NFTTransactionRespone>> SendNFTAsync(INFTWalletTransaction transation)
         {
             if (transation == null)
                 throw new ArgumentNullException(nameof(transation));
 
-            var result = new OASISResult<TransactionRespone>();
+            var result = new OASISResult<NFTTransactionRespone>();
             var errorMessageTemplate = "Error was occured in SendNFTAsync in SolanaOASIS sending nft. Reason: ";
             
             try
@@ -910,22 +913,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             throw new NotImplementedException();
         }
 
-        public OASISResult<TransactionRespone> MintNFT(IMintNFTTransaction transation)
+        public OASISResult<NFTTransactionRespone> MintNFT(IMintNFTTransaction transation)
         {
             return MintNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<TransactionRespone>> MintNFTAsync(IMintNFTTransaction transation)
+        public async Task<OASISResult<NFTTransactionRespone>> MintNFTAsync(IMintNFTTransaction transation)
         {
             if (transation == null)
                 throw new ArgumentNullException(nameof(transation));
 
-            var result = new OASISResult<TransactionRespone>();
+            var result = new OASISResult<NFTTransactionRespone>();
             var errorMessageTemplate = "Error was occured in MintNFTAsync in SolanaOASIS minting NFT. Reason: ";
 
             try
             {
-                var solanaNftTransactionResult = await _solanaService.MintNftAsync(new MintNftRequest()
+                MintNftRequest mintRequest = new MintNftRequest()
                 {
                     Amount = (ulong)transation.Price,
                     MintAccount = new BaseAccountRequest()
@@ -937,8 +940,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                         PublicKey = transation.MintWalletAddress
                     },
 
-                    MemoText = $"Minted NFT with title {transation.Title} by AvatarId {transation.MintedByAvatarId} for price {transation.Price}."
-                });
+                    MemoText = $"Solana NFT minted on The OASIS with title {transation.Title} by AvatarId {transation.MintedByAvatarId} for price {transation.Price}. {transation.MemoText}"
+                };
+
+                var solanaNftTransactionResult = await _solanaService.MintNftAsync(mintRequest);
 
                 if (solanaNftTransactionResult.IsError ||
                     string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
@@ -946,9 +951,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                     ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, solanaNftTransactionResult.Message), solanaNftTransactionResult.Exception);
                     return result;
                 }
+                else
+                {
+                    result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
+                    
+                    if (!ErrorHandling.CheckForTransactionErrors(ref result))
+                    {
+                        //The meta data is normally stored on another provider and it is up to NFTManager which offchain provider is used,..
+                        //Holon holonNFT = new Holon(HolonType.NFT);
+                        //holonNFT.Name = $"Solana NFT Minted On The OASIS with title {transation.Title}";
+                        //holonNFT.Description = mintRequest.MemoText;
+                        //holonNFT.MetaData["NFT.Hash"] = result.Result.TransactionResult;
 
-                result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
-                ErrorHandling.CheckForTransactionErrors(ref result);
+                        //OASISResult<IHolon> saveHolonResult =  await SaveHolonAsync(holonNFT);
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -985,7 +1002,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, e.Message);
+                ErrorHandling.HandleError(ref result, $"Error occured in SolanaOASIS Provider. Reason: {e.Message}");
             }
 
             return result;
@@ -996,9 +1013,32 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<IOASISNFT>> LoadNFTAsync(string hash)
+        public async Task<OASISResult<IOASISNFT>> LoadNFTAsync(string hash)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISNFT>();
+
+            try
+            {
+                var solanaHolonDto = await _solanaRepository.GetAsync<SolanaHolonDto>(hash); //TODO: Need to think how this will work more...
+
+                result.IsLoaded = true;
+                result.IsError = false;
+                IHolon holon = solanaHolonDto.GetHolon();
+
+                if (holon != null)
+                {
+                    result.Result = new OASISNFT()
+                    {
+                        //TODO: Come back to this! ;-)
+                    };
+                }
+            }
+            catch (Exception e)
+            {
+                ErrorHandling.HandleError(ref result, $"Error occured in SolanaOASIS Provider. Reason: {e.Message}");
+            }
+
+            return result;
         }
 
         public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForAvatar(Guid avatarId)

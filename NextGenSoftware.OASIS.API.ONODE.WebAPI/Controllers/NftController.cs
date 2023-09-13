@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 
         [HttpPost]
         [Route("create-nft-transaction")]
-        public async Task<OASISResult<TransactionRespone>> CreateNftTransactionAsync(CreateNftTransactionRequest request)
+        public async Task<OASISResult<NFTTransactionRespone>> CreateNftTransactionAsync(CreateNftTransactionRequest request)
         {
             return await NFTManager.Instance.CreateNftTransactionAsync(request);
         }
@@ -40,23 +40,23 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 
         [HttpPost]
         [Route("mint-nft")]
-        public async Task<OASISResult<TransactionRespone>> MintNftAsync(MintNFTTransaction request)
+        public async Task<OASISResult<NFTTransactionRespone>> MintNftAsync(MintNFTTransaction request)
         {
             return await NFTManager.Instance.MintNftAsync(request);
         }
 
         [HttpGet]
-        [Route("load-nft-by-id/{id}/{nftProviderType}")]
-        public async Task<OASISResult<IOASISNFT>> LoadNftByIdAsync(Guid id, NFTProviderType nftProviderType)
+        [Route("load-nft-by-id/{id}/{providerType}")]
+        public async Task<OASISResult<IOASISNFT>> LoadNftByIdAsync(Guid id, ProviderType providerType)
         {
-            return await NFTManager.Instance.LoadNftAsync(id, nftProviderType);
+            return await NFTManager.Instance.LoadNftAsync(id, providerType);
         }
 
         [HttpGet]
-        [Route("load-nft-by-hash/{hash}/{nftProviderType}")]
-        public async Task<OASISResult<IOASISNFT>> LoadNftByHashAsync(string hash, NFTProviderType nftProviderType)
+        [Route("load-nft-by-hash/{hash}/{providerType}")]
+        public async Task<OASISResult<IOASISNFT>> LoadNftByHashAsync(string hash, ProviderType providerType)
         {
-            return await NFTManager.Instance.LoadNftAsync(hash, nftProviderType);
+            return await NFTManager.Instance.LoadNftAsync(hash, providerType);
         }
 
         [HttpGet]

@@ -12,11 +12,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
     public interface IOASISNFTProvider : IOASISProvider
     {
         //TODO: More to come soon... ;-)
-        public OASISResult<TransactionRespone> SendNFT(INFTWalletTransaction transation);
-        public Task<OASISResult<TransactionRespone>> SendNFTAsync(INFTWalletTransaction transation);
+        public OASISResult<NFTTransactionRespone> SendNFT(INFTWalletTransaction transation);
+        public Task<OASISResult<NFTTransactionRespone>> SendNFTAsync(INFTWalletTransaction transation);
 
-        public OASISResult<TransactionRespone> MintNFT(IMintNFTTransaction transation);
-        public Task<OASISResult<TransactionRespone>> MintNFTAsync(IMintNFTTransaction transation);
+        public OASISResult<NFTTransactionRespone> MintNFT(IMintNFTTransaction transation);
+        public Task<OASISResult<NFTTransactionRespone>> MintNFTAsync(IMintNFTTransaction transation);
 
         //These load methods below will apply ONLY to the specefic provider/blockchain that they are implemented on. So will not load for ALL providers across the OASIS, but the versions implemented on NFTManger DOES...
         public OASISResult<IOASISNFT> LoadNFT(Guid id);

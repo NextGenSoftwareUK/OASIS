@@ -13,6 +13,8 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
 using Microsoft.Azure.Cosmos.Serialization.HybridRow;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 {

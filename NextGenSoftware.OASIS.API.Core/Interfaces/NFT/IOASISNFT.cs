@@ -9,7 +9,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
         Guid Id { get; set; }
         Guid MintedByAvatarId { get; set; }
         string MintedByAddress { get; set; }
-        string Hash { get; set; }  
+        string Hash { get; set; }
+        Guid OffChainProviderHolonId { get; set; }
         decimal Price { get; set; }
         decimal Discount { get; set; }
         byte[] Thumbnail { get; set; }

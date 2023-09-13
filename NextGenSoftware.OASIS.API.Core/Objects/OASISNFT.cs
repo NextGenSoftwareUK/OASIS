@@ -15,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         /// </summary>
         public string MintedByAddress { get; set; }
         public string Hash { get; set; }
+        public Guid OffChainProviderHolonId { get; set; }
         public decimal Price { get; set; }
         public decimal Discount { get; set; }
         public byte[] Thumbnail { get; set; }
