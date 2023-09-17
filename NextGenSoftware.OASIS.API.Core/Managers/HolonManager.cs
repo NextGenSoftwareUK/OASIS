@@ -2491,6 +2491,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
+                    holon.InstanceSavedOnProviderType = new EnumValue<ProviderType>(providerType);
                     OASISResult<IHolon> saveHolonResult = providerResult.Result.SaveHolon(holon, saveChildren, recursive, maxChildDepth, continueOnError);
 
                     if (!saveHolonResult.IsError && saveHolonResult != null)
@@ -2544,6 +2545,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
+                    holon.InstanceSavedOnProviderType = new EnumValue<ProviderType>(providerType);
                     OASISResult<IHolon> saveHolonResult = await providerResult.Result.SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError);
 
                     if (!saveHolonResult.IsError && saveHolonResult != null)
@@ -2597,6 +2599,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
+                    foreach (IHolon holon in holons)
+                        holon.InstanceSavedOnProviderType = new EnumValue<ProviderType>(providerType);
+
                     OASISResult<IEnumerable<IHolon>> saveHolonsResult = providerResult.Result.SaveHolons(holons, saveChildren, recursive, maxChildDepth, 0, continueOnError);
 
                     if (!saveHolonsResult.IsError && saveHolonsResult != null)
@@ -2652,6 +2657,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
+                    foreach (IHolon holon in holons) 
+                        holon.InstanceSavedOnProviderType = new EnumValue<ProviderType>(providerType);
+
                     OASISResult<IEnumerable<IHolon>> saveHolonsResult = await providerResult.Result.SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, 0, continueOnError);
 
                     if (!saveHolonsResult.IsError && saveHolonsResult != null)

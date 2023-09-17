@@ -10,6 +10,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
     public interface IHolonBase
     {
         Guid Id { get; set; }
+        string CustomKey { get; set; } //A custom key that can be used to load the holon by (other than Id or ProviderKey).
+
         string Name { get; set; }
         string Description { get; set; }
         HolonType HolonType { get; set; }
@@ -35,6 +37,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Guid DeletedByAvatarId { get; set; }
         DateTime DeletedDate { get; set; }
         EnumValue<ProviderType> CreatedProviderType { get; set; }
+        EnumValue<ProviderType> InstanceSavedOnProviderType { get; set; }
         EnumValue<OASISType> CreatedOASISType { get; set; }
         bool HasHolonChanged(bool checkChildren = true);
         void NotifyPropertyChanged(string propertyName);
