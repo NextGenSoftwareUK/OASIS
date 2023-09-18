@@ -14,6 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         [BsonRepresentation(BsonType.ObjectId)]  
         public string Id { get; set; }
 
+        public string CustomKey { get; set; } //A custom key that can be used to load the holon by (other than Id or ProviderKey).
+
         public bool IsChanged { get; set; }
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]

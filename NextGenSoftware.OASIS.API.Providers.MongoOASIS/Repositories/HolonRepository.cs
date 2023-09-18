@@ -137,6 +137,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
+        public async Task<Holon> GetHolonByCustomKeyAsync(string customKey)
+        {
+            try
+            {
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.CustomKey == customKey);
+                return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public Holon GetHolonByCustomKey(string customKey)
+        {
+            try
+            {
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.CustomKey == customKey);
+                return _dbContext.Holon.Find(filter).FirstOrDefault();
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
         public async Task<IEnumerable<Holon>> GetAllHolonsAsync(HolonType holonType = HolonType.All)
         {
             try
@@ -246,6 +272,38 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 return _dbContext.Holon.Find(BuildFilterForGetHolonsForParent(providerKey, holonType)).ToList();
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentByCustomKeyAsync(string customKey, HolonType holonType)
+        {
+            OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
+
+            try
+            {
+                result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByCustomKey(customKey, holonType)).Result.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = string.Concat("Unknown error occured in GetAllHolonsForParentByCustomKeyAsync method. customKey: ", customKey, ", holonType: ", Enum.GetName(typeof(HolonType), holonType), ". Error details: ", ex.ToString());
+                result.IsError = true;
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+                result.Exception = ex;
+            }
+
+            return result;
+        }
+
+        public IEnumerable<Holon> GetAllHolonsForParentByCustomKey(string customKey, HolonType holonType)
+        {
+            try
+            {
+                return _dbContext.Holon.Find(BuildFilterForGetHolonsForParentByCustomKey(customKey, holonType)).ToList();
             }
             catch
             {
@@ -476,6 +534,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             FilterDefinition<Holon> filter = null;
             Holon holon = GetHolon(providerKey);
+            return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
+        }
+
+        private FilterDefinition<Holon> BuildFilterForGetHolonsForParentByCustomKey(string customKey, HolonType holonType)
+        {
+            FilterDefinition<Holon> filter = null;
+            Holon holon = GetHolonByCustomKey(customKey);
             return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
         }
 

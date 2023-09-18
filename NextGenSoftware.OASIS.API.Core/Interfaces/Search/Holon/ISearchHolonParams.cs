@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.Search.Holon
         bool ProviderUniqueStorageKey { get; set; }
         bool ProviderMetaData { get; set; }
         bool MetaData { get; set; }
+        string MetaDataKey { get; set; }
         bool Version { get; set; }
         bool VersionId { get; set; }
         bool PreviousVersionId { get; set; }
