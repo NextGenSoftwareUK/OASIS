@@ -280,14 +280,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                         ThumbnailUrl = request.ThumbnailUrl,
                                         OnChainProvider = request.OnChainProvider,
                                         OffChainProvider = request.OffChainProvider,
-                                        OffChainProviderHolonId = Guid.NewGuid(),
+                                        //OffChainProviderHolonId = Guid.NewGuid(),
                                         //Token= request.Token
                                     };
 
                                     //HolonManager holonManager = new HolonManager(storageProvider);
 
                                     Holon holonNFT = new Holon(HolonType.NFT);
-                                    holonNFT.Id = result.Result.OASISNFT.OffChainProviderHolonId;
+                                    holonNFT.Id = result.Result.OASISNFT.Id;
+                                    //holonNFT.ParentHolonId = AvatarManager.LoggedInAvatar.Id; //This is now done automatically in HolonManger if the ParentHolonId is left empty.
+                                    //holonNFT.Id = result.Result.OASISNFT.OffChainProviderHolonId;
+                                    holonNFT.CustomKey = result.Result.TransactionResult;
                                     holonNFT.Name = $"{Enum.GetName(typeof(ProviderType), request.OnChainProvider)} NFT Minted On The OASIS with title {request.Title}";
                                     holonNFT.Description = request.MemoText;
                                     holonNFT.MetaData["NFT.OASISNFT"] = JsonSerializer.Serialize(result.Result.OASISNFT);
@@ -367,6 +370,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         Holon holonNFT = new Holon(HolonType.NFT);
                         //holonNFT.Id = result.Result.OASISNFT.OffChainProviderHolonId;
                         holonNFT.Id = result.Result.OASISNFT.Id;
+                        holonNFT.CustomKey = result.Result.TransactionResult;
                         holonNFT.Name = $"{Enum.GetName(typeof(ProviderType), request.OnChainProvider)} NFT Minted On The OASIS with title {request.Title}";
                         holonNFT.Description = request.MemoText;
                         holonNFT.MetaData["NFT.OASISNFT"] = JsonSerializer.Serialize(result.Result.OASISNFT);
@@ -473,25 +477,157 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOASISNFT>> LoadNftAsync(string hash, ProviderType providerType)
+        public async Task<OASISResult<IOASISNFT>> LoadNftAsync(string onChainNftHash, ProviderType providerType)
         {
             OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
             string errorMessage = "Error occured in LoadNftAsync in NFTManager. Reason:";
 
             try
             {
+                OASISResult<IHolon> oasisHolonResult = await Data.LoadHolonByCustomKeyAsync(onChainNftHash, true, true, 0, true, 0, providerType);
+
+                if (oasisHolonResult != null && !oasisHolonResult.IsError && oasisHolonResult.Result != null)
+                    result.Result = (IOASISNFT)JsonSerializer.Deserialize(oasisHolonResult.Result.MetaData["OASISNFT"].ToString(), typeof(IOASISNFT));
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {oasisHolonResult.Message}");
+
+
                 //TODO: It may be more efficient and faster to add a custom/metadata field to IHolonBase that can used to Load holons by? Just means having to add additional LoadHolon methods...
+                //OASISResult<ISearchResults> searchResult = await SearchManager.Instance.SearchAsync(new SearchParams()
+                //{
+                //    SearchGroups = new List<ISearchGroupBase>() 
+                //    { 
+                //        new SearchTextGroup() 
+                //        {
+                //            SearchQuery = hash, 
+                //            SearchHolons = true,
+                //            HolonSearchParams = new SearchHolonParams()
+                //            {
+                //                 MetaData = true
+                //            }
+                //        },
+                //        new SearchTextGroup()
+                //        {
+                //            PreviousSearchGroupOperator = SearchParamGroupOperator.And, //This wll currently not work in MongoDBOASIS Provider because it currently only supports OR and not AND...
+                //            SearchQuery = "NFT",
+                //            SearchHolons = true,
+                //            HolonSearchParams = new SearchHolonParams()
+                //            {
+                //                Name = true
+                //            }
+                //        }
+                //    }
+                //});
+
+                //if (searchResult != null && !searchResult.IsError && searchResult.Result != null && searchResult.Result.SearchResultHolons.Count > 0)
+                //    result.Result = (IOASISNFT)JsonSerializer.Deserialize(searchResult.Result.SearchResultHolons[0].MetaData["OASISNFT"].ToString(), typeof(IOASISNFT));
+                //else
+                //    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading/searching for the holon metadata. Reason: {searchResult.Message}");
+            }
+            catch (Exception e)
+            {
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public OASISResult<IOASISNFT> LoadNft(string onChainNftHash, ProviderType providerType)
+        {
+            OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
+            string errorMessage = "Error occured in LoadNft in NFTManager. Reason:";
+
+            try
+            {
+                OASISResult<IHolon> oasisHolonResult = Data.LoadHolonByCustomKey(onChainNftHash, true, true, 0, true, 0, providerType);
+
+                if (oasisHolonResult != null && !oasisHolonResult.IsError && oasisHolonResult.Result != null)
+                    result.Result = (IOASISNFT)JsonSerializer.Deserialize(oasisHolonResult.Result.MetaData["OASISNFT"].ToString(), typeof(IOASISNFT));
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {oasisHolonResult.Message}");
+            }
+            catch (Exception e)
+            {
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId, ProviderType providerType)
+        {
+            OASISResult<List<IOASISNFT>> result = new OASISResult<List<IOASISNFT>>();
+            string errorMessage = "Error occured in LoadAllNFTsForAvatarAsync in NFTManager. Reason:";
+
+            try
+            {
+                //TODO: Want to add new LoadHolonsForAvatar methods to HolonManager eventually, which we would use here instead. It would load all Holons that had CreatedByAvatarId = avatarId. But for now we can just set the ParentId on the holons to the AvatarId.
+                OASISResult<IEnumerable<IHolon>> holonsResult = await Data.LoadHolonsForParentAsync(avatarId, HolonType.NFT, true, true, 0, true, 0, providerType);
+
+                if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
+                {
+                    foreach (IHolon holon in holonsResult.Result)
+                        result.Result.Add((IOASISNFT)JsonSerializer.Deserialize(holon.MetaData["OASISNFT"].ToString(), typeof(IOASISNFT)));
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {holonsResult.Message}");
+            }
+            catch (Exception e)
+            {
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public OASISResult<List<IOASISNFT>> LoadAllNFTsForAvatar(Guid avatarId, ProviderType providerType)
+        {
+            OASISResult<List<IOASISNFT>> result = new OASISResult<List<IOASISNFT>>();
+            string errorMessage = "Error occured in LoadAllNFTsForAvatar in NFTManager. Reason:";
+
+            try
+            {
+                OASISResult<IEnumerable<IHolon>> holonsResult = Data.LoadHolonsForParent(avatarId, HolonType.NFT, true, true, 0, true, 0, providerType);
+
+                if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
+                {
+                    foreach (IHolon holon in holonsResult.Result)
+                        result.Result.Add((IOASISNFT)JsonSerializer.Deserialize(holon.MetaData["OASISNFT"].ToString(), typeof(IOASISNFT)));
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {holonsResult.Message}");
+            }
+            catch (Exception e)
+            {
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress, ProviderType providerType)
+        {
+            OASISResult<List<IOASISNFT>> result = new OASISResult<List<IOASISNFT>>();
+            string errorMessage = "Error occured in LoadAllNFTsForMintAddressAsync in NFTManager. Reason:";
+
+            try
+            {
+                //OASISResult<IEnumerable<IHolon>> holonsResult = await Data.LoadHolonsForParentAsync(avatarId, HolonType.NFT, true, true, 0, true, 0, providerType);
+                
+                //TODO: We could possibly add a CustomKey2 property to Holons to load by but not sure how far we go with this? I think eventually we may have 3 custom keys you can load by but for now Search will do... ;-)
+                //TODO: Alternatively we may be able to load the nfts directly from the provider blockchains using the mintWalletAddress? Need to look into this...
                 OASISResult<ISearchResults> searchResult = await SearchManager.Instance.SearchAsync(new SearchParams()
                 {
-                    SearchGroups = new List<ISearchGroupBase>() 
-                    { 
-                        new SearchTextGroup() 
+                    SearchGroups = new List<ISearchGroupBase>()
+                    {
+                        new SearchTextGroup()
                         {
-                            SearchQuery = hash, 
+                            SearchQuery = mintWalletAddress,
                             SearchHolons = true,
                             HolonSearchParams = new SearchHolonParams()
                             {
-                                 MetaData = true
+                                 MetaData = true,
+                                 MetaDataKey = "NFT.MintWalletAddress"
                             }
                         },
                         new SearchTextGroup()
@@ -507,135 +643,23 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     }
                 });
 
-                if (searchResult != null && !searchResult.IsError && searchResult.Result != null && searchResult.Result.SearchResultHolons.Count > 0)
-                    result.Result = (IOASISNFT)JsonSerializer.Deserialize(searchResult.Result.SearchResultHolons[0].MetaData["OASISNFT"].ToString(), typeof(IOASISNFT));
-                else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading/searching for the holon metadata. Reason: {searchResult.Message}");
-            }
-            catch (Exception e)
-            {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
-            }
-
-            return result;
-        }
-
-        public OASISResult<IOASISNFT> LoadNft(string hash, ProviderType providerType)
-        {
-            return LoadNftAsync(hash, providerType).Result;
-
-
-            //OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
-            //string errorMessage = "Error occured in LoadNft in NFTManager. Reason:";
-
-            //try
-            //{
-            //    //TODO: It may be more efficient and faster to add a custom/metadata field to IHolonBase that can used to Load holons by? Just means having to add additional LoadHolon methods...
-            //    OASISResult<ISearchResults> searchResult = SearchManager.Instance.Search(new SearchParams()
-            //    {
-            //        SearchGroups = new List<ISearchGroupBase>()
-            //        {
-            //            new SearchTextGroup()
-            //            {
-            //                SearchQuery = hash,
-            //                SearchHolons = true,
-            //                HolonSearchParams = new SearchHolonParams()
-            //                {
-            //                     MetaData = true
-            //                }
-            //            },
-            //            new SearchTextGroup()
-            //            {
-            //                PreviousSearchGroupOperator = SearchParamGroupOperator.And, //This wll currently not work in MongoDBOASIS Provider because it currently only supports OR and not AND...
-            //                SearchQuery = "NFT",
-            //                SearchHolons = true,
-            //                HolonSearchParams = new SearchHolonParams()
-            //                {
-            //                    Name = true
-            //                }
-            //            }
-            //        }
-            //    });
-
-            //    if (searchResult != null && !searchResult.IsError && searchResult.Result != null && searchResult.Result.SearchResultHolons.Count > 0)
-            //        result.Result = (IOASISNFT)JsonSerializer.Deserialize(searchResult.Result.SearchResultHolons[0].MetaData["OASISNFT"].ToString(), typeof(IOASISNFT));
-            //    else
-            //        ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading/searching for the holon metadata. Reason: {searchResult.Message}");
-            //}
-            //catch (Exception e)
-            //{
-            //    ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
-            //}
-
-            //return result;
-        }
-
-        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId, NFTProviderType NFTProviderType)
-        {
-            OASISResult<List<IOASISNFT>> result = new OASISResult<List<IOASISNFT>>();
-            string errorMessage = "Error occured in LoadAllNFTsForAvatarAsync in NFTManager. Reason:";
-
-            try
-            {
-                OASISResult<IOASISNFTProvider> nftProviderResult = GetNFTProvider(NFTProviderType, errorMessage);
-
-                if (nftProviderResult != null && nftProviderResult.Result != null && !nftProviderResult.IsError)
-                    result = await nftProviderResult.Result.LoadAllNFTsForAvatarAsync(avatarId);
-                else
+                if (searchResult != null && !searchResult.IsError && searchResult.Result != null)
                 {
-                    result.Message = nftProviderResult.Message;
-                    result.IsError = true;
+                    foreach (IHolon holon in searchResult.Result.SearchResultHolons)
+                        result.Result.Add((IOASISNFT)JsonSerializer.Deserialize(holon.MetaData["OASISNFT"].ToString(), typeof(IOASISNFT)));
                 }
-            }
-            catch (Exception e)
-            {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
-            }
-
-            return result;
-        }
-
-        public OASISResult<List<IOASISNFT>> LoadAllNFTsForAvatar(Guid avatarId, NFTProviderType NFTProviderType)
-        {
-            OASISResult<List<IOASISNFT>> result = new OASISResult<List<IOASISNFT>>();
-            string errorMessage = "Error occured in LoadAllNFTsForAvatar in NFTManager. Reason:";
-
-            try
-            {
-                OASISResult<IOASISNFTProvider> nftProviderResult = GetNFTProvider(NFTProviderType, errorMessage);
-
-                if (nftProviderResult != null && nftProviderResult.Result != null && !nftProviderResult.IsError)
-                    result = nftProviderResult.Result.LoadAllNFTsForAvatar(avatarId);
                 else
-                {
-                    result.Message = nftProviderResult.Message;
-                    result.IsError = true;
-                }
-            }
-            catch (Exception e)
-            {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
-            }
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading/searching the holon metadata. Reason: {searchResult.Message}");
 
-            return result;
-        }
+                //OASISResult<IOASISNFTProvider> nftProviderResult = GetNFTProvider(NFTProviderType, errorMessage);
 
-        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress, NFTProviderType NFTProviderType)
-        {
-            OASISResult<List<IOASISNFT>> result = new OASISResult<List<IOASISNFT>>();
-            string errorMessage = "Error occured in LoadAllNFTsForMintAddressAsync in NFTManager. Reason:";
-
-            try
-            {
-                OASISResult<IOASISNFTProvider> nftProviderResult = GetNFTProvider(NFTProviderType, errorMessage);
-
-                if (nftProviderResult != null && nftProviderResult.Result != null && !nftProviderResult.IsError)
-                    result = await nftProviderResult.Result.LoadAllNFTsForMintAddressAsync(mintWalletAddress);
-                else
-                {
-                    result.Message = nftProviderResult.Message;
-                    result.IsError = true;
-                }
+                //if (nftProviderResult != null && nftProviderResult.Result != null && !nftProviderResult.IsError)
+                //    result = await nftProviderResult.Result.LoadAllNFTsForMintAddressAsync(mintWalletAddress);
+                //else
+                //{
+                //    result.Message = nftProviderResult.Message;
+                //    result.IsError = true;
+                //}
             }
             catch (Exception e)
             {

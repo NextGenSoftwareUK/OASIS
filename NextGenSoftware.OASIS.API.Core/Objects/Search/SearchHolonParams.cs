@@ -16,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public bool ProviderUniqueStorageKey { get; set; }
         public bool ProviderMetaData { get; set; }
         public bool MetaData { get; set; }
+        public string MetaDataKey { get; set; }
         public bool Version { get; set; }
         public bool VersionId { get; set; }
         public bool PreviousVersionId { get; set; }
