@@ -1,9 +1,14 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using System;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {
     public class OASISGeoSpatialNFT : OASISNFT, IOASISGeoSpatialNFT
     {
+        public Guid PlacedByAvatarId { get; set; }
+        public Guid OriginalOASISNFTId { get; set; }
+        public ProviderType OriginalOASISNFTProviderType { get; set; }
         public long Lat { get; set; }
         public long Long { get; set; }
 

@@ -23,14 +23,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         IEnumerable<Holon> GetAllHolonsForParent(Guid id, HolonType holonType);
         IEnumerable<Holon> GetAllHolonsForParent(string providerKey, HolonType holonType);
         IEnumerable<Holon> GetAllHolonsForParentByCustomKey(string customKey, HolonType holonType);
+        IEnumerable<Holon> GetAllHolonsForParentByMetaData(string metaKey, string metaValue, HolonType holonType);
         Task<IEnumerable<Holon>> GetAllHolonsForParentAsync(Guid id, HolonType holonType);
         Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentAsync(string providerKey, HolonType holonType);
         Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentByCustomKeyAsync(string customKey, HolonType holonType);
+        Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentByMetaDataAsync(string metaKey, string metaValue, HolonType holonType);
         Holon GetHolon(Guid id);
         Holon GetHolon(string providerKey);
         Holon GetHolonByCustomKey(string customKey);
+        Holon GetHolonByMetaData(string metaKey, string metaValue);
         Task<Holon> GetHolonAsync(Guid id);
         Task<Holon> GetHolonAsync(string providerKey);
         Task<Holon> GetHolonByCustomKeyAsync(string customKey);
+        Task<Holon> GetHolonByMetaDataAsync(string metaKey, string metaValue);
     }
 }

@@ -10,14 +10,20 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public Guid Id { get; set; }
         public Guid MintedByAvatarId { get; set; }
 
+        public string Title { get; set; }
+        public string Description { get; set; }
+
         /// <summary>
         /// The wallet address
         /// </summary>
         public string MintedByAddress { get; set; }
         public string Hash { get; set; }
+        public string URL { get; set; }
         //public Guid OffChainProviderHolonId { get; set; }
         public decimal Price { get; set; }
         public decimal Discount { get; set; }
+        public byte[] Image { get; set; }
+        public string ImageUrl { get; set; }
         public byte[] Thumbnail { get; set; }
         public string ThumbnailUrl { get; set; }
         public string Token { get; set; } //TODO: Should be dervied from the OnChainProvider so may not need this?

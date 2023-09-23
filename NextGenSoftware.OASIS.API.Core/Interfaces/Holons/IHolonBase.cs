@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
     {
         Guid Id { get; set; }
         string CustomKey { get; set; } //A custom key that can be used to load the holon by (other than Id or ProviderKey).
-
+        //Dictionary<string, string> CustomKeys { get; set; }
         string Name { get; set; }
         string Description { get; set; }
         HolonType HolonType { get; set; }
