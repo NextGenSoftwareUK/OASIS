@@ -1,9 +1,10 @@
 ﻿
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search.Holon;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
-    public class SearchHolonParams : ISearchHolonParams
+    public class SearchHolonParams : SearchParamsBase, ISearchHolonParams
     {
         //From Holon
         public bool Children { get; set; }

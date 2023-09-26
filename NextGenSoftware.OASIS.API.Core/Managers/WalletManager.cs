@@ -7,6 +7,9 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
+using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -29,6 +32,46 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public WalletManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
 
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTokenAsync(IWalletTransactionRequest request)
+        {
+            OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
+            string errorMessage = "Error Occured in SendTokenAsync function. Reason: ";
+
+            IOASISBlockchainStorageProvider oasisBlockchainProvider =  ProviderManager.GetProvider(request.FromProviderType) as IOASISBlockchainStorageProvider;
+
+            if (oasisBlockchainProvider != null)
+            {
+                result = await oasisBlockchainProvider.SendTransactionAsync(request);
+
+                if (result == null || (result != null && result.IsError || result.Result == null))
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} There was an error whilst calling the SendTransactionAsync function. Reason: {result.Message}");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProviderType)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
+
+            return result;
+        }
+
+        public OASISResult<ITransactionRespone> SendToken(IWalletTransactionRequest request)
+        {
+            OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
+            string errorMessage = "Error Occured in SendTokenAsync function. Reason: ";
+
+            IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.GetProvider(request.FromProviderType) as IOASISBlockchainStorageProvider;
+
+            if (oasisBlockchainProvider != null)
+            {
+                result = oasisBlockchainProvider.SendTransaction(request);
+
+                if (result == null || (result != null && result.IsError || result.Result == null))
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} There was an error whilst calling the SendTransactionAsync function. Reason: {result.Message}");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProviderType)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
+
+            return result;
         }
 
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id, ProviderType providerType = ProviderType.Default)

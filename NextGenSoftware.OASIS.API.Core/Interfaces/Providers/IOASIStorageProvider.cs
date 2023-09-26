@@ -22,8 +22,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0);
         Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0);
         OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0);
-        //Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0);
-        //OASISResult<IAvatar> LoadAvatar(string username, int version = 0);
+        //Task<OASISResult<IAvatar>> LoadAvatarByJwtTokenAsync(string avatarUsername, int version = 0);
+        //OASISResult<IAvatar> LoadAvatarByJwtToken(string avatarUsername, int version = 0);
         Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0);
         OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0);
         Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0);

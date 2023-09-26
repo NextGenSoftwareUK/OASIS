@@ -7,8 +7,10 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.ONode.Core.Managers;
 using NextGenSoftware.OASIS.API.ONode.Core.Objects;
 
@@ -25,10 +27,10 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         }
 
         [HttpPost]
-        [Route("create-nft-transaction")]
-        public async Task<OASISResult<NFTTransactionRespone>> CreateNftTransactionAsync(CreateNftTransactionRequest request)
+        [Route("send-nft")]
+        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest request)
         {
-            return await NFTManager.Instance.CreateNftTransactionAsync(request);
+            return await NFTManager.Instance.SendNFTAsync(request);
         }
 
         //[HttpPost]
@@ -40,9 +42,50 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 
         [HttpPost]
         [Route("mint-nft")]
-        public async Task<OASISResult<NFTTransactionRespone>> MintNftAsync(MintNFTTransaction request)
+        public async Task<OASISResult<INFTTransactionRespone>> MintNftAsync(Models.NFT.MintNFTTransactionRequest request)
         {
-            return await NFTManager.Instance.MintNftAsync(request);
+            ProviderType onChainProvider = ProviderType.None;
+            ProviderType offChainProvider = ProviderType.None;
+            Object onChainProviderObject = null;
+            Object offChainProviderObject = null;
+
+            if (Enum.TryParse(typeof(ProviderType), request.OnChainProvider, out onChainProviderObject))
+                onChainProvider = (ProviderType)onChainProviderObject;
+            else
+                return new OASISResult<INFTTransactionRespone>() { IsError = true, Message = $"The OnChainProvider is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+
+            if (Enum.TryParse(typeof(ProviderType), request.OffChainProvider, out offChainProviderObject))
+                offChainProvider = (ProviderType)offChainProviderObject;
+            else
+                return new OASISResult<INFTTransactionRespone>() { IsError = true, Message = $"The OffChainProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+            if (request.MintedByAvatarId == Guid.Empty)
+            {
+                IAvatar avatar = Request.HttpContext.Items["Avatar"] as IAvatar;
+
+                if (avatar != null)
+                    request.MintedByAvatarId = avatar.Id;
+            }
+
+            return await NFTManager.Instance.MintNftAsync(new MintNFTTransactionRequest()
+            {
+                MintWalletAddress = request.MintWalletAddress,
+                MintedByAvatarId = request.MintedByAvatarId,
+                Title = request.Title,
+                Description = request.Description,
+                Image = request.Image,
+                ImageUrl = request.ImageUrl,
+                Thumbnail = request.Thumbnail,
+                ThumbnailUrl = request.ThumbnailUrl,
+                Price = request.Price,
+                Discount = request.Discount,
+                MemoText = request.MemoText,
+                NumberToMint = request.NumberToMint,
+                MetaData = request.MetaData,
+                OnChainProvider = onChainProvider,
+                OffChainProvider = offChainProvider
+            });
         }
 
         [HttpGet]
@@ -61,30 +104,30 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 
         [HttpGet]
         [Route("load-all-nfts-for_avatar/{avatarId}/{nftProviderType}")]
-        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId, NFTProviderType nftProviderType)
+        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId, ProviderType providerType)
         {
-            return await NFTManager.Instance.LoadAllNFTsForAvatarAsync(avatarId, nftProviderType);
+            return await NFTManager.Instance.LoadAllNFTsForAvatarAsync(avatarId, providerType);
         }
 
         [HttpGet]
         [Route("load-all-nfts-for_mint-wallet-address/{mintWalletAddress}/{nftProviderType}")]
-        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress, NFTProviderType nftProviderType)
+        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress, ProviderType providerType)
         {
-            return await NFTManager.Instance.LoadAllNFTsForMintAddressAsync(mintWalletAddress, nftProviderType);
+            return await NFTManager.Instance.LoadAllNFTsForMintAddressAsync(mintWalletAddress, providerType);
         }
 
         [HttpGet]
         [Route("load-all-geo-nfts-for_avatar/{avatarId}/{nftProviderType}")]
-        public async Task<OASISResult<List<IOASISNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId, NFTProviderType nFTProviderType)
+        public async Task<OASISResult<List<IOASISNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId, ProviderType providerType)
         {
-            return await NFTManager.Instance.LoadAllNFTsForAvatarAsync(avatarId, nFTProviderType);
+            return await NFTManager.Instance.LoadAllNFTsForAvatarAsync(avatarId, providerType);
         }
 
         [HttpGet]
         [Route("load-all-geo-nfts-for_mint-wallet-address/{mintWalletAddress}/{nftProviderType}")]
-        public async Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress, NFTProviderType nftProviderType)
+        public async Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress, ProviderType providerType)
         {
-            return await NFTManager.Instance.LoadAllGeoNFTsForMintAddressAsync(mintWalletAddress, nftProviderType);
+            return await NFTManager.Instance.LoadAllGeoNFTsForMintAddressAsync(mintWalletAddress, providerType);
         }
 
         [HttpPost]

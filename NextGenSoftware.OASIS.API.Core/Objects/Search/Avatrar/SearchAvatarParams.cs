@@ -1,8 +1,9 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces.Search.Avatar;
+﻿using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search.Avatar;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar
 {
-    public class SearchAvatarParams : ISearchAvatarParams
+    public class SearchAvatarParams : SearchParamsBase, ISearchAvatarParams
     {
         //From IAvatar
         public ISearchAvatarWalletParams SearchAvatarWalletParams { get; set; }

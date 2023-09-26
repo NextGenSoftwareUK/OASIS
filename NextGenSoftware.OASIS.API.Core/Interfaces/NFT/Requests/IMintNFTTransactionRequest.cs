@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
+namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
 {
-    public interface IMintNFTTransaction
+    public interface IMintNFTTransactionRequest
     {
         public string MintWalletAddress { get; set; }
         public Guid MintedByAvatarId { get; set; }
@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
         public string MemoText { get; set; }
         //public string Token { get; set; } //TODO: Should be dervied from the OnChainProvider so may not need this?
         public int NumberToMint { get; set; }
+        public bool StoreNFTMetaDataOnChain { get; set; }
         public Dictionary<string, object> MetaData { get; set; }
         public ProviderType OffChainProvider { get; set; }
         public ProviderType OnChainProvider { get; set; }

@@ -7,9 +7,11 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers;
@@ -337,7 +339,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     return response;
                 }
 
-                OASISResult<NFTTransactionRespone> nftTransactionResponse = await _nftManager.CreateNftTransactionAsync(new NFTWalletTransaction()
+                OASISResult<INFTTransactionRespone> nftTransactionResponse = await _nftManager.SendNFTAsync(new NFTWalletTransactionRequest()
                 {
                     Amount = Convert.ToDecimal(await GetOlandPriceAsync(request.OlandIds.Count)), //TODO:Currently only fixed sizes of OLANDS are supported, need to make dyanmic so any number of OLANDs can be used...
                     //Date = DateTime.Now,
@@ -345,8 +347,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     MemoText = $"{request.OlandIds.Count} OLAND(s) with OLANDID's {ListHelper.ConvertFromList(request.OlandIds)} for Avatar {request.AvatarUsername} with AvatarID {request.AvatarId}", //TODO: Need to dervive from the tiles selected.
                     MintWalletAddress = null, //TODO: Need to either pre-mint OLAND NFT's and then use FromWalletAddress of the NFT or mint on the fly and then use the new address...
                     ToWalletAddress = request.WalletAddress,
-                    ProviderType = request.ProviderType,
-                    Token = "POLY" //TODO: Currently OLAND's are minted on Polgon via OpenSea, this may change in future... This will also be dynamic in future...
+                    FromProviderType = request.ProviderType,
+                    FromToken = "POLY" //TODO: Currently OLAND's are minted on Polgon via OpenSea, this may change in future... This will also be dynamic in future...
                 }) ;
 
                 //var cargoPurchaseResponse = await _cargoService.PurchaseCargoSale(new PurchaseRequestModel(request.CargoSaleId));

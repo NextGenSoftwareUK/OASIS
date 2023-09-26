@@ -1,7 +1,7 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.Search.Holon
 {
-    public interface ISearchHolonParams
+    public interface ISearchHolonParams : ISearchParamsBase
     {
         //From Holon
         bool Children { get; set; }
