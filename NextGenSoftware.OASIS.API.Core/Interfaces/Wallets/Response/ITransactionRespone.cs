@@ -1,4 +1,4 @@
-﻿namespace NextGenSoftware.OASIS.API.Core.Interfaces.Wallets
+﻿namespace NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response
 {
     public interface ITransactionRespone
     {

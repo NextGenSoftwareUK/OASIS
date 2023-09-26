@@ -10,6 +10,9 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 
 // OASIS Provider Template that can be used to create new OASIS Providers.
 // Make sure you change all refrences to ProviderName to the name of your provider.
@@ -391,12 +394,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS
         #region IOASISBlockchainStorageProvider
         //Comment out these methods if the provider does not provide blockchain functionality (also make sure you remove the IOASISBlockchainStorageProvider from the class declaration at the top).
 
-        public OASISResult<NFTTransactionRespone> SendTransaction(IWalletTransaction transation)
+        public OASISResult<NFTTransactionRespone> SendTransaction(IWalletTransactionRequest transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<NFTTransactionRespone>> SendTransactionAsync(IWalletTransaction transation)
+        public Task<OASISResult<NFTTransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transation)
         {
             throw new NotImplementedException();
         }
@@ -476,22 +479,22 @@ namespace NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS
         #region IOASISNFTProvider
         //Comment out these methods if the provider does not provide any NFT functionality (also make sure you remove the IOASISNFTProvider from the class declaration at the top).
 
-        public OASISResult<NFTTransactionRespone> SendNFT(INFTWalletTransaction transation)
+        public OASISResult<NFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<NFTTransactionRespone>> SendNFTAsync(INFTWalletTransaction transation)
+        public Task<OASISResult<NFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<NFTTransactionRespone> MintNFT(IMintNFTTransaction transation)
+        public OASISResult<NFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<NFTTransactionRespone>> MintNFTAsync(IMintNFTTransaction transation)
+        public Task<OASISResult<NFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
         {
             throw new NotImplementedException();
         }

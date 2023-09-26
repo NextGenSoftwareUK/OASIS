@@ -5,6 +5,8 @@ using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
 using Solnet.Programs;
 using Solnet.Rpc;
@@ -149,11 +151,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness
             Console.WriteLine("Run_SendNftAsync()->ActivateProvider()");
             solanaOasis.ActivateProvider();
             
-            var sendNftRequest = new WalletTransaction()
+            var sendNftRequest = new NFTWalletTransactionRequest()
             {
                 Amount = 0.001m,
-                Date = DateTime.Now,
-                ProviderType = ProviderType.EOSIOOASIS,
+                //Date = DateTime.Now,
+                FromProviderType = ProviderType.EOSIOOASIS,
                 FromWalletAddress = "",
                 ToWalletAddress = ""
             };
@@ -177,11 +179,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness
             Console.WriteLine("Run_SendTransactionAsync()->ActivateProvider()");
             solanaOasis.ActivateProvider();
 
-            var walletTransaction = new WalletTransaction()
+            var walletTransaction = new WalletTransactionRequest()
             {
                 Amount = 0.001m,
-                Date = DateTime.Now,
-                ProviderType = ProviderType.EOSIOOASIS,
+                //Date = DateTime.Now,
+                FromProviderType = ProviderType.EOSIOOASIS,
                 FromWalletAddress = "",
                 ToWalletAddress = ""
             };

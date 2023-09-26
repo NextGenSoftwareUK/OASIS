@@ -4,18 +4,20 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.ONode.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers
 {
     public interface INFTManager
     {
-        Task<OASISResult<INFTTransactionRespone>> CreateNftTransactionAsync(CreateNftTransactionRequest request);
-        OASISResult<INFTTransactionRespone> CreateNftTransaction(CreateNftTransactionRequest request);
-        Task<OASISResult<INFTTransactionRespone>> CreateNftTransactionAsync(INFTWalletTransaction request);
-        OASISResult<INFTTransactionRespone> CreateNftTransaction(INFTWalletTransaction request);
-        Task<OASISResult<INFTTransactionRespone>> MintNftAsync(IMintNFTTransaction request);
-        OASISResult<INFTTransactionRespone> MintNft(IMintNFTTransaction request);
+        Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest request);
+        OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest request);
+        //Task<OASISResult<INFTTransactionRespone>> CreateNftTransactionAsync(INFTWalletTransactionRequest request);
+        //OASISResult<INFTTransactionRespone> CreateNftTransaction(INFTWalletTransactionRequest request);
+        Task<OASISResult<INFTTransactionRespone>> MintNftAsync(IMintNFTTransactionRequest request);
+        OASISResult<INFTTransactionRespone> MintNft(IMintNFTTransactionRequest request);
         Task<OASISResult<IOASISNFT>> LoadNftAsync(Guid id, ProviderType providerType);
         OASISResult<IOASISNFT> LoadNft(Guid id, ProviderType providerType);
         Task<OASISResult<IOASISNFT>> LoadNftAsync(string hash, ProviderType providerType);

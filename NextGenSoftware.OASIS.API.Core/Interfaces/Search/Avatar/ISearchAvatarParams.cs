@@ -1,7 +1,7 @@
 ﻿namespace NextGenSoftware.OASIS.API.Core.Interfaces.Search.Avatar
 {
-    public interface ISearchAvatarParams
-    {
+    public interface ISearchAvatarParams : ISearchParamsBase
+    {        
         //From IAvatar
         ISearchAvatarWalletParams SearchAvatarWalletParams { get; set; }
         bool ProviderUsername { get; set; }

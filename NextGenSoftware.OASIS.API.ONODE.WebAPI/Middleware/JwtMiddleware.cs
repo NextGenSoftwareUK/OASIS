@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Middleware
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
                     context.Items["Avatar"] = avatarResult.Result;
-                    AvatarManager.LoggedInAvatar = avatarResult.Result;
+                    //AvatarManager.LoggedInAvatar = avatarResult.Result; //TODO: Maybe not good idea to set this because its static so will be shared with all client sessions?!
                 }
             }
             catch (Exception ex)

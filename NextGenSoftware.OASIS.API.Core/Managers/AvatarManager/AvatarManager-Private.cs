@@ -521,6 +521,59 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        private OASISResult<IAvatar> LoadAvatarByJwtTokenForProvider(string jwtToken, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
+        {
+            return LoadAvatarByJwtTokenForProviderAsync(jwtToken, result, providerType, version).Result;
+        }
+
+        private async Task<OASISResult<IAvatar>> LoadAvatarByJwtTokenForProviderAsync(string jwtToken, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
+        {
+            string errorMessageTemplate = "Error in LoadAvatarByJwtTokenForProviderAsync method in AvatarManager loading avatar with email {0} for provider {1}. Reason: ";
+            string errorMessage = string.Format(errorMessageTemplate, jwtToken, providerType);
+
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                errorMessage = string.Format(errorMessageTemplate, jwtToken, ProviderManager.CurrentStorageProviderType.Name);
+
+                if (!providerResult.IsError && providerResult.Result != null)
+                {
+                    var task = providerResult.Result.LoadAvatarByJwtTokenAsync(jwtToken, version);
+
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                    {
+                        if (task.Result.IsError || task.Result.Result == null)
+                        {
+                            if (string.IsNullOrEmpty(task.Result.Message))
+                                task.Result.Message = "Avatar Not Found.";
+
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                        }
+                        else
+                        {
+                            result.Result = task.Result.Result;
+
+                            ////If we are loading from a local storge provider then load the provider wallets (including their private keys stored ONLY on local storage).
+                            //if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
+                            //    result = await LoadProviderWalletsAsync(providerResult.Result, result, errorMessage);
+                            //else
+                            //    result.IsLoaded = true;
+                        }
+                    }
+                    else
+                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+                }
+                else
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
         private OASISResult<IAvatarDetail> LoadAvatarDetailForProvider(Guid id, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             return LoadAvatarDetailForProviderAsync(id, result, providerType, version).Result;

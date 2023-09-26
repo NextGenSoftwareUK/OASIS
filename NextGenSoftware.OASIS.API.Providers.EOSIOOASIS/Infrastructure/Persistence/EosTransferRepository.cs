@@ -8,6 +8,7 @@ using EosSharp.Core.Exceptions;
 using EosSharp.Core.Providers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Repository;
@@ -33,9 +34,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             });
         }
         
-        public async Task<OASISResult<TransactionRespone>> TransferEosToken(string fromAccountName, string toAccountName, decimal amount)
+        public async Task<OASISResult<ITransactionRespone>> TransferEosToken(string fromAccountName, string toAccountName, decimal amount)
         {
-            var result = new OASISResult<TransactionRespone>();
+            var result = new OASISResult<ITransactionRespone>();
             string errorMessageTemplate = "Error occured while executing a transfer request! Reason: {0}";
 
             try
@@ -97,9 +98,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             return result;
         }
 
-        public async Task<OASISResult<TransactionRespone>> TransferEosNft(string fromAccountName, string toAccountName, decimal amount, string nftSymbol)
+        public async Task<OASISResult<ITransactionRespone>> TransferEosNft(string fromAccountName, string toAccountName, decimal amount, string nftSymbol)
         {            
-            var result = new OASISResult<TransactionRespone>();
+            var result = new OASISResult<ITransactionRespone>();
             string errorMessageTemplate = "Error occured whilst executing a transfer nft request! Reason: {0}";
 
             try

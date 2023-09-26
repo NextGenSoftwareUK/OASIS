@@ -447,6 +447,116 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        //public OASISResult<IAvatar> LoadAvatarByJwtToken(string jwtToken, bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        //{
+        //    OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+        //    ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+        //    ProviderType previousProviderType = ProviderType.Default;
+
+        //    try
+        //    {
+        //        result = LoadAvatarByJwtTokenForProvider(jwtToken, result, providerType, version);
+        //        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+        //        if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+        //        {
+        //            foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+        //            {
+        //                if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+        //                {
+        //                    result = LoadAvatarByJwtTokenForProvider(jwtToken, result, type.Value, version);
+
+        //                    if (!result.IsError && result.Result != null)
+        //                        break;
+        //                }
+        //            }
+        //        }
+
+        //        if (result.Result == null)
+        //            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar with jwtToken ", jwtToken, ". Mostly likely reason is the avatar does not exist. Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+        //        else
+        //        {
+        //            if (result.WarningCount > 0)
+        //                ErrorHandling.HandleWarning(ref result, string.Concat("The avatar ", jwtToken, " loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+        //            else
+        //                result.Message = "Avatar Successfully Loaded.";
+
+        //            if (loadPrivateKeys)
+        //                result = LoadProviderWallets(result);
+        //            else
+        //                result.IsLoaded = true;
+
+        //            if (hideAuthDetails)
+        //                result.Result = HideAuthDetails(result.Result);
+        //        }
+
+        //        // Set the current provider back to the original provider.
+        //        ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured loading avatar with jwtToken ", jwtToken, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+        //        result.Result = null;
+        //    }
+
+        //    return result;
+        //}
+
+        //public async Task<OASISResult<IAvatar>> LoadAvatarByJwtTokenAsync(string jwtToken, bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        //{
+        //    OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+        //    ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+        //    ProviderType previousProviderType = ProviderType.Default;
+
+        //    try
+        //    {
+        //        result = await LoadAvatarByJwtTokenForProviderAsync(jwtToken, result, providerType, version);
+        //        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+        //        if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+        //        {
+        //            foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+        //            {
+        //                if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+        //                {
+        //                    result = await LoadAvatarByJwtTokenForProviderAsync(jwtToken, result, type.Value, version);
+
+        //                    if (!result.IsError && result.Result != null)
+        //                        break;
+        //                }
+        //            }
+        //        }
+
+        //        if (result.Result == null)
+        //            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar with jwtToken ", jwtToken, ". Mostly likely reason is the avatar does not exist. Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+        //        else
+        //        {
+        //            if (result.WarningCount > 0)
+        //                ErrorHandling.HandleWarning(ref result, string.Concat("The jwtToken ", jwtToken, " loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+        //            else
+        //                result.Message = "Avatar Successfully Loaded.";
+
+        //            if (loadPrivateKeys)
+        //                result = await LoadProviderWalletsAsync(result);
+        //            else
+        //                result.IsLoaded = true;
+
+        //            if (hideAuthDetails)
+        //                result.Result = HideAuthDetails(result.Result);
+        //        }
+
+        //        // Set the current provider back to the original provider.
+        //        ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured loading avatar with jwtToken ", jwtToken, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+        //        result.Result = null;
+        //    }
+
+        //    return result;
+        //}
+
         public OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();

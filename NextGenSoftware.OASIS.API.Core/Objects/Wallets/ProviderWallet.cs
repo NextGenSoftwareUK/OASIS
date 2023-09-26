@@ -2,6 +2,7 @@
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -28,27 +29,27 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public string PublicKey { get; set; }
         public string WalletAddress { get; set; } //Hash of Public Key (shorter version).
         public string SecretRecoveryPhrase { get; set; }
-        public List<IWalletTransaction> Transactions {get;set;}
+        public List<IWalletTransactionRequest> Transactions {get;set;}
         public ProviderType ProviderType { get; set; }
         public int Balance { get; set; }
         public bool IsDefaultWallet { get; set; }
 
-        public OASISResult<bool> SendNFT(IWalletTransaction transation)
+        public OASISResult<bool> SendNFT(IWalletTransactionRequest transation)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
+        public Task<OASISResult<bool>> SendNFTAsync(IWalletTransactionRequest transation)
         {
             throw new System.NotImplementedException();
         }
 
-        public OASISResult<bool> SendTrasaction(IWalletTransaction transation)
+        public OASISResult<bool> SendTrasaction(IWalletTransactionRequest transation)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransaction transation)
+        public Task<OASISResult<bool>> SendTrasactionAsync(IWalletTransactionRequest transation)
         {
             throw new System.NotImplementedException();
         }

@@ -1,5 +1,6 @@
 ﻿
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search.Avatar;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search.Holon;
 

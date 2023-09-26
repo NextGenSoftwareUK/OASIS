@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 
 namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 {
@@ -369,12 +370,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         #region IOASISBlockchainStorageProvider
 
-        public OASISResult<string> SendTransaction(IWalletTransaction transation)
+        public OASISResult<string> SendTransaction(IWalletTransactionRequest transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transation)
+        public Task<OASISResult<string>> SendTransactionAsync(IWalletTransactionRequest transation)
         {
             throw new NotImplementedException();
         }
@@ -453,12 +454,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<bool> SendNFT(IWalletTransaction transation)
+        public OASISResult<bool> SendNFT(IWalletTransactionRequest transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
+        public Task<OASISResult<bool>> SendNFTAsync(IWalletTransactionRequest transation)
         {
             throw new NotImplementedException();
         }
@@ -479,6 +480,26 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }

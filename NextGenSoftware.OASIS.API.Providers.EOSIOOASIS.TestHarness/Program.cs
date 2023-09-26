@@ -458,7 +458,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
             Console.WriteLine("Run_SendTransactionAsync-->ActivateProvider()");
             eosioOasis.ActivateProvider();
 
-            var walletTransaction = new WalletTransaction()
+            var walletTransaction = new WalletTransactionRequest()
             {
                 Amount = 0.001m,
                // Date = DateTime.Now,

@@ -1,6 +1,6 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
 
-namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT
+namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request
 {
     public interface IPlaceGeoSpatialNFTRequestBase
     {
