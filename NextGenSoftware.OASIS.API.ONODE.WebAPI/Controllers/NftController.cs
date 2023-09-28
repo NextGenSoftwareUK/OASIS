@@ -12,7 +12,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.ONode.Core.Managers;
-using NextGenSoftware.OASIS.API.ONode.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
@@ -40,6 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         //    return await NFTManager.Instance.CreateNftTransactionAsync(request);
         //}
 
+        [Authorize]
         [HttpPost]
         [Route("mint-nft")]
         public async Task<OASISResult<INFTTransactionRespone>> MintNftAsync(Models.NFT.MintNFTTransactionRequest request)
@@ -88,6 +88,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             });
         }
 
+        [Authorize]
         [HttpGet]
         [Route("load-nft-by-id/{id}/{providerType}")]
         public async Task<OASISResult<IOASISNFT>> LoadNftByIdAsync(Guid id, ProviderType providerType)
@@ -95,6 +96,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             return await NFTManager.Instance.LoadNftAsync(id, providerType);
         }
 
+        [Authorize]
         [HttpGet]
         [Route("load-nft-by-hash/{hash}/{providerType}")]
         public async Task<OASISResult<IOASISNFT>> LoadNftByHashAsync(string hash, ProviderType providerType)
@@ -102,34 +104,55 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             return await NFTManager.Instance.LoadNftAsync(hash, providerType);
         }
 
+        [Authorize]
         [HttpGet]
         [Route("load-all-nfts-for_avatar/{avatarId}/{nftProviderType}")]
-        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId, ProviderType providerType)
+        public async Task<OASISResult<IEnumerable<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId, ProviderType providerType)
         {
             return await NFTManager.Instance.LoadAllNFTsForAvatarAsync(avatarId, providerType);
         }
 
+        [Authorize]
         [HttpGet]
         [Route("load-all-nfts-for_mint-wallet-address/{mintWalletAddress}/{nftProviderType}")]
-        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress, ProviderType providerType)
+        public async Task<OASISResult<IEnumerable<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress, ProviderType providerType)
         {
             return await NFTManager.Instance.LoadAllNFTsForMintAddressAsync(mintWalletAddress, providerType);
         }
 
+        [Authorize]
         [HttpGet]
-        [Route("load-all-geo-nfts-for_avatar/{avatarId}/{nftProviderType}")]
-        public async Task<OASISResult<List<IOASISNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId, ProviderType providerType)
+        [Route("load-all-geo-nfts-for_avatar/{avatarId}/{providerType}")]
+        public async Task<OASISResult<IEnumerable<IOASISNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId, ProviderType providerType)
         {
             return await NFTManager.Instance.LoadAllNFTsForAvatarAsync(avatarId, providerType);
         }
 
+        [Authorize]
         [HttpGet]
-        [Route("load-all-geo-nfts-for_mint-wallet-address/{mintWalletAddress}/{nftProviderType}")]
-        public async Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress, ProviderType providerType)
+        [Route("load-all-geo-nfts-for_mint-wallet-address/{mintWalletAddress}/{providerType}")]
+        public async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress, ProviderType providerType)
         {
             return await NFTManager.Instance.LoadAllGeoNFTsForMintAddressAsync(mintWalletAddress, providerType);
         }
 
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet]
+        [Route("load-all-nfts/{providerType}")]
+        public async Task<OASISResult<IEnumerable<IOASISNFT>>> LoadAllNFTsAsync(ProviderType providerType)
+        {
+            return await NFTManager.Instance.LoadAllNFTsAsync(providerType);
+        }
+
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet]
+        [Route("load-all-geo-nfts/{providerType}")]
+        public async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsAsync(ProviderType providerType)
+        {
+            return await NFTManager.Instance.LoadAllGeoNFTsAsync(providerType);
+        }
+
+        [Authorize]
         [HttpPost]
         [Route("place-geo-nft")]
         public async Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceGeoSpatialNFTRequest request)
@@ -137,6 +160,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             return await NFTManager.Instance.PlaceGeoNFTAsync(request);
         }
 
+        [Authorize]
         [HttpPost]
         [Route("mint-and-place-geo-nft")]
         public async Task<OASISResult<IOASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceGeoSpatialNFTRequest request)
@@ -144,30 +168,31 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             return await NFTManager.Instance.MintAndPlaceGeoNFTAsync(request);
         }
 
-        [HttpGet]
-        [Route("get-provider-type-from-nft-provider-type/{nftProviderType}")]
-        public ProviderType GetProviderTypeFromNFTProviderType(NFTProviderType nftProviderType)
-        {
-            return NFTManager.Instance.GetProviderTypeFromNFTProviderType(nftProviderType);
-        }
+        //[Authorize]
+        //[HttpGet]
+        //[Route("get-provider-type-from-nft-provider-type/{nftProviderType}")]
+        //public ProviderType GetProviderTypeFromNFTProviderType(NFTProviderType nftProviderType)
+        //{
+        //    return NFTManager.Instance.GetProviderTypeFromNFTProviderType(nftProviderType);
+        //}
 
-        [HttpGet]
-        [Route("get-nft-provider-type-from-provider-type/{providerType}")]
-        public NFTProviderType GetNFTProviderTypeFromProviderType(ProviderType providerType)
-        {
-            return NFTManager.Instance.GetNFTProviderTypeFromProviderType(providerType);
-        }
+        //[HttpGet]
+        //[Route("get-nft-provider-type-from-provider-type/{providerType}")]
+        //public NFTProviderType GetNFTProviderTypeFromProviderType(ProviderType providerType)
+        //{
+        //    return NFTManager.Instance.GetNFTProviderTypeFromProviderType(providerType);
+        //}
 
-        [HttpGet]
-        [Route("get-nft-provider-from-nft-provider-type/{nftProviderType}")]
-        public OASISResult<IOASISNFTProvider> GetNFTProviderFromNftProviderType(NFTProviderType nftProviderType)
-        {
-            return NFTManager.Instance.GetNFTProvider(nftProviderType);
-        }
+        //[HttpGet]
+        //[Route("get-nft-provider-from-nft-provider-type/{nftProviderType}")]
+        //public OASISResult<IOASISNFTProvider> GetNFTProviderFromNftProviderType(NFTProviderType nftProviderType)
+        //{
+        //    return NFTManager.Instance.GetNFTProvider(nftProviderType);
+        //}
 
         [HttpGet]
         [Route("get-nft-provider-from-provider-type/{providerType}")]
-        public OASISResult<IOASISNFTProvider> GetNFTProviderFromNftProviderType(ProviderType providerType)
+        public OASISResult<IOASISNFTProvider> GetNFTProviderFromProviderType(ProviderType providerType)
         {
             return NFTManager.Instance.GetNFTProvider(providerType);
         }
