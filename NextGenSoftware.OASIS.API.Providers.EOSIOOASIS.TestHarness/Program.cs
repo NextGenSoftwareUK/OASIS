@@ -9,6 +9,8 @@ using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetTableRows;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models;
@@ -429,11 +431,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
             Console.WriteLine("Run_SendNftAsync-->ActivateProvider()");
             eosioOasis.ActivateProvider();
 
-            var sendNftRequest = new NFTWalletTransaction()
+            var sendNftRequest = new NFTWalletTransactionRequest()
             {
                 Amount = 0.001m,
                 //Date = DateTime.Now,
-                ProviderType = ProviderType.EOSIOOASIS,
+                FromProviderType = ProviderType.EOSIOOASIS,
                 FromWalletAddress = _oasisEosAccount,
                 ToWalletAddress = _oasisEosAccount2
             };
@@ -462,7 +464,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness
             {
                 Amount = 0.001m,
                // Date = DateTime.Now,
-                ProviderType = ProviderType.EOSIOOASIS,
+                FromProviderType = ProviderType.EOSIOOASIS,
                 FromWalletAddress = _oasisEosAccount,
                 ToWalletAddress = _oasisEosAccount2
             };

@@ -521,340 +521,341 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IAvatar> LoadAvatarByJwtTokenForProvider(string jwtToken, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            return LoadAvatarByJwtTokenForProviderAsync(jwtToken, result, providerType, version).Result;
-        }
+        /*
+       private OASISResult<IAvatar> LoadAvatarByJwtTokenForProvider(string jwtToken, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
+       {
+           return LoadAvatarByJwtTokenForProviderAsync(jwtToken, result, providerType, version).Result;
+       }
 
-        private async Task<OASISResult<IAvatar>> LoadAvatarByJwtTokenForProviderAsync(string jwtToken, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            string errorMessageTemplate = "Error in LoadAvatarByJwtTokenForProviderAsync method in AvatarManager loading avatar with email {0} for provider {1}. Reason: ";
-            string errorMessage = string.Format(errorMessageTemplate, jwtToken, providerType);
+       private async Task<OASISResult<IAvatar>> LoadAvatarByJwtTokenForProviderAsync(string jwtToken, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
+       {
+           string errorMessageTemplate = "Error in LoadAvatarByJwtTokenForProviderAsync method in AvatarManager loading avatar with email {0} for provider {1}. Reason: ";
+           string errorMessage = string.Format(errorMessageTemplate, jwtToken, providerType);
 
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-                errorMessage = string.Format(errorMessageTemplate, jwtToken, ProviderManager.CurrentStorageProviderType.Name);
+           try
+           {
+               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+               errorMessage = string.Format(errorMessageTemplate, jwtToken, ProviderManager.CurrentStorageProviderType.Name);
 
-                if (!providerResult.IsError && providerResult.Result != null)
-                {
-                    var task = providerResult.Result.LoadAvatarByJwtTokenAsync(jwtToken, version);
+               if (!providerResult.IsError && providerResult.Result != null)
+               {
+                   var task = providerResult.Result.LoadAvatarByJwtTokenAsync(jwtToken, version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
-                    {
-                        if (task.Result.IsError || task.Result.Result == null)
-                        {
-                            if (string.IsNullOrEmpty(task.Result.Message))
-                                task.Result.Message = "Avatar Not Found.";
+                   if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                   {
+                       if (task.Result.IsError || task.Result.Result == null)
+                       {
+                           if (string.IsNullOrEmpty(task.Result.Message))
+                               task.Result.Message = "Avatar Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
-                        }
-                        else
-                        {
-                            result.Result = task.Result.Result;
+                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                       }
+                       else
+                       {
+                           result.Result = task.Result.Result;
 
-                            ////If we are loading from a local storge provider then load the provider wallets (including their private keys stored ONLY on local storage).
-                            //if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
-                            //    result = await LoadProviderWalletsAsync(providerResult.Result, result, errorMessage);
-                            //else
-                            //    result.IsLoaded = true;
-                        }
-                    }
-                    else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
-                }
-                else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
+                           ////If we are loading from a local storge provider then load the provider wallets (including their private keys stored ONLY on local storage).
+                           //if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
+                           //    result = await LoadProviderWalletsAsync(providerResult.Result, result, errorMessage);
+                           //else
+                           //    result.IsLoaded = true;
+                       }
+                   }
+                   else
+                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+               }
+               else
+                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+           }
+           catch (Exception ex)
+           {
+               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+           }
 
-            return result;
-        }
+           return result;
+       }*/
 
-        private OASISResult<IAvatarDetail> LoadAvatarDetailForProvider(Guid id, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            return LoadAvatarDetailForProviderAsync(id, result, providerType, version).Result;
-        }
+       private OASISResult<IAvatarDetail> LoadAvatarDetailForProvider(Guid id, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
+       {
+           return LoadAvatarDetailForProviderAsync(id, result, providerType, version).Result;
+       }
 
-        private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailForProviderAsync(Guid id, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            string errorMessageTemplate = "Error in LoadAvatarDetailForProviderAsync method in AvatarManager loading avatar detail with id {0} for provider {1}. Reason: ";
-            string errorMessage = string.Format(errorMessageTemplate, id, providerType);
+       private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailForProviderAsync(Guid id, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
+       {
+           string errorMessageTemplate = "Error in LoadAvatarDetailForProviderAsync method in AvatarManager loading avatar detail with id {0} for provider {1}. Reason: ";
+           string errorMessage = string.Format(errorMessageTemplate, id, providerType);
 
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-                errorMessage = string.Format(errorMessageTemplate, id, ProviderManager.CurrentStorageProviderType.Name);
+           try
+           {
+               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+               errorMessage = string.Format(errorMessageTemplate, id, ProviderManager.CurrentStorageProviderType.Name);
 
-                if (!providerResult.IsError && providerResult.Result != null)
-                {
-                    var task = providerResult.Result.LoadAvatarDetailAsync(id, version);
+               if (!providerResult.IsError && providerResult.Result != null)
+               {
+                   var task = providerResult.Result.LoadAvatarDetailAsync(id, version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
-                    {
-                        if (task.Result.IsError || task.Result.Result == null)
-                        {
-                            if (string.IsNullOrEmpty(task.Result.Message))
-                                task.Result.Message = "Avatar Detail Not Found.";
+                   if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                   {
+                       if (task.Result.IsError || task.Result.Result == null)
+                       {
+                           if (string.IsNullOrEmpty(task.Result.Message))
+                               task.Result.Message = "Avatar Detail Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
-                        }
-                        else
-                        {
-                            result.IsLoaded = true;
-                            result.Result = task.Result.Result;
-                        }
-                    }
-                    else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
-                }
-                else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
+                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                       }
+                       else
+                       {
+                           result.IsLoaded = true;
+                           result.Result = task.Result.Result;
+                       }
+                   }
+                   else
+                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+               }
+               else
+                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+           }
+           catch (Exception ex)
+           {
+               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+           }
 
-            return result;
-        }
+           return result;
+       }
 
-        private OASISResult<IAvatarDetail> LoadAvatarDetailByEmailForProvider(string email, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            return LoadAvatarDetailByEmailForProviderAsync(email, result, providerType, version).Result;
-        }
+       private OASISResult<IAvatarDetail> LoadAvatarDetailByEmailForProvider(string email, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
+       {
+           return LoadAvatarDetailByEmailForProviderAsync(email, result, providerType, version).Result;
+       }
 
-        private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailForProviderAsync(string email, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            string errorMessageTemplate = "Error in LoadAvatarDetailByEmailForProviderAsync method in AvatarManager loading avatar detail with email {0} for provider {1}. Reason: ";
-            string errorMessage = string.Format(errorMessageTemplate, email, providerType);
+       private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailForProviderAsync(string email, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
+       {
+           string errorMessageTemplate = "Error in LoadAvatarDetailByEmailForProviderAsync method in AvatarManager loading avatar detail with email {0} for provider {1}. Reason: ";
+           string errorMessage = string.Format(errorMessageTemplate, email, providerType);
 
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-                errorMessage = string.Format(errorMessageTemplate, email, ProviderManager.CurrentStorageProviderType.Name);
+           try
+           {
+               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+               errorMessage = string.Format(errorMessageTemplate, email, ProviderManager.CurrentStorageProviderType.Name);
 
-                if (!providerResult.IsError && providerResult.Result != null)
-                {
-                    var task = providerResult.Result.LoadAvatarDetailByEmailAsync(email, version);
+               if (!providerResult.IsError && providerResult.Result != null)
+               {
+                   var task = providerResult.Result.LoadAvatarDetailByEmailAsync(email, version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
-                    {
-                        if (task.Result.IsError || task.Result.Result == null)
-                        {
-                            if (string.IsNullOrEmpty(result.Message))
-                                task.Result.Message = "Avatar Detail Not Found.";
+                   if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                   {
+                       if (task.Result.IsError || task.Result.Result == null)
+                       {
+                           if (string.IsNullOrEmpty(result.Message))
+                               task.Result.Message = "Avatar Detail Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
-                        }
-                        else
-                        {
-                            result.IsLoaded = true;
-                            result.Result = task.Result.Result;
-                        }
-                    }
-                    else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
-                }
-                else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
+                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                       }
+                       else
+                       {
+                           result.IsLoaded = true;
+                           result.Result = task.Result.Result;
+                       }
+                   }
+                   else
+                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+               }
+               else
+                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+           }
+           catch (Exception ex)
+           {
+               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+           }
 
-            return result;
-        }
+           return result;
+       }
 
-        private OASISResult<IAvatarDetail> LoadAvatarDetailByUsernameForProvider(string username, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            return LoadAvatarDetailByUsernameForProviderAsync(username, result, providerType, version).Result;
-        }
+       private OASISResult<IAvatarDetail> LoadAvatarDetailByUsernameForProvider(string username, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
+       {
+           return LoadAvatarDetailByUsernameForProviderAsync(username, result, providerType, version).Result;
+       }
 
-        private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameForProviderAsync(string username, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            string errorMessageTemplate = "Error in LoadAvatarDetailByUsernameForProviderAsync method in AvatarManager loading avatar detail with username {0} for provider {1}. Reason: ";
-            string errorMessage = string.Format(errorMessageTemplate, username, providerType);
+       private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameForProviderAsync(string username, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
+       {
+           string errorMessageTemplate = "Error in LoadAvatarDetailByUsernameForProviderAsync method in AvatarManager loading avatar detail with username {0} for provider {1}. Reason: ";
+           string errorMessage = string.Format(errorMessageTemplate, username, providerType);
 
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-                errorMessage = string.Format(errorMessageTemplate, username, ProviderManager.CurrentStorageProviderType.Name);
+           try
+           {
+               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+               errorMessage = string.Format(errorMessageTemplate, username, ProviderManager.CurrentStorageProviderType.Name);
 
-                if (!providerResult.IsError && providerResult.Result != null)
-                {
-                    var task = providerResult.Result.LoadAvatarDetailByUsernameAsync(username, version);
+               if (!providerResult.IsError && providerResult.Result != null)
+               {
+                   var task = providerResult.Result.LoadAvatarDetailByUsernameAsync(username, version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
-                    {
-                        if (task.Result.IsError || task.Result.Result == null)
-                        {
-                            if (string.IsNullOrEmpty(task.Result.Message))
-                                task.Result.Message = "Avatar Detail Not Found.";
+                   if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                   {
+                       if (task.Result.IsError || task.Result.Result == null)
+                       {
+                           if (string.IsNullOrEmpty(task.Result.Message))
+                               task.Result.Message = "Avatar Detail Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
-                        }
-                        else
-                        {
-                            result.IsLoaded = true;
-                            result.Result = task.Result.Result;
-                        }
-                    }
-                    else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
-                }
-                else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
+                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                       }
+                       else
+                       {
+                           result.IsLoaded = true;
+                           result.Result = task.Result.Result;
+                       }
+                   }
+                   else
+                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+               }
+               else
+                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+           }
+           catch (Exception ex)
+           {
+               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+           }
 
-            return result;
-        }
+           return result;
+       }
 
-        private OASISResult<IEnumerable<IAvatar>> LoadAllAvatarsForProvider(OASISResult<IEnumerable<IAvatar>> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            return LoadAllAvatarsForProviderAsync(result, providerType, version).Result;
-        }
+       private OASISResult<IEnumerable<IAvatar>> LoadAllAvatarsForProvider(OASISResult<IEnumerable<IAvatar>> result, ProviderType providerType = ProviderType.Default, int version = 0)
+       {
+           return LoadAllAvatarsForProviderAsync(result, providerType, version).Result;
+       }
 
-        private async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsForProviderAsync(OASISResult<IEnumerable<IAvatar>> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            string errorMessageTemplate = "Error in LoadAllAvatarsForProviderAsync method in AvatarManager loading all avatar details for provider {0}. Reason: ";
-            string errorMessage = string.Format(errorMessageTemplate, providerType);
+       private async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsForProviderAsync(OASISResult<IEnumerable<IAvatar>> result, ProviderType providerType = ProviderType.Default, int version = 0)
+       {
+           string errorMessageTemplate = "Error in LoadAllAvatarsForProviderAsync method in AvatarManager loading all avatar details for provider {0}. Reason: ";
+           string errorMessage = string.Format(errorMessageTemplate, providerType);
 
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-                errorMessage = string.Format(errorMessageTemplate, ProviderManager.CurrentStorageProviderType.Name);
+           try
+           {
+               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+               errorMessage = string.Format(errorMessageTemplate, ProviderManager.CurrentStorageProviderType.Name);
 
-                if (!providerResult.IsError && providerResult.Result != null)
-                {
-                    var task = providerResult.Result.LoadAllAvatarsAsync(version);
+               if (!providerResult.IsError && providerResult.Result != null)
+               {
+                   var task = providerResult.Result.LoadAllAvatarsAsync(version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
-                    {
-                        if (task.Result.IsError || task.Result.Result == null)
-                        {
-                            if (string.IsNullOrEmpty(task.Result.Message))
-                                task.Result.Message = "No Avatars Were Found.";
+                   if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                   {
+                       if (task.Result.IsError || task.Result.Result == null)
+                       {
+                           if (string.IsNullOrEmpty(task.Result.Message))
+                               task.Result.Message = "No Avatars Were Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
-                        }
-                        else
-                        {
-                            result.IsLoaded = true;
-                            result.Result = task.Result.Result;
-                        }
-                    }
-                    else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), task.Result.DetailedMessage);
-                }
-                else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
+                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                       }
+                       else
+                       {
+                           result.IsLoaded = true;
+                           result.Result = task.Result.Result;
+                       }
+                   }
+                   else
+                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), task.Result.DetailedMessage);
+               }
+               else
+                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+           }
+           catch (Exception ex)
+           {
+               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+           }
 
-            return result;
-        }
+           return result;
+       }
 
-        private OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsForProvider(OASISResult<IEnumerable<IAvatarDetail>> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            return LoadAllAvatarDetailsForProviderAsync(result, providerType, version).Result;
-        }
+       private OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsForProvider(OASISResult<IEnumerable<IAvatarDetail>> result, ProviderType providerType = ProviderType.Default, int version = 0)
+       {
+           return LoadAllAvatarDetailsForProviderAsync(result, providerType, version).Result;
+       }
 
-        private async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsForProviderAsync(OASISResult<IEnumerable<IAvatarDetail>> result, ProviderType providerType = ProviderType.Default, int version = 0)
-        {
-            string errorMessageTemplate = "Error in LoadAllAvatarDetailsForProviderAsync method in AvatarManager loading all avatar details for provider {0}. Reason: ";
-            string errorMessage = string.Format(errorMessageTemplate, providerType);
+       private async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsForProviderAsync(OASISResult<IEnumerable<IAvatarDetail>> result, ProviderType providerType = ProviderType.Default, int version = 0)
+       {
+           string errorMessageTemplate = "Error in LoadAllAvatarDetailsForProviderAsync method in AvatarManager loading all avatar details for provider {0}. Reason: ";
+           string errorMessage = string.Format(errorMessageTemplate, providerType);
 
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-                errorMessage = string.Format(errorMessageTemplate, ProviderManager.CurrentStorageProviderType.Name);
+           try
+           {
+               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+               errorMessage = string.Format(errorMessageTemplate, ProviderManager.CurrentStorageProviderType.Name);
 
-                if (!providerResult.IsError && providerResult.Result != null)
-                {
-                    var task = providerResult.Result.LoadAllAvatarDetailsAsync(version);
+               if (!providerResult.IsError && providerResult.Result != null)
+               {
+                   var task = providerResult.Result.LoadAllAvatarDetailsAsync(version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
-                    {
-                        if (task.Result.IsError || task.Result.Result == null)
-                        {
-                            if (string.IsNullOrEmpty(task.Result.Message))
-                                task.Result.Message = "No Avatar Details Were Found.";
+                   if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                   {
+                       if (task.Result.IsError || task.Result.Result == null)
+                       {
+                           if (string.IsNullOrEmpty(task.Result.Message))
+                               task.Result.Message = "No Avatar Details Were Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
-                        }
-                        else
-                        {
-                            result.IsLoaded = true;
-                            result.Result = task.Result.Result;
-                        }
-                    }
-                    else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
-                }
-                else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message));
-            }
+                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                       }
+                       else
+                       {
+                           result.IsLoaded = true;
+                           result.Result = task.Result.Result;
+                       }
+                   }
+                   else
+                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+               }
+               else
+                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+           }
+           catch (Exception ex)
+           {
+               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message));
+           }
 
-            return result;
-        }
+           return result;
+       }
 
-        public async Task<OASISResult<IAvatar>> SaveAvatarForProviderAsync(IAvatar avatar, OASISResult<IAvatar> result, SaveMode saveMode, ProviderType providerType = ProviderType.Default)
-        {
-            string errorMessageTemplate = "Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
-            string errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, providerType, Enum.GetName(typeof(SaveMode), saveMode));
+       public async Task<OASISResult<IAvatar>> SaveAvatarForProviderAsync(IAvatar avatar, OASISResult<IAvatar> result, SaveMode saveMode, ProviderType providerType = ProviderType.Default)
+       {
+           string errorMessageTemplate = "Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
+           string errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, providerType, Enum.GetName(typeof(SaveMode), saveMode));
 
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-                errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, ProviderManager.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
+           try
+           {
+               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+               errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, ProviderManager.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
 
-                if (!providerResult.IsError && providerResult.Result != null)
-                {
-                    //Make sure private keys are ONLY stored locally.
-                    if (ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocal && ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocalAndNetwork)
-                    {
-                        foreach (ProviderType proType in avatar.ProviderWallets.Keys)
-                        {
-                            foreach (IProviderWallet wallet in avatar.ProviderWallets[proType])
-                                wallet.PrivateKey = null;
-                        }
-                    }
-                    else
-                    {
-                        //We need to save the wallets (with private keys) seperatley to the local storage provider otherwise the next time a non local provider replicates to local it will overwrite the wallets and private keys (will be blank).
-                        //TODO: The PrivateKeys are already encrypted but I want to add an extra layer of protection to encrypt the full wallet! ;-)
-                        //TODO: Soon will also add a 3rd level of protection by quantum encrypting the keys/wallets... :)
-                        /*
-                        OASISResult<bool> walletsResult = await WalletManager.Instance.SaveProviderWalletsForAvatarByIdAsync(avatar.Id, avatar.ProviderWallets, providerType);
+               if (!providerResult.IsError && providerResult.Result != null)
+               {
+                   //Make sure private keys are ONLY stored locally.
+                   if (ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocal && ProviderManager.CurrentStorageProviderCategory.Value != ProviderCategory.StorageLocalAndNetwork)
+                   {
+                       foreach (ProviderType proType in avatar.ProviderWallets.Keys)
+                       {
+                           foreach (IProviderWallet wallet in avatar.ProviderWallets[proType])
+                               wallet.PrivateKey = null;
+                       }
+                   }
+                   else
+                   {
+                       //We need to save the wallets (with private keys) seperatley to the local storage provider otherwise the next time a non local provider replicates to local it will overwrite the wallets and private keys (will be blank).
+                       //TODO: The PrivateKeys are already encrypted but I want to add an extra layer of protection to encrypt the full wallet! ;-)
+                       //TODO: Soon will also add a 3rd level of protection by quantum encrypting the keys/wallets... :)
+                       /*
+                       OASISResult<bool> walletsResult = await WalletManager.Instance.SaveProviderWalletsForAvatarByIdAsync(avatar.Id, avatar.ProviderWallets, providerType);
 
-                        if (walletsResult.IsError || !walletsResult.Result)
-                        {
-                            if (string.IsNullOrEmpty(walletsResult.Message) && saveMode != SaveMode.AutoReplication)
-                                walletsResult.Message = "Unknown error occured saving provider wallets.";
+                       if (walletsResult.IsError || !walletsResult.Result)
+                       {
+                           if (string.IsNullOrEmpty(walletsResult.Message) && saveMode != SaveMode.AutoReplication)
+                               walletsResult.Message = "Unknown error occured saving provider wallets.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, walletsResult.Message), walletsResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
-                        }
-                        */
+                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, walletsResult.Message), walletsResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                       }
+                       */
 
-                    }
+    }
 
-                    var task = providerResult.Result.SaveAvatarAsync(avatar);
+    var task = providerResult.Result.SaveAvatarAsync(avatar);
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
