@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public Guid PlacedByAvatarId { get; set; }
         public Guid OriginalOASISNFTId { get; set; }
         public ProviderType OriginalOASISNFTProviderType { get; set; }
+        public DateTime PlacedOn { get; set; }
         public long Lat { get; set; }
         public long Long { get; set; }
 

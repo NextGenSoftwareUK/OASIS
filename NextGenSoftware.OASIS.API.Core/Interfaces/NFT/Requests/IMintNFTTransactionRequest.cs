@@ -1,4 +1,5 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using System;
 using System.Collections.Generic;
 
@@ -21,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
         public int NumberToMint { get; set; }
         public bool StoreNFTMetaDataOnChain { get; set; }
         public Dictionary<string, object> MetaData { get; set; }
-        public ProviderType OffChainProvider { get; set; }
-        public ProviderType OnChainProvider { get; set; }
+        public EnumValue<ProviderType> OffChainProvider { get; set; }
+        public EnumValue<ProviderType> OnChainProvider { get; set; }
     }
 }

@@ -5,8 +5,8 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Models.NFT
 {
     public class MintNFTTransactionRequest
     {
-        public string MintWalletAddress { get; set; }
-        public Guid MintedByAvatarId { get; set; }
+        //public string MintWalletAddress { get; set; }
+        //public Guid MintedByAvatarId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public byte[] Image { get; set; }
