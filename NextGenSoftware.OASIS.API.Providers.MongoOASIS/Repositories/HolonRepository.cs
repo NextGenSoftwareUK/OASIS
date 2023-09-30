@@ -606,7 +606,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             FilterDefinition<Holon> filter = null;
             Holon holon = GetHolonByMetaData(metaKey, metaValue);
-            return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
+            
+            if (holon != null)
+                return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
         }
 
         private FilterDefinition<Holon> BuildFilterForGetHolonsForParent(Guid id, HolonType holonType)

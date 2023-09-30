@@ -81,9 +81,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //TODO: Implement later (Cache Disabled).
         //public bool IsCacheEnabled { get; set; } = true;
 
-        public OASISResult<KeyPair> GenerateKeyPair(ProviderType provider)
+        public OASISResult<KeyPair> GenerateKeyPair(ProviderType providerType)
         {
-            return GenerateKeyPair(Enum.GetName(typeof(ProviderType), provider));
+            string prefix = "";
+
+            //TODO: Need to look up and add all prefixes here!
+            switch (providerType)
+            {
+                case ProviderType.EthereumOASIS:
+                    prefix = "1";
+                    break;
+
+                case ProviderType.SolanaOASIS: 
+                    prefix = "2"; 
+                    break;
+            }
+
+            return GenerateKeyPair(prefix);
         }
 
         public OASISResult<KeyPair> GenerateKeyPair(string prefix)
@@ -279,13 +293,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     if (walletId == Guid.Empty)
                     {
-                        ProviderWallet newWallet = new ProviderWallet() 
-                        { 
+                        ProviderWallet newWallet = new ProviderWallet()
+                        {
                             WalletId = Guid.NewGuid(),
                             AvatarId = avatar.Id,
                             CreatedByAvatarId = avatar.Id,
                             CreatedDate = DateTime.Now,
-                            PublicKey = providerKey
+                            PublicKey = providerKey,
+                            WalletAddress = providerKey //TODO: Need to calucalte the walletAddress from the PublicKey!
                         };
 
                         result.Result = newWallet.WalletId;
@@ -303,6 +318,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (wallet != null)
                         {
+                            wallet.WalletAddress = providerKey; //TODO: Need to calucalte the walletAddress from the PublicKey!
                             wallet.PublicKey = providerKey;
                             wallet.ModifiedByAvatarId = avatar.Id;
                             wallet.ModifiedDate = DateTime.Now;

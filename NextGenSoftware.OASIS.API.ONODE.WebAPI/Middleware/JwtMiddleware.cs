@@ -72,7 +72,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Middleware
                 //byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse));
                 byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject("test error"));
 
-                await context.Response.Body.WriteAsync(body);
+               // await context.Response.Body.WriteAsync(body);
                 //await context.Response.Body.WriteAsync(body);
                 //await context.Response.Body.WriteAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse)));
 

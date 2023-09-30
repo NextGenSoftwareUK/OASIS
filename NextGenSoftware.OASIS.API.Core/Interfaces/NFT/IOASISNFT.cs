@@ -1,4 +1,5 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using System;
 using System.Collections.Generic;
 
@@ -8,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
     {
         Guid Id { get; set; }
         Guid MintedByAvatarId { get; set; }
+        DateTime MintedOn { get; set; }
         string MintedByAddress { get; set; }
         string Hash { get; set; }
         string URL { get; set; }
@@ -22,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
         string ThumbnailUrl { get; set; }
         public string Token { get; set; } //TODO: Should be dervied from the OnChainProvider so may not need this?
         Dictionary<string, object> MetaData { get; set; }
-        ProviderType OffChainProvider { get; set; }
-        ProviderType OnChainProvider { get; set; }
+        EnumValue<ProviderType> OffChainProvider { get; set; }
+        EnumValue<ProviderType> OnChainProvider { get; set; }
     }
 }
