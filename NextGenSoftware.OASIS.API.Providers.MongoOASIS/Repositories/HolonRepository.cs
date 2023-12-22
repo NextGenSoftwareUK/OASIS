@@ -592,23 +592,33 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             FilterDefinition<Holon> filter = null;
             Holon holon = GetHolon(providerKey);
-            return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
+
+            if (holon != null)
+                return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
+            else
+                return null;
         }
 
         private FilterDefinition<Holon> BuildFilterForGetHolonsForParentByCustomKey(string customKey, HolonType holonType)
         {
             FilterDefinition<Holon> filter = null;
             Holon holon = GetHolonByCustomKey(customKey);
-            return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
+
+            if (holon != null)
+                return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
+            else
+                return null;
         }
 
         private FilterDefinition<Holon> BuildFilterForGetHolonsForParentByMetaData(string metaKey, string metaValue, HolonType holonType)
         {
             FilterDefinition<Holon> filter = null;
             Holon holon = GetHolonByMetaData(metaKey, metaValue);
-            
+
             if (holon != null)
                 return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
+            else
+                return null;
         }
 
         private FilterDefinition<Holon> BuildFilterForGetHolonsForParent(Guid id, HolonType holonType)

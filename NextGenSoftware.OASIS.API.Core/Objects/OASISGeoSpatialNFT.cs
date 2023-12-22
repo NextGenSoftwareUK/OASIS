@@ -32,5 +32,6 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         /// The number of times this NFT can be collected per player. Set to -1 for infinite. GlobalSpawnQuantity takes priority (if it is 0 then PlayerSpawnQuantity is used).
         /// </summary>
         public int PlayerSpawnQuantity { get; set; } = 0;
+        public int RepawnDurationInSeconds { get; set; } = 60;
     }
 }
