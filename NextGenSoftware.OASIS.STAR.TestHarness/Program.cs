@@ -1263,22 +1263,28 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static void ShowHeader()
         {
-            var versionString = Assembly.GetEntryAssembly()
-                                           .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                                           .InformationalVersion
-                                           .ToString();
+            //var versionString = Assembly.GetEntryAssembly()
+            //                               .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            //                               .InformationalVersion
+            //                               .ToString();
+
+
+            //Assembly assembly = Assembly.GetExecutingAssembly();
+            Assembly assembly = typeof(Program).Assembly;
+            System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+            string versionString = fvi.FileVersion;
 
             // Console.SetWindowSize(300, Console.WindowHeight);
             Console.WriteLine("");
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("************************************************************************************************");
+            Console.WriteLine("*************************************************************************************************");
             Console.Write(" NextGen Software");
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write(" STAR");
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write($" (Synergiser Transformer Aggregator Resolver) HDK/ODK TEST HARNESS v{versionString} ");
             Console.WriteLine("");
-            Console.WriteLine("************************************************************************************************");
+            Console.WriteLine("*************************************************************************************************");
             Console.WriteLine("");
 
             Console.ForegroundColor = ConsoleColor.Yellow;

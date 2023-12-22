@@ -16,16 +16,23 @@ namespace NextGenSoftware.OASIS.API.DNA
 
         public static OASISDNA LoadDNA(string OASISDNAPath)
         {
-            if (string.IsNullOrEmpty(OASISDNAPath))
-                throw new ArgumentNullException("OASISDNAPath", "OASISDNAPath cannot be null.");
-
-            OASISDNAManager.OASISDNAPath = OASISDNAPath;
-
-            using (StreamReader r = new StreamReader(OASISDNAPath))
+            try
             {
-                string json = r.ReadToEnd();
-                OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
-                return OASISDNA;
+                if (string.IsNullOrEmpty(OASISDNAPath))
+                    throw new ArgumentNullException("OASISDNAPath", "OASISDNAPath cannot be null.");
+
+                OASISDNAManager.OASISDNAPath = OASISDNAPath;
+
+                using (StreamReader r = new StreamReader(OASISDNAPath))
+                {
+                    string json = r.ReadToEnd();
+                    OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
+                    return OASISDNA;
+                }
+            }
+            catch (Exception ex)
+            {
+                return null; //TODO: Need to convert this to OASISResult ASAP and return error from exception.
             }
         }
 
@@ -36,21 +43,28 @@ namespace NextGenSoftware.OASIS.API.DNA
 
         public static bool SaveDNA(string OASISDNAPath, OASISDNA OASISDNA)
         {
-            if (string.IsNullOrEmpty(OASISDNAPath))
-                throw new ArgumentNullException("OASISDNAPath", "OASISDNAPath cannot be null.");
+            try
+            {
+                if (string.IsNullOrEmpty(OASISDNAPath))
+                    throw new ArgumentNullException("OASISDNAPath", "OASISDNAPath cannot be null.");
 
-            if (OASISDNA == null)
-                throw new ArgumentNullException("OASISDNA", "OASISDNA cannot be null.");
+                if (OASISDNA == null)
+                    throw new ArgumentNullException("OASISDNA", "OASISDNA cannot be null.");
 
-            OASISDNAManager.OASISDNA = OASISDNA;
-            OASISDNAManager.OASISDNAPath = OASISDNAPath;
+                OASISDNAManager.OASISDNA = OASISDNA;
+                OASISDNAManager.OASISDNAPath = OASISDNAPath;
 
-            string json = JsonConvert.SerializeObject(OASISDNA);
-            StreamWriter writer = new StreamWriter(OASISDNAPath);
-            writer.Write(json);
-            writer.Close();
+                string json = JsonConvert.SerializeObject(OASISDNA);
+                StreamWriter writer = new StreamWriter(OASISDNAPath);
+                writer.Write(json);
+                writer.Close();
 
-            return true;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false; //TODO: Need to convert this to OASISResult ASAP and return error from exception.
+            }
         }
     }
 }

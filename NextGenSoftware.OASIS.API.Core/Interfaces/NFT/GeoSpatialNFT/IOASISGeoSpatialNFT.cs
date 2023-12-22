@@ -15,5 +15,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT
         bool PermSpawn { get; set; }
         int GlobalSpawnQuantity { get; set; }
         int PlayerSpawnQuantity { get; set; }
+
+        int RepawnDurationInSeconds { get; set; }
     }
 }

@@ -11,16 +11,18 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
     {
         public bool IsOASISBooted { get; set; }
         public AvatarManager Avatar { get; set; }
+        public HolonManager Data { get; set; }
         public KeyManager Keys { get; set; }
         public WalletManager Wallets { get; set; }
-        public HolonManager Data { get; set; }
+        public NFTManager NFTs { get; set; }
+        public OASISProviders Providers { get; private set; }
+        public SearchManager Search { get; set; }
         public MapManager Map { get; set; }
         public MissionManager Missions { get; set; }
         public QuestManager Quests { get; set; }
         public ParkManager Parks { get; set; }
-        public OLANDManager OLAND { get; set; }
-        public SearchManager Search { get; set; }
-        public OASISProviders Providers { get; private set; }
+        public OLandManager OLAND { get; set; }
+       
 
         public OASISResult<bool> BootOASIS(OASISDNA OASISDNA, bool startApolloServer = true)
         {
@@ -68,16 +70,17 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 
         private void BootOASIS(bool startApolloServer = true)
         {
-            Map = new MapManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-            Missions = new MissionManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-            Quests = new QuestManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-            Parks = new ParkManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-            OLAND = new OLANDManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-            Search = new SearchManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Avatar = new AvatarManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Data = new HolonManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Keys = new KeyManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Wallets = new WalletManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            NFTs = new NFTManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            Map = new MapManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            Missions = new MissionManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            Quests = new QuestManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            Parks = new ParkManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            OLAND = new OLandManager(NFTs, ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            Search = new SearchManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
 
             Providers = new OASISProviders(OASISBootLoader.OASISBootLoader.OASISDNA);
 

@@ -26,7 +26,7 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
         {
             // not logged in or role not authorized
             //context.Result = new JsonResult(new { message = "Unauthorized. Try Logging In First With api/avatar/auth REST API Route." }) { StatusCode = StatusCodes.Status401Unauthorized };
-            context.Result = new JsonResult(new OASISResult<bool>(false) { IsError = true, Message = "Unauthorized. Try Logging In First With api/avatar/auth REST API Route." });            
+            context.Result = new JsonResult(new OASISResult<bool>(false) { IsError = true, Message = "Unauthorized. Try Logging In First With api/avatar/authenticate REST API Route." });            
         }
     }
 }
