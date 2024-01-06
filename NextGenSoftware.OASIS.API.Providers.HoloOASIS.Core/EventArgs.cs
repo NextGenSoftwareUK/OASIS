@@ -1,6 +1,6 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client;
+﻿using System;
+using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using System;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
