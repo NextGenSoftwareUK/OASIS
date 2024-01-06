@@ -1,74 +1,75 @@
 ﻿
+using System;
+using System.Collections.Generic;
 using NextGenSoftware.Holochain.HoloNET.Client;
+using NextGenSoftware.Holochain.HoloNET.ORM.Entries;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using System;
-using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
-    public class HcAvatarDetail : HoloNETAuditEntryBaseClass, IHcAvatarDetail
+    public class HcAvatarDetail : HoloNETAuditEntryBase, IHcAvatarDetail
     {
         public HcAvatarDetail() : base("oasis", "get_entry_avatar_detail", "create_entry_avatar_detail", "update_entry_avatar_detail", "delete_entry_avatar_detail") { }
         public HcAvatarDetail(HoloNETClient holoNETClient) : base("oasis", "get_entry_avatar_detail", "create_entry_avatar_detail", "update_entry_avatar_detail", "delete_entry_avatar_detail", holoNETClient) { }
 
         #region IAvatarDetail Properties
 
-        [HolochainFieldName("id")]
+        [HolochainRustFieldName("id")]
         public Guid Id { get; set; }
 
-        [HolochainFieldName("username")]
+        [HolochainRustFieldName("username")]
         public string Username { get; set; }
 
-        [HolochainFieldName("email")]
+        [HolochainRustFieldName("email")]
         public string Email { get; set; }
 
-        [HolochainFieldName("karma")]
+        [HolochainRustFieldName("karma")]
         public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
 
-        [HolochainFieldName("level")]
+        [HolochainRustFieldName("level")]
         public int Level { get; set; }
 
-        [HolochainFieldName("xp")]
+        [HolochainRustFieldName("xp")]
         public int XP { get; set; }
 
-        [HolochainFieldName("model_3d")]
+        [HolochainRustFieldName("model_3d")]
         public string Model3D { get; set; }
 
-        [HolochainFieldName("uma_json")]
+        [HolochainRustFieldName("uma_json")]
         public string UmaJson { get; set; }
 
-        [HolochainFieldName("portrait")]
+        [HolochainRustFieldName("portrait")]
         public string Portrait { get; set; }
 
-        [HolochainFieldName("dob")]
+        [HolochainRustFieldName("dob")]
         public string DOB { get; set; }
 
-        [HolochainFieldName("address")]
+        [HolochainRustFieldName("address")]
         public string Address { get; set; }
 
-        [HolochainFieldName("town")]
+        [HolochainRustFieldName("town")]
         public string Town { get; set; }
 
-        [HolochainFieldName("county")]
+        [HolochainRustFieldName("county")]
         public string County { get; set; }
 
-        [HolochainFieldName("country")]
+        [HolochainRustFieldName("country")]
         public string Country { get; set; }
 
-        [HolochainFieldName("post_code")]
+        [HolochainRustFieldName("post_code")]
         public string Postcode { get; set; }
 
-        [HolochainFieldName("landline")]
+        [HolochainRustFieldName("landline")]
         public string Landline { get; set; }
 
-        [HolochainFieldName("mobile")]
+        [HolochainRustFieldName("mobile")]
         public string Mobile { get; set; }
 
-        [HolochainFieldName("achievements")]
+        [HolochainRustFieldName("achievements")]
         public IList<IAchievement> Achievements { get; set; }
         public IAvatarAttributes Attributes { get; set; }
         public IAvatarAura Aura { get; set; }
