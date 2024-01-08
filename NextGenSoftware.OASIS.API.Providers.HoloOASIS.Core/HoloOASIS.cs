@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
+using NextGenSoftware.Holochain.HoloNET.Client.Data.Admin.Requests.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
@@ -29,7 +30,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         private const string ZOME_LOAD_AVATAR_DETAIL_BY_ID_FUNCTION = "get_entry_avatar_detail_by_id";
         private const string ZOME_LOAD_AVATAR_DETAIL_BY_USERNAME_FUNCTION = "get_entry_avatar_detail_by_username";
         private const string ZOME_LOAD_AVATAR_DETAIL_BY_EMAIL_FUNCTION = "get_entry_avatar_detail_by_email";
-        private const string ZOME_LOAD_HOLON_FUNCTION_BY_ID = "get_entry_holon_by_id";        
+        private const string ZOME_LOAD_HOLON_FUNCTION_BY_ID = "get_entry_holon_by_id";
+        private string _holochainConductorAppAgentURI = "";
 
         private bool _useReflection = false;
         public delegate void Initialized(object sender, EventArgs e);
@@ -45,19 +47,29 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         public delegate void HoloOASISError(object sender, HoloOASISErrorEventArgs e);
         public event HoloOASISError OnHoloOASISError;
 
-        public HoloNETClient HoloNETClient { get; private set; }
+        public HoloNETClient HoloNETClientAdmin { get; private set; }
+        public HoloNETClient HoloNETClientAppAgent { get; private set; }
 
-        public HoloOASIS(HoloNETClient holoNETClient, bool useReflection = true)
+        public HoloOASIS(HoloNETClient holoNETClientAdmin, HoloNETClient holoNETClientAppAgent, bool useReflection = true)
         {
             _useReflection = useReflection;
-            this.HoloNETClient = holoNETClient;
+            this.HoloNETClientAdmin = holoNETClientAdmin;
+            this.HoloNETClientAppAgent = holoNETClientAppAgent;
             Initialize();
         }
 
-        public HoloOASIS(string holochainConductorURI, bool useReflection = true)
+        public HoloOASIS(string holochainConductorAdminURI, bool useReflection = true)
         {
             _useReflection = useReflection;
-            HoloNETClient = new HoloNETClient(new HoloNETDNA() { HolochainConductorAppAgentURI = holochainConductorURI });
+            HoloNETClientAdmin = new HoloNETClient(new HoloNETDNA() { HolochainConductorAdminURI = holochainConductorAdminURI });
+            Initialize();
+        }
+
+        public HoloOASIS(string holochainConductorAdminURI, string holochainConductorAppAgentURI, bool useReflection = true)
+        {
+            _useReflection = useReflection;
+            _holochainConductorAppAgentURI = holochainConductorAppAgentURI;
+            HoloNETClientAdmin = new HoloNETClient(new HoloNETDNA() { HolochainConductorAdminURI = holochainConductorAdminURI});
             Initialize();
         }
 
@@ -71,18 +83,65 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         #region IOASISStorageProvider Implementation
 
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            if (!HoloNETClientAdmin.IsConnecting)
+            {
+                await HoloNETClientAdmin.ConnectAdminAsync();
+                await HoloNETClientAdmin.AdminGenerateAgentPubKeyAsync();
+                //await HoloNETClientAdmin.AdminInstallAppAsync()
+                //await HoloNETClientAdmin.AdminEnableAppAsync();
+                await HoloNETClientAdmin.AdminAuthorizeSigningCredentialsAndGrantZomeCallCapabilityAsync(HoloNETClientAppAgent.HoloNETDNA.CellId, CapGrantAccessType.Assigned, GrantedFunctionsType.All);
+
+                AdminAppInterfaceAttachedCallBackEventArgs attachedResult;
+
+                if (string.IsNullOrEmpty(_holochainConductorAppAgentURI))
+                    attachedResult = await HoloNETClientAdmin.AdminAttachAppInterfaceAsync();
+                else
+                    attachedResult = await HoloNETClientAdmin.AdminAttachAppInterfaceAsync(Convert.ToUInt16(new Uri(_holochainConductorAppAgentURI).Port));
+
+                if (attachedResult != null && !attachedResult.IsError)
+                {
+                    if (string.IsNullOrEmpty(_holochainConductorAppAgentURI))
+                        _holochainConductorAppAgentURI = $"ws://127.0.0.1/{attachedResult.Port}";
+
+                    HoloNETClientAppAgent = new HoloNETClient(new HoloNETDNA() { HolochainConductorAppAgentURI = _holochainConductorAppAgentURI });
+                    await HoloNETClientAppAgent.ConnectAsync();
+                }
+            }
+
+            return await base.ActivateProviderAsync();
+        }
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            if (!HoloNETClientAdmin.IsDisconnecting)
+                await HoloNETClientAdmin.DisconnectAsync();
+
+            if (!HoloNETClientAppAgent.IsDisconnecting)
+                await HoloNETClientAppAgent.DisconnectAsync();
+
+            // HoloNETClientAppAgent = null;
+            return await base.DeActivateProviderAsync();
+        }
+
         public override OASISResult<bool> ActivateProvider()
         {
-            if (HoloNETClient.State != System.Net.WebSockets.WebSocketState.Open && HoloNETClient.State != System.Net.WebSockets.WebSocketState.Connecting)
-                HoloNETClient.Connect();
+            if (!HoloNETClientAppAgent.IsConnecting)
+                HoloNETClientAppAgent.Connect();
 
             return base.ActivateProvider();
         }
 
         public override OASISResult<bool> DeActivateProvider()
         {
-            HoloNETClient.Disconnect();
-            // HoloNETClient = null;
+            if (!HoloNETClientAdmin.IsDisconnecting)
+                HoloNETClientAdmin.Disconnect();
+
+            if (!HoloNETClientAppAgent.IsDisconnecting)
+                HoloNETClientAppAgent.Disconnect();
+
+            // HoloNETClientAppAgent = null;
             return base.DeActivateProvider();
         }
 
@@ -868,7 +927,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             try
             {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClientAppAgent);
                 ZomeFunctionCallBackEventArgs response = null;
 
                 if (hcAvatar != null)
@@ -938,7 +997,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             try
             {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClientAppAgent);
                 ZomeFunctionCallBackEventArgs response = null;
 
                 if (hcAvatar != null)
@@ -1006,7 +1065,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         //    try
         //    {
-        //        HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+        //        HcAvatar hcAvatar = new HcAvatar(HoloNETClientAppAgent);
         //        ZomeFunctionCallBackEventArgs response = null;
 
         //        if (hcAvatar != null)
@@ -1034,7 +1093,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         //    try
         //    {
-        //        HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+        //        HcAvatar hcAvatar = new HcAvatar(HoloNETClientAppAgent);
         //        ZomeFunctionCallBackEventArgs response = null;
 
         //        if (hcAvatar != null)
@@ -1062,7 +1121,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         //    try
         //    {
-        //        HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+        //        HcAvatar hcAvatar = new HcAvatar(HoloNETClientAppAgent);
         //        ZomeFunctionCallBackEventArgs response = null;
 
         //        if (hcAvatar != null)
@@ -1143,7 +1202,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         //    try
         //    {
-        //        HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+        //        HcAvatar hcAvatar = new HcAvatar(HoloNETClientAppAgent);
         //        ZomeFunctionCallBackEventArgs response = null;
 
         //        if (hcAvatar != null)
@@ -1227,11 +1286,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 switch (hcObjectType)
                 {
                     case HcObjectTypeEnum.Avatar:
-                        hcObject = new HcAvatar(HoloNETClient);
+                        hcObject = new HcAvatar(HoloNETClientAppAgent);
                         break;
 
                     case HcObjectTypeEnum.AvatarDetail:
-                        hcObject = new HcAvatarDetail(HoloNETClient);
+                        hcObject = new HcAvatarDetail(HoloNETClientAppAgent);
                         break;
 
                     //case HcObjectTypeEnum.Holon:
@@ -1264,11 +1323,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 switch (hcObjectType)
                 {
                     case HcObjectTypeEnum.Avatar:
-                        hcObject = new HcAvatar(HoloNETClient);
+                        hcObject = new HcAvatar(HoloNETClientAppAgent);
                         break;
 
                     case HcObjectTypeEnum.AvatarDetail:
-                        hcObject = new HcAvatarDetail(HoloNETClient);
+                        hcObject = new HcAvatarDetail(HoloNETClientAppAgent);
                         break;
 
                         //case HcObjectTypeEnum.Holon:
@@ -1302,11 +1361,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 switch (hcObjectType)
                 {
                     case HcObjectTypeEnum.Avatar:
-                        hcObject = new HcAvatar(HoloNETClient);
+                        hcObject = new HcAvatar(HoloNETClientAppAgent);
                         break;
 
                     case HcObjectTypeEnum.AvatarDetail:
-                        hcObject = new HcAvatarDetail(HoloNETClient);
+                        hcObject = new HcAvatarDetail(HoloNETClientAppAgent);
                         break;
                 }
 
@@ -1367,11 +1426,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 switch (hcObjectType)
                 {
                     case HcObjectTypeEnum.Avatar:
-                        hcObject = new HcAvatar(HoloNETClient);
+                        hcObject = new HcAvatar(HoloNETClientAppAgent);
                         break;
 
                     case HcObjectTypeEnum.AvatarDetail:
-                        hcObject = new HcAvatarDetail(HoloNETClient);
+                        hcObject = new HcAvatarDetail(HoloNETClientAppAgent);
                         break;
                 }
 
@@ -1427,7 +1486,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             try
             {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClientAppAgent);
 
                 if (!string.IsNullOrEmpty(zomeDeleteFunctionName))
                     hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_AVATAR_BY_ID_FUNCTION;
@@ -1450,7 +1509,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             try
             {
-                HcAvatar hcAvatar = new HcAvatar(HoloNETClient);
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClientAppAgent);
 
                 if (!string.IsNullOrEmpty(zomeDeleteFunctionName))
                     hcAvatar.ZomeDeleteEntryFunction = ZOME_DELETE_AVATAR_BY_ID_FUNCTION;
@@ -1586,9 +1645,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         /// <param name="holoNETEventArgs"></param>
         private void HandleError(string reason, Exception errorDetails, HoloNETErrorEventArgs holoNETEventArgs)
         {
-            //OnStorageProviderError?.Invoke(this, new AvatarManagerErrorEventArgs { EndPoint = this.HoloNETClient.EndPoint, Reason = string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""), ErrorDetails = errorDetails });
-            OnStorageProviderError(HoloNETClient.EndPoint.AbsoluteUri, string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""), errorDetails);
-            OnHoloOASISError?.Invoke(this, new HoloOASISErrorEventArgs() { EndPoint = HoloNETClient.EndPoint.AbsoluteUri, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
+            //OnStorageProviderError?.Invoke(this, new AvatarManagerErrorEventArgs { EndPoint = this.HoloNETClientAppAgent.EndPoint, Reason = string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""), ErrorDetails = errorDetails });
+            OnStorageProviderError(HoloNETClientAppAgent.EndPoint.AbsoluteUri, string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""), errorDetails);
+            OnHoloOASISError?.Invoke(this, new HoloOASISErrorEventArgs() { EndPoint = HoloNETClientAppAgent.EndPoint.AbsoluteUri, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
         }
 
         public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)

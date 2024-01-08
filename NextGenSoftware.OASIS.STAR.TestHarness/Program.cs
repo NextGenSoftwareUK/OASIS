@@ -32,8 +32,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
     class Program
     {
         private const string defaultGenesisNamespace = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
-        private const string celestialBodyDNAFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
-        private const string geneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net7.0\\Genesis";
+        private const string celestialBodyDNAFolder = "C:\\Users\\user\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
+        private const string geneisFolder = "C:\\Users\\user\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net8.0\\Genesis";
         private const OAPPType DefaultOAPPType = OAPPType.Console;
 
         private static Planet _superWorld;
@@ -824,7 +824,12 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             message = $"{message} ...";
 
             CLIEngine.ShowWorkingMessage(message);
-            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPType, genesisType, name, parentCelestialBody, celestialBodyDNAFolder, genesisFolder, genesisNameSpace).Result;
+
+            //Allows the celestialBodyDNAFolder, genesisFolder & genesisNameSpace params to be passed in overridng what is in the STARDNA.json file.
+            //OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPType, genesisType, name, parentCelestialBody, celestialBodyDNAFolder, genesisFolder, genesisNameSpace).Result;
+
+            //Will use settings in the STARDNA.json file.
+            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPType, genesisType, name, parentCelestialBody).Result;
 
             if (lightResult.IsError)
                 CLIEngine.ShowErrorMessage(string.Concat(" ERROR OCCURED. Error Message: ", lightResult.Message));

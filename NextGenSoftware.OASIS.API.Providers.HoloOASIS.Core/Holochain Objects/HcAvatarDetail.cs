@@ -99,37 +99,37 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         public string Name { get; set; }
         public string Description { get; set; }
 
-        [HolochainFieldName("holon_type")]
+        [HolochainRustFieldName("holon_type")]
         public HolonType HolonType { get; set; }
 
-        [HolochainFieldName("provider_key")]
+        [HolochainRustFieldName("provider_key")]
         public string ProviderUniqueStorageKey { get; set; }
 
-        [HolochainFieldName("previous_version_provider_unique_storage_key")]
+        [HolochainRustFieldName("previous_version_provider_unique_storage_key")]
         public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get; set; }
 
-        [HolochainFieldName("provider_wallets")]
+        [HolochainRustFieldName("provider_wallets")]
         public Dictionary<ProviderType, List<IProviderWallet>> ProviderWallets { get; set; }
 
-        [HolochainFieldName("provider_username")]
+        [HolochainRustFieldName("provider_username")]
         public Dictionary<ProviderType, string> ProviderUsername { get; set; }
 
-        [HolochainFieldName("provider_meta_data")]
+        [HolochainRustFieldName("provider_meta_data")]
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; }
 
-        [HolochainFieldName("meta_data")]
+        [HolochainRustFieldName("meta_data")]
         public Dictionary<string, string> MetaData { get; set; }
 
-        [HolochainFieldName("version")]
+        [HolochainRustFieldName("version")]
         public int Version { get; set; }
 
-        [HolochainFieldName("version_id")]
+        [HolochainRustFieldName("version_id")]
         public Guid VersionId { get; set; }
 
-        [HolochainFieldName("previous_version_id")]
+        [HolochainRustFieldName("previous_version_id")]
         public Guid PreviousVersionId { get; set; }
 
-        [HolochainFieldName("is_active")]
+        [HolochainRustFieldName("is_active")]
         public bool IsActive { get; set; }
 
 
@@ -141,10 +141,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         //Guid DeletedByAvatarId { get; set; }
         //DateTime DeletedDate { get; set; }
 
-        [HolochainFieldName("created_provider_type")]
+        [HolochainRustFieldName("created_provider_type")]
         public EnumValue<ProviderType> CreatedProviderType { get; set; }
 
-        [HolochainFieldName("created_oasis_type")]
+        [HolochainRustFieldName("created_oasis_type")]
         public EnumValue<OASISType> CreatedOASISType { get; set; }
 
         #endregion

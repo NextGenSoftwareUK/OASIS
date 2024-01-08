@@ -166,8 +166,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
 
         private void ReleaseUnmanagedResources()
         {
-            _httpClient.CancelPendingRequests();
-            _httpClient.Dispose();
+            try
+            {
+                _httpClient.CancelPendingRequests();
+                _httpClient.Dispose();
+            }
+            catch 
+            { 
+            
+            }
         }
 
         ~EosClient()
