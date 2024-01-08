@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string CelestialBodyDNA = @"NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
         //public string GenesisRustFolder = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\Rust";
         //public string GenesisCSharpFolder = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\CSharp";
-        public string GenesisFolder = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net7.0\Genesis";
+        public string GenesisFolder = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net8.0\Genesis";
         public string GenesisNamespace = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
         public string TemplateNamespace = "NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates";
         public string RustTemplateLib = @"core\lib.rs";

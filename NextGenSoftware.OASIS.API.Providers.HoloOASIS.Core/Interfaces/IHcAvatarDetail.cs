@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using NextGenSoftware.Holochain.HoloNET.Client;
+using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
-    public interface IHcAvatarDetail : IHoloNETAuditEntryBaseClass // : IHcObject
+    public interface IHcAvatarDetail : IHoloNETAuditEntryBase // : IHcObject
     {
         #region IAvatarDetail Properties
         Guid Id { get; set; }

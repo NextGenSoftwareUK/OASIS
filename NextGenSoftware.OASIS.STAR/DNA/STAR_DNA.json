@@ -6,7 +6,7 @@
   "CelestialBodyDNA": "NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA",
   //"GenesisRustFolder": "NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net7.0\\Genesis\\Rust",
   //"GenesisCSharpFolder": "NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net7.0\\Genesis\\CSharp",
-  "GenesisFolder": "NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net7.0\\Genesis",
+  "GenesisFolder": "NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net8.0\\Genesis",
   "GenesisNamespace": "NextGenSoftware.OASIS.STAR.TestHarness.Genesis",
   "TemplateNamespace": "NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates",
   "RustTemplateLib": "core\\lib.rs",
