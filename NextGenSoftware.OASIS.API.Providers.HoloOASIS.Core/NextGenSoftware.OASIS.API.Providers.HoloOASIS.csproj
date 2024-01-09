@@ -27,6 +27,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="OASIS hAPP\**" />
+    <EmbeddedResource Remove="OASIS hAPP\**" />
+    <None Remove="OASIS hAPP\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="OASIS_hAPP\oasis.happ" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="OASIS_hAPP\oasis.happ">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg" Link="OASISLogo128.jpg">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>

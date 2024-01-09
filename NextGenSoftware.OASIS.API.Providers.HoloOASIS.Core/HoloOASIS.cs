@@ -21,6 +21,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
     public class HoloOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar, IOASISLocalStorageProvider
     {
+        private const string OASIS_HAPP_ID = "oasis";
+        private const string OASIS_HAPP_PATH = "OASIS_hAPP\\oasis.happ";
         private const string ZOME_LOAD_AVATAR_BY_ID_FUNCTION = "get_entry_avatar_by_id";
         private const string ZOME_LOAD_AVATAR_BY_USERNAME_FUNCTION = "get_entry_avatar_by_username";
         private const string ZOME_LOAD_AVATAR_BY_EMAIL_FUNCTION = "get_entry_avatar_by_email";
@@ -87,26 +89,34 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             if (!HoloNETClientAdmin.IsConnecting)
             {
-                await HoloNETClientAdmin.ConnectAdminAsync();
-                await HoloNETClientAdmin.AdminGenerateAgentPubKeyAsync();
-                //await HoloNETClientAdmin.AdminInstallAppAsync()
-                //await HoloNETClientAdmin.AdminEnableAppAsync();
-                await HoloNETClientAdmin.AdminAuthorizeSigningCredentialsAndGrantZomeCallCapabilityAsync(HoloNETClientAppAgent.HoloNETDNA.CellId, CapGrantAccessType.Assigned, GrantedFunctionsType.All);
+                HoloNETConnectEventArgs connectResult = await HoloNETClientAdmin.ConnectAdminAsync();
 
-                AdminAppInterfaceAttachedCallBackEventArgs attachedResult;
-
-                if (string.IsNullOrEmpty(_holochainConductorAppAgentURI))
-                    attachedResult = await HoloNETClientAdmin.AdminAttachAppInterfaceAsync();
-                else
-                    attachedResult = await HoloNETClientAdmin.AdminAttachAppInterfaceAsync(Convert.ToUInt16(new Uri(_holochainConductorAppAgentURI).Port));
-
-                if (attachedResult != null && !attachedResult.IsError)
+                if (connectResult != null && connectResult.IsConnected)
                 {
-                    if (string.IsNullOrEmpty(_holochainConductorAppAgentURI))
-                        _holochainConductorAppAgentURI = $"ws://127.0.0.1/{attachedResult.Port}";
+                    AdminAgentPubKeyGeneratedCallBackEventArgs keyResult = await HoloNETClientAdmin.AdminGenerateAgentPubKeyAsync();
 
-                    HoloNETClientAppAgent = new HoloNETClient(new HoloNETDNA() { HolochainConductorAppAgentURI = _holochainConductorAppAgentURI });
-                    await HoloNETClientAppAgent.ConnectAsync();
+                    if (keyResult != null && !keyResult.IsError)
+                    {
+                        await HoloNETClientAdmin.AdminInstallAppAsync(OASIS_HAPP_ID, OASIS_HAPP_PATH);
+                        await HoloNETClientAdmin.AdminEnableAppAsync(OASIS_HAPP_ID);
+                        await HoloNETClientAdmin.AdminAuthorizeSigningCredentialsAndGrantZomeCallCapabilityAsync(HoloNETClientAppAgent.HoloNETDNA.CellId, CapGrantAccessType.Assigned, GrantedFunctionsType.All);
+
+                        AdminAppInterfaceAttachedCallBackEventArgs attachedResult;
+
+                        if (string.IsNullOrEmpty(_holochainConductorAppAgentURI))
+                            attachedResult = await HoloNETClientAdmin.AdminAttachAppInterfaceAsync();
+                        else
+                            attachedResult = await HoloNETClientAdmin.AdminAttachAppInterfaceAsync(Convert.ToUInt16(new Uri(_holochainConductorAppAgentURI).Port));
+
+                        if (attachedResult != null && !attachedResult.IsError)
+                        {
+                            if (string.IsNullOrEmpty(_holochainConductorAppAgentURI))
+                                _holochainConductorAppAgentURI = $"ws://127.0.0.1/{attachedResult.Port}";
+
+                            HoloNETClientAppAgent = new HoloNETClient(new HoloNETDNA() { HolochainConductorAppAgentURI = _holochainConductorAppAgentURI });
+                            await HoloNETClientAppAgent.ConnectAsync();
+                        }
+                    }
                 }
             }
 
