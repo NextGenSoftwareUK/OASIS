@@ -2120,7 +2120,7 @@ https://www.thejusticeleagueaccademy.icu <br/>
 |Facebook| http://www.facebook.com/ourworldthegame  |
 |Twitter | http://www.twitter.com/ourworldthegame |
 |YouTube| https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA | 
-|Discord| https://discord.gg/q9gMKU6 |
+|Discord| https://discord.gg/RU6Z8YJ |
 |Hylo| https://www.hylo.com/c/ourworld |
 |Telegram| https://t.me/ourworldthegamechat (General Chat) |
 || https://t.me/ourworldthegame (Announcements) |
