@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!avatarDetailOriginalResult.IsError && avatarDetailOriginalResult.Result != null)
                 result = await UpdateAvatarDetailAsync(avatarDetailOriginalResult.Result, avatarDetail, errorMessage);
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage}{avatarDetailOriginalResult.Message}", avatarDetailOriginalResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{avatarDetailOriginalResult.Message}", avatarDetailOriginalResult.DetailedMessage);
 
             return result;
         }
@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!avatarDetailOriginalResult.IsError && avatarDetailOriginalResult.Result != null)
                 result = await UpdateAvatarDetailAsync(avatarDetailOriginalResult.Result, avatarDetail, errorMessage);
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage}{avatarDetailOriginalResult.Message}", avatarDetailOriginalResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{avatarDetailOriginalResult.Message}", avatarDetailOriginalResult.DetailedMessage);
 
             return result;
         }
@@ -47,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!avatarDetailOriginalResult.IsError && avatarDetailOriginalResult.Result != null)
                 result = await UpdateAvatarDetailAsync(avatarDetailOriginalResult.Result, avatarDetail, errorMessage);
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage}{avatarDetailOriginalResult.Message}", avatarDetailOriginalResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{avatarDetailOriginalResult.Message}", avatarDetailOriginalResult.DetailedMessage);
 
             return result;
         }

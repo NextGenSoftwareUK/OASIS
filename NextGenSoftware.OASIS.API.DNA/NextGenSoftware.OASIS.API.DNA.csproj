@@ -36,6 +36,17 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Logging\NextGenSoftware.Logging.csproj" />
+	  <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core.ErrorHandling\NextGenSoftware.OASIS.API.Core.ErrorHandling.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="NextGenSoftware.OASIS.API.Core">
+	    <HintPath>..\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\OASIS Runtime\2.3.1\NextGenSoftware.OASIS.API.Core.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+
   <ItemGroup>
     <None Update="README.md">
       <PackagePath>\</PackagePath>

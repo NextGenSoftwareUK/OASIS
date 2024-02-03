@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if ((result.IsError || result.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
-                ErrorHandling.HandleError(ref result, result.Message);
+                OASISErrorHandling.HandleError(ref result, result.Message);
                 result.InnerMessages.Add(result.Message);
                 result.IsWarning = true;
                 result.IsError = false;
@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if ((holonSaveResult.IsError || holonSaveResult.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
-                ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+                OASISErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
                 result.InnerMessages.Add(result.Message);
                 result.IsWarning = true;
                 result.IsError = false;
@@ -101,7 +101,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if ((result.IsError || result.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
-                ErrorHandling.HandleError(ref result, result.Message);
+                OASISErrorHandling.HandleError(ref result, result.Message);
                 result.InnerMessages.Add(result.Message);
                 result.IsWarning = true;
                 result.IsError = false;
@@ -141,7 +141,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if ((holonSaveResult.IsError || holonSaveResult.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
-                ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+                OASISErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
                 result.InnerMessages.Add(holonSaveResult.Message);
                 result.IsWarning = true;
                 result.IsError = false;
@@ -191,7 +191,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if ((result.IsError || result.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
-                ErrorHandling.HandleError(ref result, result.Message);
+                OASISErrorHandling.HandleError(ref result, result.Message);
                 result.InnerMessages.Add(result.Message);
                 result.IsWarning = true;
                 result.IsError = false;
@@ -243,7 +243,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if ((holonSaveResult.IsError || holonSaveResult.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
-                ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+                OASISErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
                 result.InnerMessages.Add(holonSaveResult.Message);
                 result.IsWarning = true;
                 result.IsError = false;
@@ -300,7 +300,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if ((result.IsError || result.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
-                ErrorHandling.HandleError(ref result, result.Message);
+                OASISErrorHandling.HandleError(ref result, result.Message);
                 result.InnerMessages.Add(result.Message);
                 result.IsWarning = true;
                 result.IsError = false;
@@ -352,7 +352,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if ((holonSaveResult.IsError || holonSaveResult.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
-                ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+                OASISErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
                 result.InnerMessages.Add(holonSaveResult.Message);
                 result.IsWarning = true;
                 result.IsError = false;

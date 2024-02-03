@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
     public class HcAvatarDetail : HoloNETAuditEntryBase, IHcAvatarDetail
     {
         public HcAvatarDetail() : base("oasis", "get_entry_avatar_detail", "create_entry_avatar_detail", "update_entry_avatar_detail", "delete_entry_avatar_detail") { }
-        public HcAvatarDetail(HoloNETClient holoNETClient) : base("oasis", "get_entry_avatar_detail", "create_entry_avatar_detail", "update_entry_avatar_detail", "delete_entry_avatar_detail", holoNETClient) { }
+        public HcAvatarDetail(HoloNETClientAppAgent holoNETClient) : base("oasis", "get_entry_avatar_detail", "create_entry_avatar_detail", "update_entry_avatar_detail", "delete_entry_avatar_detail", holoNETClient) { }
 
         #region IAvatarDetail Properties
 

@@ -24,10 +24,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.IsSaved = true;
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result.Result;
 
@@ -55,13 +55,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsSaved = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result.Result;
 
@@ -97,13 +97,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsSaved = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result;
 
@@ -152,10 +152,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.IsSaved = true;
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result.Result;
         }
@@ -180,13 +180,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsSaved = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result.Result;
 
@@ -216,10 +216,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.IsSaved = true;
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result.Result;
         }
@@ -244,13 +244,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsSaved = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result;
         }

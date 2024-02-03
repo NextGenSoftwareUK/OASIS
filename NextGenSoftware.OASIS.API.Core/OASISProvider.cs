@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public EnumValue<ProviderType> ProviderType { get; set; }
         //public bool ProviderActivated { get; set; }
-        public bool IsProviderActivated { get; private set; }
+        public bool? IsProviderActivated { get; set; }
 
         public OASISProvider()
         {
@@ -67,13 +67,17 @@ namespace NextGenSoftware.OASIS.API.Core
 
         virtual public async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            IsProviderActivated = true;
+            if (!IsProviderActivated.HasValue) 
+                IsProviderActivated = true;
+
             return new OASISResult<bool>(true);
         }
 
         virtual public async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            IsProviderActivated = false;
+            if (!IsProviderActivated.HasValue)
+                IsProviderActivated = true;
+
             return new OASISResult<bool>(true);
         }
     }

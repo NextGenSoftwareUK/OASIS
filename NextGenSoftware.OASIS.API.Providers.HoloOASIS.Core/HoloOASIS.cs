@@ -7,15 +7,15 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
-using NextGenSoftware.Holochain.HoloNET.Client.Data.Admin.Requests.Objects;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
@@ -49,10 +49,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         public delegate void HoloOASISError(object sender, HoloOASISErrorEventArgs e);
         public event HoloOASISError OnHoloOASISError;
 
-        public HoloNETClient HoloNETClientAdmin { get; private set; }
-        public HoloNETClient HoloNETClientAppAgent { get; private set; }
+        public HoloNETClientAdmin HoloNETClientAdmin { get; private set; }
+        public HoloNETClientAppAgent HoloNETClientAppAgent { get; private set; }
 
-        public HoloOASIS(HoloNETClient holoNETClientAdmin, HoloNETClient holoNETClientAppAgent, bool useReflection = true)
+        public HoloOASIS(HoloNETClientAdmin holoNETClientAdmin, HoloNETClientAppAgent holoNETClientAppAgent, bool useReflection = true)
         {
             _useReflection = useReflection;
             this.HoloNETClientAdmin = holoNETClientAdmin;
@@ -63,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         public HoloOASIS(string holochainConductorAdminURI, bool useReflection = true)
         {
             _useReflection = useReflection;
-            HoloNETClientAdmin = new HoloNETClient(new HoloNETDNA() { HolochainConductorAdminURI = holochainConductorAdminURI });
+            HoloNETClientAdmin = new HoloNETClientAdmin(new HoloNETDNA() { HolochainConductorAdminURI = holochainConductorAdminURI });
             Initialize();
         }
 
@@ -71,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             _useReflection = useReflection;
             _holochainConductorAppAgentURI = holochainConductorAppAgentURI;
-            HoloNETClientAdmin = new HoloNETClient(new HoloNETDNA() { HolochainConductorAdminURI = holochainConductorAdminURI});
+            HoloNETClientAdmin = new HoloNETClientAdmin(new HoloNETDNA() { HolochainConductorAdminURI = holochainConductorAdminURI});
             Initialize();
         }
 
@@ -81,6 +81,24 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             this.ProviderDescription = "Holochain Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HoloOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+
+            if (HoloNETClientAppAgent == null)
+                HoloNETClientAppAgent = new HoloNETClientAppAgent();
+   
+            HoloNETClientAdmin.OnConnected += HoloNETClientAdmin_OnConnected;
+        }
+
+        private void HoloNETClientAdmin_OnConnected(object sender, WebSocket.ConnectedEventArgs e)
+        {
+            //InstallEnableSignAndAttachHappEventArgs installedAppResult = HoloNETClientAdmin.InstallEnableSignAndAttachHapp(OASIS_HAPP_ID, OASIS_HAPP_PATH, CapGrantAccessType.Unrestricted, Holochain.HoloNET.Client.Data.Admin.Requests.Objects.GrantedFunctionsType.All, null, true, true, (logMessage, logType) =>LoggingManager.Log(logMessage, logType));
+
+            //if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
+            //{
+            //    HoloNETConnectEventArgs appAgentConnectedResult = HoloNETClientAppAgent.Connect($"ws://127.0.0.1:{installedAppResult.AttachedOnPort}");
+
+            //    if (appAgentConnectedResult != null && appAgentConnectedResult.IsConnected)
+            //        IsProviderActivated = true;
+            //}
         }
 
         #region IOASISStorageProvider Implementation
@@ -89,39 +107,34 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             if (!HoloNETClientAdmin.IsConnecting)
             {
-                HoloNETConnectEventArgs connectResult = await HoloNETClientAdmin.ConnectAdminAsync();
+                HoloNETConnectedEventArgs adminConnectResult = await HoloNETClientAdmin.ConnectAsync();
 
-                if (connectResult != null && connectResult.IsConnected)
+                if (adminConnectResult != null && adminConnectResult.IsConnected)
                 {
-                    AdminAgentPubKeyGeneratedCallBackEventArgs keyResult = await HoloNETClientAdmin.AdminGenerateAgentPubKeyAsync();
+                    InstallEnableSignAttachAndConnectToHappEventArgs installedAppResult = await HoloNETClientAdmin.InstallEnableSignAttachAndConnectToHappAsync(OASIS_HAPP_ID, OASIS_HAPP_PATH);
 
-                    if (keyResult != null && !keyResult.IsError)
+                    if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
                     {
-                        await HoloNETClientAdmin.AdminInstallAppAsync(OASIS_HAPP_ID, OASIS_HAPP_PATH);
-                        await HoloNETClientAdmin.AdminEnableAppAsync(OASIS_HAPP_ID);
-                        await HoloNETClientAdmin.AdminAuthorizeSigningCredentialsAndGrantZomeCallCapabilityAsync(HoloNETClientAppAgent.HoloNETDNA.CellId, CapGrantAccessType.Assigned, GrantedFunctionsType.All);
-
-                        AdminAppInterfaceAttachedCallBackEventArgs attachedResult;
-
-                        if (string.IsNullOrEmpty(_holochainConductorAppAgentURI))
-                            attachedResult = await HoloNETClientAdmin.AdminAttachAppInterfaceAsync();
-                        else
-                            attachedResult = await HoloNETClientAdmin.AdminAttachAppInterfaceAsync(Convert.ToUInt16(new Uri(_holochainConductorAppAgentURI).Port));
-
-                        if (attachedResult != null && !attachedResult.IsError)
-                        {
-                            if (string.IsNullOrEmpty(_holochainConductorAppAgentURI))
-                                _holochainConductorAppAgentURI = $"ws://127.0.0.1/{attachedResult.Port}";
-
-                            HoloNETClientAppAgent = new HoloNETClient(new HoloNETDNA() { HolochainConductorAppAgentURI = _holochainConductorAppAgentURI });
-                            await HoloNETClientAppAgent.ConnectAsync();
-                        }
+                        HoloNETClientAppAgent = installedAppResult.HoloNETClientAppAgent;
+                        IsProviderActivated = true;
                     }
+       
+                    //InstallEnableSignAndAttachHappEventArgs installedAppResult = await HoloNETClientAdmin.InstallEnableSignAndAttachHappAsync(OASIS_HAPP_ID, OASIS_HAPP_PATH);
+
+                    //if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
+                    //{
+                    //    HoloNETConnectedEventArgs appAgentConnectedResult = await HoloNETConnectedEventArgs.ConnectAsync($"ws://127.0.0.1:{installedAppResult.AttachedOnPort}");
+
+                    //    if (appAgentConnectedResult != null && appAgentConnectedResult.IsConnected)
+                    //        IsProviderActivated = true;
+                    //}
                 }
             }
 
-            return await base.ActivateProviderAsync();
+            return new OASISResult<bool>(IsProviderActivated.Value);
+            //return await base.ActivateProviderAsync();
         }
+
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
@@ -137,18 +150,22 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override OASISResult<bool> ActivateProvider()
         {
-            if (!HoloNETClientAppAgent.IsConnecting)
-                HoloNETClientAppAgent.Connect();
+            return ActivateProviderAsync().Result;
 
-            return base.ActivateProvider();
+            //if (!HoloNETClientAdmin.IsConnecting)
+            //{
+            //    HoloNETConnectEventArgs adminConnectResult = HoloNETClientAdmin.Connect();
+            //}
+
+            //return base.ActivateProvider();
         }
 
         public override OASISResult<bool> DeActivateProvider()
         {
-            if (!HoloNETClientAdmin.IsDisconnecting)
+            if (HoloNETClientAdmin != null && !HoloNETClientAdmin.IsDisconnecting)
                 HoloNETClientAdmin.Disconnect();
 
-            if (!HoloNETClientAppAgent.IsDisconnecting)
+            if (HoloNETClientAppAgent != null && !HoloNETClientAppAgent.IsDisconnecting)
                 HoloNETClientAppAgent.Disconnect();
 
             // HoloNETClientAppAgent = null;
@@ -987,15 +1004,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                         if (response.IsCallSuccessful && !response.IsError)
                             result.Result = response.Entry.EntryDataObject; 
                         else
-                            ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on object {objectName} with field {fieldName} and value {fieldValue} for HoloOASIS Provider. Reason: { response.Message }");
+                            OASISErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on object {objectName} with field {fieldName} and value {fieldValue} for HoloOASIS Provider. Reason: { response.Message }");
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on object {objectName} with field {fieldName} and value {fieldValue} for HoloOASIS Provider. Reason: Unknown.");
+                        OASISErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on object {objectName} with field {fieldName} and value {fieldValue} for HoloOASIS Provider. Reason: Unknown.");
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on object {objectName} with field {fieldName} and value {fieldValue} for HoloOASIS Provider. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on object {objectName} with field {fieldName} and value {fieldValue} for HoloOASIS Provider. Reason: {ex}.");
             }
 
             return result;
@@ -1052,15 +1069,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                         if (response.IsCallSuccessful && !response.IsError)
                             result.Result = response.Entry.EntryDataObject;
                         else
-                            ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on object {objectName} with field {fieldName} and value {fieldValue} for HoloOASIS Provider. Reason: { response.Message }");
+                            OASISErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on object {objectName} with field {fieldName} and value {fieldValue} for HoloOASIS Provider. Reason: { response.Message }");
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on object {objectName} with field {fieldName} and value {fieldValue} for HoloOASIS Provider. Reason: Unknown.");
+                        OASISErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on object {objectName} with field {fieldName} and value {fieldValue} for HoloOASIS Provider. Reason: Unknown.");
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on object {objectName} with field {fieldName} and value {fieldValue} for HoloOASIS Provider. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on object {objectName} with field {fieldName} and value {fieldValue} for HoloOASIS Provider. Reason: {ex}.");
             }
 
             return result;
@@ -1089,7 +1106,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         //    }
         //    catch (Exception ex)
         //    {
-        //        ErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: {ex}.");
+        //        OASISErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: {ex}.");
         //    }
 
         //    return result;
@@ -1117,7 +1134,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         //    }
         //    catch (Exception ex)
         //    {
-        //        ErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: {ex}.");
+        //        OASISErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: {ex}.");
         //    }
 
         //    return result;
@@ -1190,15 +1207,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         //                if (response.IsCallSuccessful && !response.IsError)
         //                    result.Result = response.Entry.EntryDataObject;
         //                else
-        //                    ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperationAsync method in the HoloOASIS Provider. Reason: { response.Message }");
+        //                    OASISErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperationAsync method in the HoloOASIS Provider. Reason: { response.Message }");
         //            }
         //            else
-        //                ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperationAsync method in the HoloOASIS Provider. Reason: Unknown.");
+        //                OASISErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperationAsync method in the HoloOASIS Provider. Reason: Unknown.");
         //        }
         //    }
         //    catch (Exception ex)
         //    {
-        //        ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperationAsync method in the HoloOASIS Provider. Reason: {ex}.");
+        //        OASISErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperationAsync method in the HoloOASIS Provider. Reason: {ex}.");
         //    }
 
         //    return result;
@@ -1271,15 +1288,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         //                if (response.IsCallSuccessful && !response.IsError)
         //                    result.Result = response.Entry.EntryDataObject;
         //                else
-        //                    ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperation method in the HoloOASIS Provider. Reason: { response.Message }");
+        //                    OASISErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperation method in the HoloOASIS Provider. Reason: { response.Message }");
         //            }
         //            else
-        //                ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperation method in the HoloOASIS Provider. Reason: Unknown.");
+        //                OASISErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperation method in the HoloOASIS Provider. Reason: Unknown.");
         //        }
         //    }
         //    catch (Exception ex)
         //    {
-        //        ErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperation method in the HoloOASIS Provider. Reason: {ex}.");
+        //        OASISErrorHandling.HandleError(ref result, $"Error executing operation {Enum.GetName(operation)} on collection {collectionName} with anchor {collectionAnchor} in the ExecuteOperation method in the HoloOASIS Provider. Reason: {ex}.");
         //    }
 
         //    return result;
@@ -1316,7 +1333,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldValue} in the LoadAsync method in the HoloOASIS Provider. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldValue} in the LoadAsync method in the HoloOASIS Provider. Reason: {ex}.");
             }
 
             return result;
@@ -1353,7 +1370,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldValue} in the Load method in the HoloOASIS Provider. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldValue} in the Load method in the HoloOASIS Provider. Reason: {ex}.");
             }
 
             return result;
@@ -1418,7 +1435,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the SaveAsync method in HoloOASIS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"An unknwon error has occured saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the SaveAsync method in HoloOASIS Provider. Reason: {ex}");
             }
 
             return result;
@@ -1483,7 +1500,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the Save method in HoloOASIS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"An unknwon error has occured saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the Save method in HoloOASIS Provider. Reason: {ex}");
             }
 
             return result;
@@ -1506,7 +1523,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the DeleteAsync method in HoloOASIS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the DeleteAsync method in HoloOASIS Provider. Reason: {ex}");
             }
 
             return result;
@@ -1530,7 +1547,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the Delete method in HoloOASIS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the Delete method in HoloOASIS Provider. Reason: {ex}");
             }
 
             return result;
@@ -1540,13 +1557,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             if (response != null)
             {
-                if (response.IsCallSuccessful && !response.IsError)
+                if (!response.IsError)
                     result = ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
                 else
-                    ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the HandleLoadResponse method in the HoloOASIS Provider. Reason: { response.Message }");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the HandleLoadResponse method in the HoloOASIS Provider. Reason: { response.Message }");
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the HandleLoadResponse method in the HoloOASIS Provider. Reason: Unknown.");
+                OASISErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the HandleLoadResponse method in the HoloOASIS Provider. Reason: Unknown.");
 
             return result;
         }
@@ -1555,13 +1572,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             if (response != null)
             {
-                if (response.IsCallSuccessful && !response.IsError)
+                if (!response.IsError)
                     result = ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
                 else
-                    ErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the HandleSaveResponse method in the HoloOASIS Provider. Reason: { response.Message }");
+                    OASISErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the HandleSaveResponse method in the HoloOASIS Provider. Reason: { response.Message }");
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the HandleSaveResponse method in the HoloOASIS Provider. Reason: Unknown.");
+                OASISErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the HandleSaveResponse method in the HoloOASIS Provider. Reason: Unknown.");
 
             return result;
         }
@@ -1570,13 +1587,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             if (response != null)
             {
-                if (response.IsCallSuccessful && !response.IsError)
+                if (!response.IsError)
                     result = ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
                 else
-                    ErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the HoloOASIS Provider. Reason: { response.Message }");
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the HoloOASIS Provider. Reason: { response.Message }");
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the HoloOASIS Provider. Reason: Unknown.");
+                OASISErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the HoloOASIS Provider. Reason: Unknown.");
 
             return result;
         }
@@ -1585,13 +1602,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             if (response != null)
             {
-                if (response.IsCallSuccessful && !response.IsError)
+                if (!response.IsError)
                     result = ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
                 else
-                    ErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the HoloOASIS Provider. Reason: { response.Message }");
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the HoloOASIS Provider. Reason: { response.Message }");
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the HoloOASIS Provider. Reason: Unknown.");
+                OASISErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the HoloOASIS Provider. Reason: Unknown.");
 
             return result;
         }
@@ -1634,13 +1651,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             if (response != null)
             {
-                if (response.IsCallSuccessful && !response.IsError)
+                if (!response.IsError)
                     result.Result = response.Entries[0].EntryDataObject;
                 else
-                    ErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: { response.Message }");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: { response.Message }");
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: Unknown.");
+                OASISErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: Unknown.");
 
             return result;
         }

@@ -2,6 +2,7 @@
 using MailKit.Security;
 using MimeKit;
 using MimeKit.Text;
+using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.DNA;
 using System.Net;
 using System.Net.Mail;
@@ -69,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (SmtpException ex)
             {
-                LoggingManager.Log(string.Concat("ERROR Sending Email. Exception: ", ex.ToString()), Enums.LogType.Error);
+                LoggingManager.Log(string.Concat("ERROR Sending Email. Exception: ", ex.ToString()), LogType.Error);
             }
         }
     }

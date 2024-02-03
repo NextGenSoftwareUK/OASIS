@@ -1,4 +1,7 @@
-﻿
+﻿using System;
+using NextGenSoftware.ErrorHandling;
+using NextGenSoftware.Logging;
+
 namespace NextGenSoftware.OASIS.API.DNA
 {
     public class OASISDNA
@@ -12,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string CurrentStagingVersion { get; set; }
         public string OASISVersion { get; set; }
         public string Terms { get; set; }
-        public Logging Logging { get; set; }
+        public LoggingSettings Logging { get; set; }
         public ErrorHandlingSettings ErrorHandling { get; set; }
         public SecuritySettings Security { get; set; }
         public EmailSettings Email { get; set; }
@@ -36,11 +39,131 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool ThrowExceptionsOnWarnings { get; set; }
         public bool LogAllErrors { get; set; }
         public bool LogAllWarnings { get; set; }
+
+        /// <summary>
+        /// An enum that specifies what to do when an error occurs. The options are: `AlwaysThrowExceptionOnError`, `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` & `NeverThrowExceptions`). The default is `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` meaning it will only throw an error if the `OnError` event has not been subscribed to. This delegates error handling to the caller. If no event has been subscribed then OASIS will throw an error. `AlwaysThrowExceptionOnError` will always throw an error even if the `OnError` event has been subscribed to. The `NeverThrowException` enum option will never throw an error even if the `OnError` event has not been subscribed to. Regardless of what enum is selected, the error will always be logged using whatever ILogProvider's have been injected into the constructor or set on the static Logging.LogProviders property.
+        /// </summary>
+        //public ErrorHandlingBehaviour ErrorHandlingBehaviour { get; set; } = ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent;
+
+        /// <summary>
+        /// An enum that specifies what to do when an warning occurs. The options are: `AlwaysThrowExceptionOnWarning`, `OnlyThrowExceptionIfNoWarningHandlerSubscribedToOnWarningEvent` & `NeverThrowExceptions`). The default is `OnlyThrowExceptionIfNoWarningHandlerSubscribedToOnWarningEvent` meaning it will only throw an error if the `OnWarning` event has not been subscribed to. This delegates error handling to the caller. If no event has been subscribed then OASIS will throw an error. `AlwaysThrowExceptionOnWarning` will always throw an error even if the `OnWarning` event has been subscribed to. The `NeverThrowException` enum option will never throw an error even if the `OnWarning` event has not been subscribed to. Regardless of what enum is selected, the error will always be logged using whatever ILogProvider`s have been injected into the constructor or set on the static Logging.LogProviders property.
+        /// </summary>
+        //public WarningHandlingBehaviour WarningHandlingBehaviour { get; set; } = WarningHandlingBehaviour.OnlyThrowExceptionIfNoWarningHandlerSubscribedToOnWarningEvent;
+
+        /// <summary>
+        /// An enum that specifies what to do when an error occurs. The options are: `AlwaysThrowExceptionOnError`, `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` & `NeverThrowExceptions`). The default is `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` meaning it will only throw an error if the `OnError` event has not been subscribed to. This delegates error handling to the caller. If no event has been subscribed then OASIS will throw an error. `AlwaysThrowExceptionOnError` will always throw an error even if the `OnError` event has been subscribed to. The `NeverThrowException` enum option will never throw an error even if the `OnError` event has not been subscribed to. Regardless of what enum is selected, the error will always be logged using whatever ILogProvider's have been injected into the constructor or set on the static Logging.LogProviders property.
+        /// </summary>
+        public ErrorHandlingBehaviour ErrorHandlingBehaviour
+        {
+            get
+            {
+                return ErrorHandling.ErrorHandling.ErrorHandlingBehaviour;
+            }
+            set
+            {
+                ErrorHandling.ErrorHandling.ErrorHandlingBehaviour = value;
+            }
+        }
+
+        /// <summary>
+        /// An enum that specifies what to do when an warning occurs. The options are: `AlwaysThrowExceptionOnWarning`, `OnlyThrowExceptionIfNoWarningHandlerSubscribedToOnWarningEvent` & `NeverThrowExceptions`). The default is `OnlyThrowExceptionIfNoWarningHandlerSubscribedToOnWarningEvent` meaning it will only throw an error if the `OnWarning` event has not been subscribed to. This delegates error handling to the caller. If no event has been subscribed then OASIS will throw an error. `AlwaysThrowExceptionOnWarning` will always throw an error even if the `OnWarning` event has been subscribed to. The `NeverThrowException` enum option will never throw an error even if the `OnWarning` event has not been subscribed to. Regardless of what enum is selected, the error will always be logged using whatever ILogProvider`s have been injected into the constructor or set on the static Logging.LogProviders property.
+        /// </summary>
+        public WarningHandlingBehaviour WarningHandlingBehaviour
+        {
+            get
+            {
+                return ErrorHandling.ErrorHandling.WarningHandlingBehaviour;
+            }
+            set
+            {
+                ErrorHandling.ErrorHandling.WarningHandlingBehaviour = value;
+            }
+        }
     }
 
-    public class Logging
+    public class LoggingSettings
     {
-        public string LoggingFramework { get; set; }
+        public string LoggingFramework { get; set; } = "Default";
+
+        /// <summary>
+        /// If the LoggingFramework is set to anything other than 'Default' then you can set this flag to true to also log to the Default LogProvider below.
+        /// </summary>
+        public bool AlsoUseDefaultLogProvider { get; set; } = false;
+
+        /// <summary>
+        /// This passes through to the static LogConfig.LoggingMode property in [NextGenSoftware.Logging](https://www.nuget.org/packages/NextGenSoftware.Logging) package. It can be either `WarningsErrorsInfoAndDebug`, `WarningsErrorsAndInfo`, `WarningsAndErrors` or `ErrorsOnly`.
+        /// </summary>
+        public LoggingMode LoggingMode
+        {
+            get
+            {
+                return LogConfig.LoggingMode;
+            }
+            set
+            {
+                LogConfig.LoggingMode = value;
+            }
+        }
+
+        /// <summary>
+        /// Set this to true (default) if you wish HoloNET to log to the console. NOTE: This is only relevant if the built-in DefaultLogger is used.
+        /// </summary>
+        public bool LogToConsole { get; set; } = true;
+
+        /// <summary>
+        /// Set this to true to enable coloured logs in the console. NOTE: This is only relevant if the built-in DefaultLogger is used.
+        /// </summary>
+        public bool ShowColouredLogs { get; set; } = true;
+
+        /// <summary>
+        /// The colour to use for `Debug` log entries to the console NOTE: This is only relevant if the built-in DefaultLogger is used.
+        /// </summary>
+        public ConsoleColor DebugColour { get; set; } = ConsoleColor.White;
+
+        /// <summary>
+        /// The colour to use for `Info` log entries to the console. NOTE: This is only relevant if the built-in DefaultLogger is used.
+        /// </summary>
+        public ConsoleColor InfoColour { get; set; } = ConsoleColor.Green;
+
+        /// <summary>
+        /// The colour to use for `Warning` log entries to the console. NOTE: This is only relevant if the built-in DefaultLogger is used.
+        /// </summary>
+        public ConsoleColor WarningColour { get; set; } = ConsoleColor.Yellow;
+
+        /// <summary>
+        /// The colour to use for `Error` log entries to the console. NOTE: This is only relevant if the built-in DefaultLogger is used.
+        /// </summary>
+        public ConsoleColor ErrorColour { get; set; } = ConsoleColor.Red;
+
+        /// <summary>
+        /// Set this to true (default) if you wish HoloNET to log a log file. NOTE: This is only relevant if the built-in DefaultLogger is used.
+        /// </summary>
+        public bool LogToFile { get; set; } = true;
+
+        /// <summary>
+        /// The logging path (will defualt to AppData\Roaming\NextGenSoftware\OASIS\Logs). NOTE: This is only relevant if the built-in DefaultLogger is used.
+        /// </summary>
+        public string LogPath { get; set; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\NextGenSoftware\\OASIS\\Logs";
+
+        /// <summary>
+        /// The log file name (default is OASIS.log). NOTE: This is only relevant if the built-in DefaultLogger is used.
+        /// </summary>
+        public string LogFileName { get; set; } = "OASIS.log";
+
+        /// <summary>
+        /// The number of attempts to attempt to log to the file if the first attempt fails. NOTE: This is only relevant if the built-in DefaultLogger is used.
+        /// </summary>
+        public int NumberOfRetriesToLogToFile { get; set; } = 3;
+
+        /// <summary>
+        /// The amount of time to wait in seconds between each attempt to log to the file. NOTE: This is only relevant if the built-in DefaultLogger is used.
+        /// </summary>
+        public int RetryLoggingToFileEverySeconds { get; set; } = 1;
+
+        /// <summary>
+        /// Set this to true to add additional space after the end of each log entry. NOTE: This is only relevant if the built-in DefaultLogger is used.
+        /// </summary>
+        public bool AddAdditionalSpaceAfterEachLogEntry { get; set; } = false;
     }
 
     public class EncryptionSettings

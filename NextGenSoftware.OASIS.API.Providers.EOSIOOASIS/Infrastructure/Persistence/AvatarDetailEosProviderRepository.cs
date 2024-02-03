@@ -8,6 +8,7 @@ using EosSharp.Core;
 using EosSharp.Core.Api.v1;
 using EosSharp.Core.Providers;
 using Newtonsoft.Json;
+using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Utilities;

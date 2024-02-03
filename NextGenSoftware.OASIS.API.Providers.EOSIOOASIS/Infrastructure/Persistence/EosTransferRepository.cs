@@ -6,6 +6,7 @@ using EosSharp.Core;
 using EosSharp.Core.Api.v1;
 using EosSharp.Core.Exceptions;
 using EosSharp.Core.Providers;
+using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;

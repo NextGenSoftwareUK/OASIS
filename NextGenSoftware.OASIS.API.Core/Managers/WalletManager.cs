@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using Org.BouncyCastle.Asn1.Ocsp;
+using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -46,10 +47,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result = await oasisBlockchainProvider.SendTransactionAsync(request);
 
                 if (result == null || (result != null && result.IsError || result.Result == null))
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} There was an error whilst calling the SendTransactionAsync function. Reason: {result.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error whilst calling the SendTransactionAsync function. Reason: {result.Message}");
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProviderType)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProviderType)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
 
             return result;
         }
@@ -66,10 +67,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result = oasisBlockchainProvider.SendTransaction(request);
 
                 if (result == null || (result != null && result.IsError || result.Result == null))
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} There was an error whilst calling the SendTransactionAsync function. Reason: {result.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error whilst calling the SendTransactionAsync function. Reason: {result.Message}");
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProviderType)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProviderType)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
 
             return result;
         }
@@ -90,14 +91,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (providerResult.Result.ProviderCategory.Value == ProviderCategory.StorageLocal || providerResult.Result.ProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
                         result = await ((IOASISLocalStorageProvider)providerResult.Result).LoadProviderWalletsForAvatarByIdAsync(id);
                     else
-                        ErrorHandling.HandleWarning(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -119,14 +120,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (providerResult.Result.ProviderCategory.Value == ProviderCategory.StorageLocal || providerResult.Result.ProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
                         result = ((IOASISLocalStorageProvider)providerResult.Result).LoadProviderWalletsForAvatarById(id);
                     else
-                        ErrorHandling.HandleWarning(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -146,11 +147,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = await LoadProviderWalletsForAvatarByIdAsync(avatarResult.Result.Id, providerType);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -169,11 +170,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = LoadProviderWalletsForAvatarById(avatarResult.Result.Id, providerType);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -192,11 +193,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = await LoadProviderWalletsForAvatarByIdAsync(avatarResult.Result.Id, providerType);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -215,11 +216,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = LoadProviderWalletsForAvatarById(avatarResult.Result.Id, providerType);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -238,17 +239,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!walletsResult.IsError && walletsResult.Result != null)
                     break;
                 else
-                    ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAvatarById in WalletManager loading wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
+                    OASISErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAvatarById in WalletManager loading wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
             }
 
             if (result.Result == null || result.IsError)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             else
             {
                 result.IsLoaded = true;
 
                 if (result.WarningCount > 0)
-                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " loaded it's wallets successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " loaded it's wallets successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             }
 
             return result;
@@ -273,17 +274,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!walletsResult.IsError && walletsResult.Result != null)
                     break;
                 else
-                    ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAvatarByIdAsync in WalletManager loading wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
+                    OASISErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAvatarByIdAsync in WalletManager loading wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
             }
 
             if (result.Result == null || result.IsError)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             else
             {
                 result.IsLoaded = true;
 
                 if (result.WarningCount > 0)
-                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " loaded it's wallets successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " loaded it's wallets successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             }
 
             return result;
@@ -301,11 +302,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = LoadProviderWalletsForAvatarById(avatarResult.Result.Id);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -323,11 +324,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = LoadProviderWalletsForAvatarById(avatarResult.Result.Id);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -345,11 +346,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = LoadProviderWalletsForAvatarById(avatarResult.Result.Id);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -367,11 +368,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = LoadProviderWalletsForAvatarById(avatarResult.Result.Id);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -390,11 +391,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //        if (!avatarResult.IsError && avatarResult.Result != null)
         //            result = await LoadProviderWalletsForAvatarByIdAsync(avatarResult.Result.Id, providerType);
         //        else
-        //            ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load for provider {providerType}. Reason: {avatarResult.Message}");
+        //            OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load for provider {providerType}. Reason: {avatarResult.Message}");
         //    }
         //    catch (Exception ex)
         //    {
-        //        ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+        //        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
         //    }
 
         //    return result;
@@ -413,11 +414,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //        if (!avatarResult.IsError && avatarResult.Result != null)
         //            result = LoadProviderWalletsForAvatarById(avatarResult.Result.Id, providerType);
         //        else
-        //            ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load for provider {providerType}. Reason: {avatarResult.Message}");
+        //            OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load for provider {providerType}. Reason: {avatarResult.Message}");
         //    }
         //    catch (Exception ex)
         //    {
-        //        ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+        //        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
         //    }
 
         //    return result;
@@ -462,7 +463,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                 if (string.IsNullOrEmpty(walletsTask.Result.Message))
                                     walletsTask.Result.Message = "Unknown error occured saving provider wallets.";
 
-                                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, walletsTask.Result.Message), walletsTask.Result.DetailedMessage);
+                                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, walletsTask.Result.Message), walletsTask.Result.DetailedMessage);
                             }
                             else
                             {
@@ -471,17 +472,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             }
                         }
                         else
-                            ErrorHandling.HandleError(ref result, string.Concat(errorMessage, "timeout occured saving provider wallets."));
+                            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "timeout occured saving provider wallets."));
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"An error occured setting the provider {providerType}. Reason: ", providerResult.Message), providerResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"An error occured setting the provider {providerType}. Reason: ", providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -526,7 +527,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                 if (string.IsNullOrEmpty(walletsTask.Result.Message))
                                     walletsTask.Result.Message = "Unknown error occured saving provider wallets.";
 
-                                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, walletsTask.Result.Message), walletsTask.Result.DetailedMessage);
+                                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, walletsTask.Result.Message), walletsTask.Result.DetailedMessage);
                             }
                             else
                             {
@@ -535,17 +536,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             }
                         }
                         else
-                            ErrorHandling.HandleError(ref result, string.Concat(errorMessage, "timeout occured saving provider wallets."));
+                            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "timeout occured saving provider wallets."));
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"An error occured setting the provider {providerType}. Reason: ", providerResult.Message), providerResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"An error occured setting the provider {providerType}. Reason: ", providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -564,12 +565,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = SaveProviderWalletsForAvatarById(avatarResult.Result.Id, wallets, providerType);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
 
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -588,12 +589,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = SaveProviderWalletsForAvatarById(avatarResult.Result.Id, wallets, providerType);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
 
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -612,12 +613,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = SaveProviderWalletsForAvatarById(avatarResult.Result.Id, wallets, providerType);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
 
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -636,12 +637,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = SaveProviderWalletsForAvatarById(avatarResult.Result.Id, wallets, providerType);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load for provider {providerType}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
 
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -666,17 +667,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     break;
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, $"Error occured in SaveProviderWalletsForAvatarById in WalletManager saving wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
+                    OASISErrorHandling.HandleWarning(ref result, $"Error occured in SaveProviderWalletsForAvatarById in WalletManager saving wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
             }
 
             if (!result.Result || result.IsError)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to save wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to save wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             else
             {
                 result.IsSaved = true;
 
                 if (result.WarningCount > 0)
-                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to save for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to save for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                     result.Message = "Avatar Wallets Successfully Saved.";
 
@@ -693,12 +694,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             result.Result = walletsResult.Result;
 
                             if (walletsResult.IsError || !walletsResult.Result)
-                                ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAvatarById in WalletManager saving wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
+                                OASISErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAvatarById in WalletManager saving wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
                         }
                     }
 
                     if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                     else
                         LoggingManager.Log("Avatar Wallets Successfully Saved/Replicated", LogType.Info, ref result, true, false);
                 }
@@ -726,17 +727,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     break;
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, $"Error occured in SaveProviderWalletsForAvatarById in WalletManager saving wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
+                    OASISErrorHandling.HandleWarning(ref result, $"Error occured in SaveProviderWalletsForAvatarById in WalletManager saving wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
             }
 
             if (!result.Result || result.IsError)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to save wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to save wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             else
             {
                 result.IsSaved = true;
 
                 if (result.WarningCount > 0)
-                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to save for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to save for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                     result.Message = "Avatar Wallets Successfully Saved.";
 
@@ -753,12 +754,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             result.Result = walletsResult.Result;
 
                             if (walletsResult.IsError || !walletsResult.Result)
-                                ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAvatarById in WalletManager saving wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
+                                OASISErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAvatarById in WalletManager saving wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
                         }
                     }
 
                     if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                     else
                         LoggingManager.Log("Avatar Wallets Successfully Saved/Replicated", LogType.Info, ref result, true, false);
                 }
@@ -780,11 +781,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = SaveProviderWalletsForAvatarById(avatarResult.Result.Id, wallets);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -802,11 +803,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = await SaveProviderWalletsForAvatarByIdAsync(avatarResult.Result.Id, wallets);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with username {username} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -824,11 +825,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = SaveProviderWalletsForAvatarById(avatarResult.Result.Id, wallets);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -846,11 +847,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = await SaveProviderWalletsForAvatarByIdAsync(avatarResult.Result.Id, wallets);
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The avatar with email {email} failed to load. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -902,7 +903,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in GetWalletThatPublicKeyBelongsTo whilst loading avatars. Reason:{avatarsResult.Message}", avatarsResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in GetWalletThatPublicKeyBelongsTo whilst loading avatars. Reason:{avatarsResult.Message}", avatarsResult.DetailedMessage);
 
             return result;
         }
@@ -994,14 +995,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 var allAvatarWalletsByProvider = await LoadProviderWalletsForAvatarByIdAsync(avatarId, providerType);
                 if (allAvatarWalletsByProvider.IsError)
                 {
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
                 }
                 else
                 {
                     var defaultAvatarWallet = allAvatarWalletsByProvider.Result[providerType].FirstOrDefault(x => x.IsDefaultWallet);
                     if (defaultAvatarWallet == null)
                     {
-                        ErrorHandling.HandleWarning(ref result, $"{errorMessage}Avatar doesn't have a default wallet!");
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Avatar doesn't have a default wallet!");
                     }
                     else
                     {
@@ -1013,7 +1014,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -1029,14 +1030,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 var allAvatarWalletsByProvider = await LoadProviderWalletsForAvatarByUsernameAsync(avatarUsername, providerType);
                 if (allAvatarWalletsByProvider.IsError)
                 {
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
                 }
                 else
                 {
                     var defaultAvatarWallet = allAvatarWalletsByProvider.Result[providerType].FirstOrDefault(x => x.IsDefaultWallet);
                     if (defaultAvatarWallet == null)
                     {
-                        ErrorHandling.HandleWarning(ref result, $"{errorMessage}Avatar doesn't have a default wallet!");
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Avatar doesn't have a default wallet!");
                     }
                     else
                     {
@@ -1048,7 +1049,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -1064,14 +1065,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 var allAvatarWalletsByProvider = await LoadProviderWalletsForAvatarByEmailAsync(email, providerType);
                 if (allAvatarWalletsByProvider.IsError)
                 {
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
                 }
                 else
                 {
                     var defaultAvatarWallet = allAvatarWalletsByProvider.Result[providerType].FirstOrDefault(x => x.IsDefaultWallet);
                     if (defaultAvatarWallet == null)
                     {
-                        ErrorHandling.HandleWarning(ref result, $"{errorMessage}Avatar doesn't have a default wallet!");
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Avatar doesn't have a default wallet!");
                     }
                     else
                     {
@@ -1083,7 +1084,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -1099,20 +1100,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 var allAvatarWalletsByProvider = await LoadProviderWalletsForAvatarByIdAsync(avatarId, providerType);
                 if (allAvatarWalletsByProvider.IsError)
                 {
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
                 }
                 else
                 {
                     if (allAvatarWalletsByProvider.Result[providerType].Any(x => x.IsDefaultWallet))
                     {
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar already have default wallet!");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}Avatar already have default wallet!");
                     }
                     else
                     {
                         var avatarWallet = allAvatarWalletsByProvider.Result[providerType].FirstOrDefault(x => x.WalletId == walletId && x.IsDefaultWallet == false);
                         if (avatarWallet == null)
                         {
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallet with id {walletId} Not found!");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallet with id {walletId} Not found!");
                         }
                         else
                         {
@@ -1124,7 +1125,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -1140,20 +1141,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 var allAvatarWalletsByProvider = await LoadProviderWalletsForAvatarByUsernameAsync(avatarUsername, providerType);
                 if (allAvatarWalletsByProvider.IsError)
                 {
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
                 }
                 else
                 {
                     if (allAvatarWalletsByProvider.Result[providerType].Any(x => x.IsDefaultWallet))
                     {
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar already have default wallet!");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}Avatar already have default wallet!");
                     }
                     else
                     {
                         var avatarWallet = allAvatarWalletsByProvider.Result[providerType].FirstOrDefault(x => x.WalletId == walletId && x.IsDefaultWallet == false);
                         if (avatarWallet == null)
                         {
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallet with id {walletId} Not found!");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallet with id {walletId} Not found!");
                         }
                         else
                         {
@@ -1165,7 +1166,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -1181,20 +1182,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 var allAvatarWalletsByProvider = await LoadProviderWalletsForAvatarByEmailAsync(email, providerType);
                 if (allAvatarWalletsByProvider.IsError)
                 {
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallets failed to load. Reason: {allAvatarWalletsByProvider.Message}", allAvatarWalletsByProvider.DetailedMessage);
                 }
                 else
                 {
                     if (allAvatarWalletsByProvider.Result[providerType].Any(x => x.IsDefaultWallet))
                     {
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar already have default wallet!");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}Avatar already have default wallet!");
                     }
                     else
                     {
                         var avatarWallet = allAvatarWalletsByProvider.Result[providerType].FirstOrDefault(x => x.WalletId == walletId && x.IsDefaultWallet == false);
                         if (avatarWallet == null)
                         {
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallet with id {walletId} Not found!");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}Avatar wallet with id {walletId} Not found!");
                         }
                         else
                         {
@@ -1206,7 +1207,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
