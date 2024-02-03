@@ -184,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Result.Password = BC.HashPassword(password);
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in PrepareToRegisterAvatarAsync method in AvatarManager calling LoadAllAvatarsAsync. Reason: {avatarsResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in PrepareToRegisterAvatarAsync method in AvatarManager calling LoadAllAvatarsAsync. Reason: {avatarsResult.Message}");
             */
 
             return result;
@@ -305,7 +305,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", param1, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", param1, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             else
             {
                 if (result.WarningCount > 0)
@@ -342,18 +342,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             if (string.IsNullOrEmpty(result.Message))
                                 result.Message = "Avatar Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", param1, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Reason: ", result.Message));
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", param1, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Reason: ", result.Message));
                         }
                     }
                     else
-                        ErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", param1, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Reason: timeout occured."));
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", param1, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Reason: timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", param1, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". There was an error setting the provider. Reason:", providerResult.Message));
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", param1, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". There was an error setting the provider. Reason:", providerResult.Message));
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleWarning(ref result, string.Concat("Unknown error occured loading avatar ", param1, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleWarning(ref result, string.Concat("Unknown error occured loading avatar ", param1, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
             }
 
             return result;
@@ -386,7 +386,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             if (string.IsNullOrEmpty(task.Result.Message))
                                 task.Result.Message = "Avatar Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
                         }
                         else
                         {
@@ -400,14 +400,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
                     }
                     else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -441,7 +441,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             if (string.IsNullOrEmpty(task.Result.Message))
                                 task.Result.Message = "Avatar Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
                         }
                         else
                         {
@@ -455,14 +455,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
                     }
                     else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -494,7 +494,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             if (string.IsNullOrEmpty(task.Result.Message))
                                 task.Result.Message = "Avatar Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
                         }
                         else
                         {
@@ -508,14 +508,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
                     }
                     else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -548,7 +548,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                            if (string.IsNullOrEmpty(task.Result.Message))
                                task.Result.Message = "Avatar Not Found.";
 
-                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                           OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
                        }
                        else
                        {
@@ -562,14 +562,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        }
                    }
                    else
-                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+                       OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                }
                else
-                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+                   OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
            }
            catch (Exception ex)
            {
-               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+               OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
            }
 
            return result;
@@ -601,7 +601,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                            if (string.IsNullOrEmpty(task.Result.Message))
                                task.Result.Message = "Avatar Detail Not Found.";
 
-                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                           OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
                        }
                        else
                        {
@@ -610,14 +610,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        }
                    }
                    else
-                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+                       OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                }
                else
-                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+                   OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
            }
            catch (Exception ex)
            {
-               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+               OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
            }
 
            return result;
@@ -649,7 +649,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                            if (string.IsNullOrEmpty(result.Message))
                                task.Result.Message = "Avatar Detail Not Found.";
 
-                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                           OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
                        }
                        else
                        {
@@ -658,14 +658,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        }
                    }
                    else
-                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+                       OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                }
                else
-                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+                   OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
            }
            catch (Exception ex)
            {
-               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+               OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
            }
 
            return result;
@@ -697,7 +697,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                            if (string.IsNullOrEmpty(task.Result.Message))
                                task.Result.Message = "Avatar Detail Not Found.";
 
-                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                           OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
                        }
                        else
                        {
@@ -706,14 +706,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        }
                    }
                    else
-                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+                       OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                }
                else
-                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+                   OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
            }
            catch (Exception ex)
            {
-               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+               OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
            }
 
            return result;
@@ -745,7 +745,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                            if (string.IsNullOrEmpty(task.Result.Message))
                                task.Result.Message = "No Avatars Were Found.";
 
-                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                           OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
                        }
                        else
                        {
@@ -754,14 +754,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        }
                    }
                    else
-                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), task.Result.DetailedMessage);
+                       OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), task.Result.DetailedMessage);
                }
                else
-                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+                   OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
            }
            catch (Exception ex)
            {
-               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+               OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
            }
 
            return result;
@@ -793,7 +793,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                            if (string.IsNullOrEmpty(task.Result.Message))
                                task.Result.Message = "No Avatar Details Were Found.";
 
-                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                           OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
                        }
                        else
                        {
@@ -802,14 +802,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        }
                    }
                    else
-                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+                       OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                }
                else
-                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+                   OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
            }
            catch (Exception ex)
            {
-               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message));
+               OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message));
            }
 
            return result;
@@ -849,7 +849,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                            if (string.IsNullOrEmpty(walletsResult.Message) && saveMode != SaveMode.AutoReplication)
                                walletsResult.Message = "Unknown error occured saving provider wallets.";
 
-                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, walletsResult.Message), walletsResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                           OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, walletsResult.Message), walletsResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
                        }
                        */
 
@@ -864,7 +864,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
                                 task.Result.Message = "Unknown.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
                         }
                         else
                         {
@@ -873,14 +873,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
                     }
                     else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex, saveMode == SaveMode.AutoReplication);
+                OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex, saveMode == SaveMode.AutoReplication);
             }
 
             return result;
@@ -930,7 +930,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         //    if (string.IsNullOrEmpty(walletsResult.Message) && saveMode != SaveMode.AutoReplication)
                         //        walletsResult.Message = "Unknown error occured saving provider wallets.";
 
-                        //    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, walletsResult.Message), walletsResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                        //    OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, walletsResult.Message), walletsResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
                         //}
                     }
 
@@ -943,7 +943,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
                                 task.Result.Message = "Unknown.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
                         }
                         else
                         {
@@ -952,14 +952,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
                     }
                     else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex, saveMode == SaveMode.AutoReplication);
+                OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex, saveMode == SaveMode.AutoReplication);
             }
 
             return result;
@@ -1091,7 +1091,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //            if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
         //                task.Result.Message = "Unknown.";
 
-        //            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
+        //            OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
         //        }
         //        else
         //        {
@@ -1100,7 +1100,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //        }
         //    }
         //    else
-        //        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
+        //        OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
 
         //    return result;
         //}
@@ -1255,7 +1255,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             result.IsSaved = true;
                         }
                         else
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}{saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}{saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
                     }
                     else
                     {
@@ -1264,10 +1264,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     }
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}{avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}{avatarResult.Message}", avatarResult.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage}{result.Message}", result.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{result.Message}", result.DetailedMessage);
 
             return result;
         }
@@ -1286,11 +1286,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     break;
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsAsync in AvatarManager loading wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
+                    OASISErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsAsync in AvatarManager loading wallets for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
             }
 
             if (walletsResult.IsError)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", result.Result.Id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", result.Result.Id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             else
                 result.IsLoaded = true;
 
@@ -1311,11 +1311,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //            break;
         //        }
         //        else
-        //            ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWallets in AvatarManager loading wallets for provider {type.Name}. Reason: {walletsResult.Message}");
+        //            OASISErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWallets in AvatarManager loading wallets for provider {type.Name}. Reason: {walletsResult.Message}");
         //    }
 
         //    if (walletsResult.IsError)
-        //        ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", result.Result.Id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+        //        OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", result.Result.Id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
         //    else
         //        result.IsLoaded = true;
 
@@ -1329,7 +1329,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             //This use to be HandleError but if the local wallets could not be loaded for whatever reason such as it was not found (because this is a new avatar for example), then it should just continue and then a new one will be created.
             if (walletsResult.IsError || walletsResult.Result == null)
-                ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWallets method in AvatarManager loading wallets for avatar {result.Result.Id}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage, walletsResult);
+                OASISErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWallets method in AvatarManager loading wallets for avatar {result.Result.Id}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage, walletsResult);
             else
             {
                 result.Result.ProviderWallets = walletsResult.Result;
@@ -1364,13 +1364,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         break;
                     }
                     else
-                        ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAllAvatarsAsync in AvatarManager loading wallets for avatar {avatar.Id} for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
+                        OASISErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAllAvatarsAsync in AvatarManager loading wallets for avatar {avatar.Id} for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
                 }
 
                 if (walletsResult.IsError)
                 {
                     errored = true;
-                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", avatar.Id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", avatar.Id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 }
             }
 
@@ -1379,12 +1379,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.IsLoaded = true;
 
                 if (result.WarningCount > 0)
-                    ErrorHandling.HandleWarning(ref result, string.Concat("All avatar wallets loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat("All avatar wallets loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                     result.Message = "Avatars Successfully Loaded.";
             }
             else
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all avatar wallets. Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all avatar wallets. Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
 
             return result;
         }
@@ -1406,13 +1406,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         break;
                     }
                     else
-                        ErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAllAvatars in AvatarManager loading wallets for avatar {avatar.Id} for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
+                        OASISErrorHandling.HandleWarning(ref result, $"Error occured in LoadProviderWalletsForAllAvatars in AvatarManager loading wallets for avatar {avatar.Id} for provider {type.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
                 }
 
                 if (walletsResult.IsError)
                 {
                     errored = true;
-                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", avatar.Id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", avatar.Id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 }
             }
 
@@ -1481,7 +1481,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //            result.Message = "Avatar Successfully Authenticated.";
         //        }
         //        else
-        //            ErrorHandling.HandleError(ref result, $"Error occured in AuthenticateAsync method in AvatarManager whilst saving the avatar. Reason: {saveAvatarResult.Message}");
+        //            OASISErrorHandling.HandleError(ref result, $"Error occured in AuthenticateAsync method in AvatarManager whilst saving the avatar. Reason: {saveAvatarResult.Message}");
         //    }
         //    else
         //        result.Result = null;
@@ -1515,20 +1515,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             if (string.IsNullOrEmpty(result.Message))
                                 result.Message = "Unknown.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message));
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message));
                         }
                         else
                             result.IsSaved = true;
                     }
                     else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message));
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message));
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;

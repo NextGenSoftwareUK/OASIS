@@ -74,13 +74,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     }
 
                     if (result.Result == null || result.IsError)
-                        ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to search. ErrorCount: ", result.ErrorCount, ". WarningCount: ", result.WarningCount, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to search. ErrorCount: ", result.ErrorCount, ". WarningCount: ", result.WarningCount, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                     {
                         result.IsLoaded = true;
 
                         if (result.WarningCount > 0)
-                            ErrorHandling.HandleWarning(ref result, string.Concat("The search completed successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to complete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), ". ErrorCount: ", result.ErrorCount, ".WarningCount: ", result.WarningCount, "."), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat("The search completed successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to complete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), ". ErrorCount: ", result.ErrorCount, ".WarningCount: ", result.WarningCount, "."), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                         else
                             result.Message = "Search Completed Successfully.";
 
@@ -93,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured searchin in provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured searchin in provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = null;
             }
 
@@ -162,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             result.Result = FilterResults(avatars, holons, allowDuplicates);
 
             if (result.ErrorCount > 0 || result.WarningCount > 0)
-                ErrorHandling.HandleError(ref result, String.Concat("One ore more OASIS Providers failed to search. ErrorCount: ", result.ErrorCount, ". WarningCount: ", result.WarningCount, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                OASISErrorHandling.HandleError(ref result, String.Concat("One ore more OASIS Providers failed to search. ErrorCount: ", result.ErrorCount, ". WarningCount: ", result.WarningCount, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
 
             return result;
         }
@@ -188,7 +188,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             if (string.IsNullOrEmpty(task.Result.Message))
                                 task.Result.Message = "Unknown Error";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
                         }
                         else
                         {
@@ -197,14 +197,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
                     }
                     else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;

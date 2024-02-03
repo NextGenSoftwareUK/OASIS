@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -98,7 +99,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private OASISResult<T> HandleSaveHolonForListOfProviderError<T>(OASISResult<T> result, OASISResult<IHolon> holonSaveResult, string listName, string providerName) where T : IHolon
         {
             holonSaveResult.Message = GetSaveHolonForListOfProvidersErrorMessage(listName, providerName, holonSaveResult.Message);
-            ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+            OASISErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
             result.InnerMessages.Add(holonSaveResult.Message);
             result.IsWarning = true;
             result.IsError = false;
@@ -108,7 +109,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private OASISResult<IEnumerable<T>> HandleSaveHolonForListOfProviderError<T>(OASISResult<IEnumerable<T>> result, OASISResult<IEnumerable<IHolon>> holonSaveResult, string listName, string providerName) where T : IHolon
         {
             holonSaveResult.Message = GetSaveHolonForListOfProvidersErrorMessage(listName, providerName, holonSaveResult.Message);
-            ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+            OASISErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
             result.InnerMessages.Add(holonSaveResult.Message);
             result.IsWarning = true;
             result.IsError = false;
@@ -264,22 +265,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private void HandleSaveHolonsErrorForAutoFailOverList<T>(ref OASISResult<IEnumerable<T>> result, IHolon holon = null) where T : IHolon
         {
-            ErrorHandling.HandleError(ref result, BuildSaveHolonAutoFailOverErrorMessage(result.InnerMessages, holon));
+            OASISErrorHandling.HandleError(ref result, BuildSaveHolonAutoFailOverErrorMessage(result.InnerMessages, holon));
         }
 
         private void HandleSaveHolonErrorForAutoFailOverList<T>(ref OASISResult<T> result, IHolon holon = null) where T : IHolon
         {
-            ErrorHandling.HandleError(ref result, BuildSaveHolonAutoFailOverErrorMessage(result.InnerMessages, holon));
+            OASISErrorHandling.HandleError(ref result, BuildSaveHolonAutoFailOverErrorMessage(result.InnerMessages, holon));
         }
 
         private void HandleSaveHolonsErrorForAutoReplicateList<T>(ref OASISResult<IEnumerable<T>> result, IHolon holon = null) where T : IHolon
         {
-            ErrorHandling.HandleWarning(ref result, BuildSaveHolonAutoReplicateErrorMessage(result.InnerMessages, holon));
+            OASISErrorHandling.HandleWarning(ref result, BuildSaveHolonAutoReplicateErrorMessage(result.InnerMessages, holon));
         }
 
         private void HandleSaveHolonErrorForAutoReplicateList<T>(ref OASISResult<T> result, IHolon holon = null) where T : IHolon
         {
-            ErrorHandling.HandleWarning(ref result, BuildSaveHolonAutoReplicateErrorMessage(result.InnerMessages, holon));
+            OASISErrorHandling.HandleWarning(ref result, BuildSaveHolonAutoReplicateErrorMessage(result.InnerMessages, holon));
         }
     }
 }

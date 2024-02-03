@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {

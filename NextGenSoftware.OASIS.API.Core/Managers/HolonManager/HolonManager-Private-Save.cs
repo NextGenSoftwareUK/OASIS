@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -55,7 +56,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, $"An error occured attempting to save the {LoggingHelper.GetHolonInfoForLogging(holon)} in the SaveHolonAsync method for the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {ex.ToString()}");
+                    OASISErrorHandling.HandleError(ref result, $"An error occured attempting to save the {LoggingHelper.GetHolonInfoForLogging(holon)} in the SaveHolonAsync method for the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {ex.ToString()}");
                 }
                 else
                     LogError(holon, providerType, ex.ToString());
@@ -109,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, $"An error occured attempting to save the {LoggingHelper.GetHolonInfoForLogging(holon)} in the SaveHolonAsync method for the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {ex.ToString()}");
+                    OASISErrorHandling.HandleError(ref result, $"An error occured attempting to save the {LoggingHelper.GetHolonInfoForLogging(holon)} in the SaveHolonAsync method for the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {ex.ToString()}");
                 }
                 else
                     LogError(holon, providerType, ex.ToString());
@@ -167,7 +168,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -225,7 +226,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);

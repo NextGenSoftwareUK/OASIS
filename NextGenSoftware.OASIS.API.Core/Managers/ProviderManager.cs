@@ -373,11 +373,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 catch (Exception ex)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat("Error Activating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
+                    OASISErrorHandling.HandleError(ref result, string.Concat("Error Activating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, "Error Activating Provider. Provider passed in is null!");
+                OASISErrorHandling.HandleError(ref result, "Error Activating Provider. Provider passed in is null!");
 
             return result;
         }
@@ -399,11 +399,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 catch (Exception ex)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat("Error Activating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
+                    OASISErrorHandling.HandleError(ref result, string.Concat("Error Activating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, "Error Activating Provider. Provider passed in is null!");
+                OASISErrorHandling.HandleError(ref result, "Error Activating Provider. Provider passed in is null!");
 
             return result;
         }
@@ -425,11 +425,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 catch (Exception ex)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat("Error DeActivating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
+                    OASISErrorHandling.HandleError(ref result, string.Concat("Error DeActivating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, "Error DeActivating Provider. Provider passed in is null!");
+                OASISErrorHandling.HandleError(ref result, "Error DeActivating Provider. Provider passed in is null!");
 
             return result;
         }
@@ -451,11 +451,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 catch (Exception ex)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat("Error DeActivating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
+                    OASISErrorHandling.HandleError(ref result, string.Concat("Error DeActivating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, "Error DeActivating Provider. Provider passed in is null!");
+                OASISErrorHandling.HandleError(ref result, "Error DeActivating Provider. Provider passed in is null!");
 
             return result;
         }
@@ -574,8 +574,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else
                 {
                     invalidProviderTypes.Add(provider.Trim());
-                    //ErrorHandling.HandleWarning(ref result, $"{provider.Trim()} listName} list is invalid.");
-                    ErrorHandling.HandleWarning(ref result, $"Error in GetProvidersFromList method in ProviderManager, the provider {provider.Trim()} specified in the {listName} list is invalid.");
+                    //OASISErrorHandling.HandleWarning(ref result, $"{provider.Trim()} listName} list is invalid.");
+                    OASISErrorHandling.HandleWarning(ref result, $"Error in GetProvidersFromList method in ProviderManager, the provider {provider.Trim()} specified in the {listName} list is invalid.");
                 }
             }
 
@@ -595,7 +595,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!listResult.IsError && listResult.Result != null)
                 result = EnumHelper.ConvertToEnumValueList(listResult.Result);
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in GetProvidersFromListAsEnumList method in ProviderManager. Reason: {listResult.Message}", listResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in GetProvidersFromListAsEnumList method in ProviderManager. Reason: {listResult.Message}", listResult.DetailedMessage);
 
             return result;
         }
@@ -639,7 +639,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     _providerAutoLoadBalanceList.Add(new EnumValue<ProviderType>(providerType));
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in SetAndReplaceAutoLoadBalanceListForProviders method in ProviderManager. Reason: {listResult.Result}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SetAndReplaceAutoLoadBalanceListForProviders method in ProviderManager. Reason: {listResult.Result}");
 
             return result;
         }

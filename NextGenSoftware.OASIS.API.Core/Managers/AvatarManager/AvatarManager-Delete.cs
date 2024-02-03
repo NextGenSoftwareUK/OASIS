@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -43,13 +44,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
 
                         if (result.IsError || !result.Result)
-                            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                         else
                         {
                             result.IsSaved = true;
 
                             if (result.WarningCount > 0)
-                                ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                                OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                             else
                                 result.Message = "Avatar Successfully Deleted.";
 
@@ -63,7 +64,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                 }
 
                                 if (result.WarningCount > 0)
-                                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                                 else
                                     LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
                             }
@@ -72,14 +73,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"The avatar with id {id} failed to load in DeleteAvatar method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"The avatar with id {id} failed to load in DeleteAvatar method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with id ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with id ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = false;
             }
 
@@ -121,13 +122,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
 
                         if (result.IsError || !result.Result)
-                            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                         else
                         {
                             result.IsSaved = true;
 
                             if (result.WarningCount > 0)
-                                ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                                OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                             else
                                 result.Message = "Avatar Successfully Deleted.";
 
@@ -141,7 +142,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                 }
 
                                 if (result.WarningCount > 0)
-                                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                                 else
                                     LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
                             }
@@ -150,14 +151,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"The avatar with id {id} failed to load in DeleteAvatarAsync method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"The avatar with id {id} failed to load in DeleteAvatarAsync method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with id ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with id ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = false;
             }
 
@@ -199,13 +200,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
 
                         if (result.IsError || !result.Result)
-                            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with username ", userName, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with username ", userName, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                         else
                         {
                             result.IsSaved = true;
 
                             if (result.WarningCount > 0)
-                                ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                                OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                             else
                                 result.Message = "Avatar Successfully Deleted.";
 
@@ -219,7 +220,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                 }
 
                                 if (result.WarningCount > 0)
-                                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                                 else
                                     LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
                             }
@@ -228,14 +229,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"The avatar with username {userName} failed to load in DeleteAvatarByUsernameAsync method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"The avatar with username {userName} failed to load in DeleteAvatarByUsernameAsync method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with userName ", userName, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with userName ", userName, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = false;
             }
 
@@ -277,13 +278,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
 
                         if (result.IsError || !result.Result)
-                            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with username ", userName, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with username ", userName, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                         else
                         {
                             result.IsSaved = true;
 
                             if (result.WarningCount > 0)
-                                ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                                OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                             else
                                 result.Message = "Avatar Successfully Deleted.";
 
@@ -297,7 +298,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                 }
 
                                 if (result.WarningCount > 0)
-                                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                                 else
                                     LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
                             }
@@ -306,14 +307,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"The avatar with username {userName} failed to load in DeleteAvatarByUsername method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"The avatar with username {userName} failed to load in DeleteAvatarByUsername method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with userName ", userName, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with userName ", userName, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = false;
             }
 
@@ -355,13 +356,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
 
                         if (result.IsError || !result.Result)
-                            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                         else
                         {
                             result.IsSaved = true;
 
                             if (result.WarningCount > 0)
-                                ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                                OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                             else
                                 result.Message = "Avatar Successfully Deleted.";
 
@@ -375,7 +376,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                 }
 
                                 if (result.WarningCount > 0)
-                                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                                 else
                                     LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
                             }
@@ -384,14 +385,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"The avatar with email {email} failed to load in DeleteAvatarByEmailAsync method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"The avatar with email {email} failed to load in DeleteAvatarByEmailAsync method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with email ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with email ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = false;
             }
 
@@ -433,13 +434,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
 
                         if (result.IsError || !result.Result)
-                            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                         else
                         {
                             result.IsSaved = true;
 
                             if (result.WarningCount > 0)
-                                ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                                OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                             else
                                 result.Message = "Avatar Successfully Deleted.";
 
@@ -453,7 +454,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                 }
 
                                 if (result.WarningCount > 0)
-                                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                                 else
                                     LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
                             }
@@ -462,14 +463,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                        OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"The avatar with email {email} failed to load in DeleteAvatarByEmail method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"The avatar with email {email} failed to load in DeleteAvatarByEmail method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with email ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with email ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = false;
             }
 
@@ -506,13 +507,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 if (result.IsError || !result.Result)
-                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar detail with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar detail with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
                     result.IsSaved = true;
 
                     if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with id ", id, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with id ", id, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                         result.Message = "Avatar Detail Successfully Deleted.";
 
@@ -526,7 +527,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
 
                         if (result.WarningCount > 0)
-                            ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with id ", id, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with id ", id, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                         else
                             LoggingManager.Log("Avatar Detail Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
                     }
@@ -536,7 +537,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar detail with id ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar detail with id ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = false;
             }
 
@@ -572,13 +573,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 if (result.IsError || !result.Result)
-                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar detail with username ", userName, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar detail with username ", userName, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
                     result.IsSaved = true;
 
                     if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with username ", userName, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with username ", userName, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                         result.Message = "Avatar Detail Successfully Deleted.";
 
@@ -592,7 +593,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
 
                         if (result.WarningCount > 0)
-                            ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with username ", userName, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with username ", userName, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                         else
                             LoggingManager.Log("Avatar Detail Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
                     }
@@ -602,7 +603,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar detail with userName ", userName, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar detail with userName ", userName, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = false;
             }
 
@@ -638,13 +639,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 if (result.IsError || !result.Result)
-                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar detail with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar detail with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
                     result.IsSaved = true;
 
                     if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                         result.Message = "Avatar Detail Successfully Deleted.";
 
@@ -658,7 +659,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
 
                         if (result.WarningCount > 0)
-                            ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                         else
                             LoggingManager.Log("Avatar Detail Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
                     }
@@ -668,7 +669,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar detail with email ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar detail with email ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = false;
             }
 
@@ -704,13 +705,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 if (result.IsError || !result.Result)
-                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar detail with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar detail with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
                     result.IsSaved = true;
 
                     if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                         result.Message = "Avatar Detail Successfully Deleted.";
 
@@ -724,7 +725,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
 
                         if (result.WarningCount > 0)
-                            ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                         else
                             LoggingManager.Log("Avatar Detail Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
                     }
@@ -734,7 +735,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar detail with email ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar detail with email ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = false;
             }
 

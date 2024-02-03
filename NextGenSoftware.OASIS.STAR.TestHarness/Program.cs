@@ -462,7 +462,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating Holochain Tests...");
 
-                if (!STAR.OASISAPI.Providers.Holochain.IsProviderActivated)
+                if (!STAR.OASISAPI.Providers.Holochain.IsProviderActivated.Value)
                 {
                     CLIEngine.ShowWorkingMessage("Activating Holochain Provider...");
                     STAR.OASISAPI.Providers.Holochain.ActivateProvider();
@@ -477,7 +477,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 CLIEngine.ShowWorkingMessage("Calling Test Zome Function on HoloNET Client...");
                 //await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.Config.AgentPubKey, "our_world_core", "load_holons", null);
-                await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync("our_world_core", "load_holons", null);
+                await STAR.OASISAPI.Providers.Holochain.HoloNETClientAppAgent.CallZomeFunctionAsync("our_world_core", "load_holons", null);
             }
             catch (Exception ex)
             {
@@ -491,7 +491,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating IPFS Tests...");
 
-                if (!STAR.OASISAPI.Providers.IPFS.IsProviderActivated)
+                if (!STAR.OASISAPI.Providers.IPFS.IsProviderActivated.Value)
                 {
                     CLIEngine.ShowWorkingMessage("Activating IPFS Provider...");
                     STAR.OASISAPI.Providers.IPFS.ActivateProvider();
@@ -517,7 +517,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating Ethereum Tests...");
 
-                if (!STAR.OASISAPI.Providers.Ethereum.IsProviderActivated)
+                if (!STAR.OASISAPI.Providers.Ethereum.IsProviderActivated.Value)
                 {
                     CLIEngine.ShowWorkingMessage("Activating Ethereum Provider...");
                     STAR.OASISAPI.Providers.Ethereum.ActivateProvider();
@@ -540,7 +540,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating EOSIO Tests...");
 
-                if (!STAR.OASISAPI.Providers.EOSIO.IsProviderActivated)
+                if (!STAR.OASISAPI.Providers.EOSIO.IsProviderActivated.Value)
                 {
                     CLIEngine.ShowWorkingMessage("Activating EOSIO Provider...");
                     STAR.OASISAPI.Providers.EOSIO.ActivateProvider();
@@ -564,7 +564,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating Neo4j (Graph DB) Tests...");
 
-                if (!STAR.OASISAPI.Providers.Neo4j.IsProviderActivated)
+                if (!STAR.OASISAPI.Providers.Neo4j.IsProviderActivated.Value)
                 {
                     CLIEngine.ShowWorkingMessage("Activating Neo4j Provider...");
                     STAR.OASISAPI.Providers.Neo4j.ActivateProvider();
@@ -605,7 +605,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating MongoDB Tests...");
 
-                if (!STAR.OASISAPI.Providers.MongoDB.IsProviderActivated)
+                if (!STAR.OASISAPI.Providers.MongoDB.IsProviderActivated.Value)
                 {
                     CLIEngine.ShowWorkingMessage("Activating MongoDB Provider...");
                     STAR.OASISAPI.Providers.MongoDB.ActivateProvider();
@@ -635,7 +635,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating SEEDS Tests...");
 
-                if (!STAR.OASISAPI.Providers.SEEDS.IsProviderActivated)
+                if (!STAR.OASISAPI.Providers.SEEDS.IsProviderActivated.Value)
                 {
                     CLIEngine.ShowWorkingMessage("Activating SEEDS Provider...");
                     STAR.OASISAPI.Providers.SEEDS.ActivateProvider();

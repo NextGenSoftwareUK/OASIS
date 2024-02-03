@@ -25,6 +25,13 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public Exception Exception { get; set; }
     }
 
+    public class OASISWarningEventArgs : EventArgs
+    {
+        public string EndPoint { get; set; }
+        public string Reason { get; set; }
+        public Exception Exception { get; set; }
+    }
+
     public class AvatarManagerErrorEventArgs : OASISErrorEventArgs<IAvatar>
     {
 

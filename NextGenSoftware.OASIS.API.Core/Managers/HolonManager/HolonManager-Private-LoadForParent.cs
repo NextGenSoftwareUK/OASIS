@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -38,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -77,7 +78,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsLoaded = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult.Message}");
                 }
             }
             catch (Exception ex)
@@ -87,7 +88,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -125,7 +126,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -163,7 +164,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsLoaded = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult.Message}");
                 }
             }
             catch (Exception ex)
@@ -173,7 +174,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -211,7 +212,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -249,7 +250,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsLoaded = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
                 }
             }
             catch (Exception ex)
@@ -259,7 +260,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -297,7 +298,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -346,7 +347,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -384,7 +385,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -422,7 +423,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsLoaded = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
                 }
             }
             catch (Exception ex)
@@ -432,7 +433,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -470,7 +471,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -519,7 +520,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -557,7 +558,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -595,7 +596,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsLoaded = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
                 }
             }
             catch (Exception ex)
@@ -605,7 +606,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -643,7 +644,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);
@@ -692,7 +693,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (result != null)
                 {
                     result.Result = null;
-                    ErrorHandling.HandleError(ref result, errorMessage);
+                    OASISErrorHandling.HandleError(ref result, errorMessage);
                 }
                 else
                     LoggingManager.Log(errorMessage, LogType.Error);

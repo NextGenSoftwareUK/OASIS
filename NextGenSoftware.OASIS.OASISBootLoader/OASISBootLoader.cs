@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json;
+using NextGenSoftware.Logging.NLogger;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
@@ -20,15 +19,38 @@ using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
+using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.OASISBootLoader
 {
     public static class OASISBootLoader
     {
-        public static string OASISDNAFileName { get; set; } = "OASIS_DNA.json";
-        public static OASISDNA OASISDNA;
         public static bool IsOASISBooted { get; private set; } = false;
         public static bool IsOASISBooting { get; private set; } = false;
+
+        public static string OASISDNAPath
+        { 
+            get
+            {
+                return OASISDNAManager.OASISDNAPath;
+            }
+            set
+            {
+                OASISDNAManager.OASISDNAPath = value;
+            }
+        }
+
+        public static OASISDNA OASISDNA
+        {
+            get
+            {
+                return OASISDNAManager.OASISDNA;
+            }
+            set
+            {
+                OASISDNAManager.OASISDNA = value;
+            }
+        }
 
         public static OASISResult<bool> BootOASIS(string OASISDNAFileName)
         {
@@ -47,11 +69,25 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                 OASISDNAManager.OASISDNA = OASISDNA;
                 LoggingManager.CurrentLoggingFramework = (LoggingFramework) Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
-                ErrorHandling.LogAllErrors = OASISDNA.OASIS.ErrorHandling.LogAllErrors;
-                ErrorHandling.LogAllWarnings = OASISDNA.OASIS.ErrorHandling.LogAllWarnings;
-                ErrorHandling.ShowStackTrace = OASISDNA.OASIS.ErrorHandling.ShowStackTrace;
-                ErrorHandling.ThrowExceptionsOnErrors = OASISDNA.OASIS.ErrorHandling.ThrowExceptionsOnErrors;
-                ErrorHandling.ThrowExceptionsOnWarnings = OASISDNA.OASIS.ErrorHandling.ThrowExceptionsOnWarnings;
+                
+                switch (LoggingManager.CurrentLoggingFramework)
+                {
+                    case LoggingFramework.Default:
+                        LoggingManager.Init(OASISDNA.OASIS.Logging.LogToConsole, OASISDNA.OASIS.Logging.LogToFile, OASISDNA.OASIS.Logging.LogPath, OASISDNA.OASIS.Logging.LogFileName, null, OASISDNA.OASIS.Logging.AddAdditionalSpaceAfterEachLogEntry, OASISDNA.OASIS.Logging.ShowColouredLogs, OASISDNA.OASIS.Logging.DebugColour, OASISDNA.OASIS.Logging.InfoColour, OASISDNA.OASIS.Logging.WarningColour, OASISDNA.OASIS.Logging.ErrorColour);
+                        break;
+
+                    case LoggingFramework.NLog:
+                        LoggingManager.Init(new NLogProvider(), OASISDNA.OASIS.Logging.AlsoUseDefaultLogProvider);
+                        break;
+                }
+
+                OASISErrorHandling.LogAllErrors = OASISDNA.OASIS.ErrorHandling.LogAllErrors;
+                OASISErrorHandling.LogAllWarnings = OASISDNA.OASIS.ErrorHandling.LogAllWarnings;
+                OASISErrorHandling.ShowStackTrace = OASISDNA.OASIS.ErrorHandling.ShowStackTrace;
+                OASISErrorHandling.ThrowExceptionsOnErrors = OASISDNA.OASIS.ErrorHandling.ThrowExceptionsOnErrors;
+                OASISErrorHandling.ThrowExceptionsOnWarnings = OASISDNA.OASIS.ErrorHandling.ThrowExceptionsOnWarnings;
+                OASISErrorHandling.WarningHandlingBehaviour = OASISDNA.OASIS.ErrorHandling.WarningHandlingBehaviour;
+                OASISErrorHandling.ErrorHandlingBehaviour = OASISDNA.OASIS.ErrorHandling.ErrorHandlingBehaviour;
 
                 ProviderManager.IsAutoFailOverEnabled = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabled;
                 ProviderManager.IsAutoLoadBalanceEnabled = OASISDNA.OASIS.StorageProviders.AutoLoadBalanceEnabled;
@@ -102,7 +138,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
         public static OASISResult<bool> BootOASIS()
         {
-            return BootOASIS(OASISDNAFileName);
+            return BootOASIS(OASISDNAPath);
         }
 
         public static OASISResult<bool> ShutdownOASIS()
@@ -124,7 +160,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             {
                 if (!IsOASISBooted)
                 {
-                    OASISResult<bool> initResult = BootOASIS(OASISDNAFileName);
+                    OASISResult<bool> initResult = BootOASIS(OASISDNAPath);
 
                     if (initResult.IsError)
                     {
@@ -180,7 +216,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
             if (!IsOASISBooted && !IsOASISBooting)
             {
-                OASISResult<bool> bootResult = BootOASIS(OASISDNAFileName);
+                OASISResult<bool> bootResult = BootOASIS(OASISDNAPath);
 
                 if (bootResult.IsError)
                 {
@@ -217,7 +253,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             IOASISStorageProvider registeredProvider = null;
 
             if (!IsOASISBooted && !IsOASISBooting)
-                BootOASIS(OASISDNAFileName);
+                BootOASIS(OASISDNAPath);
 
             // If they wish to forceRegister then if it is already registered then unregister it first (when connectionstring changes for example).
             if (forceRegister && ProviderManager.IsProviderRegistered(providerType))
@@ -327,10 +363,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         {
                             OASISDNA overrideDNA = OASISDNA;
                             overrideDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString = overrideConnectionString;
-                            IPFSOASIS = new IPFSOASIS(overrideDNA, OASISDNAFileName);
+                            IPFSOASIS = new IPFSOASIS(overrideDNA, OASISDNAPath);
                         }
                         else
-                            IPFSOASIS = new IPFSOASIS(OASISDNA, OASISDNAFileName);
+                            IPFSOASIS = new IPFSOASIS(OASISDNA, OASISDNAPath);
 
                         //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNAFileName);
                         IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
@@ -481,7 +517,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     string errorMessage = string.Concat("OASIS Provider ",
                         Enum.GetName(typeof(ProviderType), providerType), " failed to register.\n");
                     result.Message = string.Concat(result.Message, errorMessage);
-                    LoggingManager.Log(errorMessage, API.Core.Enums.LogType.Error);
+                    LoggingManager.Log(errorMessage, LogType.Error);
 
                     if (abortIfOneProviderFailsToRegister)
                         break;
@@ -500,7 +536,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     listResult.Message);
                 allListResult.IsError = true;
                 allListResult.Message = string.Concat(allListResult.Message, errorMessage);
-                LoggingManager.Log(errorMessage, API.Core.Enums.LogType.Error);
+                LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return allListResult;
@@ -518,7 +554,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     providerTypes.Add((ProviderType) providerTypeObject);
                 else
                     throw new ArgumentOutOfRangeException(providerListName,
-                        string.Concat("ERROR: The OASIS DNA file ", OASISDNAFileName,
+                        string.Concat("ERROR: The OASIS DNA file ", OASISDNAPath,
                             " contains an invalid entry in the ", providerListName,
                             " comma delimited list. Entry found was ", provider.Trim(), ". Valid entries are:\n\n",
                             EnumHelper.GetEnumValues(typeof(ProviderType))));
@@ -528,21 +564,27 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         }
 
         //TODO: Change to OASISResult instead of throwing exceptions ASAP! :)
-        private static void LoadOASISDNA(string OASISDNAFileName)
-        {
-            OASISBootLoader.OASISDNAFileName = OASISDNAFileName;
+        //TODO: Need to only have one place we load/save the OASISDNA and refrence the static OASISDNA object (currently it is in both OASISBootLoader and OASISDNAManager!)
+        //private static void LoadOASISDNA(string OASISDNAFileName)
+        //{
+        //    OASISBootLoader.OASISDNAFileName = OASISDNAFileName;
 
-            if (File.Exists(OASISDNAFileName))
-            {
-                using (StreamReader r = new StreamReader(OASISDNAFileName))
-                {
-                    string json = r.ReadToEnd();
-                    OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
-                }
-            }
-            else
-                throw new ArgumentNullException("OASISDNAFileName",
-                    string.Concat("ERROR: OASIS DNA file not found. Path: ", OASISDNAFileName));
+        //    if (File.Exists(OASISDNAFileName))
+        //    {
+        //        using (StreamReader r = new StreamReader(OASISDNAFileName))
+        //        {
+        //            string json = r.ReadToEnd();
+        //            OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
+        //        }
+        //    }
+        //    else
+        //        throw new ArgumentNullException("OASISDNAFileName",
+        //            string.Concat("ERROR: OASIS DNA file not found. Path: ", OASISDNAFileName));
+        //}
+
+        private static OASISResult<OASISDNA> LoadOASISDNA(string OASISDNAPath)
+        {
+            return OASISDNAManager.LoadDNA(OASISDNAPath);
         }
 
         private static void LoadProviderLists()

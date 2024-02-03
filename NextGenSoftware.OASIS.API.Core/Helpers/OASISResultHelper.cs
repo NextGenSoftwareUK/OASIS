@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 return (parentResult, result.Result);
             else
             {
-                ErrorHandling.HandleError(ref parentResult, string.Format(errorMessage, result.Message));
+                OASISErrorHandling.HandleError(ref parentResult, string.Format(errorMessage, result.Message));
                 return (parentResult, default(T2));
             }
         }

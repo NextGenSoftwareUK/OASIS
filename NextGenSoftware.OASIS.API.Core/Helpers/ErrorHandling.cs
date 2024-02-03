@@ -1,20 +1,53 @@
 ﻿using System;
+using NextGenSoftware.ErrorHandling;
+using NextGenSoftware.Logging;
+using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 
 namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
-    public static class ErrorHandling
+    public static class OASISErrorHandling
     {
         //These are global overrides to the method calls below.
-        //TODO: Need to add these to the OASISDNA so can be confgiured in the config file as well as code.
         public static bool ShowStackTrace { get; set; } = false; //This should ONLY be used in DEBUG/DEV mode.
-        public static bool ThrowExceptionsOnErrors { get; set; } = false; //This should ONLY be used in DEBUG/DEV mode.
-        public static bool ThrowExceptionsOnWarnings { get; set; } = false; //This should ONLY be used in DEBUG/DEV mode.
+        public static bool ThrowExceptionsOnErrors { get; set; } = false; //This should ONLY be used in DEBUG/DEV mode. Even if this is true it will only throw an exception if ErrorHandlingBehaviour is set to 'AlwaysThrowExceptionOnError' or if it is 'OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent' and OnError has not been subscribed to.  
+        public static bool ThrowExceptionsOnWarnings { get; set; } = false; //This should ONLY be used in DEBUG/DEV mode. Even if this is true it will only throw an exception if WarningHandlingBehaviour is set to 'AlwaysThrowExceptionOnWarning' or if it is 'OnlyThrowExceptionIfNoWarningHandlerSubscribedToOnWarningEvent' and OnWarning has not been subscribed to.  
         public static bool LogAllErrors { get; set; } = true;
         public static bool LogAllWarnings { get; set; } = true;
+        //public static ErrorHandlingBehaviour ErrorHandlingBehaviour { get; set; } = ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent;
+        //public static WarningHandlingBehaviour WarningHandlingBehaviour { get; set; } = WarningHandlingBehaviour.OnlyThrowExceptionIfNoWarningHandlerSubscribedToOnWarningEvent;
+
+        public static ErrorHandlingBehaviour ErrorHandlingBehaviour
+        {
+            get
+            {
+                return ErrorHandling.ErrorHandling.ErrorHandlingBehaviour;
+            }
+            set
+            {
+                ErrorHandling.ErrorHandling.ErrorHandlingBehaviour = value;
+            }
+        }
+
+        public static WarningHandlingBehaviour WarningHandlingBehaviour
+        {
+            get
+            {
+                return ErrorHandling.ErrorHandling.WarningHandlingBehaviour;
+            }
+            set
+            {
+                ErrorHandling.ErrorHandling.WarningHandlingBehaviour = value;
+            }
+        }
+
+        public delegate void Error(object sender, OASISErrorEventArgs e);
+        public static event Error OnError;
+
+        public delegate void Warning(object sender, OASISWarningEventArgs e);
+        public static event Warning OnWarning;
 
         //WARNING: ONLY set includeStackTrace to true for debug/dev mode due to performance overhead. This param should never be needed because the ShowStackTrace flag will be used for Dev/Debug mode. 
 
@@ -67,10 +100,29 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 result.ErrorCount++;
 
             if (log || LogAllErrors)
-                LoggingManager.Log(errorMessage, Enums.LogType.Error);
+                LoggingManager.Log(errorMessage, LogType.Error);
 
-            if (throwException || ThrowExceptionsOnErrors)
-                throw new Exception(errorMessage, ex);
+            OnError?.Invoke(null, new OASISErrorEventArgs { Reason = errorMessage, Exception = ex });
+
+            switch (ErrorHandlingBehaviour)
+            {
+                case ErrorHandlingBehaviour.AlwaysThrowExceptionOnError:
+                    {
+                        if (throwException || ThrowExceptionsOnErrors)
+                            throw new Exception(errorMessage, ex);
+                    }
+                    break;
+
+                case ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent:
+                    {
+                        if (OnError == null)
+                        {
+                            if (throwException || ThrowExceptionsOnErrors)
+                                throw new Exception(errorMessage, ex);
+                        }
+                    }
+                    break;
+            }
         }
 
         public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, bool onlyLogToInnerMessages)
@@ -174,8 +226,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             if (addToInnerMessages)
             {
                 if (!string.IsNullOrEmpty(detailedMessage))
-                    result.StackTraces.Add(detailedMessage); 
-                    //result.InnerMessages.Add($"{message}\n\nDetails:\n{detailedMessage}");
+                    result.StackTraces.Add(detailedMessage);
+                //result.InnerMessages.Add($"{message}\n\nDetails:\n{detailedMessage}");
                 else
                     result.InnerMessages.Add(message);
             }
@@ -184,12 +236,30 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 result.WarningCount++;
 
             if (log || LogAllWarnings)
-                LoggingManager.Log(message, Enums.LogType.Warn);
+                LoggingManager.Log(message, LogType.Warning);
 
-            if (throwException || ThrowExceptionsOnWarnings)
-                throw new Exception(message, ex);
+            OnWarning?.Invoke(null, new OASISWarningEventArgs { Reason = message, Exception = ex });
+
+            switch (WarningHandlingBehaviour)
+            {
+                case WarningHandlingBehaviour.AlwaysThrowExceptionOnWarning:
+                    {
+                        if (throwException || ThrowExceptionsOnWarnings)
+                            throw new Exception(message, ex);
+                    }
+                    break;
+
+                case WarningHandlingBehaviour.OnlyThrowExceptionIfNoWarningHandlerSubscribedToOnWarningEvent:
+                    {
+                        if (OnError == null)
+                        {
+                            if (throwException || ThrowExceptionsOnWarnings)
+                                throw new Exception(message, ex);
+                        }
+                    }
+                    break;
+            }
         }
-
 
         public static void HandleWarning<T1, T2>(ref OASISResult<T1> result, string message, bool log = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = true, bool incrementWarningCount = true, Exception ex = null, string detailedMessage = "", bool onlyLogToInnerMessages = false, OASISResult<T2> innerResult = null)
         {
