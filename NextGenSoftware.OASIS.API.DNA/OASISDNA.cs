@@ -151,6 +151,11 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string LogFileName { get; set; } = "OASIS.log";
 
         /// <summary>
+        /// This is the max file size the log file can be (in bytes) before it creates a new file. The default is 1000000 bytes (1 MB).
+        /// </summary>
+        public int MaxLogFileSize { get; set; } = 1000000;
+
+        /// <summary>
         /// The number of attempts to attempt to log to the file if the first attempt fails. NOTE: This is only relevant if the built-in DefaultLogger is used.
         /// </summary>
         public int NumberOfRetriesToLogToFile { get; set; } = 3;
