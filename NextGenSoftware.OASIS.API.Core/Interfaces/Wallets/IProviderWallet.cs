@@ -1,7 +1,7 @@
 ﻿
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
+using NextGenSoftware.OASIS.Common;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

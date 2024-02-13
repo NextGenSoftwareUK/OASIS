@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Singleton;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces;
 using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
 using AvatarDetail = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
@@ -42,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in AddAsync method in AvatarRepository creating Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in AddAsync method in AvatarRepository creating Avatar. Reason: {ex}");
             }
 
             return result;
@@ -67,7 +68,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in AddAsync method in AvatarRepository creating Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in AddAsync method in AvatarRepository creating Avatar. Reason: {ex}");
             }
 
             return result;
@@ -92,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in Add method in AvatarRepository creating Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in Add method in AvatarRepository creating Avatar. Reason: {ex}");
             }
 
             return result;
@@ -117,7 +118,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in Add method in AvatarRepository loading Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in Add method in AvatarRepository loading Avatar. Reason: {ex}");
             }
 
             return result;
@@ -134,7 +135,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}");
             }
 
             return result;
@@ -151,7 +152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}");
             }
 
             return result;
@@ -168,7 +169,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}");
             }
 
             return result;
@@ -185,7 +186,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}");
             }
 
             return result;
@@ -213,7 +214,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}");
             }
 
             return result;
@@ -230,7 +231,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}");
             }
 
             return result;
@@ -250,7 +251,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}");
             }
 
             return result;
@@ -266,13 +267,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         //        Avatar avatar = _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefault();
 
         //        if (avatar != null && password != avatar.Password)
-        //            ErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: Avatar Password Is Incorrect.");
+        //            OASISErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: Avatar Password Is Incorrect.");
         //        else
         //            result.Result = avatar;
         //    }
         //    catch
         //    {
-        //        ErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}");
+        //        OASISErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}");
         //    }
 
         //    return result;
@@ -288,7 +289,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in GetAvatarsAsync method in AvatarRepository in MongoDBOASIS Provider loading avatars. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarsAsync method in AvatarRepository in MongoDBOASIS Provider loading avatars. Reason: {ex}");
             }
 
             return result;
@@ -304,7 +305,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in GetAvatars method in AvatarRepository in MongoDBOASIS Provider loading avatars. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatars method in AvatarRepository in MongoDBOASIS Provider loading avatars. Reason: {ex}");
             }
 
             return result;
@@ -321,7 +322,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in UpdateAsync method in AvatarRepository updating Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in UpdateAsync method in AvatarRepository updating Avatar. Reason: {ex}");
             }
 
             return result;
@@ -338,7 +339,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in UpdateAsync method in AvatarRepository updating Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in UpdateAsync method in AvatarRepository updating Avatar. Reason: {ex}");
             }
 
             return result;
@@ -351,7 +352,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             result.Result = _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, "Avatar Not Found");
+                OASISErrorHandling.HandleError(ref result, "Avatar Not Found");
 
             return result;
         }
@@ -364,7 +365,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             result.Result = await findResult.FirstOrDefaultAsync();
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, "Avatar Not Found");
+                OASISErrorHandling.HandleError(ref result, "Avatar Not Found");
 
             return result;
         }
@@ -376,7 +377,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             result.Result = await _dbContext.AvatarDetail.Find(filter).FirstOrDefaultAsync();
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, "Avatar Not Found");
+                OASISErrorHandling.HandleError(ref result, "Avatar Not Found");
 
             return result;
         }
@@ -388,7 +389,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             result.Result = _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, "Avatar Not Found");
+                OASISErrorHandling.HandleError(ref result, "Avatar Not Found");
 
             return result;
         }
@@ -400,7 +401,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             result.Result = await _dbContext.AvatarDetail.Find(filter).FirstOrDefaultAsync();
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, "Avatar Not Found");
+                OASISErrorHandling.HandleError(ref result, "Avatar Not Found");
 
             return result;
         }
@@ -412,7 +413,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             result.Result = _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, "Avatar Not Found");
+                OASISErrorHandling.HandleError(ref result, "Avatar Not Found");
 
             return result;
         }
@@ -428,7 +429,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in GetAvatarDetailsAsync method in AvatarRepository in MongoDBOASIS Provider loading Avatar Details. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarDetailsAsync method in AvatarRepository in MongoDBOASIS Provider loading Avatar Details. Reason: {ex}");
             }
 
             return result;
@@ -444,7 +445,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in GetAvatarDetails method in AvatarRepository in MongoDBOASIS Provider loading Avatar Details. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarDetails method in AvatarRepository in MongoDBOASIS Provider loading Avatar Details. Reason: {ex}");
             }
 
             return result;
@@ -461,7 +462,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in Update method in AvatarRepository updating Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in Update method in AvatarRepository updating Avatar. Reason: {ex}");
             }
 
             return result;
@@ -478,7 +479,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error in Update method in AvatarRepository updating Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in Update method in AvatarRepository updating Avatar. Reason: {ex}");
             }
 
             return result;
@@ -503,7 +504,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         if (!avatarResult.IsError && avatarResult.Result != null)
                         {
                             if (avatarResult.Result.DeletedDate != DateTime.MinValue)
-                                ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                                OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                             else
                             {
                                 if (AvatarManager.LoggedInAvatar != null)
@@ -524,11 +525,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     result.Result = true;
                                 }
                                 else
-                                    ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
                             }
                         }
                         else
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
                     }
                     else
                     {
@@ -542,7 +543,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 catch (Exception ex)
                 {
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
                 }
 
                 if (result.IsError)
@@ -573,7 +574,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         if (!avatarResult.IsError && avatarResult.Result != null)
                         {
                             if (avatarResult.Result.DeletedDate != DateTime.MinValue)
-                                ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                                OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                             else
                             {
                                 if (AvatarManager.LoggedInAvatar != null)
@@ -594,11 +595,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     result.Result = true;
                                 }
                                 else
-                                    ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
                             }
                         }
                         else
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
                     }
                     else
                     {
@@ -612,7 +613,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 catch (Exception ex)
                 {
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
                 }
 
                 if (result.IsError)
@@ -641,11 +642,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         OASISResult<Avatar> avatarResult = GetAvatar(expression);
 
                         if (avatarResult.IsError || avatarResult.Result == null)
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
                         else
                         {
                             if (avatarResult.Result.DeletedDate != DateTime.MinValue)
-                                ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                                OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                             else
                             {
                                 if (AvatarManager.LoggedInAvatar != null)
@@ -666,7 +667,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     result.Result = true;
                                 }
                                 else
-                                    ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
                             }
                         }
                     }
@@ -678,7 +679,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         _dbContext.Avatar.DeleteOne(data);
 
                         if (avatarResult.Result == null)
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
                         else
                         {
                             FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == avatarResult.Result.HolonId);
@@ -689,7 +690,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 catch (Exception ex)
                 {
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
                 }
 
                 if (result.IsError)
@@ -718,11 +719,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         OASISResult<Avatar> avatarResult = await GetAvatarAsync(expression);
 
                         if (avatarResult.Result == null || avatarResult.IsError)
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
                         else
                         {
                             if (avatarResult.Result.DeletedDate != DateTime.MinValue)
-                                ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                                OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                             else
                             {
                                 if (AvatarManager.LoggedInAvatar != null)
@@ -743,7 +744,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     result.Result = true;
                                 }
                                 else
-                                    ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarDetailResult.Result.Username} was not found.");
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarDetailResult.Result.Username} was not found.");
                             }
                         }
                     }
@@ -755,7 +756,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         await _dbContext.Avatar.DeleteOneAsync(data);
 
                         if (avatarResult.Result == null)
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with expression {expression} was not found.");
                         else
                         {
                             FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == avatarResult.Result.HolonId);
@@ -766,7 +767,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 catch (Exception ex)
                 {
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
                 }
 
                 if (result.IsError)
@@ -795,11 +796,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         OASISResult<Avatar> avatarResult = await GetAvatarAsync(providerKey);
 
                         if (avatarResult.Result == null || avatarResult.IsError)
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
                         else
                         {
                             if (avatarResult.Result.DeletedDate != DateTime.MinValue)
-                                ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                                OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                             else
                             {
                                 if (AvatarManager.LoggedInAvatar != null)
@@ -820,7 +821,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     result.Result = true;
                                 }
                                 else
-                                    ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarDetailResult.Result.Username} was not found.");
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarDetailResult.Result.Username} was not found.");
                             }
                         }
                     }
@@ -832,7 +833,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         await _dbContext.Avatar.DeleteOneAsync(data);
 
                         if (avatarResult.Result == null || avatarResult.IsError)
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
                         else
                         {
                             FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == avatarResult.Result.HolonId);
@@ -843,7 +844,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 catch (Exception ex)
                 {
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
                 }
 
                 if (result.IsError)
@@ -874,7 +875,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         if (!avatarResult.IsError && avatarResult.Result != null)
                         {
                             if (avatarResult.Result.DeletedDate != DateTime.MinValue)
-                                ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                                OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                             else
                             {
                                 if (AvatarManager.LoggedInAvatar != null)
@@ -895,11 +896,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     result.Result = true;
                                 }
                                 else
-                                    ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
                             }
                         }
                         else
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
                     }
                     else
                     {
@@ -915,12 +916,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             result.Result = true;
                         }
                         else
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with providerKey {providerKey} was not found.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
                 }
 
                 if (result.IsError)

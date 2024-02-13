@@ -38,7 +38,8 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Logging\NextGenSoftware.Logging.csproj" />
-	  <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core.ErrorHandling\NextGenSoftware.OASIS.API.Core.ErrorHandling.csproj" />
+	  <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core.ErrorHandling\NextGenSoftware.OASIS.Common.csproj" />
+	  <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

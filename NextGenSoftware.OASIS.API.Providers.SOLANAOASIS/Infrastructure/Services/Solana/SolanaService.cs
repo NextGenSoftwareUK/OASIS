@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses;
+using NextGenSoftware.OASIS.Common;
 using Solnet.Extensions;
 using Solnet.Extensions.TokenMint;
 using Solnet.Metaplex;
@@ -34,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                 {
                     response.Message = res;
                     response.IsError = true;
-                    ErrorHandling.HandleError(ref response, res);
+                    OASISErrorHandling.HandleError(ref response, res);
                     return response;
                 }
                 
@@ -64,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                 {
                     response.IsError = true;
                     response.Message = sendTransactionResult.Reason;
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 response.Result = new ExchangeTokenResult(sendTransactionResult.Result);
@@ -74,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                 response.Exception = e;
                 response.Message = e.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -89,7 +90,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                 {
                     response.IsError = true;
                     response.Message = res;
-                    ErrorHandling.HandleError(ref response, res);
+                    OASISErrorHandling.HandleError(ref response, res);
                     return response;
                 }
                 
@@ -138,7 +139,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                 {
                     response.IsError = true;
                     response.Message = sendTransactionResult.Reason;
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 response.Result = new MintNftResult(sendTransactionResult.Result.Value.Error.InstructionError.BorshIoError);
@@ -147,7 +148,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             {
                 response.IsError = true;
                 response.Message = e.Message;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -162,7 +163,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                 {
                     response.Message = res;
                     response.IsError = true;
-                    ErrorHandling.HandleError(ref response, res);
+                    OASISErrorHandling.HandleError(ref response, res);
                     return response;
                 }
 
@@ -182,7 +183,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                 {
                     response.IsError = true;
                     response.Message = sendTransactionResult.Reason;
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 response.Result = new SendTransactionResult(sendTransactionResult.Result);
@@ -192,7 +193,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                 response.Exception = e;
                 response.Message = e.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -210,19 +211,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             {
                 response.IsError = true;
                 response.Message = "Account address is not correct or metadata not exists";
-                ErrorHandling.HandleError(ref response, response.Message);
+                OASISErrorHandling.HandleError(ref response, response.Message);
             }
             catch (NullReferenceException)
             {
                 response.IsError = true;
                 response.Message = "Account address is not correct or metadata not exists";
-                ErrorHandling.HandleError(ref response, response.Message);
+                OASISErrorHandling.HandleError(ref response, response.Message);
             }
             catch (Exception e)
             {
                 response.IsError = true;
                 response.Message = e.Message;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -255,7 +256,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             {
                 response.IsError = true;
                 response.Message = e.Message;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }

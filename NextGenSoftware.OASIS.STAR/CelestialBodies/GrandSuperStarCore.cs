@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.STAR.CelestialSpace;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR
 {

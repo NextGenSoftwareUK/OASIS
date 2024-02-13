@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 {
@@ -36,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
         //    }
         //    catch (Exception ex)
         //    {
-        //        ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
         //    }
 
         //    return result;
@@ -53,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
         //    }
         //    catch (Exception ex)
         //    {
-        //        ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWalletsAsync method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWalletsAsync method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
         //    }
 
         //    return result;
@@ -71,7 +72,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
         //    }
         //    catch (Exception ex)
         //    {
-        //        ErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
         //    }
 
         //    return result;
@@ -90,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
         //    }
         //    catch (Exception ex)
         //    {
-        //        ErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
         //    }
 
         //    return result;
@@ -124,14 +125,14 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         }
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: Error deserializing data.");
+                        OASISErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: Error deserializing data.");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: Error wallets json file not found: {GetWalletFilePath(id)}");
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: Error wallets json file not found: {GetWalletFilePath(id)}");
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
             }
 
             return result;
@@ -164,14 +165,14 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         }
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWalletsForAvatarByIdAsync method in LocalFileOASIS Provider loading wallets. Reason: Error deserializing data.");
+                        OASISErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWalletsForAvatarByIdAsync method in LocalFileOASIS Provider loading wallets. Reason: Error deserializing data.");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: Error wallets json file not found: {GetWalletFilePath(id)}");
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: Error wallets json file not found: {GetWalletFilePath(id)}");
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWalletsAsync method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWalletsAsync method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
             }
 
             return result;
@@ -189,7 +190,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
             }
 
             return result;
@@ -206,7 +207,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWalletsAsync method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWalletsAsync method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
             }
 
             return result;
@@ -223,7 +224,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWallets method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
             }
 
             return result;
@@ -240,7 +241,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWalletsAsync method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadProviderWalletsAsync method in LocalFileOASIS Provider loading wallets. Reason: {ex.Message}", ex);
             }
 
             return result;
@@ -259,7 +260,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
             }
 
             return result;
@@ -278,7 +279,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
             }
 
             return result;
@@ -297,7 +298,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
             }
 
             return result;
@@ -316,7 +317,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
             }
 
             return result;
@@ -334,7 +335,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
             }
 
             return result;
@@ -353,7 +354,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
             }
 
             return result;

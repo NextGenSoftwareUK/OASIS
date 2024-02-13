@@ -3,34 +3,35 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.Events
 {
-    public class OASISEventArgs<T> : EventArgs
-    {
-        public OASISResult<T> Result { get; set; }
-    }
+    //public class OASISEventArgs<T> : EventArgs
+    //{
+    //    public OASISResult<T> Result { get; set; }
+    //}
 
-    public class OASISErrorEventArgs<T> : OASISEventArgs<T>
-    {
-        public string EndPoint { get; set; }
-        public string Reason { get; set; }
-        public Exception Exception { get; set; }
-    }
+    //public class OASISErrorEventArgs<T> : OASISEventArgs<T>
+    //{
+    //    public string EndPoint { get; set; }
+    //    public string Reason { get; set; }
+    //    public Exception Exception { get; set; }
+    //}
 
-    public class OASISErrorEventArgs : EventArgs
-    {
-        public string EndPoint { get; set; }
-        public string Reason { get; set; }
-        public Exception Exception { get; set; }
-    }
+    //public class OASISErrorEventArgs : EventArgs
+    //{
+    //    public string EndPoint { get; set; }
+    //    public string Reason { get; set; }
+    //    public Exception Exception { get; set; }
+    //}
 
-    public class OASISWarningEventArgs : EventArgs
-    {
-        public string EndPoint { get; set; }
-        public string Reason { get; set; }
-        public Exception Exception { get; set; }
-    }
+    //public class OASISWarningEventArgs : EventArgs
+    //{
+    //    public string EndPoint { get; set; }
+    //    public string Reason { get; set; }
+    //    public Exception Exception { get; set; }
+    //}
 
     public class AvatarManagerErrorEventArgs : OASISErrorEventArgs<IAvatar>
     {
@@ -61,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     public class CelestialBodySavedEventArgs : OASISEventArgs<ICelestialBody>
     {
-        
+
     }
 
     public class CelestialBodyErrorEventArgs : OASISErrorEventArgs<ICelestialBody>
@@ -157,7 +158,7 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     public class HolonsLoadedEventArgs : OASISEventArgs<IEnumerable<IHolon>>
     {
-       
+
     }
 
     public class HolonsSavedEventArgs : OASISEventArgs<IEnumerable<IHolon>>
@@ -181,7 +182,7 @@ namespace NextGenSoftware.OASIS.API.Core.Events
     {
 
     }
-   
+
     public class ZomeSavedEventArgs : OASISEventArgs<IZome>
     {
 
@@ -189,7 +190,7 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     public class ZomeAddedEventArgs : OASISEventArgs<IZome>
     {
-        
+
     }
 
     public class ZomeRemovedEventArgs : OASISEventArgs<IZome>

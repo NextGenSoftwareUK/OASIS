@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONode.Core.Objects;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -88,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     response.IsSaved = false;
                     response.Result = null;
                     response.Message = loadResult.Message;
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 
@@ -113,7 +114,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 response.IsError = true;
                 response.IsSaved = false;
                 response.Result = null;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -130,7 +131,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     response.IsSaved = false;
                     response.Result = null;
                     response.Message = loadResult.Message;
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
 
@@ -156,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 response.IsError = true;
                 response.IsSaved = false;
                 response.Result = null;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -195,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     response.IsSaved = false;
                     response.Result = null;
                     response.Message = saveResult.Message;
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
             }
@@ -206,7 +207,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 response.IsError = true;
                 response.IsSaved = false;
                 response.Result = null;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -242,7 +243,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     response.IsSaved = false;
                     response.Result = null;
                     response.Message = saveResult.Message;
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
             }
@@ -253,7 +254,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 response.IsError = true;
                 response.IsSaved = false;
                 response.Result = null;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -290,7 +291,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 if (saveResult.IsError)
                 {
                     response.Message = saveResult.Message;
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 else
@@ -298,7 +299,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref response, e.Message, e);
+                OASISErrorHandling.HandleError(ref response, e.Message, e);
             }
 
             return response;
@@ -311,7 +312,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             try
             {
                 if (count <= 0)
-                    ErrorHandling.HandleError(ref response, "Count property need's to be greater then zero!");
+                    OASISErrorHandling.HandleError(ref response, "Count property need's to be greater then zero!");
                 else
                     response.Result = _OlandByCountPrice.ContainsKey(count)
                     ? _OlandByCountPrice[count]
@@ -319,7 +320,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref response, e.Message, e);
+                OASISErrorHandling.HandleError(ref response, e.Message, e);
             }
 
             return response;
@@ -335,7 +336,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     response.IsError = true;
                     response.IsSaved = false;
                     response.Message = "Request is NULL! Bad Request!";
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
 
@@ -357,7 +358,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 //    response.IsError = true;
                 //    response.IsSaved = false;
                 //    response.Message = cargoPurchaseResponse.Message;
-                //    ErrorHandling.HandleError(ref response, response.Message);
+                //    OASISErrorHandling.HandleError(ref response, response.Message);
                 //    return response;
                 //}
 
@@ -389,7 +390,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 response.IsError = false;
                 response.Message = e.Message;
                 response.Exception = e;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }

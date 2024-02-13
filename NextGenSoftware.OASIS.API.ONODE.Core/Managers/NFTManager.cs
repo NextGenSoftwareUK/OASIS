@@ -19,6 +19,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.ONode.Core.Objects;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers;
 using Nethereum.Contracts.Standards.ERC721;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -101,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -129,7 +130,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -152,7 +153,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 //    {
                 //        if (request.MintedByAvatarId != Guid.Empty && request.MintedByAvatarId != avatarResult.Result.Id)
                 //        {
-                //            ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar that matches the JWT Token passed in {avatarJwtToken} does not match the MintedByAvatarId passed in {avatarResult.Result.Id}");
+                //            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar that matches the JWT Token passed in {avatarJwtToken} does not match the MintedByAvatarId passed in {avatarResult.Result.Id}");
                 //            return result;
                 //        }
 
@@ -163,14 +164,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 //    }
                 //    else
                 //    {
-                //        ErrorHandling.HandleError(ref result, $"{errorMessage} An error occured attempting to load the avatar details for the JWT Token {avatarJwtToken}. Reason: {avatarResult.Message}");
+                //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured attempting to load the avatar details for the JWT Token {avatarJwtToken}. Reason: {avatarResult.Message}");
                 //        return result;
                 //    }
                 //}
 
                 if (string.IsNullOrEmpty(request.MintWalletAddress) && request.MintedByAvatarId == Guid.Empty)
                 {
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Both MintWalletAddress and MintedByAvatarId are empty, please specify at least one, thank you!");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Both MintWalletAddress and MintedByAvatarId are empty, please specify at least one, thank you!");
                     return result;
                 }
 
@@ -200,13 +201,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                             //if (string.IsNullOrEmpty(request.MintWalletAddress))
                             //{
-                            //    ErrorHandling.HandleError(ref result, $"{errorMessage} No wallet could be found for the OnChainProvider {request.OnChainProvider.Name}. Please make sure a wallet is added for this provider using the Wallet API or a key using the Key API.");
+                            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} No wallet could be found for the OnChainProvider {request.OnChainProvider.Name}. Please make sure a wallet is added for this provider using the Wallet API or a key using the Key API.");
                             //    return result;
                             //}
                         }
                         else
                         {
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} An error occured attempting to load the avatar details for the MintedByAvatarId {request.MintedByAvatarId}. Reason: {avatarResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured attempting to load the avatar details for the MintedByAvatarId {request.MintedByAvatarId}. Reason: {avatarResult.Message}");
                             return result;
                         }
                     }
@@ -244,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         if ((saveHolonResult != null && (saveHolonResult.IsError || saveHolonResult.Result == null)) || saveHolonResult == null)
                         {
                             result.Result = null;
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {NFTMetaDataProviderTypeType} {Enum.GetName(typeof(ProviderType), NFTMetaDataProviderType)}. Reason: {saveHolonResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {NFTMetaDataProviderTypeType} {Enum.GetName(typeof(ProviderType), NFTMetaDataProviderType)}. Reason: {saveHolonResult.Message}");
                         }
                     }
                 }
@@ -257,7 +258,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -283,7 +284,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         OASISResult<IHolon> saveHolonResult = Data.SaveHolon(CreateNFTMetaDataHolon(result.Result.OASISNFT, request), true, true, 0, true, request.OffChainProvider.Value);
 
                         if (saveHolonResult != null && (saveHolonResult.IsError || saveHolonResult.Result != null) || saveHolonResult == null)
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the OffChainProvider {Enum.GetName(typeof(ProviderType), request.OffChainProvider)}. Reason: {saveHolonResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the OffChainProvider {Enum.GetName(typeof(ProviderType), request.OffChainProvider)}. Reason: {saveHolonResult.Message}");
                     }
                 }
                 else
@@ -294,7 +295,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -311,7 +312,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -328,7 +329,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -373,11 +374,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 //if (searchResult != null && !searchResult.IsError && searchResult.Result != null && searchResult.Result.SearchResultHolons.Count > 0)
                 //    result.Result = (IOASISNFT)JsonSerializer.Deserialize(searchResult.Result.SearchResultHolons[0].MetaData["OASISNFT"].ToString(), typeof(IOASISNFT));
                 //else
-                //    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading/searching for the holon metadata. Reason: {searchResult.Message}");
+                //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading/searching for the holon metadata. Reason: {searchResult.Message}");
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -394,7 +395,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -414,7 +415,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -431,7 +432,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -480,11 +481,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 //        result.Result.Add((IOASISNFT)JsonSerializer.Deserialize(holon.MetaData["OASISNFT"].ToString(), typeof(IOASISNFT)));
                 //}
                 //else
-                //    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading/searching the holon metadata. Reason: {searchResult.Message}");
+                //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading/searching the holon metadata. Reason: {searchResult.Message}");
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -501,7 +502,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -518,7 +519,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -535,7 +536,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -552,7 +553,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -569,7 +570,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -586,7 +587,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -603,7 +604,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -620,7 +621,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -637,7 +638,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -660,15 +661,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     if (saveHolonResult != null && (saveHolonResult.IsError || saveHolonResult.Result != null) || saveHolonResult == null)
                     {
                         result.Result = null;
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the OffChainProvider {Enum.GetName(typeof(ProviderType), request.ProviderType)}. Reason: {saveHolonResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the OffChainProvider {Enum.GetName(typeof(ProviderType), request.ProviderType)}. Reason: {saveHolonResult.Message}");
                     }
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading original OASIS NFT with id {request.OriginalOASISNFTId}. Reason: {loadNftResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading original OASIS NFT with id {request.OriginalOASISNFTId}. Reason: {loadNftResult.Message}");
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -691,15 +692,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     if (saveHolonResult != null && (saveHolonResult.IsError || saveHolonResult.Result != null) || saveHolonResult == null)
                     {
                         result.Result = null;
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the OffChainProvider {Enum.GetName(typeof(ProviderType), request.ProviderType)}. Reason: {saveHolonResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the OffChainProvider {Enum.GetName(typeof(ProviderType), request.ProviderType)}. Reason: {saveHolonResult.Message}");
                     }
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading original OASIS NFT with id {request.OriginalOASISNFTId}. Reason: {loadNftResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading original OASIS NFT with id {request.OriginalOASISNFTId}. Reason: {loadNftResult.Message}");
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -722,7 +723,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     if (saveHolonResult != null && (saveHolonResult.IsError || saveHolonResult.Result != null) || saveHolonResult == null)
                     {
                         result.Result = null;
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the OffChainProvider {Enum.GetName(typeof(ProviderType), request.ProviderType)}. Reason: {saveHolonResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the OffChainProvider {Enum.GetName(typeof(ProviderType), request.ProviderType)}. Reason: {saveHolonResult.Message}");
                     }
 
                     //OASISResult<IOASISGeoSpatialNFT> placeGeoNftResult = await PlaceGeoNFTAsync(new PlaceGeoSpatialNFTRequest()
@@ -736,14 +737,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     //}
                     //else
-                    //    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured placing the GEONFT in function PlaceGeoNFTAsync. Reason: {placeGeoNftResult.Message}");
+                    //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured placing the GEONFT in function PlaceGeoNFTAsync. Reason: {placeGeoNftResult.Message}");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured minting the GEONFT in function MintNftAsync. Reason: {mintNftResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured minting the GEONFT in function MintNftAsync. Reason: {mintNftResult.Message}");
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -766,7 +767,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     if (saveHolonResult != null && (saveHolonResult.IsError || saveHolonResult.Result != null) || saveHolonResult == null)
                     {
                         result.Result = null;
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the OffChainProvider {Enum.GetName(typeof(ProviderType), request.ProviderType)}. Reason: {saveHolonResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the OffChainProvider {Enum.GetName(typeof(ProviderType), request.ProviderType)}. Reason: {saveHolonResult.Message}");
                     }
 
                     //OASISResult<IOASISGeoSpatialNFT> placeGeoNftResult = await PlaceGeoNFTAsync(new PlaceGeoSpatialNFTRequest()
@@ -780,14 +781,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     //}
                     //else
-                    //    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured placing the GEONFT in function PlaceGeoNFTAsync. Reason: {placeGeoNftResult.Message}");
+                    //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured placing the GEONFT in function PlaceGeoNFTAsync. Reason: {placeGeoNftResult.Message}");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured minting the GEONFT in function MintNft. Reason: {mintNftResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured minting the GEONFT in function MintNft. Reason: {mintNftResult.Message}");
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
             }
 
             return result;
@@ -859,18 +860,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     OASISResult<bool> activateProviderResult = OASISProvider.ActivateProvider();
 
                     if (activateProviderResult.IsError)
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured activating provider. Reason: {activateProviderResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured activating provider. Reason: {activateProviderResult.Message}");
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} The {Enum.GetName(typeof(ProviderType), providerType)} provider was not found.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The {Enum.GetName(typeof(ProviderType), providerType)} provider was not found.");
 
             if (!result.IsError)
             {
                 result.Result = OASISProvider as IOASISNFTProvider;
 
                 if (result.Result == null)
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} The {Enum.GetName(typeof(ProviderType), providerType)} provider is not a valid OASISNFTProvider.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The {Enum.GetName(typeof(ProviderType), providerType)} provider is not a valid OASISNFTProvider.");
             }
 
             return result;
@@ -896,18 +897,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         //    //        OASISResult<bool> activateProviderResult = OASISProvider.ActivateProvider();
 
         //    //        if (activateProviderResult.IsError)
-        //    //            ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured activating provider. Reason: {activateProviderResult.Message}");
+        //    //            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured activating provider. Reason: {activateProviderResult.Message}");
         //    //    }
         //    //}
         //    //else
-        //    //    ErrorHandling.HandleError(ref result, $"{errorMessage} The {Enum.GetName(typeof(ProviderType), providerType)} provider was not found.");
+        //    //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The {Enum.GetName(typeof(ProviderType), providerType)} provider was not found.");
 
         //    //if (!result.IsError)
         //    //{
         //    //    nftProvider = OASISProvider as IOASISNFTProvider;
 
         //    //    if (nftProvider == null)
-        //    //        ErrorHandling.HandleError(ref result, $"{errorMessage} The {Enum.GetName(typeof(ProviderType), providerType)} provider is not a valid OASISNFTProvider.");
+        //    //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The {Enum.GetName(typeof(ProviderType), providerType)} provider is not a valid OASISNFTProvider.");
         //    //}
 
         //    //return nftProvider;
@@ -1070,7 +1071,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 result.Result = (IOASISNFT)JsonSerializer.Deserialize(holonResult.Result.MetaData["NFT.OASISNFT"].ToString(), typeof(OASISNFT));
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {holonResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {holonResult.Message}");
 
             return result;
         }
@@ -1082,7 +1083,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 result.Result = (OASISGeoSpatialNFT)JsonSerializer.Deserialize(holonResult.Result.MetaData["GEONFT.OASISGEONFT"].ToString(), typeof(OASISGeoSpatialNFT));
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {holonResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {holonResult.Message}");
 
             return result;
         }
@@ -1099,7 +1100,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 result.Result = nfts;
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {holonsResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {holonsResult.Message}");
 
             return result;
         }
@@ -1116,7 +1117,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 result.Result = nfts;
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {holonsResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {holonsResult.Message}");
 
             return result;
         }

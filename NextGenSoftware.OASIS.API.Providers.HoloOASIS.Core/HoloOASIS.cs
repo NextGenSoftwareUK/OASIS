@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -14,8 +15,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.Holochain.HoloNET.Client;
+using NextGenSoftware.Holochain.HoloNET.Client.Interfaces;
 using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
@@ -23,6 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
     {
         private const string OASIS_HAPP_ID = "oasis";
         private const string OASIS_HAPP_PATH = "OASIS_hAPP\\oasis.happ";
+        private const string OASIS_HAPP_ROLE_NAME = "oasis";
         private const string ZOME_LOAD_AVATAR_BY_ID_FUNCTION = "get_entry_avatar_by_id";
         private const string ZOME_LOAD_AVATAR_BY_USERNAME_FUNCTION = "get_entry_avatar_by_username";
         private const string ZOME_LOAD_AVATAR_BY_EMAIL_FUNCTION = "get_entry_avatar_by_email";
@@ -49,8 +51,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         public delegate void HoloOASISError(object sender, HoloOASISErrorEventArgs e);
         public event HoloOASISError OnHoloOASISError;
 
-        public HoloNETClientAdmin HoloNETClientAdmin { get; private set; }
-        public HoloNETClientAppAgent HoloNETClientAppAgent { get; private set; }
+        public IHoloNETClientAdmin HoloNETClientAdmin { get; private set; }
+        public IHoloNETClientAppAgent HoloNETClientAppAgent { get; private set; }
 
         public HoloOASIS(HoloNETClientAdmin holoNETClientAdmin, HoloNETClientAppAgent holoNETClientAppAgent, bool useReflection = true)
         {
@@ -82,9 +84,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HoloOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
-            if (HoloNETClientAppAgent == null)
-                HoloNETClientAppAgent = new HoloNETClientAppAgent();
-   
             HoloNETClientAdmin.OnConnected += HoloNETClientAdmin_OnConnected;
         }
 
@@ -111,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
                 if (adminConnectResult != null && adminConnectResult.IsConnected)
                 {
-                    InstallEnableSignAttachAndConnectToHappEventArgs installedAppResult = await HoloNETClientAdmin.InstallEnableSignAttachAndConnectToHappAsync(OASIS_HAPP_ID, OASIS_HAPP_PATH);
+                    InstallEnableSignAttachAndConnectToHappEventArgs installedAppResult = await HoloNETClientAdmin.InstallEnableSignAttachAndConnectToHappAsync(OASIS_HAPP_ID, OASIS_HAPP_PATH, OASIS_HAPP_ROLE_NAME);
 
                     if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
                     {

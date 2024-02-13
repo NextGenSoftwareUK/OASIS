@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.STAR.CelestialSpace;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {

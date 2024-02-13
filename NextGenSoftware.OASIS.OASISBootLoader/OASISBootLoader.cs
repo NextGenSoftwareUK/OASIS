@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -20,6 +19,7 @@ using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.Logging;
 using NextGenSoftware.Logging.NLogger;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.OASISBootLoader
 {

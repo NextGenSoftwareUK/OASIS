@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using Org.BouncyCastle.Asn1.Ocsp;
 using NextGenSoftware.Logging;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {

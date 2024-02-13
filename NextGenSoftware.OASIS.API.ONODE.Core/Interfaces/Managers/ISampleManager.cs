@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces
 {

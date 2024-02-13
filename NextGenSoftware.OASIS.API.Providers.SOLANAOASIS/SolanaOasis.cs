@@ -24,6 +24,7 @@ using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Extensions;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 {
@@ -80,7 +81,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, e.Message);
+                OASISErrorHandling.HandleError(ref result, e.Message);
             }
             return result;
         }
@@ -204,7 +205,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, e.Message);
+                OASISErrorHandling.HandleError(ref result, e.Message);
             }
             return result;
         }
@@ -242,7 +243,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, e.Message);
+                OASISErrorHandling.HandleError(ref result, e.Message);
             }
             return result;
         }
@@ -295,7 +296,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, e.Message);
+                OASISErrorHandling.HandleError(ref result, e.Message);
             }
             return result;
         }
@@ -318,7 +319,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, e.Message);
+                OASISErrorHandling.HandleError(ref result, e.Message);
             }
             return result;
         }
@@ -398,7 +399,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                     if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                         holon.Children = holonsResult.Result;
                     else
-                        ErrorHandling.HandleWarning(ref result, $"{holonsResult?.Message} saving {LoggingHelper.GetHolonInfoForLogging(holon)} children. Reason: {holonsResult?.Message}");
+                        OASISErrorHandling.HandleWarning(ref result, $"{holonsResult?.Message} saving {LoggingHelper.GetHolonInfoForLogging(holon)} children. Reason: {holonsResult?.Message}");
                 }
 
                 result.Result = holon;
@@ -407,7 +408,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -446,7 +447,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
                     if(string.IsNullOrEmpty(transactionHash))
                     {
-                        ErrorHandling.HandleWarning(ref result, $"{errorMessage} saving {LoggingHelper.GetHolonInfoForLogging(holon)}. Reason: transaction processing failed!");
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} saving {LoggingHelper.GetHolonInfoForLogging(holon)}. Reason: transaction processing failed!");
                         if (!continueOnError)
                             break;
                     }
@@ -461,7 +462,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                             holon.Children = holonsResult.Result;
                         else
                         {
-                            ErrorHandling.HandleWarning(ref result, $"{errorMessage} saving {LoggingHelper.GetHolonInfoForLogging(holon)} children. Reason: {holonsResult?.Message}");
+                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} saving {LoggingHelper.GetHolonInfoForLogging(holon)} children. Reason: {holonsResult?.Message}");
                             if (!continueOnError)
                                 break;
                         }
@@ -472,7 +473,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}");
             }
 
             return result;
@@ -511,7 +512,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, e.Message);
+                OASISErrorHandling.HandleError(ref result, e.Message);
             }
             return result;
         }
@@ -557,16 +558,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 if (solanaTransactionResult.IsError ||
                     string.IsNullOrEmpty(solanaTransactionResult.Result.TransactionHash))
                 {
-                    ErrorHandling.HandleError(ref result, solanaTransactionResult.Message);
+                    OASISErrorHandling.HandleError(ref result, solanaTransactionResult.Message);
                     return result;
                 }
 
                 result.Result.TransactionResult = solanaTransactionResult.Result.TransactionHash;
-                ErrorHandling.CheckForTransactionErrors(ref result, true, errorMessage);
+                TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}, {e.Message}", e);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}, {e.Message}", e);
             }
 
             return result;
@@ -587,14 +588,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
             if (senderAvatarPublicKeyResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, senderAvatarPublicKeyResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, senderAvatarPublicKeyResult.Message),
                     senderAvatarPublicKeyResult.Exception);
                 return result;
             }
 
             if (receiverAvatarPublicKeyResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
                     receiverAvatarPublicKeyResult.Exception);
                 return result;
             }
@@ -604,7 +605,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
             
             if(result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
             
             return result;
         }
@@ -619,7 +620,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
             if (senderAvatarPublicKeyResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, senderAvatarPublicKeyResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, senderAvatarPublicKeyResult.Message),
                     senderAvatarPublicKeyResult.Exception);
 
                 return result;
@@ -627,7 +628,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
             if (receiverAvatarPublicKeyResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
                     receiverAvatarPublicKeyResult.Exception);
                 return result;
             }
@@ -638,7 +639,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
 
             if(result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
             
             return result;
         }
@@ -658,14 +659,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
             if (senderAvatarPublicKeysResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, senderAvatarPublicKeysResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, senderAvatarPublicKeysResult.Message),
                     senderAvatarPublicKeysResult.Exception);
                 return result;
             }
 
             if (receiverAvatarPublicKeyResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
                     receiverAvatarPublicKeyResult.Exception);
                 return result;
             }
@@ -676,7 +677,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
 
             if(result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
             
             return result;
         }
@@ -701,14 +702,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
             if (senderAvatarPublicKeysResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, senderAvatarPublicKeysResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, senderAvatarPublicKeysResult.Message),
                     senderAvatarPublicKeysResult.Exception);
                 return result;
             }
 
             if (receiverAvatarPublicKeyResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
                     receiverAvatarPublicKeyResult.Exception);
                 return result;
             }
@@ -718,7 +719,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
 
             if(result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
             
             return result;
         }
@@ -746,16 +747,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 if (solanaTransactionResult.IsError ||
                     string.IsNullOrEmpty(solanaTransactionResult.Result.TransactionHash))
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, solanaTransactionResult.Message), solanaTransactionResult.Exception);
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, solanaTransactionResult.Message), solanaTransactionResult.Exception);
                     return result;
                 }
 
                 result.Result.TransactionResult = solanaTransactionResult.Result.TransactionHash;
-                ErrorHandling.CheckForTransactionErrors(ref result);
+                TransactionHelper.CheckForTransactionErrors(ref result);
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, e.Message), e);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, e.Message), e);
             }
 
             return result;
@@ -792,16 +793,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 if (solanaNftTransactionResult.IsError ||
                     string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, solanaNftTransactionResult.Message), solanaNftTransactionResult.Exception);
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, solanaNftTransactionResult.Message), solanaNftTransactionResult.Exception);
                     return result;
                 }
 
                 result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
-                ErrorHandling.CheckForTransactionErrors(ref result);
+                TransactionHelper.CheckForTransactionErrors(ref result);
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, e.Message), e);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, e.Message), e);
             }
 
             return result;
@@ -957,14 +958,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 if (solanaNftTransactionResult.IsError ||
                     string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, solanaNftTransactionResult.Message), solanaNftTransactionResult.Exception);
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, solanaNftTransactionResult.Message), solanaNftTransactionResult.Exception);
                     return result;
                 }
                 else
                 {
                     result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
                     
-                    if (!ErrorHandling.CheckForTransactionErrors(ref result))
+                    if (!TransactionHelper.CheckForTransactionErrors(ref result))
                     {
                         //The meta data is normally stored on another provider and it is up to NFTManager which offchain provider is used,..
                         //Holon holonNFT = new Holon(HolonType.NFT);
@@ -978,7 +979,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, e.Message), e);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, e.Message), e);
             }
 
             return result;
@@ -1011,7 +1012,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in SolanaOASIS Provider. Reason: {e.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SolanaOASIS Provider. Reason: {e.Message}");
             }
 
             return result;
@@ -1044,7 +1045,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in SolanaOASIS Provider. Reason: {e.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SolanaOASIS Provider. Reason: {e.Message}");
             }
 
             return result;

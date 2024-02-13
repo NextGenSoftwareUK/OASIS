@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories
 {
@@ -47,7 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         if (avatarResult.Result.DeletedDate != DateTime.MinValue)
                         {
-                            ErrorHandling.HandleError(ref result,
+                            OASISErrorHandling.HandleError(ref result,
                                 $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                         }
                         else
@@ -77,14 +78,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             }
                             else
                             {
-                                ErrorHandling.HandleError(ref result,
+                                OASISErrorHandling.HandleError(ref result,
                                     $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
                             }
                         }
                     }
                     else
                     {
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
                     }
                 }
                 else
@@ -106,7 +107,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
                     ex);
             }
 
@@ -144,7 +145,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         if (avatarResult.Result.DeletedDate != DateTime.MinValue)
                         {
-                            ErrorHandling.HandleError(ref result,
+                            OASISErrorHandling.HandleError(ref result,
                                 $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                         }
                         else
@@ -174,14 +175,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             }
                             else
                             {
-                                ErrorHandling.HandleError(ref result,
+                                OASISErrorHandling.HandleError(ref result,
                                     $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
                             }
                         }
                     }
                     else
                     {
-                        ErrorHandling.HandleError(ref result,
+                        OASISErrorHandling.HandleError(ref result,
                             $"{errorMessage} The avatar with Email {avatarEmail} was not found.");
                     }
                 }
@@ -204,7 +205,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
                     ex);
             }
 
@@ -242,7 +243,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         if (avatarResult.Result.DeletedDate != DateTime.MinValue)
                         {
-                            ErrorHandling.HandleError(ref result,
+                            OASISErrorHandling.HandleError(ref result,
                                 $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                         }
                         else
@@ -272,14 +273,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             }
                             else
                             {
-                                ErrorHandling.HandleError(ref result,
+                                OASISErrorHandling.HandleError(ref result,
                                     $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
                             }
                         }
                     }
                     else
                     {
-                        ErrorHandling.HandleError(ref result,
+                        OASISErrorHandling.HandleError(ref result,
                             $"{errorMessage} The avatar with Username {avatarUsername} was not found.");
                     }
                 }
@@ -302,7 +303,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
                     ex);
             }
 
@@ -340,7 +341,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         if (avatarResult.Result.DeletedDate != DateTime.MinValue)
                         {
-                            ErrorHandling.HandleError(ref result,
+                            OASISErrorHandling.HandleError(ref result,
                                 $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                         }
                         else
@@ -370,14 +371,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             }
                             else
                             {
-                                ErrorHandling.HandleError(ref result,
+                                OASISErrorHandling.HandleError(ref result,
                                     $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
                             }
                         }
                     }
                     else
                     {
-                        ErrorHandling.HandleError(ref result,
+                        OASISErrorHandling.HandleError(ref result,
                             $"{errorMessage} The avatar with Username {avatarUsername} was not found.");
                     }
                 }
@@ -400,7 +401,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
                     ex);
             }
 
@@ -443,7 +444,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         if (avatarResult.Result.DeletedDate != DateTime.MinValue)
                         {
-                            ErrorHandling.HandleError(ref result,
+                            OASISErrorHandling.HandleError(ref result,
                                 $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                         }
                         else
@@ -472,14 +473,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             }
                             else
                             {
-                                ErrorHandling.HandleError(ref result,
+                                OASISErrorHandling.HandleError(ref result,
                                     $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
                             }
                         }
                     }
                     else
                     {
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
                     }
                 }
                 else
@@ -501,7 +502,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
                     ex);
             }
 
@@ -541,7 +542,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         if (avatarResult.Result.DeletedDate != DateTime.MinValue)
                         {
-                            ErrorHandling.HandleError(ref result,
+                            OASISErrorHandling.HandleError(ref result,
                                 $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                         }
                         else
@@ -571,14 +572,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             }
                             else
                             {
-                                ErrorHandling.HandleError(ref result,
+                                OASISErrorHandling.HandleError(ref result,
                                     $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
                             }
                         }
                     }
                     else
                     {
-                        ErrorHandling.HandleError(ref result,
+                        OASISErrorHandling.HandleError(ref result,
                             $"{errorMessage} The avatar with email {avatarEmail} was not found.");
                     }
                 }
@@ -601,7 +602,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
                     ex);
             }
 

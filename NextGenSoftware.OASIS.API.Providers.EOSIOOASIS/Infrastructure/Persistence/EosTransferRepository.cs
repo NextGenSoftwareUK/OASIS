@@ -7,12 +7,10 @@ using EosSharp.Core.Api.v1;
 using EosSharp.Core.Exceptions;
 using EosSharp.Core.Providers;
 using NextGenSoftware.Logging;
-using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
-using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Repository;
+using NextGenSoftware.OASIS.Common;
 //using Action = EosSharp.Core.Api.v1.Action;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persistence
@@ -70,7 +68,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 });
                 
                 result.Result.TransactionResult = pushTransactionResult;
-                ErrorHandling.CheckForTransactionErrors(ref result);
+                TransactionHelper.CheckForTransactionErrors(ref result);
 
                 if (!result.IsError)
                 {
@@ -84,16 +82,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             catch (ApiException e)
             {
                 var apiErrorMessage = $"{e.Message} Status: {e.StatusCode}, Content: {e.Content}.";
-                ErrorHandling.HandleError(ref result, string.Format(errorMessageTemplate, apiErrorMessage), e);
+                OASISErrorHandling.HandleError(ref result, string.Format(errorMessageTemplate, apiErrorMessage), e);
             }
             catch (ApiErrorException e)
             {
                 var apiErrorMessage = $"{e.Message} Code: {e.code}, Message: {e.message}, Details: {string.Join(',', e.error.details)}.";
-                ErrorHandling.HandleError(ref result, string.Format(errorMessageTemplate, apiErrorMessage), e);
+                OASISErrorHandling.HandleError(ref result, string.Format(errorMessageTemplate, apiErrorMessage), e);
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, string.Format(errorMessageTemplate, e.Message), e);
+                OASISErrorHandling.HandleError(ref result, string.Format(errorMessageTemplate, e.Message), e);
             }
             
             return result;
@@ -134,7 +132,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 });
 
                 result.Result.TransactionResult = pushNftTransactionResult;
-                ErrorHandling.CheckForTransactionErrors(ref result, true, errorMessageTemplate.Substring(0, errorMessageTemplate.Length - 4));
+                TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessageTemplate.Substring(0, errorMessageTemplate.Length - 4));
 
                 if (!result.IsError)
                 {
@@ -148,16 +146,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             catch (ApiException e)
             {
                 var apiErrorMessage = $"{e.Message} Status: {e.StatusCode}, Content: {e.Content}.";
-                ErrorHandling.HandleError(ref result, string.Format(errorMessageTemplate, apiErrorMessage), e);
+                OASISErrorHandling.HandleError(ref result, string.Format(errorMessageTemplate, apiErrorMessage), e);
             }
             catch (ApiErrorException e)
             {
                 var apiErrorMessage = $"{e.Message} Code: {e.code}, Message: {e.message}, Details: {string.Join(',', e.error.details)}.";
-                ErrorHandling.HandleError(ref result, string.Format(errorMessageTemplate, apiErrorMessage), e);
+                OASISErrorHandling.HandleError(ref result, string.Format(errorMessageTemplate, apiErrorMessage), e);
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, string.Format(errorMessageTemplate, e.Message), e);
+                OASISErrorHandling.HandleError(ref result, string.Format(errorMessageTemplate, e.Message), e);
             }
             
             return result;

@@ -4,6 +4,7 @@ using MimeKit;
 using MimeKit.Text;
 using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
 using System.Net;
 using System.Net.Mail;
 //using System.Net.Mail;

@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories
 {

@@ -3,14 +3,15 @@ using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using Neo4j.Driver;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using Neo4j.Driver;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 {
@@ -71,7 +72,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Unknwon error occured whilst activating neo4j provider: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Unknwon error occured whilst activating neo4j provider: {ex}");
             }
 
             return result;
@@ -89,7 +90,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Unknwon error occured whilst activating neo4j provider: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Unknwon error occured whilst activating neo4j provider: {ex}");
             }
 
             return result;
@@ -109,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Unknwon error occured whilst dactivating neo4j provider: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Unknwon error occured whilst dactivating neo4j provider: {ex}");
             }
 
             return result;
@@ -129,7 +130,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Unknwon error occured whilst dactivating neo4j provider: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Unknwon error occured whilst dactivating neo4j provider: {ex}");
             }
 
             return result;

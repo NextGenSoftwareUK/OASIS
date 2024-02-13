@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using MailKit.Search;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
