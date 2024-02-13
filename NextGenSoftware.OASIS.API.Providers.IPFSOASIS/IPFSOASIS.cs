@@ -8,8 +8,8 @@ using System.Linq;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 using Ipfs.Http;
-using Ipfs.Engine;
 using Ipfs;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -19,7 +19,6 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using MailKit.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -300,12 +299,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             if (avatarsResult.Result != null && !avatarsResult.IsError)
                 avatars = avatarsResult.Result.ToList();
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in IPFSOASIS in SearchAsync loading the avatars. Reason: {avatarsResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in IPFSOASIS in SearchAsync loading the avatars. Reason: {avatarsResult.Message}");
 
             if (holonsResult.Result != null && !holonsResult.IsError)
                 holons = holonsResult.Result.ToList();
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in IPFSOASIS in SearchAsync loading the holons. Reason: {holonsResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in IPFSOASIS in SearchAsync loading the holons. Reason: {holonsResult.Message}");
 
             if (!result.IsError)
             {
@@ -482,7 +481,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
+                OASISErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
             }
 
             return result;
@@ -505,7 +504,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
+                OASISErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
             }
 
             return result;
@@ -539,7 +538,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             catch (Exception ex)
             {
                 result.Result = true;
-                ErrorHandling.HandleError(ref result, $"Error occured in DeleteHolonAsync method in IPFS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in DeleteHolonAsync method in IPFS Provider. Reason: {ex}");
             }
 
             return result;
@@ -564,7 +563,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             catch (Exception ex)
             {
                 result.Result = true;
-                ErrorHandling.HandleError(ref result, $"Error occured in DeleteHolonAsync method in IPFS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in DeleteHolonAsync method in IPFS Provider. Reason: {ex}");
             }
 
             return result;
@@ -766,7 +765,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarByEmailAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
+                OASISErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarByEmailAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
             }
 
             return result;
@@ -788,7 +787,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarByUsernameAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
+                OASISErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarByUsernameAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
             }
 
             return result;

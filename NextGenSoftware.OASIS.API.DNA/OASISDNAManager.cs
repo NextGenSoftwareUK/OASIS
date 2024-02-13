@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.DNA
 {
@@ -58,12 +58,12 @@ namespace NextGenSoftware.OASIS.API.DNA
             {
                 if (string.IsNullOrEmpty(OASISDNAPath))
                     OASISErrorHandling.HandleError(ref result, $"Error occured in OASISDNAManager.SaveDNA. Reason: OASISDNAPath cannot be null.");
-                    //throw new ArgumentNullException("OASISDNAPath", "OASISDNAPath cannot be null.");
+                //throw new ArgumentNullException("OASISDNAPath", "OASISDNAPath cannot be null.");
                 else
                 {
                     if (OASISDNA == null)
                         OASISErrorHandling.HandleError(ref result, $"Error occured in OASISDNAManager.SaveDNA. Reason: OASISDNA cannot be null.");
-                        //throw new ArgumentNullException("OASISDNA", "OASISDNA cannot be null.");
+                    //throw new ArgumentNullException("OASISDNA", "OASISDNA cannot be null.");
 
                     OASISDNAManager.OASISDNA = OASISDNA;
                     OASISDNAManager.OASISDNAPath = OASISDNAPath;

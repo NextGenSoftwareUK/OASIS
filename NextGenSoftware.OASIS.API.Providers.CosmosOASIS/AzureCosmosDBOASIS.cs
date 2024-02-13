@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 {
@@ -62,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                     OASISResult<bool> ensureDbSetupResult = dbClientFactory.EnsureDbSetupAsync().Result;
 
                     if (ensureDbSetupResult.IsError || !ensureDbSetupResult.Result)
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from EnsureDbSetupAsync: {ensureDbSetupResult.Message}.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from EnsureDbSetupAsync: {ensureDbSetupResult.Message}.");
                     else
                     {
                         avatarRepository = new AvatarRepository(dbClientFactory);
@@ -73,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.");
             }
 
             if (result.IsError)
@@ -104,7 +105,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                     OASISResult<bool> ensureDbSetupResult = await dbClientFactory.EnsureDbSetupAsync();
 
                     if (ensureDbSetupResult.IsError || !ensureDbSetupResult.Result)
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from EnsureDbSetupAsync: {ensureDbSetupResult.Message}.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from EnsureDbSetupAsync: {ensureDbSetupResult.Message}.");
                     else
                     {
                         avatarRepository = new AvatarRepository(dbClientFactory);
@@ -115,7 +116,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.");
             }
 
             if (result.IsError)
@@ -176,7 +177,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                             if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
                                 reason = saveAvatarResult.Message;
 
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
                         }
                     }
                     else
@@ -184,7 +185,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
                             reason = avatarResult.Message;
 
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
                     }
                 }
                 else
@@ -195,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
             }
             return result;
         }
@@ -234,7 +235,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                             if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
                                 reason = saveAvatarResult.Message;
 
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
                         }
                     }
                     else
@@ -242,7 +243,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
                             reason = avatarResult.Message;
 
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
                     }
                 }
                 else
@@ -253,7 +254,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
             }
             return result;
         }
@@ -291,7 +292,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                             if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
                                 reason = saveAvatarResult.Message;
 
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} and name {avatarResult.Result.Name}. Reason: {reason}.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} and name {avatarResult.Result.Name}. Reason: {reason}.");
                         }
                     }
                     else
@@ -299,14 +300,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
                             reason = avatarResult.Message;
 
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
                     }
                 }
                 else
                     await avatarRepository.DeleteAsync(id);                
             }
             catch (Exception ex) {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
             }
             return result;
         }
@@ -344,7 +345,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                             if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
                                 reason = saveAvatarResult.Message;
 
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
                         }
                     }
                     else
@@ -352,7 +353,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
                             reason = avatarResult.Message;
 
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
                     }
                 }
                 else
@@ -360,7 +361,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
             }
             return result;
         }
@@ -400,7 +401,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                             if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
                                 reason = saveAvatarResult.Message;
 
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
                         }
                     }
                     else
@@ -413,12 +414,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                     if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
                         reason = avatarResult.Message;
 
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
             }
             return result;
         }
@@ -458,7 +459,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                             if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
                                 reason = saveAvatarResult.Message;
 
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
                         }
                     }
                     else
@@ -471,12 +472,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                     if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
                         reason = avatarResult.Message;
 
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
                 }                            
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
             }
             return result;
         }
@@ -516,7 +517,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                             if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
                                 reason = saveAvatarResult.Message;
 
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
                         }
                     }
                     else
@@ -529,12 +530,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                     if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
                         reason = avatarResult.Message;
 
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
             }
             return result;
         }
@@ -574,7 +575,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                             if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
                                 reason = saveAvatarResult.Message;
 
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
                         }
                     }
                     else
@@ -587,12 +588,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                     if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
                         reason = avatarResult.Message;
 
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
             }
             return result;
         }
@@ -630,7 +631,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                             if (saveHolonResult != null && !string.IsNullOrEmpty(saveHolonResult.Message))
                                 reason = saveHolonResult.Message;
 
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}, id {holonResult.Result.Id} and name {holonResult.Result.Name}. Reason: {reason}.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {holonResult.Result.Id} and name {holonResult.Result.Name}. Reason: {reason}.");
                         }
                     }
                     else
@@ -638,7 +639,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         if (holonResult != null && !string.IsNullOrEmpty(holonResult.Message))
                             reason = holonResult.Message;
 
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
                     }
                 }
                 else
@@ -649,7 +650,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
             }
 
             return result;
@@ -688,7 +689,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                             if (saveHolonResult != null && !string.IsNullOrEmpty(saveHolonResult.Message))
                                 reason = saveHolonResult.Message;
 
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}, id {holonResult.Result.Id} and name {holonResult.Result.Name}. Reason: {reason}.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {holonResult.Result.Id} and name {holonResult.Result.Name}. Reason: {reason}.");
                         }
                     }
                     else
@@ -696,7 +697,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         if (holonResult != null && !string.IsNullOrEmpty(holonResult.Message))
                             reason = holonResult.Message;
 
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
                     }
                 }
                 else
@@ -707,7 +708,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
             }
 
             return result;
@@ -746,7 +747,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                             if (saveHolonResult != null && !string.IsNullOrEmpty(saveHolonResult.Message))
                                 reason = saveHolonResult.Message;
 
-                            ErrorHandling.HandleError(ref result, $"{errorMessage} and name {holonResult.Result.Name}. Reason: {reason}.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} and name {holonResult.Result.Name}. Reason: {reason}.");
                         }
                     }
                     else
@@ -754,7 +755,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         if (holonResult != null && !string.IsNullOrEmpty(holonResult.Message))
                             reason = holonResult.Message;
 
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
                     }
                 }
                 else
@@ -765,7 +766,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
             }
 
             return result;
@@ -804,7 +805,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                             if (saveHolonResult != null && !string.IsNullOrEmpty(saveHolonResult.Message))
                                 reason = saveHolonResult.Message;
 
-                            ErrorHandling.HandleError(ref result, $"{errorMessage}, id {holonResult.Result.Id} and name {holonResult.Result.Name}. Reason: {reason}.");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {holonResult.Result.Id} and name {holonResult.Result.Name}. Reason: {reason}.");
                         }
                     }
                     else
@@ -812,7 +813,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         if (holonResult != null && !string.IsNullOrEmpty(holonResult.Message))
                             reason = holonResult.Message;
 
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
                     }
                 }
                 else
@@ -823,7 +824,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
             }
 
             return result;
@@ -850,7 +851,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 var avatarDetailsList = avatarDetailRepository.GetList();
 
                 if (avatarDetailsList == null)
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}No records found.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}No records found.");
                 else
                 {
                     if (version > 0)
@@ -863,7 +864,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}{ex}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex}");
             }
 
             return result;
@@ -885,7 +886,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 var avatarList = avatarRepository.GetList();
 
                 if (avatarList == null)
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}No records found.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}No records found.");
                 else
                 {
                     if (version > 0)
@@ -898,7 +899,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}{ex}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex}");
             }
 
             return result;
@@ -946,7 +947,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 //}
 
                 if (holonList.Count <= 0)
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}No records found.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}No records found.");
                 else
                 {
                     result.Result = holonsFiltered;
@@ -956,7 +957,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage}{ex}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex}");
             }
 
             return result;
@@ -967,7 +968,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
+                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
                 IAvatar avatar = avatarRepository.GetByIdAsync(id.ToString()).Result;
 
                 if (avatar == null)
@@ -982,7 +983,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatar method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatar method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
             return result;
         }
@@ -992,7 +993,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
+                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
                 var avatar = await avatarRepository.GetByIdAsync(Id.ToString());
                 
                 if (avatar == null)
@@ -1007,7 +1008,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatar method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatar method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
             return result;
         }
@@ -1017,7 +1018,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
+                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
                 //TODO: Need to test to make sure this works!
                 IAvatar avatar = avatarRepository.GetByField("Email", avatarEmail, version);
 
@@ -1036,7 +1037,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatar method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatar method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
             return result;
         }
@@ -1046,7 +1047,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
+                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
                 //TODO: Need to test to make sure this works!
                 IAvatar avatar = avatarRepository.GetByField("Email", avatarEmail, version);                
 
@@ -1062,7 +1063,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByEmailAsync method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByEmailAsync method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
             return result;
         }
@@ -1072,7 +1073,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
+                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
                 //TODO: Need to test to make sure this works!
                 IAvatar avatar = avatarRepository.GetByField("UserName", avatarUsername, version);
 
@@ -1088,7 +1089,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByUsername method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByUsername method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
             return result;
         }
@@ -1108,7 +1109,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
+                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
                 IAvatarDetail avatarDetail =await avatarDetailRepository.GetByIdAsync(id.ToString());
 
                 if (avatarDetail == null)
@@ -1123,7 +1124,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarDetailAsync method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarDetailAsync method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
             return result;
         }
@@ -1133,7 +1134,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
+                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
                 IAvatarDetail avatarDetail = avatarDetailRepository.GetByField("Email",avatarEmail, version);
 
                 if (avatarDetail == null)
@@ -1148,7 +1149,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarDetailByEmail method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarDetailByEmail method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
             return result;
         }
@@ -1163,7 +1164,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use ErrorHandling.HandlerError etc.
+                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
                 IAvatarDetail avatarDetail = avatarDetailRepository.GetByField("UserName", avatarUsername, version);
 
                 if (avatarDetail == null)
@@ -1178,7 +1179,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarDetailByUsername method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarDetailByUsername method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
             return result;
         }
@@ -1210,7 +1211,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByProviderKey method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByProviderKey method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
 
             return result;
@@ -1244,7 +1245,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadHolon method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadHolon method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
 
             return result;
@@ -1284,7 +1285,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"An unknown error occured in LoadHolonsForParent method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadHolonsForParent method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
             }
 
             return result;

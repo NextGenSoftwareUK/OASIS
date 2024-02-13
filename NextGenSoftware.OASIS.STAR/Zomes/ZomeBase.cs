@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR.Zomes
 {
@@ -99,7 +100,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             //if (result.IsError)
             //{
             //    string errorMessage = string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message);
-            //    ErrorHandling.HandleError(ref result, errorMessage, true, false, true);
+            //    OASISErrorHandling.HandleError(ref result, errorMessage, true, false, true);
             //    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = errorMessage });
             //}
             //else
@@ -192,7 +193,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
                     result = await LoadHolonAsync(providerType, providerKeyResult.Result, loadChildren, recursive, maxChildDepth, continueOnError, version);
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in LoadHolonAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
             }
             else
             {
@@ -220,7 +221,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
                     result = LoadHolon(providerType, providerKeyResult.Result, loadChildren, recursive, maxChildDepth, continueOnError, version);
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in LoadHolonAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
             }
             else
             {
@@ -354,7 +355,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
                     result = await LoadHolonsForParentAsync(providerType, providerKeyResult.Result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in LoadHolonAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
             }
             else
             {
@@ -379,7 +380,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
                     result = LoadHolonsForParent(providerType, providerKeyResult.Result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in LoadHolonAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
             }
             else
             {
@@ -652,7 +653,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             if (ProviderUniqueStorageKey.ContainsKey(providerType) && !string.IsNullOrEmpty(ProviderUniqueStorageKey[providerType]))
                 result.Result = ProviderUniqueStorageKey[providerType];
             else
-                ErrorHandling.HandleError(ref result, string.Concat("ProviderUniqueStorageKey not found for CurrentStorageProviderType ", Enum.GetName(typeof(ProviderType), providerType)));
+                OASISErrorHandling.HandleError(ref result, string.Concat("ProviderUniqueStorageKey not found for CurrentStorageProviderType ", Enum.GetName(typeof(ProviderType), providerType)));
 
             return result;
         }

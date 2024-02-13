@@ -2,6 +2,7 @@
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.Common;
 using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Core.ExtentionMethods

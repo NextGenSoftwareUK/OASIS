@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using static NextGenSoftware.OASIS.API.Core.Events.Events;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -149,7 +150,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                         else
                         {
                             result.ErrorCount++;
-                            ErrorHandling.HandleWarning(ref zomeResult, $"There was an error in the CelestialBodyCore.SaveZomes method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {zomeResult.Message}", true, false, false, true, false);
+                            OASISErrorHandling.HandleWarning(ref zomeResult, $"There was an error in the CelestialBodyCore.SaveZomes method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {zomeResult.Message}", true, false, false, true, false);
                             //OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
 
                             if (!continueOnError)
@@ -164,10 +165,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 string message = $"{result.ErrorCount} Error(s) occured in CelestialBodyCore.SaveZomes method whilst saving {Zomes.Count} Zomes in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
 
                 if (result.SavedCount == 0)
-                    ErrorHandling.HandleError(ref result, message);
+                    OASISErrorHandling.HandleError(ref result, message);
                 else
                 {
-                    ErrorHandling.HandleWarning(ref result, message);
+                    OASISErrorHandling.HandleWarning(ref result, message);
                     result.IsSaved = true;
                 }
 
@@ -203,7 +204,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                         else
                         {
                             result.ErrorCount++;
-                            ErrorHandling.HandleWarning(ref zomeResult, $"There was an error in the CelestialBodyCore.SaveZomes method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {zomeResult.Message}", true, false, false, true, false);
+                            OASISErrorHandling.HandleWarning(ref zomeResult, $"There was an error in the CelestialBodyCore.SaveZomes method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {zomeResult.Message}", true, false, false, true, false);
                             //OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
 
                             if (!continueOnError)
@@ -218,10 +219,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 string message = $"{result.ErrorCount} Error(s) occured in CelestialBodyCore.SaveZomes method whilst saving {Zomes.Count} Zomes in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
 
                 if (result.SavedCount == 0)
-                    ErrorHandling.HandleError(ref result, message);
+                    OASISErrorHandling.HandleError(ref result, message);
                 else
                 {
-                    ErrorHandling.HandleWarning(ref result, message);
+                    OASISErrorHandling.HandleWarning(ref result, message);
                     result.IsSaved = true;
                 }
 

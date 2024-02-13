@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -20,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             if (result.IsError)
             {
                 string errorMessage = string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message);
-                ErrorHandling.HandleError(ref result, errorMessage, true, false, true);
+                OASISErrorHandling.HandleError(ref result, errorMessage, true, false, true);
             }
             else
                 _holonManager = new HolonManager(result.Result);

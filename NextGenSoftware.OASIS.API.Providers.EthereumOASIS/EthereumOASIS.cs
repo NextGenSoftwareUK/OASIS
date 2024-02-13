@@ -19,6 +19,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
@@ -88,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync in EthereumOASIS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync in EthereumOASIS Provider. Reason: {ex}");
             }
 
             if (result.IsError)
@@ -134,7 +135,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (requestTransaction.HasErrors() is true)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
                     return result;
                 }
                 
@@ -144,11 +145,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {   
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
             return result;
         }
@@ -172,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (requestTransaction.HasErrors() is true)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
                     return result;
                 }
                 
@@ -182,11 +183,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {   
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -210,7 +211,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (requestTransaction.HasErrors() is true)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
                     return result;
                 }
                 
@@ -220,11 +221,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -243,7 +244,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (requestTransaction.HasErrors() is true)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
                     return result;
                 }
                 
@@ -253,11 +254,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
             return result;
         }
@@ -285,7 +286,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (requestTransaction.HasErrors() is true)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
                     return result;
                 }
                 
@@ -295,11 +296,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
             return result;
         }
@@ -356,7 +357,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                     if (createHolonResult.HasErrors() is true)
                     {
-                        ErrorHandling.HandleError(ref result, string.Concat(errorMessage, createHolonResult.Logs));
+                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, createHolonResult.Logs));
                         if(!continueOnError)
                             break;
                     }
@@ -368,11 +369,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -390,7 +391,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (requestTransaction.HasErrors() is true)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
                     return result;
                 }
                 
@@ -400,11 +401,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
             
             return result;
@@ -422,7 +423,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (requestTransaction.HasErrors() is true)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
                     return result;
                 }
                 
@@ -432,11 +433,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -460,7 +461,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (holonDto == null)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Holon (with id {id}) not found!"));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Holon (with id {id}) not found!"));
                     return result;
                 }
 
@@ -471,11 +472,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -494,7 +495,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (holonDto == null)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Holon (with id {id}) not found!"));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Holon (with id {id}) not found!"));
                     return result;
                 }
 
@@ -505,11 +506,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -583,7 +584,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (requestTransaction.HasErrors() is true)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Creating of Holon (Id): {holon.Id}, failed! Transaction performing is failure!"));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Creating of Holon (Id): {holon.Id}, failed! Transaction performing is failure!"));
                     return result;
                 }
                 
@@ -593,11 +594,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -623,7 +624,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (requestTransaction.HasErrors() is true)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Creating of Holon (Id): {holon.Id}, failed! Transaction performing is failure!"));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Creating of Holon (Id): {holon.Id}, failed! Transaction performing is failure!"));
                     return result;
                 }
                 
@@ -633,11 +634,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -665,7 +666,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                     if (createHolonResult.HasErrors() is true)
                     {
-                        ErrorHandling.HandleError(ref result, string.Concat(errorMessage, createHolonResult.Logs));
+                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, createHolonResult.Logs));
                         if(!continueOnError)
                             break;
                     }
@@ -677,11 +678,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
             
             return result;
@@ -704,7 +705,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (avatarDetailDto == null)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Avatar details (with id {id}) not found!"));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Avatar details (with id {id}) not found!"));
                     return result;
                 }
 
@@ -715,11 +716,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -747,7 +748,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (avatarDetailDto == null)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Avatar details (with id {id}) not found!"));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Avatar details (with id {id}) not found!"));
                     return result;
                 }
 
@@ -758,11 +759,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -824,7 +825,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var avatarDto = await _nextGenSoftwareOasisService.GetAvatarByIdQueryAsync(avatarEntityId);
                 if (avatarDto == null)
                 {
-                    ErrorHandling.HandleError(ref result, 
+                    OASISErrorHandling.HandleError(ref result, 
                         string.Concat(errorMessage, $"Avatar (with id {Id}) not found!"));
                     return result;
                 }
@@ -836,11 +837,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -868,7 +869,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (avatarDto == null)
                 {
-                    ErrorHandling.HandleError(ref result, 
+                    OASISErrorHandling.HandleError(ref result, 
                         string.Concat(errorMessage, $"Avatar (with id {Id}) not found!"));
                     return result;
                 }
@@ -880,11 +881,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -909,7 +910,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (requestTransaction.HasErrors() is true)
                 {
-                    ErrorHandling.HandleError(ref result, 
+                    OASISErrorHandling.HandleError(ref result, 
                         string.Concat(errorMessage, $"Creating of Avatar (Id): {avatar.AvatarId}, failed! Transaction performing is failure!"));
                     return result;
                 }
@@ -920,11 +921,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
             
             return result;
@@ -1017,14 +1018,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             if (senderAvatarPrivateKeysResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
                     senderAvatarPrivateKeysResult.Exception);
                 return result;
             }
 
             if (receiverAvatarAddressesResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
                     receiverAvatarAddressesResult.Exception);
                 return result;
             }
@@ -1034,7 +1035,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             result = await SendEthereumTransaction(senderAvatarPrivateKey, receiverAvatarAddress, amount);
             
             if(result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
             
             return result;
         }
@@ -1049,14 +1050,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             
             if (senderAvatarPrivateKeysResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
                     senderAvatarPrivateKeysResult.Exception);
                 return result;
             }
 
             if (receiverAvatarAddressesResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
                     receiverAvatarAddressesResult.Exception);
                 return result;
             }
@@ -1066,7 +1067,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             result = await SendEthereumTransaction(senderAvatarPrivateKey, receiverAvatarAddress, amount);
             
             if(result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
             
             return result;
         }
@@ -1086,14 +1087,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             
             if (senderAvatarPrivateKeysResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
                     senderAvatarPrivateKeysResult.Exception);
                 return result;
             }
 
             if (receiverAvatarAddressesResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
                     receiverAvatarAddressesResult.Exception);
                 return result;
             }
@@ -1103,7 +1104,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             result = await SendEthereumTransaction(senderAvatarPrivateKey, receiverAvatarAddress, amount);
             
             if(result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
             
             return result;
         }
@@ -1128,14 +1129,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             
             if (senderAvatarPrivateKeysResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
                     senderAvatarPrivateKeysResult.Exception);
                 return result;
             }
 
             if (receiverAvatarAddressesResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
                     receiverAvatarAddressesResult.Exception);
                 return result;
             }
@@ -1145,7 +1146,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             result = await SendEthereumTransaction(senderAvatarPrivateKey, receiverAvatarAddress, amount);
             
             if(result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
             
             return result;
         }
@@ -1170,20 +1171,20 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     result.Message = string.Concat(errorMessage, "Ethereum transaction performing failed! " +
                                      $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {transaction.Amount}." +
                                      $"Reason: {transactionResult.Logs}");
-                    ErrorHandling.HandleError(ref result, result.Message);
+                    OASISErrorHandling.HandleError(ref result, result.Message);
                     return result;
                 }
 
                 result.Result.TransactionResult = transactionResult.TransactionHash;
-                ErrorHandling.CheckForTransactionErrors(ref result, true, errorMessage);
+                TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
             }
             catch (RpcResponseException ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
 
             return result;
@@ -1203,16 +1204,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 
                 if (transactionResult.HasErrors() is true)
                 {
-                    ErrorHandling.HandleError(ref result, string.Concat(errorMessage, transactionResult.Logs));
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, transactionResult.Logs));
                     return result;
                 }
 
                 result.Result.TransactionResult = transactionResult.TransactionHash;
-                ErrorHandling.CheckForTransactionErrors(ref result, true, errorMessage);
+                TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
             return result;
         }

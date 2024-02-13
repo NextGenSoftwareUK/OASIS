@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
@@ -53,7 +53,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync method in AzureCosmosDBOASIS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync method in AzureCosmosDBOASIS Provider. Reason: {ex}");
             }
 
             result.Result = true;

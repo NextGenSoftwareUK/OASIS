@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using NextGenSoftware.Holochain.HoloNET.Client;
+using NextGenSoftware.Holochain.HoloNET.Client.Interfaces;
 using NextGenSoftware.Holochain.HoloNET.ORM.Entries;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -13,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
     public class HcAvatar : HoloNETAuditEntryBase, IHcAvatar
     {
         public HcAvatar() : base("oasis", "get_entry_avatar", "create_entry_avatar", "update_entry_avatar", "delete_entry_avatar") { }
-        public HcAvatar(HoloNETClientAppAgent holoNETClient) : base("oasis", "get_entry_avatar", "create_entry_avatar", "update_entry_avatar", "delete_entry_avatar", holoNETClient) { }
+        public HcAvatar(IHoloNETClientAppAgent holoNETClient) : base("oasis", "get_entry_avatar", "create_entry_avatar", "update_entry_avatar", "delete_entry_avatar", holoNETClient) { }
 
 
         #region IAvatar Properties

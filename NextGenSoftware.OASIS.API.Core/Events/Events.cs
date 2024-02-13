@@ -1,4 +1,5 @@
 ﻿using System;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.Events
 {

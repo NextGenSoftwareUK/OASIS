@@ -26,6 +26,7 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persistence;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Repository;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
@@ -124,11 +125,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 // Response was received, but payload was incorrect.
                 if (nodeInfo == null || !nodeInfo.IsNodeInfoCorrect())
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} NodeInfo Received Incorrect.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} NodeInfo Received Incorrect.");
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
             }
 
             if (result.IsError)
@@ -155,11 +156,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 // Response was received, but payload was incorrect.
                 if (nodeInfo == null || !nodeInfo.IsNodeInfoCorrect())
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} NodeInfo Received Incorrect.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} NodeInfo Received Incorrect.");
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
             }
 
             if (result.IsError)
@@ -210,7 +211,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -234,7 +235,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -269,7 +270,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message, ex);
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
             }
 
             return result;
@@ -306,7 +307,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -352,7 +353,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -392,7 +393,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -428,7 +429,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -452,7 +453,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -496,7 +497,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -539,7 +540,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -581,7 +582,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -623,7 +624,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -648,7 +649,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -683,7 +684,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -735,7 +736,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -766,7 +767,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -832,7 +833,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -858,7 +859,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -903,7 +904,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -947,7 +948,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -996,7 +997,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -1045,7 +1046,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -1070,7 +1071,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -1095,7 +1096,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message);
             }
 
             return result;
@@ -1254,14 +1255,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             if (fromAvatarResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
                     fromAvatarResult.Exception);
                 return result;
             }
 
             if (toAvatarResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
                     toAvatarResult.Exception);
                 return result;
             }
@@ -1271,7 +1272,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
 
             if (result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
 
             return result;
         }
@@ -1286,14 +1287,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             if (fromAvatarDetailResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarDetailResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarDetailResult.Message),
                     fromAvatarDetailResult.Exception);
                 return result;
             }
 
             if (toAvatarDetailResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarDetailResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarDetailResult.Message),
                     toAvatarDetailResult.Exception);
                 return result;
             }
@@ -1303,14 +1304,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             if (fromAvatarResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
                     fromAvatarResult.Exception);
                 return result;
             }
 
             if (toAvatarResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
                     toAvatarResult.Exception);
                 return result;
             }
@@ -1320,7 +1321,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
 
             if (result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
 
             return result;
         }
@@ -1340,14 +1341,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             if (fromAvatarResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
                     fromAvatarResult.Exception);
                 return result;
             }
 
             if (toAvatarResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
                     toAvatarResult.Exception);
                 return result;
             }
@@ -1357,7 +1358,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
 
             if (result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
 
             return result;
         }
@@ -1386,14 +1387,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             if (fromWalletResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message),
                     fromWalletResult.Exception);
                 return result;
             }
 
             if (toWalletResult.IsError)
             {
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message),
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message),
                     toWalletResult.Exception);
                 return result;
             }
@@ -1404,7 +1405,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 amount);
 
             if (result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
 
             return result;
         }
@@ -1468,7 +1469,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 accountResult.Result = null;
                 
-                ErrorHandling.HandleError(ref accountResult, e.Message);
+                OASISErrorHandling.HandleError(ref accountResult, e.Message);
             }
 
             return accountResult.Result;
@@ -1489,7 +1490,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 accountResult.Result = null;
                 
-                ErrorHandling.HandleError(ref accountResult, e.Message);
+                OASISErrorHandling.HandleError(ref accountResult, e.Message);
             }
 
             return accountResult.Result;
@@ -1512,7 +1513,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 balanceResult.Result = string.Empty;
                 
-                ErrorHandling.HandleError(ref balanceResult, e.Message);
+                OASISErrorHandling.HandleError(ref balanceResult, e.Message);
             }
 
             return balanceResult.Result;
@@ -1535,7 +1536,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 balanceResult.Result = string.Empty;
                 
-                ErrorHandling.HandleError(ref balanceResult, e.Message);
+                OASISErrorHandling.HandleError(ref balanceResult, e.Message);
             }
 
             return balanceResult.Result;

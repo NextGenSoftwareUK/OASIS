@@ -260,7 +260,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.WebSocket",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.ErrorHandling", "..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.ErrorHandling\NextGenSoftware.ErrorHandling.csproj", "{6AE749AB-5960-44BD-9AED-A0BA6A682C35}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core.ErrorHandling", "NextGenSoftware.OASIS.API.Core.ErrorHandling\NextGenSoftware.OASIS.API.Core.ErrorHandling.csproj", "{D2F17220-F8DE-4A46-B51B-8E450D7E8F10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.Common", "NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj", "{D2F17220-F8DE-4A46-B51B-8E450D7E8F10}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1928,6 +1928,24 @@ Global
 		{D2F17220-F8DE-4A46-B51B-8E450D7E8F10}.Release|x64.Build.0 = Release|Any CPU
 		{D2F17220-F8DE-4A46-B51B-8E450D7E8F10}.Release|x86.ActiveCfg = Release|Any CPU
 		{D2F17220-F8DE-4A46-B51B-8E450D7E8F10}.Release|x86.Build.0 = Release|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Debug|x64.Build.0 = Debug|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Debug|x86.Build.0 = Debug|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Linux|x64.Build.0 = Debug|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Linux|x86.Build.0 = Debug|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Release|x64.ActiveCfg = Release|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Release|x64.Build.0 = Release|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Release|x86.ActiveCfg = Release|Any CPU
+		{2ED18D81-5057-4623-ABA0-E266744BBC20}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2039,6 +2057,7 @@ Global
 		{9671F258-E397-49D2-B8EC-30D265355D79} = {775BCCA2-C058-465A-88A3-665AE490CE97}
 		{6AE749AB-5960-44BD-9AED-A0BA6A682C35} = {775BCCA2-C058-465A-88A3-665AE490CE97}
 		{D2F17220-F8DE-4A46-B51B-8E450D7E8F10} = {1CD64ADE-1AFF-46CC-A531-DFC6240C74C8}
+		{2ED18D81-5057-4623-ABA0-E266744BBC20} = {28253D06-0CBD-4C5B-B4E0-7D7F04256521}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5D3FB15A-71BF-4A92-B497-C6A29E6A486C}

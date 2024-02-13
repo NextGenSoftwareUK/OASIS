@@ -5,6 +5,12 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Nethereum.Contracts;
+using Ipfs;
+using MongoDB.Driver;
+using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.OASIS.STAR.Enums;
+using System.IO;
+using Neo4j.Driver;
 using Console = System.Console;
 //using Spectre.Console;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -18,14 +24,8 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
-using Ipfs;
-using MongoDB.Driver;
-using NextGenSoftware.CLI.Engine;
-using NextGenSoftware.OASIS.STAR.Enums;
-using System.IO;
-using Neo4j.Driver;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {

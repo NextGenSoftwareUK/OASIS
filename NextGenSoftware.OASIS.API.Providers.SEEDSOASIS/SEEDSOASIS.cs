@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 {
@@ -192,7 +193,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 result.IsError = true;
                 result.Message = string.Concat("Error occured pushing the transaction onto the EOSIO chain. Error Message: ", ex.ToString());
-                ErrorHandling.HandleError(ref result, result.Message);
+                OASISErrorHandling.HandleError(ref result, result.Message);
             }
 
             // If there was no error then now add the karma.
@@ -206,7 +207,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 {
                     result.IsError = true;
                     result.Message = string.Concat("Error occured adding karma points to account ", sponsorTelosAccountName, ". Was attempting to add points for SendInviteToJoinSeeds & BeAHero. KarmaSource Type: ", Enum.GetName(receivingKarmaFor), ". Karma Source: ", appWebsiteServiceName, ", Karma Source Desc: ", appWebsiteServiceDesc, ", Website Link: ", appWebsiteServiceLink, ". Error Message: ", ex.ToString());
-                    ErrorHandling.HandleError(ref result, result.Message);
+                    OASISErrorHandling.HandleError(ref result, result.Message);
                 }
             }
             else
@@ -215,7 +216,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 {
                     result.IsError = true;
                     result.Message = "Unknown error occured pushing the transaction onto the EOSIO chain.";
-                    ErrorHandling.HandleError(ref result, result.Message);
+                    OASISErrorHandling.HandleError(ref result, result.Message);
                 }
             }
 
@@ -240,7 +241,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 result.IsError = true;
                 result.Message = string.Concat("Error occured pushing the transaction onto the EOSIO chain. Error Message: ", ex.ToString());
-                ErrorHandling.HandleError(ref result, result.Message);
+                OASISErrorHandling.HandleError(ref result, result.Message);
             }
 
             // If there was no error then now add the karma.
@@ -254,7 +255,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 {
                     result.IsError = true;
                     result.Message = string.Concat("Error occured adding karma points to account ", telosAccountName, ". Was attempting to add points for AcceptInviteToJoinSeeds & BeAHero. KarmaSource Type: ", Enum.GetName(receivingKarmaFor), ". Karma Source: ", appWebsiteServiceName, ", Karma Source Desc: ", appWebsiteServiceDesc, ", Website Link: ", appWebsiteServiceLink, ". Error Message: ", ex.ToString());
-                    ErrorHandling.HandleError(ref result, result.Message);
+                    OASISErrorHandling.HandleError(ref result, result.Message);
                 }
             }
             else
@@ -263,7 +264,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 {
                     result.IsError = true;
                     result.Message = "Unknown error occured pushing the transaction onto the EOSIO chain.";
-                    ErrorHandling.HandleError(ref result, result.Message);
+                    OASISErrorHandling.HandleError(ref result, result.Message);
                 }
             }
 
@@ -301,7 +302,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 result.IsError = true;
                 result.Message = string.Concat("Error occured pushing the transaction onto the EOSIO chain. Error Message: ", ex.ToString());
-                ErrorHandling.HandleError(ref result, result.Message);
+                OASISErrorHandling.HandleError(ref result, result.Message);
             }
 
             // If there was no error then now add the karma.
@@ -315,7 +316,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 {
                     result.IsError = true;
                     result.Message = string.Concat("Error occured adding karma points to account ", fromTelosAccountName, ". Was attempting to add points for ", Enum.GetName(seedsKarmaType), " & ", Enum.GetName(seedsKarmaHeroType), ". KarmaSource Type: ", Enum.GetName(receivingKarmaFor), ". Karma Source: ", appWebsiteServiceName, ", Karma Source Desc: ", appWebsiteServiceDesc, ", Website Link: ", appWebsiteServiceLink, ". Error Message: ", ex.ToString());
-                    ErrorHandling.HandleError(ref result, result.Message);
+                    OASISErrorHandling.HandleError(ref result, result.Message);
                 }
             }
             else
@@ -324,7 +325,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 {
                     result.IsError = true;
                     result.Message = "Unknown error occured pushing the transaction onto the EOSIO chain.";
-                    ErrorHandling.HandleError(ref result, result.Message);
+                    OASISErrorHandling.HandleError(ref result, result.Message);
                 }
             }
 
