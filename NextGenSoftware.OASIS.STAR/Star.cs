@@ -712,6 +712,15 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsStarIgnited)
                 IgniteStar();
 
+            if (string.IsNullOrEmpty(celestialBodyDNAFolder))
+                celestialBodyDNAFolder = STARDNA.CelestialBodyDNA;
+
+            if (string.IsNullOrEmpty(genesisFolder))
+                genesisFolder = STARDNA.GenesisFolder;
+
+            if (string.IsNullOrEmpty(genesisNameSpace))
+                genesisNameSpace = STARDNA.GenesisNamespace;
+
             if (DefaultStar == null)
             {
                 OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();

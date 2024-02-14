@@ -3,8 +3,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.Logging;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiBinToJson;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiJsonToBin;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.CurrencyBalance;
@@ -160,7 +158,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
             catch (Exception e)
             {
                 LoggingManager.Log(
-                    $"Provider: EOS. Error was happened while performing the eos-request! Endpoint: {uri.AbsoluteUri}. Message: " +
+                    $"Provider: EOS. Error occured while performing the eos-request! Endpoint: {uri.AbsoluteUri}. Message: " +
                     e.Message, LogType.Error);
                 throw;
             }

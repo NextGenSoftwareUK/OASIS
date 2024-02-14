@@ -9,11 +9,14 @@ namespace NextGenSoftware.OASIS.Common
 
         public static Logger Logger { get; set; } = new Logger();
 
-        public static void Init(bool logToConsole = true, bool logToFile = true, string releativePathToLogFolder = "Logs", string logFileName = "OASIS.log", int maxLogFileSize = 1000000, Logger logger = null, bool addAdditionalSpaceAfterEachLogEntry = false, bool showColouredLogs = true, ConsoleColor debugColour = ConsoleColor.White, ConsoleColor infoColour = ConsoleColor.Green, ConsoleColor warningColour = ConsoleColor.Yellow, ConsoleColor errorColour = ConsoleColor.Red)
+        public static void Init(bool logToConsole = true, bool logToFile = true, string releativePathToLogFolder = "Logs", string logFileName = "OASIS.log", int maxLogFileSize = 1000000, LoggingMode fileLoggingMode = LoggingMode.WarningsErrorsInfoAndDebug, LoggingMode consoleLoggingMode = LoggingMode.WarningsErrorsAndInfo, Logger logger = null, bool addAdditionalSpaceAfterEachLogEntry = false, bool showColouredLogs = true, ConsoleColor debugColour = ConsoleColor.White, ConsoleColor infoColour = ConsoleColor.Green, ConsoleColor warningColour = ConsoleColor.Yellow, ConsoleColor errorColour = ConsoleColor.Red)
         {
             InitLogger(logger);
             Logger.AddLogProvider(new DefaultLogProvider(logToConsole, logToFile, releativePathToLogFolder, logFileName, maxLogFileSize, addAdditionalSpaceAfterEachLogEntry, showColouredLogs, debugColour, infoColour, warningColour, errorColour));
             InitLogProvider();
+
+            LogConfig.FileLoggingMode = fileLoggingMode;
+            LogConfig.ConsoleLoggingMode = consoleLoggingMode;
         }
 
         public static void Init(IEnumerable<ILogProvider> logProviders, bool alsoUseDefaultLogger = false)
