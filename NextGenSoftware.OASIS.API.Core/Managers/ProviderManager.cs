@@ -259,7 +259,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result = SetAndActivateCurrentStorageProvider(providerType, false);
 
             if (result.IsError)
-                result.Message = string.Concat("ERROR: The ", Enum.GetName(providerType), " provider is not registered. Please register it before calling this method. Reason: ", result.Message);
+                result.Message = string.Concat("ERROR: The ", Enum.GetName(providerType), " provider may not be registered. Please register it before calling this method. Reason: ", result.Message);
 
             return result;
         }
