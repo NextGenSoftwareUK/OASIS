@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.Common;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -120,6 +121,30 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private string GetSaveHolonForListOfProvidersErrorMessage(string listName, string providerName, string holoSaveResultErrorMessage)
         {
             return $"Error attempting to save in {listName} list for provider {providerName}. Reason: {holoSaveResultErrorMessage}";
+        }
+
+        //private void SwitchBackToCurrentProvider<T>(ProviderType currentProviderType, ref OASISResult<T> result)
+        //{
+        //    OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+
+        //    if (providerResult.IsError)
+        //    {
+        //        result.IsWarning = true; //TODO: Not sure if this should be an error or a warning? Because there was no error saving the holons but an error switching back to the current provider.                
+        //        //result.InnerMessages.Add(string.Concat("The holons saved but there was an error switching the default provider back to ", Enum.GetName(typeof(ProviderType), currentProviderType), " provider. Error Details: ", providerResult.Message));
+        //        result.Message = string.Concat(result.Message, ". The holons saved but there was an error switching the default provider back to ", Enum.GetName(typeof(ProviderType), currentProviderType), " provider. Error Details: ", providerResult.Message);
+        //    }
+        //}
+
+        private async Task SwitchBackToCurrentProviderAsync<T>(ProviderType currentProviderType, OASISResult<T> result)
+        {
+            OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
+
+            if (providerResult.IsError)
+            {
+                result.IsWarning = true; //TODO: Not sure if this should be an error or a warning? Because there was no error saving the holons but an error switching back to the current provider.                
+                //result.InnerMessages.Add(string.Concat("The holons saved but there was an error switching the default provider back to ", Enum.GetName(typeof(ProviderType), currentProviderType), " provider. Error Details: ", providerResult.Message));
+                result.Message = string.Concat(result.Message, ". The holons saved but there was an error switching the default provider back to ", Enum.GetName(typeof(ProviderType), currentProviderType), " provider. Error Details: ", providerResult.Message);
+            }
         }
 
         private void SwitchBackToCurrentProvider<T>(ProviderType currentProviderType, ref OASISResult<T> result)

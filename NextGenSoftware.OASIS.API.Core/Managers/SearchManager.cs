@@ -175,7 +175,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
                 errorMessage = string.Format(errorMessageTemplate, ProviderManager.CurrentStorageProviderType.Name);
 
                 if (!providerResult.IsError && providerResult.Result != null)

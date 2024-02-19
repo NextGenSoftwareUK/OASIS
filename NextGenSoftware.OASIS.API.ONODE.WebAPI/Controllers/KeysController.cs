@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -8,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Keys;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
@@ -23,10 +25,10 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             {
                 if (_keyManager == null)
                 {
-                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
+                    OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
                     if (result.IsError)
-                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message), true, false, true);
+                        OASISErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message));
 
                     _keyManager = new KeyManager(result.Result);
                 }

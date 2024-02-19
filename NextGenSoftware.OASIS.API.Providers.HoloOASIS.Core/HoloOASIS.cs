@@ -48,9 +48,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         //public delegate void AvatarLoaded(object sender, AvatarLoadedEventArgs e);
         //public event AvatarLoaded OnPlayerAvatarLoaded;
 
-        public delegate void HoloOASISError(object sender, HoloOASISErrorEventArgs e);
-        public event HoloOASISError OnHoloOASISError;
-
         public IHoloNETClientAdmin HoloNETClientAdmin { get; private set; }
         public IHoloNETClientAppAgent HoloNETClientAppAgent { get; private set; }
 
@@ -1673,7 +1670,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             //OnStorageProviderError?.Invoke(this, new AvatarManagerErrorEventArgs { EndPoint = this.HoloNETClientAppAgent.EndPoint, Reason = string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""), ErrorDetails = errorDetails });
             OnStorageProviderError(HoloNETClientAppAgent.EndPoint.AbsoluteUri, string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""), errorDetails);
-            OnHoloOASISError?.Invoke(this, new HoloOASISErrorEventArgs() { EndPoint = HoloNETClientAppAgent.EndPoint.AbsoluteUri, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
+           // OnHoloOASISError?.Invoke(this, new HoloOASISErrorEventArgs() { EndPoint = HoloNETClientAppAgent.EndPoint.AbsoluteUri, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
         }
 
         public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)

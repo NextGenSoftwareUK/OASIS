@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public OASISStorageProviderBase(OASISDNA OASISDNA, string OASISDNAPath) : base (OASISDNA, OASISDNAPath) { }
 
-        public event OASISManager.StorageProviderError StorageProviderError;
+        public event OASISManager.StorageProviderError OnStorageProviderError;
 
         public Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
@@ -44,9 +44,9 @@ namespace NextGenSoftware.OASIS.API.Core
             return avatar.KarmaLost(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        protected void OnStorageProviderError(string endPoint, string reason, Exception errorDetails)
+        protected void OASISStorageProviderBase_OnStorageProviderError(string endPoint, string reason, Exception errorDetails)
         {
-            StorageProviderError?.Invoke(this, new OASISErrorEventArgs { EndPoint = endPoint, Reason = reason, Exception = errorDetails });
+            OnStorageProviderError?.Invoke(this, new OASISErrorEventArgs { EndPoint = endPoint, Reason = reason, Exception = errorDetails });
         }
 
         public abstract Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0);

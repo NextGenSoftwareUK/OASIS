@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
@@ -31,10 +32,10 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             {
                 if (_SearchManager == null)
                 {
-                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
+                    OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
                     if (result.IsError)
-                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message), true, false, true);
+                        OASISErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message));
 
                     _SearchManager = new SearchManager(result.Result);
                 }

@@ -18,6 +18,7 @@ using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
@@ -53,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("register/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> Register(RegisterRequest model, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await Register(model);
         }
 
@@ -112,7 +113,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("verify-email/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(VerifyEmailRequest model, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await VerifyEmail(model);
         }
 
@@ -125,7 +126,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [ResponseType(typeof(OASISHttpResponseMessage<IAvatar>))]
         public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest request)
         {
-            OASISConfigResult<IAvatar> configResult = ConfigureOASISEngine<IAvatar>(request);
+            OASISConfigResult<IAvatar> configResult = await ConfigureOASISEngineAsync<IAvatar>(request);
 
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
@@ -203,7 +204,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("authenticate-token/{JWTToken}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<string>> Authenticate(string JWTToken, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await Authenticate(JWTToken);
         }
 
@@ -235,7 +236,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("refresh-token/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> RefreshToken(ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await RefreshToken();
         }
 
@@ -278,7 +279,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<string>> RevokeToken(RevokeTokenRequest model, ProviderType providerType,
             bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await RevokeToken(model);
         }
 
@@ -308,7 +309,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<string>> ForgotPassword(ForgotPasswordRequest model, ProviderType providerType,
             bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await ForgotPassword(model);
         }
 
@@ -336,7 +337,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("validate-reset-token/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<string>> ValidateResetToken(ValidateResetTokenRequest model, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await ValidateResetToken(model);
         }
 
@@ -364,7 +365,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("reset-password/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<string>> ResetPassword(ResetPasswordRequest model, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await ResetPassword(model);
         }
 
@@ -396,7 +397,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<IAvatar>> Create(CreateRequest model, ProviderType providerType,
             bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await Create(model);
         }
 
@@ -440,7 +441,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-avatar-portrait/{id}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<AvatarPortrait>> GetAvatarPortraitById(Guid id, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetAvatarPortraitById(id);
         }
 
@@ -474,7 +475,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-avatar-portrait-by-username/{username}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<AvatarPortrait>> GetAvatarPortraitByUsername(string username, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetAvatarPortraitByUsername(username);
         }
 
@@ -507,7 +508,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-avatar-portrait-by-email/{email}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<AvatarPortrait>> GetAvatarPortraitByEmail(string email, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetAvatarPortraitByEmail(email);
         }
 
@@ -541,7 +542,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("upload-avatar-portrait/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<bool>> UploadAvatarPortrait(AvatarPortrait avatarPortrait, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await UploadAvatarPortrait(avatarPortrait);
         }
 
@@ -571,7 +572,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-avatar-detail-by-id/{id:guid}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetail(Guid id, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetAvatarDetail(id);
         }
 
@@ -601,7 +602,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-avatar-detail-by-email/{email}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByEmail(string email, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetAvatarDetailByEmail(email);
         }
 
@@ -631,7 +632,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-avatar-detail-by-username/{username}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByUsername(string username, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetAvatarDetailByUsername(username);
         }
 
@@ -659,7 +660,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-all-avatar-details/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails(ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetAllAvatarDetails();
         }
 
@@ -687,7 +688,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-all-avatars/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IEnumerable<IAvatar>>> GetAll(ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetAll();
         }
 
@@ -745,7 +746,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-all-avatar-names/{includeUsernames}/{includeIds}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IEnumerable<string>>> GetAllAvatarNames(bool includeUsernames, bool includeIds, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetAllAvatarNames(includeUsernames, includeIds);
         }
 
@@ -773,7 +774,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-all-avatar-names-grouped-by-name/{includeUsernames}/{includeIds}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<Dictionary<string, List<string>>>> GetAllAvatarNamesGroupedByName(bool includeUsernames, bool includeIds, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetAllAvatarNamesGroupedByName(includeUsernames, includeIds);
         }
 
@@ -807,7 +808,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-by-id/{id}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> GetById(Guid id, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetById(id);
         }
 
@@ -842,7 +843,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-by-username/{username}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> GetByUsername(string username, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetByUsername(username);
         }
 
@@ -876,7 +877,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-by-email/{email}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> GetByEmail(string email, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetByUsername(email);
         }
 
@@ -902,7 +903,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("search/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<ISearchResults>> SearchAvatar(SearchParams searchParams, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await SearchAvatar(searchParams);
         }
 
@@ -950,7 +951,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest, Guid avatarId, ProviderType providerType,
             bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await AddKarmaToAvatar(avatarId, addKarmaToAvatarRequest);
         }
 
@@ -997,7 +998,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest, Guid avatarId, ProviderType providerType,
             bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await RemoveKarmaFromAvatar(avatarId, addKarmaToAvatarRequest);
         }
 
@@ -1036,7 +1037,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<IAvatar>> Update(Guid id, UpdateRequest avatar, ProviderType providerType,
             bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await Update(avatar, id);
         }
 
@@ -1072,7 +1073,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("update-by-email/{email}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> UpdateByEmail(UpdateRequest avatar, string email, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await UpdateByEmail(avatar, email);
         }
 
@@ -1106,7 +1107,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("update-by-username/{username}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> UpdateByUsername(UpdateRequest avatar, string username, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await UpdateByUsername(avatar, username);
         }
 
@@ -1142,7 +1143,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("update-avatar-detail-by-id/{id}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> UpdateAvatarDetail(Guid id, AvatarDetail avatarDetail, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await UpdateAvatarDetail(avatarDetail, id);
         }
 
@@ -1178,7 +1179,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("update-avatar-detail-by-email/{email}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> UpdateAvatarDetailByEmail(AvatarDetail avatarDetail, string email, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await UpdateAvatarDetailByEmail(avatarDetail, email);
         }
 
@@ -1214,7 +1215,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("update-avatar-detail-by-username/{username}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> UpdateAvatarDetailByUsername(AvatarDetail avatarDetail, string username, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await UpdateAvatarDetailByUsername(avatarDetail, username);
         }
 
@@ -1248,7 +1249,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpDelete("{id:Guid}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<bool>> Delete(Guid id, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await Delete(id);
         }
 
@@ -1282,7 +1283,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpDelete("delete-by-username/{username}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<bool>> DeleteByUsername(string username, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await DeleteByUsername(username);
         }
 
@@ -1316,7 +1317,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpDelete("delete-by-email/{email}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<bool>> DeleteByEmail(string email, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await DeleteByUsername(email);
         }
 
@@ -1346,7 +1347,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-uma-json-by-id/{id}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonById(Guid id, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetUmaJsonById(id);
         }
 
@@ -1376,7 +1377,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-uma-json-by-username/{username}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByUsername(string username, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetUmaJsonByUsername(username);
         }
 
@@ -1406,7 +1407,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-uma-json-by-email/{email}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByEmail(string email, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetUmaJsonByEmail(email);
         }
 
@@ -1434,7 +1435,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-logged-in-avatar/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> GetLoggedInAvatar(ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetLoggedInAvatar();
         }
 

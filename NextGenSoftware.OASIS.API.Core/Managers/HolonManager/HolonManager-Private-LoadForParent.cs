@@ -102,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -142,7 +142,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -274,7 +274,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -312,7 +312,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -447,7 +447,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -485,7 +485,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -620,7 +620,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -658,7 +658,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {

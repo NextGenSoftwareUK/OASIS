@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using EOSNewYork.EOSCore.Response.API;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
@@ -24,11 +24,10 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             {
                 if (_EOSIOOASIS == null)
                 {
-                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateStorageProvider(ProviderType.EOSIOOASIS);
+                    OASISResult<IOASISStorageProvider> result = Task.Run(async () => await OASISBootLoader.OASISBootLoader.GetAndActivateStorageProviderAsync(ProviderType.EOSIOOASIS)).Result;
 
-                    //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
                     if (result.IsError)
-                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateProvider(ProviderType.EOSIOOASIS). Error details: ", result.Message), true, false, true);
+                        OASISErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateProvider(ProviderType.EOSIOOASIS). Error details: ", result.Message));
 
                     _EOSIOOASIS = (EOSIOOASIS)result.Result;
                 }
@@ -43,10 +42,10 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             {
                 if (_keyManager == null)
                 {
-                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
+                    OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
                     if (result.IsError)
-                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message), true, false, true);
+                        OASISErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message));
 
                     _keyManager = new KeyManager(result.Result);
                 }

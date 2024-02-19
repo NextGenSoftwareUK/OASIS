@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
@@ -26,10 +27,10 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             {
                 if (_holonManager == null)
                 {
-                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
+                    OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
                     if (result.IsError)
-                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message), true, false, true);
+                        OASISErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message));
 
                     _holonManager = new HolonManager(result.Result);
                 }
@@ -65,7 +66,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(LoadHolonRequest request)
         {
             OASISResult<Holon> response = new OASISResult<Holon>();
-            OASISConfigResult<Holon> configResult = ConfigureOASISEngine<Holon>(request);
+            OASISConfigResult<Holon> configResult = await ConfigureOASISEngineAsync<Holon>(request);
 
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;

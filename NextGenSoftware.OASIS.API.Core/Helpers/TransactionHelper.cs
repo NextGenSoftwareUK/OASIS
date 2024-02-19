@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 transactionResult.IsError = true;
 
             if (automaticallyHandleError && transactionResult.IsError)
-                OASISErrorHandling.HandleError(ref transactionResult, $"{errorMessage} {transactionResult.Result.TransactionResult}", onlyLogToInnerMessages, includeStackTrace, throwException, addToInnerMessages, incrementErrorCount, null, detailedMessage, onlyLogToInnerMessages);
+                OASISErrorHandling.HandleError(ref transactionResult, $"{errorMessage} {transactionResult.Result.TransactionResult}", null, onlyLogToInnerMessages, includeStackTrace, throwException, addToInnerMessages, incrementErrorCount, detailedMessage, onlyLogToInnerMessages);
 
             return transactionResult.IsError;
         }
@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 transactionResult.IsError = true;
 
             if (automaticallyHandleError && transactionResult.IsError)
-                OASISErrorHandling.HandleError(ref transactionResult, $"{errorMessage} {transactionResult.Result.TransactionResult}", onlyLogToInnerMessages, includeStackTrace, throwException, addToInnerMessages, incrementErrorCount, null, detailedMessage, onlyLogToInnerMessages);
+                OASISErrorHandling.HandleError(ref transactionResult, $"{errorMessage} {transactionResult.Result.TransactionResult}", null, onlyLogToInnerMessages, includeStackTrace, throwException, addToInnerMessages, incrementErrorCount, detailedMessage, onlyLogToInnerMessages);
 
             return transactionResult.IsError;
         }

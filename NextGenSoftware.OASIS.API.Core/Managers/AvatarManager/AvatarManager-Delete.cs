@@ -149,7 +149,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             }
                         }
 
-                        ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                        await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
@@ -227,7 +227,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             }
                         }
 
-                        ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                        await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
@@ -383,7 +383,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             }
                         }
 
-                        ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                        await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");

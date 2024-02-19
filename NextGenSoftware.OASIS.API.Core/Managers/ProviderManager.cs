@@ -264,6 +264,39 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        public static async Task<OASISResult<IOASISStorageProvider>> SetAndActivateCurrentStorageProviderAsync(ProviderType providerType)
+        {
+            OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
+
+            if (providerType == ProviderType.Default)
+                result = await SetAndActivateCurrentStorageProviderAsync();
+            else
+                result = await SetAndActivateCurrentStorageProviderAsync(providerType, false);
+
+            if (result.IsError)
+                result.Message = string.Concat("ERROR: The ", Enum.GetName(providerType), " provider may not be registered. Please register it before calling this method. Reason: ", result.Message);
+
+            return result;
+        }
+
+        //TODO: Called internally (make private ?)
+        public static async Task<OASISResult<IOASISStorageProvider>> SetAndActivateCurrentStorageProviderAsync()
+        {
+            // If a global provider has been set and the REST API call has not overiden the provider (OverrideProviderType) then set to global provider.
+            if (DefaultGlobalStorageProvider != null && DefaultGlobalStorageProvider != CurrentStorageProvider && !OverrideProviderType)
+                return await SetAndActivateCurrentStorageProviderAsync(DefaultGlobalStorageProvider);
+
+            // Otherwise set to default provider (configured in appSettings.json) if the provider has not been overiden in the REST call.
+            //else if (!OverrideProviderType && DefaultProviderTypes != null && CurrentStorageProviderType.Value != (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]))
+            else if (!OverrideProviderType && _providerAutoFailOverList.Count > 0 && CurrentStorageProviderType.Value != _providerAutoFailOverList[0].Value) // TODO: Come back to this, not sure we should be setting the first entry every time? Needs thinking and testing through! ;-)
+                return await SetAndActivateCurrentStorageProviderAsync(ProviderType.Default, false);
+
+            if (!_setProviderGlobally)
+                OverrideProviderType = false;
+
+            return new OASISResult<IOASISStorageProvider>(CurrentStorageProvider);
+        }
+
         //TODO: Called internally (make private ?)
         public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider()
         {
@@ -299,6 +332,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return new OASISResult<IOASISStorageProvider>(CurrentStorageProvider);
         }
 
+        public static async Task<OASISResult<IOASISStorageProvider>> SetAndActivateCurrentStorageProviderAsync(IOASISProvider OASISProvider)
+        {
+            if (OASISProvider != CurrentStorageProvider)
+            {
+                if (OASISProvider != null)
+                {
+                    if (!IsProviderRegistered(OASISProvider))
+                        RegisterProvider(OASISProvider);
+
+                    return await SetAndActivateCurrentStorageProviderAsync(OASISProvider.ProviderType.Value);
+                }
+            }
+
+            return new OASISResult<IOASISStorageProvider>(CurrentStorageProvider);
+        }
+
         // Called from ONode.WebAPI.OASISProviderManager.
         //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
         public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = false)
@@ -306,19 +355,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
             _setProviderGlobally = setGlobally;
 
-            // TODO: Need to get this to use the next provider in the list if there is an issue with the first/current provider...
             // This is automatically handled in the Managers (AvatarManager, HolonManager, etc) whenever a provider throws an exception, it will try the next provider in the list... :)
             if (providerType == ProviderType.Default && !OverrideProviderType && _providerAutoFailOverList.Count > 0)
                 providerType = _providerAutoFailOverList[0].Value;
-                //providerType = (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]);
 
             if (providerType != CurrentStorageProviderType.Value)
             {
                 IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType.Value == providerType);
 
-                //TODO: Use OASISResult instead.
                 if (provider == null)
-                    throw new InvalidOperationException(string.Concat(Enum.GetName(typeof(ProviderType), providerType), " ProviderType is not registered. Please call RegisterProvider() method to register the provider before calling this method."));
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(Enum.GetName(typeof(ProviderType), providerType), " ProviderType is not registered. Please call RegisterProvider() method to register the provider before calling this method."));
+                    return result;
+                }
 
                 if (provider != null && (provider.ProviderCategory.Value == ProviderCategory.Storage 
                     || provider.ProviderCategory.Value == ProviderCategory.StorageAndNetwork 
@@ -329,11 +378,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         OASISResult<bool> deactivateProviderResult = DeActivateProvider(CurrentStorageProvider);
 
+                        //TODO: Think its not an error as long as it can activate a provider below?
                         if (deactivateProviderResult != null && deactivateProviderResult.IsError || deactivateProviderResult == null)
-                        {
-                            result.IsWarning = true; // TODO: Think its not an error as long as it can activate a provider below?
-                            result.Message = deactivateProviderResult != null ? deactivateProviderResult.Message : "Unknown error (deactivateProviderResult was null!)";
-                        }
+                            OASISErrorHandling.HandleWarning(ref result, deactivateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProvider Calling DeActivateProvider For Provider {CurrentStorageProviderType.Name}. Reason: {deactivateProviderResult.Message}" : "Unknown error (deactivateProviderResult was null!)");
                     }
 
                     CurrentStorageProviderCategory = provider.ProviderCategory;
@@ -343,10 +390,59 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     OASISResult<bool> activateProviderResult = ActivateProvider(CurrentStorageProvider);
 
                     if (activateProviderResult != null && activateProviderResult.IsError || activateProviderResult == null)
+                        OASISErrorHandling.HandleError(ref result, activateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProvider Calling ActivateProvider For Provider {CurrentStorageProviderType.Name}. Reason: {activateProviderResult.Message}" : "Unknown error (activateProviderResult was null!)");
+
+
+                    if (setGlobally)
+                        DefaultGlobalStorageProvider = CurrentStorageProvider;
+                }
+            }
+
+            result.Result = CurrentStorageProvider;
+            return result;
+        }
+
+        public static async Task<OASISResult<IOASISStorageProvider>> SetAndActivateCurrentStorageProviderAsync(ProviderType providerType, bool setGlobally = false)
+        {
+            OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
+            _setProviderGlobally = setGlobally;
+
+            // This is automatically handled in the Managers (AvatarManager, HolonManager, etc) whenever a provider throws an exception, it will try the next provider in the list... :)
+            if (providerType == ProviderType.Default && !OverrideProviderType && _providerAutoFailOverList.Count > 0)
+                providerType = _providerAutoFailOverList[0].Value;
+
+            if (providerType != CurrentStorageProviderType.Value)
+            {
+                IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType.Value == providerType);
+
+                if (provider == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(Enum.GetName(typeof(ProviderType), providerType), " ProviderType is not registered. Please call RegisterProvider() method to register the provider before calling this method."));
+                    return result;
+                }
+
+                if (provider != null && (provider.ProviderCategory.Value == ProviderCategory.Storage
+                    || provider.ProviderCategory.Value == ProviderCategory.StorageAndNetwork
+                    || provider.ProviderCategory.Value == ProviderCategory.StorageLocal
+                    || provider.ProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork))
+                {
+                    if (CurrentStorageProvider != null)
                     {
-                        result.IsError = true;
-                        result.Message = activateProviderResult != null ? activateProviderResult.Message : "Unknown error (activateProviderResult was null!)";
+                        OASISResult<bool> deactivateProviderResult = await DeActivateProviderAsync(CurrentStorageProvider);
+
+                        //TODO: Think its not an error as long as it can activate a provider below?
+                        if (deactivateProviderResult != null && deactivateProviderResult.IsError || deactivateProviderResult == null)
+                            OASISErrorHandling.HandleWarning(ref result, deactivateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProviderAsync Calling DeActivateProviderAsync For Provider {CurrentStorageProviderType.Name}. Reason: {deactivateProviderResult.Message}" : "Unknown error (deactivateProviderResult was null!)");
                     }
+
+                    CurrentStorageProviderCategory = provider.ProviderCategory;
+                    CurrentStorageProviderType.Value = providerType;
+                    CurrentStorageProvider = (IOASISStorageProvider)provider;
+
+                    OASISResult<bool> activateProviderResult = await ActivateProviderAsync(CurrentStorageProvider);
+
+                    if (activateProviderResult != null && activateProviderResult.IsError || activateProviderResult == null)
+                        OASISErrorHandling.HandleError(ref result, activateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProviderAsync Calling ActivateProviderAsync For Provider {CurrentStorageProviderType.Name}. Reason: {activateProviderResult.Message}" : "Unknown error (activateProviderResult was null!)");
 
                     if (setGlobally)
                         DefaultGlobalStorageProvider = CurrentStorageProvider;

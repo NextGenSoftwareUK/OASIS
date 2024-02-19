@@ -354,7 +354,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             // Set the default provider to MongoDB.
             // Set last param to false if you wish only the next call to use this provider.
             CLIEngine.ShowWorkingMessage("Setting Default Provider to MongoDBOASIS...");
-            HandleOASISResponse(ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.MongoDBOASIS, true), "Successfully Set Default Provider To MongoDBOASIS Provider.", "Error Occured Setting Default Provider To MongoDBOASIS.");
+            //HandleOASISResponse(ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.MongoDBOASIS, true), "Successfully Set Default Provider To MongoDBOASIS Provider.", "Error Occured Setting Default Provider To MongoDBOASIS.");
+            HandleOASISResponse(await ProviderManager.SetAndActivateCurrentStorageProviderAsync(ProviderType.MongoDBOASIS, true), "Successfully Set Default Provider To MongoDBOASIS Provider.", "Error Occured Setting Default Provider To MongoDBOASIS.");
 
             //  Give HoloOASIS Store permission for the Name field(the field will only be stored on Holochain).
             CLIEngine.ShowWorkingMessage("Granting HoloOASIS Provider Store Permission For The Name Field...");

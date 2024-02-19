@@ -1,10 +1,9 @@
 ﻿using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Apollo.Server;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.Core.Managers;
 using NextGenSoftware.OASIS.Common;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 {
@@ -23,53 +22,71 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         public QuestManager Quests { get; set; }
         public ParkManager Parks { get; set; }
         public OLandManager OLAND { get; set; }
-       
+
 
         public OASISResult<bool> BootOASIS(OASISDNA OASISDNA, bool startApolloServer = true)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
-            // TODO: Soon you will not need to inject in a provider because the mappings below will be used instead...
             if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
                 result = OASISBootLoader.OASISBootLoader.BootOASIS(OASISDNA);
 
             if (!result.IsError && result.Result)
-                BootOASIS(startApolloServer);
+                InitOASIS(startApolloServer);
 
             return result;
         }
 
-        //public OASISResult<bool> BootOASIS(string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
-        public OASISResult<bool> BootOASIS(string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = false)
+        public async Task<OASISResult<bool>> BootOASISAsync(OASISDNA OASISDNA, bool startApolloServer = true)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
-            // TODO: Soon you will not need to inject in a provider because the mappings below will be used instead...
+            if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
+                result = await OASISBootLoader.OASISBootLoader.BootOASISAsync(OASISDNA);
+
+            if (!result.IsError && result.Result)
+                InitOASIS(startApolloServer);
+
+            return result;
+        }
+
+        public OASISResult<bool> BootOASIS(string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
             if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
                 result = OASISBootLoader.OASISBootLoader.BootOASIS(OASISDNAPath);
 
             if (!result.IsError && result.Result)
-            {
-                OASISResult<IOASISStorageProvider> bootLoaderResult = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
-
-                if (bootLoaderResult.IsError)
-                {
-                    result.IsError = true;
-                    result.Message = bootLoaderResult.Message;
-                }
-                else
-                    BootOASIS(startApolloServer);
-            }
+                InitOASIS(startApolloServer);
 
             return result;
         }
 
-        public OASISResult<bool> ShutdownOASIS()
+        public async Task<OASISResult<bool>> BootOASISAsync(string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
+                result = await OASISBootLoader.OASISBootLoader.BootOASISAsync(OASISDNAPath);
+
+            if (!result.IsError && result.Result)
+                InitOASIS(startApolloServer);
+
+            return result;
+        }
+
+        public static OASISResult<bool> ShutdownOASIS()
         {
             return OASISBootLoader.OASISBootLoader.ShutdownOASIS();
         }
 
-        private void BootOASIS(bool startApolloServer = true)
+        public static async Task<OASISResult<bool>> ShutdownOASISAsync()
+        {
+            return await OASISBootLoader.OASISBootLoader.ShutdownOASISAsync();
+        }
+
+        private void InitOASIS(bool startApolloServer = true)
         {
             Avatar = new AvatarManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Data = new HolonManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
