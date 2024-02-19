@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.TestHarness
 {
@@ -37,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
             OASISAPI.BootOASIS();
 
             //Init with the Holochain Provider.
-            OASISBootLoader.OASISBootLoader.GetAndActivateStorageProvider(ProviderType.HoloOASIS, null, false, true);
+            await OASISBootLoader.OASISBootLoader.GetAndActivateStorageProviderAsync(ProviderType.HoloOASIS, null, false, true);
             //ProviderManager.ActivateProvider(ProviderType.HoloOASIS); // Can also do it this way.
 
             //OASISAPI.Init(new List<IOASISProvider> { new HoloOASIS("ws://localhost:8888", Holochain.HoloNET.Client.Core.HolochainVersion.Redux) }, OASISConfigManager.OASISDNA);

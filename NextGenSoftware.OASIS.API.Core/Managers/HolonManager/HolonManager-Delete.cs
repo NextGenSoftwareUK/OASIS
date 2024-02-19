@@ -87,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -106,7 +106,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             {
                                 try
                                 {
-                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                                     if (autoReplicateProviderResult.IsError)
                                     {
@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -248,7 +248,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             {
                                 try
                                 {
-                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                                     if (autoReplicateProviderResult.IsError)
                                     {

@@ -94,7 +94,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
         OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
 
-        public event StorageProviderError StorageProviderError;
+        public event StorageProviderError OnStorageProviderError;
         //TODO: Lots more to come! ;-)
     }
 }

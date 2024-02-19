@@ -1,11 +1,10 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
+﻿using System.IO;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
-using System.IO;
-using System.Threading.Tasks;
-
 namespace NextGenSoftware.OASIS.API.Core
 {
     public abstract class OASISProvider : IOASISProvider
@@ -56,30 +55,58 @@ namespace NextGenSoftware.OASIS.API.Core
 
         virtual public OASISResult<bool> ActivateProvider()
         {
-            IsProviderActivated = true;
-            return new OASISResult<bool>(true);
+            //IsProviderActivated = true;
+            return new OASISResult<bool>(false) { IsError = true, Message = "Error Occured In OASISProvider.ActivateProvider. Reason: The Provider Has Not Implemented ActivateProvider And Overriden This Base Abstract PlaceHolder!" };
         }
 
         virtual public OASISResult<bool> DeActivateProvider()
         {
-            IsProviderActivated = false;
-            return new OASISResult<bool>(true);
+            //IsProviderActivated = false;
+            return new OASISResult<bool>(false) { IsError = true, Message = "Error Occured In OASISProvider.DeActivateProvider. Reason: The Provider Has Not Implemented DeActivateProvider And Overriden This Base Abstract PlaceHolder!" };
         }
 
         virtual public async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            if (!IsProviderActivated.HasValue) 
-                IsProviderActivated = true;
+            //if (!IsProviderActivated.HasValue)
+            //    IsProviderActivated = true;
 
-            return new OASISResult<bool>(true);
+            return new OASISResult<bool>(false) { IsError = true, Message = "Error Occured In OASISProvider.ActivateProviderAsync. Reason: The Provider Has Not Implemented ActivateProviderAsync And Overriden This Base Abstract PlaceHolder!" };
         }
 
         virtual public async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            if (!IsProviderActivated.HasValue)
-                IsProviderActivated = true;
+            //if (!IsProviderActivated.HasValue)
+            //    IsProviderActivated = true;
 
-            return new OASISResult<bool>(true);
+            return new OASISResult<bool>(false) { IsError = true, Message = "Error Occured In OASISProvider.DeActivateProviderAsync. Reason: The Provider Has Not Implemented DeActivateProviderAsync And Overriden This Base Abstract PlaceHolder!" };
         }
+
+        //virtual public OASISResult<bool> ActivateProvider()
+        //{
+        //    IsProviderActivated = true;
+        //    return new OASISResult<bool>(true);
+        //}
+
+        //virtual public OASISResult<bool> DeActivateProvider()
+        //{
+        //    IsProviderActivated = false;
+        //    return new OASISResult<bool>(true);
+        //}
+
+        //virtual public async Task<OASISResult<bool>> ActivateProviderAsync()
+        //{
+        //    if (!IsProviderActivated.HasValue) 
+        //        IsProviderActivated = true;
+
+        //    return new OASISResult<bool>(true);
+        //}
+
+        //virtual public async Task<OASISResult<bool>> DeActivateProviderAsync()
+        //{
+        //    if (!IsProviderActivated.HasValue)
+        //        IsProviderActivated = true;
+
+        //    return new OASISResult<bool>(true);
+        //}
     }
 }

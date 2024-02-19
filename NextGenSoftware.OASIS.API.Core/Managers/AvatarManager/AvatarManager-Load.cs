@@ -110,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Set the current provider back to the original provider.
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
             }
             catch (Exception ex)
             {
@@ -327,7 +327,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Set the current provider back to the original provider.
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
             }
             catch (Exception ex)
             {
@@ -437,7 +437,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Set the current provider back to the original provider.
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
             }
             catch (Exception ex)
             {
@@ -645,7 +645,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Set the current provider back to the original provider.
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
             }
             catch (Exception ex)
             {
@@ -694,7 +694,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Set the current provider back to the original provider.
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
             }
             catch (Exception ex)
             {
@@ -792,7 +792,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Set the current provider back to the original provider.
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
             }
             catch (Exception ex)
             {
@@ -1038,7 +1038,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Set the current provider back to the original provider.
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
             }
             catch (Exception ex)
             {
@@ -1136,7 +1136,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Set the current provider back to the original provider.
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
             }
             catch (Exception ex)
             {

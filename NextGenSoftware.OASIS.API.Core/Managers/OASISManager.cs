@@ -2,6 +2,8 @@
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
+using System;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -15,13 +17,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public delegate void StorageProviderError(object sender, OASISErrorEventArgs e);
 
-       //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
+        //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
         public OASISManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null)
         {
             if (OASISStorageProvider != null)
             {
-                ProviderManager.SetAndActivateCurrentStorageProvider(OASISStorageProvider);
-                OASISStorageProvider.StorageProviderError += OASISStorageProvider_StorageProviderError;
+                //If it wasn't abstract we could also use this pattern.
+                //https://blog.stephencleary.com/2013/01/async-oop-2-constructors.html
+                Task.Run(async () => await ProviderManager.SetAndActivateCurrentStorageProviderAsync(OASISStorageProvider)).Wait(5000);
+                OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_StorageProviderError;
             }
 
             if (OASISDNA == null)

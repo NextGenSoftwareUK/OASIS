@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -15,13 +16,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
         public SampleManager2()
         {
-            OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
+            OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
             //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
             if (result.IsError)
             {
                 string errorMessage = string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message);
-                OASISErrorHandling.HandleError(ref result, errorMessage, true, false, true);
+                OASISErrorHandling.HandleError(ref result, errorMessage);
             }
             else
                 _holonManager = new HolonManager(result.Result);

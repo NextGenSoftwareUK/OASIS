@@ -1,10 +1,10 @@
 ﻿using System;
-using EOSNewYork.EOSCore.Response.API;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
 {
@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             SEEDSOASIS seedsOASIS = new SEEDSOASIS(new TelosOASIS.TelosOASIS("https://node.hypha.earth", "", "", ""));
 
             // Will initialize the default OASIS Provider defined OASIS_DNA config file.
-            OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(); //TODO: TEMP - Take out once EOSIOOASIS has rest of AvatarManager methods implemented.
+            OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result; //TODO: TEMP - Take out once EOSIOOASIS has rest of AvatarManager methods implemented.
 
             Console.WriteLine("Getting Balance for account davidsellams...");
             string balance = seedsOASIS.GetBalanceForTelosAccount("davidsellams");
@@ -47,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             //     KeyManager.Instance.LinkProviderPrivateKeyToAvatar(loadAvatarResult);
 
             Console.WriteLine("Sending SEEDS from nextgenworld to davidsellams...");
-            OASISResult<string> result = seedsOASIS.PayWithSeedsUsingTelosAccount("davidsellams", privateKey, "nextgenworld",  1, Core.Enums.KarmaSourceType.API, "test", "test", "test", "test memo");
+            OASISResult<string> payResult = seedsOASIS.PayWithSeedsUsingTelosAccount("davidsellams", privateKey, "nextgenworld",  1, Core.Enums.KarmaSourceType.API, "test", "test", "test", "test memo");
             Console.WriteLine(string.Concat("Success: ", result.IsError ? "false" : "true"));
 
             if (result.IsError)

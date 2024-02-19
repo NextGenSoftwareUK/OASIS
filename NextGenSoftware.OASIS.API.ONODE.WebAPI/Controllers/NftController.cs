@@ -105,7 +105,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [Route("load-nft-by-id/{id}/{providerType}/{setGlobally}")]
         public async Task<OASISResult<IOASISNFT>> LoadNftByIdAsync(Guid id, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await LoadNftByIdAsync(id);
         }
 
@@ -122,7 +122,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [Route("load-nft-by-hash/{hash}/{providerType}/{setGlobally}")]
         public async Task<OASISResult<IOASISNFT>> LoadNftByHashAsync(string hash, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await LoadNftByHashAsync(hash);
         }
 
@@ -139,7 +139,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [Route("load-all-nfts-for_avatar/{avatarId}/{providerType}/{setGlobally}")]
         public async Task<OASISResult<IEnumerable<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
+            await GetAndActivateProviderAsync(providerType, setGlobally);
             return await LoadAllNFTsForAvatarAsync(avatarId);
         }
 

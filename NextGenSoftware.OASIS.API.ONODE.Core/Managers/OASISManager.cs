@@ -1,9 +1,9 @@
-﻿using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -15,28 +15,26 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null)
         {
             Data = new HolonManager(OASISStorageProvider, OASISDNA);
-            HandleDNA(OASISDNA);
+            Task.Run(async () => await HandleDNAAsync(OASISDNA)).Wait();
         }
 
         public OASISManager(OASISDNA OASISDNA = null)
         {
-            HandleDNA(OASISDNA);
-            OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
+            Task.Run(async () => await HandleDNAAsync(OASISDNA)).Wait();
+            OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
             if (!result.IsError && result.Result != null)
                 Data = new HolonManager(result.Result);
             else
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
-            }
+                OASISErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message));
         }
 
-        private void HandleDNA(OASISDNA dna)
+        private async Task HandleDNAAsync(OASISDNA dna)
         {
             if (dna == null)
             {
                 if (OASISDNAManager.OASISDNA == null)
-                    OASISDNAManager.LoadDNA();
+                    await OASISDNAManager.LoadDNAAsync();
 
                 this.OASISDNA = OASISDNAManager.OASISDNA;
             }

@@ -55,15 +55,49 @@ namespace NextGenSoftware.OASIS.Common
                 result.WarningCount += innerResult.WarningCount;
             }
 
-            HandleError(ref result, errorMessage, log, includeStackTrace, throwException, addToInnerMessages, incrementErrorCount, ex, detailedMessage, onlyLogToInnerMessages);
+            HandleError(ref result, errorMessage, ex, log, includeStackTrace, throwException, addToInnerMessages, incrementErrorCount, detailedMessage, onlyLogToInnerMessages);
         }
 
 
-        public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, bool log = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true, Exception ex = null, string detailedMessage = "", bool onlyLogToInnerMessages = false)
+        public static void HandleError(string errorMessage, Exception ex = null, bool log = true, bool includeStackTrace = false, bool throwException = false)
         {
             //NOTE: If you are throwing an exception then you do not need to show an additional stack trace here because the exception has it already! ;-)
             if (includeStackTrace || ShowStackTrace)
                 errorMessage = string.Concat(errorMessage, "StackTrace:\n", Environment.StackTrace);
+
+            if (log || LogAllErrors)
+                LoggingManager.Log(errorMessage, LogType.Error);
+
+            OnError?.Invoke(null, new OASISErrorEventArgs { Reason = errorMessage, Exception = ex });
+
+            switch (ErrorHandlingBehaviour)
+            {
+                case ErrorHandlingBehaviour.AlwaysThrowExceptionOnError:
+                    {
+                        if (throwException || ThrowExceptionsOnErrors)
+                            throw new Exception(errorMessage, ex);
+                    }
+                    break;
+
+                case ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent:
+                    {
+                        if (OnError == null)
+                        {
+                            if (throwException || ThrowExceptionsOnErrors)
+                                throw new Exception(errorMessage, ex);
+                        }
+                    }
+                    break;
+            }
+        }
+
+        public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, Exception ex = null, bool log = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true, string detailedMessage = "", bool onlyLogToInnerMessages = false)
+        {
+            ////NOTE: If you are throwing an exception then you do not need to show an additional stack trace here because the exception has it already! ;-)
+            //if (includeStackTrace || ShowStackTrace)
+            //    errorMessage = string.Concat(errorMessage, "StackTrace:\n", Environment.StackTrace);
+
+            HandleError(errorMessage, ex, log, includeStackTrace, throwException);
 
             result.IsSaved = false;
             result.IsLoaded = false;
@@ -94,35 +128,37 @@ namespace NextGenSoftware.OASIS.Common
             if (incrementErrorCount)
                 result.ErrorCount++;
 
-            if (log || LogAllErrors)
-                LoggingManager.Log(errorMessage, LogType.Error);
 
-            OnError?.Invoke(null, new OASISErrorEventArgs { Reason = errorMessage, Exception = ex });
+            //if (log || LogAllErrors)
+            //    LoggingManager.Log(errorMessage, LogType.Error);
 
-            switch (ErrorHandlingBehaviour)
-            {
-                case ErrorHandlingBehaviour.AlwaysThrowExceptionOnError:
-                    {
-                        if (throwException || ThrowExceptionsOnErrors)
-                            throw new Exception(errorMessage, ex);
-                    }
-                    break;
+            //OnError?.Invoke(null, new OASISErrorEventArgs { Reason = errorMessage, Exception = ex });
 
-                case ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent:
-                    {
-                        if (OnError == null)
-                        {
-                            if (throwException || ThrowExceptionsOnErrors)
-                                throw new Exception(errorMessage, ex);
-                        }
-                    }
-                    break;
-            }
+            //switch (ErrorHandlingBehaviour)
+            //{
+            //    case ErrorHandlingBehaviour.AlwaysThrowExceptionOnError:
+            //        {
+            //            if (throwException || ThrowExceptionsOnErrors)
+            //                throw new Exception(errorMessage, ex);
+            //        }
+            //        break;
+
+            //    case ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent:
+            //        {
+            //            if (OnError == null)
+            //            {
+            //                if (throwException || ThrowExceptionsOnErrors)
+            //                    throw new Exception(errorMessage, ex);
+            //            }
+            //        }
+            //        break;
+            //}
         }
+
 
         public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, bool onlyLogToInnerMessages)
         {
-            HandleError(ref result, errorMessage, true, false, false, false, true, null, "", onlyLogToInnerMessages);
+            HandleError(ref result, errorMessage, null, true, false, false, false, true, "", onlyLogToInnerMessages);
         }
 
         public static void HandleError<T1, T2>(ref OASISResult<T1> result, string errorMessage, bool onlyLogToInnerMessages, OASISResult<T2> innerResult)
@@ -130,10 +166,10 @@ namespace NextGenSoftware.OASIS.Common
             HandleError(ref result, errorMessage, true, false, false, false, true, null, "", onlyLogToInnerMessages, innerResult);
         }
 
-        public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, Exception ex, bool onlyLogToInnerMessages = false)
-        {
-            HandleError(ref result, errorMessage, true, false, false, false, true, ex, "", onlyLogToInnerMessages);
-        }
+        //public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, Exception ex, bool onlyLogToInnerMessages = false)
+        //{
+        //    HandleError(ref result, errorMessage, ex, true, false, false, false, true, "", onlyLogToInnerMessages);
+        //}
 
         public static void HandleError<T1, T2>(ref OASISResult<T1> result, string errorMessage, Exception ex, bool onlyLogToInnerMessages = false, OASISResult<T2> innerResult = null)
         {
@@ -142,7 +178,7 @@ namespace NextGenSoftware.OASIS.Common
 
         public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, string detailedMessage, bool onlyLogToInnerMessages = false)
         {
-            HandleError(ref result, errorMessage, true, false, false, false, true, null, detailedMessage, onlyLogToInnerMessages);
+            HandleError(ref result, errorMessage, null, true, false, false, false, true, detailedMessage, onlyLogToInnerMessages);
         }
 
         public static void HandleError<T1, T2>(ref OASISResult<T1> result, string errorMessage, string detailedMessage, OASISResult<T2> innerResult = null)
@@ -157,7 +193,7 @@ namespace NextGenSoftware.OASIS.Common
 
         public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, string detailedMessage, Exception ex, bool onlyLogToInnerMessages = false)
         {
-            HandleError(ref result, errorMessage, true, false, false, false, true, ex, detailedMessage, onlyLogToInnerMessages);
+            HandleError(ref result, errorMessage, ex, true, false, false, false, true, detailedMessage, onlyLogToInnerMessages);
         }
 
         public static void HandleError<T1, T2>(ref OASISResult<T1> result, string errorMessage, string detailedMessage, Exception ex, bool onlyLogToInnerMessages = false, OASISResult<T2> innerResult = null)

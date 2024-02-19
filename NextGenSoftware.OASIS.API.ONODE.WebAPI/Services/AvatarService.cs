@@ -20,12 +20,13 @@ using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
+using NextGenSoftware.OASIS.Common;
 using BC = BCrypt.Net.BCrypt;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 {
     //TODO: Want to phase this out, not needed, moving more and more code into AvatarManager.
-    public class AvatarService : IAvatarService
+    public class AvatarService //: IAvatarService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
@@ -49,10 +50,10 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             {
                 if (_searchManager == null)
                 {
-                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider();
+                    OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
                     if (result.IsError)
-                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message), true, false, true);
+                        OASISErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message));
 
                     _searchManager = new SearchManager(result.Result);
                 }
@@ -75,7 +76,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                     response.Exception = e;
                     response.Message = e.Message;
                     response.IsError = true;
-                    ErrorHandling.HandleError(ref response, e.Message);
+                    OASISErrorHandling.HandleError(ref response, e.Message);
                 }
 
                 return response;
@@ -93,7 +94,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 
                 if (result.IsError)
                 {
-                    ErrorHandling.HandleError(ref response, result.Message);
+                    OASISErrorHandling.HandleError(ref response, result.Message);
                     return response;
                 }
 
@@ -103,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             catch (Exception e)
             {
                 response.Exception = e;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
 
             return response;
@@ -119,7 +120,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 
         //        if (response.IsError)
         //        {
-        //            ErrorHandling.HandleError(ref response, response.Message);
+        //            OASISErrorHandling.HandleError(ref response, response.Message);
         //            return response;
         //        }
 
@@ -130,7 +131,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
         //        response.Exception = e;
         //        response.Message = e.Message;
         //        response.IsError = true;
-        //        ErrorHandling.HandleError(ref response, e.Message);
+        //        OASISErrorHandling.HandleError(ref response, e.Message);
         //    }
         //    return response;
         //}
@@ -147,7 +148,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 
                     if (avatar == null)
                     {
-                        ErrorHandling.HandleError(ref response, "Avatar not found");
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found");
                         return response;
                     }
 
@@ -170,15 +171,15 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                             response.Result = avatar;
                         }
                         else
-                            ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService saving avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                            OASISErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService saving avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
                     }
                     else
-                        ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService getting refresh token. Reason: {refreshTokenResult.Message}", refreshTokenResult.DetailedMessage);
+                        OASISErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService getting refresh token. Reason: {refreshTokenResult.Message}", refreshTokenResult.DetailedMessage);
                 }
                 catch (Exception ex)
                 {
                     response.Exception = ex;
-                    ErrorHandling.HandleError(ref response, $"An unknown error occured in RefreshToken method in AvatarService. Reason: {ex.Message}");
+                    OASISErrorHandling.HandleError(ref response, $"An unknown error occured in RefreshToken method in AvatarService. Reason: {ex.Message}");
                 }
 
                 return response;
@@ -194,7 +195,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 
                 if (avatar == null)
                 {
-                    ErrorHandling.HandleError(ref response, "Avatar not found");
+                    OASISErrorHandling.HandleError(ref response, "Avatar not found");
                     return response;
                 }
 
@@ -214,10 +215,10 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                         response.IsSaved = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref response, $"An error in RevokeToken method in AvatarService saving the avatar. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
+                        OASISErrorHandling.HandleError(ref response, $"An error in RevokeToken method in AvatarService saving the avatar. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
                 }
                 else
-                    ErrorHandling.HandleError(ref response, $"An error occured in RevokeToken method in AvatarService. Reason: {refreshTokenResult.Message}", refreshTokenResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref response, $"An error occured in RevokeToken method in AvatarService. Reason: {refreshTokenResult.Message}", refreshTokenResult.DetailedMessage);
 
                 return response;
             });
@@ -273,7 +274,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 
                 result.IsError = true;
                 result.IsSaved = false;
-                ErrorHandling.HandleError(ref result, result.Message);
+                OASISErrorHandling.HandleError(ref result, result.Message);
                 return result;
             }
 
@@ -300,14 +301,14 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                         x.ResetTokenExpires > DateTime.UtcNow);
 
                     if (avatar == null)
-                        ErrorHandling.HandleError(ref result, "Invalid token");
+                        OASISErrorHandling.HandleError(ref result, "Invalid token");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in ValidateResetToken loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in ValidateResetToken loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"An unknown error occured in ValidateResetToken. Reason: {e}", true, false, false, false, true, e);
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in ValidateResetToken. Reason: {e}", e);
             }
 
             return result;
@@ -330,7 +331,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 
                     if (avatar == null)
                     {
-                        ErrorHandling.HandleError(ref response, "Avatar Not Found");
+                        OASISErrorHandling.HandleError(ref response, "Avatar Not Found");
                         return response;
                     }
 
@@ -339,7 +340,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 
                     //if (!BC.Verify(avatar.Password, passwordHash))
                     //{
-                    //    ErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
+                    //    OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
                     //    return response;
                     //}
 
@@ -353,7 +354,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 
                     if (saveAvatarResult.IsError)
                     {
-                        ErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                        OASISErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
                         return response;
                     }
 
@@ -361,7 +362,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                     response.Result = response.Message;
                 }
                 else
-                    ErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
             }
             catch (Exception e)
             {
@@ -369,7 +370,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 response.Message = e.Message;
                 response.IsError = true;
                 response.IsSaved = false;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
 
             return response;
@@ -381,7 +382,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 
             if (id == Guid.Empty)
             {
-                ErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitById. Guid is empty, please speceify a valid Guid.");
+                OASISErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitById. Guid is empty, please speceify a valid Guid.");
                 return result;
             }
 
@@ -390,7 +391,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             if (!avatarResult.IsError && avatarResult.Result != null)
             {
                 if (avatarResult.Result.Portrait == null)
-                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitById. No image has been uploaded for this avatar. Please upload an image first.");
+                    OASISErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitById. No image has been uploaded for this avatar. Please upload an image first.");
                 else
                 {
                     result.Result = new AvatarPortrait
@@ -403,7 +404,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarPortraitById loading the avatar detail. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in GetAvatarPortraitById loading the avatar detail. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
 
             return result;
         }
@@ -414,7 +415,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 
             if (string.IsNullOrEmpty(username))
             {
-                ErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitByUsername. username is empty, please speceify a valid username.");
+                OASISErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitByUsername. username is empty, please speceify a valid username.");
                 return result;
             }
 
@@ -423,7 +424,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             if (!avatarResult.IsError && avatarResult.Result != null)
             {
                 if (avatarResult.Result.Portrait == null)
-                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitByUsername. No image has been uploaded for this avatar. Please upload an image first.");
+                    OASISErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitByUsername. No image has been uploaded for this avatar. Please upload an image first.");
                 else
                 {
                     result.Result = new AvatarPortrait
@@ -436,7 +437,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarPortraitByUsername loading the avatar detail. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in GetAvatarPortraitByUsername loading the avatar detail. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
 
             return result;
         }
@@ -447,7 +448,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 
             if (string.IsNullOrEmpty(email))
             {
-                ErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitByEmail. Email is empty, please speceify a valid username.");
+                OASISErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitByEmail. Email is empty, please speceify a valid username.");
                 return result;
             }
 
@@ -456,7 +457,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             if (!avatarResult.IsError && avatarResult.Result != null)
             {
                 if (avatarResult.Result.Portrait == null)
-                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitByEmail. No image has been uploaded for this avatar. Please upload an image first.", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitByEmail. No image has been uploaded for this avatar. Please upload an image first.", avatarResult.DetailedMessage);
                 else
                 {
                     result.Result = new AvatarPortrait
@@ -469,7 +470,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in email loading the avatar detail. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in email loading the avatar detail. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
 
             return result;
         }
@@ -483,7 +484,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             {
                 if (image.AvatarId == Guid.Empty && string.IsNullOrEmpty(image.Username) && string.IsNullOrEmpty(image.Email))
                 {
-                    ErrorHandling.HandleError(ref response, "Error occured in UploadAvatarPortrait, you need to specify either the AvatarId, Username or Email of the avatar you wish to upload an image for.");
+                    OASISErrorHandling.HandleError(ref response, "Error occured in UploadAvatarPortrait, you need to specify either the AvatarId, Username or Email of the avatar you wish to upload an image for.");
                     return response;
                 }
 
@@ -503,7 +504,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 
                     if (saveAvatar.IsError)
                     {
-                        ErrorHandling.HandleError(ref response, $"Error occured in UploadAvatarPortrait saving avatar detail. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
+                        OASISErrorHandling.HandleError(ref response, $"Error occured in UploadAvatarPortrait saving avatar detail. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
                         return response;
                     }
 
@@ -513,13 +514,13 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 else
                 {
                     response.Result = false;
-                    ErrorHandling.HandleError(ref response, $"Error occured in UploadAvatarPortrait uploading image. Avatar failed to load, reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref response, $"Error occured in UploadAvatarPortrait uploading image. Avatar failed to load, reason: {avatarResult.Message}", avatarResult.DetailedMessage);
                 }
                
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref response, e.Message, e);
+                OASISErrorHandling.HandleError(ref response, e.Message, e);
             }
 
             return response;
@@ -538,7 +539,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
         //    {
         //        if (string.IsNullOrEmpty(userName))
         //        {
-        //            ErrorHandling.HandleError(ref response, "Error in GetByUsername, UserName property is empty");
+        //            OASISErrorHandling.HandleError(ref response, "Error in GetByUsername, UserName property is empty");
         //            return response;
         //        }
 
@@ -546,7 +547,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
         //    }
         //    catch (Exception e)
         //    {
-        //        ErrorHandling.HandleError(ref response, e.Message, true, false, false, false, true, e);
+        //        OASISErrorHandling.HandleError(ref response, e.Message, true, false, false, false, true, e);
         //    }
 
         //    return response;
@@ -559,7 +560,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
         //    {
         //        if (string.IsNullOrEmpty(email))
         //        {
-        //            ErrorHandling.HandleError(ref response, "Error in GetByEmail, Email property is empty");
+        //            OASISErrorHandling.HandleError(ref response, "Error in GetByEmail, Email property is empty");
         //            return response;
         //        }
 
@@ -570,7 +571,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
         //        response.Exception = e;
         //        response.Message = e.Message;
         //        response.IsError = true;
-        //        ErrorHandling.HandleError(ref response, response.Message);
+        //        OASISErrorHandling.HandleError(ref response, response.Message);
         //    }
 
         //    return response;
@@ -586,7 +587,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             if (!avatarsResult.IsError && avatarsResult.Result != null)
             {
                 if (avatarsResult.Result.Any(x => x.Email == model.Email))
-                    ErrorHandling.HandleError(ref result, $"Email '{model.Email}' is already registered");
+                    OASISErrorHandling.HandleError(ref result, $"Email '{model.Email}' is already registered");
                 else
                 {
                     // map model to new account object
@@ -599,7 +600,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                     var saveAvatarResult = await AvatarManager.SaveAvatarAsync(avatar);
 
                     if (saveAvatarResult.IsError || saveAvatarResult.Result == null)
-                        ErrorHandling.HandleError(ref result, $"Error occured in Create method on AvatarService saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                        OASISErrorHandling.HandleError(ref result, $"Error occured in Create method on AvatarService saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
                     else
                     {
                         result.Result = AvatarManager.HideAuthDetails(avatar);
@@ -608,7 +609,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in Create method on AvatarService loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in Create method on AvatarService loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
 
             return result;
         }
@@ -623,13 +624,13 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 response = await AvatarManager.LoadAvatarAsync(id, false, false);
 
                 if (response.IsError || response.Result == null)
-                    ErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
                 else
                     response = await Update(response.Result, avatar);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
+                OASISErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
             }
 
             return response;
@@ -645,13 +646,13 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 response = await AvatarManager.LoadAvatarByEmailAsync(email, false, false);
 
                 if (response.IsError || response.Result == null)
-                    ErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
                 else
                     response = await Update(response.Result, avatar);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
+                OASISErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
             }
 
             return response;
@@ -667,13 +668,13 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 response = await AvatarManager.LoadAvatarAsync(username, false, false);
 
                 if (response.IsError || response.Result == null)
-                    ErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
                 else
                     response = await Update(response.Result, avatar);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
+                OASISErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
             }
 
             return response;  
@@ -693,7 +694,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 response.IsError = true;
                 response.IsSaved = false;
                 response.Message = e.Message;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
 
             return response;
@@ -712,7 +713,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 response.IsError = true;
                 response.IsSaved = false;
                 response.Message = e.Message;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
 
             return response;
@@ -731,7 +732,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 response.IsError = true;
                 response.IsSaved = false;
                 response.Message = e.Message;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
 
             return response;
@@ -763,7 +764,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                     response.Exception = e;
                     response.Message = e.Message;
                     response.Result = "Token Validating Failed: Invalid Token";
-                    ErrorHandling.HandleError(ref response, e.Message);
+                    OASISErrorHandling.HandleError(ref response, e.Message);
                 }
 
                 return response;
@@ -778,7 +779,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
         //    if (avatar != null) return result;
         //    result.Message = "AvatarDetail not found";
         //    result.IsError = true;
-        //    ErrorHandling.HandleError(ref result, result.Message);
+        //    OASISErrorHandling.HandleError(ref result, result.Message);
         //    return result;
         //}
 
@@ -795,7 +796,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
         //        response.IsError = true;
         //        response.Exception = e;
         //        response.Message = e.Message;
-        //        ErrorHandling.HandleError(ref response, response.Message);
+        //        OASISErrorHandling.HandleError(ref response, response.Message);
         //    }
 
         //    return response;
@@ -814,7 +815,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
         //        response.IsError = true;
         //        response.Exception = e;
         //        response.Message = e.Message;
-        //        ErrorHandling.HandleError(ref response, e.Message);
+        //        OASISErrorHandling.HandleError(ref response, e.Message);
         //    }
 
         //    return response;
@@ -834,7 +835,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 response.Message = e.Message;
                 response.Exception = e;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
 
             return response;
@@ -847,18 +848,18 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             try
             {
                 if (id == Guid.Empty)
-                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarUmaJsonById. AvatarId is empty");
+                    OASISErrorHandling.HandleError(ref result, "Error occured in GetAvatarUmaJsonById. AvatarId is empty");
 
                 OASISResult<IAvatarDetail> avatarDetailResult = await AvatarManager.LoadAvatarDetailAsync(id);
 
                 if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
                     result.Result = avatarDetailResult.Result.UmaJson;
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonById loading avatar detail. Reason:{avatarDetailResult.Message}", avatarDetailResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonById loading avatar detail. Reason:{avatarDetailResult.Message}", avatarDetailResult.DetailedMessage);
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonById. Details: {e}", e);
+                OASISErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonById. Details: {e}", e);
             }
 
             return result;
@@ -871,18 +872,18 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             try
             {
                 if (string.IsNullOrEmpty(username))
-                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarUmaJsonByUsername. username is empty");
+                    OASISErrorHandling.HandleError(ref result, "Error occured in GetAvatarUmaJsonByUsername. username is empty");
 
                 OASISResult<IAvatarDetail> avatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(username);
 
                 if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
                     result.Result = avatarDetailResult.Result.UmaJson;
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonByUsername loading avatar detail. Reason:{avatarDetailResult.Message}", avatarDetailResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonByUsername loading avatar detail. Reason:{avatarDetailResult.Message}", avatarDetailResult.DetailedMessage);
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonByUsername. Details: {e}", e);
+                OASISErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonByUsername. Details: {e}", e);
             }
 
             return result;
@@ -895,18 +896,18 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             try
             {
                 if (string.IsNullOrEmpty(email))
-                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarUmaJsonByEmail. email is empty");
+                    OASISErrorHandling.HandleError(ref result, "Error occured in GetAvatarUmaJsonByEmail. email is empty");
 
                 OASISResult<IAvatarDetail> avatarDetailResult = await AvatarManager.LoadAvatarDetailByEmailAsync(email);
 
                 if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
                     result.Result = avatarDetailResult.Result.UmaJson;
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonByEmail loading avatar detail. Reason:{avatarDetailResult.Message}", avatarDetailResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonByEmail loading avatar detail. Reason:{avatarDetailResult.Message}", avatarDetailResult.DetailedMessage);
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonByEmail. Details: {e}", e);
+                OASISErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonByEmail. Details: {e}", e);
             }
 
             return result;
@@ -923,7 +924,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                     if (_httpContextAccessor.HttpContext == null)
                     {
                         response.Result = null;
-                        ErrorHandling.HandleError(ref response, "Avatar not found.");
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found.");
                         return response;
                     }
 
@@ -932,7 +933,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                     if (avatar == null)
                     {
                         response.Result = null;
-                        ErrorHandling.HandleError(ref response, "Avatar not found");
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found");
                         return response;
                     }
 
@@ -941,7 +942,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 catch (Exception e)
                 {
                     response.Result = null;
-                    ErrorHandling.HandleError(ref response, $"An unknown error occured in GetAvatarByJwt. Reason: {e.Message}");
+                    OASISErrorHandling.HandleError(ref response, $"An unknown error occured in GetAvatarByJwt. Reason: {e.Message}");
                 }
 
                 return response;
@@ -957,13 +958,13 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
         //        searchParams.SearchAvatarsOnly = true;
 
         //        if (string.IsNullOrEmpty(searchParams.SearchQuery))
-        //            ErrorHandling.HandleError(ref response, "SearchQuery field is empty");
+        //            OASISErrorHandling.HandleError(ref response, "SearchQuery field is empty");
         //        else
         //            response = await SearchManager.SearchAsync(searchParams);
         //    }
         //    catch (Exception e)
         //    {
-        //        ErrorHandling.HandleError(ref response, $"Unknown error occured in Search method in AvatarService. Reason: {e}", e);
+        //        OASISErrorHandling.HandleError(ref response, $"Unknown error occured in Search method in AvatarService. Reason: {e}", e);
         //    }
 
         //    return response;
@@ -981,7 +982,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
         //        }
         //        catch (Exception e)
         //        {
-        //            ErrorHandling.HandleError(ref response, $"Unknown error occured in LinkProviderKeyToAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerType)} and key {key}: {e.Message}");
+        //            OASISErrorHandling.HandleError(ref response, $"Unknown error occured in LinkProviderKeyToAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerType)} and key {key}: {e.Message}");
         //        }
         //        return response;
         //    });
@@ -999,7 +1000,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
         //        }
         //        catch (Exception e)
         //        {
-        //            ErrorHandling.HandleError(ref response, $"Unknown error occured in LinkPrivateProviderKeyToAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerType)} and key {key}: {e.Message}");
+        //            OASISErrorHandling.HandleError(ref response, $"Unknown error occured in LinkPrivateProviderKeyToAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerType)} and key {key}: {e.Message}");
         //        }
         //        return response;
         //    });
@@ -1018,7 +1019,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 }
                 catch (Exception e)
                 {
-                    ErrorHandling.HandleError(ref response, $"Unknown error occured in GetProviderKeyForAvatar for avatar {avatarUsername} and providerType {Enum.GetName(typeof(ProviderType), providerType)}: {e.Message}");
+                    OASISErrorHandling.HandleError(ref response, $"Unknown error occured in GetProviderKeyForAvatar for avatar {avatarUsername} and providerType {Enum.GetName(typeof(ProviderType), providerType)}: {e.Message}");
                 }
 
                 return response;
@@ -1037,7 +1038,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 }
                 catch (Exception e)
                 {
-                    ErrorHandling.HandleError(ref response, $"Unknown error occured in GetPrivateProviderKeyForAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerType)}: {e.Message}");
+                    OASISErrorHandling.HandleError(ref response, $"Unknown error occured in GetPrivateProviderKeyForAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerType)}: {e.Message}");
                 }
 
                 return response;
@@ -1063,7 +1064,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                         response.Message = string.Concat(
                             "ERROR: KarmaType needs to be one of the values found in KarmaTypePositive enumeration. Possible value can be:\n\n",
                             EnumHelper.GetEnumValues(typeof(KarmaTypePositive)));
-                        ErrorHandling.HandleError(ref response, response.Message);
+                        OASISErrorHandling.HandleError(ref response, response.Message);
                     }
 
                     if (!Enum.TryParse(typeof(KarmaSourceType), addRemoveKarmaToAvatarRequest.karmaSourceType,
@@ -1074,7 +1075,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                         response.Message = string.Concat(
                             "ERROR: KarmaSourceType needs to be one of the values found in KarmaSourceType enumeration. Possible value can be:\n\n",
                             EnumHelper.GetEnumValues(typeof(KarmaSourceType)));
-                        ErrorHandling.HandleError(ref response, response.Message);
+                        OASISErrorHandling.HandleError(ref response, response.Message);
                     }
 
                     //response.Result = AvatarManager.AddKarmaToAvatar(avatarId,
@@ -1093,7 +1094,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                     response.Message = e.Message;
                     response.IsError = true;
                     response.IsSaved = false;
-                    ErrorHandling.HandleError(ref response, e.Message);
+                    OASISErrorHandling.HandleError(ref response, e.Message);
                 }
 
                 return response;
@@ -1115,7 +1116,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                         EnumHelper.GetEnumValues(typeof(KarmaTypeNegative)));
                     response.IsError = true;
                     response.IsSaved = false;
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 
@@ -1126,7 +1127,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                         EnumHelper.GetEnumValues(typeof(KarmaSourceType)));
                     response.IsError = true;
                     response.IsSaved = false;
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
 
@@ -1144,7 +1145,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 response.Message = e.Message;
                 response.IsError = true;
                 response.IsSaved = false;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -1190,7 +1191,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != originalAvatar.Email &&
                     (await AvatarManager.LoadAvatarByEmailAsync(avatar.Email, false, false)).Result != null)
                 {
-                    ErrorHandling.HandleError(ref response, $"Email '{avatar.Email}' is already taken");
+                    OASISErrorHandling.HandleError(ref response, $"Email '{avatar.Email}' is already taken");
                     return response;
                 }
 
@@ -1223,17 +1224,17 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                             response.Result = AvatarManager.HideAuthDetails(saveAvatarResult.Result);
                         }
                         else
-                            ErrorHandling.HandleError(ref response, $"{errorMessage}{saveAvatarDetailResult.Message}", saveAvatarDetailResult.DetailedMessage);
+                            OASISErrorHandling.HandleError(ref response, $"{errorMessage}{saveAvatarDetailResult.Message}", saveAvatarDetailResult.DetailedMessage);
                     }
                     else
-                        ErrorHandling.HandleError(ref response, $"{errorMessage}{avatarDetailResult.Message}", avatarDetailResult.DetailedMessage);
+                        OASISErrorHandling.HandleError(ref response, $"{errorMessage}{avatarDetailResult.Message}", avatarDetailResult.DetailedMessage);
                 }
                 else
-                    ErrorHandling.HandleError(ref response, $"{errorMessage}{saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref response, $"{errorMessage}{saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
+                OASISErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
             }
 
             return response;
@@ -1269,7 +1270,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
                 return (result, avatar);
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error in GetRefreshToken loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"Error in GetRefreshToken loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
 
             return (result, null);
         }

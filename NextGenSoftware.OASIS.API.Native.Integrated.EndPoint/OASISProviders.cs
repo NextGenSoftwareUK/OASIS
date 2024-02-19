@@ -8,12 +8,12 @@ using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {
@@ -52,6 +52,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                             _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
                             _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey
                             ));
+                        
                         ProviderManager.RegisterProvider(_SEEDS);
                     }
                 }
@@ -65,7 +66,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             get
             {
                 if (_IPFS == null)
-                    _IPFS = (IPFSOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.IPFSOASIS);
+                    _IPFS = (IPFSOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.IPFSOASIS)).Result;
 
                 return _IPFS;
             }
@@ -76,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             get
             {
                 if (_EOSIO == null)
-                    _EOSIO = (EOSIOOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.EOSIOOASIS);
+                    _EOSIO = (EOSIOOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.EOSIOOASIS)).Result;
 
                 return _EOSIO;
             }
@@ -87,7 +88,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             get
             {
                 if (_Solana == null)
-                    _Solana = (SolanaOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.SolanaOASIS);
+                    _Solana = (SolanaOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.SolanaOASIS)).Result;
 
                 return _Solana;
             }
@@ -98,7 +99,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             get
             {
                 if (_Ethereum == null)
-                    _Ethereum = (EthereumOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.EthereumOASIS);
+                    _Ethereum = (EthereumOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.EthereumOASIS)).Result;
 
                 return _Ethereum;
             }
@@ -109,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             get
             {
                 if (_Telos == null)
-                    _Telos = (TelosOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.TelosOASIS);
+                    _Telos = (TelosOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.TelosOASIS)).Result;
 
                 return _Telos;
             }
@@ -120,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             get
             {
                 if (_Holochain == null)
-                    _Holochain = (HoloOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.HoloOASIS);
+                    _Holochain = (HoloOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.HoloOASIS)).Result;
 
                 return _Holochain;
             }
@@ -131,7 +132,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             get
             {
                 if (_MongoDB == null)
-                    _MongoDB = (MongoDBOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.MongoDBOASIS);
+                    _MongoDB = (MongoDBOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.MongoDBOASIS)).Result;
 
                 return _MongoDB;
             }
@@ -142,7 +143,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             get
             {
                 if (_Neo4j == null)
-                    _Neo4j = (Neo4jOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.Neo4jOASIS);
+                    _Neo4j = (Neo4jOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.Neo4jOASIS)).Result;
 
                 return _Neo4j;
             }
@@ -153,7 +154,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             get
             {
                 if (_sqlLiteDb == null)
-                    _sqlLiteDb = (SQLLiteDBOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.SQLLiteDBOASIS);
+                    _sqlLiteDb = (SQLLiteDBOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.SQLLiteDBOASIS)).Result;
 
                 return _sqlLiteDb;
             }
@@ -164,7 +165,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             get
             {
                 if (_ThreeFold == null)
-                    _ThreeFold = (ThreeFoldOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.ThreeFoldOASIS);
+                    _ThreeFold = (ThreeFoldOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.ThreeFoldOASIS)).Result;
 
                 return _ThreeFold;
             }
@@ -175,7 +176,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             get
             {
                 if (_ActivityPub == null)
-                    _ActivityPub = (AcitvityPubOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.ActivityPubOASIS);
+                    _ActivityPub = (AcitvityPubOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.ActivityPubOASIS)).Result;
 
                 return _ActivityPub;
             }

@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result = await AutoReplicateAvatarAsync(avatar, result, previousProviderType, waitForAutoReplicationResult);
                 }
 
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
             }
             catch (Exception ex)
             {
@@ -230,7 +230,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result = await AutoReplicateAvatarDetailAsync(avatar, result, previousProviderType, waitForAutoReplicationResult);
                 }
 
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
             }
             catch (Exception ex)
             {

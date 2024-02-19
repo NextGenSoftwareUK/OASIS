@@ -75,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!result.HasAnyHolonsChanged)
                     return result;
 
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -187,7 +187,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!result.HasAnyHolonsChanged)
                     return result;
 
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {

@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error in AddKarmaToAvatarAsync method in AvatarManager.";
-            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
             OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
 
             if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error in AddKarmaToAvatarAsync method in AvatarManager.";
-            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
             OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
 
             if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
@@ -140,7 +140,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //return await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.RemoveKarmaFromAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink).Result;
 
             string errorMessage = "Error in RemoveKarmaFromAvatarAsync method in AvatarManager.";
-            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
             OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
 
             if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
@@ -164,7 +164,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(Guid avatarId, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error in RemoveKarmaFromAvatarAsync method in AvatarManager.";
-            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
             OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
 
             if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
