@@ -183,7 +183,12 @@ namespace NextGenSoftware.OASIS.API.DNA
         /// <summary>
         /// Set this to true to add additional space after the end of each log entry. NOTE: This is only relevant if the built-in DefaultLogger is used.
         /// </summary>
-        public bool AddAdditionalSpaceAfterEachLogEntry { get; set; } = false;
+        public bool InsertExtraNewLineAfterLogMessage { get; set; } = false;
+
+        /// <summary>
+        /// The amount of space to indent the log message by. NOTE: This is only relevant if the built-in DefaultLogger is used.
+        /// </summary>
+        public int IndentLogMessagesBy { get; set; } = 1;
     }
 
     public class EncryptionSettings

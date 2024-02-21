@@ -1,9 +1,8 @@
-﻿using NextGenSoftware.OASIS.API.Core.Events;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
-using System;
 using System.Threading.Tasks;
+using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -12,10 +11,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISDNA OASISDNA { get; set; }
 
         //Events
-        public delegate void OASISManagerError(object sender, OASISErrorEventArgs e);
+        //public delegate void OASISManagerError(object sender, OASISErrorEventArgs e);
         public event OASISManagerError OnOASISManagerError;
-
-        public delegate void StorageProviderError(object sender, OASISErrorEventArgs e);
 
         //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
         public OASISManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null)

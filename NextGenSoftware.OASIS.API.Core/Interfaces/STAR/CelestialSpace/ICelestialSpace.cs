@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.Common;
-using static NextGenSoftware.OASIS.API.Core.Events.Events;
+using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {

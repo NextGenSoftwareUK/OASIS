@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
+using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
 {
@@ -49,22 +49,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
 
         public Asteroid() { }
 
-        public event Events.HolonLoaded OnHolonLoaded;
-        public event Events.HolonSaved OnHolonSaved;
-        public event Events.HolonsLoaded OnHolonsLoaded;
-        public event Events.Initialized OnInitialized;
-        public event Events.ZomeError OnZomeError;
-        public event Events.ZomesLoaded OnZomesLoaded;
-        public event Events.CelestialBodyLoaded OnCelestialBodyLoaded;
-        public event Events.CelestialBodySaved OnCelestialBodySaved;
-        public event Events.CelestialBodyError OnCelestialBodyError;
-        public event Events.ZomeLoaded OnZomeLoaded;
-        public event Events.ZomeSaved OnZomeSaved;
-        public event Events.ZomesSaved OnZomesSaved;
-        public event Events.ZomesError OnZomesError;
-        public event Events.HolonError OnHolonError;
-        public event Events.HolonsSaved OnHolonsSaved;
-        public event Events.HolonsError OnHolonsError;
+        public event HolonLoaded OnHolonLoaded;
+        public event HolonSaved OnHolonSaved;
+        public event HolonsLoaded OnHolonsLoaded;
+        public event Initialized OnInitialized;
+        public event ZomeError OnZomeError;
+        public event ZomesLoaded OnZomesLoaded;
+        public event CelestialBodyLoaded OnCelestialBodyLoaded;
+        public event CelestialBodySaved OnCelestialBodySaved;
+        public event CelestialBodyError OnCelestialBodyError;
+        public event ZomeLoaded OnZomeLoaded;
+        public event ZomeSaved OnZomeSaved;
+        public event ZomesSaved OnZomesSaved;
+        public event ZomesError OnZomesError;
+        public event HolonError OnHolonError;
+        public event HolonsSaved OnHolonsSaved;
+        public event HolonsError OnHolonsError;
 
         public Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool continueOnError = true)
         {

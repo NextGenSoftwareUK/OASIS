@@ -1,9 +1,9 @@
-﻿using System;
-using NextGenSoftware.OASIS.Common;
+﻿using NextGenSoftware.OASIS.Common;
+using System;
 
 namespace NextGenSoftware.OASIS.API.Core.Events
 {
-    public class Events
+    public class EventDelegates
     {
         public delegate void Initialized(object sender, EventArgs e);
         //public delegate void CelestialHolonLoaded(object sender, CelestialHolonLoadedEventArgs e);
@@ -39,7 +39,9 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public delegate void HolonsError(object sender, HolonsErrorEventArgs e);
         public delegate void HolonAdded(object sender, HolonAddedEventArgs e);
         public delegate void HolonRemoved(object sender, HolonRemovedEventArgs e);
-        
+        public delegate void OASISManagerError(object sender, OASISErrorEventArgs e);
+        public delegate void StorageProviderError(object sender, OASISErrorEventArgs e);
+
         // public delegate void Disconnected(object sender, DisconnectedEventArgs e);
         // public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         //TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
