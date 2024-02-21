@@ -381,6 +381,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         //TODO: Think its not an error as long as it can activate a provider below?
                         if (deactivateProviderResult != null && deactivateProviderResult.IsError || deactivateProviderResult == null)
                             OASISErrorHandling.HandleWarning(ref result, deactivateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProvider Calling DeActivateProvider For Provider {CurrentStorageProviderType.Name}. Reason: {deactivateProviderResult.Message}" : "Unknown error (deactivateProviderResult was null!)");
+                        else
+                            LoggingManager.Log($" {CurrentStorageProviderType.Name} Provider DeActivated Successfully.", Logging.LogType.Info);
                     }
 
                     CurrentStorageProviderCategory = provider.ProviderCategory;
@@ -391,7 +393,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (activateProviderResult != null && activateProviderResult.IsError || activateProviderResult == null)
                         OASISErrorHandling.HandleError(ref result, activateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProvider Calling ActivateProvider For Provider {CurrentStorageProviderType.Name}. Reason: {activateProviderResult.Message}" : "Unknown error (activateProviderResult was null!)");
-
+                    else
+                        LoggingManager.Log($" {CurrentStorageProviderType.Name} Provider Activated Successfully.", Logging.LogType.Info);
 
                     if (setGlobally)
                         DefaultGlobalStorageProvider = CurrentStorageProvider;
@@ -433,6 +436,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         //TODO: Think its not an error as long as it can activate a provider below?
                         if (deactivateProviderResult != null && deactivateProviderResult.IsError || deactivateProviderResult == null)
                             OASISErrorHandling.HandleWarning(ref result, deactivateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProviderAsync Calling DeActivateProviderAsync For Provider {CurrentStorageProviderType.Name}. Reason: {deactivateProviderResult.Message}" : "Unknown error (deactivateProviderResult was null!)");
+                        else
+                            LoggingManager.Log($" {CurrentStorageProviderType.Name} Provider DeActivated Successfully (Async).", Logging.LogType.Info);
                     }
 
                     CurrentStorageProviderCategory = provider.ProviderCategory;
@@ -443,6 +448,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (activateProviderResult != null && activateProviderResult.IsError || activateProviderResult == null)
                         OASISErrorHandling.HandleError(ref result, activateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProviderAsync Calling ActivateProviderAsync For Provider {CurrentStorageProviderType.Name}. Reason: {activateProviderResult.Message}" : "Unknown error (activateProviderResult was null!)");
+                    else
+                        LoggingManager.Log($" {CurrentStorageProviderType.Name} Provider Activated Successfully (Async).", Logging.LogType.Info);
 
                     if (setGlobally)
                         DefaultGlobalStorageProvider = CurrentStorageProvider;
@@ -466,6 +473,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
+                    LoggingManager.Log($"Attempting To Activate {provider.ProviderType.Name} Provider (Async)...", Logging.LogType.Info, true);
                     result = await provider.ActivateProviderAsync();
                 }
                 catch (Exception ex)
@@ -492,6 +500,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
+                    LoggingManager.Log($"Attempting To Activate {provider.ProviderType.Name} Provider...", Logging.LogType.Info, true);
                     result = provider.ActivateProvider();
                 }
                 catch (Exception ex)
@@ -518,6 +527,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
+                    LoggingManager.Log($"Attempting To DeActivate {provider.ProviderType.Name} Provider...", Logging.LogType.Info, true);
                     result = provider.DeActivateProvider();
                 }
                 catch (Exception ex)
@@ -544,6 +554,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
+                    LoggingManager.Log($"Attempting To DeActivate {provider.ProviderType.Name} Provider (Async)...", Logging.LogType.Info, true);
                     result = await provider.DeActivateProviderAsync();
                 }
                 catch (Exception ex)

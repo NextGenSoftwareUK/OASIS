@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using static NextGenSoftware.OASIS.API.Core.Events.Events;
+using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.Common;
 

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 //using Mapster;
 using NextGenSoftware.OASIS.API.Core.Events;
-using static NextGenSoftware.OASIS.API.Core.Events.Events;
+using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;

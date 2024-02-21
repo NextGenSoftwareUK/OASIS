@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.STAR.TestHarness.Genesis.Interfaces;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
 {

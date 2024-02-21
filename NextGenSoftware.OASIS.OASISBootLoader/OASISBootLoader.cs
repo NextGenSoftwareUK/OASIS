@@ -78,9 +78,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             OASISResult<bool> result = new OASISResult<bool>(false);
             object OASISProviderBootTypeObject = null;
 
+            //LoggingManager.Log($"BOOTING OASIS... PLEASE STAND BY.", LogType.Info, true);
+
             if (!IsOASISBooting)
             {
                 IsOASISBooting = true;
+
+                //LoggingManager.Log($"INIT LOGGING...", LogType.Info, true);
 
                 OASISDNAManager.OASISDNA = OASISDNA;
                 LoggingManager.CurrentLoggingFramework = (LoggingFramework) Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
@@ -88,13 +92,15 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 switch (LoggingManager.CurrentLoggingFramework)
                 {
                     case LoggingFramework.Default:
-                        LoggingManager.Init(OASISDNA.OASIS.Logging.LogToConsole, OASISDNA.OASIS.Logging.LogToFile, OASISDNA.OASIS.Logging.LogPath, OASISDNA.OASIS.Logging.LogFileName, OASISDNA.OASIS.Logging.MaxLogFileSize, OASISDNA.OASIS.Logging.FileLoggingMode, OASISDNA.OASIS.Logging.ConsoleLoggingMode, null, OASISDNA.OASIS.Logging.AddAdditionalSpaceAfterEachLogEntry, OASISDNA.OASIS.Logging.ShowColouredLogs, OASISDNA.OASIS.Logging.DebugColour, OASISDNA.OASIS.Logging.InfoColour, OASISDNA.OASIS.Logging.WarningColour, OASISDNA.OASIS.Logging.ErrorColour);
+                        LoggingManager.Init(OASISDNA.OASIS.Logging.LogToConsole, OASISDNA.OASIS.Logging.LogToFile, OASISDNA.OASIS.Logging.LogPath, OASISDNA.OASIS.Logging.LogFileName, OASISDNA.OASIS.Logging.MaxLogFileSize, OASISDNA.OASIS.Logging.FileLoggingMode, OASISDNA.OASIS.Logging.ConsoleLoggingMode, null, OASISDNA.OASIS.Logging.InsertExtraNewLineAfterLogMessage, OASISDNA.OASIS.Logging.IndentLogMessagesBy, OASISDNA.OASIS.Logging.ShowColouredLogs, OASISDNA.OASIS.Logging.DebugColour, OASISDNA.OASIS.Logging.InfoColour, OASISDNA.OASIS.Logging.WarningColour, OASISDNA.OASIS.Logging.ErrorColour);
                         break;
 
                     case LoggingFramework.NLog:
                         LoggingManager.Init(new NLogProvider(), OASISDNA.OASIS.Logging.AlsoUseDefaultLogProvider);
                         break;
                 }
+
+                //LoggingManager.Log($"INIT LOGGING... DONE", LogType.Info);
 
                 OASISErrorHandling.LogAllErrors = OASISDNA.OASIS.ErrorHandling.LogAllErrors;
                 OASISErrorHandling.LogAllWarnings = OASISDNA.OASIS.ErrorHandling.LogAllWarnings;
@@ -108,7 +114,12 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 ProviderManager.IsAutoLoadBalanceEnabled = OASISDNA.OASIS.StorageProviders.AutoLoadBalanceEnabled;
                 ProviderManager.IsAutoReplicationEnabled = OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled;
 
+                LoggingManager.Log($"\n FIRING UP THE OASIS HYPERDRIVE...", LogType.Info, true);
+                LoggingManager.Log($"LOADING PROVIDER LISTS...", LogType.Info, true, false, false, 1, true);
                 LoadProviderLists();
+                LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
+
+                //LoggingManager.Log($"LOADING PROVIDER LISTS... DONE", LogType.Info);
 
                 if (Enum.TryParse(typeof(OASISProviderBootType), OASISDNA.OASIS.StorageProviders.OASISProviderBootType,
                     out OASISProviderBootTypeObject))
@@ -118,14 +129,21 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     if (ProviderManager.OASISProviderBootType == OASISProviderBootType.Warm ||
                         ProviderManager.OASISProviderBootType == OASISProviderBootType.Hot)
                     {
+                        LoggingManager.Log($"REGISTERING PROVIDERS...", LogType.Info, true, false, false, 1, true);
                         result = RegisterProvidersInAllLists();
+                        LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
+                        //LoggingManager.Log($"REGISTERING PROVIDERS... DONE", LogType.Info);
 
                         if (activateDefaultStorageProvider)
                         {
+                            LoggingManager.Log($"ACTIVATING DEFAULT PROVIDER...", LogType.Info, true);
                             OASISResult<IOASISStorageProvider> activateResult = await GetAndActivateDefaultStorageProviderAsync();
 
                             if (activateResult != null && activateResult.IsError)
                                 OASISErrorHandling.HandleWarning(ref result, $"Error Occured In OASISBootLoader.BootOASISAsync. Reason: GetAndActivateDefaultStorageProviderAsync returned the following error: {activateResult.Message}");
+                            else
+                                //LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
+                                LoggingManager.Log($"ACTIVATING DEFAULT PROVIDER... DONE", LogType.Info);
                         }
                     }
                     else
@@ -142,7 +160,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 }
 
                 if (result.Result && !result.IsError)
+                {
                     IsOASISBooted = true;
+                    LoggingManager.Log($"OASIS HYPERDRIVE ONLINE.", LogType.Info);
+                    LoggingManager.Log($"OASIS BOOTED.", LogType.Info);
+                }
 
                 IsOASISBooting = false;
             }
@@ -168,10 +190,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public static OASISResult<bool> ShutdownOASIS()
         {
             OASISResult<bool> result = new OASISResult<bool>(true);
+            LoggingManager.Log($" SHUTTING DOWN THE OASIS... PLEASE STAND BY.", LogType.Info, true);
 
             //TODO: Add OASISResult to ActivateProvider and DeActivateProvider so more detailed data can be returned... 
             foreach (IOASISStorageProvider provider in ProviderManager.GetStorageProviders())
                 provider.DeActivateProvider();
+
+            LoggingManager.Log($" OASIS SHUTDOWN.", LogType.Info);
 
             return result;
         }
@@ -179,10 +204,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public static async Task<OASISResult<bool>> ShutdownOASISAsync()
         {
             OASISResult<bool> result = new OASISResult<bool>(true);
+            LoggingManager.Log($" SHUTTING DOWN THE OASIS... PLEASE STAND BY.", LogType.Info, true);
 
             //TODO: Add OASISResult to ActivateProvider and DeActivateProvider so more detailed data can be returned... 
             foreach (IOASISStorageProvider provider in ProviderManager.GetStorageProviders())
                 await provider.DeActivateProviderAsync();
+
+            LoggingManager.Log($" OASIS SHUTDOWN.", LogType.Info);
 
             return result;
         }
@@ -466,7 +494,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                             ? OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString
                                             : overrideConnectionString);
 
-                            holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
+                            holoOASIS.OnStorageProviderError += HoloOASIS_StorageProviderError;
                             registeredProvider = holoOASIS;
                         }
                         break;
@@ -478,7 +506,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(overrideConnectionString == null
                                 ? OASISDNA.OASIS.StorageProviders.SQLLiteDBOASIS.ConnectionString
                                 : overrideConnectionString);
-                            SQLLiteDBOASIS.StorageProviderError += SQLLiteDBOASIS_StorageProviderError;
+                            SQLLiteDBOASIS.OnStorageProviderError += SQLLiteDBOASIS_StorageProviderError;
                             registeredProvider = SQLLiteDBOASIS;
                         }
                         break;
@@ -490,7 +518,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                     overrideConnectionString == null
                                         ? OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString
                                         : overrideConnectionString, OASISDNA.OASIS.StorageProviders.MongoDBOASIS.DBName, OASISDNA);
-                            mongoOASIS.StorageProviderError += MongoOASIS_StorageProviderError;
+                            mongoOASIS.OnStorageProviderError += MongoOASIS_StorageProviderError;
                             registeredProvider = mongoOASIS;
                         }
                         break;
@@ -498,7 +526,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     case ProviderType.SolanaOASIS:
                         {
                             SolanaOASIS solanaOasis = new SolanaOASIS(OASISDNA.OASIS.StorageProviders.SolanaOASIS.WalletMnemonicWords);
-                            solanaOasis.StorageProviderError += SolanaOASIS_StorageProviderError;
+                            solanaOasis.OnStorageProviderError += SolanaOASIS_StorageProviderError;
                             registeredProvider = solanaOasis;
                         }
                         break;
@@ -510,7 +538,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
                                 OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
                                 OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
-                            EOSIOOASIS.StorageProviderError += EOSIOOASIS_StorageProviderError;
+                            EOSIOOASIS.OnStorageProviderError += EOSIOOASIS_StorageProviderError;
                             registeredProvider = EOSIOOASIS;
                         }
                         break;
@@ -522,7 +550,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
                                 OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
                                 OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
-                            TelosOASIS.StorageProviderError += TelosOASIS_StorageProviderError;
+                            TelosOASIS.OnStorageProviderError += TelosOASIS_StorageProviderError;
                             registeredProvider = TelosOASIS;
                         }
                         break;
@@ -542,7 +570,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                     ? OASISDNA.OASIS.StorageProviders.Neo4jOASIS.ConnectionString
                                     : overrideConnectionString, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Username,
                                 OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Password);
-                            Neo4jOASIS.StorageProviderError += Neo4jOASIS_StorageProviderError;
+                            Neo4jOASIS.OnStorageProviderError += Neo4jOASIS_StorageProviderError;
                             registeredProvider = Neo4jOASIS;
                         }
                         break;
@@ -561,7 +589,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             else
                                 IPFSOASIS = new IPFSOASIS(OASISDNA, OASISDNAPath);
 
-                            IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
+                            IPFSOASIS.OnStorageProviderError += IPFSOASIS_StorageProviderError;
                             registeredProvider = IPFSOASIS;
                         }
                         break;
@@ -573,7 +601,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainPrivateKey,
                                 OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainId,
                                 OASISDNA.OASIS.StorageProviders.EthereumOASIS.ContractAddress);
-                            EthereumOASIS.StorageProviderError += EthereumOASIS_StorageProviderError;
+                            EthereumOASIS.OnStorageProviderError += EthereumOASIS_StorageProviderError;
                             registeredProvider = EthereumOASIS;
                         }
                         break;
@@ -583,7 +611,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             ThreeFoldOASIS ThreeFoldOASIS = new ThreeFoldOASIS(overrideConnectionString == null
                                 ? OASISDNA.OASIS.StorageProviders.ThreeFoldOASIS.ConnectionString
                                 : overrideConnectionString);
-                            ThreeFoldOASIS.StorageProviderError += ThreeFoldOASIS_StorageProviderError;
+                            ThreeFoldOASIS.OnStorageProviderError += ThreeFoldOASIS_StorageProviderError;
                             registeredProvider = ThreeFoldOASIS;
                         }
                         break;
@@ -591,7 +619,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     case ProviderType.LocalFileOASIS:
                         {
                             LocalFileOASIS localFileOASIS = new LocalFileOASIS(OASISDNA.OASIS.StorageProviders.LocalFileOASIS.FilePath);
-                            localFileOASIS.StorageProviderError += LocalFileOASIS_StorageProviderError;
+                            localFileOASIS.OnStorageProviderError += LocalFileOASIS_StorageProviderError;
                             registeredProvider = localFileOASIS;
                         }
                         break;
@@ -604,7 +632,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.DBName,
                                 ListHelper.ConvertToList(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.CollectionNames));
 
-                            azureCosmosDBOASIS.StorageProviderError += AzureCosmosDBOASIS_StorageProviderError;
+                            azureCosmosDBOASIS.OnStorageProviderError += AzureCosmosDBOASIS_StorageProviderError;
                             registeredProvider = azureCosmosDBOASIS;
                         }
                         break;

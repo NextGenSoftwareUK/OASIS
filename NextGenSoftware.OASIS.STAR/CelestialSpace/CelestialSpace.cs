@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Events;
-using static NextGenSoftware.OASIS.API.Core.Events.Events;
+using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 using NextGenSoftware.OASIS.STAR.Holons;
 using NextGenSoftware.OASIS.Common;
 

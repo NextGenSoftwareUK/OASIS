@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.DNA;
@@ -22,7 +22,8 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public OASISStorageProviderBase(OASISDNA OASISDNA, string OASISDNAPath) : base (OASISDNA, OASISDNAPath) { }
 
-        public event OASISManager.StorageProviderError OnStorageProviderError;
+        //public delegate void StorageProviderError(object sender, OASISErrorEventArgs e);
+        public event StorageProviderError OnStorageProviderError;
 
         public Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
@@ -44,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Core
             return avatar.KarmaLost(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        protected void OASISStorageProviderBase_OnStorageProviderError(string endPoint, string reason, Exception errorDetails)
+        protected void RaiseStorageProviderErrorEvent(string endPoint, string reason, Exception errorDetails)
         {
             OnStorageProviderError?.Invoke(this, new OASISErrorEventArgs { EndPoint = endPoint, Reason = reason, Exception = errorDetails });
         }

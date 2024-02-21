@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
-using static NextGenSoftware.OASIS.API.Core.Managers.OASISManager;
+using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {

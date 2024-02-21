@@ -50,18 +50,18 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             }
         }
 
-        public event Events.Initialized OnInitialized;
-        public event Events.HolonLoaded OnHolonLoaded;
+        public event EventDelegates.Initialized OnInitialized;
+        public event EventDelegates.HolonLoaded OnHolonLoaded;
         //public event Events.HolonLoadedGeneric<T> OnHolonLoaded2;
-        public event Events.HolonsLoaded OnHolonsLoaded;
-        public event Events.HolonSaved OnHolonSaved;
+        public event EventDelegates.HolonsLoaded OnHolonsLoaded;
+        public event EventDelegates.HolonSaved OnHolonSaved;
        // public event Events.HolonSaved<T> OnHolonSaved;
-        public event Events.HolonsSaved OnHolonsSaved;
-        public event Events.ZomeSaved OnSaved;
-        public event Events.HolonAdded OnHolonAdded;
-        public event Events.HolonRemoved OnHolonRemoved;
+        public event EventDelegates.HolonsSaved OnHolonsSaved;
+        public event EventDelegates.ZomeSaved OnSaved;
+        public event EventDelegates.HolonAdded OnHolonAdded;
+        public event EventDelegates.HolonRemoved OnHolonRemoved;
         //public event Events.ZomesLoaded OnZomesLoaded;
-        public event Events.ZomeError OnZomeError;
+        public event EventDelegates.ZomeError OnZomeError;
 
         ////TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
         //public delegate void Disconnected(object sender, DisconnectedEventArgs e);
