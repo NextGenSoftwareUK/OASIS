@@ -65,7 +65,7 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string OAPPgRPCServiceTemplateDNA = "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.gRPCService";
         public string OAPPGraphQLServiceTemplateDNA = "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.GraphQLService";
         public string OAPPCustomTemplateDNA = "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.Custom";
-        public string OAPPCelestialBodiesFolder = "CelestialBodies";
+        public string OAPPCelestialBodiesFolder = "GeneratedCode";
         public Dictionary<ProviderType, string> StarProviderKey = new Dictionary<ProviderType, string>();
         public string DefaultGreatGrandSuperStarId;
         public string DefaultGrandSuperStarId;
