@@ -3,7 +3,8 @@ namespace NextGenSoftware.OASIS.STAR.Enums
 {
     public enum OAPPType
     {
-        CelestialBodies,
+        //CelestialBodies,
+        GeneratedCodeOnly,
         Console,
         Blazor,
         WebMVC,

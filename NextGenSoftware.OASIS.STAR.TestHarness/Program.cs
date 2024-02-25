@@ -119,8 +119,12 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static async Task Test(string celestialBodyDNAFolder, string geneisFolder)
         {
+
+            OASISResult<CoronalEjection> result = await GenerateZomesAndHolons("Zomes And Holons Only", DefaultOAPPType, celestialBodyDNAFolder, Path.Combine(geneisFolder, "ZomesAndHolons"), "NextGenSoftware.OASIS.OAPPS.ZomesAndHolonsOnly");
+
+
             //Passing in null for the ParentCelestialBody will default it to the default planet (Our World).
-            OASISResult<CoronalEjection> result = await GenerateCelestialBody("The Justice League Academy", null, DefaultOAPPType, GenesisType.Moon, celestialBodyDNAFolder, Path.Combine(geneisFolder, "JLA"), "NextGenSoftware.OASIS.OAPPS.JLA");
+            result = await GenerateCelestialBody("The Justice League Academy", null, DefaultOAPPType, GenesisType.Moon, celestialBodyDNAFolder, Path.Combine(geneisFolder, "JLA"), "NextGenSoftware.OASIS.OAPPS.JLA");
 
             // Currenly the JLA Moon and Our World Planet share the same Zome/Holon DNA (celestialBodyDNAFolder) but they can also have their own zomes/holons if they wish...
             // TODO: In future you will also be able to define the full CelestialBody DNA seperatley (cs/json) for each planet, moon, star etc where they can also define additional meta data for the moon/planet/star as well as their own zomes/holons like we have now, plus they can also refer to existing holons/zomes either in a folder (like we have now) or in STARNET Library using the GUID.
@@ -844,6 +848,33 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 Console.WriteLine(string.Concat(" CreatedDate: ", lightResult.Result.CelestialBody.CreatedDate)) ;
                 Console.WriteLine("");
                 ShowZomesAndHolons(lightResult.Result.CelestialBody.CelestialBodyCore.Zomes, string.Concat($" {Enum.GetName(typeof(GenesisType), genesisType)} contains ", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes.Count(), " Zome(s): "));
+            }
+
+            return lightResult;
+        }
+
+        private static async Task<OASISResult<CoronalEjection>> GenerateZomesAndHolons(string oAPPName, OAPPType OAPPType, string zomesAndHolonsyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
+        {
+            // Create (OApp) by generating dynamic template/scaffolding code.
+            CLIEngine.ShowWorkingMessage($"Generating Zomes & Holons...");
+
+            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(oAPPName, OAPPType, zomesAndHolonsyDNAFolder, genesisFolder, genesisNameSpace).Result;
+
+            //Will use settings in the STARDNA.json file.
+            //OASISResult<CoronalEjection> lightResult = STAR.LightAsync(oAPPName, OAPPType).Result;
+
+            if (lightResult.IsError)
+                CLIEngine.ShowErrorMessage(string.Concat(" ERROR OCCURED. Error Message: ", lightResult.Message));
+            else
+            {
+                int iNoHolons = 0;
+                foreach (IZome zome in lightResult.Result.Zomes)
+                    iNoHolons += zome.Holons.Count;
+
+                CLIEngine.ShowSuccessMessage($"{lightResult.Result.Zomes.Count} Zomes & {iNoHolons} Holons Generated.");
+
+                Console.WriteLine("");
+                ShowZomesAndHolons(lightResult.Result.Zomes);
             }
 
             return lightResult;

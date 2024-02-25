@@ -6,6 +6,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         //GreatGrandSuperStar, // Built-in and there will only ever be ONE of this within the OASIS. (Omniverse)
        // GrandSuperStar, //level 166 (max level for avatar?) ( Universe)
        // SuperStar, //level 133 (Galaxy) Cannot create a SuperStar on its own, you create a Galaxy which comes with a new SuperStar at the centre.
+        ZomesAndHolonsOnly,
         Moon, //Level 1
         Planet, //Level 33
         Star, //Level 99        

@@ -675,6 +675,11 @@ namespace NextGenSoftware.OASIS.STAR
             return await LightAsync(OAPPType, genesisType, name, (ICelestialBody)planetToAddMoonTo, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
         }
 
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        {
+            return await LightAsync(OAPPType, GenesisType.ZomesAndHolonsOnly, oAPPName, zomeAndHolonDNAFolder, genesisFolder, genesisNameSpace);
+        }
+
         //TODO: Create non async version of Light();
         public static async Task<OASISResult<CoronalEjection>> LightAsync(OAPPType OAPPType, GenesisType genesisType, string name, ICelestialBody celestialBodyParent = null, string celestialBodyDNAFolder = "", string genesisFolder = "",  string genesisNameSpace = "")
         {
@@ -787,7 +792,7 @@ namespace NextGenSoftware.OASIS.STAR
                 genesisNameSpace = string.Concat(name, "OApp");
 
                 //Setup the OApp files from the relevant template.
-            if (OAPPType == OAPPType.CelestialBodies)
+            if (OAPPType == OAPPType.GeneratedCodeOnly)
             {
                 if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp")))
                     Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
@@ -830,6 +835,12 @@ namespace NextGenSoftware.OASIS.STAR
 
             switch (genesisType)
             {
+                case GenesisType.ZomesAndHolonsOnly:
+                    {
+  
+                    }
+                    break;
+
                 case GenesisType.Moon:
                     {
                         newBody = new Moon();
@@ -916,21 +927,23 @@ namespace NextGenSoftware.OASIS.STAR
                     }
                     break;
             }
-  
-            newBody.Id = Guid.NewGuid();
-            newBody.IsNewHolon = true; //This was commented out, not sure why?
-            newBody.Name = name;
-            newBody.OnCelestialBodySaved += NewBody_OnCelestialBodySaved;
-            newBody.OnCelestialBodyError += NewBody_OnCelestialBodyError;
-            newBody.OnZomeSaved += NewBody_OnZomeSaved;
-            newBody.OnZomeError += NewBody_OnZomeError;
-            newBody.OnZomesSaved += NewBody_OnZomesSaved;
-            newBody.OnZomesError += NewBody_OnZomesError;
-            newBody.OnHolonSaved += NewBody_OnHolonSaved;
-            newBody.OnHolonError += NewBody_OnHolonError;
-            newBody.OnHolonsSaved += NewBody_OnHolonsSaved;
-            newBody.OnHolonsError += NewBody_OnHolonsError;
-            
+
+            if (genesisType != GenesisType.ZomesAndHolonsOnly)
+            {
+                newBody.Id = Guid.NewGuid();
+                newBody.IsNewHolon = true; //This was commented out, not sure why?
+                newBody.Name = name;
+                newBody.OnCelestialBodySaved += NewBody_OnCelestialBodySaved;
+                newBody.OnCelestialBodyError += NewBody_OnCelestialBodyError;
+                newBody.OnZomeSaved += NewBody_OnZomeSaved;
+                newBody.OnZomeError += NewBody_OnZomeError;
+                newBody.OnZomesSaved += NewBody_OnZomesSaved;
+                newBody.OnZomesError += NewBody_OnZomesError;
+                newBody.OnHolonSaved += NewBody_OnHolonSaved;
+                newBody.OnHolonError += NewBody_OnHolonError;
+                newBody.OnHolonsSaved += NewBody_OnHolonsSaved;
+                newBody.OnHolonsError += NewBody_OnHolonsError;
+            }
           
             // No need to save to get Id anymore... :)
             /*
@@ -1151,11 +1164,19 @@ namespace NextGenSoftware.OASIS.STAR
             }
 
             // Remove any white space from the name.
-            File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), genesisType), ".cs"), celestialBodyBufferCsharp);
+            if (genesisType != GenesisType.ZomesAndHolonsOnly)
+                File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), genesisType), ".cs"), celestialBodyBufferCsharp);
 
             // Currently the OApp Name is the same as the CelestialBody name (each CelestialBody is a seperate OApp), but in future a OApp may be able to contain more than one celestialBody...
             // TODO: Currently the OApp templates only contain sample load/save for one holon... this may change in future... likely will... ;-) Want to show for every zome/holon inside the celestialbody...
             ApplyOAPPTemplate(OAPPFolder, genesisNameSpace, name, name, holonNames[0]);
+
+            //Generate any native code for the current provider.
+            //TODO: Add option to pass into STAR which providers to generate native code for (can be more than one provider).
+            ((IOASISSuperStar)ProviderManager.CurrentStorageProvider).NativeCodeGenesis(newBody);
+
+            //TODO: Need to save this to the StarNET store (still to be made!) (Will of course be written on top of the HDK/ODK...
+            //This will be private on the store until the user publishes via the Star.Seed() command.
 
             switch (genesisType)
             {
@@ -1262,13 +1283,6 @@ namespace NextGenSoftware.OASIS.STAR
                 default:
                     return new OASISResult<CoronalEjection>() { IsError = true, Message = "Unknown Error Occured.", Result = new CoronalEjection() { CelestialBody = newBody } };
             }
-
-            //Generate any native code for the current provider.
-            //TODO: Add option to pass into STAR which providers to generate native code for (can be more than one provider).
-            ((IOASISSuperStar)ProviderManager.CurrentStorageProvider).NativeCodeGenesis(newBody);
-
-            //TODO: Need to save this to the StarNET store (still to be made!) (Will of course be written on top of the HDK/ODK...
-            //This will be private on the store until the user publishes via the Star.Seed() command.
         }
 
         public static void ShowStatusMessage(StarStatusMessageType messageType, string message)
@@ -2632,7 +2646,7 @@ namespace NextGenSoftware.OASIS.STAR
                     ApplyOAPPTemplate(dir.FullName, oAppNameSpace, oAppName, celestialBodyName, holonName);
             }
             
-            if (!OAPPFolder.Contains("CelestialBodies"))
+            if (!OAPPFolder.Contains(STAR.STARDNA.OAPPCelestialBodiesFolder))
             {                
                 foreach (FileInfo file in new DirectoryInfo(OAPPFolder).GetFiles("*.csproj"))
                 {

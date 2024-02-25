@@ -45,10 +45,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness.Genesis
         {
             SuperHolon holon = new SuperHolon();
             holon.LoadChildHolons();
-            holon.Load();
-            holon.Save();
-            holon.Delete();
-            holon.Save()
+            //holon.Load();
+            //holon.Save();
+            //holon.Delete();
+            //holon.Save()
 
             return base.LoadHolon<SuperHolon>(id);
         }
