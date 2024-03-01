@@ -38,19 +38,58 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         }
         public bool IsVersionControlEnabled { get; set; } = false;
 
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                await _appDataContext.Database.EnsureDeletedAsync();
+                await _appDataContext.Database.MigrateAsync();
+
+                result.Result = true;
+                IsProviderActivated = true;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In SQLLiteDBOASIS Provider in ActivateProviderAsync. Reason: {e}");
+            }
+
+            return result;
+        }
+
         public override OASISResult<bool> ActivateProvider()
         {
-            _appDataContext.Database.EnsureDeletedAsync();
-            _appDataContext.Database.MigrateAsync();
-            
-            return base.ActivateProvider();
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                _appDataContext.Database.EnsureDeleted();
+                _appDataContext.Database.Migrate();
+
+                result.Result = true;
+                IsProviderActivated = true;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In SQLLiteDBOASIS Provider in ActivateProvider. Reason: {e}");
+            }
+
+            return result;
+        }
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            _appDataContext.Dispose();
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
         }
 
         public override OASISResult<bool> DeActivateProvider()
         {
             _appDataContext.Dispose();
-            
-            return base.DeActivateProvider();
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)

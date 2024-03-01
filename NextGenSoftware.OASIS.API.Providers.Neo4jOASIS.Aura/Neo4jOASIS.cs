@@ -68,7 +68,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 Driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
                 Driver.VerifyConnectivityAsync().Wait();
-                result = base.ActivateProvider();
+
+                result.Result = true;
+                IsProviderActivated = true;
+                //result = base.ActivateProvider();
             }
             catch (Exception ex)
             {
@@ -86,7 +89,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 Driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
                 await Driver.VerifyConnectivityAsync();
-                result = await base.ActivateProviderAsync();
+                //result = await base.ActivateProviderAsync();
+
+                result.Result = true;
+                IsProviderActivated = true;
             }
             catch (Exception ex)
             {
@@ -106,7 +112,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     Driver.CloseAsync().Wait();
 
                 Driver = null;
-                result = base.DeActivateProvider();
+                //result = base.DeActivateProvider();
+
+                result.Result = true;
+                IsProviderActivated = false;
             }
             catch (Exception ex)
             {
@@ -126,7 +135,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     await Driver.CloseAsync();
                 
                 Driver = null;
-                result = await base.DeActivateProviderAsync();
+                //result = await base.DeActivateProviderAsync();
+
+                result.Result = true;
+                IsProviderActivated = false;
             }
             catch (Exception ex)
             {

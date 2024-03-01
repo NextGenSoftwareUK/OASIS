@@ -9,7 +9,6 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
@@ -18,7 +17,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.CurrencyBalance;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
@@ -132,10 +130,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
             }
 
-            if (result.IsError)
-                return result;
+            if (!result.IsError)
+                IsProviderActivated = true;
 
-            return await base.ActivateProviderAsync();
+            //if (result.IsError)
+            //    return result;
+
+            //return await base.ActivateProviderAsync();
+            return result;
         }
 
         public override OASISResult<bool> ActivateProvider()
@@ -163,10 +165,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
             }
 
-            if (result.IsError)
-                return result;
+            if (!result.IsError)
+                IsProviderActivated = true;
 
-            return base.ActivateProvider();
+            return result;
+
+            //if (result.IsError)
+            //    return result;
+
+            //return base.ActivateProvider();
         }
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
@@ -178,7 +185,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             _avatarRepository = null;
             _transferRepository = null;
 
-            return await base.DeActivateProviderAsync();
+            _avatarManager = null;
+            _keyManager = null;
+            _walletManager = null;
+
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
+
+            //return await base.DeActivateProviderAsync();
         }
 
         public override OASISResult<bool> DeActivateProvider()
@@ -190,7 +204,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             _avatarRepository = null;
             _transferRepository = null;
 
-            return base.DeActivateProvider();
+            _avatarManager = null;
+            _keyManager = null;
+            _walletManager = null;
+
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
+
+            //return base.DeActivateProvider();
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)

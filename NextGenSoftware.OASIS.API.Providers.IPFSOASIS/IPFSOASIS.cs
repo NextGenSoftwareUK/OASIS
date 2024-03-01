@@ -75,17 +75,77 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override OASISResult<bool> ActivateProvider()
         {
-            IPFSClient = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
-            return base.ActivateProvider();
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                IPFSClient = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
+                result.Result = true;
+                IsProviderActivated = true;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In ActivateProvider Method. Reason: {e}");
+            }
+
+            return result;
+        }
+
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                IPFSClient = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
+                result.Result = true;
+                IsProviderActivated = true;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In ActivateProviderAsync Method. Reason: {e}");
+            }
+
+            return result;
         }
 
         public override OASISResult<bool> DeActivateProvider()
         {
-            IPFSClient.ShutdownAsync();
-            IPFSClient = null;
-            return base.DeActivateProvider();
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                IPFSClient.ShutdownAsync();
+                IPFSClient = null;
+                result.Result = true;
+                IsProviderActivated = false;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In DeActivateProvider Method. Reason: {e}");
+            }
+
+            return result;
         }
 
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                IPFSClient.ShutdownAsync();
+                IPFSClient = null;
+                result.Result = true;
+                IsProviderActivated = false;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In DeActivateProviderAsync Method. Reason: {e}");
+            }
+
+            return result;
+        }
 
         public async Task<string> LoadFileToJson(string address)
         {

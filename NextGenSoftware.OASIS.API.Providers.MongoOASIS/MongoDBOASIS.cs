@@ -122,31 +122,31 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             //return base.DeActivateProvider();
         }
 
-        //public override Task<OASISResult<bool>> ActivateProviderAsync()
-        //{
-        //    if (Database == null)
-        //    {
-        //        Database = new MongoDbContext(ConnectionString, DBName);
-        //        _avatarRepository = new AvatarRepository(Database);
-        //        _holonRepository = new HolonRepository(Database);
-        //        _searchRepository = new SearchRepository(Database);
-        //    }
+        public override Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            if (Database == null)
+            {
+                Database = new MongoDbContext(ConnectionString, DBName);
+                _avatarRepository = new AvatarRepository(Database);
+                _holonRepository = new HolonRepository(Database);
+                _searchRepository = new SearchRepository(Database);
+            }
 
-        //    return base.ActivateProviderAsync();
-        //}
+            return base.ActivateProviderAsync();
+        }
 
-        //public override Task<OASISResult<bool>> DeActivateProviderAsync()
-        //{
-        //    //TODO: {URGENT} Disconnect, Dispose and release resources here.
-        //    if (Database != null)
-        //    {
-        //        Database.MongoDB = null;
-        //        Database.MongoClient = null;
-        //        Database = null;
-        //    }
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            //TODO: {URGENT} Disconnect, Dispose and release resources here.
+            if (Database != null)
+            {
+                Database.MongoDB = null;
+                Database.MongoClient = null;
+                Database = null;
+            }
 
-        //    return base.DeActivateProviderAsync();
-        //}
+            return base.DeActivateProviderAsync();
+        }
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {

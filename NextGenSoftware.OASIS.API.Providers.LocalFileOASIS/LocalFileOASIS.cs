@@ -26,6 +26,30 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 _filePath = filePath;
         }
 
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            IsProviderActivated = true;
+            return new OASISResult<bool>(true);
+        }
+
+        public override OASISResult<bool> ActivateProvider()
+        {
+            IsProviderActivated = true;
+            return new OASISResult<bool>(true);
+        }
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
+        }
+
+        public override OASISResult<bool> DeActivateProvider()
+        {
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
+        }
+
         //public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWallets()
         //{
         //    OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();

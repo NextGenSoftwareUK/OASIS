@@ -92,10 +92,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync in EthereumOASIS Provider. Reason: {ex}");
             }
 
-            if (result.IsError)
-                return result;
+            if (!result.IsError)
+                IsProviderActivated = true;
 
-            return await base.ActivateProviderAsync();
+            return result;
+
+            //if (result.IsError)
+            //    return result;
+
+            //return await base.ActivateProviderAsync();
         }
 
         public override OASISResult<bool> ActivateProvider()
@@ -108,7 +113,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             _oasisAccount = null;
             Web3Client = null;
             _nextGenSoftwareOasisService = null;
-            return await base.DeActivateProviderAsync();
+
+            _keyManager = null;
+            _walletManager = null;
+
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
+
+            // return await base.DeActivateProviderAsync();
         }
 
         public override OASISResult<bool> DeActivateProvider()

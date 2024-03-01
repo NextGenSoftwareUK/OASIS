@@ -30,10 +30,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 {
     public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISNETProvider
     {
-        private readonly ISolanaRepository _solanaRepository;
-        private readonly ISolanaService _solanaService;
+        private ISolanaRepository _solanaRepository;
+        private ISolanaService _solanaService;
         private KeyManager _keyManager;
         private WalletManager _walletManager;
+        private string _mnemonicWords = "";
 
         private KeyManager KeyManager
         {
@@ -59,15 +60,69 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         
         public SolanaOASIS(string mnemonicWords)
         {
+            _mnemonicWords = mnemonicWords;
             this.ProviderName = nameof(SolanaOASIS);
             this.ProviderDescription = "Solana Blockchain Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SolanaOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-
-            _solanaRepository = new SolanaRepository(mnemonicWords);
-            _solanaService = new SolanaService();
         }
-        
+
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                _solanaRepository = new SolanaRepository(_mnemonicWords);
+                _solanaService = new SolanaService();
+
+                result.Result = true;
+                IsProviderActivated = true;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In SolanaOASIS Provider in ActivateProviderAsync. Reason: {e}");
+            }
+
+            return result;
+        }
+
+        public override OASISResult<bool> ActivateProvider()
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                _solanaRepository = new SolanaRepository(_mnemonicWords);
+                _solanaService = new SolanaService();
+
+                result.Result = true;
+                IsProviderActivated = true;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In SolanaOASIS Provider in ActivateProvider. Reason: {e}");
+            }
+
+            return result;
+        }
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            _solanaRepository = null;
+            _solanaService = null;
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
+        }
+
+        public override OASISResult<bool> DeActivateProvider()
+        {
+            _solanaRepository = null;
+            _solanaService = null;
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
+        }
+
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             var result = new OASISResult<IAvatar>();

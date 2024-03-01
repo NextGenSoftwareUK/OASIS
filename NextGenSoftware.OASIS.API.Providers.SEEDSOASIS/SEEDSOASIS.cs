@@ -14,7 +14,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
@@ -87,6 +86,48 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             TelosOASIS = telosOASIS;
 
            // TelosOASIS = new TelosOASIS.TelosOASIS(telosConnectionString);
+        }
+
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            if (!TelosOASIS.IsProviderActivated)
+                await TelosOASIS.ActivateProviderAsync();
+
+            IsProviderActivated = true;
+            return new OASISResult<bool>(true);
+        }
+
+        public override OASISResult<bool> ActivateProvider()
+        {
+            if (!TelosOASIS.IsProviderActivated)
+                TelosOASIS.ActivateProvider();
+
+            IsProviderActivated = true;
+            return new OASISResult<bool>(true);
+        }
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            if (TelosOASIS.IsProviderActivated)
+                await TelosOASIS.DeActivateProviderAsync();
+
+            _keyManager = null;
+            _avatarManager = null;
+
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
+        }
+
+        public override OASISResult<bool> DeActivateProvider()
+        {
+            if (TelosOASIS.IsProviderActivated)
+                TelosOASIS.DeActivateProvider();
+
+            _keyManager = null;
+            _avatarManager = null;
+
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
         }
 
         public async Task<string> GetBalanceAsync(string telosAccountName)
