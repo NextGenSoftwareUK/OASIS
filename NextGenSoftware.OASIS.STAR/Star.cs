@@ -271,7 +271,7 @@ namespace NextGenSoftware.OASIS.STAR
 
             ValidateSTARDNA(STARDNA);
             Status = StarStatus.BootingOASIS;
-            OASISResult<bool> oasisResult = BootOASIS(OASISDNAPath); //TODO: Add Async versions of everything! ;-)
+            OASISResult<bool> oasisResult = await BootOASISAsync(OASISDNAPath);
 
             if (oasisResult.IsError)
             {
@@ -396,6 +396,11 @@ namespace NextGenSoftware.OASIS.STAR
             return OASISAPI.ShutdownOASIS();
         }
 
+        public static async Task<OASISResult<bool>> ExtinguishSuperStarAsync()
+        {
+            return await OASISAPI.ShutdownOASISAsync();
+        }
+
         private static void WireUpEvents()
         {
             if (DefaultStar != null)
@@ -439,7 +444,7 @@ namespace NextGenSoftware.OASIS.STAR
             string IPAddress = Dns.GetHostEntry(hostName).AddressList[0].ToString();
 
             if (!IsStarIgnited)
-                IgniteStar();
+                await IgniteStarAsync();
 
             OASISResult<IAvatar> result = await OASISAPI.Avatar.AuthenticateAsync(username, password, IPAddress);
 
@@ -460,10 +465,10 @@ namespace NextGenSoftware.OASIS.STAR
         public static async Task<OASISResult<IAvatar>> CreateAvatarAsync(string title, string firstName, string lastName, string email, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             if (!IsStarIgnited)
-                IgniteStar();
+                await IgniteStarAsync();
 
             //TODO: Implement Async version of Register and call instead of below:
-            return OASISAPI.Avatar.Register(title, firstName, lastName, email, username, password, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
+            return await OASISAPI.Avatar.RegisterAsync(title, firstName, lastName, email, username, password, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
         }
 
         public static OASISResult<IAvatar> BeamIn(string username, string password)
@@ -715,7 +720,7 @@ namespace NextGenSoftware.OASIS.STAR
             //    return new OASISResult<CoronalEjection>() { IsError = true, Message = "You must specify the planet to add the moon to." };
 
             if (!IsStarIgnited)
-                IgniteStar();
+                await IgniteStarAsync();
 
             if (string.IsNullOrEmpty(celestialBodyDNAFolder))
                 celestialBodyDNAFolder = STARDNA.CelestialBodyDNA;
@@ -1735,7 +1740,17 @@ namespace NextGenSoftware.OASIS.STAR
             else
                 return new OASISResult<bool>() { Message = "OASIS Already Booted" };
         }
-        
+
+        private static async Task<OASISResult<bool>> BootOASISAsync(string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
+        {
+            STAR.OASISDNAPath = OASISDNAPath;
+
+            if (!OASISAPI.IsOASISBooted)
+                return await OASISAPI.BootOASISAsync(STAR.OASISDNAPath);
+            else
+                return new OASISResult<bool>() { Message = "OASIS Already Booted" };
+        }
+
         private static OASISResult<IOmiverse> IgniteInnerStar(OASISResult<IOmiverse> result)
         {
             //  _starId = Guid.Empty; //TODO:Temp, remove after!

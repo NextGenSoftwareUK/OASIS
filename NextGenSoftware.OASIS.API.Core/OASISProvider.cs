@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public EnumValue<ProviderType> ProviderType { get; set; }
         //public bool ProviderActivated { get; set; }
-        public bool? IsProviderActivated { get; set; }
+        public bool IsProviderActivated { get; set; }
 
         public OASISProvider()
         {
@@ -70,6 +70,7 @@ namespace NextGenSoftware.OASIS.API.Core
             //if (!IsProviderActivated.HasValue)
             //    IsProviderActivated = true;
 
+            IsProviderActivated = false;
             return new OASISResult<bool>(false) { IsError = true, Message = "Error Occured In OASISProvider.ActivateProviderAsync. Reason: The Provider Has Not Implemented ActivateProviderAsync And Overriden This Base Abstract PlaceHolder!" };
         }
 
@@ -78,6 +79,7 @@ namespace NextGenSoftware.OASIS.API.Core
             //if (!IsProviderActivated.HasValue)
             //    IsProviderActivated = true;
 
+            IsProviderActivated = false;
             return new OASISResult<bool>(false) { IsError = true, Message = "Error Occured In OASISProvider.DeActivateProviderAsync. Reason: The Provider Has Not Implemented DeActivateProviderAsync And Overriden This Base Abstract PlaceHolder!" };
         }
 

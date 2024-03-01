@@ -8,30 +8,31 @@ using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 {
     public class OASISProviders
     {
-        EthereumOASIS _Ethereum;
-        SolanaOASIS _Solana;
+        EthereumOASIS _ethereum;
+        SolanaOASIS _solana;
         EOSIOOASIS _EOSIO;
-        TelosOASIS _Telos;
+        TelosOASIS _telos;
         SEEDSOASIS _SEEDS;
         IPFSOASIS _IPFS;
-        HoloOASIS _Holochain;
-        MongoDBOASIS _MongoDB;
-        Neo4jOASIS _Neo4j;
+        HoloOASIS _holochain;
+        MongoDBOASIS _mongoDB;
+        Neo4jOASIS _neo4j;
         SQLLiteDBOASIS _sqlLiteDb;
-        ThreeFoldOASIS _ThreeFold;
-        AcitvityPubOASIS _ActivityPub;
+        ThreeFoldOASIS _threeFold;
+        AcitvityPubOASIS _activityPub;
         OASISDNA _OASISDNA;
 
         public SEEDSOASIS SEEDS
@@ -66,7 +67,17 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
             get
             {
                 if (_IPFS == null)
-                    _IPFS = (IPFSOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.IPFSOASIS)).Result;
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.IPFSOASIS);
+
+                        if (result != null && !result.IsError)
+                            _IPFS = (IPFSOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In IPFS Property Getter. Reason: {result.Message}");
+                    });
+                }
 
                 return _IPFS;
             }
@@ -77,7 +88,17 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
             get
             {
                 if (_EOSIO == null)
-                    _EOSIO = (EOSIOOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.EOSIOOASIS)).Result;
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.EOSIOOASIS);
+
+                        if (result != null && !result.IsError)
+                            _EOSIO = (EOSIOOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In EOSIO Property Getter. Reason: {result.Message}");
+                    });
+                }
 
                 return _EOSIO;
             }
@@ -87,10 +108,20 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         {
             get
             {
-                if (_Solana == null)
-                    _Solana = (SolanaOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.SolanaOASIS)).Result;
+                if (_solana == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.SolanaOASIS);
 
-                return _Solana;
+                        if (result != null && !result.IsError)
+                            _solana = (SolanaOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Solana Property Getter. Reason: {result.Message}");
+                    });
+                }
+
+                return _solana;
             }
         }
 
@@ -98,10 +129,20 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         {
             get
             {
-                if (_Ethereum == null)
-                    _Ethereum = (EthereumOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.EthereumOASIS)).Result;
+                if (_ethereum == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.EthereumOASIS);
 
-                return _Ethereum;
+                        if (result != null && !result.IsError)
+                            _ethereum = (EthereumOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Ethereum Property Getter. Reason: {result.Message}");
+                    });
+                }
+
+                return _ethereum;
             }
         }
 
@@ -109,10 +150,20 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         {
             get
             {
-                if (_Telos == null)
-                    _Telos = (TelosOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.TelosOASIS)).Result;
+                if (_telos == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.TelosOASIS);
 
-                return _Telos;
+                        if (result != null && !result.IsError)
+                            _telos = (TelosOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Telos Property Getter. Reason: {result.Message}");
+                    });
+                }
+
+                return _telos;
             }
         }
 
@@ -120,10 +171,20 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         {
             get
             {
-                if (_Holochain == null)
-                    _Holochain = (HoloOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.HoloOASIS)).Result;
+                if (_holochain == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.HoloOASIS);
 
-                return _Holochain;
+                        if (result != null && !result.IsError)
+                            _holochain = (HoloOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Holochain Property Getter. Reason: {result.Message}");
+                    });
+                }
+
+                return _holochain;
             }
         }
 
@@ -131,10 +192,20 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         {
             get
             {
-                if (_MongoDB == null)
-                    _MongoDB = (MongoDBOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.MongoDBOASIS)).Result;
+                if (_mongoDB == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.MongoDBOASIS);
 
-                return _MongoDB;
+                        if (result != null && !result.IsError)
+                            _mongoDB = (MongoDBOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In MongoDB Property Getter. Reason: {result.Message}");
+                    });
+                }
+
+                return _mongoDB;
             }
         }
 
@@ -142,10 +213,20 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         {
             get
             {
-                if (_Neo4j == null)
-                    _Neo4j = (Neo4jOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.Neo4jOASIS)).Result;
+                if (_neo4j == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.Neo4jOASIS);
 
-                return _Neo4j;
+                        if (result != null && !result.IsError)
+                            _neo4j = (Neo4jOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Neo4j Property Getter. Reason: {result.Message}");
+                    }); 
+                }
+                    
+                return _neo4j;
             }
         }
 
@@ -154,7 +235,17 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
             get
             {
                 if (_sqlLiteDb == null)
-                    _sqlLiteDb = (SQLLiteDBOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.SQLLiteDBOASIS)).Result;
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.SQLLiteDBOASIS);
+
+                        if (result != null && !result.IsError)
+                            _sqlLiteDb = (SQLLiteDBOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In SQLLiteDB Property Getter. Reason: {result.Message}");
+                    });
+                }
 
                 return _sqlLiteDb;
             }
@@ -164,10 +255,20 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         {
             get
             {
-                if (_ThreeFold == null)
-                    _ThreeFold = (ThreeFoldOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.ThreeFoldOASIS)).Result;
+                if (_threeFold == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.ThreeFoldOASIS);
 
-                return _ThreeFold;
+                        if (result != null && !result.IsError)
+                            _threeFold = (ThreeFoldOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In ThreeFold Property Getter. Reason: {result.Message}");
+                    });
+                }
+
+                return _threeFold;
             }
         }
 
@@ -175,134 +276,22 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         {
             get
             {
-                if (_ActivityPub == null)
-                    _ActivityPub = (AcitvityPubOASIS)Task.Run(async () => await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.ActivityPubOASIS)).Result;
+                if (_activityPub == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.ActivityPubOASIS);
 
-                return _ActivityPub;
+                        if (result != null && !result.IsError)
+                            _activityPub = (AcitvityPubOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In ActivityPub Property Getter. Reason: {result.Message}");
+                    });
+                }
+
+                return _activityPub;
             }
         }
-
-        /*
-        public IPFSOASIS IPFS
-        {
-            get
-            {
-                if (_IPFS == null)
-                    _IPFS = (IPFSOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.IPFSOASIS);
-
-                return _IPFS;
-            }
-        }
-
-        public EOSIOOASIS EOSIO
-        {
-            get
-            {
-                if (_EOSIO == null)
-                    _EOSIO = (EOSIOOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.EOSIOOASIS);
-
-                return _EOSIO;
-            }
-        }
-
-        public SolanaOASIS Solana
-        {
-            get
-            {
-                if (_Solana == null)
-                    _Solana = (SolanaOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.SolanaOASIS);
-
-                return _Solana;
-            }
-        }
-
-        public EthereumOASIS Ethereum
-        {
-            get
-            {
-                if (_Ethereum == null)
-                    _Ethereum = (EthereumOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.EthereumOASIS);
-
-                return _Ethereum;
-            }
-        }
-
-        public TelosOASIS Telos
-        {
-            get
-            {
-                if (_Telos == null)
-                    _Telos = (TelosOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.TelosOASIS);
-
-                return _Telos;
-            }
-        }
-
-        public HoloOASIS Holochain
-        {
-            get
-            {
-                if (_Holochain == null)
-                    _Holochain = (HoloOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.HoloOASIS);
-
-                return _Holochain;
-            }
-        }
-
-        public MongoDBOASIS MongoDB
-        {
-            get
-            {
-                if (_MongoDB == null)
-                    _MongoDB = (MongoDBOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.MongoDBOASIS);
-
-                return _MongoDB;
-            }
-        }
-
-        public Neo4jOASIS Neo4j
-        {
-            get
-            {
-                if (_Neo4j == null)
-                    _Neo4j = (Neo4jOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.Neo4jOASIS);
-
-                return _Neo4j;
-            }
-        }
-
-        public SQLLiteDBOASIS SQLLiteDB
-        {
-            get
-            {
-                if (_sqlLiteDb == null)
-                    _sqlLiteDb = (SQLLiteDBOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.SQLLiteDBOASIS);
-
-                return _sqlLiteDb;
-            }
-        }
-
-        public ThreeFoldOASIS ThreeFold
-        {
-            get
-            {
-                if (_ThreeFold == null)
-                    _ThreeFold = (ThreeFoldOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.ThreeFoldOASIS);
-
-                return _ThreeFold;
-            }
-        }
-
-        public AcitvityPubOASIS ActivityPub
-        {
-            get
-            {
-                if (_ActivityPub == null)
-                    _ActivityPub = (AcitvityPubOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.ActivityPubOASIS);
-
-                return _ActivityPub;
-            }
-        }*/
 
         public OASISProviders(OASISDNA OASISDNA)
         {

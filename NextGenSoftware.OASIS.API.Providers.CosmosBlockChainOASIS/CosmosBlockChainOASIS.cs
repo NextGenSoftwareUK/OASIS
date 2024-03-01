@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 {
@@ -36,25 +37,26 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         #region IOASISStorageProvider Implementation
 
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
-        {
-            return null;
-        }
+        //TODO: Implement all methods ASAP!
+        //public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        //{
+        //    return null;
+        //}
 
-        public override OASISResult<bool> ActivateProvider()
-        {
-            return null;
-        }
+        //public override OASISResult<bool> ActivateProvider()
+        //{
+        //    return null;
+        //}
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-        {
-            return null;
-        }
+        //public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        //{
+        //    return null;
+        //}
 
-        public override OASISResult<bool> DeActivateProvider()
-        {
-            return null;
-        }
+        //public override OASISResult<bool> DeActivateProvider()
+        //{
+        //    return null;
+        //}
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {

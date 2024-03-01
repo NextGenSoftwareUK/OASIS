@@ -30,26 +30,27 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
 
         #region IOASISStorageProvider Implementation
+        
+        //TODO: Implement all methods ASAP!
+        //public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        //{
+        //    return null;
+        //}
 
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
-        {
-            return null;
-        }
+        //public override OASISResult<bool> ActivateProvider()
+        //{
+        //    return null;
+        //}
 
-        public override OASISResult<bool> ActivateProvider()
-        {
-            return null;
-        }
+        //public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        //{
+        //    return null;
+        //}
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-        {
-            return null;
-        }
-
-        public override OASISResult<bool> DeActivateProvider()
-        {
-            return null;
-        }
+        //public override OASISResult<bool> DeActivateProvider()
+        //{
+        //    return null;
+        //}
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {

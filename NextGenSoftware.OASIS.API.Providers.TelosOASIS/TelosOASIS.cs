@@ -63,6 +63,48 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             }
         }
 
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            if (!EOSIOOASIS.IsProviderActivated)
+                await EOSIOOASIS.ActivateProviderAsync();
+
+            IsProviderActivated = true;
+            return new OASISResult<bool>(true);
+        }
+
+        public override OASISResult<bool> ActivateProvider()
+        {
+            if (!EOSIOOASIS.IsProviderActivated)
+                EOSIOOASIS.ActivateProvider();
+
+            IsProviderActivated = true;
+            return new OASISResult<bool>(true);
+        }
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            if (EOSIOOASIS.IsProviderActivated)
+                await EOSIOOASIS.DeActivateProviderAsync();
+
+            _avatarManager = null;
+            _keyManager = null;
+
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
+        }
+
+        public override OASISResult<bool> DeActivateProvider()
+        {
+            if (EOSIOOASIS.IsProviderActivated)
+                EOSIOOASIS.DeActivateProvider();
+
+            _avatarManager = null;
+            _keyManager = null;
+
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
+        }
+
         // TODO: Implement GetAccountAsync in EOS provider
         public async Task<Account> GetTelosAccountAsync(string telosAccountName)
         {

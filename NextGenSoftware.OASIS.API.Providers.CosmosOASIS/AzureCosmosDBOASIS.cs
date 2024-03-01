@@ -77,10 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.");
             }
 
-            if (result.IsError)
-                return result;
-
-            return base.ActivateProvider();
+            return result;
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -112,6 +109,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         holonRepository = new HolonRepository(dbClientFactory);
                         avatarDetailRepository = new AvatarDetailRepository(dbClientFactory);
                     }
+
+                    IsProviderActivated = true;
                 }
             }
             catch (Exception ex)
@@ -119,10 +118,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.");
             }
 
-            if (result.IsError)
-                return result;
-
-            return await base.ActivateProviderAsync();
+            return result;
         }
 
         public override OASISResult<bool> DeActivateProvider()
@@ -131,7 +127,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             avatarRepository = null;
             avatarDetailRepository = null;
             holonRepository = null;
-            return base.DeActivateProvider();
+
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
+            //return base.DeActivateProvider();
         }
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
@@ -140,7 +139,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             avatarRepository = null;
             avatarDetailRepository = null;
             holonRepository = null;
-            return await base.DeActivateProviderAsync();
+
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true);
+            //return await base.DeActivateProviderAsync();
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
