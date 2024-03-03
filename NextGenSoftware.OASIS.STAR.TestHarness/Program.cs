@@ -467,7 +467,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating Holochain Tests...");
 
-                if (!STAR.OASISAPI.Providers.Holochain.IsProviderActivated.Value)
+                if (!STAR.OASISAPI.Providers.Holochain.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating Holochain Provider...");
                     STAR.OASISAPI.Providers.Holochain.ActivateProvider();
@@ -496,7 +496,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating IPFS Tests...");
 
-                if (!STAR.OASISAPI.Providers.IPFS.IsProviderActivated.Value)
+                if (!STAR.OASISAPI.Providers.IPFS.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating IPFS Provider...");
                     STAR.OASISAPI.Providers.IPFS.ActivateProvider();
@@ -522,7 +522,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating Ethereum Tests...");
 
-                if (!STAR.OASISAPI.Providers.Ethereum.IsProviderActivated.Value)
+                if (!STAR.OASISAPI.Providers.Ethereum.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating Ethereum Provider...");
                     STAR.OASISAPI.Providers.Ethereum.ActivateProvider();
@@ -545,7 +545,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating EOSIO Tests...");
 
-                if (!STAR.OASISAPI.Providers.EOSIO.IsProviderActivated.Value)
+                if (!STAR.OASISAPI.Providers.EOSIO.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating EOSIO Provider...");
                     STAR.OASISAPI.Providers.EOSIO.ActivateProvider();
@@ -569,7 +569,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating Neo4j (Graph DB) Tests...");
 
-                if (!STAR.OASISAPI.Providers.Neo4j.IsProviderActivated.Value)
+                if (!STAR.OASISAPI.Providers.Neo4j.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating Neo4j Provider...");
                     STAR.OASISAPI.Providers.Neo4j.ActivateProvider();
@@ -610,7 +610,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating MongoDB Tests...");
 
-                if (!STAR.OASISAPI.Providers.MongoDB.IsProviderActivated.Value)
+                if (!STAR.OASISAPI.Providers.MongoDB.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating MongoDB Provider...");
                     STAR.OASISAPI.Providers.MongoDB.ActivateProvider();
@@ -640,7 +640,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowWorkingMessage("Initiating SEEDS Tests...");
 
-                if (!STAR.OASISAPI.Providers.SEEDS.IsProviderActivated.Value)
+                if (!STAR.OASISAPI.Providers.SEEDS.IsProviderActivated)
                 {
                     CLIEngine.ShowWorkingMessage("Activating SEEDS Provider...");
                     STAR.OASISAPI.Providers.SEEDS.ActivateProvider();
@@ -1427,8 +1427,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 */
 
                 CLIEngine.ShowWorkingMessage("Beaming In...");
-                //beamInResult = STAR.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
-                beamInResult = STAR.BeamIn("davidellams@hotmail.com", "test!");
+                beamInResult = STAR.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
+                //beamInResult = STAR.BeamIn("davidellams@hotmail.com", "test!");
                 //beamInResult = STAR.BeamIn("davidellams@gmail.com", "test!");
 
                 CLIEngine.ShowMessage("");
@@ -1656,7 +1656,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                         break;
 
                     case Enums.StarStatus.OASISBooted:
-                        CLIEngine.ShowSuccessMessage("OASIS BOOTED");
+                        //CLIEngine.ShowSuccessMessage("OASIS BOOTED"); //OASISBootLoader already shows this message so no need to show again! ;-)
                         break;
 
                     case Enums.StarStatus.Igniting:
