@@ -855,7 +855,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             if (OASISProvider != null)
             {
-                if (!OASISProvider.IsProviderActivated.HasValue)
+                if (!OASISProvider.IsProviderActivated)
                 {
                     OASISResult<bool> activateProviderResult = OASISProvider.ActivateProvider();
 

@@ -994,21 +994,21 @@ namespace NextGenSoftware.OASIS.STAR
                             zomeBufferCsharp = zomeBufferCsharp.Replace("ZomeDNATemplate", parts[6].ToPascalCase());
                             zomeName = parts[6].ToPascalCase();
 
-                            currentZome = new Zome()
+                           currentZome = new Zome()
                             {
                                 Id = new Guid(),
                                 IsNewHolon = true,
                                 Name = zomeName,
                                 CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
                                 HolonType = HolonType.Zome,
-                                ParentHolonId = newBody.Id,
+                                ParentHolonId = newBody != null ? newBody.Id : Guid.Empty,
                                 ParentHolon = newBody,
-                                ParentCelestialBodyId = newBody.Id,
+                                ParentCelestialBodyId = newBody != null ? newBody.Id : Guid.Empty,
                                 ParentCelestialBody = newBody,
-                                ParentPlanetId = newBody.HolonType == HolonType.Planet ? newBody.Id : Guid.Empty,
-                                ParentPlanet = newBody.HolonType == HolonType.Planet ? (IPlanet)newBody : null,
-                                ParentMoonId = newBody.HolonType == HolonType.Moon ? newBody.Id : Guid.Empty,
-                                ParentMoon = newBody.HolonType == HolonType.Moon ? (IMoon)newBody : null
+                                ParentPlanetId = newBody != null && newBody.HolonType == HolonType.Planet ? newBody.Id : Guid.Empty,
+                                ParentPlanet = newBody != null && newBody.HolonType == HolonType.Planet ? (IPlanet)newBody : null,
+                                ParentMoonId = newBody != null && newBody.HolonType == HolonType.Moon ? newBody.Id : Guid.Empty,
+                                ParentMoon = newBody != null && newBody.HolonType == HolonType.Moon ? (IMoon)newBody : null
                             };
 
 

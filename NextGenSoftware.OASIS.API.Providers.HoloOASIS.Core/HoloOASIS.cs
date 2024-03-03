@@ -80,21 +80,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             this.ProviderDescription = "Holochain Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HoloOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
-
-            HoloNETClientAdmin.OnConnected += HoloNETClientAdmin_OnConnected;
         }
 
-        private void HoloNETClientAdmin_OnConnected(object sender, WebSocket.ConnectedEventArgs e)
+        private void HoloNETClientAdmin_OnError(object sender, HoloNETErrorEventArgs e)
         {
-            //InstallEnableSignAndAttachHappEventArgs installedAppResult = HoloNETClientAdmin.InstallEnableSignAndAttachHapp(OASIS_HAPP_ID, OASIS_HAPP_PATH, CapGrantAccessType.Unrestricted, Holochain.HoloNET.Client.Data.Admin.Requests.Objects.GrantedFunctionsType.All, null, true, true, (logMessage, logType) =>LoggingManager.Log(logMessage, logType));
+            HandleError("Error Occured in HoloOASIS Provider With HoloNETClientAdmin_OnError Event Handler.", null, e);
+        }
 
-            //if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
-            //{
-            //    HoloNETConnectEventArgs appAgentConnectedResult = HoloNETClientAppAgent.Connect($"ws://127.0.0.1:{installedAppResult.AttachedOnPort}");
-
-            //    if (appAgentConnectedResult != null && appAgentConnectedResult.IsConnected)
-            //        IsProviderActivated = true;
-            //}
+        private void HoloNETClientAppAgent_OnError(object sender, HoloNETErrorEventArgs e)
+        {
+            HandleError("Error Occured in HoloOASIS Provider With HoloNETClientAppAgent_OnError Event Handler.", null, e);
         }
 
         #region IOASISStorageProvider Implementation
@@ -102,14 +97,26 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            bool adminConnected = false;
 
             try
             {
-                if (!HoloNETClientAdmin.IsConnecting)
+                HoloNETClientAdmin.OnError += HoloNETClientAdmin_OnError;
+
+                if (HoloNETClientAdmin.State == System.Net.WebSockets.WebSocketState.Open)
+                    adminConnected = true;
+
+                else if (!HoloNETClientAdmin.IsConnecting)
                 {
                     HoloNETConnectedEventArgs adminConnectResult = await HoloNETClientAdmin.ConnectAsync();
 
                     if (adminConnectResult != null && adminConnectResult.IsConnected)
+                        adminConnected = true;
+                }
+                
+                if (adminConnected)
+                {
+                    if (HoloNETClientAppAgent == null)
                     {
                         InstallEnableSignAttachAndConnectToHappEventArgs installedAppResult = await HoloNETClientAdmin.InstallEnableSignAttachAndConnectToHappAsync(OASIS_HAPP_ID, OASIS_HAPP_PATH, OASIS_HAPP_ROLE_NAME);
 
@@ -119,18 +126,23 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                             IsProviderActivated = true;
                             result.Result = true;
                         }
+                    }
+                    else if (HoloNETClientAppAgent.State != System.Net.WebSockets.WebSocketState.Open)
+                    {
+                        HoloNETConnectedEventArgs connectedResult = await HoloNETClientAppAgent.ConnectAsync();
 
-                        //InstallEnableSignAndAttachHappEventArgs installedAppResult = await HoloNETClientAdmin.InstallEnableSignAndAttachHappAsync(OASIS_HAPP_ID, OASIS_HAPP_PATH);
-
-                        //if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
-                        //{
-                        //    HoloNETConnectedEventArgs appAgentConnectedResult = await HoloNETConnectedEventArgs.ConnectAsync($"ws://127.0.0.1:{installedAppResult.AttachedOnPort}");
-
-                        //    if (appAgentConnectedResult != null && appAgentConnectedResult.IsConnected)
-                        //        IsProviderActivated = true;
-                        //}
+                        if (connectedResult != null && !connectedResult.IsError && connectedResult.IsConnected)
+                        {
+                            IsProviderActivated = true;
+                            result.Result = true;
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS Provider in ActivateProviderAsync method. Reason: Error Occured Connecting To HoloNETClientAppAgent EndPoint {HoloNETClientAppAgent.EndPoint.AbsoluteUri}. Reason: {connectedResult.Message}");
                     }
                 }
+
+                if (HoloNETClientAppAgent != null)
+                    HoloNETClientAppAgent.OnError += HoloNETClientAppAgent_OnError;
             }
             catch (Exception e) 
             {
@@ -142,33 +154,62 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override OASISResult<bool> ActivateProvider()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            return ActivateProviderAsync().Result;
 
-            try
-            {
-                if (!HoloNETClientAdmin.IsConnecting)
-                {
-                    HoloNETConnectedEventArgs adminConnectResult = HoloNETClientAdmin.Connect();
+            //OASISResult<bool> result = new OASISResult<bool>();
+            //bool adminConnected = false;
 
-                    if (adminConnectResult != null && adminConnectResult.IsConnected)
-                    {
-                        InstallEnableSignAttachAndConnectToHappEventArgs installedAppResult = HoloNETClientAdmin.InstallEnableSignAttachAndConnectToHapp(OASIS_HAPP_ID, OASIS_HAPP_PATH, OASIS_HAPP_ROLE_NAME);
+            //try
+            //{
+            //    HoloNETClientAdmin.OnError += HoloNETClientAdmin_OnError;
 
-                        if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
-                        {
-                            HoloNETClientAppAgent = installedAppResult.HoloNETClientAppAgent;
-                            IsProviderActivated = true;
-                            result.Result = true;
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS Provider in ActivateProvider method. Reason: {e}");
-            }
+            //    if (HoloNETClientAdmin.State == System.Net.WebSockets.WebSocketState.Open)
+            //        adminConnected = true;
 
-            return result;
+            //    else if (!HoloNETClientAdmin.IsConnecting)
+            //    {
+            //        HoloNETConnectedEventArgs adminConnectResult = HoloNETClientAdmin.Connect();
+
+            //        if (adminConnectResult != null && adminConnectResult.IsConnected)
+            //            adminConnected = true;
+            //    }
+
+            //    if (adminConnected)
+            //    {
+            //        if (HoloNETClientAppAgent == null)
+            //        {
+            //            InstallEnableSignAttachAndConnectToHappEventArgs installedAppResult = HoloNETClientAdmin.InstallEnableSignAttachAndConnectToHapp(OASIS_HAPP_ID, OASIS_HAPP_PATH, OASIS_HAPP_ROLE_NAME);
+
+            //            if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
+            //            {
+            //                HoloNETClientAppAgent = installedAppResult.HoloNETClientAppAgent;
+            //                IsProviderActivated = true;
+            //                result.Result = true;
+            //            }
+            //        }
+            //        else if (HoloNETClientAppAgent.State != System.Net.WebSockets.WebSocketState.Open)
+            //        {
+            //            HoloNETConnectedEventArgs connectedResult = HoloNETClientAppAgent.Connect();
+
+            //            if (connectedResult != null && !connectedResult.IsError && connectedResult.IsConnected)
+            //            {
+            //                IsProviderActivated = true;
+            //                result.Result = true;
+            //            }
+            //            else
+            //                OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS Provider in ActivateProvider method. Reason: Error Occured Connecting To HoloNETClientAppAgent EndPoint {HoloNETClientAppAgent.EndPoint.AbsoluteUri}. Reason: {connectedResult.Message}");
+            //        }
+            //    }
+
+            //    if (HoloNETClientAppAgent != null)
+            //        HoloNETClientAppAgent.OnError += HoloNETClientAppAgent_OnError;
+            //}
+            //catch (Exception e)
+            //{
+            //    OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS Provider in ActivateProvider method. Reason: {e}");
+            //}
+
+            //return result;
         }
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
@@ -179,7 +220,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             try
             {
-                if (!HoloNETClientAdmin.IsDisconnecting)
+                if (HoloNETClientAdmin != null && !HoloNETClientAdmin.IsDisconnecting)
                 {
                     holoNETClientAdminResult = await HoloNETClientAdmin.DisconnectAsync();
 
@@ -187,13 +228,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                         OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS.DeActivateProviderAsync calling HoloNETClientAdmin.DisconnectAsync() method. Reason: {holoNETClientAdminResult.Message}");
                 }
 
-                if (!HoloNETClientAppAgent.IsDisconnecting)
+                if (HoloNETClientAppAgent != null && !HoloNETClientAppAgent.IsDisconnecting)
                 {
                     holoNETClientAppAgent = await HoloNETClientAppAgent.DisconnectAsync();
 
                     if (!(holoNETClientAppAgent != null && !holoNETClientAppAgent.IsError && holoNETClientAppAgent.IsDisconnected))
                         OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS.DeActivateProviderAsync calling HoloNETClientAdmin.DisconnectAsync() method. Reason: {holoNETClientAdminResult.Message}");
                 }
+
+                if (HoloNETClientAdmin != null)
+                    HoloNETClientAdmin.OnError -= HoloNETClientAdmin_OnError;
+                
+                if (HoloNETClientAppAgent != null)
+                    HoloNETClientAppAgent.OnError -= HoloNETClientAppAgent_OnError;
 
                 if (holoNETClientAdminResult.IsDisconnected && !holoNETClientAdminResult.IsError && holoNETClientAppAgent.IsDisconnected && !holoNETClientAppAgent.IsError)
                 {
@@ -211,40 +258,48 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override OASISResult<bool> DeActivateProvider()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            HoloNETDisconnectedEventArgs holoNETClientAdminResult = null;
-            HoloNETDisconnectedEventArgs holoNETClientAppAgent = null;
+            return DeActivateProviderAsync().Result;
 
-            try
-            {
-                if (!HoloNETClientAdmin.IsDisconnecting)
-                {
-                    holoNETClientAdminResult = HoloNETClientAdmin.Disconnect();
+            //OASISResult<bool> result = new OASISResult<bool>();
+            //HoloNETDisconnectedEventArgs holoNETClientAdminResult = null;
+            //HoloNETDisconnectedEventArgs holoNETClientAppAgent = null;
 
-                    if (!(holoNETClientAdminResult != null && !holoNETClientAdminResult.IsError && holoNETClientAdminResult.IsDisconnected))
-                        OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS.DeActivateProvider calling HoloNETClientAdmin.Disconnect() method. Reason: {holoNETClientAdminResult.Message}");
-                }
+            //try
+            //{
+            //    if (HoloNETClientAdmin != null && !HoloNETClientAdmin.IsDisconnecting)
+            //    {
+            //        holoNETClientAdminResult = HoloNETClientAdmin.Disconnect();
 
-                if (!HoloNETClientAppAgent.IsDisconnecting)
-                {
-                    holoNETClientAppAgent = HoloNETClientAppAgent.Disconnect();
+            //        if (!(holoNETClientAdminResult != null && !holoNETClientAdminResult.IsError && holoNETClientAdminResult.IsDisconnected))
+            //            OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS.DeActivateProvider calling HoloNETClientAdmin.Disconnect() method. Reason: {holoNETClientAdminResult.Message}");
+            //    }
 
-                    if (!(holoNETClientAppAgent != null && !holoNETClientAppAgent.IsError && holoNETClientAppAgent.IsDisconnected))
-                        OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS.DeActivateProvider calling HoloNETClientAdmin.Disconnect() method. Reason: {holoNETClientAdminResult.Message}");
-                }
+            //    if (HoloNETClientAppAgent != null && !HoloNETClientAppAgent.IsDisconnecting)
+            //    {
+            //        holoNETClientAppAgent = HoloNETClientAppAgent.Disconnect();
 
-                if (holoNETClientAdminResult.IsDisconnected && !holoNETClientAdminResult.IsError && holoNETClientAppAgent.IsDisconnected && !holoNETClientAppAgent.IsError)
-                {
-                    result.Result = true;
-                    IsProviderActivated = false;
-                }
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS Provider in DeActivateProvider method. Reason: {e}");
-            }
+            //        if (!(holoNETClientAppAgent != null && !holoNETClientAppAgent.IsError && holoNETClientAppAgent.IsDisconnected))
+            //            OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS.DeActivateProvider calling HoloNETClientAdmin.Disconnect() method. Reason: {holoNETClientAdminResult.Message}");
+            //    }
 
-            return result;
+            //    if (HoloNETClientAdmin != null)
+            //        HoloNETClientAdmin.OnError -= HoloNETClientAdmin_OnError;
+
+            //    if (HoloNETClientAppAgent != null)
+            //        HoloNETClientAppAgent.OnError -= HoloNETClientAppAgent_OnError;
+
+            //    if (holoNETClientAdminResult.IsDisconnected && !holoNETClientAdminResult.IsError && holoNETClientAppAgent.IsDisconnected && !holoNETClientAppAgent.IsError)
+            //    {
+            //        result.Result = true;
+            //        IsProviderActivated = false;
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS Provider in DeActivateProvider method. Reason: {e}");
+            //}
+
+            //return result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -1747,7 +1802,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         /// <param name="holoNETEventArgs"></param>
         private void HandleError(string reason, Exception errorDetails, HoloNETErrorEventArgs holoNETEventArgs)
         {
-            RaiseStorageProviderErrorEvent(HoloNETClientAppAgent.EndPoint.AbsoluteUri, string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""), errorDetails);
+            RaiseStorageProviderErrorEvent(HoloNETClientAppAgent.EndPoint.AbsoluteUri, string.Concat(reason, holoNETEventArgs != null ? string.Concat(". HoloNET Error: ", holoNETEventArgs.Reason, ". Error Details: ", holoNETEventArgs.ErrorDetails) : ""), errorDetails);
 
             //OnStorageProviderError?.Invoke(this, new OASISErrorEventArgs { EndPoint = HoloNETClientAppAgent.EndPoint.AbsoluteUri, Reason = string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""), Exception = errorDetails });
             //OnStorageProviderError?.Invoke(this, new AvatarManagerErrorEventArgs { EndPoint = this.HoloNETClientAppAgent.EndPoint, Reason = string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""), ErrorDetails = errorDetails });
