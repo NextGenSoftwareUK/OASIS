@@ -130,7 +130,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         //public static ISuperStar DefaultSuperStar { get; set; } 
-        
+
         public static IStar DefaultStar { get; set; } //Will default to our Sun.
 
         //Will default to Our World.
@@ -438,22 +438,6 @@ namespace NextGenSoftware.OASIS.STAR
             OnHolonsLoaded?.Invoke(sender, e);
         }
 
-        public static async Task<OASISResult<IAvatar>> BeamInAsync(string username, string password)
-        {
-            string hostName = Dns.GetHostName();
-            string IPAddress = Dns.GetHostEntry(hostName).AddressList[0].ToString();
-
-            if (!IsStarIgnited)
-                await IgniteStarAsync();
-
-            OASISResult<IAvatar> result = await OASISAPI.Avatar.AuthenticateAsync(username, password, IPAddress);
-
-            if (!result.IsError)
-                LoggedInAvatar = (Avatar)result.Result;
-
-            return result;
-        }
-
         public static OASISResult<IAvatar> CreateAvatar(string title, string firstName, string lastName, string email, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             if (!IsStarIgnited)
@@ -469,6 +453,22 @@ namespace NextGenSoftware.OASIS.STAR
 
             //TODO: Implement Async version of Register and call instead of below:
             return await OASISAPI.Avatar.RegisterAsync(title, firstName, lastName, email, username, password, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
+        }
+
+        public static async Task<OASISResult<IAvatar>> BeamInAsync(string username, string password)
+        {
+            string hostName = Dns.GetHostName();
+            string IPAddress = Dns.GetHostEntry(hostName).AddressList[0].ToString();
+
+            if (!IsStarIgnited)
+                await IgniteStarAsync();
+
+            OASISResult<IAvatar> result = await OASISAPI.Avatar.AuthenticateAsync(username, password, IPAddress);
+
+            if (!result.IsError)
+                LoggedInAvatar = (Avatar)result.Result;
+
+            return result;
         }
 
         public static OASISResult<IAvatar> BeamIn(string username, string password)
@@ -808,10 +808,15 @@ namespace NextGenSoftware.OASIS.STAR
             else
             {
                 OAPPFolder = string.Concat(genesisFolder, "\\", name, " OApp");
-                
-                if (!Directory.Exists(OAPPFolder))
-                    Directory.CreateDirectory(string.Concat(OAPPFolder));
-                
+
+                //if (!Directory.Exists(OAPPFolder))
+                //    Directory.CreateDirectory(string.Concat(OAPPFolder));
+
+                if (Directory.Exists(OAPPFolder))
+                    Directory.Delete(OAPPFolder, true);
+                    
+                Directory.CreateDirectory(string.Concat(OAPPFolder));
+
                 switch (OAPPType)
                 {
                     case OAPPType.Blazor:
@@ -1015,8 +1020,11 @@ namespace NextGenSoftware.OASIS.STAR
                             currentZome.Id = new Guid();
                             zomeBufferCsharp = zomeBufferCsharp.Replace("ID", currentZome.Id.ToString());
 
-                            Mapper.MapParentCelestialBodyProperties(newBody, currentZome);
-                            await newBody.CelestialBodyCore.AddZomeAsync(currentZome); //TODO: May need to save this once holons and nodes/fields have been added?
+                            if (newBody != null)
+                            {
+                                Mapper.MapParentCelestialBodyProperties(newBody, currentZome);
+                                await newBody.CelestialBodyCore.AddZomeAsync(currentZome); //TODO: May need to save this once holons and nodes/fields have been added?
+                            }
                         }
 
                         if (holonReached && buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
@@ -1119,17 +1127,21 @@ namespace NextGenSoftware.OASIS.STAR
                             zomeBufferCsharp = zomeBufferCsharp.Replace("IHolon", $"I{parts[10].ToPascalCase()}");
                             zomeBufferCsharp = zomeBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
                             
-                            if (string.IsNullOrEmpty(celestialBodyBufferCsharp))
-                                celestialBodyBufferCsharp = celestialBodyTemplateCsharp;
+                            if (newBody != null)
+                            {
+                                if (string.IsNullOrEmpty(celestialBodyBufferCsharp))
+                                    celestialBodyBufferCsharp = celestialBodyTemplateCsharp;
 
-                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
-                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("NAMESPACE", genesisNameSpace);
-                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("ID", newBody.Id.ToString());
-                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBodyDNATemplate", name.ToPascalCase());
-                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CELESTIALBODY", Enum.GetName(typeof(GenesisType), genesisType));
-                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Insert(celestialBodyBufferCsharp.Length - 7, string.Concat(loadHolonTemplateCsharp, "\n"));
-                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Insert(celestialBodyBufferCsharp.Length - 7, string.Concat(saveHolonTemplateCsharp, "\n"));
-                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("HOLON", parts[10].ToPascalCase());
+                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
+                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("NAMESPACE", genesisNameSpace);
+                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("ID", newBody.Id.ToString());
+                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBodyDNATemplate", name.ToPascalCase());
+                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CELESTIALBODY", Enum.GetName(typeof(GenesisType), genesisType));
+                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Insert(celestialBodyBufferCsharp.Length - 7, string.Concat(loadHolonTemplateCsharp, "\n"));
+                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Insert(celestialBodyBufferCsharp.Length - 7, string.Concat(saveHolonTemplateCsharp, "\n"));
+                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("HOLON", parts[10].ToPascalCase());
+                            }
+
 
                             // TODO: Current Zome Id will be empty here so need to save the zome before? (above when the zome is first created and added to the newBody zomes collection).
                             currentHolon = new Holon()
@@ -1143,15 +1155,17 @@ namespace NextGenSoftware.OASIS.STAR
                                 ParentHolon = currentZome,
                                 ParentZomeId = currentZome.Id,
                                 ParentZome = currentZome,
-                                ParentCelestialBodyId = newBody.Id,
+                                ParentCelestialBodyId = newBody != null ? newBody.Id : Guid.Empty,
                                 ParentCelestialBody = newBody,
-                                ParentPlanetId = newBody.HolonType == HolonType.Planet ? newBody.Id : Guid.Empty,
-                                ParentPlanet = newBody.HolonType == HolonType.Planet ? (IPlanet)newBody : null,
-                                ParentMoonId = newBody.HolonType == HolonType.Moon ? newBody.Id : Guid.Empty,
-                                ParentMoon = newBody.HolonType == HolonType.Moon ? (IMoon)newBody : null 
+                                ParentPlanetId = newBody != null && newBody.HolonType == HolonType.Planet ? newBody.Id : Guid.Empty,
+                                ParentPlanet = newBody != null && newBody.HolonType == HolonType.Planet ? (IPlanet)newBody : null,
+                                ParentMoonId = newBody != null && newBody.HolonType == HolonType.Moon ? newBody.Id : Guid.Empty,
+                                ParentMoon = newBody != null && newBody.HolonType == HolonType.Moon ? (IMoon)newBody : null 
                             };
 
-                            Mapper.MapParentCelestialBodyProperties(newBody, currentHolon);
+                            if (newBody != null )
+                                Mapper.MapParentCelestialBodyProperties(newBody, currentHolon);
+                            
                             currentZome.Holons.Add((Holon)currentHolon);
 
                             holonNames.Add(holonName);
