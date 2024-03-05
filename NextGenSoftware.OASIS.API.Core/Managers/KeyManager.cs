@@ -1551,7 +1551,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             OASISResult<Dictionary<ProviderType, List<string>>> result = new OASISResult<Dictionary<ProviderType, List<string>>>();
 
-            if (AvatarManager.LoggedInAvatar.Username != username)
+
+            if (AvatarManager.LoggedInAvatar == null)
+                OASISErrorHandling.HandleError(ref result, "Error occured in GetAllProviderPrivateKeysForAvatarByUsername, AvatarManager.LoggedInAvatar is null!");
+            
+            else if (AvatarManager.LoggedInAvatar.Username != username)
                 OASISErrorHandling.HandleError(ref result, "Error occured in GetAllProviderPrivateKeysForAvatarByUsername, you can only retreive your own private keys, not another persons avatar.");
             else
             {
