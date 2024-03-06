@@ -1551,7 +1551,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             OASISResult<Dictionary<ProviderType, List<string>>> result = new OASISResult<Dictionary<ProviderType, List<string>>>();
 
-
             if (AvatarManager.LoggedInAvatar == null)
                 OASISErrorHandling.HandleError(ref result, "Error occured in GetAllProviderPrivateKeysForAvatarByUsername, AvatarManager.LoggedInAvatar is null!");
             
