@@ -1001,7 +1001,7 @@ namespace NextGenSoftware.OASIS.STAR
 
                            currentZome = new Zome()
                             {
-                                Id = new Guid(),
+                                Id = Guid.NewGuid(),
                                 IsNewHolon = true,
                                 Name = zomeName,
                                 CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
@@ -1016,8 +1016,6 @@ namespace NextGenSoftware.OASIS.STAR
                                 ParentMoon = newBody != null && newBody.HolonType == HolonType.Moon ? (IMoon)newBody : null
                             };
 
-
-                            currentZome.Id = new Guid();
                             zomeBufferCsharp = zomeBufferCsharp.Replace("ID", currentZome.Id.ToString());
 
                             if (newBody != null)
@@ -1146,7 +1144,7 @@ namespace NextGenSoftware.OASIS.STAR
                             // TODO: Current Zome Id will be empty here so need to save the zome before? (above when the zome is first created and added to the newBody zomes collection).
                             currentHolon = new Holon()
                             {
-                                Id = new Guid(),
+                                Id = Guid.NewGuid(),
                                 IsNewHolon = true,
                                 Name = holonName,
                                 CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
@@ -1162,6 +1160,8 @@ namespace NextGenSoftware.OASIS.STAR
                                 ParentMoonId = newBody != null && newBody.HolonType == HolonType.Moon ? newBody.Id : Guid.Empty,
                                 ParentMoon = newBody != null && newBody.HolonType == HolonType.Moon ? (IMoon)newBody : null 
                             };
+
+                            holonBufferCsharp = holonBufferCsharp.Replace("ID", currentHolon.Id.ToString());
 
                             if (newBody != null )
                                 Mapper.MapParentCelestialBodyProperties(newBody, currentHolon);
