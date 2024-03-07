@@ -110,9 +110,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     OASISErrorHandling.WarningHandlingBehaviour = OASISDNA.OASIS.ErrorHandling.WarningHandlingBehaviour;
                     OASISErrorHandling.ErrorHandlingBehaviour = OASISDNA.OASIS.ErrorHandling.ErrorHandlingBehaviour;
 
-                    ProviderManager.IsAutoFailOverEnabled = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabled;
-                    ProviderManager.IsAutoLoadBalanceEnabled = OASISDNA.OASIS.StorageProviders.AutoLoadBalanceEnabled;
-                    ProviderManager.IsAutoReplicationEnabled = OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled;
+                    ProviderManager.Instance.IsAutoFailOverEnabled = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabled;
+                    ProviderManager.Instance.IsAutoLoadBalanceEnabled = OASISDNA.OASIS.StorageProviders.AutoLoadBalanceEnabled;
+                    ProviderManager.Instance.IsAutoReplicationEnabled = OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled;
 
                     LoggingManager.Log($"\n FIRING UP THE OASIS HYPERDRIVE...", LogType.Info, true);
                     LoggingManager.Log($"LOADING PROVIDER LISTS...", LogType.Info, true, false, false, 1, true);
@@ -124,10 +124,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     if (Enum.TryParse(typeof(OASISProviderBootType), OASISDNA.OASIS.StorageProviders.OASISProviderBootType,
                         out OASISProviderBootTypeObject))
                     {
-                        ProviderManager.OASISProviderBootType = (OASISProviderBootType)OASISProviderBootTypeObject;
+                        ProviderManager.Instance.OASISProviderBootType = (OASISProviderBootType)OASISProviderBootTypeObject;
 
-                        if (ProviderManager.OASISProviderBootType == OASISProviderBootType.Warm ||
-                            ProviderManager.OASISProviderBootType == OASISProviderBootType.Hot)
+                        if (ProviderManager.Instance.OASISProviderBootType == OASISProviderBootType.Warm ||
+                            ProviderManager.Instance.OASISProviderBootType == OASISProviderBootType.Hot)
                         {
                             LoggingManager.Log($"REGISTERING PROVIDERS...", LogType.Info, true, false, false, 1, true);
                             result = RegisterProvidersInAllLists();
@@ -197,7 +197,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             OASISResult<bool> result = new OASISResult<bool>(true);
             LoggingManager.Log($"SHUTTING DOWN THE OASIS... PLEASE STAND BY.", LogType.Info, true);
 
-            foreach (IOASISStorageProvider provider in ProviderManager.GetStorageProviders())
+            foreach (IOASISStorageProvider provider in ProviderManager.Instance.GetStorageProviders())
             {
                 try
                 {
@@ -226,7 +226,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             OASISResult<bool> result = new OASISResult<bool>(true);
             LoggingManager.Log($"SHUTTING DOWN THE OASIS... PLEASE STAND BY.", LogType.Info, true);
 
-            foreach (IOASISStorageProvider provider in ProviderManager.GetStorageProviders())
+            foreach (IOASISStorageProvider provider in ProviderManager.Instance.GetStorageProviders())
             {
                 try
                 {
@@ -256,7 +256,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
             try
             {
-                if (ProviderManager.CurrentStorageProvider == null)
+                if (ProviderManager.Instance.CurrentStorageProvider == null)
                 {
                     if (!IsOASISBooted)
                     {
@@ -269,7 +269,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         }
                     }
 
-                    foreach (EnumValue<ProviderType> providerType in ProviderManager.GetProviderAutoFailOverList())
+                    foreach (EnumValue<ProviderType> providerType in ProviderManager.Instance.GetProviderAutoFailOverList())
                     {
                         OASISResult<IOASISStorageProvider> providerManagerResult = GetAndActivateStorageProvider(providerType.Value);
 
@@ -280,7 +280,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             result.IsWarning = true;
                             result.IsError = false;
 
-                            if (!ProviderManager.IsAutoFailOverEnabled)
+                            if (!ProviderManager.Instance.IsAutoFailOverEnabled)
                                 break;
                         }
                         else
@@ -290,7 +290,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     result = ProcessResults(result);
                 }
                 else
-                    result.Result = ProviderManager.CurrentStorageProvider;
+                    result.Result = ProviderManager.Instance.CurrentStorageProvider;
             }
             catch (Exception e)
             {
@@ -306,7 +306,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
             try
             {
-                if (ProviderManager.CurrentStorageProvider == null)
+                if (ProviderManager.Instance.CurrentStorageProvider == null)
                 {
                     if (!IsOASISBooted)
                     {
@@ -319,7 +319,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         }
                     }
 
-                    foreach (EnumValue<ProviderType> providerType in ProviderManager.GetProviderAutoFailOverList())
+                    foreach (EnumValue<ProviderType> providerType in ProviderManager.Instance.GetProviderAutoFailOverList())
                     {
                         OASISResult<IOASISStorageProvider> providerManagerResult = await GetAndActivateStorageProviderAsync(providerType.Value);
 
@@ -329,7 +329,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             result.IsWarning = true;
                             result.InnerMessages.Add(providerManagerResult.Message);
 
-                            if (!ProviderManager.IsAutoFailOverEnabled)
+                            if (!ProviderManager.Instance.IsAutoFailOverEnabled)
                                 break;
                         }
                         else
@@ -339,7 +339,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     result = ProcessResults(result);
                 }
                 else
-                    result.Result = ProviderManager.CurrentStorageProvider;
+                    result.Result = ProviderManager.Instance.CurrentStorageProvider;
             }
             catch (Exception e)
             {
@@ -367,20 +367,20 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 }
 
                 //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
-                if (providerType != ProviderManager.CurrentStorageProviderType.Value)
+                if (providerType != ProviderManager.Instance.CurrentStorageProviderType.Value)
                 {
                     RegisterProvider(providerType, customConnectionString, forceRegister);
-                    result = ProviderManager.SetAndActivateCurrentStorageProvider(providerType, setGlobally);
+                    result = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType, setGlobally);
                 }
 
                 if (result.IsError != true)
                 {
-                    if (setGlobally && ProviderManager.CurrentStorageProvider !=
-                        ProviderManager.DefaultGlobalStorageProvider)
-                        ProviderManager.DefaultGlobalStorageProvider = ProviderManager.CurrentStorageProvider;
+                    if (setGlobally && ProviderManager.Instance.CurrentStorageProvider !=
+                        ProviderManager.Instance.DefaultGlobalStorageProvider)
+                        ProviderManager.Instance.DefaultGlobalStorageProvider = ProviderManager.Instance.CurrentStorageProvider;
 
-                    ProviderManager.OverrideProviderType = true;
-                    result.Result = ProviderManager.CurrentStorageProvider;
+                    ProviderManager.Instance.OverrideProviderType = true;
+                    result.Result = ProviderManager.Instance.CurrentStorageProvider;
                 }
             }
             catch (Exception e)
@@ -409,20 +409,20 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 }
 
                 //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
-                if (providerType != ProviderManager.CurrentStorageProviderType.Value)
+                if (providerType != ProviderManager.Instance.CurrentStorageProviderType.Value)
                 {
                     await RegisterProviderAsync(providerType, customConnectionString, forceRegister);
-                    result = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType, setGlobally);
+                    result = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType, setGlobally);
                 }
 
                 if (result.IsError != true)
                 {
-                    if (setGlobally && ProviderManager.CurrentStorageProvider !=
-                        ProviderManager.DefaultGlobalStorageProvider)
-                        ProviderManager.DefaultGlobalStorageProvider = ProviderManager.CurrentStorageProvider;
+                    if (setGlobally && ProviderManager.Instance.CurrentStorageProvider !=
+                        ProviderManager.Instance.DefaultGlobalStorageProvider)
+                        ProviderManager.Instance.DefaultGlobalStorageProvider = ProviderManager.Instance.CurrentStorageProvider;
 
-                    ProviderManager.OverrideProviderType = true;
-                    result.Result = ProviderManager.CurrentStorageProvider;
+                    ProviderManager.Instance.OverrideProviderType = true;
+                    result.Result = ProviderManager.Instance.CurrentStorageProvider;
                 }
             }
             catch (Exception e)
@@ -444,8 +444,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                 result = RegisterProviderInternal(providerType, overrideConnectionString, forceRegister);
 
-                if (ProviderManager.OASISProviderBootType == OASISProviderBootType.Hot && activateProviderIfOASISProviderBootTypeIsHot)
-                    ProviderManager.ActivateProvider(result.Result);
+                if (ProviderManager.Instance.OASISProviderBootType == OASISProviderBootType.Hot && activateProviderIfOASISProviderBootTypeIsHot)
+                    ProviderManager.Instance.ActivateProvider(result.Result);
             }
             catch (Exception e)
             {
@@ -466,8 +466,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                 result = RegisterProviderInternal(providerType, overrideConnectionString, forceRegister);
 
-                if (ProviderManager.OASISProviderBootType == OASISProviderBootType.Hot && activateProviderIfOASISProviderBootTypeIsHot)
-                    await ProviderManager.ActivateProviderAsync(result.Result);
+                if (ProviderManager.Instance.OASISProviderBootType == OASISProviderBootType.Hot && activateProviderIfOASISProviderBootTypeIsHot)
+                    await ProviderManager.Instance.ActivateProviderAsync(result.Result);
             }
             catch (Exception e)
             {
@@ -479,18 +479,18 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
         public static OASISResult<bool> RegisterProvidersInAutoFailOverList(bool abortIfOneProviderFailsToRegister = false)
         {
-            return RegisterProviders(ProviderManager.GetProviderAutoFailOverList(), abortIfOneProviderFailsToRegister);
+            return RegisterProviders(ProviderManager.Instance.GetProviderAutoFailOverList(), abortIfOneProviderFailsToRegister);
         }
 
         public static OASISResult<bool> RegisterProvidersInAutoLoadBalanceList(bool abortIfOneProviderFailsToRegister = false)
         {
-            return RegisterProviders(ProviderManager.GetProviderAutoLoadBalanceList(),
+            return RegisterProviders(ProviderManager.Instance.GetProviderAutoLoadBalanceList(),
                 abortIfOneProviderFailsToRegister);
         }
 
         public static OASISResult<bool> RegisterProvidersInAutoReplicatingList(bool abortIfOneProviderFailsToRegister = false)
         {
-            return RegisterProviders(ProviderManager.GetProvidersThatAreAutoReplicating(),
+            return RegisterProviders(ProviderManager.Instance.GetProvidersThatAreAutoReplicating(),
                 abortIfOneProviderFailsToRegister);
         }
 
@@ -557,10 +557,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             try
             {
                 // If they wish to forceRegister then if it is already registered then unregister it first (when connectionstring changes for example).
-                if (forceRegister && ProviderManager.IsProviderRegistered(providerType))
-                    ProviderManager.UnRegisterProvider(providerType);
+                if (forceRegister && ProviderManager.Instance.IsProviderRegistered(providerType))
+                    ProviderManager.Instance.UnRegisterProvider(providerType);
 
-                if (!ProviderManager.IsProviderRegistered(providerType))
+                if (!ProviderManager.Instance.IsProviderRegistered(providerType))
                 {
                     switch (providerType)
                     {
@@ -635,7 +635,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //case ProviderType.SEEDSOASIS:
                         //    {
                         //        SEEDSOASIS SEEDSOASIS = new SEEDSOASIS(new EOSIOOASIS(OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString));
-                        //        ProviderManager.RegisterProvider(SEEDSOASIS);
+                        //        ProviderManager.Instance.RegisterProvider(SEEDSOASIS);
                         //        registeredProvider = SEEDSOASIS;
                         //    }
                         //    break;
@@ -716,10 +716,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     }
 
                     if (result.Result != null)
-                        ProviderManager.RegisterProvider(result.Result);
+                        ProviderManager.Instance.RegisterProvider(result.Result);
                 }
                 else
-                    result.Result = (IOASISStorageProvider)ProviderManager.GetProvider(providerType);
+                    result.Result = (IOASISStorageProvider)ProviderManager.Instance.GetProvider(providerType);
             }
             catch (Exception e) 
             {
@@ -731,19 +731,19 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
         private static OASISResult<IOASISStorageProvider> ProcessResults(OASISResult<IOASISStorageProvider> result)
         {
-            if (ProviderManager.CurrentStorageProvider == null)
+            if (ProviderManager.Instance.CurrentStorageProvider == null)
             {
                 result.IsError = true;
 
-                if (ProviderManager.IsAutoFailOverEnabled)
-                    result.Message = $"CRITCAL ERROR: None of the OASIS Providers listed in the AutoFailOver List managed to start. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}Check logs or InnerMessages for more details. Providers in AutoFailOverList are {ProviderManager.GetProviderAutoFailOverListAsString()}.";
+                if (ProviderManager.Instance.IsAutoFailOverEnabled)
+                    result.Message = $"CRITCAL ERROR: None of the OASIS Providers listed in the AutoFailOver List managed to start. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}Check logs or InnerMessages for more details. Providers in AutoFailOverList are {ProviderManager.Instance.GetProviderAutoFailOverListAsString()}.";
                 else
                     result.Message = $"CRITCAL ERROR: AutoFailOver is DISABLED and the first provider in the list failed to start. Reason: {result.InnerMessages[0]}";
             }
             else if (result.InnerMessages.Count > 0)
             {
                 result.IsWarning = true;
-                result.Message = $"WARNING: The {ProviderManager.CurrentStorageProviderType.Name} Provider started but others failed to start. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}Please check the logs or InnerMessages for more details. Providers in AutoFailOverList are {ProviderManager.GetProviderAutoFailOverListAsString()}.";
+                result.Message = $"WARNING: The {ProviderManager.Instance.CurrentStorageProviderType.Name} Provider started but others failed to start. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}Please check the logs or InnerMessages for more details. Providers in AutoFailOverList are {ProviderManager.Instance.GetProviderAutoFailOverListAsString()}.";
             }
 
             return result;
@@ -804,16 +804,16 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
         private static void LoadProviderLists()
         {
-            // ProviderManager.DefaultProviderTypes = OASISDNA.OASIS.StorageProviders.DefaultProviders.Split(",");
-            ProviderManager.SetAutoFailOverForProviders(true,
+            // ProviderManager.Instance.DefaultProviderTypes = OASISDNA.OASIS.StorageProviders.DefaultProviders.Split(",");
+            ProviderManager.Instance.SetAutoFailOverForProviders(true,
                 GetProviderTypesFromDNA("AutoFailOverProviders",
                     OASISDNA.OASIS.StorageProviders.AutoFailOverProviders).Result);
 
-            ProviderManager.SetAutoLoadBalanceForProviders(true,
+            ProviderManager.Instance.SetAutoLoadBalanceForProviders(true,
                 GetProviderTypesFromDNA("AutoLoadBalanceProviders",
                     OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders).Result);
 
-            ProviderManager.SetAutoReplicationForProviders(true,
+            ProviderManager.Instance.SetAutoReplicationForProviders(true,
                 GetProviderTypesFromDNA("AutoReplicationProviders",
                     OASISDNA.OASIS.StorageProviders.AutoReplicationProviders).Result);
         }

@@ -648,7 +648,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             OASISResult<string> result = new OASISResult<string>();
 
             if (providerType == ProviderType.Default || providerType == ProviderType.All || providerType == ProviderType.None)
-                providerType = ProviderManager.CurrentStorageProviderType.Value;
+                providerType = ProviderManager.Instance.CurrentStorageProviderType.Value;
 
             if (ProviderUniqueStorageKey.ContainsKey(providerType) && !string.IsNullOrEmpty(ProviderUniqueStorageKey[providerType]))
                 result.Result = ProviderUniqueStorageKey[providerType];

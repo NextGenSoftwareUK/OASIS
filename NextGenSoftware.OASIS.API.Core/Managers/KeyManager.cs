@@ -45,8 +45,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             get
             {
                 if (_instance == null)
-                    _instance = new KeyManager(ProviderManager.CurrentStorageProvider);
-                    //_instance = new KeyManager(ProviderManager.CurrentStorageProvider, AvatarManager.Instance);
+                    _instance = new KeyManager(ProviderManager.Instance.CurrentStorageProvider);
+                    //_instance = new KeyManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.Instance);
 
                 return _instance;
             }

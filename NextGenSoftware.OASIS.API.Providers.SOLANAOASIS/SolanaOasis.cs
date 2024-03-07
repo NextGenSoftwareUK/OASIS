@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             get
             {
                 if (_keyManager == null)
-                    _keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.SolanaOASIS));
+                    _keyManager = new KeyManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.SolanaOASIS));
 
                 return _keyManager;
             }
@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             get
             {
                 if (_walletManager == null)
-                    _walletManager = new WalletManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.SolanaOASIS));
+                    _walletManager = new WalletManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.SolanaOASIS));
 
                 return _walletManager;
             }

@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             get
             {
                 if (_instance == null)
-                    _instance = new SearchManager(ProviderManager.CurrentStorageProvider);
+                    _instance = new SearchManager(ProviderManager.Instance.CurrentStorageProvider);
 
                 return _instance;
             }
@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, ProviderType providerType = ProviderType.Default, List<ProviderType> additionalProvidersToSearch = null, bool allowDuplicates = true, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
-            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             ProviderType previousProviderType = ProviderType.Default;
             
             try
@@ -58,13 +58,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else
                 {
                     result = await SearchProviderAsync(searchParams, result, providerType, loadChildren, recursive, maxChildDepth, continueOnError, version);
-                    previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                    previousProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
 
-                    if ((result.Result == null || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                    if ((result.Result == null || result.IsError) && ProviderManager.Instance.IsAutoFailOverEnabled)
                     {
-                        foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                        foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
                         {
-                            if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                            if (type.Value != previousProviderType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                             {
                                 result = await SearchProviderAsync(searchParams, result, providerType, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
@@ -75,13 +75,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     }
 
                     if (result.Result == null || result.IsError)
-                        OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to search. ErrorCount: ", result.ErrorCount, ". WarningCount: ", result.WarningCount, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to search. ErrorCount: ", result.ErrorCount, ". WarningCount: ", result.WarningCount, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
                     {
                         result.IsLoaded = true;
 
                         if (result.WarningCount > 0)
-                            OASISErrorHandling.HandleWarning(ref result, string.Concat("The search completed successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to complete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), ". ErrorCount: ", result.ErrorCount, ".WarningCount: ", result.WarningCount, "."), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            OASISErrorHandling.HandleWarning(ref result, string.Concat("The search completed successfully for the provider ", ProviderManager.Instance.CurrentStorageProviderType.Value, " but failed to complete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString(), ". ErrorCount: ", result.ErrorCount, ".WarningCount: ", result.WarningCount, "."), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                         else
                             result.Message = "Search Completed Successfully.";
 
@@ -89,12 +89,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     }
 
                     // Set the current provider back to the original provider.
-                    ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                    ProviderManager.Instance.SetAndActivateCurrentStorageProvider(currentProviderType);
                 }
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured searchin in provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured searchin in provider ", ProviderManager.Instance.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = null;
             }
 
@@ -163,7 +163,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             result.Result = FilterResults(avatars, holons, allowDuplicates);
 
             if (result.ErrorCount > 0 || result.WarningCount > 0)
-                OASISErrorHandling.HandleError(ref result, String.Concat("One ore more OASIS Providers failed to search. ErrorCount: ", result.ErrorCount, ". WarningCount: ", result.WarningCount, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                OASISErrorHandling.HandleError(ref result, String.Concat("One ore more OASIS Providers failed to search. ErrorCount: ", result.ErrorCount, ". WarningCount: ", result.WarningCount, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
 
             return result;
         }
@@ -175,8 +175,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
-                errorMessage = string.Format(errorMessageTemplate, ProviderManager.CurrentStorageProviderType.Name);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+                errorMessage = string.Format(errorMessageTemplate, ProviderManager.Instance.CurrentStorageProviderType.Name);
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {

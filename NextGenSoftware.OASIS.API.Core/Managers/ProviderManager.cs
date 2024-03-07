@@ -5,29 +5,31 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     //TODO: Need to upgrade all methods to return OASISResult wrapper ASAP! :)
-    public class ProviderManager
+    public class ProviderManager : OASISManager
     {
-        private static List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
-        private static List<EnumValue<ProviderType>> _registeredProviderTypes = new List<EnumValue<ProviderType>>();
-        private static List<EnumValue<ProviderType>> _providerAutoFailOverList { get; set; } = new List<EnumValue<ProviderType>>();
-        private static List<EnumValue<ProviderType>> _providerAutoLoadBalanceList { get; set; } = new List<EnumValue<ProviderType>>();
-        private static List<EnumValue<ProviderType>> _providersThatAreAutoReplicating { get; set; } = new List<EnumValue<ProviderType>>();
-        private static bool _setProviderGlobally = false;
+        private static ProviderManager _instance = null;
+        private List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
+        private List<EnumValue<ProviderType>> _registeredProviderTypes = new List<EnumValue<ProviderType>>();
+        private List<EnumValue<ProviderType>> _providerAutoFailOverList { get; set; } = new List<EnumValue<ProviderType>>();
+        private List<EnumValue<ProviderType>> _providerAutoLoadBalanceList { get; set; } = new List<EnumValue<ProviderType>>();
+        private List<EnumValue<ProviderType>> _providersThatAreAutoReplicating { get; set; } = new List<EnumValue<ProviderType>>();
+        private bool _setProviderGlobally = false;
 
-        public static EnumValue<ProviderType> CurrentStorageProviderType { get; private set; } = new EnumValue<ProviderType>(ProviderType.Default);
-        public static EnumValue<ProviderCategory> CurrentStorageProviderCategory { get; private set; } = new EnumValue<ProviderCategory>(ProviderCategory.None);
-        public static OASISProviderBootType OASISProviderBootType { get; set; } = OASISProviderBootType.Hot;
+        public EnumValue<ProviderType> CurrentStorageProviderType { get; private set; } = new EnumValue<ProviderType>(ProviderType.Default);
+        public EnumValue<ProviderCategory> CurrentStorageProviderCategory { get; private set; } = new EnumValue<ProviderCategory>(ProviderCategory.None);
+        public OASISProviderBootType OASISProviderBootType { get; set; } = OASISProviderBootType.Hot;
 
-        public static bool IsAutoReplicationEnabled { get; set; } = true;
-        public static bool IsAutoFailOverEnabled { get; set; } = true;
-        public static bool IsAutoLoadBalanceEnabled { get; set; } = true;
+        public bool IsAutoReplicationEnabled { get; set; } = true;
+        public bool IsAutoFailOverEnabled { get; set; } = true;
+        public bool IsAutoLoadBalanceEnabled { get; set; } = true;
 
-        //public static string CurrentStorageProviderName
+        //public  string CurrentStorageProviderName
         //{
         //    get
         //    {
@@ -35,30 +37,36 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //    }
         //}
 
-        // public static string[] DefaultProviderTypes { get; set; }
+        // public  string[] DefaultProviderTypes { get; set; }
 
-        public static IOASISStorageProvider DefaultGlobalStorageProvider { get; set; }
+        public IOASISStorageProvider DefaultGlobalStorageProvider { get; set; }
 
-        public static IOASISStorageProvider CurrentStorageProvider { get; private set; } //TODO: Need to work this out because in future there can be more than one provider active at a time.
+        public IOASISStorageProvider CurrentStorageProvider { get; private set; } //TODO: Need to work this out because in future there can be more than one provider active at a time.
 
-        public static bool OverrideProviderType { get; set; } = false;
+        public bool OverrideProviderType { get; set; } = false;
 
-       
-        
 
-        //public static List<ProviderType> RegisteredProviderTypes
-        //{
-        //    get
-        //    {
-        //        if (_registeredProviderTypes == null)
-        //        {
-        //            _registeredProviderTypes = new List<ProviderType>();
-        //        }
-        //    }
-        //}
+        //public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
+
+        public static ProviderManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new ProviderManager(null);
+
+                return _instance;
+            }
+        }
+
+        //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
+        public ProviderManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
+        {
+
+        }
 
         //TODO: In future the registered providers will be dynamically loaded from MEF by watching a hot folder for compiled provider dlls (and other ways in future...)
-        public static bool RegisterProvider(IOASISProvider provider)
+        public bool RegisterProvider(IOASISProvider provider)
         {
             if (!_registeredProviders.Any(x => x.ProviderType == provider.ProviderType))
             {
@@ -70,7 +78,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return false;
         }
 
-        public static bool RegisterProviders(List<IOASISProvider> providers)
+        public bool RegisterProviders(List<IOASISProvider> providers)
         {
             bool returnValue = false;
 
@@ -80,7 +88,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return returnValue;
         }
 
-        public static bool UnRegisterProvider(IOASISProvider provider)
+        public bool UnRegisterProvider(IOASISProvider provider)
         {
             DeActivateProvider(provider);
 
@@ -89,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return true;
         }
 
-        public static bool UnRegisterProvider(ProviderType providerType)
+        public bool UnRegisterProvider(ProviderType providerType)
         {
             foreach (IOASISProvider provider in _registeredProviders)
             {
@@ -103,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return true;
         }
 
-        public static bool UnRegisterProviders(List<ProviderType> providerTypes)
+        public bool UnRegisterProviders(List<ProviderType> providerTypes)
         {
             foreach (ProviderType providerType in providerTypes)
                 UnRegisterProvider(providerType);
@@ -111,7 +119,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return true;
         }
 
-        public static bool UnRegisterProviders(List<IOASISProvider> providers)
+        public bool UnRegisterProviders(List<IOASISProvider> providers)
         {
             foreach (IOASISProvider provider in providers)
                 _registeredProviders.Remove(provider);
@@ -119,7 +127,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return true;
         }
 
-        public static ProviderCategory GetProviderCategory(ProviderType providerType)
+        public ProviderCategory GetProviderCategory(ProviderType providerType)
         {
             foreach (IOASISProvider provider in _registeredProviders)
             {
@@ -130,27 +138,27 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return ProviderCategory.None;
         }
 
-        public static List<IOASISProvider> GetAllRegisteredProviders()
+        public List<IOASISProvider> GetAllRegisteredProviders()
         {
             return _registeredProviders;
         }
 
-        public static List<EnumValue<ProviderType>> GetAllRegisteredProviderTypes()
+        public List<EnumValue<ProviderType>> GetAllRegisteredProviderTypes()
         {
             return _registeredProviderTypes;
         }
 
-        public static List<IOASISProvider> GetProvidersOfCategory(ProviderCategory category)
+        public List<IOASISProvider> GetProvidersOfCategory(ProviderCategory category)
         {
             return _registeredProviders.Where(x => x.ProviderCategory.Value == category).ToList();
         }
 
-        public static List<ProviderType> GetProviderTypesOfCategory(ProviderCategory category)
+        public List<ProviderType> GetProviderTypesOfCategory(ProviderCategory category)
         {
             return GetProviderTypes(GetProvidersOfCategory(category));
         }
 
-        public static List<IOASISStorageProvider> GetStorageProviders()
+        public List<IOASISStorageProvider> GetStorageProviders()
         {
             List<IOASISStorageProvider> storageProviders = new List<IOASISStorageProvider>();
 
@@ -160,13 +168,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return storageProviders;
         }
 
-        public static List<ProviderType> GetStorageProviderTypes()
+        public List<ProviderType> GetStorageProviderTypes()
         {
             //return GetProviderTypes(GetStorageProviders().Select(x => x.ProviderType);
             return GetStorageProviders().Select(x => x.ProviderType.Value).ToList();
         }
 
-        public static List<IOASISNETProvider> GetNetworkProviders()
+        public List<IOASISNETProvider> GetNetworkProviders()
         {
             List<IOASISNETProvider> networkProviders = new List<IOASISNETProvider>();
 
@@ -176,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return networkProviders;
         }
 
-        public static List<ProviderType> GetNetworkProviderTypes()
+        public List<ProviderType> GetNetworkProviderTypes()
         {
             return GetNetworkProviders().Select(x => x.ProviderType.Value).ToList();
 
@@ -188,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //return providerTypes;
         }
 
-        public static List<ProviderType> GetProviderTypes(List<IOASISProvider> providers)
+        public List<ProviderType> GetProviderTypes(List<IOASISProvider> providers)
         {
             List<ProviderType> providerTypes = new List<ProviderType>();
 
@@ -198,7 +206,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return providerTypes;
         }
 
-        public static List<IOASISRenderer> GetRendererProviders()
+        public List<IOASISRenderer> GetRendererProviders()
         {
             List<IOASISRenderer> rendererProviders = new List<IOASISRenderer>();
 
@@ -208,40 +216,40 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return rendererProviders;
         }
 
-        public static IOASISProvider GetProvider(ProviderType type)
+        public IOASISProvider GetProvider(ProviderType type)
         {
             return _registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type);
         }
 
-        public static IOASISStorageProvider GetStorageProvider(ProviderType type)
+        public IOASISStorageProvider GetStorageProvider(ProviderType type)
         {
             return (IOASISStorageProvider)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type);
             //return (IOASISStorageProvider)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Storage);
         }
 
-        public static IOASISNETProvider GetNetworkProvider(ProviderType type)
+        public IOASISNETProvider GetNetworkProvider(ProviderType type)
         {
             return (IOASISNETProvider)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type);
             //return (IOASISNETProvider)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Network);
         }
 
-        public static IOASISRenderer GetRendererProvider(ProviderType type)
+        public IOASISRenderer GetRendererProvider(ProviderType type)
         {
             return (IOASISRenderer)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type);
             //return (IOASISRenderer)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Renderer);
         }
 
-        public static bool IsProviderRegistered(IOASISProvider provider)
+        public bool IsProviderRegistered(IOASISProvider provider)
         {
             return _registeredProviders.Any(x => x.ProviderName == provider.ProviderName);
         }
 
-        public static bool IsProviderRegistered(ProviderType providerType)
+        public bool IsProviderRegistered(ProviderType providerType)
         {
             return _registeredProviders.Any(x => x.ProviderType.Value == providerType);
         }
 
-        //public static IOASISSuperStar SetAndActivateCurrentSuperStarProvider(ProviderType providerType)
+        //public  IOASISSuperStar SetAndActivateCurrentSuperStarProvider(ProviderType providerType)
         //{
         //    SetAndActivateCurrentStorageProvider(providerType);
 
@@ -249,7 +257,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
       //  }
 
         // Called from Managers.
-        public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(ProviderType providerType)
+        public OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(ProviderType providerType)
         {
             OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
 
@@ -264,7 +272,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static async Task<OASISResult<IOASISStorageProvider>> SetAndActivateCurrentStorageProviderAsync(ProviderType providerType)
+        public async Task<OASISResult<IOASISStorageProvider>> SetAndActivateCurrentStorageProviderAsync(ProviderType providerType)
         {
             OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
 
@@ -280,7 +288,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //TODO: Called internally (make private ?)
-        public static async Task<OASISResult<IOASISStorageProvider>> SetAndActivateCurrentStorageProviderAsync()
+        public async Task<OASISResult<IOASISStorageProvider>> SetAndActivateCurrentStorageProviderAsync()
         {
             // If a global provider has been set and the REST API call has not overiden the provider (OverrideProviderType) then set to global provider.
             if (DefaultGlobalStorageProvider != null && DefaultGlobalStorageProvider != CurrentStorageProvider && !OverrideProviderType)
@@ -298,7 +306,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //TODO: Called internally (make private ?)
-        public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider()
+        public OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider()
         {
             // If a global provider has been set and the REST API call has not overiden the provider (OverrideProviderType) then set to global provider.
             if (DefaultGlobalStorageProvider != null && DefaultGlobalStorageProvider != CurrentStorageProvider && !OverrideProviderType)
@@ -316,7 +324,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         // Called from ONode.WebAPI.OASISProviderManager.
-        public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(IOASISProvider OASISProvider)
+        public OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(IOASISProvider OASISProvider)
         {
             if (OASISProvider != CurrentStorageProvider)
             {
@@ -332,7 +340,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return new OASISResult<IOASISStorageProvider>(CurrentStorageProvider);
         }
 
-        public static async Task<OASISResult<IOASISStorageProvider>> SetAndActivateCurrentStorageProviderAsync(IOASISProvider OASISProvider)
+        public async Task<OASISResult<IOASISStorageProvider>> SetAndActivateCurrentStorageProviderAsync(IOASISProvider OASISProvider)
         {
             if (OASISProvider != CurrentStorageProvider)
             {
@@ -350,7 +358,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         // Called from ONode.WebAPI.OASISProviderManager.
         //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
-        public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = false)
+        public OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = false)
         {
             OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
             _setProviderGlobally = setGlobally;
@@ -379,7 +387,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         OASISResult<bool> deactivateProviderResult = DeActivateProvider(CurrentStorageProvider);
 
                         //TODO: Think its not an error as long as it can activate a provider below?
-                        if (deactivateProviderResult != null && deactivateProviderResult.IsError || deactivateProviderResult == null)
+                        if ((deactivateProviderResult != null && (deactivateProviderResult.IsError || !deactivateProviderResult.Result)) || deactivateProviderResult == null)
                             OASISErrorHandling.HandleWarning(ref result, deactivateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProvider Calling DeActivateProvider For Provider {CurrentStorageProviderType.Name}. Reason: {deactivateProviderResult.Message}" : "Unknown error (deactivateProviderResult was null!)");
                         else
                             LoggingManager.Log($"{CurrentStorageProviderType.Name} Provider DeActivated Successfully.", Logging.LogType.Info);
@@ -391,7 +399,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     OASISResult<bool> activateProviderResult = ActivateProvider(CurrentStorageProvider);
 
-                    if (activateProviderResult != null && activateProviderResult.IsError || activateProviderResult == null)
+                    if ((activateProviderResult != null && (activateProviderResult.IsError || !activateProviderResult.Result)) || activateProviderResult == null)
                         OASISErrorHandling.HandleError(ref result, activateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProvider Calling ActivateProvider For Provider {CurrentStorageProviderType.Name}. Reason: {activateProviderResult.Message}" : "Unknown error (activateProviderResult was null!)");
                     else
                         LoggingManager.Log($"{CurrentStorageProviderType.Name} Provider Activated Successfully.", Logging.LogType.Info);
@@ -405,7 +413,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static async Task<OASISResult<IOASISStorageProvider>> SetAndActivateCurrentStorageProviderAsync(ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IOASISStorageProvider>> SetAndActivateCurrentStorageProviderAsync(ProviderType providerType, bool setGlobally = false)
         {
             OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
             _setProviderGlobally = setGlobally;
@@ -434,7 +442,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         OASISResult<bool> deactivateProviderResult = await DeActivateProviderAsync(CurrentStorageProvider);
 
                         //TODO: Think its not an error as long as it can activate a provider below?
-                        if (deactivateProviderResult != null && deactivateProviderResult.IsError || deactivateProviderResult == null)
+                        if ((deactivateProviderResult != null && (deactivateProviderResult.IsError || !deactivateProviderResult.Result)) || deactivateProviderResult == null)
                             OASISErrorHandling.HandleWarning(ref result, deactivateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProviderAsync Calling DeActivateProviderAsync For Provider {CurrentStorageProviderType.Name}. Reason: {deactivateProviderResult.Message}" : "Unknown error (deactivateProviderResult was null!)");
                         else
                             LoggingManager.Log($"{CurrentStorageProviderType.Name} Provider DeActivated Successfully (Async).", Logging.LogType.Info);
@@ -446,7 +454,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     OASISResult<bool> activateProviderResult = await ActivateProviderAsync(CurrentStorageProvider);
 
-                    if (activateProviderResult != null && activateProviderResult.IsError || activateProviderResult == null)
+                    if ((activateProviderResult != null && (activateProviderResult.IsError || !activateProviderResult.Result)) || activateProviderResult == null)
                         OASISErrorHandling.HandleError(ref result, activateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProviderAsync Calling ActivateProviderAsync For Provider {CurrentStorageProviderType.Name}. Reason: {activateProviderResult.Message}" : "Unknown error (activateProviderResult was null!)");
                     else
                         LoggingManager.Log($"{CurrentStorageProviderType.Name} Provider Activated Successfully (Async).", Logging.LogType.Info);
@@ -460,120 +468,144 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static async Task<OASISResult<bool>> ActivateProviderAsync(ProviderType type)
+        public async Task<OASISResult<bool>> ActivateProviderAsync(ProviderType type)
         {
             return await ActivateProviderAsync(_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type));
         }
 
-        public static async Task<OASISResult<bool>> ActivateProviderAsync(IOASISProvider provider)
+        public async Task<OASISResult<bool>> ActivateProviderAsync(IOASISProvider provider)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = $"Error Occured Activating Provider {provider.ProviderType.Name} In ProviderManager ActivateProviderAsync. Reason: ";
 
             if (provider != null)
             {
                 try
                 {
                     LoggingManager.Log($"Attempting To Activate {provider.ProviderType.Name} Provider (Async)...", Logging.LogType.Info, true);
-                    result = await provider.ActivateProviderAsync();
+
+                    var task = provider.ActivateProviderAsync();
+
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ActivateProviderTimeOutSeconds * 1000)) == task)
+                        result = task.Result;
+                    else
+                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Timeout Occured! ActivateProviderTimeOutSeconds In OASISDNA.json Is Set To {OASISDNA.OASIS.StorageProviders.ActivateProviderTimeOutSeconds}. Try Increasing The Value And Try Again..."));
                 }
                 catch (Exception ex)
                 {
-                    OASISErrorHandling.HandleError(ref result, string.Concat("Error Activating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Unknown Error Occured: {ex}");
                 }
             }
             else
-                OASISErrorHandling.HandleError(ref result, "Error Activating Provider. Provider passed in is null!");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}Provider passed in is null!");
 
             return result;
         }
 
-        public static OASISResult<bool> ActivateProvider(ProviderType type)
+        public OASISResult<bool> ActivateProvider(ProviderType type)
         {
             return ActivateProvider(_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type));
         }
 
-        public static OASISResult<bool> ActivateProvider(IOASISProvider provider)
+        public OASISResult<bool> ActivateProvider(IOASISProvider provider)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = $"Error Occured Activating Provider {provider.ProviderType.Name} In ProviderManager ActivateProvider. Reason: ";
 
             if (provider != null)
             {
                 try
                 {
                     LoggingManager.Log($"Attempting To Activate {provider.ProviderType.Name} Provider...", Logging.LogType.Info, true);
-                    result = provider.ActivateProvider();
+                    result = Task.Run(() => provider.ActivateProvider()).WaitAsync(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ActivateProviderTimeOutSeconds)).Result;
+                }
+                catch (TimeoutException)
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Timeout Occured! ActivateProviderTimeOutSeconds In OASISDNA.json Is Set To {OASISDNA.OASIS.StorageProviders.ActivateProviderTimeOutSeconds}. Try Increasing The Value And Try Again..."));
                 }
                 catch (Exception ex)
                 {
-                    OASISErrorHandling.HandleError(ref result, string.Concat("Error Activating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Unknown Error Occured: {ex}");
                 }
             }
             else
-                OASISErrorHandling.HandleError(ref result, "Error Activating Provider. Provider passed in is null!");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}Provider passed in is null!");
 
             return result;
         }
 
-        public static OASISResult<bool> DeActivateProvider(ProviderType type)
+        public OASISResult<bool> DeActivateProvider(ProviderType type)
         {
             return DeActivateProvider(_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type));
         }
 
-        public static OASISResult<bool> DeActivateProvider(IOASISProvider provider)
+        public OASISResult<bool> DeActivateProvider(IOASISProvider provider)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = $"Error Occured Deactivating Provider {provider.ProviderType.Name} In ProviderManager DeActivateProvider. Reason: ";
 
             if (provider != null)
             {
                 try
                 {
-                    LoggingManager.Log($"Attempting To DeActivate {provider.ProviderType.Name} Provider...", Logging.LogType.Info, true);
-                    result = provider.DeActivateProvider();
+                    LoggingManager.Log($"Attempting To Deactivate {provider.ProviderType.Name} Provider...", Logging.LogType.Info, true);
+                    result = Task.Run(() => provider.DeActivateProvider()).WaitAsync(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.DectivateProviderTimeOutSeconds)).Result;
+                }
+                catch (TimeoutException)
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Timeout Occured! DectivateProviderTimeOutSeconds In OASISDNA.json Is Set To {OASISDNA.OASIS.StorageProviders.DectivateProviderTimeOutSeconds}. Try Increasing The Value And Try Again..."));
                 }
                 catch (Exception ex)
                 {
-                    OASISErrorHandling.HandleError(ref result, string.Concat("Error DeActivating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Unknown Error Occured: {ex}");
                 }
             }
             else
-                OASISErrorHandling.HandleError(ref result, "Error DeActivating Provider. Provider passed in is null!");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}Provider passed in is null!");
 
             return result;
         }
 
-        public static async Task<OASISResult<bool>> DeActivateProviderAsync(ProviderType type)
+        public async Task<OASISResult<bool>> DeActivateProviderAsync(ProviderType type)
         {
             return await DeActivateProviderAsync(_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type));
         }
 
-        public static async Task<OASISResult<bool>> DeActivateProviderAsync(IOASISProvider provider)
+        public async Task<OASISResult<bool>> DeActivateProviderAsync(IOASISProvider provider)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = $"Error Occured Deactivating Provider {provider.ProviderType.Name} In ProviderManager DeActivateProviderAsync. Reason: ";
 
             if (provider != null)
             {
                 try
                 {
-                    LoggingManager.Log($"Attempting To DeActivate {provider.ProviderType.Name} Provider (Async)...", Logging.LogType.Info, true);
-                    result = await provider.DeActivateProviderAsync();
+                    LoggingManager.Log($"Attempting To Deactivate {provider.ProviderType.Name} Provider (Async)...", Logging.LogType.Info, true);
+
+                    var task = provider.DeActivateProviderAsync();
+
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.DectivateProviderTimeOutSeconds * 1000)) == task)
+                        result = task.Result;
+                    else
+                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Timeout Occured! DectivateProviderTimeOutSeconds In OASISDNA.json Is Set To {OASISDNA.OASIS.StorageProviders.DectivateProviderTimeOutSeconds}. Try Increasing The Value And Try Again..."));
                 }
                 catch (Exception ex)
                 {
-                    OASISErrorHandling.HandleError(ref result, string.Concat("Error DeActivating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Unknown Error Occured: {ex}");
                 }
             }
             else
-                OASISErrorHandling.HandleError(ref result, "Error DeActivating Provider. Provider passed in is null!");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}Provider passed in is null!");
 
             return result;
         }
 
-        public static bool SetAutoReplicationForProviders(bool autoReplicate, IEnumerable<ProviderType> providers)
+        public bool SetAutoReplicationForProviders(bool autoReplicate, IEnumerable<ProviderType> providers)
         {
             return SetProviderList(autoReplicate, providers, _providersThatAreAutoReplicating);
         }
 
-        public static OASISResult<bool> SetAutoReplicationForProviders(bool autoReplicate, string providerList)
+        public OASISResult<bool> SetAutoReplicationForProviders(bool autoReplicate, string providerList)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoReplicate", providerList);
@@ -586,7 +618,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<bool> SetAndReplaceAutoReplicationListForProviders(string providerList)
+        public OASISResult<bool> SetAndReplaceAutoReplicationListForProviders(string providerList)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoReplicate", providerList);
@@ -602,23 +634,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<bool> SetAndReplaceAutoReplicationListForProviders(IEnumerable<EnumValue<ProviderType>> providerList)
+        public OASISResult<bool> SetAndReplaceAutoReplicationListForProviders(IEnumerable<EnumValue<ProviderType>> providerList)
         {
             _providersThatAreAutoReplicating = providerList.ToList();
             return new OASISResult<bool>(true);
         }
 
-        public static bool SetAutoReplicateForAllProviders(bool autoReplicate)
+        public bool SetAutoReplicateForAllProviders(bool autoReplicate)
         {
             return SetAutoReplicationForProviders(autoReplicate, _registeredProviderTypes.Select(x => x.Value).ToList());
         }
 
-        public static bool SetAutoFailOverForProviders(bool addToFailOverList, IEnumerable<ProviderType> providers)
+        public bool SetAutoFailOverForProviders(bool addToFailOverList, IEnumerable<ProviderType> providers)
         {
             return SetProviderList(addToFailOverList, providers, _providerAutoFailOverList);
         }
 
-        public static OASISResult<bool> SetAutoFailOverForProviders(bool addToFailOverList, string providerList)
+        public OASISResult<bool> SetAutoFailOverForProviders(bool addToFailOverList, string providerList)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoFailOver", providerList);
@@ -631,7 +663,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<bool> SetAndReplaceAutoFailOverListForProviders(string providerList)
+        public OASISResult<bool> SetAndReplaceAutoFailOverListForProviders(string providerList)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoFailOver", providerList);
@@ -647,13 +679,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<bool> SetAndReplaceAutoFailOverListForProviders(IEnumerable<EnumValue<ProviderType>> providerList)
+        public OASISResult<bool> SetAndReplaceAutoFailOverListForProviders(IEnumerable<EnumValue<ProviderType>> providerList)
         {
             _providerAutoFailOverList = providerList.ToList();
             return new OASISResult<bool>(true);
         }
 
-        public static OASISResult<T> ValidateProviderList<T>(string listName, string providerList)
+        public OASISResult<T> ValidateProviderList<T>(string listName, string providerList)
         {
             string[] providers = providerList.Split(',');
             object providerTypeObject = null;
@@ -667,7 +699,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return new OASISResult<T>();
         }
 
-        public static OASISResult<IEnumerable<ProviderType>> GetProvidersFromList(string listName, string providerList)
+        public OASISResult<IEnumerable<ProviderType>> GetProvidersFromList(string listName, string providerList)
         {
             OASISResult<IEnumerable<ProviderType>> result = new OASISResult<IEnumerable<ProviderType>>();
             List<ProviderType> providerTypes = new List<ProviderType>();
@@ -695,7 +727,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<IEnumerable<EnumValue<ProviderType>>> GetProvidersFromListAsEnumList(string listName, string providerList)
+        public OASISResult<IEnumerable<EnumValue<ProviderType>>> GetProvidersFromListAsEnumList(string listName, string providerList)
         {
             OASISResult<IEnumerable<EnumValue<ProviderType>>> result = new OASISResult<IEnumerable<EnumValue<ProviderType>>>();
             OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList(listName, providerList);
@@ -708,17 +740,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static bool SetAutoFailOverForAllProviders(bool addToFailOverList)
+        public bool SetAutoFailOverForAllProviders(bool addToFailOverList)
         {
             return SetAutoFailOverForProviders(addToFailOverList, _registeredProviderTypes.Select(x => x.Value).ToList());
         }
 
-        public static bool SetAutoLoadBalanceForProviders(bool addToLoadBalanceList, IEnumerable<ProviderType> providers)
+        public bool SetAutoLoadBalanceForProviders(bool addToLoadBalanceList, IEnumerable<ProviderType> providers)
         {
             return SetProviderList(addToLoadBalanceList, providers, _providerAutoLoadBalanceList);
         }
 
-        public static OASISResult<bool> SetAutoLoadBalanceForProviders(bool addToLoadBalanceList, string providerList)
+        public OASISResult<bool> SetAutoLoadBalanceForProviders(bool addToLoadBalanceList, string providerList)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoLoadBalance", providerList);
@@ -731,7 +763,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<bool> SetAndReplaceAutoLoadBalanceListForProviders(string providerList)
+        public OASISResult<bool> SetAndReplaceAutoLoadBalanceListForProviders(string providerList)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoLoadBalance", providerList);
@@ -752,46 +784,48 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<bool> SetAndReplaceAutoLoadBalanceListForProviders(IEnumerable<EnumValue<ProviderType>> providerList)
+        public OASISResult<bool> SetAndReplaceAutoLoadBalanceListForProviders(IEnumerable<EnumValue<ProviderType>> providerList)
         {
             _providerAutoLoadBalanceList = providerList.ToList();
             return new OASISResult<bool>(true);
         }
 
-        public static bool SetAutoLoadBalanceForAllProviders(bool addToLoadBalanceList)
+        public bool SetAutoLoadBalanceForAllProviders(bool addToLoadBalanceList)
         {
             return SetAutoLoadBalanceForProviders(addToLoadBalanceList, _registeredProviderTypes.Select(x => x.Value).ToList());
         }
 
-        public static List<EnumValue<ProviderType>> GetProviderAutoLoadBalanceList()
+        public List<EnumValue<ProviderType>> GetProviderAutoLoadBalanceList()
         {
             return _providerAutoLoadBalanceList;
         }
 
-        public static List<EnumValue<ProviderType>> GetProviderAutoFailOverList()
+        public List<EnumValue<ProviderType>> GetProviderAutoFailOverList()
         {
             return _providerAutoFailOverList;
         }
 
-        public static string GetProviderAutoFailOverListAsString()
+        public string GetProviderAutoFailOverListAsString()
         {
             return GetProviderListAsString(GetProviderAutoFailOverList());
         }
-        public static string GetProvidersThatAreAutoReplicatingAsString()
+
+        public string GetProvidersThatAreAutoReplicatingAsString()
         {
             return GetProviderListAsString(GetProvidersThatAreAutoReplicating());
         }
-        public static string GetProviderAutoLoadBalanceListAsString()
+
+        public string GetProviderAutoLoadBalanceListAsString()
         {
             return GetProviderListAsString(GetProviderAutoLoadBalanceList());
         }
 
-        public static string GetProviderListAsString(List<ProviderType> providerList)
+        public string GetProviderListAsString(List<ProviderType> providerList)
         {
             return GetProviderListAsString(EnumHelper.ConvertToEnumValueList(providerList).Result.ToList());
         }
 
-        public static string GetProviderListAsString(List<EnumValue<ProviderType>> providerList)
+        public string GetProviderListAsString(List<EnumValue<ProviderType>> providerList)
         {
             string list = "";
 
@@ -809,12 +843,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return list;
         }
 
-        //public static List<EnumValue<ProviderType>> GetProvidersThatAreAutoReplicating()
+        //public List<EnumValue<ProviderType>> GetProvidersThatAreAutoReplicating()
         //{
         //    return _providersThatAreAutoReplicating;
         //}
 
-        public static List<EnumValue<ProviderType>> GetProvidersThatAreAutoReplicating()
+        public List<EnumValue<ProviderType>> GetProvidersThatAreAutoReplicating()
         {
             //TODO: Handle OASISResult properly and make all methods return OASISResult ASAP!
             //string providerListCache = GetProviderListAsString(_providersThatAreAutoReplicating);
@@ -823,7 +857,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return _providersThatAreAutoReplicating;
         }
 
-        private static bool SetProviderList(bool add, IEnumerable<ProviderType> providers, List<EnumValue<ProviderType>> listToAddTo)
+        private bool SetProviderList(bool add, IEnumerable<ProviderType> providers, List<EnumValue<ProviderType>> listToAddTo)
         {
             foreach (ProviderType providerType in providers)
             {

@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 //If it wasn't abstract we could also use this pattern.
                 //https://blog.stephencleary.com/2013/01/async-oop-2-constructors.html
-                Task.Run(async () => await ProviderManager.SetAndActivateCurrentStorageProviderAsync(OASISStorageProvider)).Wait(5000);
+                Task.Run(async () => await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(OASISStorageProvider)).Wait(5000);
                 OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_StorageProviderError;
             }
 

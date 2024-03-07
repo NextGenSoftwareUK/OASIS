@@ -1192,7 +1192,7 @@ namespace NextGenSoftware.OASIS.STAR
 
             //Generate any native code for the current provider.
             //TODO: Add option to pass into STAR which providers to generate native code for (can be more than one provider).
-            ((IOASISSuperStar)ProviderManager.CurrentStorageProvider).NativeCodeGenesis(newBody);
+            ((IOASISSuperStar)ProviderManager.Instance.CurrentStorageProvider).NativeCodeGenesis(newBody);
 
             //TODO: Need to save this to the StarNET store (still to be made!) (Will of course be written on top of the HDK/ODK...
             //This will be private on the store until the user publishes via the Star.Seed() command.

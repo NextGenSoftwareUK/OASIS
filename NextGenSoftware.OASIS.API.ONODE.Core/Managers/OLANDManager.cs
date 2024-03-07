@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             get
             {
                 if (_instance == null)
-                    _instance = new OLandManager(NFTManager.Instance, ProviderManager.CurrentStorageProvider);
+                    _instance = new OLandManager(NFTManager.Instance, ProviderManager.Instance.CurrentStorageProvider);
 
                 return _instance;
             }

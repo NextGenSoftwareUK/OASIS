@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             get
             {
                 if (_instance == null)
-                    _instance = new NFTManager(ProviderManager.CurrentStorageProvider);
+                    _instance = new NFTManager(ProviderManager.Instance.CurrentStorageProvider);
 
                 return _instance;
             }
@@ -851,7 +851,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IOASISNFTProvider> GetNFTProvider(ProviderType providerType, string errorMessage = "")
         {
             OASISResult<IOASISNFTProvider> result = new OASISResult<IOASISNFTProvider>();
-            IOASISProvider OASISProvider = ProviderManager.GetProvider(providerType);
+            IOASISProvider OASISProvider = ProviderManager.Instance.GetProvider(providerType);
 
             if (OASISProvider != null)
             {
@@ -888,7 +888,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
 
         //    //IOASISNFTProvider nftProvider = null;
-        //    //IOASISProvider OASISProvider = ProviderManager.GetProvider(providerType);
+        //    //IOASISProvider OASISProvider = ProviderManager.Instance.GetProvider(providerType);
 
         //    //if (OASISProvider != null)
         //    //{

@@ -48,12 +48,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 if (_avatarManager == null)
                 {
                     if (TelosOASIS != null)
-                        _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
+                        _avatarManager = new AvatarManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
                         //_avatarManager = new AvatarManager(TelosOASIS); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
 
                     else
                     {
-                        if (!ProviderManager.IsProviderRegistered(Core.Enums.ProviderType.TelosOASIS))
+                        if (!ProviderManager.Instance.IsProviderRegistered(Core.Enums.ProviderType.TelosOASIS))
                             throw new Exception("TelosOASIS Provider Not Registered. Please register and try again.");
                         else
                             throw new Exception("TelosOASIS Provider Is Registered But Was Not Injected Into SEEDSOASIS Provider.");
@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             get
             {
                 if (_keyManager == null)
-                    _keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
+                    _keyManager = new KeyManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
                     //_keyManager = new KeyManager(this, AvatarManager); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
 
                 return _keyManager;

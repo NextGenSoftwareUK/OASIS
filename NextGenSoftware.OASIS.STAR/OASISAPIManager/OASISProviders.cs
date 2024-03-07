@@ -41,8 +41,8 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
             {
                 if (_SEEDS == null)
                 {
-                    if (ProviderManager.IsProviderRegistered(ProviderType.SEEDSOASIS))
-                        _SEEDS = (SEEDSOASIS)ProviderManager.GetStorageProvider(ProviderType.SEEDSOASIS);
+                    if (ProviderManager.Instance.IsProviderRegistered(ProviderType.SEEDSOASIS))
+                        _SEEDS = (SEEDSOASIS)ProviderManager.Instance.GetStorageProvider(ProviderType.SEEDSOASIS);
                     else
                     {
                         // We could re-use the TelosOASIS Provider but it could have a different connection string to SEEDSOASIS so they need to be seperate.
@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
                             _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
                             _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey
                             ));
-                        ProviderManager.RegisterProvider(_SEEDS);
+                        ProviderManager.Instance.RegisterProvider(_SEEDS);
                     }
                 }
 
