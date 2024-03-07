@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.ExtentionMethods
 {
     public static class DictionaryExtentions
     {
-        static HolonManager _holonManager = new HolonManager(ProviderManager.CurrentStorageProvider);
+        static HolonManager _holonManager = new HolonManager(ProviderManager.Instance.CurrentStorageProvider);
 
         public static void AddFormat<TKey>(this Dictionary<TKey, string> dictionary, TKey key, string formatString, params object[] argList)
         {

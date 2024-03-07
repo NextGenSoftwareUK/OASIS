@@ -13,16 +13,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     {
         public OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true)
         {
-            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 
             result = LoadAllHolonsForProviderType(holonType, providerType, result, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
-            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            if (result.Result == null && ProviderManager.Instance.IsAutoFailOverEnabled)
             {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
                 {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    if (type.Value != providerType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                     {
                         result = LoadAllHolonsForProviderType(holonType, type.Value, result, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result == null)
             {
                 result.IsError = true;
-                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString());
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
@@ -55,16 +55,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public OASISResult<IEnumerable<T>> LoadAllHolons<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon, new()
         {
-            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
 
             result = LoadAllHolonsForProviderType(holonType, providerType, result, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
-            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            if (result.Result == null && ProviderManager.Instance.IsAutoFailOverEnabled)
             {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
                 {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    if (type.Value != providerType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                     {
                         result = LoadAllHolonsForProviderType(holonType, type.Value, result, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result == null)
             {
                 result.IsError = true;
-                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString());
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
@@ -96,16 +96,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 
             result = await LoadAllHolonsForProviderTypeAsync(holonType, providerType, result);
 
-            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            if (result.Result == null && ProviderManager.Instance.IsAutoFailOverEnabled)
             {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
                 {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    if (type.Value != providerType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                     {
                         result = await LoadAllHolonsForProviderTypeAsync(holonType, type.Value, result, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
@@ -118,7 +118,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result == null)
             {
                 result.IsError = true;
-                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString());
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
@@ -135,16 +135,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<IEnumerable<T>>> LoadAllHolonsAsync<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
 
             result = await LoadAllHolonsForProviderTypeAsync(holonType, providerType, result, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
-            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            if (result.Result == null && ProviderManager.Instance.IsAutoFailOverEnabled)
             {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
                 {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    if (type.Value != providerType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                     {
                         result = await LoadAllHolonsForProviderTypeAsync(holonType, type.Value, result, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
@@ -157,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result == null)
             {
                 result.IsError = true;
-                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString());
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }

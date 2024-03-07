@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             get
             {
                 if (_instance == null)
-                    _instance = new AvatarManager(ProviderManager.CurrentStorageProvider);
+                    _instance = new AvatarManager(ProviderManager.Instance.CurrentStorageProvider);
 
                 return _instance;
             }
@@ -78,8 +78,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (!avatarsResult.IsError && avatarsResult.Result != null)
                         {
-                            if (avatarsResult.Result.Any(x => x.ProviderWallets.ContainsKey(ProviderManager.CurrentStorageProviderType.Value)))
-                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderWallets[ProviderManager.CurrentStorageProviderType.Value].Any(x => x.PublicKey == username));
+                            if (avatarsResult.Result.Any(x => x.ProviderWallets.ContainsKey(ProviderManager.Instance.CurrentStorageProviderType.Value)))
+                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderWallets[ProviderManager.Instance.CurrentStorageProviderType.Value].Any(x => x.PublicKey == username));
                         }
                     }
                 }
@@ -153,8 +153,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (!avatarsResult.IsError && avatarsResult.Result != null)
                         {
-                            if (avatarsResult.Result.Any(x => x.ProviderWallets.ContainsKey(ProviderManager.CurrentStorageProviderType.Value)))
-                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderWallets[ProviderManager.CurrentStorageProviderType.Value].Any(x => x.PublicKey == username));
+                            if (avatarsResult.Result.Any(x => x.ProviderWallets.ContainsKey(ProviderManager.Instance.CurrentStorageProviderType.Value)))
+                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderWallets[ProviderManager.Instance.CurrentStorageProviderType.Value].Any(x => x.PublicKey == username));
                         }
                     }
                 }
@@ -569,8 +569,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
-                errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, ProviderManager.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+                errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, ProviderManager.Instance.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
@@ -622,8 +622,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
-                errorMessage = string.Format(errorMessageTemplate, id, ProviderManager.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+                errorMessage = string.Format(errorMessageTemplate, id, ProviderManager.Instance.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
@@ -670,8 +670,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
-                errorMessage = string.Format(errorMessageTemplate, email, ProviderManager.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+                errorMessage = string.Format(errorMessageTemplate, email, ProviderManager.Instance.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
@@ -718,12 +718,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
                     var task = providerResult.Result.DeleteAvatarByUsernameAsync(username, softDelete);
-                    errorMessage = String.Format(errorMessageTemplate, username, ProviderManager.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
+                    errorMessage = String.Format(errorMessageTemplate, username, ProviderManager.Instance.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
@@ -767,8 +767,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
            try
            {
-               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-               errorMessage = string.Format(errorMessageTemplate, id, ProviderManager.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
+               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
+               errorMessage = string.Format(errorMessageTemplate, id, ProviderManager.Instance.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
 
                if (!providerResult.IsError && providerResult.Result != null)
                {
@@ -815,8 +815,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
            try
            {
-               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-               errorMessage = string.Format(errorMessageTemplate, email, ProviderManager.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
+               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
+               errorMessage = string.Format(errorMessageTemplate, email, ProviderManager.Instance.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
 
                if (!providerResult.IsError && providerResult.Result != null)
                {
@@ -863,12 +863,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
            try
            {
-               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
 
                if (!providerResult.IsError && providerResult.Result != null)
                {
                    var task = providerResult.Result.DeleteAvatarDetailByUsernameAsync(username, softDelete);
-                   errorMessage = String.Format(errorMessageTemplate, username, ProviderManager.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
+                   errorMessage = String.Format(errorMessageTemplate, username, ProviderManager.Instance.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
 
                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                    {

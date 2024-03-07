@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!result.HasAnyHolonsChanged)
                     return result;
 
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -75,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!result.HasAnyHolonsChanged)
                     return result;
 
-                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -129,7 +129,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!result.HasAnyHolonsChanged)
                     return result;
 
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -187,7 +187,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!result.HasAnyHolonsChanged)
                     return result;
 
-                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -239,7 +239,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private OASISResult<IEnumerable<T>> SaveHolonsForListOfProviders<T>(IEnumerable<IHolon> holons, OASISResult<IEnumerable<T>> result, ProviderType currentProviderType, List<EnumValue<ProviderType>> providers, string listName, bool continueOSuccess, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true) where T : IHolon
         {
             OASISResult<IEnumerable<IHolon>> holonSaveResult = new OASISResult<IEnumerable<IHolon>>();
-            ProviderType originalCurrentProvider = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType originalCurrentProvider = ProviderManager.Instance.CurrentStorageProviderType.Value;
 
             HasAnyHolonsChanged(holons, ref result);
 
@@ -248,7 +248,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             foreach (EnumValue<ProviderType> type in providers)
             {
-                //if (type.Value != currentProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                //if (type.Value != currentProviderType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                 if (type.Value != originalCurrentProvider)
                 {
                     holonSaveResult = SaveHolonsForProviderType(holons, type.Value, holonSaveResult, saveChildren, recursive, maxChildDepth, continueOnError);
@@ -267,7 +267,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IEnumerable<T>>> SaveHolonsForListOfProvidersAsync<T>(IEnumerable<IHolon> holons, OASISResult<IEnumerable<T>> result, ProviderType currentProviderType, List<EnumValue<ProviderType>> providers, string listName, bool continueOSuccess, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true) where T : IHolon
         {
             OASISResult<IEnumerable<IHolon>> holonSaveResult = new OASISResult<IEnumerable<IHolon>>();
-            ProviderType originalCurrentProvider = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType originalCurrentProvider = ProviderManager.Instance.CurrentStorageProviderType.Value;
 
             HasAnyHolonsChanged(holons, ref result);
 
@@ -276,7 +276,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             foreach (EnumValue<ProviderType> type in providers)
             {
-                //if (type.Value != currentProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                //if (type.Value != currentProviderType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                 if (type.Value != originalCurrentProvider)
                 {
                     holonSaveResult = await SaveHolonsForProviderTypeAsync(holons, type.Value, holonSaveResult, saveChildren, recursive, maxChildDepth, continueOnError);
@@ -295,7 +295,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private OASISResult<T> SaveHolonForListOfProviders<T>(IHolon holon, OASISResult<T> result, ProviderType currentProviderType, List<EnumValue<ProviderType>> providers, string listName, bool continueOSuccess, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true) where T : IHolon
         {
             OASISResult<IHolon> holonSaveResult = new OASISResult<IHolon>();
-            ProviderType originalCurrentProvider = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType originalCurrentProvider = ProviderManager.Instance.CurrentStorageProviderType.Value;
 
             HasHolonChanged(holon, ref result);
 
@@ -304,7 +304,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             foreach (EnumValue<ProviderType> type in providers)
             {
-                //if (type.Value != currentProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                //if (type.Value != currentProviderType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                 if (type.Value != originalCurrentProvider)
                 { 
                     holonSaveResult = SaveHolonForProviderType(holon, type.Value, holonSaveResult, saveChildren, recursive, maxChildDepth, continueOnError);
@@ -323,7 +323,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<T>> SaveHolonForListOfProvidersAsync<T>(IHolon holon, OASISResult<T> result, ProviderType currentProviderType, List<EnumValue<ProviderType>> providers, string listName, bool continueOSuccess, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true) where T : IHolon
         {
             OASISResult<IHolon> holonSaveResult = new OASISResult<IHolon>();
-            ProviderType originalCurrentProvider = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType originalCurrentProvider = ProviderManager.Instance.CurrentStorageProviderType.Value;
 
             HasHolonChanged(holon, ref result);
 
@@ -332,7 +332,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             foreach (EnumValue<ProviderType> type in providers)
             {
-                //if (type.Value != currentProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                //if (type.Value != currentProviderType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                 if (type.Value != originalCurrentProvider)
                 {
                     holonSaveResult = await SaveHolonForProviderTypeAsync(holon, type.Value, holonSaveResult, saveChildren, recursive, maxChildDepth, continueOnError);

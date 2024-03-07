@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         public Zome(string providerKey, ProviderType providerType = ProviderType.Default) : base()
         {
             if (providerType == ProviderType.Default)
-                providerType = ProviderManager.CurrentStorageProviderType.Value;
+                providerType = ProviderManager.Instance.CurrentStorageProviderType.Value;
 
             this.ProviderUniqueStorageKey[providerType] = providerKey;
         }

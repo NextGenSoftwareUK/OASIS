@@ -33,12 +33,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (workerParams != null)
             {
                 OASISResult<IAvatar> result = workerParams.Result;
-                //string providerList = ProviderManager.GetProvidersThatAreAutoReplicatingAsString();
+                //string providerList = ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString();
 
-                //foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersFromListAsEnumList("AutoReplicate", workerParams.ProviderList).Result)
+                //foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
+                foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersFromListAsEnumList("AutoReplicate", workerParams.ProviderList).Result)
                 {
-                    if (type.Value != workerParams.PreviousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    if (type.Value != workerParams.PreviousProviderType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                         workerParams.Result = SaveAvatarForProvider(workerParams.Avatar, workerParams.Result, SaveMode.AutoReplication, type.Value);
                 }
 
@@ -53,12 +53,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (workerParams != null)
             {
                 OASISResult<IAvatarDetail> result = workerParams.Result;
-                //string providerList = ProviderManager.GetProvidersThatAreAutoReplicatingAsString();
+                //string providerList = ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString();
 
-                //foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersFromListAsEnumList("AutoReplicate", workerParams.ProviderList).Result)
+                //foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
+                foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersFromListAsEnumList("AutoReplicate", workerParams.ProviderList).Result)
                 {
-                    if (type.Value != workerParams.PreviousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    if (type.Value != workerParams.PreviousProviderType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                         workerParams.Result = SaveAvatarDetailForProvider(workerParams.AvatarDetail, workerParams.Result, SaveMode.AutoReplication, type.Value);
                 }
 
@@ -70,19 +70,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             if (waitForAutoReplicationResult)
             {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                 {
-                    if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    if (type.Value != previousProviderType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                         result = await SaveAvatarForProviderAsync(avatar, result, SaveMode.AutoReplication, type.Value);
                 }
 
-                result = ProcessAvatarResults(avatar, result, previousProviderType, ProviderManager.GetProvidersThatAreAutoReplicatingAsString());     
+                result = ProcessAvatarResults(avatar, result, previousProviderType, ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString());     
             }
             else
             {
                 Thread worker = new Thread(new ParameterizedThreadStart(AutoReplicateAvatarWorker));
                 worker.IsBackground = true;
-                worker.Start(new AutoReplicateAvatarWorkerParams() { Avatar = avatar, Result = result, PreviousProviderType = previousProviderType, ProviderList = ProviderManager.GetProvidersThatAreAutoReplicatingAsString() });
+                worker.Start(new AutoReplicateAvatarWorkerParams() { Avatar = avatar, Result = result, PreviousProviderType = previousProviderType, ProviderList = ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString() });
             }
 
             return result;
@@ -92,19 +92,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             if (waitForAutoReplicationResult)
             {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                 {
-                    if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    if (type.Value != previousProviderType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                         result = SaveAvatarForProvider(avatar, result, SaveMode.AutoReplication, type.Value);
                 }
 
-                result = ProcessAvatarResults(avatar, result, previousProviderType, ProviderManager.GetProvidersThatAreAutoReplicatingAsString());
+                result = ProcessAvatarResults(avatar, result, previousProviderType, ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString());
             }
             else
             {
                 Thread worker = new Thread(new ParameterizedThreadStart(AutoReplicateAvatarWorker));
                 worker.IsBackground = true;
-                worker.Start(new AutoReplicateAvatarWorkerParams() { Avatar = avatar, Result = result, PreviousProviderType = previousProviderType, ProviderList = ProviderManager.GetProvidersThatAreAutoReplicatingAsString() });
+                worker.Start(new AutoReplicateAvatarWorkerParams() { Avatar = avatar, Result = result, PreviousProviderType = previousProviderType, ProviderList = ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString() });
             }
 
             return result;
@@ -114,19 +114,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             if (waitForAutoReplicationResult)
             {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                 {
-                    if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    if (type.Value != previousProviderType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                         result = await SaveAvatarDetailForProviderAsync(avatar, result, SaveMode.AutoReplication, type.Value);
                 }
 
-                result = ProcessAvatarDetailResults(avatar, result, previousProviderType, ProviderManager.GetProvidersThatAreAutoReplicatingAsString());
+                result = ProcessAvatarDetailResults(avatar, result, previousProviderType, ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString());
             }
             else
             {
                 Thread worker = new Thread(new ParameterizedThreadStart(AutoReplicateAvatarDetailWorker));
                 worker.IsBackground = true;
-                worker.Start(new AutoReplicateAvatarDetailWorkerParams() { AvatarDetail = avatar, Result = result, PreviousProviderType = previousProviderType, ProviderList = ProviderManager.GetProvidersThatAreAutoReplicatingAsString() });
+                worker.Start(new AutoReplicateAvatarDetailWorkerParams() { AvatarDetail = avatar, Result = result, PreviousProviderType = previousProviderType, ProviderList = ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString() });
             }
 
             return result;
@@ -136,19 +136,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             if (waitForAutoReplicationResult)
             {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                 {
-                    if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    if (type.Value != previousProviderType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                         result = SaveAvatarDetailForProvider(avatar, result, SaveMode.AutoReplication, type.Value);
                 }
 
-                result = ProcessAvatarDetailResults(avatar, result, previousProviderType, ProviderManager.GetProvidersThatAreAutoReplicatingAsString());
+                result = ProcessAvatarDetailResults(avatar, result, previousProviderType, ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString());
             }
             else
             {
                 Thread worker = new Thread(new ParameterizedThreadStart(AutoReplicateAvatarWorker));
                 worker.IsBackground = true;
-                worker.Start(new AutoReplicateAvatarDetailWorkerParams() { AvatarDetail = avatar, Result = result, PreviousProviderType = previousProviderType, ProviderList = ProviderManager.GetProvidersThatAreAutoReplicatingAsString() });
+                worker.Start(new AutoReplicateAvatarDetailWorkerParams() { AvatarDetail = avatar, Result = result, PreviousProviderType = previousProviderType, ProviderList = ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString() });
             }
 
             return result;
@@ -158,7 +158,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             if (result.WarningCount > 0)
                 OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar ", avatar.Name, " with id ", avatar.Id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", providerList), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
-                //OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar ", avatar.Name, " with id ", avatar.Id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                //OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar ", avatar.Name, " with id ", avatar.Id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
             else
                 LoggingManager.Log("Avatar Successfully Saved/Replicated", LogType.Info, ref result, true, false);
 
@@ -168,7 +168,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private OASISResult<IAvatarDetail> ProcessAvatarDetailResults(IAvatarDetail avatar, OASISResult<IAvatarDetail> result, ProviderType previousProviderType, string providerList)
         {
             if (result.WarningCount > 0)
-                //OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail ", avatar.Name, " with id ", avatar.Id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                //OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail ", avatar.Name, " with id ", avatar.Id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                 OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail ", avatar.Name, " with id ", avatar.Id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", providerList), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
             else
                 LoggingManager.Log("Avatar Detail Successfully Saved/Replicated", LogType.Info, ref result, true, false);

@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -27,15 +27,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     result = providerResult.Result.DeleteHolon(id, softDelete);
 
-                    if (!result.IsError && result.Result && ProviderManager.IsAutoReplicationEnabled)
+                    if (!result.IsError && result.Result && ProviderManager.Instance.IsAutoReplicationEnabled)
                     {
-                        foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                        foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                         {
-                            if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                            if (type.Value != providerType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                             {
                                 try
                                 {
-                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
 
                                     if (autoReplicateProviderResult.IsError)
                                     {
@@ -87,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -98,15 +98,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     result = await providerResult.Result.DeleteHolonAsync(id, softDelete);
 
-                    if (!result.IsError && result.Result && ProviderManager.IsAutoReplicationEnabled)
+                    if (!result.IsError && result.Result && ProviderManager.Instance.IsAutoReplicationEnabled)
                     {
-                        foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                        foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                         {
-                            if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                            if (type.Value != providerType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                             {
                                 try
                                 {
-                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
+                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                                     if (autoReplicateProviderResult.IsError)
                                     {
@@ -158,7 +158,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -169,15 +169,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     result = providerResult.Result.DeleteHolon(providerKey, softDelete);
 
-                    if (!result.IsError && result.Result && ProviderManager.IsAutoReplicationEnabled)
+                    if (!result.IsError && result.Result && ProviderManager.Instance.IsAutoReplicationEnabled)
                     {
-                        foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                        foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                         {
-                            if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                            if (type.Value != providerType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                             {
                                 try
                                 {
-                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
 
                                     if (autoReplicateProviderResult.IsError)
                                     {
@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -240,15 +240,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     result = await providerResult.Result.DeleteHolonAsync(providerKey, softDelete);
 
-                    if (!result.IsError && result.Result && ProviderManager.IsAutoReplicationEnabled)
+                    if (!result.IsError && result.Result && ProviderManager.Instance.IsAutoReplicationEnabled)
                     {
-                        foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                        foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                         {
-                            if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                            if (type.Value != providerType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                             {
                                 try
                                 {
-                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
+                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
 
                                     if (autoReplicateProviderResult.IsError)
                                     {

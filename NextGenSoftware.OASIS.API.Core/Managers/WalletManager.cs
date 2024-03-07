@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             get
             {
                 if (_instance == null)
-                    _instance = new WalletManager(ProviderManager.CurrentStorageProvider);
+                    _instance = new WalletManager(ProviderManager.Instance.CurrentStorageProvider);
 
                 return _instance;
             }
@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
             string errorMessage = "Error Occured in SendTokenAsync function. Reason: ";
 
-            IOASISBlockchainStorageProvider oasisBlockchainProvider =  ProviderManager.GetProvider(request.FromProviderType) as IOASISBlockchainStorageProvider;
+            IOASISBlockchainStorageProvider oasisBlockchainProvider =  ProviderManager.Instance.GetProvider(request.FromProviderType) as IOASISBlockchainStorageProvider;
 
             if (oasisBlockchainProvider != null)
             {
@@ -61,7 +61,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
             string errorMessage = "Error Occured in SendTokenAsync function. Reason: ";
 
-            IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.GetProvider(request.FromProviderType) as IOASISBlockchainStorageProvider;
+            IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.FromProviderType) as IOASISBlockchainStorageProvider;
 
             if (oasisBlockchainProvider != null)
             {
@@ -84,8 +84,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
-                errorMessage = string.Format(errorMessageTemplate, ProviderManager.CurrentStorageProviderType.Name);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+                errorMessage = string.Format(errorMessageTemplate, ProviderManager.Instance.CurrentStorageProviderType.Name);
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
@@ -113,8 +113,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-                errorMessage = string.Format(errorMessageTemplate, ProviderManager.CurrentStorageProviderType.Name);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
+                errorMessage = string.Format(errorMessageTemplate, ProviderManager.Instance.CurrentStorageProviderType.Name);
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
@@ -232,7 +232,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = 
                 new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
 
-            foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+            foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
             {
                 OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = LoadProviderWalletsForAvatarById(id, type.Value);
                 result.Result = walletsResult.Result;
@@ -244,13 +244,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null || result.IsError)
-                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             else
             {
                 result.IsLoaded = true;
 
                 if (result.WarningCount > 0)
-                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " loaded it's wallets successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " loaded it's wallets successfully for the provider ", ProviderManager.Instance.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             }
 
             return result;
@@ -267,7 +267,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result =
                 new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
 
-            foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+            foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
             {
                 OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await LoadProviderWalletsForAvatarByIdAsync(id, type.Value);
                 result.Result = walletsResult.Result;
@@ -279,13 +279,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null || result.IsError)
-                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             else
             {
                 result.IsLoaded = true;
 
                 if (result.WarningCount > 0)
-                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " loaded it's wallets successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " loaded it's wallets successfully for the provider ", ProviderManager.Instance.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             }
 
             return result;
@@ -433,13 +433,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-                errorMessage = string.Format(errorMessageTemplate, ProviderManager.CurrentStorageProviderType.Name);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
+                errorMessage = string.Format(errorMessageTemplate, ProviderManager.Instance.CurrentStorageProviderType.Name);
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
                     //Make sure private keys are ONLY stored locally.
-                    if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
+                    if (ProviderManager.Instance.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.Instance.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
                     {
                         //TODO: Was going to load the private keys from the local storage and then restore any missing private keys before saving (in case they had been removed before saving to a non-local storage provider) but then there will be no way of knowing if the keys have been removed by the user (if they were then this would then incorrectly restore them again!).
                         //Commented out code was an alternative to saving the private keys seperatley as the next block below does...
@@ -497,13 +497,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType);
-                errorMessage = string.Format(errorMessageTemplate, ProviderManager.CurrentStorageProviderType.Name);
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+                errorMessage = string.Format(errorMessageTemplate, ProviderManager.Instance.CurrentStorageProviderType.Name);
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
                     //Make sure private keys are ONLY stored locally.
-                    if (ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
+                    if (ProviderManager.Instance.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocal || ProviderManager.Instance.CurrentStorageProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
                     {
                         //TODO: Was going to load the private keys from the local storage and then restore any missing private keys before saving (in case they had been removed before saving to a non-local storage provider) but then there will be no way of knowing if the keys have been removed by the user (if they were then this would then incorrectly restore them again!).
                         //Commented out code was an alternative to saving the private keys seperatley as the next block below does...
@@ -653,18 +653,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<bool> SaveProviderWalletsForAvatarById(Guid id, Dictionary<ProviderType, List<IProviderWallet>> wallets)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             ProviderType previousProviderType = ProviderType.Default;
 
             //TODO: May add local storage providers to their own list? To save looping through lots of non-local ones or is this not really needed? :)
-            foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+            foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
             {
                 OASISResult<bool> walletsResult = SaveProviderWalletsForAvatarById(id, wallets, type.Value);
                 result.Result = walletsResult.Result;
 
                 if (!walletsResult.IsError && walletsResult.Result)
                 {
-                    previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                    previousProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
                     break;
                 }
                 else
@@ -672,24 +672,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (!result.Result || result.IsError)
-                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to save wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to save wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             else
             {
                 result.IsSaved = true;
 
                 if (result.WarningCount > 0)
-                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to save for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", ProviderManager.Instance.CurrentStorageProviderType.Value, " but failed to save for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                     result.Message = "Avatar Wallets Successfully Saved.";
 
                 //TODO: Need to move into background thread ASAP!
                 //TODO: Even if all providers failed above, we should still attempt again in a background thread for a fixed number of attempts (default 3) every X seconds (default 5) configured in OASISDNA.json.
                 //TODO: Auto-Failover should also re-try in a background thread after reporting the intial error above and then report after the retries either failed or succeeded later...
-                if (ProviderManager.IsAutoReplicationEnabled)
+                if (ProviderManager.Instance.IsAutoReplicationEnabled)
                 {
-                    foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                    foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                     {
-                        if (type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                        if (type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                         {
                             OASISResult<bool> walletsResult = SaveProviderWalletsForAvatarById(id, wallets, type.Value);
                             result.Result = walletsResult.Result;
@@ -700,31 +700,31 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     }
 
                     if (result.WarningCount > 0)
-                        OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                     else
                         LoggingManager.Log("Avatar Wallets Successfully Saved/Replicated", LogType.Info, ref result, true, false);
                 }
             }
 
-            ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+            ProviderManager.Instance.SetAndActivateCurrentStorageProvider(currentProviderType);
             return result;
         }
 
         public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> wallets)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             ProviderType previousProviderType = ProviderType.Default;
 
             //TODO: May add local storage providers to their own list? To save looping through lots of non-local ones or is this not really needed? :)
-            foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+            foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
             {
                 OASISResult<bool> walletsResult = await SaveProviderWalletsForAvatarByIdAsync(id, wallets, type.Value);
                 result.Result = walletsResult.Result;
 
                 if (!walletsResult.IsError && walletsResult.Result)
                 {
-                    previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                    previousProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
                     break;
                 }
                 else
@@ -732,24 +732,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (!result.Result || result.IsError)
-                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to save wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to save wallets for avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
             else
             {
                 result.IsSaved = true;
 
                 if (result.WarningCount > 0)
-                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to save for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", ProviderManager.Instance.CurrentStorageProviderType.Value, " but failed to save for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                     result.Message = "Avatar Wallets Successfully Saved.";
 
                 //TODO: Need to move into background thread ASAP!
                 //TODO: Even if all providers failed above, we should still attempt again in a background thread for a fixed number of attempts (default 3) every X seconds (default 5) configured in OASISDNA.json.
                 //TODO: Auto-Failover should also re-try in a background thread after reporting the intial error above and then report after the retries either failed or succeeded later...
-                if (ProviderManager.IsAutoReplicationEnabled)
+                if (ProviderManager.Instance.IsAutoReplicationEnabled)
                 {
-                    foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                    foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                     {
-                        if (type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                        if (type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                         {
                             OASISResult<bool> walletsResult = await SaveProviderWalletsForAvatarByIdAsync(id, wallets, type.Value);
                             result.Result = walletsResult.Result;
@@ -760,13 +760,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     }
 
                     if (result.WarningCount > 0)
-                        OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                        OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                     else
                         LoggingManager.Log("Avatar Wallets Successfully Saved/Replicated", LogType.Info, ref result, true, false);
                 }
             }
 
-            await ProviderManager.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
+            await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
             return result;
         }
 

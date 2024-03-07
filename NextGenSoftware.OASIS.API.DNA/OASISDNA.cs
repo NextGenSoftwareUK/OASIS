@@ -202,6 +202,8 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class StorageProviderSettings
     {
         public int ProviderMethodCallTimeOutSeconds { get; set; } = 10;
+        public int ActivateProviderTimeOutSeconds { get; set; } = 10;
+        public int DectivateProviderTimeOutSeconds { get; set; } = 10;
         public bool AutoReplicationEnabled { get; set; }
         public bool AutoFailOverEnabled { get; set; }
         public bool AutoLoadBalanceEnabled { get; set; }
