@@ -968,6 +968,7 @@ namespace NextGenSoftware.OASIS.STAR
             //TODO: MOVE ALL RUST CODE INTO HOLOOASIS.GENERATENATIVECODE METHOD.
             IZome currentZome = null;
             IHolon currentHolon = null;
+            List<IZome> zomes = new List<IZome>();
 
             foreach (FileInfo file in files)
             {
@@ -1023,6 +1024,8 @@ namespace NextGenSoftware.OASIS.STAR
                                 Mapper.MapParentCelestialBodyProperties(newBody, currentZome);
                                 await newBody.CelestialBodyCore.AddZomeAsync(currentZome); //TODO: May need to save this once holons and nodes/fields have been added?
                             }
+                            else
+                                zomes.Add(currentZome); //used only for Zomes & Holons Only Genesis Type.
                         }
 
                         if (holonReached && buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
@@ -1199,6 +1202,9 @@ namespace NextGenSoftware.OASIS.STAR
 
             switch (genesisType)
             {
+                case GenesisType.ZomesAndHolonsOnly:
+                    return new OASISResult<CoronalEjection>() { IsError = false, Message = "Zomes And Holons Successfully Created.", Result = new CoronalEjection() { Zomes = zomes } };
+
                 case GenesisType.Moon:
                     {
                         //celestialBodyParent will be a Planet (Default is Our World).
