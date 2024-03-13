@@ -56,7 +56,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public async Task<OASISResult<IPlanet>> AddPlanetAsync(IPlanet planet)
         {
             if (Star.ParentSolarSystem == null)
-                Star.ParentSolarSystem = new SolarSystem(Star.ParentSolarSystemId);
+                Star.ParentSolarSystem = new SolarSystem(Star.ParentSolarSystemId, Star);
+                //Star.ParentSolarSystem = new SolarSystem(Star.ParentSolarSystemId);
+
 
             OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(Star, planet, (List<IHolon>)Mapper<IPlanet, Holon>.Convert(Star.ParentSolarSystem.Planets), false);
             OASISResult<IPlanet> result = OASISResultHelper<IHolon, IPlanet>.CopyResult(holonResult, new OASISResult<IPlanet>());

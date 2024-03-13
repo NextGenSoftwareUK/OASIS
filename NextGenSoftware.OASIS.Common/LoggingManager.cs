@@ -9,6 +9,8 @@ namespace NextGenSoftware.OASIS.Common
 
         public static Logger Logger { get; set; } = new Logger();
 
+        //public static bool SupressConsoleLogging { get; set; } = false;
+
         public static void Init(bool logToConsole = true, bool logToFile = true, string releativePathToLogFolder = "Logs", string logFileName = "OASIS.log", int maxLogFileSize = 1000000, LoggingMode fileLoggingMode = LoggingMode.WarningsErrorsInfoAndDebug, LoggingMode consoleLoggingMode = LoggingMode.WarningsErrorsAndInfo, Logger logger = null, bool insertExtraNewLineAfterLogMessage = false, int indentLogMessagesBy = 1, bool showColouredLogs = true, ConsoleColor debugColour = ConsoleColor.White, ConsoleColor infoColour = ConsoleColor.Green, ConsoleColor warningColour = ConsoleColor.Yellow, ConsoleColor errorColour = ConsoleColor.Red)
         {
             InitLogger(logger);
