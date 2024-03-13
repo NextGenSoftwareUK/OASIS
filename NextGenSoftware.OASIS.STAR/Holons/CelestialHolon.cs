@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 
 namespace NextGenSoftware.OASIS.STAR.Holons
@@ -48,9 +49,39 @@ namespace NextGenSoftware.OASIS.STAR.Holons
             //Initialize();
         }
 
+        public CelestialHolon(Guid id, HolonType holonType, IStar parentStar) : base(id)
+        {
+            this.HolonType = holonType;
+            this.ParentStar = parentStar;
+
+            //Initialize();
+        }
+
+        public CelestialHolon(Guid id, HolonType holonType, Guid parentStarId) : base(id)
+        {
+            this.HolonType = holonType;
+            this.ParentStarId = parentStarId;
+
+            //Initialize();
+        }
+
         public CelestialHolon(string providerKey, ProviderType providerType, HolonType holonType) : base(providerKey, providerType)
         {
             this.HolonType = holonType;
+            //Initialize(); 
+        }
+
+        public CelestialHolon(string providerKey, ProviderType providerType, HolonType holonType, IStar parentStar) : base(providerKey, providerType)
+        {
+            this.HolonType = holonType;
+            this.ParentStar = parentStar;
+            //Initialize(); 
+        }
+
+        public CelestialHolon(string providerKey, ProviderType providerType, HolonType holonType, Guid parentStarId) : base(providerKey, providerType)
+        {
+            this.HolonType = holonType;
+            this.ParentStarId = parentStarId;
             //Initialize(); 
         }
 

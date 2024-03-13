@@ -466,7 +466,16 @@ namespace NextGenSoftware.OASIS.STAR
             OASISResult<IAvatar> result = await OASISAPI.Avatar.AuthenticateAsync(username, password, IPAddress);
 
             if (!result.IsError)
+            {
                 LoggedInAvatar = (Avatar)result.Result;
+
+                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = OASISAPI.Avatar.LoadAvatarDetail(LoggedInAvatar.Id);
+
+                if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
+                {
+
+                }
+            }
 
             return result;
         }

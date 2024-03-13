@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -62,6 +63,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
+                //Temp supress logging to the console in case STAR CLI is creating a new avatar...
+                CLIEngine.SupressConsoleLogging = true;
+
+                //Temp disable the OASIS HyperDrive so it returns fast and does not attempt to find the avatar across all providers! ;-)
+                //TODO: May want to fine tune how we handle this in future?
+                bool isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
+                ProviderManager.Instance.IsAutoFailOverEnabled = false;
+
                 //First try by username...
                 result = LoadAvatar(username, false, false);
 
@@ -119,6 +128,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     else
                         result.Result = null;
                 }
+
+                ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
+                CLIEngine.SupressConsoleLogging = false;
             }
             catch (Exception ex)
             {
@@ -138,6 +150,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
+                //Temp supress logging to the console in case STAR CLI is creating a new avatar...
+                CLIEngine.SupressConsoleLogging = true;
+
+                //Temp disable the OASIS HyperDrive so it returns fast and does not attempt to find the avatar across all providers! ;-)
+                //TODO: May want to fine tune how we handle this in future?
+                bool isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
+                ProviderManager.Instance.IsAutoFailOverEnabled = false;
+                
                 //First try by username...
                 result = await LoadAvatarAsync(username, false, false);
 
@@ -196,6 +216,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     else
                         result.Result = null;
                 }
+
+                ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
+                CLIEngine.SupressConsoleLogging = false;
             }
             catch (Exception ex)
             {
@@ -479,7 +502,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<bool> CheckIfEmailIsAlreadyInUse(string email, bool sendMail = true)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+
+            //Temp supress logging to the console in case STAR CLI is creating a new avatar...
+            CLIEngine.SupressConsoleLogging = true;
+
+            //Temp disable the OASIS HyperDrive so it returns fast and does not attempt to find the avatar across all providers! ;-)
+            //TODO: May want to fine tune how we handle this in future?
+            bool isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
+            ProviderManager.Instance.IsAutoFailOverEnabled = false;
             OASISResult<IAvatar> existingAvatarResult = LoadAvatarByEmail(email);
+            ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
+
+            CLIEngine.SupressConsoleLogging = false;
 
             if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
             {
@@ -507,7 +541,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<bool> CheckIfUsernameIsAlreadyInUse(string username)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+
+            //Temp supress logging to the console in case STAR CLI is creating a new avatar...
+            CLIEngine.SupressConsoleLogging = true;
+
+            //Temp disable the OASIS HyperDrive so it returns fast and does not attempt to find the avatar across all providers! ;-)
+            //TODO: May want to fine tune how we handle this in future?
+            bool isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
+            ProviderManager.Instance.IsAutoFailOverEnabled = false;
             OASISResult<IAvatar> existingAvatarResult = LoadAvatar(username);
+            ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
+
+            CLIEngine.SupressConsoleLogging = false;
 
             if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
             {

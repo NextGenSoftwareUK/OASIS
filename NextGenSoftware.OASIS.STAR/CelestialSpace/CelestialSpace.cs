@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Events;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 using NextGenSoftware.OASIS.STAR.Holons;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
@@ -53,7 +54,27 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Initialize(autoLoad);
         }
 
+        public CelestialSpace(Guid id, HolonType holonType, IStar parentStar, bool autoLoad = true) : base(id, holonType, parentStar)
+        {
+            Initialize(autoLoad);
+        }
+
+        public CelestialSpace(Guid id, HolonType holonType, Guid parentStarId, bool autoLoad = true) : base(id, holonType, parentStarId)
+        {
+            Initialize(autoLoad);
+        }
+
         public CelestialSpace(string providerKey, ProviderType providerType, HolonType holonType, bool autoLoad = true) : base(providerKey, providerType, holonType)
+        {
+            Initialize(autoLoad);
+        }
+
+        public CelestialSpace(string providerKey, ProviderType providerType, HolonType holonType, IStar parentStar, bool autoLoad = true) : base(providerKey, providerType, holonType, parentStar)
+        {
+            Initialize(autoLoad);
+        }
+
+        public CelestialSpace(string providerKey, ProviderType providerType, HolonType holonType, Guid parentStarId, bool autoLoad = true) : base(providerKey, providerType, holonType, parentStarId)
         {
             Initialize(autoLoad);
         }
@@ -109,7 +130,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 || ((holonResult == null || holonResult.IsError || holonResult.Result == null) && continueOnError))
             {
                 if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                {
                     Mapper.MapBaseHolonProperties(holonResult.Result, this);
+                    result.Result = this;
+                }
                 else
                 {
                     // If there was an error then continueOnError must have been set to true.
@@ -685,23 +709,42 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                     NearestStar = ParentStar;
                     break;
 
-                default:
-                    {
-                        if (this.ParentStar != null)
-                            NearestStar = ParentStar;
+                    //case HolonType.Omniverse:
+                    //    NearestStar = ParentGreatGrandSuperStar != null ? ParentGreatGrandSuperStar : STAR.DefaultGreatGrandSuperStar;
+                    //    break;
 
-                        else if (this.ParentSuperStar != null)
-                            NearestStar = ParentSuperStar;
+                    //case HolonType.Multiverse:
+                    //case HolonType.Universe:
+                    //    NearestStar = ParentGrandSuperStar != null ? ParentGrandSuperStar : STAR.DefaultGrandSuperStar;
+                    //    break;
 
-                        else if (this.ParentGrandSuperStar != null)
-                            NearestStar = ParentGrandSuperStar;
+                    //case HolonType.Galaxy:
+                    //case HolonType.GalaxyCluster:
+                    //    NearestStar = ParentSuperStar != null ? ParentSuperStar : STAR.DefaultSuperStar;
+                    //    break;
 
-                        else if (this.ParentGreatGrandSuperStar != null)
-                            NearestStar = ParentGreatGrandSuperStar;
+                    //case HolonType.SolarSystem:
+                    //    NearestStar = ParentStar != null ? ParentStar : STAR.DefaultStar;
+                    //    break;
+            }
 
-                        //NearestStar = null;
-                        break;
-                    }
+            //If we could not find the nearest star then we keep going up the chain of stars (STARNET/STARCHAIN) till we find one! ;-)
+            if (NearestStar == null)
+            {
+                if (this.ParentStar != null)
+                    NearestStar = ParentStar;
+
+                else if (this.ParentSuperStar != null)
+                    NearestStar = ParentSuperStar;
+
+                else if (this.ParentGrandSuperStar != null)
+                    NearestStar = ParentGrandSuperStar;
+
+                else if (this.ParentGreatGrandSuperStar != null)
+                    NearestStar = ParentGreatGrandSuperStar;
+
+                else
+                    NearestStar = STAR.DefaultGreatGrandSuperStar; //This is Godhead/Source (there is only ever one and is always avaiable to everyone! ;-) )
             }
 
             return NearestStar;

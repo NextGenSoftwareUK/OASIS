@@ -1787,7 +1787,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             if (response != null)
             {
                 if (!response.IsError)
-                    result.Result = response.Entries[0].EntryDataObject;
+                    result.Result = response.Records[0].EntryDataObject;
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: { response.Message }");
             }

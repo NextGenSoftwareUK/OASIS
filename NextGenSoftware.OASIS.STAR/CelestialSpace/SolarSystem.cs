@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
@@ -70,9 +71,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         public SolarSystem() : base(HolonType.SolarSystem) { }
 
         public SolarSystem(Guid id, bool autoLoad = true) : base(id, HolonType.SolarSystem, autoLoad) { }
+        public SolarSystem(Guid id, IStar parentStar, bool autoLoad = true) : base(id, HolonType.SolarSystem, parentStar, autoLoad) { }
+        public SolarSystem(Guid id, Guid parentStarId, bool autoLoad = true) : base(id, HolonType.SolarSystem, parentStarId, autoLoad) { }
 
         //public SolarSystem(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.SolarSystem) { }
         public SolarSystem(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.SolarSystem, autoLoad) { }
+        public SolarSystem(string providerKey, ProviderType providerType, IStar parentStar, bool autoLoad = true) : base(providerKey, providerType, HolonType.SolarSystem, parentStar, autoLoad) { }
+        public SolarSystem(string providerKey, ProviderType providerType, Guid parentStarId, bool autoLoad = true) : base(providerKey, providerType, HolonType.SolarSystem, parentStarId, autoLoad) { }
 
         private void RegisterAllCelestialBodies()
         {
