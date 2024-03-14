@@ -451,7 +451,6 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsStarIgnited)
                 await IgniteStarAsync();
 
-            //TODO: Implement Async version of Register and call instead of below:
             return await OASISAPI.Avatar.RegisterAsync(title, firstName, lastName, email, username, password, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
         }
 
@@ -473,7 +472,7 @@ namespace NextGenSoftware.OASIS.STAR
 
                 if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
                 {
-
+                    //TODO: FINISH IMPLEMENTING ASAP! :)
                 }
             }
 
