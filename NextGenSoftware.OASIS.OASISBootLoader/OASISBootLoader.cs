@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using NextGenSoftware.Logging;
+using NextGenSoftware.Logging.NLogger;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -18,9 +21,6 @@ using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
-using NextGenSoftware.Logging;
-using NextGenSoftware.Logging.NLogger;
-using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.OASISBootLoader
 {
@@ -111,6 +111,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     OASISErrorHandling.ErrorHandlingBehaviour = OASISDNA.OASIS.ErrorHandling.ErrorHandlingBehaviour;
 
                     ProviderManager.Instance.IsAutoFailOverEnabled = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabled;
+                    //ProviderManager.Instance.IsAutoFailOverEnabledForAvatarLogin = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabledForAvatarLogin;
+                    //ProviderManager.Instance.IsAutoFailOverEnabledForCheckIfEmailAlreadyInUse = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabledForCheckIfEmailAlreadyInUse;
+                    //ProviderManager.Instance.IsAutoFailOverEnabledForCheckIfUsernameAlreadyInUse = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabledForCheckIfUsernameAlreadyInUse;
                     ProviderManager.Instance.IsAutoLoadBalanceEnabled = OASISDNA.OASIS.StorageProviders.AutoLoadBalanceEnabled;
                     ProviderManager.Instance.IsAutoReplicationEnabled = OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled;
 
@@ -482,6 +485,21 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return RegisterProviders(ProviderManager.Instance.GetProviderAutoFailOverList(), abortIfOneProviderFailsToRegister);
         }
 
+        public static OASISResult<bool> RegisterProvidersInAutoFailOverListForAvatarLogin(bool abortIfOneProviderFailsToRegister = false)
+        {
+            return RegisterProviders(ProviderManager.Instance.GetProviderAutoFailOverListForAvatarLogin(), abortIfOneProviderFailsToRegister);
+        }
+
+        public static OASISResult<bool> RegisterProvidersInAutoFailOverListForCheckIfEmailAlreadyInUse(bool abortIfOneProviderFailsToRegister = false)
+        {
+            return RegisterProviders(ProviderManager.Instance.GetProviderAutoFailOverListForCheckIfEmailAlreadyInUse(), abortIfOneProviderFailsToRegister);
+        }
+
+        public static OASISResult<bool> RegisterProvidersInAutoFailOverListForCheckIfUsernameAlreadyInUse(bool abortIfOneProviderFailsToRegister = false)
+        {
+            return RegisterProviders(ProviderManager.Instance.GetProviderAutoFailOverListForCheckIfUsernameAlreadyInUse(), abortIfOneProviderFailsToRegister);
+        }
+
         public static OASISResult<bool> RegisterProvidersInAutoLoadBalanceList(bool abortIfOneProviderFailsToRegister = false)
         {
             return RegisterProviders(ProviderManager.Instance.GetProviderAutoLoadBalanceList(),
@@ -500,6 +518,24 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
             result = ProcessResult("AutoFailOverList",
                 RegisterProvidersInAutoFailOverList(abortIfOneProviderFailsToRegister), result);
+
+            if (result.IsError && abortIfOneProviderFailsToRegister)
+                return result;
+
+            result = ProcessResult("AutoFailOverListForAvatarLogin",
+                RegisterProvidersInAutoFailOverListForAvatarLogin(abortIfOneProviderFailsToRegister), result);
+
+            if (result.IsError && abortIfOneProviderFailsToRegister)
+                return result;
+
+            result = ProcessResult("AutoFailOverListForCheckIfEmailAlreadyInUse",
+                RegisterProvidersInAutoFailOverListForCheckIfEmailAlreadyInUse(abortIfOneProviderFailsToRegister), result);
+
+            if (result.IsError && abortIfOneProviderFailsToRegister)
+                return result;
+
+            result = ProcessResult("AutoFailOverListForCheckIfUsernameAlreadyInUse",
+                RegisterProvidersInAutoFailOverListForCheckIfUsernameAlreadyInUse(abortIfOneProviderFailsToRegister), result);
 
             if (result.IsError && abortIfOneProviderFailsToRegister)
                 return result;
@@ -808,6 +844,18 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             ProviderManager.Instance.SetAutoFailOverForProviders(true,
                 GetProviderTypesFromDNA("AutoFailOverProviders",
                     OASISDNA.OASIS.StorageProviders.AutoFailOverProviders).Result);
+
+            ProviderManager.Instance.SetAutoFailOverForProvidersForAvatarLogin(true,
+                GetProviderTypesFromDNA("AutoFailOverProvidersForAvatarLogin",
+                    OASISDNA.OASIS.StorageProviders.AutoFailOverProvidersForAvatarLogin).Result);
+
+            ProviderManager.Instance.SetAutoFailOverForProvidersForCheckIfEmailAlreadyInUse(true,
+               GetProviderTypesFromDNA("AutoFailOverProvidersForCheckIfEmailAlreadyInUse",
+                   OASISDNA.OASIS.StorageProviders.AutoFailOverProvidersForCheckIfEmailAlreadyInUse).Result);
+
+            ProviderManager.Instance.SetAutoFailOverForProvidersForCheckIfUsernameAlreadyInUse(true,
+                GetProviderTypesFromDNA("AutoFailOverProvidersForCheckIfUsernameAlreadyInUse",
+                    OASISDNA.OASIS.StorageProviders.AutoFailOverProvidersForCheckIfUsernameAlreadyInUse).Result);
 
             ProviderManager.Instance.SetAutoLoadBalanceForProviders(true,
                 GetProviderTypesFromDNA("AutoLoadBalanceProviders",

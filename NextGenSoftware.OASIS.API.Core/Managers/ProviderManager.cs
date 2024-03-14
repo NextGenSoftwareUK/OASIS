@@ -17,8 +17,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
         private List<EnumValue<ProviderType>> _registeredProviderTypes = new List<EnumValue<ProviderType>>();
         private List<EnumValue<ProviderType>> _providerAutoFailOverList { get; set; } = new List<EnumValue<ProviderType>>();
-        private List<EnumValue<ProviderType>> _providerAutoLoadBalanceList { get; set; } = new List<EnumValue<ProviderType>>();
+        private List<EnumValue<ProviderType>> _providerAutoFailOverListForAvatarLogin { get; set; } = new List<EnumValue<ProviderType>>();
+        private List<EnumValue<ProviderType>> _providerAutoFailOverListForCheckIfEmailAlreadyInUse { get; set; } = new List<EnumValue<ProviderType>>();
+        private List<EnumValue<ProviderType>> _providerAutoFailOverListForCheckIfUsernameAlreadyInUse { get; set; } = new List<EnumValue<ProviderType>>();
         private List<EnumValue<ProviderType>> _providersThatAreAutoReplicating { get; set; } = new List<EnumValue<ProviderType>>();
+        private List<EnumValue<ProviderType>> _providerAutoLoadBalanceList { get; set; } = new List<EnumValue<ProviderType>>();
         private bool _setProviderGlobally = false;
 
         public EnumValue<ProviderType> CurrentStorageProviderType { get; private set; } = new EnumValue<ProviderType>(ProviderType.Default);
@@ -26,8 +29,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISProviderBootType OASISProviderBootType { get; set; } = OASISProviderBootType.Hot;
 
         public bool IsAutoReplicationEnabled { get; set; } = true;
-        public bool IsAutoFailOverEnabled { get; set; } = true;
         public bool IsAutoLoadBalanceEnabled { get; set; } = true;
+        public bool IsAutoFailOverEnabled { get; set; } = true;
+        //public bool IsAutoFailOverEnabledForAvatarLogin { get; set; } = true;
+        //public bool IsAutoFailOverEnabledForCheckIfEmailAlreadyInUse { get; set; } = true;
+        //public bool IsAutoFailOverEnabledForCheckIfUsernameAlreadyInUse { get; set; } = true;
 
         //public  string CurrentStorageProviderName
         //{
@@ -650,6 +656,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return SetProviderList(addToFailOverList, providers, _providerAutoFailOverList);
         }
 
+        public bool SetAutoFailOverForProvidersForAvatarLogin(bool addToFailOverList, IEnumerable<ProviderType> providers)
+        {
+            return SetProviderList(addToFailOverList, providers, _providerAutoFailOverListForAvatarLogin);
+        }
+
+        public bool SetAutoFailOverForProvidersForCheckIfEmailAlreadyInUse(bool addToFailOverList, IEnumerable<ProviderType> providers)
+        {
+            return SetProviderList(addToFailOverList, providers, _providerAutoFailOverListForCheckIfEmailAlreadyInUse);
+        }
+
+        public bool SetAutoFailOverForProvidersForCheckIfUsernameAlreadyInUse(bool addToFailOverList, IEnumerable<ProviderType> providers)
+        {
+            return SetProviderList(addToFailOverList, providers, _providerAutoFailOverListForCheckIfUsernameAlreadyInUse);
+        }
+
         public OASISResult<bool> SetAutoFailOverForProviders(bool addToFailOverList, string providerList)
         {
             OASISResult<bool> result = new OASISResult<bool>();
@@ -679,9 +700,75 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        public OASISResult<bool> SetAndReplaceAutoFailOverListForProvidersForAvatarLogin(string providerList)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoFailOverForAvatarLogin", providerList);
+
+            result.InnerMessages.AddRange(listResult.InnerMessages);
+            result.IsWarning = listResult.IsWarning;
+            result.WarningCount += listResult.WarningCount;
+
+            _providerAutoFailOverListForAvatarLogin.Clear();
+            foreach (ProviderType providerType in listResult.Result)
+                _providerAutoFailOverListForAvatarLogin.Add(new EnumValue<ProviderType>(providerType));
+
+            return result;
+        }
+
+        public OASISResult<bool> SetAndReplaceAutoFailOverListForProvidersForCheckIfEmailAlreadyInUse(string providerList)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoFailOverForCheckIfEmailAlreadyInUse", providerList);
+
+            result.InnerMessages.AddRange(listResult.InnerMessages);
+            result.IsWarning = listResult.IsWarning;
+            result.WarningCount += listResult.WarningCount;
+
+            _providerAutoFailOverListForCheckIfEmailAlreadyInUse.Clear();
+            foreach (ProviderType providerType in listResult.Result)
+                _providerAutoFailOverListForCheckIfEmailAlreadyInUse.Add(new EnumValue<ProviderType>(providerType));
+
+            return result;
+        }
+
+        public OASISResult<bool> SetAndReplaceAutoFailOverListForProvidersForCheckIfUsernameAlreadyInUse(string providerList)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoFailOverForCheckIfUsernameAlreadyInUse", providerList);
+
+            result.InnerMessages.AddRange(listResult.InnerMessages);
+            result.IsWarning = listResult.IsWarning;
+            result.WarningCount += listResult.WarningCount;
+
+            _providerAutoFailOverListForCheckIfUsernameAlreadyInUse.Clear();
+            foreach (ProviderType providerType in listResult.Result)
+                _providerAutoFailOverListForCheckIfUsernameAlreadyInUse.Add(new EnumValue<ProviderType>(providerType));
+
+            return result;
+        }
+
         public OASISResult<bool> SetAndReplaceAutoFailOverListForProviders(IEnumerable<EnumValue<ProviderType>> providerList)
         {
             _providerAutoFailOverList = providerList.ToList();
+            return new OASISResult<bool>(true);
+        }
+
+        public OASISResult<bool> SetAndReplaceAutoFailOverListForProvidersForAvatarLogin(IEnumerable<EnumValue<ProviderType>> providerList)
+        {
+            _providerAutoFailOverListForAvatarLogin = providerList.ToList();
+            return new OASISResult<bool>(true);
+        }
+
+        public OASISResult<bool> SetAndReplaceAutoFailOverListForProvidersForCheckIfEmailAlreadyInUse(IEnumerable<EnumValue<ProviderType>> providerList)
+        {
+            _providerAutoFailOverListForCheckIfEmailAlreadyInUse = providerList.ToList();
+            return new OASISResult<bool>(true);
+        }
+
+        public OASISResult<bool> SetAndReplaceAutoFailOverListForProvidersForCheckIfUsernameAlreadyInUse(IEnumerable<EnumValue<ProviderType>> providerList)
+        {
+            _providerAutoFailOverListForCheckIfUsernameAlreadyInUse = providerList.ToList();
             return new OASISResult<bool>(true);
         }
 
@@ -745,6 +832,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return SetAutoFailOverForProviders(addToFailOverList, _registeredProviderTypes.Select(x => x.Value).ToList());
         }
 
+        public bool SetAutoFailOverForAllProvidersForAvatarLogin(bool addToFailOverList)
+        {
+            return SetAutoFailOverForProvidersForAvatarLogin(addToFailOverList, _registeredProviderTypes.Select(x => x.Value).ToList());
+        }
+
+        public bool SetAutoFailOverForAllProvidersForCheckIfEmailAlreadyInUse(bool addToFailOverList)
+        {
+            return SetAutoFailOverForProvidersForCheckIfEmailAlreadyInUse(addToFailOverList, _registeredProviderTypes.Select(x => x.Value).ToList());
+        }
+
+        public bool SetAutoFailOverForProvidersForCheckIfUsernameAlreadyInUse(bool addToFailOverList)
+        {
+            return SetAutoFailOverForProvidersForCheckIfUsernameAlreadyInUse(addToFailOverList, _registeredProviderTypes.Select(x => x.Value).ToList());
+        }
+
         public bool SetAutoLoadBalanceForProviders(bool addToLoadBalanceList, IEnumerable<ProviderType> providers)
         {
             return SetProviderList(addToLoadBalanceList, providers, _providerAutoLoadBalanceList);
@@ -805,9 +907,39 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return _providerAutoFailOverList;
         }
 
+        public List<EnumValue<ProviderType>> GetProviderAutoFailOverListForAvatarLogin()
+        {
+            return _providerAutoFailOverListForAvatarLogin;
+        }
+
+        public List<EnumValue<ProviderType>> GetProviderAutoFailOverListForCheckIfEmailAlreadyInUse()
+        {
+            return _providerAutoFailOverListForCheckIfEmailAlreadyInUse;
+        }
+
+        public List<EnumValue<ProviderType>> GetProviderAutoFailOverListForCheckIfUsernameAlreadyInUse()
+        {
+            return _providerAutoFailOverListForCheckIfUsernameAlreadyInUse;
+        }
+
         public string GetProviderAutoFailOverListAsString()
         {
             return GetProviderListAsString(GetProviderAutoFailOverList());
+        }
+
+        public string GetProviderAutoFailOverListForAvatarLoginAsString()
+        {
+            return GetProviderListAsString(GetProviderAutoFailOverListForAvatarLogin());
+        }
+
+        public string GetProviderAutoFailOverListForCheckIfEmailAlreadyInUseAsString()
+        {
+            return GetProviderListAsString(GetProviderAutoFailOverListForCheckIfEmailAlreadyInUse());
+        }
+
+        public string GetProviderAutoFailOverListForCheckIfUsernameAlreadyInUseAsString()
+        {
+            return GetProviderListAsString(GetProviderAutoFailOverListForCheckIfUsernameAlreadyInUse());
         }
 
         public string GetProvidersThatAreAutoReplicatingAsString()

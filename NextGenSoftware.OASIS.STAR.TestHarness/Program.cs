@@ -948,9 +948,19 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 else if (checkIfEmailAlreadyInUse)
                 {
                     CLIEngine.ShowWorkingMessage("Checking if email already in use...");
+                    CLIEngine.SupressConsoleLogging = true;
 
                     OASISResult<bool> checkIfEmailAlreadyInUseResult = STAR.OASISAPI.Avatar.CheckIfEmailIsAlreadyInUse(email);
+                    CLIEngine.SupressConsoleLogging = false;
 
+                    //if (!checkIfEmailAlreadyInUseResult.Result)
+                    //{
+                    //    emailValid = true;
+                    //    CLIEngine.Spinner.Stop();
+                    //    CLIEngine.ShowMessage("", false);
+                    //}
+
+                    //No need to show error message because the CheckIfEmailIsAlreadyInUse function already shows this! ;-)
                     if (checkIfEmailAlreadyInUseResult.Result)
                         CLIEngine.ShowErrorMessage(checkIfEmailAlreadyInUseResult.Message);
                     else
@@ -980,9 +990,19 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 if (checkIfUsernameAlreadyInUse)
                 {
                     CLIEngine.ShowWorkingMessage("Checking if username already in use...");
+                    CLIEngine.SupressConsoleLogging = true;
 
                     OASISResult<bool> checkIfUsernameAlreadyInUseResult = STAR.OASISAPI.Avatar.CheckIfUsernameIsAlreadyInUse(username);
+                    CLIEngine.SupressConsoleLogging = false;
 
+                    //if (!checkIfUsernameAlreadyInUseResult.Result)
+                    //{
+                    //    usernameValid = true;
+                    //    CLIEngine.Spinner.Stop();
+                    //    CLIEngine.ShowMessage("", false);
+                    //}
+
+                    //No need to show error message because the CheckIfUsernameIsAlreadyInUse function already shows this! ;-)
                     if (checkIfUsernameAlreadyInUseResult.Result)
                         CLIEngine.ShowErrorMessage(checkIfUsernameAlreadyInUseResult.Message);
                     else
@@ -1017,7 +1037,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             string password = CLIEngine.GetValidPassword();
             CLIEngine.ShowWorkingMessage("Creating Avatar...");
 
-            OASISResult<IAvatar> createAvatarResult = STAR.CreateAvatar(title, firstName, lastName, email, username, password, cliColour, favColour);
+            CLIEngine.SupressConsoleLogging = true;
+            OASISResult<IAvatar> createAvatarResult = Task.Run(async () => await STAR.CreateAvatarAsync(title, firstName, lastName, email, username, password, cliColour, favColour)).Result;
+            //OASISResult<IAvatar> createAvatarResult = STAR.CreateAvatar(title, firstName, lastName, email, username, password, cliColour, favColour);
+            CLIEngine.SupressConsoleLogging = false;
             CLIEngine.ShowMessage("");
 
             if (createAvatarResult.IsError)
@@ -1138,14 +1161,14 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             while (beamInResult == null || (beamInResult != null && beamInResult.IsError))
             {
-                //TODO: TEMP - PUT BACK IN WHEN GOING LIVE!
-                
                 CLIEngine.ShowMessage("Please login below:");
                 string username = GetValidEmail("Username/Email? ", false);
                 string password = CLIEngine.ReadPassword("Password? ");
                 CLIEngine.ShowWorkingMessage("Beaming In...");
-                beamInResult = Task.Run(async () => await STAR.BeamInAsync(username, password)).Result;
 
+                CLIEngine.SupressConsoleLogging = true;
+                beamInResult = Task.Run(async () => await STAR.BeamInAsync(username, password)).Result;
+                CLIEngine.SupressConsoleLogging = false;
 
                 //CLIEngine.ShowWorkingMessage("Beaming In...");
                 //beamInResult = Task.Run(async () => await STAR.BeamInAsync("davidellams@hotmail.com", "my-super-secret-password")).Result;

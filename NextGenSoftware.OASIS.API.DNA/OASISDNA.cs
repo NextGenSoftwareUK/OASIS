@@ -206,12 +206,18 @@ namespace NextGenSoftware.OASIS.API.DNA
         public int DectivateProviderTimeOutSeconds { get; set; } = 10;
         public bool AutoReplicationEnabled { get; set; }
         public bool AutoFailOverEnabled { get; set; }
+        //public bool AutoFailOverEnabledForAvatarLogin { get; set; }
+        //public bool AutoFailOverEnabledForCheckIfEmailAlreadyInUse { get; set; }
+        //public bool AutoFailOverEnabledForCheckIfUsernameAlreadyInUse { get; set; }
         public bool AutoLoadBalanceEnabled { get; set; }
         public int AutoLoadBalanceReadPollIntervalMins { get; set; }
         public int AutoLoadBalanceWritePollIntervalMins { get; set; }
         public string AutoReplicationProviders { get; set; }
-        public string AutoFailOverProviders { get; set; }
         public string AutoLoadBalanceProviders { get; set; }
+        public string AutoFailOverProviders { get; set; }
+        public string AutoFailOverProvidersForAvatarLogin { get; set; }
+        public string AutoFailOverProvidersForCheckIfEmailAlreadyInUse { get; set; }
+        public string AutoFailOverProvidersForCheckIfUsernameAlreadyInUse { get; set; }
         public string OASISProviderBootType { get; set; }
         public AzureOASISProviderSettings AzureCosmosDBOASIS { get; set; }
         public HoloOASISProviderSettings HoloOASIS { get; set; }
