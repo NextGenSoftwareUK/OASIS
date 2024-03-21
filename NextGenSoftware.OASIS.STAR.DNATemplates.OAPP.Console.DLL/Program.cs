@@ -5,8 +5,10 @@ using {OAPPNAMESPACE};
 Console.WriteLine("Welcome To The {OAPPNAME} Console");
 
 Console.WriteLine("Saving Test Holon...");
-{CELESTIALBODY} {CELESTIALBODYVAR} = new {CELESTIALBODY}();
-OASISResult<{HOLON}> saveHolonResult = await {CELESTIALBODYVAR}.Save{HOLON}Async(new {HOLON}() { Name = "Test Holon" });
+//CelestialBodyOnly:{CELESTIALBODY} {CELESTIALBODYVAR} = new {CELESTIALBODY}();
+//CelestialBodyOnly:OASISResult<{HOLON}> saveHolonResult = await {CELESTIALBODYVAR}.Save{HOLON}Async(new {HOLON}() { Name = "Test Holon" });
+//ZomesAndHolonsOnly:{HOLON} holon = new {HOLON}{ Name = "Test Holon" };
+//ZomesAndHolonsOnly:OASISResult<{HOLON}> saveHolonResult = holon.SaveAsync();
 
 if (!saveHolonResult.IsError && saveHolonResult.Result != null)
 {

@@ -1,8 +1,9 @@
 ﻿
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.STAR.TestHarness.Genesis;
+using NextGenSoftware.OASIS.Common;
+//using NextGenSoftware.OASIS.STAR.TestHarness.Genesis;
 
-Console.WriteLine("NextGen Software STAR DNA Template Console");
+Console.WriteLine("NextGen Software STAR DNA Template Console2");
 
 Console.WriteLine("Saving Test Holon...");
 SuperWorld superWorld = new SuperWorld();

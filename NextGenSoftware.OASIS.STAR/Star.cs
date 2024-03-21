@@ -468,12 +468,12 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 LoggedInAvatar = (Avatar)result.Result;
 
-                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = OASISAPI.Avatar.LoadAvatarDetail(LoggedInAvatar.Id);
+                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = await OASISAPI.Avatar.LoadAvatarDetailAsync(LoggedInAvatar.Id);
 
                 if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
-                {
-                    //TODO: FINISH IMPLEMENTING ASAP! :)
-                }
+                    LoggedInAvatarDetail = loggedInAvatarDetailResult.Result;
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error Occured In BeamInAsync Calling LoadAvatarDetailAsync. Reason: {loggedInAvatarDetailResult.Message}");
             }
 
             return result;
@@ -485,169 +485,25 @@ namespace NextGenSoftware.OASIS.STAR
             string hostName = Dns.GetHostName();
             IPHostEntry entry = Dns.GetHostEntry(hostName);
 
-            //if (entry != null && entry.AddressList.Length > 2)
-            //    IPAddress = Dns.GetHostEntry(hostName).AddressList[2].ToString();
-
             if (entry != null && entry.AddressList.Length > 1)
                 IPAddress = Dns.GetHostEntry(hostName).AddressList[1].ToString();
-
-            //string IPAddress = Dns.GetHostByName(hostName).AddressList[3].ToString();
-            //+string IPAddress = Dns.GetHostByName(hostName).AddressList[4].ToString();
 
             if (!IsStarIgnited)
                 IgniteStar();
 
             OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress);
 
-            result = new OASISResult<IAvatar>();
+            if (!result.IsError)
+            {
+                LoggedInAvatar = (Avatar)result.Result;
 
-            LoggedInAvatar = new Avatar();
- 
-                    LoggedInAvatarDetail = new AvatarDetail();
-                    LoggedInAvatarDetail.Karma = 777777;
-                    LoggedInAvatarDetail.XP = 2222222;
+                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = OASISAPI.Avatar.LoadAvatarDetail(LoggedInAvatar.Id);
 
-                    LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-                    LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-                    LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-
-                    LoggedInAvatarDetail.HumanDesign.Type = "Generator";
-                    LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
-                    LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
-
-                    LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Spell" });
-                    LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Speed Spell" });
-                    LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Srength Spell" });
-
-                    LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Becoming Superman!" });
-                    LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Completing STAR!" });
-
-                    LoggedInAvatarDetail.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
-
-                    LoggedInAvatarDetail.Aura.Brightness = 99;
-                    LoggedInAvatarDetail.Aura.Level = 77;
-                    LoggedInAvatarDetail.Aura.Progress = 88;
-                    LoggedInAvatarDetail.Aura.Size = 10;
-                    LoggedInAvatarDetail.Aura.Value = 777;
-
-                    LoggedInAvatarDetail.Chakras.Root.Level = 77;
-                    LoggedInAvatarDetail.Chakras.Root.Progress = 99;
-                    LoggedInAvatarDetail.Chakras.Root.XP = 8783;
-
-                    LoggedInAvatarDetail.Attributes.Dexterity = 99;
-                    LoggedInAvatarDetail.Attributes.Endurance = 99;
-                    LoggedInAvatarDetail.Attributes.Intelligence = 99;
-                    LoggedInAvatarDetail.Attributes.Magic = 99;
-                    LoggedInAvatarDetail.Attributes.Speed = 99;
-                    LoggedInAvatarDetail.Attributes.Strength = 99;
-                    LoggedInAvatarDetail.Attributes.Toughness = 99;
-                    LoggedInAvatarDetail.Attributes.Vitality = 99;
-                    LoggedInAvatarDetail.Attributes.Wisdom = 99;
-
-                    LoggedInAvatarDetail.Stats.Energy.Current = 99;
-                    LoggedInAvatarDetail.Stats.Energy.Max = 99;
-                    LoggedInAvatarDetail.Stats.HP.Current = 99;
-                    LoggedInAvatarDetail.Stats.HP.Max = 99;
-                    LoggedInAvatarDetail.Stats.Mana.Current = 99;
-                    LoggedInAvatarDetail.Stats.Mana.Max = 99;
-                    LoggedInAvatarDetail.Stats.Staminia.Current = 99;
-                    LoggedInAvatarDetail.Stats.Staminia.Max = 99;
-
-                    LoggedInAvatarDetail.SuperPowers.AstralProjection = 99;
-                    LoggedInAvatarDetail.SuperPowers.BioLocatation = 88;
-                    LoggedInAvatarDetail.SuperPowers.Flight = 99;
-                    LoggedInAvatarDetail.SuperPowers.FreezeBreath = 88;
-                    LoggedInAvatarDetail.SuperPowers.HeatVision = 99;
-                    LoggedInAvatarDetail.SuperPowers.Invulerability = 99;
-                    LoggedInAvatarDetail.SuperPowers.SuperSpeed = 99;
-                    LoggedInAvatarDetail.SuperPowers.SuperStrength = 99;
-                    LoggedInAvatarDetail.SuperPowers.XRayVision = 99;
-                    LoggedInAvatarDetail.SuperPowers.Teleportation = 99;
-                    LoggedInAvatarDetail.SuperPowers.Telekineseis = 99;
-
-                    LoggedInAvatarDetail.Skills.Computers = 99;
-                    LoggedInAvatarDetail.Skills.Engineering = 99;
-    
-
-            //if (!result.IsError)
-            //{
-            //    LoggedInAvatar = (Avatar)result.Result;
-            //    OASISResult<IAvatarDetail> loggedInAvatarDetailResult = OASISAPI.Avatar.LoadAvatarDetail(LoggedInAvatar.Id);
-
-            //    if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
-            //    {
-            //        LoggedInAvatarDetail = loggedInAvatarDetailResult.Result;
-
-            //        if (username == "davidellams@hotmail.com" || username == "davidellams@gmail.com")
-            //        {
-            //            LoggedInAvatarDetail = new AvatarDetail();
-            //            LoggedInAvatarDetail.Karma = 777777;
-            //            LoggedInAvatarDetail.XP = 2222222;
-
-            //            LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-            //            LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-            //            LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-
-            //            LoggedInAvatarDetail.HumanDesign.Type = "Generator";
-            //            LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
-            //            LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
-
-            //            LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Spell" });
-            //            LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Speed Spell" });
-            //            LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Srength Spell" });
-
-            //            LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Becoming Superman!" });
-            //            LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Completing STAR!" });
-
-            //            LoggedInAvatarDetail.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
-
-            //            LoggedInAvatarDetail.Aura.Brightness = 99;
-            //            LoggedInAvatarDetail.Aura.Level = 77;
-            //            LoggedInAvatarDetail.Aura.Progress = 88;
-            //            LoggedInAvatarDetail.Aura.Size = 10;
-            //            LoggedInAvatarDetail.Aura.Value = 777;
-
-            //            LoggedInAvatarDetail.Chakras.Root.Level = 77;
-            //            LoggedInAvatarDetail.Chakras.Root.Progress = 99;
-            //            LoggedInAvatarDetail.Chakras.Root.XP = 8783;
-
-            //            LoggedInAvatarDetail.Attributes.Dexterity = 99;
-            //            LoggedInAvatarDetail.Attributes.Endurance = 99;
-            //            LoggedInAvatarDetail.Attributes.Intelligence = 99;
-            //            LoggedInAvatarDetail.Attributes.Magic = 99;
-            //            LoggedInAvatarDetail.Attributes.Speed = 99;
-            //            LoggedInAvatarDetail.Attributes.Strength = 99;
-            //            LoggedInAvatarDetail.Attributes.Toughness = 99;
-            //            LoggedInAvatarDetail.Attributes.Vitality = 99;
-            //            LoggedInAvatarDetail.Attributes.Wisdom = 99;
-
-            //            LoggedInAvatarDetail.Stats.Energy.Current = 99;
-            //            LoggedInAvatarDetail.Stats.Energy.Max = 99;
-            //            LoggedInAvatarDetail.Stats.HP.Current = 99;
-            //            LoggedInAvatarDetail.Stats.HP.Max = 99;
-            //            LoggedInAvatarDetail.Stats.Mana.Current = 99;
-            //            LoggedInAvatarDetail.Stats.Mana.Max = 99;
-            //            LoggedInAvatarDetail.Stats.Staminia.Current = 99;
-            //            LoggedInAvatarDetail.Stats.Staminia.Max = 99;
-
-            //            LoggedInAvatarDetail.SuperPowers.AstralProjection = 99;
-            //            LoggedInAvatarDetail.SuperPowers.BioLocatation = 88;
-            //            LoggedInAvatarDetail.SuperPowers.Flight = 99;
-            //            LoggedInAvatarDetail.SuperPowers.FreezeBreath = 88;
-            //            LoggedInAvatarDetail.SuperPowers.HeatVision = 99;
-            //            LoggedInAvatarDetail.SuperPowers.Invulerability = 99;
-            //            LoggedInAvatarDetail.SuperPowers.SuperSpeed = 99;
-            //            LoggedInAvatarDetail.SuperPowers.SuperStrength = 99;
-            //            LoggedInAvatarDetail.SuperPowers.XRayVision = 99;
-            //            LoggedInAvatarDetail.SuperPowers.Teleportation = 99;
-            //            LoggedInAvatarDetail.SuperPowers.Telekineseis = 99;
-
-            //            LoggedInAvatarDetail.Skills.Computers = 99;
-            //            LoggedInAvatarDetail.Skills.Engineering = 99;
-            //        }
-            //    }
-            //}
-
+                if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
+                    LoggedInAvatarDetail = loggedInAvatarDetailResult.Result;
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error Occured In BeamIn Calling LoadAvatarDetail. Reason: {loggedInAvatarDetailResult.Message}");
+            }
             return result;
         }
 
@@ -804,21 +660,10 @@ namespace NextGenSoftware.OASIS.STAR
             if (string.IsNullOrEmpty(genesisNameSpace))
                 genesisNameSpace = string.Concat(name, "OApp");
 
-                //Setup the OApp files from the relevant template.
-            if (OAPPType == OAPPType.GeneratedCodeOnly)
-            {
-                if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp")))
-                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
-
-                if (!Directory.Exists(string.Concat(genesisFolder, "\\Rust")))
-                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust")); //TODO: Soon this will be generic depending on what the target OASIS Providers STAR has been configured to generate OApp code for...
-            }     
-            else
+            //Setup the OApp files from the relevant template.
+            if (OAPPType != OAPPType.GeneratedCodeOnly)
             {
                 OAPPFolder = string.Concat(genesisFolder, "\\", name, " OApp");
-
-                //if (!Directory.Exists(OAPPFolder))
-                //    Directory.CreateDirectory(string.Concat(OAPPFolder));
 
                 if (Directory.Exists(OAPPFolder))
                     Directory.Delete(OAPPFolder, true);
@@ -841,13 +686,22 @@ namespace NextGenSoftware.OASIS.STAR
                 if (!Directory.Exists(genesisFolder))
                     Directory.CreateDirectory(genesisFolder);
                 
-                if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp")))
-                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
+                //if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp")))
+                //    Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
 
-                if (!Directory.Exists(string.Concat(genesisFolder, "\\Rust")))
-                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust"));
+                //if (!Directory.Exists(string.Concat(genesisFolder, "\\Rust")))
+                //    Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust"));
             }
-            
+
+            if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp")))
+                Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
+
+            if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp\\Interfaces")))
+                Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp\\Interfaces"));
+
+            if (!Directory.Exists(string.Concat(genesisFolder, "\\Rust")))
+                Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust")); //TODO: Soon this will be generic depending on what the target OASIS Providers STAR has been configured to generate OApp code for...
+
             DirectoryInfo dirInfo = new DirectoryInfo(celestialBodyDNAFolder);
             FileInfo[] files = dirInfo.GetFiles();
 
@@ -1094,7 +948,7 @@ namespace NextGenSoftware.OASIS.STAR
 
                             holonName = holonName.ToPascalCase();
 
-                            File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\I", holonName, ".cs"), iholonBufferCsharp);
+                            File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\Interfaces\\I", holonName, ".cs"), iholonBufferCsharp);
                             File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\", holonName, ".cs"), holonBufferCsharp);
 
                             //TDOD: Finish putting in IZomeBuffer etc
@@ -1199,7 +1053,7 @@ namespace NextGenSoftware.OASIS.STAR
 
             // Currently the OApp Name is the same as the CelestialBody name (each CelestialBody is a seperate OApp), but in future a OApp may be able to contain more than one celestialBody...
             // TODO: Currently the OApp templates only contain sample load/save for one holon... this may change in future... likely will... ;-) Want to show for every zome/holon inside the celestialbody...
-            ApplyOAPPTemplate(OAPPFolder, genesisNameSpace, name, name, holonNames[0]);
+            ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, name, name, holonNames[0]);
 
             //Generate any native code for the current provider.
             //TODO: Add option to pass into STAR which providers to generate native code for (can be more than one provider).
@@ -1843,144 +1697,6 @@ namespace NextGenSoftware.OASIS.STAR
             if (result.IsError || DefaultGreatGrandSuperStar == null)
                 return result;
 
-
-
-            /*
-            //Normally you would leave autoLoad set to true but if you need to process the result in-line then you need to manually call Load as we do here (otherwise you would process the result from the OnCelestialBodyLoaded or OnCelestialBodyError event handlers).
-            if (!string.IsNullOrEmpty(STARDNA.DefaultPlanetId))
-            {
-                if (Guid.TryParse(STARDNA.DefaultPlanetId, out id))
-                {
-                    DefaultPlanet = new Planet(id, false);
-                    //OASISResult<ICelestialBody> planetResult = DefaultPlanet.Initialize();
-                    OASISResult<ICelestialBody> planetResult = DefaultPlanet.Load();
-
-                    if (planetResult.IsError || planetResult.Result == null)
-                    {
-                        ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Planet.");
-                        HandleCelesitalBodyInitError(result, "DefaultPlanet", STARDNA.DefaultPlanetId, planetResult);
-                        return result;
-                    }
-                    else
-                        ShowStatusMessage(StarStatusMessageType.Success, "Default Planet Initialized.");
-                }
-                else
-                {
-                    HandleCelesitalBodyInitError(result, "DefaultPlanet", STARDNA.DefaultPlanetId, "The DefaultPlanetId value in STARDNA.json is not a valid Guid.");
-                    return result;
-                }
-            }
-            else
-            {
-                HandleCelesitalBodyInitError(result, "DefaultPlanet", STARDNA.DefaultPlanetId, "The DefaultPlanetId value in STARDNA.json is missing.");
-                return result;
-            }
-
-            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Star...");
-            DefaultStar = new Star(id, false); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
-            //OASISResult<ICelestialBody> starResult = DefaultStar.Initialize();
-            OASISResult<ICelestialBody> starResult = DefaultStar.Load();
-
-            if (starResult.IsError || starResult.Result == null)
-            {
-                ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Star.");
-                HandleCelesitalBodyInitError(result, "DefaultStar", _starId.ToString(), starResult);
-                return result;
-            }
-            else
-                ShowStatusMessage(StarStatusMessageType.Success, "Default Star Initialized.");
-
-
-            if (!string.IsNullOrEmpty(STARDNA.DefaultSuperStarId))
-            {
-                if (Guid.TryParse(STARDNA.DefaultSuperStarId, out id))
-                {
-                    ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Super Star...");
-                    DefaultSuperStar = new SuperStar(id);
-                    //OASISResult<ICelestialBody> superStarResult = DefaultSuperStar.Initialize();
-                    OASISResult<ICelestialBody> superStarResult = DefaultSuperStar.Load();
-
-                    if (superStarResult.IsError || superStarResult.Result == null)
-                    {
-                        ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Super Star.");
-                        HandleCelesitalBodyInitError(result, "DefaultSuperStar", STARDNA.DefaultSuperStarId, superStarResult);
-                        return result;
-                    }
-                    else
-                        ShowStatusMessage(StarStatusMessageType.Success, "Default Super Star Initialized.");
-                }
-                else
-                {
-                    HandleCelesitalBodyInitError(result, "DefaultSuperStar", STARDNA.DefaultSuperStarId, "The DefaultSuperStar value in STARDNA.json is not a valid Guid.");
-                    return result;
-                }
-            }
-            else
-            {
-                HandleCelesitalBodyInitError(result, "DefaultSuperStar", STARDNA.DefaultSuperStarId, "The DefaultSuperStarId value in STARDNA.json is missing.");
-                return result;
-            }
-
-            if (!string.IsNullOrEmpty(STARDNA.DefaultGrandSuperStarId))
-            {
-                if (Guid.TryParse(STARDNA.DefaultGrandSuperStarId, out id))
-                {
-                    ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Grand Super Star...");
-                    DefaultGrandSuperStar = new GrandSuperStar(id);
-                    //OASISResult<ICelestialBody> grandSuperStarResult = DefaultGrandSuperStar.Initialize();
-                    OASISResult<ICelestialBody> grandSuperStarResult = DefaultGrandSuperStar.Load();
-
-                    if (grandSuperStarResult.IsError || grandSuperStarResult.Result == null)
-                    {
-                        ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Grand Super Star.");
-                        HandleCelesitalBodyInitError(result, "DefaultGrandSuperStar", STARDNA.DefaultGrandSuperStarId, grandSuperStarResult);
-                        return result;
-                    }
-                    else
-                        ShowStatusMessage(StarStatusMessageType.Success, "Default Super Star Initialized.");
-                }
-                else
-                {
-                    HandleCelesitalBodyInitError(result, "DefaultGrandSuperStar", STARDNA.DefaultGrandSuperStarId, "The DefaultGrandSuperStarId value in STARDNA.json is not a valid Guid.");
-                    return result;
-                }
-            }
-            else
-            {
-                HandleCelesitalBodyInitError(result, "DefaultGrandSuperStar", STARDNA.DefaultGrandSuperStarId, "The DefaultGrandSuperStarId value in STARDNA.json is missing.");
-                return result;
-            }
-
-            if (!string.IsNullOrEmpty(STARDNA.DefaultGreatGrandSuperStarId))
-            {
-                if (Guid.TryParse(STARDNA.DefaultGreatGrandSuperStarId, out id))
-                {
-                    ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Great Grand Super Star...");
-                    DefaultGreatGrandSuperStar = new GreatGrandSuperStar(id);
-                    //OASISResult<ICelestialBody> greatGrandSuperStarResult = DefaultGreatGrandSuperStar.Initialize();
-                    OASISResult<ICelestialBody> greatGrandSuperStarResult = DefaultGreatGrandSuperStar.Load();
-
-                    if (greatGrandSuperStarResult.IsError || greatGrandSuperStarResult.Result == null)
-                    {
-                        ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Great Grand Super Star.");
-                        HandleCelesitalBodyInitError(result, "DefaultGreatGrandSuperStarId", STARDNA.DefaultGreatGrandSuperStarId, greatGrandSuperStarResult);
-                        return result;
-                    }
-                    else
-                        ShowStatusMessage(StarStatusMessageType.Success, "Default Great Grand Super Star Initialized.");
-                }
-                else
-                {
-                    HandleCelesitalBodyInitError(result, "DefaultGreatGrandSuperStar", STARDNA.DefaultGreatGrandSuperStarId, "The DefaultGreatGrandSuperStarId value in STARDNA.json is not a valid Guid.");
-                    return result;
-                }
-            }
-            else
-            {
-                HandleCelesitalBodyInitError(result, "DefaultGreatGrandSuperStar", STARDNA.DefaultGreatGrandSuperStarId, "The DefaultGreatGrandSuperStarId value in STARDNA.json is missing.");
-                return result;
-            }*/
-
             ShowStatusMessage(StarStatusMessageType.Success, "Default Celestial Bodies Initialized.");
 
             return result;
@@ -2016,84 +1732,11 @@ namespace NextGenSoftware.OASIS.STAR
             if (result.IsError || DefaultGreatGrandSuperStar == null)
                 return result;
 
-
-            /*
-            DefaultPlanet = new Planet(new Guid(STARDNA.DefaultPlanetId), false);
-            //OASISResult<ICelestialBody> planetResult = await DefaultPlanet.InitializeAsync();
-            OASISResult<ICelestialBody> planetResult = await DefaultPlanet.LoadAsync();
-
-            if (planetResult.IsError || planetResult.Result == null)
-            {
-                ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Planet.");
-                HandleCelesitalBodyInitError(result, "DefaultPlanet", STARDNA.DefaultPlanetId, planetResult);
-                return result;
-            }
-            else
-                ShowStatusMessage(StarStatusMessageType.Success, "Default Planet Initialized.");
-
-            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Star...");
-            DefaultStar = new Star(_starId, false); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
-            //OASISResult<ICelestialBody> starResult = await DefaultStar.InitializeAsync();
-            OASISResult<ICelestialBody> starResult = await DefaultStar.LoadAsync();
-
-            if (starResult.IsError || starResult.Result == null)
-            {
-                ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Star.");
-                HandleCelesitalBodyInitError(result, "DefaultStar", _starId.ToString(), starResult);
-                return result;
-            }
-            else
-                ShowStatusMessage(StarStatusMessageType.Success, "Default Star Initialized.");
-
-            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Super Star...");
-            DefaultSuperStar = new SuperStar(new Guid(STARDNA.DefaultSuperStarId));
-            //OASISResult<ICelestialBody> superStarResult = await DefaultSuperStar.InitializeAsync();
-            OASISResult<ICelestialBody> superStarResult = await DefaultSuperStar.LoadAsync();
-
-            if (superStarResult.IsError || superStarResult.Result == null)
-            {
-                ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Super Star.");
-                HandleCelesitalBodyInitError(result, "DefaultSuperStar", STARDNA.DefaultSuperStarId, superStarResult);
-                return result;
-            }
-            else
-                ShowStatusMessage(StarStatusMessageType.Success, "Default Super Star Initialized.");
-
-            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Grand Super Star...");
-            DefaultGrandSuperStar = new GrandSuperStar(new Guid(STARDNA.DefaultGrandSuperStarId));
-            //OASISResult<ICelestialBody> grandSuperStarResult = await DefaultGrandSuperStar.InitializeAsync();
-            OASISResult<ICelestialBody> grandSuperStarResult = await DefaultGrandSuperStar.LoadAsync();
-
-            if (grandSuperStarResult.IsError || grandSuperStarResult.Result == null)
-            {
-                ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Grand Super Star.");
-                HandleCelesitalBodyInitError(result, "DefaultGrandSuperStar", STARDNA.DefaultGrandSuperStarId, grandSuperStarResult);
-                return result;
-            }
-            else
-                ShowStatusMessage(StarStatusMessageType.Success, "Default Super Star Initialized.");
-
-            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Great Grand Super Star...");
-            DefaultGreatGrandSuperStar = new GreatGrandSuperStar(new Guid(STARDNA.DefaultGreatGrandSuperStarId));
-            //OASISResult<ICelestialBody> greatGrandSuperStarResult = await DefaultGreatGrandSuperStar.InitializeAsync();
-            OASISResult<ICelestialBody> greatGrandSuperStarResult = await DefaultGreatGrandSuperStar.LoadAsync();
-
-            if (greatGrandSuperStarResult.IsError || greatGrandSuperStarResult.Result == null)
-            {
-                ShowStatusMessage(StarStatusMessageType.Error, "Error Initializing Default Great Grand Super Star.");
-                HandleCelesitalBodyInitError(result, "DefaultGreatGrandSuperStarId", STARDNA.DefaultGreatGrandSuperStarId, greatGrandSuperStarResult);
-                return result;
-            }
-            else
-                ShowStatusMessage(StarStatusMessageType.Success, "Default Great Grand Super Star Initialized.");
-            */
-
             ShowStatusMessage(StarStatusMessageType.Success, "Default Celestial Bodies Initialized.");
 
             return result;
         }
 
-        //private static (OASISResult<IOmiverse>, T) InitCelestialBody<T>(string id, string name, OASISResult<IOmiverse> result, Func<OASISResult<ICelestialBody>> loadFunc) where T : ICelestialBody, new()
         private static (OASISResult<IOmiverse>, T) InitCelestialBody<T>(string id, string longName, OASISResult<IOmiverse> result) where T : ICelestialBody, new()
         {
             Guid guidId;
@@ -2681,12 +2324,12 @@ namespace NextGenSoftware.OASIS.STAR
             }
         }
 
-        private static void ApplyOAPPTemplate(string OAPPFolder, string oAppNameSpace, string oAppName, string celestialBodyName, string holonName)
+        private static void ApplyOAPPTemplate(GenesisType genesisType, string OAPPFolder, string oAppNameSpace, string oAppName, string celestialBodyName, string holonName)
         {
             foreach (DirectoryInfo dir in new DirectoryInfo(OAPPFolder).GetDirectories())
             {
                 if (dir.Name != "bin" && dir.Name != "obj")
-                    ApplyOAPPTemplate(dir.FullName, oAppNameSpace, oAppName, celestialBodyName, holonName);
+                    ApplyOAPPTemplate(genesisType, dir.FullName, oAppNameSpace, oAppName, celestialBodyName, holonName);
             }
             
             if (!OAPPFolder.Contains(STAR.STARDNA.OAPPCelestialBodiesFolder))
@@ -2726,8 +2369,23 @@ namespace NextGenSoftware.OASIS.STAR
                             celestialBodyName = celestialBodyName.Replace(" ", "");
                             line = line.Replace("{OAPPNAMESPACE}", oAppNameSpace);
                             line = line.Replace("{OAPPNAME}", oAppName);
-                            line = line.Replace("{CELESTIALBODY}", celestialBodyName.ToPascalCase());
-                            line = line.Replace("{CELESTIALBODYVAR}", celestialBodyName.ToCamelCase());
+
+                            if (genesisType == GenesisType.ZomesAndHolonsOnly)
+                            {
+                                line = line.Replace("//ZomesAndHolonsOnly:", "");
+
+                                if (line.Contains("CelestialBodyOnly"))
+                                    line = "";
+                            }
+                            else
+                            {
+                                line = line.Replace("{CELESTIALBODY}", celestialBodyName.ToPascalCase()).Replace("//CelestialBodyOnly:", "");
+                                line = line.Replace("{CELESTIALBODYVAR}", celestialBodyName.ToCamelCase()).Replace("//CelestialBodyOnly:", "");
+
+                                if (line.Contains("ZomesAndHolonsOnly"))
+                                    line = "";
+                            }
+
                             line = line.Replace("{HOLON}", holonName.ToPascalCase());
 
                             tw.WriteLine(line);
