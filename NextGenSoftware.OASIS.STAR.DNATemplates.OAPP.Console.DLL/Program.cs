@@ -1,15 +1,15 @@
 ﻿using System;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-//using NextGenSoftware.OASIS.STAR;
+using NextGenSoftware.OASIS.STAR;
 using NextGenSoftware.OASIS.Common;
 using {OAPPNAMESPACE};
 
 Console.WriteLine("Welcome To The {OAPPNAME} Console");
 
 CLIEngine.ShowWorkingMessage("BOOTING OASIS...", true, 1, true);
-//OASISResult<bool> bootResult = await STAR.OASISAPI.BootOASISAsync();
-OASISResult<bool> bootResult = await OASISAPI.BootOASISAsync();
+OASISResult<bool> bootResult = await STAR.OASISAPI.BootOASISAsync();
+//OASISResult<bool> bootResult = await OASISAPI.BootOASISAsync();
 
 if (bootResult != null && !bootResult.IsError)
 {
@@ -45,8 +45,8 @@ if (bootResult != null && !bootResult.IsError)
 
     //Alternatively you can save/load holons/data using the Data API/HolonManager on the OASIS API.
     CLIEngine.ShowWorkingMessage("Saving Test Holon...");
-    //OASISResult<IHolon> saveHolonResult2 = await STAR.OASISAPI.Data.SaveHolonAsync(new SuperTest2() { Name = "Test Holon" });
-    OASISResult<IHolon> saveHolonResult2 = await OASISAPI.Data.SaveHolonAsync(new SuperTest2() { Name = "Test Holon" });
+    OASISResult<IHolon> saveHolonResult2 = await STAR.OASISAPI.Data.SaveHolonAsync(new SuperTest2() { Name = "Test Holon" });
+    //OASISResult<IHolon> saveHolonResult2 = await OASISAPI.Data.SaveHolonAsync(new SuperTest2() { Name = "Test Holon" });
 
     if (!saveHolonResult2.IsError && saveHolonResult2.Result != null)
     {
@@ -54,8 +54,8 @@ if (bootResult != null && !bootResult.IsError)
         {HOLON} testHolon = ({HOLON})saveHolonResult2.Result; //If you use Data API above you will need to cast here.
 
         CLIEngine.ShowWorkingMessage("Loading Test Holon...");
-        //OASISResult<IHolon> loadHolonResult2 = await STAR.OASISAPI.Data.LoadHolonAsync(testHolon.Id);
-        OASISResult<IHolon> loadHolonResult2 = await OASISAPI.Data.LoadHolonAsync(testHolon.Id);
+        OASISResult<IHolon> loadHolonResult2 = await STAR.OASISAPI.Data.LoadHolonAsync(testHolon.Id);
+        //OASISResult<IHolon> loadHolonResult2 = await OASISAPI.Data.LoadHolonAsync(testHolon.Id);
 
         if (!loadHolonResult2.IsError && loadHolonResult2.Result != null)
         {

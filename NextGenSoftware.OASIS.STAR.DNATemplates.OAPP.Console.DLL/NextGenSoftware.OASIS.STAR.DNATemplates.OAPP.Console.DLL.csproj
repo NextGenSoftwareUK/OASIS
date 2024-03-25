@@ -366,6 +366,9 @@
     <Reference Include="NextGenSoftware.OASIS.OASISBootLoader">
       <HintPath>STAR Runtime\3.1.0\NextGenSoftware.OASIS.OASISBootLoader.dll</HintPath>
     </Reference>
+    <Reference Include="NextGenSoftware.OASIS.STAR">
+      <HintPath>..\NextGenSoftware.OASIS.STAR.TestHarness\bin\Debug\net8.0\Genesis\ZomesAndHolons\Zomes And Holons Only OApp\STAR Runtime\3.1.0\NextGenSoftware.OASIS.STAR.dll</HintPath>
+    </Reference>
     <Reference Include="NextGenSoftware.Utilities">
       <HintPath>STAR Runtime\3.1.0\NextGenSoftware.Utilities.dll</HintPath>
     </Reference>
