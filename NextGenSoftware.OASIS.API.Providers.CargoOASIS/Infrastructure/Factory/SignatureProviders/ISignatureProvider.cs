@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+﻿using NextGenSoftware.OASIS.Common;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.SignatureProviders
 {

@@ -10,6 +10,8 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
     public class OASISAPI
     {
         public bool IsOASISBooted { get; set; }
+        public string OASISVersion { get; set; }
+        public OASISDNA OASISDNA { get; set; } 
         public AvatarManager Avatar { get; set; }
         public HolonManager Data { get; set; }
         public KeyManager Keys { get; set; }
@@ -22,7 +24,6 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         public QuestManager Quests { get; set; }
         public ParkManager Parks { get; set; }
         public OLandManager OLAND { get; set; }
-
 
         public OASISResult<bool> BootOASIS(OASISDNA OASISDNA, bool startApolloServer = true)
         {
@@ -88,6 +89,8 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 
         private void InitOASIS(bool startApolloServer = true)
         {
+            OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion;
+            OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
             Avatar = new AvatarManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Data = new HolonManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Keys = new KeyManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);

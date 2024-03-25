@@ -4,12 +4,11 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
-//using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
-using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Exceptions;
 using System.Collections.Generic;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Exceptions;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {

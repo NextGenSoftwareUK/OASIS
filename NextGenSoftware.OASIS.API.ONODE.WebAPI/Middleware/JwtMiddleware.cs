@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Middleware
 {
@@ -65,7 +66,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Middleware
                     Message = $"Authorization Failed: JWT Token Is Invalid. Make sure it is set in the Authorization Header for your request or alternatively please re-login and try again.",
                 };
 
-                ErrorHandling.HandleError(ref exceptionResponse, exceptionResponse.Message, ex.Message);
+                OASISErrorHandling.HandleError(ref exceptionResponse, exceptionResponse.Message, ex.Message);
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
 

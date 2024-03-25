@@ -66,7 +66,7 @@ namespace NextGenSoftware.OASIS.Common
                 errorMessage = string.Concat(errorMessage, "StackTrace:\n", Environment.StackTrace);
 
             if (log || LogAllErrors)
-                LoggingManager.Log(errorMessage, LogType.Error);
+                LoggingManager.Log($"\n{errorMessage}", LogType.Error);
 
             OnError?.Invoke(null, new OASISErrorEventArgs { Reason = errorMessage, Exception = ex });
 
@@ -267,7 +267,7 @@ namespace NextGenSoftware.OASIS.Common
                 result.WarningCount++;
 
             if (log || LogAllWarnings)
-                LoggingManager.Log(message, LogType.Warning);
+                LoggingManager.Log($"\n{message}", LogType.Warning);
 
             OnWarning?.Invoke(null, new OASISWarningEventArgs { Reason = message, Exception = ex });
 

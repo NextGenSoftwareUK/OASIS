@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Filters
 {
@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Filters
                     MetaData = null
                 };
                 context.Result = new JsonResult(exceptionResponse);
-                ErrorHandling.HandleError(ref exceptionResponse, context.Exception.Message);
+                OASISErrorHandling.HandleError(ref exceptionResponse, context.Exception.Message);
             }
 
             context.HttpContext.Response.StatusCode = 500;

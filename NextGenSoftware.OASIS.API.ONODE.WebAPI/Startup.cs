@@ -6,12 +6,14 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Filters;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Middleware;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Services;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI
 {
@@ -112,11 +114,11 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI
         //public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext context)
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            LoggingManager.Log("Starting up The OASIS... (REST API)", API.Core.Enums.LogType.Info);
-            LoggingManager.Log("Test Debug", API.Core.Enums.LogType.Debug);
-            LoggingManager.Log("Test Info", API.Core.Enums.LogType.Info);
-            LoggingManager.Log("Test Warning", API.Core.Enums.LogType.Warn);
-            LoggingManager.Log("Test Error", API.Core.Enums.LogType.Error);
+            LoggingManager.Log("Starting up The OASIS... (REST API)", LogType.Info);
+            LoggingManager.Log("Test Debug", LogType.Debug);
+            LoggingManager.Log("Test Info", LogType.Info);
+            LoggingManager.Log("Test Warning", LogType.Warning);
+            LoggingManager.Log("Test Error", LogType.Error);
 
             // migrate database changes on startup (includes initial db creation)
             //context.Database.Migrate();

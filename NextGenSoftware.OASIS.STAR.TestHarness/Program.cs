@@ -858,6 +858,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             // Create (OApp) by generating dynamic template/scaffolding code.
             CLIEngine.ShowWorkingMessage($"Generating Zomes & Holons...");
 
+            //OASISResult<CoronalEjection> lightResult = STAR.LightAsync(oAPPName, OAPPType, zomesAndHolonsyDNAFolder, genesisFolder, genesisNameSpace).Result;
             OASISResult<CoronalEjection> lightResult = STAR.LightAsync(oAPPName, OAPPType, zomesAndHolonsyDNAFolder, genesisFolder, genesisNameSpace).Result;
 
             //Will use settings in the STARDNA.json file.

@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
 {
@@ -28,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -45,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -76,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.IsError = true;
                 response.Message = ex.Message;
                 response.Exception = ex;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -106,7 +107,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -124,7 +125,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -141,7 +142,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -159,7 +160,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -186,7 +187,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -229,7 +230,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -339,7 +340,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = e;
                 response.Message = e.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -364,7 +365,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Message = ex.Message;
                 response.Exception = ex;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -406,7 +407,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
 
             return response;
@@ -425,7 +426,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Message = ex.Message;
                 response.Exception = ex;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -442,7 +443,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -473,7 +474,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = e;
                 response.Message = e.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -510,7 +511,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -560,7 +561,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -578,7 +579,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -595,7 +596,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsSaved = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -613,7 +614,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsSaved = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
 
             return response;
@@ -631,7 +632,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsSaved = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -649,7 +650,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -666,7 +667,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -684,7 +685,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Message = ex.Message;
                 response.IsError = true;
                 response.Exception = ex;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -701,7 +702,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsSaved = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -719,7 +720,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsSaved = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -736,7 +737,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsSaved = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -754,7 +755,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -771,7 +772,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -789,7 +790,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }
@@ -806,7 +807,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories
                 response.Exception = ex;
                 response.Message = ex.Message;
                 response.IsError = true;
-                ErrorHandling.HandleError(ref response, ex.Message);
+                OASISErrorHandling.HandleError(ref response, ex.Message);
             }
             return response;
         }

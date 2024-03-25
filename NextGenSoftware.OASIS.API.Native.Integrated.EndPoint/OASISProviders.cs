@@ -1,4 +1,7 @@
-﻿using NextGenSoftware.OASIS.API.DNA;
+﻿using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
@@ -13,9 +16,6 @@ using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {
@@ -41,8 +41,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             {
                 if (_SEEDS == null)
                 {
-                    if (ProviderManager.IsProviderRegistered(ProviderType.SEEDSOASIS))
-                        _SEEDS = (SEEDSOASIS)ProviderManager.GetStorageProvider(ProviderType.SEEDSOASIS);
+                    if (ProviderManager.Instance.IsProviderRegistered(ProviderType.SEEDSOASIS))
+                        _SEEDS = (SEEDSOASIS)ProviderManager.Instance.GetStorageProvider(ProviderType.SEEDSOASIS);
                     else
                     {
                         // We could re-use the TelosOASIS Provider but it could have a different connection string to SEEDSOASIS so they need to be seperate.
@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                             _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
                             _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey
                             ));
-                        ProviderManager.RegisterProvider(_SEEDS);
+                        ProviderManager.Instance.RegisterProvider(_SEEDS);
                     }
                 }
 
