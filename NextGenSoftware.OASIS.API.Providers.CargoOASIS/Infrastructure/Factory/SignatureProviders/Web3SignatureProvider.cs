@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.SignatureProviders
 {

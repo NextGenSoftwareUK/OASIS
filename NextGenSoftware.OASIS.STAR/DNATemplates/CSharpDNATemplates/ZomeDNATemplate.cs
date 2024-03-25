@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;

@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         SCMSRepository _scmsRepository = new();
         
         [HttpGet]
-        public async Task<OASISResult<IEnumerable<Trigger>>> GetAllTriggers()
+        public async Task<Common.OASISResult<IEnumerable<Trigger>>> GetAllTriggers()
         {
             return await _scmsRepository.GetAllTriggers();
         }

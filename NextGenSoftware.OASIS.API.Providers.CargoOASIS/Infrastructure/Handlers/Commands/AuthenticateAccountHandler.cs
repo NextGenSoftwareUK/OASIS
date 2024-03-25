@@ -2,12 +2,12 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Request;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Response;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.SignatureProviders;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Commands
 {
@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 {
                     response.IsError = true;
                     response.IsSaved = false;
-                    ErrorHandling.HandleError(ref signatureResult, signatureResult.Message);
+                    OASISErrorHandling.HandleError(ref signatureResult, signatureResult.Message);
                     return response;
                 }
 
@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                     response.Message = httpRes.ReasonPhrase;
                     response.IsError = true;
                     response.IsSaved = false;
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 var responseContent = await httpRes.Content.ReadAsStringAsync();
@@ -73,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 response.IsSaved = false;
                 response.Exception = e;
                 response.Message = e.Message;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
                 return response;
             }
         }

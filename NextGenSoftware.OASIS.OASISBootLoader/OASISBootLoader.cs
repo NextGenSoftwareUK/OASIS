@@ -21,16 +21,35 @@ using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
+//using System.Reflection;
 
 namespace NextGenSoftware.OASIS.OASISBootLoader
 {
     public static class OASISBootLoader
     {
+        //private static string _OASISVersion = null;
         public static bool IsOASISBooted { get; private set; } = false;
         public static bool IsOASISBooting { get; private set; } = false;
 
         public delegate void OASISBootLoaderError(object sender, OASISErrorEventArgs e);
         public static event OASISBootLoaderError OnOASISBootLoaderError;
+
+        public static string OASISVersion { get; set; } = "v3.1.1"; 
+
+        //public static string OASISVersion
+        //{
+        //    get
+        //    {
+        //        if (_OASISVersion == null)
+        //        {
+        //            Assembly assembly = typeof(OASISBootLoader).Assembly;
+        //            System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+        //            _OASISVersion = fvi.FileVersion;
+        //        }
+
+        //        return _OASISVersion;
+        //    }
+        //}
 
         public static string OASISDNAPath
         { 
@@ -55,7 +74,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 OASISDNAManager.OASISDNA = value;
             }
         }
-
+      
         public static OASISResult<bool> BootOASIS(string OASISDNAFileName, bool activateDefaultStorageProvider = true)
         {
             LoadOASISDNA(OASISDNAFileName);
@@ -77,6 +96,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         {
             OASISResult<bool> result = new OASISResult<bool>(false);
             object OASISProviderBootTypeObject = null;
+            string errorMessage = "Error Occured In OASISBootLoader.BootOASISAsync. Reason: ";
 
            try
             {
@@ -119,10 +139,23 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                     LoggingManager.Log($"\n FIRING UP THE OASIS HYPERDRIVE...", LogType.Info, true);
                     LoggingManager.Log($"LOADING PROVIDER LISTS...", LogType.Info, true, false, false, 1, true);
-                    LoadProviderLists();
-                    LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
+                    OASISResult<bool> loadProviderListsResult = LoadProviderLists();
 
-                    //LoggingManager.Log($"LOADING PROVIDER LISTS... DONE", LogType.Info);
+                    if (loadProviderListsResult != null && !loadProviderListsResult.IsError && !loadProviderListsResult.IsWarning)
+                        LoggingManager.Log($"`DONE", LogType.Info, false, false, false, 0);
+                    else
+                    {
+                        if (loadProviderListsResult.IsWarning)
+                        {
+                            //LoggingManager.Log($"DONE BUT WARNING(S) OCCURED: {loadProviderListsResult.Message}", LogType.Info, false, false, false, 0);
+                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Warning Occured In OASISBootLoader.LoadProviderLists. Reason: {loadProviderListsResult.Message}");
+                        }
+                        if (loadProviderListsResult.IsError)
+                        {
+                            //LoggingManager.Log($"DONE BUT ERROR(S) OCCURED: {loadProviderListsResult.Message}", LogType.Info, false, false, false, 0);
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error Occured In OASISBootLoader.LoadProviderLists. Reason: {loadProviderListsResult.Message}");
+                        }
+                    }
 
                     if (Enum.TryParse(typeof(OASISProviderBootType), OASISDNA.OASIS.StorageProviders.OASISProviderBootType,
                         out OASISProviderBootTypeObject))
@@ -167,6 +200,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         IsOASISBooted = true;
                         LoggingManager.Log($"OASIS HYPERDRIVE ONLINE.", LogType.Info);
                         LoggingManager.Log($"OASIS BOOTED.", LogType.Info);
+                        LoggingManager.Log($"OASIS RUNTIME VERSION: {OASISVersion}.", LogType.Info);
+                        //LoggingManager.Log($"OASIS RUNTIME VERSION (LIVE): {OASISDNA.OASIS.CurrentLiveVersion}.", LogType.Info);
+                        //LoggingManager.Log($"OASIS RUNTIME VERSION (STAGING): {OASISDNA.OASIS.CurrentStagingVersion}.", LogType.Info);
                     }
 
                     IsOASISBooting = false;
@@ -802,26 +838,33 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         {
             OASISResult<List<ProviderType>> result = new OASISResult<List<ProviderType>>();
             List<ProviderType> providerTypes = new List<ProviderType>();
-            string[] providers = providerList.Split(",");
             object providerTypeObject = null;
+            string errorMessage = "Error Occured In OASISBootLoader In Method GetProviderTypesFromDNA. Reason: ";
 
             try
             {
-                foreach (string provider in providers)
+                if (providerList != null)
                 {
-                    if (Enum.TryParse(typeof(ProviderType), provider.Trim(), out providerTypeObject))
-                        providerTypes.Add((ProviderType)providerTypeObject);
-                    else
-                        throw new ArgumentOutOfRangeException(providerListName,
-                            string.Concat("ERROR: The OASIS DNA file ", OASISDNAPath,
-                                " contains an invalid entry in the ", providerListName,
-                                " comma delimited list. Entry found was ", provider.Trim(), ". Valid entries are:\n\n",
-                                EnumHelper.GetEnumValues(typeof(ProviderType))));
+                    string[] providers = providerList.Split(",");
+
+                    foreach (string provider in providers)
+                    {
+                        if (Enum.TryParse(typeof(ProviderType), provider.Trim(), out providerTypeObject))
+                            providerTypes.Add((ProviderType)providerTypeObject);
+                        else
+                            throw new ArgumentOutOfRangeException(providerListName,
+                                string.Concat("ERROR: The OASIS DNA file ", OASISDNAPath,
+                                    " contains an invalid entry in the ", providerListName,
+                                    " comma delimited list. Entry found was ", provider.Trim(), ". Valid entries are:\n\n",
+                                    EnumHelper.GetEnumValues(typeof(ProviderType))));
+                    }
                 }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}{providerListName} list is null! Please check the OASISDNA.json and try again.");
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In OASISBootLoader In Method GetProviderTypesFromDNA. Reason: {e}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{e}");
             }
 
             result.Result = providerTypes;
@@ -838,32 +881,62 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return await OASISDNAManager.LoadDNAAsync(OASISDNAPath);
         }
 
-        private static void LoadProviderLists()
+        private static OASISResult<bool> LoadProviderLists()
         {
-            // ProviderManager.Instance.DefaultProviderTypes = OASISDNA.OASIS.StorageProviders.DefaultProviders.Split(",");
-            ProviderManager.Instance.SetAutoFailOverForProviders(true,
-                GetProviderTypesFromDNA("AutoFailOverProviders",
-                    OASISDNA.OASIS.StorageProviders.AutoFailOverProviders).Result);
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error Occured In OASISBootLoader.LoadProviderLists. Reason: ";
 
-            ProviderManager.Instance.SetAutoFailOverForProvidersForAvatarLogin(true,
-                GetProviderTypesFromDNA("AutoFailOverProvidersForAvatarLogin",
-                    OASISDNA.OASIS.StorageProviders.AutoFailOverProvidersForAvatarLogin).Result);
+            OASISResult<List<ProviderType>> providerTypesResult = GetProviderTypesFromDNA("AutoFailOverProviders", OASISDNA.OASIS.StorageProviders.AutoFailOverProviders);
 
-            ProviderManager.Instance.SetAutoFailOverForProvidersForCheckIfEmailAlreadyInUse(true,
-               GetProviderTypesFromDNA("AutoFailOverProvidersForCheckIfEmailAlreadyInUse",
-                   OASISDNA.OASIS.StorageProviders.AutoFailOverProvidersForCheckIfEmailAlreadyInUse).Result);
+            if (providerTypesResult != null && !providerTypesResult.IsError)
+                ProviderManager.Instance.SetAutoFailOverForProviders(true, providerTypesResult.Result);
+            else
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
 
-            ProviderManager.Instance.SetAutoFailOverForProvidersForCheckIfUsernameAlreadyInUse(true,
-                GetProviderTypesFromDNA("AutoFailOverProvidersForCheckIfUsernameAlreadyInUse",
-                    OASISDNA.OASIS.StorageProviders.AutoFailOverProvidersForCheckIfUsernameAlreadyInUse).Result);
 
-            ProviderManager.Instance.SetAutoLoadBalanceForProviders(true,
-                GetProviderTypesFromDNA("AutoLoadBalanceProviders",
-                    OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders).Result);
+            providerTypesResult = GetProviderTypesFromDNA("AutoFailOverProvidersForAvatarLogin", OASISDNA.OASIS.StorageProviders.AutoFailOverProvidersForAvatarLogin);
 
-            ProviderManager.Instance.SetAutoReplicationForProviders(true,
-                GetProviderTypesFromDNA("AutoReplicationProviders",
-                    OASISDNA.OASIS.StorageProviders.AutoReplicationProviders).Result);
+            if (providerTypesResult != null && !providerTypesResult.IsError)
+                ProviderManager.Instance.SetAutoFailOverForProvidersForAvatarLogin(true, providerTypesResult.Result);
+            else
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
+
+
+            providerTypesResult = GetProviderTypesFromDNA("AutoFailOverProvidersForCheckIfEmailAlreadyInUse", OASISDNA.OASIS.StorageProviders.AutoFailOverProvidersForCheckIfEmailAlreadyInUse);
+
+            if (providerTypesResult != null && !providerTypesResult.IsError)
+                ProviderManager.Instance.SetAutoFailOverForProvidersForCheckIfEmailAlreadyInUse(true, providerTypesResult.Result);
+            else
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
+
+
+            providerTypesResult = GetProviderTypesFromDNA("AutoFailOverProvidersForCheckIfUsernameAlreadyInUse", OASISDNA.OASIS.StorageProviders.AutoFailOverProvidersForCheckIfUsernameAlreadyInUse);
+
+            if (providerTypesResult != null && !providerTypesResult.IsError)
+                ProviderManager.Instance.SetAutoFailOverForProvidersForCheckIfUsernameAlreadyInUse(true, providerTypesResult.Result);
+            else
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
+
+
+            providerTypesResult = GetProviderTypesFromDNA("AutoLoadBalanceProviders", OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders);
+
+            if (providerTypesResult != null && !providerTypesResult.IsError)
+                ProviderManager.Instance.SetAutoLoadBalanceForProviders(true, providerTypesResult.Result);
+            else
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
+
+
+            providerTypesResult = GetProviderTypesFromDNA("AutoReplicationProviders", OASISDNA.OASIS.StorageProviders.AutoReplicationProviders);
+
+            if (providerTypesResult != null && !providerTypesResult.IsError)
+                ProviderManager.Instance.SetAutoReplicationForProviders(true, providerTypesResult.Result);
+            else
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
+
+            if (result.WarningCount > 0)
+                result.Message = $"{result.WarningCount} Errors Occured Loading Provider Lists. Details: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+
+            return result;
         }
 
         private static void IPFSOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)

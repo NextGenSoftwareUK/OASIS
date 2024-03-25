@@ -8,25 +8,23 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
-using NextGenSoftware.OASIS.Common;
 using BC = BCrypt.Net.BCrypt;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
 {
     //TODO: Want to phase this out, not needed, moving more and more code into AvatarManager.
-    public class AvatarService //: IAvatarService
+    public class AvatarService : IAvatarService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;

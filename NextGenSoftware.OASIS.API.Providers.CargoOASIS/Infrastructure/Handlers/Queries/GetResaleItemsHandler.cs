@@ -2,7 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Builder;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Extensions;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;

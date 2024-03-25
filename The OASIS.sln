@@ -264,6 +264,20 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.Commo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.CLI.Engine", "..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.CLI.Engine\NextGenSoftware.CLI.Engine.csproj", "{9D9AEA62-DB3B-4B1E-9AA6-8FB63AAAC4D0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Runtimes", "Runtimes", "{7979158A-A329-4FDA-BA2B-A496AF8A9D78}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS Runtime", "OASIS Runtime", "{B47B4F0B-4A5A-4F84-958F-FA68B830371D}"
+	ProjectSection(SolutionItems) = preProject
+		Runtimes\OASIS Runtime\OASIS Runtime (With Holochain Conductors Embedded) v2.3.1.zip = Runtimes\OASIS Runtime\OASIS Runtime (With Holochain Conductors Embedded) v2.3.1.zip
+		Runtimes\OASIS Runtime\OASIS Runtime (With Holochain Conductors Embedded) v3.1.0.zip = Runtimes\OASIS Runtime\OASIS Runtime (With Holochain Conductors Embedded) v3.1.0.zip
+		Runtimes\OASIS Runtime\OASIS Runtime (With Holochain Conductors Not Embedded) v2.3.1.zip = Runtimes\OASIS Runtime\OASIS Runtime (With Holochain Conductors Not Embedded) v2.3.1.zip
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "STAR Runtime", "STAR Runtime", "{1A534D6D-A1A5-4867-9CBA-0B1FCF93737B}"
+	ProjectSection(SolutionItems) = preProject
+		Runtimes\STAR Runtime\STAR Runtime (With Holochain Conductors Embedded) v3.1.0.zip = Runtimes\STAR Runtime\STAR Runtime (With Holochain Conductors Embedded) v3.1.0.zip
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -2060,6 +2074,8 @@ Global
 		{6AE749AB-5960-44BD-9AED-A0BA6A682C35} = {775BCCA2-C058-465A-88A3-665AE490CE97}
 		{D2F17220-F8DE-4A46-B51B-8E450D7E8F10} = {1CD64ADE-1AFF-46CC-A531-DFC6240C74C8}
 		{9D9AEA62-DB3B-4B1E-9AA6-8FB63AAAC4D0} = {775BCCA2-C058-465A-88A3-665AE490CE97}
+		{B47B4F0B-4A5A-4F84-958F-FA68B830371D} = {7979158A-A329-4FDA-BA2B-A496AF8A9D78}
+		{1A534D6D-A1A5-4867-9CBA-0B1FCF93737B} = {7979158A-A329-4FDA-BA2B-A496AF8A9D78}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5D3FB15A-71BF-4A92-B497-C6A29E6A486C}

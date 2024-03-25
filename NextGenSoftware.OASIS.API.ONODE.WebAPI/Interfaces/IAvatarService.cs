@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;

@@ -529,7 +529,8 @@ namespace NextGenSoftware.OASIS.STAR
             return LightAsync(OAPPType, genesisType, name, celestialBodyParent, celestialBodyDNAFolder, genesisFolder, genesisNameSpace).Result;
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(OAPPType OAPPType, GenesisType genesisType, string name, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        //public static async Task<OASISResult<CoronalEjection>> LightAsync(OAPPType OAPPType, GenesisType genesisType, string name, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(OAPPType OAPPType, GenesisType genesisType, string name, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
         {
             return await LightAsync(OAPPType, genesisType, name, (ICelestialBody)null, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
         }
@@ -544,7 +545,8 @@ namespace NextGenSoftware.OASIS.STAR
             return await LightAsync(OAPPType, genesisType, name, (ICelestialBody)planetToAddMoonTo, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        //public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
         {
             return await LightAsync(OAPPType, GenesisType.ZomesAndHolonsOnly, oAPPName, zomeAndHolonDNAFolder, genesisFolder, genesisNameSpace);
         }
@@ -651,9 +653,6 @@ namespace NextGenSoftware.OASIS.STAR
             if (string.IsNullOrEmpty(genesisFolder))
                 genesisFolder = $"{STARDNA.BasePath}\\{STARDNA.GenesisFolder}";
 
-            //if (string.IsNullOrEmpty(genesisRustFolder))
-            //    genesisRustFolder = $"{STARDNA.BasePath}\\{STARDNA.GenesisRustFolder}";
-
             if (string.IsNullOrEmpty(genesisNameSpace))
                 genesisNameSpace = $"{STARDNA.BasePath}\\{STARDNA.GenesisNamespace}";
 
@@ -685,12 +684,6 @@ namespace NextGenSoftware.OASIS.STAR
 
                 if (!Directory.Exists(genesisFolder))
                     Directory.CreateDirectory(genesisFolder);
-                
-                //if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp")))
-                //    Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
-
-                //if (!Directory.Exists(string.Concat(genesisFolder, "\\Rust")))
-                //    Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust"));
             }
 
             if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp")))
@@ -707,12 +700,6 @@ namespace NextGenSoftware.OASIS.STAR
 
             switch (genesisType)
             {
-                case GenesisType.ZomesAndHolonsOnly:
-                    {
-  
-                    }
-                    break;
-
                 case GenesisType.Moon:
                     {
                         newBody = new Moon();
@@ -817,16 +804,6 @@ namespace NextGenSoftware.OASIS.STAR
                 newBody.OnHolonsError += NewBody_OnHolonsError;
             }
           
-            // No need to save to get Id anymore... :)
-            /*
-            OASISResult<ICelestialBody> newBodyResult = await newBody.SaveAsync(); //Need to save to get the id to be used for ParentId below (zomes, holons & nodes).
-
-            if (newBodyResult.IsError)
-                return new CoronalEjection() { ErrorOccured = true, Message = string.Concat("Error Saving New CelestialBody. Reason: ", newBodyResult.Message) };
-            else
-                newBody = (CelestialBody)newBodyResult.Result;
-            */
-
             //TODO: MOVE ALL RUST CODE INTO HOLOOASIS.GENERATENATIVECODE METHOD.
             IZome currentZome = null;
             IHolon currentHolon = null;
@@ -2375,7 +2352,7 @@ namespace NextGenSoftware.OASIS.STAR
                                 line = line.Replace("//ZomesAndHolonsOnly:", "");
 
                                 if (line.Contains("CelestialBodyOnly"))
-                                    line = "";
+                                    continue;
                             }
                             else
                             {
@@ -2383,7 +2360,7 @@ namespace NextGenSoftware.OASIS.STAR
                                 line = line.Replace("{CELESTIALBODYVAR}", celestialBodyName.ToCamelCase()).Replace("//CelestialBodyOnly:", "");
 
                                 if (line.Contains("ZomesAndHolonsOnly"))
-                                    line = "";
+                                    continue;
                             }
 
                             line = line.Replace("{HOLON}", holonName.ToPascalCase());

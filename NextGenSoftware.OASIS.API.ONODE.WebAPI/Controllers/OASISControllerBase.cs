@@ -76,199 +76,6 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             return await OASISBootLoader.OASISBootLoader.GetAndActivateStorageProviderAsync(providerType, customConnectionString, forceRegister, setGlobally);
         }
 
-        //protected OASISConfigResult<T> ConfigureOASISEngine<T>(OASISRequest request)
-        //{
-        //    OASISConfigResult<T> result = new OASISConfigResult<T>();
-        //    object providerTypeObject = null;
-        //    ProviderType providerTypeOverride = ProviderType.Default;
-
-        //    if (!string.IsNullOrEmpty(request.AutoReplicationMode) && request.AutoReplicationMode.ToUpper() != "ON" && request.AutoReplicationMode.ToUpper() != "OFF" && request.AutoReplicationMode.ToUpper() != "DEFAULT")
-        //    {
-        //        result.IsError = true;
-        //        result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { IsError = true, Message = $"AutoReplicationMode must be either 'ON', 'OFF' or 'DEFAULT' but found {request.AutoReplicationMode}" });
-        //        return result;
-        //    }
-
-        //    if (!string.IsNullOrEmpty(request.AutoFailOverMode) && request.AutoFailOverMode.ToUpper() != "ON" && request.AutoFailOverMode.ToUpper() != "OFF" && request.AutoFailOverMode.ToUpper() != "DEFAULT")
-        //    {
-        //        result.IsError = true;
-        //        result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { IsError = true, Message = $"AutoFailOverMode must be either 'ON', 'OFF' or 'DEFAULT' but found {request.AutoFailOverMode}" });
-        //        return result;
-        //    }
-
-        //    if (!string.IsNullOrEmpty(request.AutoLoadBalanceMode) && request.AutoLoadBalanceMode.ToUpper() != "ON" && request.AutoLoadBalanceMode.ToUpper() != "OFF" && request.AutoLoadBalanceMode.ToUpper() != "DEFAULT")
-        //    {
-        //        result.IsError = true;
-        //        result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { IsError = true, Message = $"AutoLoadBalanceMode must be either 'ON', 'OFF' or 'DEFAULT' but found {request.AutoReplicationMode}" });
-        //        return result;
-        //    }
-
-        //    if (!string.IsNullOrEmpty(request.ProviderType) && !Enum.TryParse(typeof(ProviderType), request.ProviderType, out providerTypeObject))
-        //    {
-        //        result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { Message = $"The ProviderType {request.ProviderType} passed in is invalid. It must be one of the following types: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}.", IsError = true }, HttpStatusCode.BadRequest);
-        //        return result;
-        //    }
-
-        //    if (!string.IsNullOrEmpty(request.AutoReplicationProviders))
-        //    {
-        //        if (request.AutoReplicationProviders.ToUpper() != "DEFAULT")
-        //        {
-        //            OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoReplication", request.AutoReplicationProviders);
-
-        //            if (listResult.WarningCount > 0)
-        //            {
-        //                result.IsError = true;
-        //                result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { Message = listResult.Message }, HttpStatusCode.BadRequest);
-        //                return result;
-        //            }
-        //        }
-        //    }
-
-        //    if (!string.IsNullOrEmpty(request.AutoFailOverProviders))
-        //    {
-        //        if (request.AutoFailOverProviders.ToUpper() != "DEFAULT")
-        //        {
-        //            OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoFailOver", request.AutoFailOverProviders);
-
-        //            if (listResult.WarningCount > 0)
-        //            {
-        //                result.IsError = true;
-        //                result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { Message = listResult.Message }, HttpStatusCode.BadRequest);
-        //                return result;
-        //            }
-        //        }
-        //    }
-
-        //    if (!string.IsNullOrEmpty(request.AutoLoadBalanceProviders))
-        //    {
-        //        if (request.AutoLoadBalanceProviders.ToUpper() != "DEFAULT")
-        //        {
-        //            OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoLoadBalance", request.AutoLoadBalanceProviders);
-
-        //            if (listResult.WarningCount > 0)
-        //            {
-        //                result.IsError = true;
-        //                result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { Message = listResult.Message }, HttpStatusCode.BadRequest);
-        //                return result;
-        //            }
-        //        }
-        //    }
-
-        //    if (providerTypeObject != null)
-        //        providerTypeOverride = (ProviderType)providerTypeObject;
-
-        //    if (providerTypeOverride != ProviderType.Default && providerTypeOverride != ProviderType.None)
-        //        GetAndActivateProvider(providerTypeOverride, request.SetGlobally);
-
-
-        //    switch (request.AutoReplicationMode.ToUpper())
-        //    {
-        //        case "ON":
-        //            result.AutoReplicationMode = AutoReplicationMode.True;
-        //            break;
-
-        //        case "OFF":
-        //            result.AutoReplicationMode = AutoReplicationMode.False;
-        //            break;
-
-        //        case "DEFAULT":
-        //            result.AutoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA;
-        //            break;
-        //    }
-
-        //    switch (request.AutoFailOverMode.ToUpper())
-        //    {
-        //        case "ON":
-        //            result.AutoFailOverMode = AutoFailOverMode.True;
-        //            break;
-
-        //        case "OFF":
-        //            result.AutoFailOverMode = AutoFailOverMode.False;
-        //            break;
-
-        //        case "DEFAULT":
-        //            result.AutoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA;
-        //            break;
-        //    }
-
-        //    switch (request.AutoLoadBalanceMode.ToUpper())
-        //    {
-        //        case "ON":
-        //            result.AutoLoadBalanceMode = AutoLoadBalanceMode.True;
-        //            break;
-
-        //        case "OFF":
-        //            result.AutoLoadBalanceMode = AutoLoadBalanceMode.False;
-        //            break;
-
-        //        case "DEFAULT":
-        //            result.AutoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA;
-        //            break;
-        //    }
-
-        //    //result.AutoReplicationMode = request.AutoReplicationMode == "DEFAULT" ? AutoReplicationMode.UseGlobalDefaultInOASISDNA : AutoReplicationModeTemp == true ? AutoReplicationMode.True : AutoReplicationMode.False;
-        //    //result.AutoFailOverMode = request.AutoFailOverEnabled == "DEFAULT" ? AutoFailOverMode.UseGlobalDefaultInOASISDNA : autoFailOverEnabledTemp == true ? AutoFailOverMode.True : AutoFailOverMode.False;
-        //    //result.AutoLoadBalanceMode = request.AutoLoadBalanceMode == "DEFAULT" ? AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA : AutoLoadBalanceModeTemp == true ? AutoLoadBalanceMode.True : AutoLoadBalanceMode.False;
-
-        //    result.PreviousAutoFailOverEnabled = ProviderManager.IsAutoFailOverEnabled;
-        //    result.PreviousAutoReplicationEnabled = ProviderManager.IsAutoReplicationEnabled;
-        //    result.PreviousAutoLoadBalanaceEnabled = ProviderManager.IsAutoLoadBalanceEnabled;
-
-        //    if (result.AutoReplicationMode == AutoReplicationMode.True)
-        //        ProviderManager.IsAutoReplicationEnabled = true;
-
-        //    else if (result.AutoReplicationMode == AutoReplicationMode.False)
-        //        ProviderManager.IsAutoReplicationEnabled = false;
-
-
-        //    if (result.AutoFailOverMode == AutoFailOverMode.True)
-        //        ProviderManager.IsAutoFailOverEnabled = true;
-
-        //    else if (result.AutoFailOverMode == AutoFailOverMode.False)
-        //        ProviderManager.IsAutoFailOverEnabled = false;
-
-
-        //    if (result.AutoLoadBalanceMode == AutoLoadBalanceMode.True)
-        //        ProviderManager.IsAutoLoadBalanceEnabled = true;
-
-        //    else if (result.AutoLoadBalanceMode == AutoLoadBalanceMode.False)
-        //        ProviderManager.IsAutoLoadBalanceEnabled = false;
-
-
-
-        //    if (!string.IsNullOrEmpty(request.AutoReplicationProviders))
-        //    {
-        //        result.PreviousAutoReplicationList = ProviderManager.GetProvidersThatAreAutoReplicatingAsString();
-
-        //        if (request.AutoReplicationProviders == "DEFAULT")
-        //            ProviderManager.SetAndReplaceAutoReplicationListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoReplicationProviders);
-        //        else
-        //            ProviderManager.SetAndReplaceAutoReplicationListForProviders(request.AutoReplicationProviders);
-        //    }
-
-        //    if (!string.IsNullOrEmpty(request.AutoFailOverProviders))
-        //    {
-        //        result.PreviousAutoFailOverList = ProviderManager.GetProviderAutoFailOverListAsString();
-
-        //        if (request.AutoFailOverProviders == "DEFAULT")
-        //            ProviderManager.SetAndReplaceAutoFailOverListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoFailOverProviders);
-        //        else
-        //            ProviderManager.SetAndReplaceAutoFailOverListForProviders(request.AutoFailOverProviders);
-        //    }
-
-        //    if (!string.IsNullOrEmpty(request.AutoLoadBalanceProviders))
-        //    {
-        //        result.PreviousAutoLoadBalanaceList = ProviderManager.GetProviderAutoLoadBalanceListAsString();
-
-        //        if (request.AutoLoadBalanceProviders == "DEFAULT")
-        //            ProviderManager.SetAndReplaceAutoLoadBalanceListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders);
-        //        else
-        //            ProviderManager.SetAndReplaceAutoLoadBalanceListForProviders(request.AutoLoadBalanceProviders);
-        //    }
-
-        //    return result;
-        //}
-
         protected OASISConfigResult<T> ConfigureOASISEngine<T>(OASISRequest request)
         {
             (OASISConfigResult<T> result, ProviderType providerTypeOverride) = ConfigureOASISEngineInternal<T>(request);
@@ -292,23 +99,23 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         protected bool ResetOASISSettings<T>(OASISRequest request, OASISConfigResult<T> result)
         {
             if (!request.SetGlobally)
-                ProviderManager.IsAutoFailOverEnabled = result.PreviousAutoFailOverEnabled;
+                ProviderManager.Instance.IsAutoFailOverEnabled = result.PreviousAutoFailOverEnabled;
 
             if (!request.SetGlobally)
-                ProviderManager.IsAutoReplicationEnabled = result.PreviousAutoReplicationEnabled;
+                ProviderManager.Instance.IsAutoReplicationEnabled = result.PreviousAutoReplicationEnabled;
 
             if (!request.SetGlobally)
-                ProviderManager.IsAutoLoadBalanceEnabled = result.PreviousAutoLoadBalanaceEnabled;
+                ProviderManager.Instance.IsAutoLoadBalanceEnabled = result.PreviousAutoLoadBalanaceEnabled;
 
 
             if (result.PreviousAutoReplicationList != null && !request.SetGlobally)
-                ProviderManager.SetAndReplaceAutoReplicationListForProviders(result.PreviousAutoReplicationList);
+                ProviderManager.Instance.SetAndReplaceAutoReplicationListForProviders(result.PreviousAutoReplicationList);
 
             if (result.PreviousAutoFailOverList != null && !request.SetGlobally)
-                ProviderManager.SetAndReplaceAutoFailOverListForProviders(result.PreviousAutoFailOverList);
+                ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(result.PreviousAutoFailOverList);
 
             if (result.PreviousAutoLoadBalanaceList != null && !request.SetGlobally)
-                ProviderManager.SetAndReplaceAutoLoadBalanceListForProviders(result.PreviousAutoLoadBalanaceList);
+                ProviderManager.Instance.SetAndReplaceAutoLoadBalanceListForProviders(result.PreviousAutoLoadBalanaceList);
 
             return true;
         }
@@ -350,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             {
                 if (request.AutoReplicationProviders.ToUpper() != "DEFAULT")
                 {
-                    OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoReplication", request.AutoReplicationProviders);
+                    OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.Instance.GetProvidersFromList("AutoReplication", request.AutoReplicationProviders);
 
                     if (listResult.WarningCount > 0)
                     {
@@ -365,7 +172,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             {
                 if (request.AutoFailOverProviders.ToUpper() != "DEFAULT")
                 {
-                    OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoFailOver", request.AutoFailOverProviders);
+                    OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.Instance.GetProvidersFromList("AutoFailOver", request.AutoFailOverProviders);
 
                     if (listResult.WarningCount > 0)
                     {
@@ -380,7 +187,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             {
                 if (request.AutoLoadBalanceProviders.ToUpper() != "DEFAULT")
                 {
-                    OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.GetProvidersFromList("AutoLoadBalance", request.AutoLoadBalanceProviders);
+                    OASISResult<IEnumerable<ProviderType>> listResult = ProviderManager.Instance.GetProvidersFromList("AutoLoadBalance", request.AutoLoadBalanceProviders);
 
                     if (listResult.WarningCount > 0)
                     {
@@ -447,60 +254,60 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             //result.AutoFailOverMode = request.AutoFailOverEnabled == "DEFAULT" ? AutoFailOverMode.UseGlobalDefaultInOASISDNA : autoFailOverEnabledTemp == true ? AutoFailOverMode.True : AutoFailOverMode.False;
             //result.AutoLoadBalanceMode = request.AutoLoadBalanceMode == "DEFAULT" ? AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA : AutoLoadBalanceModeTemp == true ? AutoLoadBalanceMode.True : AutoLoadBalanceMode.False;
 
-            result.PreviousAutoFailOverEnabled = ProviderManager.IsAutoFailOverEnabled;
-            result.PreviousAutoReplicationEnabled = ProviderManager.IsAutoReplicationEnabled;
-            result.PreviousAutoLoadBalanaceEnabled = ProviderManager.IsAutoLoadBalanceEnabled;
+            result.PreviousAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
+            result.PreviousAutoReplicationEnabled = ProviderManager.Instance.IsAutoReplicationEnabled;
+            result.PreviousAutoLoadBalanaceEnabled = ProviderManager.Instance.IsAutoLoadBalanceEnabled;
 
             if (result.AutoReplicationMode == AutoReplicationMode.True)
-                ProviderManager.IsAutoReplicationEnabled = true;
+                ProviderManager.Instance.IsAutoReplicationEnabled = true;
 
             else if (result.AutoReplicationMode == AutoReplicationMode.False)
-                ProviderManager.IsAutoReplicationEnabled = false;
+                ProviderManager.Instance.IsAutoReplicationEnabled = false;
 
 
             if (result.AutoFailOverMode == AutoFailOverMode.True)
-                ProviderManager.IsAutoFailOverEnabled = true;
+                ProviderManager.Instance.IsAutoFailOverEnabled = true;
 
             else if (result.AutoFailOverMode == AutoFailOverMode.False)
-                ProviderManager.IsAutoFailOverEnabled = false;
+                ProviderManager.Instance.IsAutoFailOverEnabled = false;
 
 
             if (result.AutoLoadBalanceMode == AutoLoadBalanceMode.True)
-                ProviderManager.IsAutoLoadBalanceEnabled = true;
+                ProviderManager.Instance.IsAutoLoadBalanceEnabled = true;
 
             else if (result.AutoLoadBalanceMode == AutoLoadBalanceMode.False)
-                ProviderManager.IsAutoLoadBalanceEnabled = false;
+                ProviderManager.Instance.IsAutoLoadBalanceEnabled = false;
 
 
 
             if (!string.IsNullOrEmpty(request.AutoReplicationProviders))
             {
-                result.PreviousAutoReplicationList = ProviderManager.GetProvidersThatAreAutoReplicatingAsString();
+                result.PreviousAutoReplicationList = ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString();
 
                 if (request.AutoReplicationProviders == "DEFAULT")
-                    ProviderManager.SetAndReplaceAutoReplicationListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoReplicationProviders);
+                    ProviderManager.Instance.SetAndReplaceAutoReplicationListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoReplicationProviders);
                 else
-                    ProviderManager.SetAndReplaceAutoReplicationListForProviders(request.AutoReplicationProviders);
+                    ProviderManager.Instance.SetAndReplaceAutoReplicationListForProviders(request.AutoReplicationProviders);
             }
 
             if (!string.IsNullOrEmpty(request.AutoFailOverProviders))
             {
-                result.PreviousAutoFailOverList = ProviderManager.GetProviderAutoFailOverListAsString();
+                result.PreviousAutoFailOverList = ProviderManager.Instance.GetProviderAutoFailOverListAsString();
 
                 if (request.AutoFailOverProviders == "DEFAULT")
-                    ProviderManager.SetAndReplaceAutoFailOverListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoFailOverProviders);
+                    ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoFailOverProviders);
                 else
-                    ProviderManager.SetAndReplaceAutoFailOverListForProviders(request.AutoFailOverProviders);
+                    ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(request.AutoFailOverProviders);
             }
 
             if (!string.IsNullOrEmpty(request.AutoLoadBalanceProviders))
             {
-                result.PreviousAutoLoadBalanaceList = ProviderManager.GetProviderAutoLoadBalanceListAsString();
+                result.PreviousAutoLoadBalanaceList = ProviderManager.Instance.GetProviderAutoLoadBalanceListAsString();
 
                 if (request.AutoLoadBalanceProviders == "DEFAULT")
-                    ProviderManager.SetAndReplaceAutoLoadBalanceListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders);
+                    ProviderManager.Instance.SetAndReplaceAutoLoadBalanceListForProviders(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders);
                 else
-                    ProviderManager.SetAndReplaceAutoLoadBalanceListForProviders(request.AutoLoadBalanceProviders);
+                    ProviderManager.Instance.SetAndReplaceAutoLoadBalanceListForProviders(request.AutoLoadBalanceProviders);
             }
 
             return (result, providerTypeOverride);

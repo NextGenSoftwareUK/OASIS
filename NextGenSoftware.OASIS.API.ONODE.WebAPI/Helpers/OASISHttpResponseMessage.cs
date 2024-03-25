@@ -7,13 +7,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
 {
     public class OASISHttpResponseMessage<T> : HttpResponseMessage
     {
-       // private bool _showSettings = false;
-        //private AutoFailOverMode _autoFailOverMode = AutoFailOverMode.NotSet;
-        //private AutoReplicationMode _autoReplicationMode = AutoReplicationMode.NotSet;
-        //private AutoLoadBalanceMode _autoLoadBalanceMode = AutoLoadBalanceMode.NotSet;
-
         public bool ShowDetailedSettings { get; set; }
-
         public OASISResult<T> Result { get; set; }
         public string OASISVersion
         {
@@ -37,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
         {
             get
             {
-                return ProviderManager.IsAutoLoadBalanceEnabled;
+                return ProviderManager.Instance.IsAutoLoadBalanceEnabled;
 
                 //if (_autoLoadBalanceMode == AutoLoadBalanceMode.NotSet || _autoLoadBalanceMode == AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA)
                 //    return OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoLoadBalanceEnabled;
@@ -50,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
         {
             get
             {
-                return ProviderManager.IsAutoFailOverEnabled;
+                return ProviderManager.Instance.IsAutoFailOverEnabled;
 
                 //if (_autoFailOverMode == AutoFailOverMode.NotSet || _autoFailOverMode == AutoFailOverMode.UseGlobalDefaultInOASISDNA)
                 //    return OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoFailOverEnabled;
@@ -63,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
         {
             get
             {
-                return ProviderManager.IsAutoReplicationEnabled;
+                return ProviderManager.Instance.IsAutoReplicationEnabled;
 
                 //if (_autoReplicationMode == AutoReplicationMode.NotSet || _autoReplicationMode == AutoReplicationMode.UseGlobalDefaultInOASISDNA)
                 //    return OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled;
@@ -77,8 +71,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
             get
             {
                 if (ShowDetailedSettings)
-                    return ProviderManager.GetProviderAutoLoadBalanceListAsString();
-                //return OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders;
+                    return ProviderManager.Instance.GetProviderAutoLoadBalanceListAsString();
                 else
                     return null;
             }
@@ -89,8 +82,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
             get
             {
                 if (ShowDetailedSettings)
-                    return ProviderManager.GetProviderAutoFailOverListAsString();
-                        //return OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoFailOverProviders;
+                    return ProviderManager.Instance.GetProviderAutoFailOverListAsString();
                 else
                     return null;
             }
@@ -101,8 +93,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
             get
             {
                 if (ShowDetailedSettings)
-                    return ProviderManager.GetProvidersThatAreAutoReplicatingAsString();
-                    //return OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoReplicationProviders;
+                    return ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString();
                 else
                     return null;
             }
@@ -112,43 +103,9 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
         {
             get
             {
-                return ProviderManager.CurrentStorageProviderType.Name;
+                return ProviderManager.Instance.CurrentStorageProviderType.Name;
             }
         }
-
-        //public OASISHttpResponseMessage(OASISResult<T> result, bool showDetailedSettings = false, AutoFailOverMode autoFailOverMode = AutoFailOverMode.NotSet, AutoReplicationMode autoReplicationMode = AutoReplicationMode.NotSet, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.NotSet) : base() 
-        //{
-        //    _showSettings = showDetailedSettings;
-        //    _autoFailOverMode = autoFailOverMode;
-        //    _autoReplicationMode = autoReplicationMode;
-        //    _autoLoadBalanceMode = autoLoadBalanceMode;
-        //    Result = result;
-        //}
-
-        //public OASISHttpResponseMessage(bool showDetailedSettings = false, AutoFailOverMode autoFailOverMode = AutoFailOverMode.NotSet, AutoReplicationMode autoReplicationMode = AutoReplicationMode.NotSet, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.NotSet) : base()
-        //{
-        //    _showSettings = showDetailedSettings;
-        //    _autoFailOverMode = autoFailOverMode;
-        //    _autoReplicationMode = autoReplicationMode;
-        //    _autoLoadBalanceMode = autoLoadBalanceMode;
-        //}
-
-        //public OASISHttpResponseMessage(HttpStatusCode statusCode, bool showDetailedSettings = false, AutoFailOverMode autoFailOverMode = AutoFailOverMode.NotSet, AutoReplicationMode autoReplicationMode = AutoReplicationMode.NotSet, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.NotSet) : base(statusCode)
-        //{
-        //    _showSettings = showDetailedSettings;
-        //    _autoFailOverMode = autoFailOverMode;
-        //    _autoReplicationMode = autoReplicationMode;
-        //    _autoLoadBalanceMode = autoLoadBalanceMode;
-        //}
-
-        //public OASISHttpResponseMessage(OASISResult<T> result, HttpStatusCode statusCode, bool showDetailedSettings = false, AutoFailOverMode autoFailOverMode = AutoFailOverMode.NotSet, AutoReplicationMode autoReplicationMode = AutoReplicationMode.NotSet, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.NotSet) : base(statusCode) 
-        //{
-        //    _showSettings = showDetailedSettings;
-        //    _autoFailOverMode = autoFailOverMode;
-        //    _autoReplicationMode = autoReplicationMode;
-        //    _autoLoadBalanceMode = autoLoadBalanceMode;
-        //    Result = result;
-        //}
 
         public OASISHttpResponseMessage(OASISResult<T> result, bool showDetailedSettings = false) : base()
         {
