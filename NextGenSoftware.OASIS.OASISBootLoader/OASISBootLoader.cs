@@ -142,7 +142,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     OASISResult<bool> loadProviderListsResult = LoadProviderLists();
 
                     if (loadProviderListsResult != null && !loadProviderListsResult.IsError && !loadProviderListsResult.IsWarning)
-                        LoggingManager.Log($"`DONE", LogType.Info, false, false, false, 0);
+                        LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
                     else
                     {
                         if (loadProviderListsResult.IsWarning)
@@ -215,7 +215,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In OASISBootLoader In Method BootOASISAsync. Reason: {e}");
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In OASISBootLoader In Method BootOASISAsync. Reason: {e.ToString()}. Stack Trace2: {e.StackTrace}");
             }
 
             return result;
@@ -347,7 +347,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             {
                 if (ProviderManager.Instance.CurrentStorageProvider == null)
                 {
-                    if (!IsOASISBooted)
+                    if (!IsOASISBooted && !IsOASISBooting)
                     {
                         OASISResult<bool> initResult = await BootOASISAsync(OASISDNAPath);
 

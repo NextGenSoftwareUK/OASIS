@@ -317,6 +317,28 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             try
             {
                 result = await HolonManager.Instance.LoadHolonAsync(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+
+                if (result != null && !result.IsError && result.Result != null)
+                    SetProperties(result.Result);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured in HolonBase.LoadAsync Calling HolonManager.LoadHolonAsync. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<T>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            OASISResult<T> result = new OASISResult<T>();
+
+            try
+            {
+                result = await HolonManager.Instance.LoadHolonAsync<T>(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+
+                if (result != null && !result.IsError && result.Result != null)
+                    SetProperties(result.Result);
             }
             catch (Exception ex)
             {
@@ -333,6 +355,9 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             try
             {
                 result = HolonManager.Instance.LoadHolon(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+
+                if (result != null && !result.IsError && result.Result != null)
+                    SetProperties(result.Result);
             }
             catch (Exception ex)
             {
@@ -342,13 +367,54 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return result;
         }
 
-        public async Task<OASISResult<IHolon>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T> Load<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            OASISResult<T> result = new OASISResult<T>();
+
+            try
+            {
+                result = HolonManager.Instance.LoadHolon<T>(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+
+                if (result != null && !result.IsError && result.Result != null)
+                    SetProperties(result.Result);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured in HolonBase.Load Calling HolonManager.LoadHolon. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IHolon>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)where T : IHolon, new()
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
                 result = await HolonManager.Instance.SaveHolonAsync((IHolon)this, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+
+                if (result != null && !result.IsError && result.Result != null)
+                    SetProperties(result.Result);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured in HolonBase.SaveAsync Calling HolonManager.SaveHolonAsync. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<T>> SaveAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            OASISResult<T> result = new OASISResult<T>();
+
+            try
+            {
+                result = await HolonManager.Instance.SaveHolonAsync<T>((IHolon)this, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+
+                if (result != null && !result.IsError && result.Result != null)
+                    SetProperties(result.Result);
             }
             catch (Exception ex)
             {
@@ -365,6 +431,28 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             try
             {
                 result = HolonManager.Instance.SaveHolon((IHolon)this, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+
+                if (result != null && !result.IsError && result.Result != null)
+                    SetProperties(result.Result);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured in HolonBase.Save Calling HolonManager.SaveHolon. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<T> Save<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            OASISResult<T> result = new OASISResult<T>();
+
+            try
+            {
+                result = HolonManager.Instance.SaveHolon<T>((IHolon)this, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+
+                if (result != null && !result.IsError && result.Result != null)
+                    SetProperties(result.Result);
             }
             catch (Exception ex)
             {
@@ -430,5 +518,73 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 //PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
             }
         }*/
+
+        //private void SetProperties(OASISResult<IHolon> result)
+        //{
+        //    this.Name = result.Result.Name;
+        //    this.Description = result.Result.Description;
+        //    this.CreatedByAvatar = result.Result.CreatedByAvatar;
+        //    this.CreatedByAvatarId = result.Result.CreatedByAvatarId;
+        //    this.CreatedDate = result.Result.CreatedDate;
+        //    this.CreatedOASISType = result.Result.CreatedOASISType;
+        //    this.CreatedProviderType = result.Result.CreatedProviderType;
+        //    this.CustomKey = result.Result.CustomKey;
+        //    this.DeletedByAvatar = result.Result.DeletedByAvatar;
+        //    this.DeletedByAvatarId = result.Result.DeletedByAvatarId;
+        //    this.DeletedDate = result.Result.DeletedDate;
+        //    this.HolonType = result.Result.HolonType;
+        //    this.Id = result.Result.Id;
+        //    this.InstanceSavedOnProviderType = result.Result.InstanceSavedOnProviderType;
+        //    this.IsActive = result.Result.IsActive;
+        //    this.IsChanged = result.Result.IsChanged;
+        //    this.IsNewHolon = result.Result.IsNewHolon;
+        //    this.IsSaving = result.Result.IsSaving;
+        //    this.MetaData = result.Result.MetaData;
+        //    this.ModifiedByAvatar = result.Result.ModifiedByAvatar;
+        //    this.ModifiedByAvatarId = result.Result.ModifiedByAvatarId;
+        //    this.ModifiedDate = result.Result.ModifiedDate;
+        //    this.Original = result.Result.Original;
+        //    this.PreviousVersionId = result.Result.PreviousVersionId;
+        //    this.PreviousVersionProviderUniqueStorageKey = result.Result.PreviousVersionProviderUniqueStorageKey;
+        //    this.ProviderMetaData = result.Result.ProviderMetaData;
+        //    this.ProviderUniqueStorageKey = result.Result?.ProviderUniqueStorageKey;
+        //    this.Version = result.Result.Version;
+        //    this.VersionId = result.Result.VersionId;
+        //    //this = Mapper<IHolon, HolonBase>.MapBaseHolonProperties(result.Result);
+        //}
+
+        private void SetProperties(IHolon holon)
+        {
+            this.Name = holon.Name;
+            this.Description = holon.Description;
+            this.CreatedByAvatar = holon.CreatedByAvatar;
+            this.CreatedByAvatarId = holon.CreatedByAvatarId;
+            this.CreatedDate = holon.CreatedDate;
+            this.CreatedOASISType = holon.CreatedOASISType;
+            this.CreatedProviderType = holon.CreatedProviderType;
+            this.CustomKey = holon.CustomKey;
+            this.DeletedByAvatar = holon.DeletedByAvatar;
+            this.DeletedByAvatarId = holon.DeletedByAvatarId;
+            this.DeletedDate = holon.DeletedDate;
+            this.HolonType = holon.HolonType;
+            this.Id = holon.Id;
+            this.InstanceSavedOnProviderType = holon.InstanceSavedOnProviderType;
+            this.IsActive = holon.IsActive;
+            this.IsChanged = holon.IsChanged;
+            this.IsNewHolon = holon.IsNewHolon;
+            this.IsSaving = holon.IsSaving;
+            this.MetaData = holon.MetaData;
+            this.ModifiedByAvatar = holon.ModifiedByAvatar;
+            this.ModifiedByAvatarId = holon.ModifiedByAvatarId;
+            this.ModifiedDate = holon.ModifiedDate;
+            this.Original = holon.Original;
+            this.PreviousVersionId = holon.PreviousVersionId;
+            this.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey;
+            this.ProviderMetaData = holon.ProviderMetaData;
+            this.ProviderUniqueStorageKey = holon?.ProviderUniqueStorageKey;
+            this.Version = holon.Version;
+            this.VersionId = holon.VersionId;
+            //this = Mapper<IHolon, HolonBase>.MapBaseHolonProperties(result.Result);
+        }
     }
 }
