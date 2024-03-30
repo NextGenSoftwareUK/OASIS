@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Reflection;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -338,7 +339,10 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 result = await HolonManager.Instance.LoadHolonAsync<T>(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
 
                 if (result != null && !result.IsError && result.Result != null)
+                {
                     SetProperties(result.Result);
+                    MapMetaData<T>();
+                }
             }
             catch (Exception ex)
             {
@@ -376,7 +380,10 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 result = HolonManager.Instance.LoadHolon<T>(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
 
                 if (result != null && !result.IsError && result.Result != null)
+                {
                     SetProperties(result.Result);
+                    MapMetaData<T>();
+                }
             }
             catch (Exception ex)
             {
@@ -386,7 +393,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return result;
         }
 
-        public async Task<OASISResult<IHolon>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)where T : IHolon, new()
+        public async Task<OASISResult<IHolon>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
@@ -584,7 +591,72 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             this.ProviderUniqueStorageKey = holon?.ProviderUniqueStorageKey;
             this.Version = holon.Version;
             this.VersionId = holon.VersionId;
-            //this = Mapper<IHolon, HolonBase>.MapBaseHolonProperties(result.Result);
+        }
+
+        private void MapMetaData<T>()
+        {
+            if (this.MetaData != null && this.MetaData.Count > 0)
+            {
+                foreach (string key in this.MetaData.Keys)
+                {
+                    PropertyInfo propInfo = typeof(T).GetProperty(key);
+
+                    if (propInfo != null)
+                    {
+                        if (propInfo.PropertyType == typeof(Guid))
+                            propInfo.SetValue(this, new Guid(this.MetaData[key].ToString()));
+
+                        else if (propInfo.PropertyType == typeof(bool))
+                            propInfo.SetValue(this, Convert.ToBoolean(this.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(DateTime))
+                            propInfo.SetValue(this, Convert.ToDateTime(this.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(int))
+                            propInfo.SetValue(this, Convert.ToInt32(this.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(long))
+                            propInfo.SetValue(this, Convert.ToInt64(this.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(float))
+                            propInfo.SetValue(this, Convert.ToDouble(this.MetaData[key])); //TODO: Check if this is right?! :)
+
+                        else if (propInfo.PropertyType == typeof(double))
+                            propInfo.SetValue(this, Convert.ToDouble(this.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(decimal))
+                            propInfo.SetValue(this, Convert.ToDecimal(this.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(UInt16))
+                            propInfo.SetValue(this, Convert.ToUInt16(this.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(UInt32))
+                            propInfo.SetValue(this, Convert.ToUInt32(this.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(UInt64))
+                            propInfo.SetValue(this, Convert.ToUInt64(this.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(Single))
+                            propInfo.SetValue(this, Convert.ToSingle(this.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(char))
+                            propInfo.SetValue(this, Convert.ToChar(this.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(byte))
+                            propInfo.SetValue(this, Convert.ToByte(this.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(sbyte))
+                            propInfo.SetValue(this, Convert.ToSByte(this.MetaData[key]));
+
+                        else
+                            propInfo.SetValue(this, this.MetaData[key]);
+                    }
+
+                    //TODO: Add any other missing types...
+                }
+
+                //this(IHolonBase) = HolonManager.Instance.MapMetaData<T>((IHolon)this);
+            }
         }
     }
 }

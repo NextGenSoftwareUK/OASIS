@@ -557,21 +557,24 @@ namespace NextGenSoftware.OASIS.STAR
             //OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>();
             ICelestialBody newBody = null;
             bool holonReached = false;
+            string zomeBufferCsharp = "";
+            string izomeBufferCsharp = "";
             string holonBufferRust = "";
             string holonBufferCsharp = "";
+            string iholonBufferCsharp = "";
             string libBuffer = "";
             string holonName = "";
             string zomeName = "";
             string holonFieldsClone = "";
             int nextLineToWrite = 0;
             bool firstField = true;
-            string iholonBufferCsharp = "";
-            string zomeBufferCsharp = "";
+            bool secondField = false;
             string celestialBodyBufferCsharp = "";
             bool firstHolon = true;
             string rustcelestialBodyDNAFolder = string.Empty;
             string OAPPFolder = "";
             List<string> holonNames = new List<string>();
+            string firstStringProperty = "";
 
             if (LoggedInAvatarDetail == null)
                 return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar is not logged in. Please log in before calling this command." };
@@ -641,6 +644,8 @@ namespace NextGenSoftware.OASIS.STAR
             string celestialBodyTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateCelestialBodyDNA)).OpenText().ReadToEnd();
             string loadHolonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateLoadHolonDNA)).OpenText().ReadToEnd();
             string saveHolonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateSaveHolonDNA)).OpenText().ReadToEnd();
+            string iloadHolonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateILoadHolonDNA)).OpenText().ReadToEnd();
+            string isaveHolonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateISaveHolonDNA)).OpenText().ReadToEnd();
 
             string IntTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateInt)).OpenText().ReadToEnd();
             string StringTemplateCSharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateString)).OpenText().ReadToEnd();
@@ -680,7 +685,7 @@ namespace NextGenSoftware.OASIS.STAR
                         break;
                 }
 
-                genesisFolder = string.Concat(OAPPFolder, "\\", STARDNA.OAPPCelestialBodiesFolder);
+                genesisFolder = string.Concat(OAPPFolder, "\\", STARDNA.OAPPGeneratedCodeFolder);
 
                 if (!Directory.Exists(genesisFolder))
                     Directory.CreateDirectory(genesisFolder);
@@ -689,8 +694,29 @@ namespace NextGenSoftware.OASIS.STAR
             if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp")))
                 Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
 
+            if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp\\Zomes")))
+                Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp\\Zomes"));
+
+            if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp\\Holons")))
+                Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp\\Holons"));
+
             if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp\\Interfaces")))
                 Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp\\Interfaces"));
+
+            if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp\\Interfaces\\Zomes")))
+                Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp\\Interfaces\\Zomes"));
+
+            if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp\\Interfaces\\Holons")))
+                Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp\\Interfaces\\Holons"));
+
+            if (genesisType != GenesisType.ZomesAndHolonsOnly)
+            {
+                if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp\\CelestialBodies")))
+                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp\\CelestialBodies"));
+
+                if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp\\Interfaces\\CelestialBodies")))
+                    Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp\\Interfaces\\CelestialBodies"));
+            }
 
             if (!Directory.Exists(string.Concat(genesisFolder, "\\Rust")))
                 Directory.CreateDirectory(string.Concat(genesisFolder, "\\Rust")); //TODO: Soon this will be generic depending on what the target OASIS Providers STAR has been configured to generate OApp code for...
@@ -828,7 +854,9 @@ namespace NextGenSoftware.OASIS.STAR
                                 genesisNameSpace = parts[1];
 
                             zomeBufferCsharp = zomeTemplateCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
+                            izomeBufferCsharp = iZomeTemplate.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
                             holonBufferCsharp = holonTemplateCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
+                            iholonBufferCsharp = iHolonTemplate.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
                         }
 
                         if (buffer.Contains("ZomeDNA"))
@@ -836,10 +864,12 @@ namespace NextGenSoftware.OASIS.STAR
                             string[] parts = buffer.Split(' ');
                             libBuffer = libTemplate.Replace("zome_name", parts[6].ToSnakeCase());
 
-                            zomeBufferCsharp = zomeBufferCsharp.Replace("ZomeDNATemplate", parts[6].ToPascalCase());
                             zomeName = parts[6].ToPascalCase();
+                            zomeBufferCsharp = zomeBufferCsharp.Replace("ZomeDNATemplate", zomeName);
+                            zomeBufferCsharp = zomeBufferCsharp.Replace("IZome", $"I{zomeName}");
+                            izomeBufferCsharp = izomeBufferCsharp.Replace("IZomeDNATemplate", $"I{zomeName}");
 
-                           currentZome = new Zome()
+                            currentZome = new Zome()
                             {
                                 Id = Guid.NewGuid(),
                                 IsNewHolon = true,
@@ -875,23 +905,32 @@ namespace NextGenSoftware.OASIS.STAR
                             switch (parts[13].ToLower())
                             {
                                 case "string":
-                                    GenerateCSharpField(parts[14], StringTemplateCSharp, ref holonBufferCsharp, ref iholonBufferCsharp);
-                                    GenerateRustField(fieldName, stringTemplateRust, NodeType.String, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
+                                    {
+                                        if (string.IsNullOrEmpty(firstStringProperty))
+                                            firstStringProperty = parts[14];
+
+                                        GenerateCSharpField(parts[14], StringTemplateCSharp, ref holonBufferCsharp, ref iholonBufferCsharp, ref firstField, ref secondField);
+                                        GenerateRustField(fieldName, stringTemplateRust, NodeType.String, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
+                                    }
                                     break;
 
                                 case "int":
-                                    GenerateCSharpField(parts[14], IntTemplateCsharp, ref holonBufferCsharp, ref iholonBufferCsharp);
-                                    GenerateRustField(fieldName, intTemplateRust, NodeType.Int, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
+                                    {
+                                        GenerateCSharpField(parts[14], IntTemplateCsharp, ref holonBufferCsharp, ref iholonBufferCsharp, ref firstField, ref secondField);
+                                        GenerateRustField(fieldName, intTemplateRust, NodeType.Int, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
+                                    }
                                     break;
 
                                 case "bool":
-                                    GenerateCSharpField(parts[14], BoolTemplateCsharp, ref holonBufferCsharp, ref iholonBufferCsharp);
-                                    GenerateRustField(fieldName, boolTemplateRust, NodeType.Bool, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
+                                    {
+                                        GenerateCSharpField(parts[14], BoolTemplateCsharp, ref holonBufferCsharp, ref iholonBufferCsharp, ref firstField, ref secondField);
+                                        GenerateRustField(fieldName, boolTemplateRust, NodeType.Bool, holonName, currentHolon, ref firstField, ref holonFieldsClone, ref holonBufferRust);
+                                    }
                                     break;
                             }
                         }
 
-                        // Write the holon out to the rust lib template. 
+                        // Write the holon out.
                         if (holonReached && buffer.Length > 1 && buffer.Substring(buffer.Length - 1, 1) == "}" && !buffer.Contains("get;"))
                         {
                             if (holonBufferRust.Length > 2)
@@ -915,25 +954,14 @@ namespace NextGenSoftware.OASIS.STAR
                             libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, updateTemplate.Replace("Holon", holonName.ToPascalCase()).Replace("{holon}", holonName).Replace("//#CopyFields//", holonFieldsClone), Environment.NewLine));
                             libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, deleteTemplate.Replace("Holon", holonName.ToPascalCase()).Replace("{holon}", holonName), Environment.NewLine));
                             libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, validationTemplate.Replace("Holon", holonName.ToPascalCase()).Replace("{holon}", holonName), Environment.NewLine));
-
-                            //if (!firstHolon)
-                            //{
-                            //    //TODO: Need to make dynamic so no need to pass length in (had issues before but will try again later... :) )
-                            //    zomeBufferCsharp = GenerateDynamicZomeFunc("Load", zomeTemplateCsharp, holonName, zomeBufferCsharp, 170);
-                            //    zomeBufferCsharp = GenerateDynamicZomeFunc("Save", zomeTemplateCsharp, holonName, zomeBufferCsharp, 147);
-                            //}
-
                             holonName = holonName.ToPascalCase();
 
-                            File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\Interfaces\\I", holonName, ".cs"), iholonBufferCsharp);
-                            File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\", holonName, ".cs"), holonBufferCsharp);
-
-                            //TDOD: Finish putting in IZomeBuffer etc
-                            //   File.WriteAllText(string.Concat(genesisFolder, "\\I", holonName, ".cs"), izomeBuffer);
-                            // File.WriteAllText(string.Concat(genesisFolder, "\\", zomeName, ".cs"), zomeBufferCsharp);
+                            File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\Interfaces\\Holons\\I", holonName, ".cs"), iholonBufferCsharp);
+                            File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\Holons\\", holonName, ".cs"), holonBufferCsharp);
 
                             holonBufferRust = "";
                             holonBufferCsharp = "";
+                            iholonBufferCsharp = "";
                             holonFieldsClone = "";
                             holonReached = false;
                             firstField = true;
@@ -953,20 +981,28 @@ namespace NextGenSoftware.OASIS.STAR
                             if (string.IsNullOrEmpty(holonBufferCsharp))
                                 holonBufferCsharp = holonTemplateCsharp;
 
-                            holonBufferCsharp = holonBufferCsharp.Replace("HolonDNATemplate", parts[10]);
-                            iholonBufferCsharp = iHolonTemplate.Replace("IHolonDNATemplate", string.Concat("I", parts[10]));
+                            if (string.IsNullOrEmpty(iholonBufferCsharp))
+                                iholonBufferCsharp = iHolonTemplate;
+
+                            holonBufferCsharp = holonBufferCsharp.Replace("HolonDNATemplate", holonName);
+                            iholonBufferCsharp = iholonBufferCsharp.Replace("IHolonDNATemplate", string.Concat("I", holonName));
+     
+                            zomeBufferCsharp = zomeBufferCsharp.Insert(zomeBufferCsharp.Length - 7, string.Concat(loadHolonTemplateCsharp.Replace(".CelestialBodyCore", ""), "\n"));
+                            zomeBufferCsharp = zomeBufferCsharp.Insert(zomeBufferCsharp.Length - 7, string.Concat(saveHolonTemplateCsharp.Replace(".CelestialBodyCore", ""), "\n"));
+                            zomeBufferCsharp = zomeBufferCsharp.Replace("HOLON", holonName);
+                            zomeBufferCsharp = zomeBufferCsharp.Replace("IHOLON", $"I{holonName}");
+    
+                            izomeBufferCsharp = izomeBufferCsharp.Insert(izomeBufferCsharp.Length - 10, string.Concat(iloadHolonTemplateCsharp.Replace(".CelestialBodyCore", ""), "\n"));
+                            //izomeBufferCsharp = izomeBufferCsharp.Insert(izomeBufferCsharp.Length - 10, string.Concat(isaveHolonTemplateCsharp.Replace(".CelestialBodyCore", ""), "\n"));
+                            izomeBufferCsharp = izomeBufferCsharp.Insert(izomeBufferCsharp.Length - 10, string.Concat(isaveHolonTemplateCsharp.Replace(".CelestialBodyCore", "")));
+                            izomeBufferCsharp = izomeBufferCsharp.Replace("HOLON", holonName);
+                            izomeBufferCsharp = izomeBufferCsharp.Replace("IHOLON", $"I{holonName}");
+
+                            zomeBufferCsharp = zomeBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
+                            izomeBufferCsharp = izomeBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
                             holonBufferCsharp = holonBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
                             iholonBufferCsharp = iholonBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
 
-                            //int endSpace = holonBufferCsharp.LastIndexOf("}");
-                            //holonBufferCsharp = string.Concat(holonBufferCsharp.Substring(0, endSpace - 8), holonBufferCsharp.Substring(endSpace - 6));
-
-                            zomeBufferCsharp = zomeBufferCsharp.Insert(zomeBufferCsharp.Length - 7, string.Concat(loadHolonTemplateCsharp.Replace(".CelestialBodyCore", ""), "\n"));
-                            zomeBufferCsharp = zomeBufferCsharp.Insert(zomeBufferCsharp.Length - 7, string.Concat(saveHolonTemplateCsharp.Replace(".CelestialBodyCore", ""), "\n"));
-                            zomeBufferCsharp = zomeBufferCsharp.Replace("HOLON", parts[10].ToPascalCase());
-                            zomeBufferCsharp = zomeBufferCsharp.Replace("IHolon", $"I{parts[10].ToPascalCase()}");
-                            zomeBufferCsharp = zomeBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
-                            
                             if (newBody != null)
                             {
                                 if (string.IsNullOrEmpty(celestialBodyBufferCsharp))
@@ -981,7 +1017,6 @@ namespace NextGenSoftware.OASIS.STAR
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Insert(celestialBodyBufferCsharp.Length - 7, string.Concat(saveHolonTemplateCsharp, "\n"));
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("HOLON", parts[10].ToPascalCase());
                             }
-
 
                             // TODO: Current Zome Id will be empty here so need to save the zome before? (above when the zome is first created and added to the newBody zomes collection).
                             currentHolon = new Holon()
@@ -1019,8 +1054,9 @@ namespace NextGenSoftware.OASIS.STAR
                     reader.Close();
                     nextLineToWrite = 0;
 
-                    File.WriteAllText(string.Concat(genesisFolder, "\\Rust\\lib.rs"), libBuffer);
-                    File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\", zomeName, ".cs"), zomeBufferCsharp);
+                    File.WriteAllText(string.Concat(genesisFolder, "\\Rust\\lib.rs"), libBuffer); //TODO: Move out to HoloOASIS Provider ASAP.
+                    File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\Interfaces\\Zomes\\I", zomeName, ".cs"), izomeBufferCsharp);
+                    File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\Zomes\\", zomeName, ".cs"), zomeBufferCsharp);
                 }
             }
 
@@ -1030,7 +1066,7 @@ namespace NextGenSoftware.OASIS.STAR
 
             // Currently the OApp Name is the same as the CelestialBody name (each CelestialBody is a seperate OApp), but in future a OApp may be able to contain more than one celestialBody...
             // TODO: Currently the OApp templates only contain sample load/save for one holon... this may change in future... likely will... ;-) Want to show for every zome/holon inside the celestialbody...
-            ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, name, name, holonNames[0]);
+            ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, name, name, holonNames[0], firstStringProperty);
 
             //Generate any native code for the current provider.
             //TODO: Add option to pass into STAR which providers to generate native code for (can be more than one provider).
@@ -1434,6 +1470,8 @@ namespace NextGenSoftware.OASIS.STAR
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateCelestialBodyDNA, "STARDNA.CSharpTemplateCelestialBodyDNA");
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateLoadHolonDNA, "STARDNA.CSharpTemplateLoadHolonDNA");
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateSaveHolonDNA, "STARDNA.CSharpTemplateSaveHolonDNA");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateILoadHolonDNA, "STARDNA.CSharpTemplateILoadHolonDNA");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateISaveHolonDNA, "STARDNA.CSharpTemplateISaveHolonDNA");
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateInt, "STARDNA.CSharpTemplateInt");
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateString, "STARDNA.CSharpTemplateString");
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateBool, "STARDNA.CSharpTemplateBool");
@@ -1452,42 +1490,18 @@ namespace NextGenSoftware.OASIS.STAR
                 //ValidateFolder(starDNA.BasePath, starDNA.OAPPWPFTemplateDNA, "STARDNA.OAPPWPFTemplateDNA", true);
 
 
-                //switch (starDNA.HolochainVersion.ToUpper())
-                //{
-                //    case "REDUX":
-                //        {
-                //            ValidateFolder(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, "STARDNA.RustDNAReduxTemplateFolder");
-                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
-                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
-                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
-                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateRead, "STARDNA.RustTemplateRead");
-                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateUpdate, "STARDNA.RustTemplateUpdate");
-                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateList, "STARDNA.RustTemplateList");
-                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateValidation, "STARDNA.RustTemplateValidation");
-                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateInt, "STARDNA.RustTemplateInt");
-                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateString, "STARDNA.RustTemplateString");
-                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateBool, "STARDNA.RustTemplateBool");
-                //            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateHolon, "STARDNA.RustTemplateHolon");
-                //        }
-                //        break;
-
-                //    case "RSM":
-                //        {
                 ValidateFolder(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, "STARDNA.RustDNARSMTemplateFolder");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateRead, "STARDNA.RustTemplateRead");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateUpdate, "STARDNA.RustTemplateUpdate");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateList, "STARDNA.RustTemplateList");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateValidation, "STARDNA.RustTemplateValidation");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateInt, "STARDNA.RustTemplateInt");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateString, "STARDNA.RustTemplateString");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateBool, "STARDNA.RustTemplateBool");
-                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateHolon, "STARDNA.RustTemplateHolon");
-                //        }
-                //        break;
-                //}
+                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
+                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
+                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
+                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateRead, "STARDNA.RustTemplateRead");
+                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateUpdate, "STARDNA.RustTemplateUpdate");
+                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateList, "STARDNA.RustTemplateList");
+                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateValidation, "STARDNA.RustTemplateValidation");
+                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateInt, "STARDNA.RustTemplateInt");
+                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateString, "STARDNA.RustTemplateString");
+                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateBool, "STARDNA.RustTemplateBool");
+                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateHolon, "STARDNA.RustTemplateHolon");
             }
             else
                 throw new ArgumentNullException("STARDNA is null, please check and try again.");
@@ -1581,13 +1595,31 @@ namespace NextGenSoftware.OASIS.STAR
             currentHolon.Nodes.Add(new Node { Id = Guid.NewGuid(), NodeName = fieldName.ToPascalCase(), NodeType = nodeType, ParentId = currentHolon.Id });
         }
 
-        private static void GenerateCSharpField(string fieldName, string fieldTemplate, ref string holonBufferCsharp, ref string iHolonBufferCsharp)
+        private static void GenerateCSharpField(string fieldName, string fieldTemplate, ref string holonBufferCsharp, ref string iHolonBufferCsharp, ref bool firstField, ref bool secondField)
         {
             int fieldsEnd = holonBufferCsharp.LastIndexOf("}") - 7;
-            holonBufferCsharp = holonBufferCsharp.Insert(fieldsEnd, string.Concat(fieldTemplate.Replace("variableName", fieldName), "\n\n"));
+            holonBufferCsharp = holonBufferCsharp.Insert(fieldsEnd, string.Concat("\n", fieldTemplate.Replace("variableName", fieldName), "\n"));
 
-            fieldsEnd = iHolonBufferCsharp.LastIndexOf("}") - 7;
-            iHolonBufferCsharp = iHolonBufferCsharp.Insert(fieldsEnd, string.Concat(fieldTemplate.Replace("variableName", fieldName), "\n\n"));
+            //fieldsEnd = iHolonBufferCsharp.LastIndexOf("}") - 7;
+
+            if (firstField)
+            {
+                fieldsEnd = iHolonBufferCsharp.LastIndexOf("}") - 10;
+                iHolonBufferCsharp = iHolonBufferCsharp.Insert(fieldsEnd, string.Concat(fieldTemplate.Replace("variableName", fieldName)));
+                secondField = true;
+            }
+            else if (secondField)
+            {
+                secondField = false;
+                fieldsEnd = iHolonBufferCsharp.LastIndexOf("}") - 7;
+                //iHolonBufferCsharp = iHolonBufferCsharp.Insert(fieldsEnd, string.Concat("\n", fieldTemplate.Replace("variableName", fieldName), "\n"));
+                iHolonBufferCsharp = iHolonBufferCsharp.Insert(fieldsEnd, string.Concat(fieldTemplate.Replace("variableName", fieldName), "\n"));
+            }
+            else
+            {
+                fieldsEnd = iHolonBufferCsharp.LastIndexOf("}") - 7;
+                iHolonBufferCsharp = iHolonBufferCsharp.Insert(fieldsEnd, string.Concat("\n", fieldTemplate.Replace("variableName", fieldName), "\n"));
+            }
         }
 
         private static OASISResult<bool> BootOASIS(string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
@@ -2301,15 +2333,15 @@ namespace NextGenSoftware.OASIS.STAR
             }
         }
 
-        private static void ApplyOAPPTemplate(GenesisType genesisType, string OAPPFolder, string oAppNameSpace, string oAppName, string celestialBodyName, string holonName)
+        private static void ApplyOAPPTemplate(GenesisType genesisType, string OAPPFolder, string oAppNameSpace, string oAppName, string celestialBodyName, string holonName, string firstStringProperty)
         {
             foreach (DirectoryInfo dir in new DirectoryInfo(OAPPFolder).GetDirectories())
             {
                 if (dir.Name != "bin" && dir.Name != "obj")
-                    ApplyOAPPTemplate(genesisType, dir.FullName, oAppNameSpace, oAppName, celestialBodyName, holonName);
+                    ApplyOAPPTemplate(genesisType, dir.FullName, oAppNameSpace, oAppName, celestialBodyName, holonName, firstStringProperty);
             }
             
-            if (!OAPPFolder.Contains(STAR.STARDNA.OAPPCelestialBodiesFolder))
+            if (!OAPPFolder.Contains(STAR.STARDNA.OAPPGeneratedCodeFolder))
             {                
                 foreach (FileInfo file in new DirectoryInfo(OAPPFolder).GetFiles("*.csproj"))
                 {
@@ -2364,6 +2396,7 @@ namespace NextGenSoftware.OASIS.STAR
                             }
 
                             line = line.Replace("{HOLON}", holonName.ToPascalCase());
+                            line = line.Replace("{STRINGPROPERTY}", firstStringProperty.ToPascalCase());
 
                             tw.WriteLine(line);
                             lineNumber++;

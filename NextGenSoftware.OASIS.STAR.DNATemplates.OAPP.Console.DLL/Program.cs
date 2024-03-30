@@ -1,42 +1,45 @@
 ﻿using System;
 using NextGenSoftware.CLI.Engine;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-//using NextGenSoftware.OASIS.STAR;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
+using NextGenSoftware.OASIS.STAR;
 using {OAPPNAMESPACE};
 
 Console.WriteLine("Welcome To The {OAPPNAME} Console");
 
-CLIEngine.ShowWorkingMessage("BOOTING OASIS...", true, 1, true);
-//OASISResult<bool> bootResult = await STAR.OASISAPI.BootOASISAsync();
-OASISResult<bool> bootResult = await OASISAPI.BootOASISAsync();
+CLIEngine.ShowWorkingMessage("BOOTING OASIS...");
+
+//OASISResult<bool> bootResult = await OASISAPI.BootOASISAsync();
+OASISResult<bool> bootResult = await STAR.OASISAPI.BootOASISAsync();
 
 if (bootResult != null && !bootResult.IsError)
 {
-    CLIEngine.ShowSuccessMessage($"OASIS BOOTED! VERSION: {OASISAPI.OASISVersion}");
     CLIEngine.ShowWorkingMessage("Saving Test Holon...", true, 1, true);
 
+    {HOLON} holon = new {HOLON}() { Name = "Test Holon" };
+    holon.{STRINGPROPERTY} = "test custom property value";
+
     //CelestialBodyOnly:{CELESTIALBODY} {CELESTIALBODYVAR} = new {CELESTIALBODY}();
-    //CelestialBodyOnly:OASISResult<{HOLON}> saveHolonResult = await {CELESTIALBODYVAR}.Save{HOLON}Async(new {HOLON}() { Name = "Test Holon" });
-    //ZomesAndHolonsOnly:{HOLON} holon = new {HOLON}() { Name = "Test Holon" };
-    //ZomesAndHolonsOnly:OASISResult<IHolon> saveHolonResult = await holon.SaveAsync();
+    //CelestialBodyOnly:OASISResult<{HOLON}> saveHolonResult = await {CELESTIALBODYVAR}.Save{HOLON}Async(holon);
+    //CelestialBodyOnly://OASISResult<{HOLON}> saveHolonResult = await holon.SaveAsync<{HOLON}>(); // Alternatively you can save holons by calling Save(Async) on them directly.
+    //ZomesAndHolonsOnly:OASISResult<{HOLON}> saveHolonResult = await holon.SaveAsync<{HOLON}>();
 
     if (!saveHolonResult.IsError && saveHolonResult.Result != null)
     {
-        CLIEngine.ShowMessage($"Test Holon Saved. Id: {saveHolonResult.Result.Id}, Created Date: {saveHolonResult.Result.CreatedDate}");
-        //CelestialBodyOnly:{HOLON} testHolon = saveHolonResult.Result;
-        //ZomesAndHolonsOnly:{HOLON} testHolon = ({HOLON})saveHolonResult.Result;
+        CLIEngine.ShowMessage($"Test Holon Saved. Id: {saveHolonResult.Result.Id}, Created Date: {saveHolonResult.Result.CreatedDate}, {STRINGPROPERTY} = {saveHolonResult.Result.{STRINGPROPERTY}}");
+        CLIEngine.ShowMessage($"Test Holon Saved. Id: {holon.Id}, Created Date: {holon.CreatedDate}, {STRINGPROPERTY} = {holon.{STRINGPROPERTY}}");
+
+        //Create a new instance of the holon to empty out all properties so it is a fair load test...
+        holon = new {HOLON}() { Id = holon.Id };
 
         CLIEngine.ShowWorkingMessage("Loading Test Holon...");
         //CelestialBodyOnly:OASISResult<{HOLON}> loadHolonResult = await {CELESTIALBODYVAR}.Load{HOLON}Async(testHolon.Id);
-        //ZomesAndHolonsOnly:OASISResult<IHolon> loadHolonResult = await holon.LoadAsync();
+        //CelestialBodyOnly://OASISResult<{HOLON}> loadHolonResult = await holon.LoadAsync<{HOLON}>(); // Alternatively you can load holons by calling Load(Async) on them directly.
+        //ZomesAndHolonsOnly:OASISResult<{HOLON}> loadHolonResult = await holon.LoadAsync<{HOLON}>();
 
         if (!loadHolonResult.IsError && loadHolonResult.Result != null)
         {
-            //CelestialBodyOnly:testHolon = loadHolonResult.Result;
-            //ZomesAndHolonsOnly:testHolon = ({HOLON})loadHolonResult.Result;
-            CLIEngine.ShowMessage($"Test Holon Loaded. Id: {testHolon.Id}, Created Date: {testHolon.CreatedDate}");
+            CLIEngine.ShowMessage($"Test Holon Loaded. Id: {saveHolonResult.Result.Id}, Created Date: {saveHolonResult.Result.CreatedDate}, {STRINGPROPERTY} = {saveHolonResult.Result.{STRINGPROPERTY}}");
+            CLIEngine.ShowMessage($"Test Holon Loaded. Id: {holon.Id}, Created Date: {holon.CreatedDate}, {STRINGPROPERTY} = {holon.{STRINGPROPERTY}}");
         }
         else
             CLIEngine.ShowErrorMessage($"Error Loading Holon. Reason: {loadHolonResult.Message}");
@@ -46,28 +49,32 @@ if (bootResult != null && !bootResult.IsError)
 
     //Alternatively you can save/load holons/data using the Data API/HolonManager on the OASIS API.
     CLIEngine.ShowWorkingMessage("Saving Test Holon...");
-    //OASISResult<IHolon> saveHolonResult2 = await STAR.OASISAPI.Data.SaveHolonAsync(new SuperTest2() { Name = "Test Holon" });
-    OASISResult<IHolon> saveHolonResult2 = await OASISAPI.Data.SaveHolonAsync(new SuperTest2() { Name = "Test Holon" });
 
-    if (!saveHolonResult2.IsError && saveHolonResult2.Result != null)
+    holon = new SuperTest2() { Name = "Test Holon" };
+    holon.{STRINGPROPERTY} = "test custom property value!";
+
+    //saveHolonResult = await OASISAPI.Data.SaveHolonAsync<{HOLON}>(holon);
+    saveHolonResult = await STAR.OASISAPI.Data.SaveHolonAsync<SuperTest2>(holon);
+
+    if (!saveHolonResult.IsError && saveHolonResult.Result != null)
     {
-        CLIEngine.ShowMessage($"Test Holon Saved. Id: {saveHolonResult2.Result.Id}, Created Date: {saveHolonResult2.Result.CreatedDate}");
-        {HOLON} testHolon = ({HOLON})saveHolonResult2.Result; //If you use Data API above you will need to cast here.
+        CLIEngine.ShowMessage($"Test Holon Saved. Id: {saveHolonResult.Result.Id}, Created Date: {saveHolonResult.Result.CreatedDate}, {STRINGPROPERTY}: {saveHolonResult.Result.{STRINGPROPERTY}}");
+        CLIEngine.ShowMessage($"Test Holon Saved. Id: {holon.Id}, Created Date: {holon.CreatedDate}, {STRINGPROPERTY} = {holon.{STRINGPROPERTY}}");
 
         CLIEngine.ShowWorkingMessage("Loading Test Holon...");
-        //OASISResult<IHolon> loadHolonResult2 = await STAR.OASISAPI.Data.LoadHolonAsync(testHolon.Id);
-        OASISResult<IHolon> loadHolonResult2 = await OASISAPI.Data.LoadHolonAsync(testHolon.Id);
+        //OASISResult<{HOLON}> loadHolonResult = await OASISAPI.Data.LoadHolonAsync<{HOLON}>(testHolon.Id);
+        OASISResult<{HOLON}> loadHolonResult = await STAR.OASISAPI.Data.LoadHolonAsync<{HOLON}>(holon.Id);
 
-        if (!loadHolonResult2.IsError && loadHolonResult2.Result != null)
+        if (!loadHolonResult.IsError && loadHolonResult.Result != null)
         {
-            testHolon = ({HOLON})loadHolonResult2.Result; //If you use Data API above you will need to cast here.
-            CLIEngine.ShowMessage($"Test Holon Loaded. Id: {testHolon.Id}, Created Date: {testHolon.CreatedDate}");
+            holon = loadHolonResult.Result;
+            CLIEngine.ShowMessage($"Test Holon Loaded. Id: {holon.Id}, Created Date: {holon.CreatedDate}, {STRINGPROPERTY} = {holon.{STRINGPROPERTY}}");
         }
         else
-            CLIEngine.ShowErrorMessage($"Error Loading Holon. Reason: {loadHolonResult2.Message}");
+            CLIEngine.ShowErrorMessage($"Error Loading Holon. Reason: {loadHolonResult.Message}");
     }
     else
-        CLIEngine.ShowErrorMessage($"Error Saving Holon. Reason: {saveHolonResult2.Message}");
+        CLIEngine.ShowErrorMessage($"Error Saving Holon. Reason: {saveHolonResult.Message}");
 }
 else
     CLIEngine.ShowErrorMessage($"Error Booting OASIS: Reason: {bootResult.Message}");

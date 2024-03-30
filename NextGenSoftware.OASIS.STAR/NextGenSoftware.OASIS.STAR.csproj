@@ -6,13 +6,16 @@
 
   <ItemGroup>
     <Compile Remove="DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\HolonDNATemplate.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Interfaces\ILoadHolonDNATemplate.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Interfaces\ISaveHolonDNATemplate.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Interfaces\IZomeDNATemplate.cs" />
     <Compile Remove="DNATemplates\CSharpDNATemplates\LoadHolonDNATemplate.cs" />
-    <Compile Remove="DNATemplates\CSharpDNATemplates\OLD\CelestialBodyDNATemplate.cs" />
-    <Compile Remove="DNATemplates\CSharpDNATemplates\OLD\ZomeDNATemplate.cs" />
     <Compile Remove="DNATemplates\CSharpDNATemplates\SaveHolonDNATemplate.cs" />
     <Compile Remove="DNATemplates\CSharpDNATemplates\Types\bool.cs" />
     <Compile Remove="DNATemplates\CSharpDNATemplates\Types\int.cs" />
     <Compile Remove="DNATemplates\CSharpDNATemplates\Types\string.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -81,14 +84,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="DNATemplates\CSharpDNATemplates\OLD\ZomeDNATemplate.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\HolonDNATemplate.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Interfaces\ILoadHolonDNATemplate.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Interfaces\ISaveHolonDNATemplate.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Interfaces\IZomeDNATemplate.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\SaveHolonDNATemplate.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\LoadHolonDNATemplate.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />
-    <None Include="DNATemplates\CSharpDNATemplates\OLD\CelestialBodyDNATemplate.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\Types\bool.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\Types\int.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\Types\string.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" />
   </ItemGroup>
 
   <ItemGroup>
