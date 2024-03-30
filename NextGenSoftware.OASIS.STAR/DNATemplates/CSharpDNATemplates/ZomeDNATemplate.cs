@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.Zomes;
+using NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates
 {

@@ -24,13 +24,16 @@ namespace NextGenSoftware.OASIS.API.DNA
         public static OASISResult<OASISDNA> LoadDNA(string OASISDNAPath)
         {
             OASISResult<OASISDNA> result = new OASISResult<OASISDNA>();
+            string errorMessage = "Error occured in OASISDNAManager.LoadDNA. Reason: ";
 
             try
             {
                 if (string.IsNullOrEmpty(OASISDNAPath))
-                    //throw new ArgumentNullException("OASISDNAPath", "OASISDNAPath cannot be null.");
-                    OASISErrorHandling.HandleError(ref result, $"Error occured in OASISDNAManager.LoadDNA. Reason: OASISDNAPath cannot be null.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNAPath cannot be null.");
 
+                else if (!File.Exists(OASISDNAPath))
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The OASISDNAPath ({OASISDNAPath}) is not valid. Please make sure the OASISDNAPath is valid and that it points to the OASISDNA.json file.");
+                
                 else
                 {
                     OASISDNAManager.OASISDNAPath = OASISDNAPath;
@@ -45,7 +48,7 @@ namespace NextGenSoftware.OASIS.API.DNA
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in OASISDNAManager.LoadDNA. Reason: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}");
             }
 
             return result;
@@ -54,12 +57,15 @@ namespace NextGenSoftware.OASIS.API.DNA
         public static async Task<OASISResult<OASISDNA>> LoadDNAAsync(string OASISDNAPath)
         {
             OASISResult<OASISDNA> result = new OASISResult<OASISDNA>();
+            string errorMessage = "Error occured in OASISDNAManager.LoadDNA. Reason: ";
 
             try
             {
                 if (string.IsNullOrEmpty(OASISDNAPath))
-                    //throw new ArgumentNullException("OASISDNAPath", "OASISDNAPath cannot be null.");
-                    OASISErrorHandling.HandleError(ref result, $"Error occured in OASISDNAManager.LoadDNA. Reason: OASISDNAPath cannot be null.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNAPath cannot be null.");
+
+                else if (!File.Exists(OASISDNAPath))
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The OASISDNAPath ({OASISDNAPath}) is not valid. Please make sure the OASISDNAPath is valid and that it points to the OASISDNA.json file.");
 
                 else
                 {
@@ -89,17 +95,20 @@ namespace NextGenSoftware.OASIS.API.DNA
         public static OASISResult<bool> SaveDNA(string OASISDNAPath, OASISDNA OASISDNA)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occured in OASISDNAManager.SaveDNA. Reason: ";
 
             try
             {
                 if (string.IsNullOrEmpty(OASISDNAPath))
-                    OASISErrorHandling.HandleError(ref result, $"Error occured in OASISDNAManager.SaveDNA. Reason: OASISDNAPath cannot be null.");
-                //throw new ArgumentNullException("OASISDNAPath", "OASISDNAPath cannot be null.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNAPath cannot be null.");
+
+                else if (File.Exists(OASISDNAPath))
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The OASISDNAPath ({OASISDNAPath}) is not valid. Please make sure the OASISDNAPath is valid and that it points to the OASISDNA.json file.");
+
                 else
                 {
                     if (OASISDNA == null)
                         OASISErrorHandling.HandleError(ref result, $"Error occured in OASISDNAManager.SaveDNA. Reason: OASISDNA cannot be null.");
-                    //throw new ArgumentNullException("OASISDNA", "OASISDNA cannot be null.");
 
                     OASISDNAManager.OASISDNA = OASISDNA;
                     OASISDNAManager.OASISDNAPath = OASISDNAPath;
@@ -122,17 +131,20 @@ namespace NextGenSoftware.OASIS.API.DNA
         public static async Task<OASISResult<bool>> SaveDNAAsync(string OASISDNAPath, OASISDNA OASISDNA)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occured in OASISDNAManager.SaveDNA. Reason: ";
 
             try
             {
                 if (string.IsNullOrEmpty(OASISDNAPath))
-                    OASISErrorHandling.HandleError(ref result, $"Error occured in OASISDNAManager.SaveDNA. Reason: OASISDNAPath cannot be null.");
-                //throw new ArgumentNullException("OASISDNAPath", "OASISDNAPath cannot be null.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNAPath cannot be null.");
+
+                else if (File.Exists(OASISDNAPath))
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The OASISDNAPath ({OASISDNAPath}) is not valid. Please make sure the OASISDNAPath is valid and that it points to the OASISDNA.json file.");
+
                 else
                 {
                     if (OASISDNA == null)
-                        OASISErrorHandling.HandleError(ref result, $"Error occured in OASISDNAManager.SaveDNA. Reason: OASISDNA cannot be null.");
-                    //throw new ArgumentNullException("OASISDNA", "OASISDNA cannot be null.");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNA cannot be null.");
 
                     OASISDNAManager.OASISDNA = OASISDNA;
                     OASISDNAManager.OASISDNAPath = OASISDNAPath;

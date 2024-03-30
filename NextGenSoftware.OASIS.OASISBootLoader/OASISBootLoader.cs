@@ -77,14 +77,28 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
       
         public static OASISResult<bool> BootOASIS(string OASISDNAFileName, bool activateDefaultStorageProvider = true)
         {
-            LoadOASISDNA(OASISDNAFileName);
-            return BootOASIS(OASISDNA, activateDefaultStorageProvider);
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<OASISDNA> loadResult = LoadOASISDNA(OASISDNAFileName);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+                result = BootOASIS(OASISDNA, activateDefaultStorageProvider);
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISBootLoader.BootOASIS Loading The OASISDNA.json File. Reason: {loadResult.Message}");
+
+            return result;
         }
 
         public static async Task<OASISResult<bool>> BootOASISAsync(string OASISDNAFileName, bool activateDefaultStorageProvider = true)
         {
-            await LoadOASISDNAAsync(OASISDNAFileName);
-            return BootOASIS(OASISDNA, activateDefaultStorageProvider);
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<OASISDNA> loadResult = await LoadOASISDNAAsync(OASISDNAFileName);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+                result = await BootOASISAsync(OASISDNA, activateDefaultStorageProvider);
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISBootLoader.BootOASISAsync Loading The OASISDNA.json File. Reason: {loadResult.Message}");
+
+            return result;
         }
 
         public static OASISResult<bool> BootOASIS(OASISDNA OASISDNA, bool activateDefaultStorageProvider = true)
@@ -105,6 +119,12 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     IsOASISBooting = true;
 
                     //LoggingManager.Log($"INIT LOGGING...", LogType.Info, true);
+
+                    if (OASISDNA == null)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNA is null! Please make sure you pass in a valid OASISDNA and make sure the OASISDNA.json file exists in the path specefied.");
+                        return result;
+                    }    
 
                     OASISDNAManager.OASISDNA = OASISDNA;
                     LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);

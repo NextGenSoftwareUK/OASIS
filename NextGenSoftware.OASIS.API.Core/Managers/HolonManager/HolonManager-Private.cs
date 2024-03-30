@@ -169,7 +169,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
         }
 
-        private IHolon MapMetaData<T>(IHolon holon)
+        private IHolon MapMetaData<T>(IHolon holon) where T : IHolon
         {
             foreach (string key in holon.MetaData.Keys)
             {
