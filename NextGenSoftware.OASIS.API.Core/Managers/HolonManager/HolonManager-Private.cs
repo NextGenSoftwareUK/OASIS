@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class HolonManager : OASISManager
     {
-        private IHolon PrepareHolonForSaving(IHolon holon, bool extractMetaData)
+        private IHolon PrepareHolonForSaving(IHolon holon, bool extractMetaData) //where T : IHolon, new()
         {
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
             // Providers could always override this behaviour if they choose...
@@ -93,12 +93,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return holonsToReturn;
         }
 
+        private IEnumerable<IHolon> PrepareHolonsForSaving<T>(IEnumerable<T> holons, bool extractMetaData)
+        {
+            List<IHolon> holonsToReturn = new List<IHolon>();
+
+            foreach (T holon in holons)
+                holonsToReturn.Add(PrepareHolonForSaving((IHolon)holon, extractMetaData));
+
+            return holonsToReturn;
+        }
+
         private void LogError(IHolon holon, ProviderType providerType, string errorMessage)
         {
             LoggingManager.Log(string.Concat("An error occured attempting to save the ", LoggingHelper.GetHolonInfoForLogging(holon), " using the ", Enum.GetName(providerType), " provider. Error Details: ", errorMessage), LogType.Error);
         }
 
-        private OASISResult<T> HandleSaveHolonForListOfProviderError<T>(OASISResult<T> result, OASISResult<IHolon> holonSaveResult, string listName, string providerName) where T : IHolon
+        private OASISResult<T> HandleSaveHolonForListOfProviderError<T>(OASISResult<T> result, OASISResult<T> holonSaveResult, string listName, string providerName) where T : IHolon
         {
             holonSaveResult.Message = GetSaveHolonForListOfProvidersErrorMessage(listName, providerName, holonSaveResult.Message);
             OASISErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
@@ -108,7 +118,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IEnumerable<T>> HandleSaveHolonForListOfProviderError<T>(OASISResult<IEnumerable<T>> result, OASISResult<IEnumerable<IHolon>> holonSaveResult, string listName, string providerName) where T : IHolon
+        //private OASISResult<T> HandleSaveHolonForListOfProviderError<T>(OASISResult<T> result, OASISResult<T> holonSaveResult, string listName, string providerName) where T : IHolon
+        //{
+        //    holonSaveResult.Message = GetSaveHolonForListOfProvidersErrorMessage(listName, providerName, holonSaveResult.Message);
+        //    OASISErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+        //    result.InnerMessages.Add(holonSaveResult.Message);
+        //    result.IsWarning = true;
+        //    result.IsError = false;
+        //    return result;
+        //}
+
+        private OASISResult<IEnumerable<T>> HandleSaveHolonForListOfProviderError<T>(OASISResult<IEnumerable<T>> result, OASISResult<IEnumerable<T>> holonSaveResult, string listName, string providerName) where T : IHolon
         {
             holonSaveResult.Message = GetSaveHolonForListOfProvidersErrorMessage(listName, providerName, holonSaveResult.Message);
             OASISErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
@@ -258,7 +278,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<T> HasAnyHolonsChanged<T>(IEnumerable<IHolon> holons, ref OASISResult<T> result)
+        private OASISResult<IEnumerable<T>> HasAnyHolonsChanged<T>(IEnumerable<T> holons, ref OASISResult<IEnumerable<T>> result)
         {
             //TODO: TEMP! REMOVE ONCE FINISH IMPLEMENTING HASHOLONCHANGED METHOD BELOW...
             result.HasAnyHolonsChanged = true;

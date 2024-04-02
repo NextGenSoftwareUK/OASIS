@@ -22,6 +22,7 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public delegate void CelestialSpacesSaved(object sender, CelestialSpacesSavedEventArgs e);
         public delegate void CelestialSpacesError(object sender, CelestialSpacesErrorEventArgs e);
         public delegate void ZomeLoaded(object sender, ZomeLoadedEventArgs e);
+        //public delegate void ZomeSaved<T>(object sender, ZomeSavedEventArgs<T> e);
         public delegate void ZomeSaved(object sender, ZomeSavedEventArgs e);
         public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
         public delegate void ZomeAdded(object sender, ZomeAddedEventArgs e);
@@ -38,6 +39,7 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public delegate void HolonsSaved(object sender, HolonsSavedEventArgs e);
         public delegate void HolonsError(object sender, HolonsErrorEventArgs e);
         public delegate void HolonAdded(object sender, HolonAddedEventArgs e);
+        //public delegate void HolonRemoved<T>(object sender, HolonRemovedEventArgs<T> e);
         public delegate void HolonRemoved(object sender, HolonRemovedEventArgs e);
         public delegate void OASISManagerError(object sender, OASISErrorEventArgs e);
         public delegate void StorageProviderError(object sender, OASISErrorEventArgs e);

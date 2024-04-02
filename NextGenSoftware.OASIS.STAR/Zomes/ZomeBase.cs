@@ -57,8 +57,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         public event EventDelegates.HolonSaved OnHolonSaved;
        // public event Events.HolonSaved<T> OnHolonSaved;
         public event EventDelegates.HolonsSaved OnHolonsSaved;
+        //public event EventDelegates.ZomeSaved<T> OnSaved;
         public event EventDelegates.ZomeSaved OnSaved;
         public event EventDelegates.HolonAdded OnHolonAdded;
+        //public event EventDelegates.HolonRemoved<T> OnHolonRemoved;
         public event EventDelegates.HolonRemoved OnHolonRemoved;
         //public event Events.ZomesLoaded OnZomesLoaded;
         public event EventDelegates.ZomeError OnZomeError;
@@ -112,7 +114,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             //}
         }
 
-        public virtual async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        protected virtual async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = await _holonManager.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
 
@@ -123,7 +125,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        protected virtual OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = _holonManager.LoadHolon(id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
 
@@ -134,17 +136,33 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual async Task<OASISResult<T>> LoadHolonAsync<T>(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        protected virtual async Task<OASISResult<T>> LoadHolonAsync<T>(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+
+            OASISResult<T> result = await _holonManager.LoadHolonAsync<T>(id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.LoadHolonAsync method with id ", id, ". Error Details: ", result.Message), Exception = result.Exception });
+
+            OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = new OASISResult<IHolon>(result.Result) });
+            return result;
         }
 
-        public virtual OASISResult<T> LoadHolon<T>(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        protected virtual OASISResult<T> LoadHolon<T>(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(LoadHolon(id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(LoadHolon(id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+
+            OASISResult<T> result = _holonManager.LoadHolon<T>(id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.LoadHolon method with id ", id, ". Error Details: ", result.Message), Exception = result.Exception });
+
+            OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = new OASISResult<IHolon>(result.Result) });
+            return result;
         }
 
-        public virtual async Task<OASISResult<IHolon>> LoadHolonAsync(ProviderType providerType, string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        protected virtual async Task<OASISResult<IHolon>> LoadHolonAsync(ProviderType providerType, string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<IHolon> result = await _holonManager.LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
 
@@ -155,7 +173,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual OASISResult<IHolon> LoadHolon(ProviderType providerType, string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        protected virtual OASISResult<IHolon> LoadHolon(ProviderType providerType, string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<IHolon> result = _holonManager.LoadHolon(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
 
@@ -166,17 +184,33 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual async Task<OASISResult<T>> LoadHolonAsync<T>(ProviderType providerType, string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : IHolon, new()
+        protected virtual async Task<OASISResult<T>> LoadHolonAsync<T>(ProviderType providerType, string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(await LoadHolonAsync(providerType, providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version));
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(await LoadHolonAsync(providerType, providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version));
+
+            OASISResult<T> result = await _holonManager.LoadHolonAsync<T>(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolonAsync method with providerKey ", providerKey, ". Error Details: ", result.Message), Exception = result.Exception });
+
+            OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = new OASISResult<IHolon>(result.Result) });
+            return result;
         }
 
-        public virtual OASISResult<T> LoadHolon<T>(ProviderType providerType, string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : IHolon, new()
+        protected virtual OASISResult<T> LoadHolon<T>(ProviderType providerType, string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(LoadHolon(providerType, providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version));
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(LoadHolon(providerType, providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version));
+
+            OASISResult<T> result = _holonManager.LoadHolon<T>(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolonAsync method with providerKey ", providerKey, ". Error Details: ", result.Message), Exception = result.Exception });
+
+            OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = new OASISResult<IHolon>(result.Result) });
+            return result;
         }
 
-        public virtual async Task<OASISResult<IHolon>> LoadHolonAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IHolon>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
@@ -204,7 +238,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual OASISResult<IHolon> LoadHolon(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        public virtual OASISResult<IHolon> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
@@ -237,15 +271,64 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual async Task<OASISResult<T>> LoadHolonAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(await LoadHolonAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+            OASISResult<T> result = new OASISResult<T>();
+
+            if (this.HolonType == HolonType.GreatGrandSuperStar)
+                GetGreatGrandSuperStar(ref result, await LoadAllHolonsAsync<T>(HolonType.GreatGrandSuperStar, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+
+            else if (this.Id != Guid.Empty)
+                result = await LoadHolonAsync<T>(Id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+
+            else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
+            {
+                OASISResult<string> providerKeyResult = GetCurrentProviderKey(providerType);
+
+                if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
+                    result = await LoadHolonAsync<T>(providerType, providerKeyResult.Result, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
+            }
+            else
+            {
+                result.IsError = true;
+                result.Message = CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET;
+            }
+
+            return result;
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(await LoadHolonAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
         public virtual OASISResult<T> LoadHolon<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(LoadHolon(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+            OASISResult<T> result = new OASISResult<T>();
+
+            if (this.HolonType == HolonType.GreatGrandSuperStar)
+                GetGreatGrandSuperStar(ref result, LoadAllHolons<T>(HolonType.GreatGrandSuperStar, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+
+            else if (this.Id != Guid.Empty)
+                result = LoadHolon<T>(Id, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+
+            else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
+            {
+                OASISResult<string> providerKeyResult = GetCurrentProviderKey(providerType);
+
+                if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
+                    result = LoadHolon<T>(providerType, providerKeyResult.Result, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
+            }
+            else
+            {
+                result.IsError = true;
+                result.Message = CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET;
+            }
+
+            return result;
+
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(LoadHolon(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
-        public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        protected virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IHolon>> result = await _holonManager.LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
 
@@ -256,7 +339,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        protected virtual OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IHolon>> result = _holonManager.LoadAllHolons(holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
 
@@ -267,17 +350,17 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual async Task<OASISResult<IEnumerable<T>>> LoadAllHolonsAsync<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        protected virtual async Task<OASISResult<IEnumerable<T>>> LoadAllHolonsAsync<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             return OASISResultHelperForHolons<IHolon, T>.CopyResult(await LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
-        public virtual OASISResult<IEnumerable<T>> LoadAllHolons<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        protected virtual OASISResult<IEnumerable<T>> LoadAllHolons<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             return OASISResultHelperForHolons<IHolon, T>.CopyResult(LoadAllHolons(holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
-        public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        protected virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IHolon>> result = await _holonManager.LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
 
@@ -288,7 +371,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        protected virtual OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IHolon>> result = _holonManager.LoadHolonsForParent(id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
 
@@ -299,17 +382,17 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual async Task<OASISResult<IEnumerable<T>>> LoadHolonsForParentAsync<T>(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        protected virtual async Task<OASISResult<IEnumerable<T>>> LoadHolonsForParentAsync<T>(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             return OASISResultHelperForHolons<IHolon, T>.CopyResult(await LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
-        public virtual OASISResult<IEnumerable<T>> LoadHolonsForParent<T>(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        protected virtual OASISResult<IEnumerable<T>> LoadHolonsForParent<T>(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             return OASISResultHelperForHolons<IHolon, T>.CopyResult(LoadHolonsForParent(id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
-        public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(ProviderType providerType, string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        protected virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(ProviderType providerType, string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<IEnumerable<IHolon>> result = await _holonManager.LoadHolonsForParentAsync(providerKey, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
 
@@ -320,7 +403,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(ProviderType providerType, string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        protected virtual OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(ProviderType providerType, string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<IEnumerable<IHolon>> result = _holonManager.LoadHolonsForParent(providerKey, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
 
@@ -331,17 +414,18 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual async Task<OASISResult<IEnumerable<T>>> LoadHolonsForParentAsync<T>(ProviderType providerType, string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : IHolon, new()
+        protected virtual async Task<OASISResult<IEnumerable<T>>> LoadHolonsForParentAsync<T>(ProviderType providerType, string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : IHolon, new()
         {
             return OASISResultHelperForHolons<IHolon, T>.CopyResult(await LoadHolonsForParentAsync(providerType, providerKey, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version));
         }
 
-        public virtual OASISResult<IEnumerable<T>> LoadHolonsForParent<T>(ProviderType providerType, string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : IHolon, new()
+        protected virtual OASISResult<IEnumerable<T>> LoadHolonsForParent<T>(ProviderType providerType, string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : IHolon, new()
         {
             return OASISResultHelperForHolons<IHolon, T>.CopyResult(LoadHolonsForParent(providerType, providerKey, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version));
         }
 
-        public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        //public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadChildHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 
@@ -366,7 +450,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        //public virtual OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        public virtual OASISResult<IEnumerable<IHolon>> LoadChildHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 
@@ -391,17 +476,61 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual async Task<OASISResult<IEnumerable<T>>> LoadHolonsForParentAsync<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        //public virtual async Task<OASISResult<IEnumerable<T>>> LoadHolonsForParentAsync<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public virtual async Task<OASISResult<IEnumerable<T>>> LoadChildHolonsAsync<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(await LoadHolonsForParentAsync(holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+
+            if (this.Id != Guid.Empty)
+                result = await LoadHolonsForParentAsync<T>(Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+
+            else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
+            {
+                OASISResult<string> providerKeyResult = GetCurrentProviderKey(providerType);
+
+                if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
+                    result = await LoadHolonsForParentAsync<T>(providerType, providerKeyResult.Result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
+            }
+            else
+            {
+                result.IsError = true;
+                result.Message = CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET;
+            }
+
+            return result;
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(await LoadHolonsForParentAsync(holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
-        public virtual OASISResult<IEnumerable<T>> LoadHolonsForParent<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        //public virtual OASISResult<IEnumerable<T>> LoadHolonsForParent<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public virtual OASISResult<IEnumerable<T>> LoadChildHolons<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(LoadHolonsForParent(holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+
+            if (this.Id != Guid.Empty)
+                result = LoadHolonsForParent<T>(Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+
+            else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
+            {
+                OASISResult<string> providerKeyResult = GetCurrentProviderKey(providerType);
+
+                if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
+                    result = LoadHolonsForParent<T>(providerType, providerKeyResult.Result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
+            }
+            else
+            {
+                result.IsError = true;
+                result.Message = CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET;
+            }
+
+            return result;
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(LoadHolonsForParent(holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
-        public virtual async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        protected virtual async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             savingHolon = RemoveCelesialBodies(savingHolon);
             OASISResult<IHolon> result = await _holonManager.SaveHolonAsync(savingHolon, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
@@ -409,7 +538,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual OASISResult<IHolon> SaveHolon(IHolon savingHolon, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        protected virtual OASISResult<IHolon> SaveHolon(IHolon savingHolon, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             savingHolon = RemoveCelesialBodies(savingHolon);
             OASISResult<IHolon> result = _holonManager.SaveHolon(savingHolon, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
@@ -417,17 +546,27 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual async Task<OASISResult<T>> SaveHolonAsync<T>(IHolon savingHolon, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        protected virtual async Task<OASISResult<T>> SaveHolonAsync<T>(IHolon savingHolon, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(await SaveHolonAsync(savingHolon, mapBaseHolonProperties, saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(await SaveHolonAsync(savingHolon, mapBaseHolonProperties, saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+
+            savingHolon = RemoveCelesialBodies(savingHolon);
+            OASISResult<T> result = await _holonManager.SaveHolonAsync<T>(savingHolon, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+            HandleSaveHolonResult(savingHolon, "SaveHolonAsync<T>", ref result, mapBaseHolonProperties);
+            return result;
         }
 
-        public virtual OASISResult<T> SaveHolon<T>(IHolon savingHolon, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        protected virtual OASISResult<T> SaveHolon<T>(IHolon savingHolon, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(SaveHolon(savingHolon, mapBaseHolonProperties, saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(SaveHolon(savingHolon, mapBaseHolonProperties, saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+
+            savingHolon = RemoveCelesialBodies(savingHolon);
+            OASISResult<T> result = _holonManager.SaveHolon<T>(savingHolon, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+            HandleSaveHolonResult(savingHolon, "SaveHolon<T>", ref result, mapBaseHolonProperties);
+            return result;
         }
 
-        public virtual async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        protected virtual async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             if (savingHolons == null)
                 return new OASISResult<IEnumerable<IHolon>>(savingHolons) { Message = "Holons collection is null.", IsWarning = true };
@@ -441,7 +580,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> savingHolons, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        protected virtual OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> savingHolons, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             if (savingHolons == null)
                 return new OASISResult<IEnumerable<IHolon>>(savingHolons) { Message = "Holons collection is null.", IsWarning = true };
@@ -455,14 +594,25 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual async Task<OASISResult<IEnumerable<T>>> SaveHolonsAsync<T>(IEnumerable<IHolon> savingHolons, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        protected virtual async Task<OASISResult<IEnumerable<T>>> SaveHolonsAsync<T>(IEnumerable<T> savingHolons, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(await SaveHolonsAsync(savingHolons, mapBaseHolonProperties, saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            if (savingHolons == null)
+                return new OASISResult<IEnumerable<T>>(savingHolons) { Message = "Holons collection is null.", IsWarning = true };
+
+            if (savingHolons.Count() == 0)
+                return new OASISResult<IEnumerable<T>>(savingHolons) { Message = "Holons collection is empty.", IsWarning = true };
+
+            savingHolons = RemoveCelesialBodies(savingHolons);
+            OASISResult<IEnumerable<T>> result = await _holonManager.SaveHolonsAsync(savingHolons, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+            HandleSaveHolonsResult(savingHolons, "SaveHolonsAsync<T>", ref result, mapBaseHolonProperties);
+            return result;
+
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(await SaveHolonsAsync(savingHolons, mapBaseHolonProperties, saveChildren, recursive, maxChildDepth, continueOnError, providerType));
         }
 
-        public virtual OASISResult<IEnumerable<T>> SaveHolons<T>(IEnumerable<IHolon> savingHolons, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        protected virtual OASISResult<IEnumerable<T>> SaveHolons<T>(IEnumerable<IHolon> savingHolons, bool mapBaseHolonProperties = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(SaveHolons(savingHolons, mapBaseHolonProperties, saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(SaveHolons(savingHolons, mapBaseHolonProperties, saveChildren, recursive, maxChildDepth, continueOnError, providerType));
         }
 
         public virtual async Task<OASISResult<IZome>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
@@ -539,12 +689,69 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual async Task<OASISResult<T>> SaveAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IZome, new()
         {
-            return OASISResultHelperForHolons<IZome, T>.CopyResult(await SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            //return OASISResultHelperForHolons<IZome, T>.CopyResult(await SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            //OASISResult<T> zomeResult = new OASISResult<T>();
+
+            //First save the zome.
+            OASISResult<T> zomeResult = await SaveHolonAsync<T>(this, true, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+
+            //if (holonResult.IsError)
+            //{
+            //    zomeResult.IsError = true;
+            //    zomeResult.Message = holonResult.Message;
+            //}
+
+            if (saveChildren && (!zomeResult.IsError && zomeResult.Result != null)
+                || continueOnError && (zomeResult.IsError || zomeResult.Result == null))
+            {
+                ZomeHelper.SetParentIdsForZome(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, this.ParentStar, this.ParentPlanet, this.ParentMoon, (IZome)this);
+
+                // Now save the zome child holons (each OASIS Provider will recursively save each child holon, could do the recursion here and just save each holon indivudally with SaveHolonAsync but this way each OASIS Provider can optimise the way it saves (batches, etc), which would be quicker than making multiple calls...)
+                OASISResult<IEnumerable<IHolon>> holonsResult = await SaveHolonsAsync(this.Holons, true, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+
+                if (holonsResult.IsError)
+                    OASISErrorHandling.HandleError(ref zomeResult, $"Error Occured In ZomeBase.SaveAsync<T> method on ZomeBase Saving Child Holons. Reason: {holonsResult.Message}");
+
+                //TODO: Dont think this cast would work and dont think is needed, need to test! ;-)
+                //if ((continueOnError && (holonsResult.IsError || zomeResult.Result == null))
+                //    || (!zomeResult.IsError && zomeResult.Result != null))
+                //    this.Holons = (List<IHolon>)holonsResult.Result; // Update the holons collection now the holons will have their id's set.
+            }
+
+            //TODO: Not sure why this doesn't work?! lol
+            //OnSaved?.Invoke(this, new ZomeSavedEventArgs<T>() { Result = zomeResult });
+            OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = new OASISResult<IZome>(zomeResult.Result) });
+            return zomeResult;
         }
 
         public virtual OASISResult<T> Save<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IZome, new()
         {
-            return OASISResultHelperForHolons<IZome, T>.CopyResult(Save(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            //return OASISResultHelperForHolons<IZome, T>.CopyResult(Save(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            
+            //First save the zome.
+            OASISResult<T> zomeResult = SaveHolon<T>(this, true, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+
+            if (saveChildren && (!zomeResult.IsError && zomeResult.Result != null)
+                || continueOnError && (zomeResult.IsError || zomeResult.Result == null))
+            {
+                ZomeHelper.SetParentIdsForZome(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, this.ParentStar, this.ParentPlanet, this.ParentMoon, (IZome)this);
+
+                // Now save the zome child holons (each OASIS Provider will recursively save each child holon, could do the recursion here and just save each holon indivudally with SaveHolonAsync but this way each OASIS Provider can optimise the way it saves (batches, etc), which would be quicker than making multiple calls...)
+                OASISResult<IEnumerable<IHolon>> holonsResult = SaveHolons(this.Holons, true, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+
+                if (holonsResult.IsError)
+                    OASISErrorHandling.HandleError(ref zomeResult, $"Error Occured In ZomeBase.SaveAsync<T> method on ZomeBase Saving Child Holons. Reason: {holonsResult.Message}");
+
+                //TODO: Dont think this cast would work and dont think is needed, need to test! ;-)
+                //if ((continueOnError && (holonsResult.IsError || zomeResult.Result == null))
+                //    || (!zomeResult.IsError && zomeResult.Result != null))
+                //    this.Holons = (List<IHolon>)holonsResult.Result; // Update the holons collection now the holons will have their id's set.
+            }
+
+            //TODO: Not sure why this doesn't work?! lol
+            //OnSaved?.Invoke(this, new ZomeSavedEventArgs<T>() { Result = zomeResult });
+            OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = new OASISResult<IZome>(zomeResult.Result) });
+            return zomeResult;
         }
 
         public async Task<OASISResult<IHolon>> AddHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
@@ -556,7 +763,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             OASISResult<IHolon> result = await SaveHolonAsync(holon, true, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
 
             if (result.IsError)
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in AddHolonAsync method with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.AddHolonAsync method with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
 
             OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = result });
             return result;
@@ -571,7 +778,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             OASISResult<IHolon> result = SaveHolon(holon, true, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
 
             if (result.IsError)
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in AddHolon method with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.AddHolon method with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
 
             OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = result });
             return result;
@@ -579,12 +786,36 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public async Task<OASISResult<T>> AddHolonAsync<T>(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(await AddHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(await AddHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+
+            holon.ParentHolonId = this.Id;
+            holon.ParentZomeId = this.Id;
+            this.Holons.Add(holon);
+
+            OASISResult<T> result = await SaveHolonAsync<T>(holon, true, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.AddHolonAsync<T> method calling SaveHolonAsync<T> for holon ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
+
+            OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = new OASISResult<IHolon>(result.Result) });
+            return result;
         }
 
         public OASISResult<T> AddHolon<T>(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(AddHolon(holon, saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(AddHolon(holon, saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+
+            holon.ParentHolonId = this.Id;
+            holon.ParentZomeId = this.Id;
+            this.Holons.Add(holon);
+
+            OASISResult<T> result = SaveHolon<T>(holon, true, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.AddHolon<T> method calling SaveHolon<T> for holon ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
+
+            OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = new OASISResult<IHolon>(result.Result) });
+            return result;
         }
 
         public async Task<OASISResult<IHolon>> RemoveHolonAsync(IHolon holon, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
@@ -596,14 +827,14 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             OASISResult<IHolon> result = await SaveHolonAsync(holon, true, false, false, 0, false, providerType);
 
             if (result.IsError)
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in RemoveHolonAsync method attempting to save the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.RemoveHolonAsync method calling SaveHolonAsync attempting to save the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
 
             if (deleteHolon)
             {
                 OASISResult<bool> deleteHolonResult = await _holonManager.DeleteHolonAsync(holon.Id, softDelete, providerType);
 
                 if (deleteHolonResult.IsError)
-                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in RemoveHolonAsync method attempting to delete the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
+                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.RemoveHolonAsync method calling DeleteHolonAsync attempting to delete the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
             }
 
             OnHolonRemoved?.Invoke(this, new HolonRemovedEventArgs() { Result = result });
@@ -619,14 +850,14 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             OASISResult<IHolon> result = SaveHolon(holon, true, false, false, 0, false, providerType);
 
             if (result.IsError)
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in RemoveHolon method attempting to save the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.RemoveHolon method calling SaveHolon attempting to save the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
 
             if (deleteHolon)
             {
                 OASISResult<bool> deleteHolonResult = _holonManager.DeleteHolon(holon.Id, softDelete, providerType);
 
                 if (deleteHolonResult.IsError)
-                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in RemoveHolon method attempting to delete the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
+                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.RemoveHolon method calling DeleteHolon attempting to delete the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
             }
 
             OnHolonRemoved?.Invoke(this, new HolonRemovedEventArgs() { Result = result });
@@ -635,12 +866,63 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public async Task<OASISResult<T>> RemoveHolonAsync<T>(IHolon holon, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(await RemoveHolonAsync(holon, deleteHolon, softDelete, providerType));
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(await RemoveHolonAsync(holon, deleteHolon, softDelete, providerType));
+
+            holon.ParentHolonId = Guid.Empty;
+            holon.ParentZomeId = Guid.Empty;
+            this.Holons.Remove(holon);
+
+            OASISResult<T> result = await SaveHolonAsync<T>(holon, true, false, false, 0, false, providerType);
+
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.RemoveHolonAsync<T> method calling SaveHolonAsync<T> attempting to save the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
+
+            if (deleteHolon)
+            {
+                OASISResult<bool> deleteHolonResult = await _holonManager.DeleteHolonAsync(holon.Id, softDelete, providerType);
+
+                if (deleteHolonResult.IsError)
+                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.RemoveHolonAsync<T> method calling DeleteHolonAsync attempting to delete the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
+            }
+
+            //OASISResult<IHolon> holonResult = new OASISResult<IHolon>(new Holon());
+            //Mapper.MapBaseHolonProperties(result.Result, result.Result);
+
+            //TODO: Not sure why this doesn't work?! lol
+            //OnHolonRemoved?.Invoke(this, new HolonRemovedEventArgs<T>() { Result = result });
+            OnHolonRemoved?.Invoke(this, new HolonRemovedEventArgs() { Result = new OASISResult<IHolon>(result.Result)});
+            return result;
+
         }
 
         public OASISResult<T> RemoveHolon<T>(IHolon holon, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            return OASISResultHelperForHolons<IHolon, T>.CopyResult(RemoveHolon(holon, deleteHolon, softDelete, providerType));
+            //return OASISResultHelperForHolons<IHolon, T>.CopyResult(RemoveHolon(holon, deleteHolon, softDelete, providerType));
+
+            holon.ParentHolonId = Guid.Empty;
+            holon.ParentZomeId = Guid.Empty;
+            this.Holons.Remove(holon);
+
+            OASISResult<T> result = SaveHolon<T>(holon, true, false, false, 0, false, providerType);
+
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.RemoveHolon<T> method calling SaveHolon<T> attempting to save the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
+
+            if (deleteHolon)
+            {
+                OASISResult<bool> deleteHolonResult = _holonManager.DeleteHolon(holon.Id, softDelete, providerType);
+
+                if (deleteHolonResult.IsError)
+                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.RemoveHolon<T> method calling DeleteHolon attempting to delete the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), Exception = result.Exception });
+            }
+
+            //OASISResult<IHolon> holonResult = new OASISResult<IHolon>(new Holon());
+            //Mapper.MapBaseHolonProperties(result.Result, result.Result);
+
+            //TODO: Not sure why this doesn't work?! lol
+            //OnHolonRemoved?.Invoke(this, new HolonRemovedEventArgs<T>() { Result = result });
+            OnHolonRemoved?.Invoke(this, new HolonRemovedEventArgs() { Result = new OASISResult<IHolon>(result.Result) });
+            return result;
         }
 
         private OASISResult<string> GetCurrentProviderKey(ProviderType providerType = ProviderType.Default)
@@ -674,12 +956,36 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             }
         }
 
+        private void GetGreatGrandSuperStar<T>(ref OASISResult<T> result, OASISResult<IEnumerable<T>> holonsResult)
+        {
+            if (!holonsResult.IsError && holonsResult.Result != null)
+            {
+                if (holonsResult.Result.Count() == 1)
+                    result.Result = holonsResult.Result.ToList()[0];
+                else
+                {
+                    result.IsError = true;
+                    result.Message = "ERROR, there should only be one GreatGrandSuperStar!";
+                }
+            }
+        }
+
         private IEnumerable<IHolon> RemoveCelesialBodies(IEnumerable<IHolon> holons)
         {
             List<IHolon> holonsList = holons.ToList();
 
             for (int i = 0; i < holonsList.Count(); i++)
                 holonsList[i] = RemoveCelesialBodies(holonsList[i]);
+
+            return holonsList;
+        }
+
+        private IEnumerable<T> RemoveCelesialBodies<T>(IEnumerable<T> holons) where T : IHolon
+        {
+            List<T> holonsList = holons.ToList();
+
+            for (int i = 0; i < holonsList.Count(); i++)
+                holonsList[i] = (T)RemoveCelesialBodies(holonsList[i]);
 
             return holonsList;
         }
@@ -748,6 +1054,61 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
             return holon;
         }
+
+        //private T RemoveCelesialBodies<T>(T holon) where T : IHolon, new()
+        //{
+        //    if (holon.Id == Guid.Empty)
+        //    {
+        //        holon.Id = Guid.NewGuid();
+        //        holon.IsNewHolon = true;
+        //    }
+
+        //    ICelestialBody celestialBody = holon as ICelestialBody;
+
+        //    if (celestialBody != null)
+        //    {
+        //        _core[holon.Id] = celestialBody.CelestialBodyCore;
+        //        celestialBody.CelestialBodyCore = null;
+        //    }
+
+        //    _parentOmiverse[holon.Id] = holon.ParentOmniverse;
+        //    _parentDimension[holon.Id] = holon.ParentDimension;
+        //    _parentMultiverse[holon.Id] = holon.ParentMultiverse;
+        //    _parentUniverse[holon.Id] = holon.ParentUniverse;
+        //    _parentGalaxyCluster[holon.Id] = holon.ParentGalaxyCluster;
+        //    _parentGalaxy[holon.Id] = holon.ParentGalaxy;
+        //    _parentSolarSystem[holon.Id] = holon.ParentSolarSystem;
+        //    _parentGreatGrandSuperStar[holon.Id] = holon.ParentGreatGrandSuperStar;
+        //    _parentGrandSuperStar[holon.Id] = holon.ParentGrandSuperStar;
+        //    _parentSuperStar[holon.Id] = holon.ParentSuperStar;
+        //    _parentStar[holon.Id] = holon.ParentStar;
+        //    _parentPlanet[holon.Id] = holon.ParentPlanet;
+        //    _parentMoon[holon.Id] = holon.ParentMoon;
+        //    _parentCelestialSpace[holon.Id] = holon.ParentCelestialSpace;
+        //    _parentCelestialBody[holon.Id] = holon.ParentCelestialBody;
+        //    _parentZome[holon.Id] = holon.ParentZome;
+        //    _parentHolon[holon.Id] = holon.ParentHolon;
+
+        //    holon.ParentOmniverse = null;
+        //    holon.ParentDimension = null;
+        //    holon.ParentMultiverse = null;
+        //    holon.ParentUniverse = null;
+        //    holon.ParentGalaxyCluster = null;
+        //    holon.ParentGalaxy = null;
+        //    holon.ParentSolarSystem = null;
+        //    holon.ParentGreatGrandSuperStar = null;
+        //    holon.ParentGrandSuperStar = null;
+        //    holon.ParentSuperStar = null;
+        //    holon.ParentStar = null;
+        //    holon.ParentPlanet = null;
+        //    holon.ParentMoon = null;
+        //    holon.ParentCelestialBody = null;
+        //    holon.ParentCelestialSpace = null;
+        //    holon.ParentZome = null;
+        //    holon.ParentHolon = null;
+
+        //    return holon;
+        //}
 
         private IHolon RestoreCelesialBodies(IHolon originalHolon) 
         {
@@ -845,5 +1206,35 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             else
                 OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in SaveHolonsAsync method. Error Details: ", result.Message), Exception = result.Exception });
         }
+
+        private void HandleSaveHolonsResult<T>(IEnumerable<T> savingHolons, string callingMethodName, ref OASISResult<IEnumerable<IHolon>> result, bool mapBaseHolonProperties = true)
+        {
+            if (!result.IsError && result.Result != null)
+            {
+                //TODO: FIND OUT IF THIS IS STILL NEEDED ASAP?! THANKS! ;-)
+                if (mapBaseHolonProperties)
+                    result.Result = Mapper.MapBaseHolonProperties(savingHolons, result.Result);
+
+                result.Result = RestoreCelesialBodies(savingHolons);
+                OnHolonsSaved?.Invoke(this, new HolonsSavedEventArgs() { Result = result });
+            }
+            else
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in SaveHolonsAsync method. Error Details: ", result.Message), Exception = result.Exception });
+        }
+
+        //private void HandleSaveHolonsResult<T>(IEnumerable<T> savingHolons, string callingMethodName, ref OASISResult<IEnumerable<T>> result, bool mapBaseHolonProperties = true)
+        //{
+        //    if (!result.IsError && result.Result != null)
+        //    {
+        //        //TODO: FIND OUT IF THIS IS STILL NEEDED ASAP?! THANKS! ;-)
+        //        if (mapBaseHolonProperties)
+        //            result.Result = Mapper.MapBaseHolonProperties(savingHolons, result.Result);
+
+        //        result.Result = RestoreCelesialBodies(savingHolons);
+        //        OnHolonsSaved?.Invoke(this, new HolonsSavedEventArgs() { Result = result });
+        //    }
+        //    else
+        //        OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in SaveHolonsAsync method. Error Details: ", result.Message), Exception = result.Exception });
+        //}
     }
 }
