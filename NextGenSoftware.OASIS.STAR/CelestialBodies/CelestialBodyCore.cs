@@ -322,6 +322,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return OASISResultHelperForHolons<IZome, T>.CopyResult(RemoveZome(zome, providerType));
         }
 
+        //TODO: Why are we passing in savingHolon here? Shouldnt this just be saving the current celestialbody/holon?
         public async Task<OASISResult<IHolon>> SaveCelestialBodyAsync(IHolon savingHolon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             return await base.SaveHolonAsync(savingHolon, false, saveChildren, recursive, maxChildDepth, continueOnError, providerType);

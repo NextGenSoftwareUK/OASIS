@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.Common;
@@ -122,12 +123,12 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     }
 
-    public class HolonLoadedEventArgs<T> : OASISEventArgs<T>
+    public class HolonLoadedEventArgs<T> : OASISEventArgs<T> //where T : IHolon
     {
 
     }
 
-    public class HolonSavedEventArgs<T> : OASISEventArgs<T>
+    public class HolonSavedEventArgs<T> : OASISEventArgs<T> //where T : IHolon
     {
 
     }
@@ -140,6 +141,11 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     //public class HolonRemovedEventArgs : OASISEventArgs<IEnumerable<IHolon>>
     public class HolonRemovedEventArgs : OASISEventArgs<IHolon>
+    {
+
+    }
+
+    public class HolonRemovedEventArgs<T> : OASISEventArgs<T> //where T : IHolon
     {
 
     }
@@ -181,7 +187,17 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     }
 
+    public class ZomeLoadedEventArgs<T> : OASISEventArgs<T> //where T : IZome
+    {
+
+    }
+
     public class ZomeSavedEventArgs : OASISEventArgs<IZome>
+    {
+
+    }
+
+    public class ZomeSavedEventArgs<T> : OASISEventArgs<T> //where T : IZome
     {
 
     }
