@@ -109,6 +109,83 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return targetHolon;
         }
 
+        public static IHolon MapBaseHolonProperties<T>(T sourceHolon, IHolon targetHolon, bool mapCelestialProperties = true) where T : IHolon, new()
+        {
+            if (sourceHolon != null && targetHolon != null)
+            {
+                targetHolon.Id = sourceHolon.Id;
+                targetHolon.ProviderUniqueStorageKey = sourceHolon.ProviderUniqueStorageKey;
+                targetHolon.Name = sourceHolon.Name;
+                targetHolon.Description = sourceHolon.Description;
+                targetHolon.HolonType = sourceHolon.HolonType;
+
+                if (mapCelestialProperties)
+                {
+                    targetHolon.ParentGreatGrandSuperStar = sourceHolon.ParentGreatGrandSuperStar;
+                    targetHolon.ParentGreatGrandSuperStarId = sourceHolon.ParentGreatGrandSuperStarId;
+                    targetHolon.ParentGrandSuperStar = sourceHolon.ParentGrandSuperStar;
+                    targetHolon.ParentGrandSuperStarId = sourceHolon.ParentGrandSuperStarId;
+                    targetHolon.ParentSuperStar = sourceHolon.ParentSuperStar;
+                    targetHolon.ParentSuperStarId = sourceHolon.ParentSuperStarId;
+                    targetHolon.ParentStar = sourceHolon.ParentStar;
+                    targetHolon.ParentStarId = sourceHolon.ParentStarId;
+                    targetHolon.ParentPlanet = sourceHolon.ParentPlanet;
+                    targetHolon.ParentPlanetId = sourceHolon.ParentPlanetId;
+                    targetHolon.ParentMoon = sourceHolon.ParentMoon;
+                    targetHolon.ParentMoonId = sourceHolon.ParentMoonId;
+                    targetHolon.ParentCelestialSpaceId = sourceHolon.ParentCelestialSpaceId;
+                    targetHolon.ParentCelestialBodyId = sourceHolon.ParentCelestialBodyId;
+                    targetHolon.ParentZome = sourceHolon.ParentZome;
+                    targetHolon.ParentZomeId = sourceHolon.ParentZomeId;
+                    targetHolon.ParentHolon = sourceHolon.ParentHolon;
+                    targetHolon.ParentHolonId = sourceHolon.ParentHolonId;
+                    targetHolon.ParentOmniverse = sourceHolon.ParentOmniverse;
+                    targetHolon.ParentOmniverseId = sourceHolon.ParentOmniverseId;
+                    targetHolon.ParentMultiverse = sourceHolon.ParentMultiverse;
+                    targetHolon.ParentMultiverseId = sourceHolon.ParentMultiverseId;
+                    targetHolon.ParentDimension = sourceHolon.ParentDimension;
+                    targetHolon.ParentDimensionId = sourceHolon.ParentDimensionId;
+                    targetHolon.ParentUniverse = sourceHolon.ParentUniverse;
+                    targetHolon.ParentUniverseId = sourceHolon.ParentUniverseId;
+                    targetHolon.ParentGalaxyCluster = sourceHolon.ParentGalaxyCluster;
+                    targetHolon.ParentGalaxyClusterId = sourceHolon.ParentGalaxyClusterId;
+                    targetHolon.ParentGalaxy = sourceHolon.ParentGalaxy;
+                    targetHolon.ParentGalaxyId = sourceHolon.ParentGalaxyId;
+                    targetHolon.ParentSolarSystem = sourceHolon.ParentSolarSystem;
+                    targetHolon.ParentSolarSystemId = sourceHolon.ParentSolarSystemId;
+                }
+
+                targetHolon.Children = sourceHolon.Children;
+                targetHolon.Nodes = sourceHolon.Nodes;
+                //targetHolon.CelestialBodyCore.Id = sourceHolon.Id; //TODO: Dont think need targetHolon now?
+                //targetHolon.CelestialBodyCore.ProviderUniqueStorageKey = sourceHolon.ProviderUniqueStorageKey; //TODO: Dont think need targetHolon now?
+                targetHolon.CreatedByAvatar = sourceHolon.CreatedByAvatar;
+                targetHolon.CreatedByAvatarId = sourceHolon.CreatedByAvatarId;
+                targetHolon.CreatedDate = sourceHolon.CreatedDate;
+                targetHolon.ModifiedByAvatar = sourceHolon.ModifiedByAvatar;
+                targetHolon.ModifiedByAvatarId = sourceHolon.ModifiedByAvatarId;
+                targetHolon.ModifiedDate = sourceHolon.ModifiedDate;
+                targetHolon.DeletedByAvatar = sourceHolon.DeletedByAvatar;
+                targetHolon.DeletedByAvatarId = sourceHolon.DeletedByAvatarId;
+                targetHolon.DeletedDate = sourceHolon.DeletedDate;
+                targetHolon.Version = sourceHolon.Version;
+                targetHolon.IsActive = sourceHolon.IsActive;
+                targetHolon.IsChanged = sourceHolon.IsChanged;
+                targetHolon.IsNewHolon = sourceHolon.IsNewHolon;
+                targetHolon.MetaData = sourceHolon.MetaData;
+                targetHolon.ProviderMetaData = sourceHolon.ProviderMetaData;
+                targetHolon.Original = sourceHolon.Original;
+            }
+
+            return targetHolon;
+        }
+
+        //public static IHolon MapBaseHolonProperties<T>(T sourceHolon)
+        //{
+        //    return MapBaseHolonProperties(sourceHolon, new Holon());
+        //}
+
+
         public static IEnumerable<IHolon> MapBaseHolonProperties(IEnumerable<IHolon> sourceHolons, IEnumerable<IHolon> targetHolons)
         {
             if (sourceHolons != null && targetHolons != null)
@@ -128,6 +205,27 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         public static IEnumerable<IHolon> MapBaseHolonProperties(IEnumerable<IHolon> sourceHolons)
         {
             return MapBaseHolonProperties(sourceHolons, new List<IHolon>());
+        }
+
+        public static IEnumerable<dynamic> MapBaseHolonProperties(IEnumerable<dynamic> sourceHolons, IEnumerable<dynamic> targetHolons)
+        {
+            if (sourceHolons != null && targetHolons != null)
+            {
+                List<dynamic> sourceList = sourceHolons.ToList();
+                List<dynamic> targetList = targetHolons.ToList();
+
+                for (int i = 0; i < sourceHolons.Count(); i++)
+                    targetList[i] = (MapBaseHolonProperties(sourceList[i], targetList[i]));
+
+                return targetList;
+            }
+            else
+                return null;
+        }
+
+        public static IEnumerable<dynamic> MapBaseHolonProperties(IEnumerable<dynamic> sourceHolons)
+        {
+            return MapBaseHolonProperties(sourceHolons, new List<dynamic>());
         }
 
         //TODO: Need to get working properly.
