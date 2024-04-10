@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         {
             if (greatGrandSuperStar != null)
             {
-                if (holon.ParentGreatGrandSuperStar == null)
+                if (holon.ParentGreatGrandSuperStar == null) //TODO: Do we need a null check here? What if we want to override it? Same for all other props below...
                     holon.ParentGreatGrandSuperStar = greatGrandSuperStar;
 
                 if (holon.ParentGreatGrandSuperStarId == Guid.Empty)

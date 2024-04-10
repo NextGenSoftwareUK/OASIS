@@ -13,17 +13,18 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
         {
             get
             {
-                switch (OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISVersion.ToUpper())
-                {
-                    case "LIVE":
-                        return string.Concat(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.CurrentLiveVersion, " ", OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISVersion.ToUpper());
+                return OASISBootLoader.OASISBootLoader.OASISVersion;
+                //switch (OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISVersion.ToUpper())
+                //{
+                //    case "LIVE":
+                //        return string.Concat(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.CurrentLiveVersion, " ", OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISVersion.ToUpper());
 
-                    case "STAGING":
-                        return string.Concat(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.CurrentStagingVersion, " ", OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISVersion.ToUpper());
+                //    case "STAGING":
+                //        return string.Concat(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.CurrentStagingVersion, " ", OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISVersion.ToUpper());
 
-                    default:
-                        return string.Concat(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.CurrentLiveVersion, " ", OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISVersion.ToUpper());
-                }
+                //    default:
+                //        return string.Concat(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.CurrentLiveVersion, " ", OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISVersion.ToUpper());
+                //}
             }
         }
 

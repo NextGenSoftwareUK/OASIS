@@ -20,6 +20,8 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         {
             get
             {
+                //AvatarManager.LoggedInAvatarSessions[HttpContext.Session.Id].Id
+
                 if (HttpContext.Items.ContainsKey("Avatar") && HttpContext.Items["Avatar"] != null)
                     return (IAvatar)HttpContext.Items["Avatar"];
 
@@ -28,6 +30,14 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             set
             {
                 HttpContext.Items["Avatar"] = value;
+            }
+        }
+
+        public Guid AvatarId
+        {
+            get
+            {
+                return Avatar != null ? Avatar.Id : Guid.Empty;
             }
         }
 

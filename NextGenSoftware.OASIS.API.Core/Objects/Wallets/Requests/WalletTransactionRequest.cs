@@ -7,8 +7,8 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests
     {
         public string FromWalletAddress { get; set; }
         public string ToWalletAddress { get; set; }
-        public string FromToken { get; set; }
-        public string ToToken { get; set; }
+        //public string FromToken { get; set; }
+        //public string ToToken { get; set; }
         public ProviderType FromProviderType { get; set; }
         public ProviderType ToProviderType { get; set; }
         public decimal Amount { get; set; }

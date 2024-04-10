@@ -9,16 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IHolon : IHolonBase
     {
-        //Guid Id { get; set; }
-        //string Name { get; set; }
-        //string Description { get; set; }
-        //public IHolon Original { get; set; }
-        //public bool IsNewHolon { get; set; }
-        //public bool IsChanged { get; set; }
-        //Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; }
-        //Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } 
-        //Dictionary<string, string> MetaData { get; set; } 
-        //HolonType HolonType { get; set; }
+        //TODO: Move these into CelestialHolon ASAP!
         public Guid ParentOmniverseId { get; set; } //The Omniverse this Holon belongs to.
         public IOmiverse ParentOmniverse { get; set; } //The Omniverse this Holon belongs to.
         public Guid ParentMultiverseId { get; set; } //The Multiverse this Holon belongs to.
@@ -53,8 +44,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public ICelestialBody ParentCelestialBody { get; set; } // The CelestialBody  this holon belongs to (this could be a moon, planet, star, etc). 
         public Guid ParentZomeId { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
+        
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
+        
         IEnumerable<IHolon> Children { get; set; }
         ObservableCollection<IHolon> ChildrenTest { get; set; }
         //Guid CreatedByAvatarId { get; set; }

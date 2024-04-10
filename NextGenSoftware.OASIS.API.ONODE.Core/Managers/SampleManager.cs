@@ -11,12 +11,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
     public class SampleManager : OASISManager, ISampleManager
     {
-        public SampleManager(OASISDNA OASISDNA = null) : base(OASISDNA)
+        public SampleManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
         {
 
         }
 
-        public SampleManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
+        public SampleManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
         {
 
         }
@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             sampleHolon.CustomNumber = customNumber;
             sampleHolon.CustomLongNumber = customLongNumber;
 
-            return Data.SaveHolon<SampleHolon>(sampleHolon);
+            return Data.SaveHolon<SampleHolon>(sampleHolon, avatarId);
         }
 
         public async Task<OASISResult<SampleHolon>> SaveSampleHolonAsync(string customPropety, string customPropety2, Guid avatarId, DateTime customDate, int customNumber, long customLongNumber)
@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             sampleHolon.CustomNumber = customNumber;
             sampleHolon.CustomLongNumber = customLongNumber;
 
-            return await Data.SaveHolonAsync<SampleHolon>(sampleHolon);
+            return await Data.SaveHolonAsync<SampleHolon>(sampleHolon, avatarId);
         }
 
         public OASISResult<SampleHolon> LoadSampleHolon(Guid holonId)

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
@@ -12,12 +11,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
     public class SeedsManager : OASISManager, ISeedsManager
     {
-        public SeedsManager(OASISDNA OASISDNA = null) : base(OASISDNA)
+        public SeedsManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
         {
 
         }
 
-        public SeedsManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
+        public SeedsManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
         {
 
         }
@@ -31,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 Amount = amount,
                 AvatarUserName = avatarUserName,
                 Memo = memo
-            });
+            }, AvatarId);
         }
 
         public async Task<OASISResult<SeedTransaction>> SaveSeedTransactionAsync(Guid avatarId, string avatarUserName, int amount, string memo)
@@ -43,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 Amount = amount,
                 AvatarUserName = avatarUserName,
                 Memo = memo
-            });
+            }, AvatarId);
         }
 
         public OASISResult<IEnumerable<SeedTransaction>> LoadSeedTransactionsForAvatar(Guid avatarId)

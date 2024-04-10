@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    public interface IZomeBase
+    public interface IZomeBase : IHolon
     {
         List<IHolon> Holons { get; set; }
 

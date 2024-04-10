@@ -9,12 +9,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
     public class QuestManager : OASISManager, IQuestManager
     {
-        public QuestManager(OASISDNA OASISDNA = null) : base(OASISDNA)
+        public QuestManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
         {
 
         }
 
-        public QuestManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
+        public QuestManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
         {
 
         }

@@ -4,8 +4,10 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 
@@ -393,16 +395,19 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return result;
         }
 
-        public async Task<OASISResult<IHolon>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
-                result = await HolonManager.Instance.SaveHolonAsync((IHolon)this, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+                result = await HolonManager.Instance.SaveHolonAsync((IHolon)this, AvatarManager.LoggedInAvatar != null ? AvatarManager.LoggedInAvatar.AvatarId : Guid.Empty, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                 if (result != null && !result.IsError && result.Result != null)
                     SetProperties(result.Result);
+
+                //TODO: Finish implementing ASAP!
+                // OnSaved?.Invoke(this, new HolonSavedEventArgs() { Result = new OASISResult<IZome>(zomeResult.Result) });
             }
             catch (Exception ex)
             {
@@ -412,16 +417,19 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return result;
         }
 
-        public async Task<OASISResult<T>> SaveAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public async Task<OASISResult<T>> SaveAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             OASISResult<T> result = new OASISResult<T>();
 
             try
             {
-                result = await HolonManager.Instance.SaveHolonAsync<T>((IHolon)this, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+                result = await HolonManager.Instance.SaveHolonAsync<T>((IHolon)this, AvatarManager.LoggedInAvatar != null ? AvatarManager.LoggedInAvatar.AvatarId : Guid.Empty, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                 if (result != null && !result.IsError && result.Result != null)
                     SetProperties(result.Result);
+
+                //TODO: Finish implementing ASAP!
+                // OnSaved?.Invoke(this, new HolonSavedEventArgs() { Result = new OASISResult<IZome>(zomeResult.Result) });
             }
             catch (Exception ex)
             {
@@ -431,13 +439,13 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return result;
         }
 
-        public OASISResult<IHolon> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IHolon> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
-                result = HolonManager.Instance.SaveHolon((IHolon)this, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+                result = HolonManager.Instance.SaveHolon((IHolon)this, AvatarManager.LoggedInAvatar != null ? AvatarManager.LoggedInAvatar.AvatarId : Guid.Empty, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                 if (result != null && !result.IsError && result.Result != null)
                     SetProperties(result.Result);
@@ -450,13 +458,13 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return result;
         }
 
-        public OASISResult<T> Save<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public OASISResult<T> Save<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             OASISResult<T> result = new OASISResult<T>();
 
             try
             {
-                result = HolonManager.Instance.SaveHolon<T>((IHolon)this, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+                result = HolonManager.Instance.SaveHolon<T>((IHolon)this, AvatarManager.LoggedInAvatar != null ? AvatarManager.LoggedInAvatar.AvatarId : Guid.Empty, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                 if (result != null && !result.IsError && result.Result != null)
                     SetProperties(result.Result);

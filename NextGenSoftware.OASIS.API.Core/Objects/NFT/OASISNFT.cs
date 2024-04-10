@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
-namespace NextGenSoftware.OASIS.API.Core.Objects
+namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
 {
     public class OASISNFT : IOASISNFT
     {
@@ -28,17 +28,19 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public string ImageUrl { get; set; }
         public byte[] Thumbnail { get; set; }
         public string ThumbnailUrl { get; set; }
-        public string Token { get; set; } //TODO: Should be dervied from the OnChainProvider so may not need this?
+        //public string Token { get; set; } //TODO: Should be dervied from the OnChainProvider so may not need this?
+        public string MemoText { get; set; }
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
+
 
         /// <summary>
         /// The Blockchain to store the token on.
         /// </summary>
-        public EnumValue<ProviderType> OnChainProvider { get; set; } 
+        public EnumValue<ProviderType> OnChainProvider { get; set; }
 
         /// <summary>
         /// Where the meta data is stored for the NFT (JSON Meta file and associated media etc) - For example HoloOASIS or IPFSOASIS etc.
         /// </summary>
-        public EnumValue<ProviderType> OffChainProvider { get; set; } 
+        public EnumValue<ProviderType> OffChainProvider { get; set; }
     }
 }
