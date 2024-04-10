@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
@@ -419,12 +420,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             throw new NotImplementedException();
         }
         
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IHolon>();
 
@@ -469,12 +470,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             return result;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true)
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, currentChildDepth, continueOnError).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var errorMessage = "Error occured in SaveHolonsAsync method in SolanaOASIS Provider";
             var result = new OASISResult<IEnumerable<IHolon>>();
@@ -835,6 +836,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 var solanaNftTransactionResult = await _solanaService.MintNftAsync(new MintNftRequest()
                 {
                     Amount = (ulong) transation.Amount,
+                    MintAccount = new BaseAccountRequest()
+                    {
+                        PublicKey = transation.MintWalletAddress
+                    },
                     FromAccount = new BaseAccountRequest()
                     {
                         PublicKey = transation.FromWalletAddress
@@ -989,7 +994,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 throw new ArgumentNullException(nameof(transation));
 
             var result = new OASISResult<INFTTransactionRespone>();
-            var errorMessageTemplate = "Error was occured in MintNFTAsync in SolanaOASIS minting NFT. Reason: ";
+            var errorMessageTemplate = "Error occured in MintNFTAsync in SolanaOASIS minting NFT. Reason: ";
 
             try
             {
@@ -997,6 +1002,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 {
                     Amount = (ulong)transation.Price,
                     MintAccount = new BaseAccountRequest()
+                    {
+                        PublicKey = transation.MintWalletAddress
+                    },
+                    FromAccount = new BaseAccountRequest()
                     {
                         PublicKey = transation.MintWalletAddress
                     },

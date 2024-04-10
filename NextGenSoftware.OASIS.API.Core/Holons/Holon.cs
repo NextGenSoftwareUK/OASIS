@@ -38,6 +38,9 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             Init();
         }
 
+        //TODO: Move these into CelestialHolon ASAP! This would mean we would need to add many more methods to the providers and IOASISStorage interface such as save, load etc that take a ICelestialHolon rather than a IHolon, this would double the code in a lot of places like HolonManager, all providers etc. So may be best to just leave these on IHolon for now?
+        //May be able to check what type the IHolon is in the providers etc and if it is of type ICelestialHolon then it can then save the additional props below? Look into this ASAP...
+        //May even be able to save these in the MetaData prop?
         public Guid ParentOmniverseId { get; set; } //The Omniverse this Holon belongs to.
         public IOmiverse ParentOmniverse { get; set; } //The Omniverse this Holon belongs to.
         public Guid ParentMultiverseId { get; set; } //The Multiverse this Holon belongs to.
@@ -89,6 +92,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public ICelestialBody ParentCelestialBody { get; set; } // The CelestialBody  this holon belongs to (this could be a moon, planet, star, etc). 
         public Guid ParentZomeId { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
+        
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
         public IEnumerable<IHolon> Children { get; set; }

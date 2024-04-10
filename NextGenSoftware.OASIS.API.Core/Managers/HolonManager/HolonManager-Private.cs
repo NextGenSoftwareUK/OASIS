@@ -10,12 +10,13 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.Common;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class HolonManager : OASISManager
     {
-        private IHolon PrepareHolonForSaving(IHolon holon, bool extractMetaData) //where T : IHolon, new()
+        private IHolon PrepareHolonForSaving(IHolon holon, Guid avatarId, bool extractMetaData) //where T : IHolon, new()
         {
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
             // Providers could always override this behaviour if they choose...
@@ -34,9 +35,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!holon.IsNewHolon)
             {
                 holon.ModifiedDate = DateTime.Now;
-
-                if (AvatarManager.LoggedInAvatar != null)
-                    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                holon.ModifiedByAvatarId = avatarId;
+                //if (AvatarManager.LoggedInAvatar != null)
+                // holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
                 holon.Version++;
                 holon.PreviousVersionId = holon.VersionId;
@@ -46,9 +47,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 holon.IsActive = true;
                 holon.CreatedDate = DateTime.Now;
+                holon.CreatedByAvatarId = avatarId;
+                holon.ParentHolonId = avatarId;
 
-                if (AvatarManager.LoggedInAvatar != null)
-                    holon.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                //if (AvatarManager.LoggedInAvatar != null)
+                //{
+                //    holon.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                //    holon.ParentHolonId = AvatarManager.LoggedInAvatar.Id;
+                //}
 
                 holon.Version = 1;
                 holon.VersionId = Guid.NewGuid();
@@ -80,27 +86,122 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
             }
 
+            //TODO: Un-comment this later and fix issues from ParentHolon! ;-)
+            //SetParentIdsForHolon(holon.ParentGreatGrandSuperStar, holon.ParentGrandSuperStar, holon.ParentSuperStar, holon.ParentStar, holon.ParentPlanet, holon.ParentMoon, holon.ParentZome, holon);
             return holon;
         }
 
-        private IEnumerable<IHolon> PrepareHolonsForSaving(IEnumerable<IHolon> holons, bool extractMetaData)
+        private IEnumerable<IHolon> PrepareHolonsForSaving(IEnumerable<IHolon> holons, Guid avatarId, bool extractMetaData)
         {
             List<IHolon> holonsToReturn = new List<IHolon>();
 
             foreach (IHolon holon in holons)
-                holonsToReturn.Add(PrepareHolonForSaving(holon, extractMetaData));
+                holonsToReturn.Add(PrepareHolonForSaving(holon, avatarId, extractMetaData));
 
             return holonsToReturn;
         }
 
-        private IEnumerable<IHolon> PrepareHolonsForSaving<T>(IEnumerable<T> holons, bool extractMetaData)
+        private IEnumerable<IHolon> PrepareHolonsForSaving<T>(IEnumerable<T> holons, Guid avatarId, bool extractMetaData)
         {
             List<IHolon> holonsToReturn = new List<IHolon>();
 
             foreach (T holon in holons)
-                holonsToReturn.Add(PrepareHolonForSaving((IHolon)holon, extractMetaData));
+                holonsToReturn.Add(PrepareHolonForSaving((IHolon)holon, avatarId, extractMetaData));
 
             return holonsToReturn;
+        }
+
+        //private void SetParentIdsForZome(IGreatGrandSuperStar greatGrandSuperStar, IGrandSuperStar grandSuperStar, ISuperStar superStar, IStar star, IPlanet planet, IMoon moon, IZome zome)
+        //{
+        //    //TODO: Not sure if we even need this?!
+        //    //SetParentIdsForHolon(greatGrandSuperStar, grandSuperStar, superStar, star, planet, moon, null, zome); //A zome is also a holon (everything is a holon).
+        //    //SetParentIdsForHolon(greatGrandSuperStar, grandSuperStar, superStar, star, planet, moon, zome, null); //A zome is also a holon (everything is a holon).
+
+        //    if (zome.Holons != null)
+        //    {
+        //        foreach (IHolon holon in zome.Holons)
+        //            SetParentIdsForHolon(greatGrandSuperStar, grandSuperStar, superStar, star, planet, moon, zome, holon);
+        //    }
+        //}
+
+        private void SetParentIdsForHolon(IGreatGrandSuperStar greatGrandSuperStar, IGrandSuperStar grandSuperStar, ISuperStar superStar, IStar star, IPlanet planet, IMoon moon, IZome zome, IHolon holon)
+        {
+            if (holon.Children != null)
+            {
+                foreach (IHolon childHolon in holon.Children)
+                    SetParentIdsForHolon(greatGrandSuperStar, grandSuperStar, superStar, star, planet, moon, zome, childHolon);
+            }
+
+            if (greatGrandSuperStar != null)
+            {
+                if (holon.ParentGreatGrandSuperStar == null) //TODO: Do we need a null check here? What if we want to override it? Same for all other props below...
+                    holon.ParentGreatGrandSuperStar = greatGrandSuperStar;
+
+                if (holon.ParentGreatGrandSuperStarId == Guid.Empty)
+                    holon.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+            }
+
+            if (grandSuperStar != null)
+            {
+                if (holon.ParentGrandSuperStar == null)
+                    holon.ParentGrandSuperStar = grandSuperStar;
+
+                if (holon.ParentGrandSuperStarId == Guid.Empty)
+                    holon.ParentGrandSuperStarId = grandSuperStar.Id;
+            }
+
+            if (superStar != null)
+            {
+                if (holon.ParentSuperStar == null)
+                    holon.ParentSuperStar = superStar;
+
+                if (holon.ParentSuperStarId == Guid.Empty)
+                    holon.ParentSuperStarId = superStar.Id;
+            }
+
+            if (star != null)
+            {
+                if (holon.ParentStar == null)
+                    holon.ParentStar = star;
+
+                if (holon.ParentStarId == Guid.Empty)
+                    holon.ParentStarId = star.Id;
+            }
+
+            if (planet != null)
+            {
+                if (holon.ParentStar == null)
+                    holon.ParentPlanet = planet;
+
+                holon.ParentPlanetId = planet.Id;
+            }
+
+            if (moon != null)
+            {
+                if (holon.ParentMoon == null)
+                    holon.ParentMoon = moon;
+
+                if (holon.ParentMoonId == Guid.Empty)
+                    holon.ParentMoonId = moon.Id;
+            }
+
+            if (zome != null)
+            {
+                if (holon.ParentZome == null)
+                    holon.ParentZome = zome;
+
+                if (holon.ParentZomeId == Guid.Empty)
+                    holon.ParentZomeId = zome.Id;
+            }
+
+            if (holon != null)
+            {
+                if (holon.ParentHolonId == Guid.Empty)
+                    holon.ParentHolonId = holon.Id;
+
+                if (holon.ParentHolon == null)
+                    holon.ParentHolon = holon;
+            }
         }
 
         private void LogError(IHolon holon, ProviderType providerType, string errorMessage)

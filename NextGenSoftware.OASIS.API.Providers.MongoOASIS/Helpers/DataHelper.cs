@@ -147,6 +147,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.IsBeamedIn = avatarResult.Result.IsBeamedIn;
             result.Result.Version = avatarResult.Result.Version;
             result.Result.IsActive = avatarResult.Result.IsActive;
+            result.Result.CustomKey = avatarResult.Result.CustomKey;
 
             return result;
         }
@@ -256,6 +257,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.ParentMoonId = avatar.Result.ParentMoonId;
             oasisAvatar.ParentMoon = avatar.Result.ParentMoon;
             oasisAvatar.Children = avatar.Result.Children;
+            oasisAvatar.CustomKey = avatar.Result.CustomKey;
             //oasisAvatar.Nodes = avatar.Result.Nodes;
 
             if (avatar.Result.Nodes != null)
@@ -343,6 +345,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.IsBeamedIn = avatar.IsBeamedIn;
             mongoAvatar.Version = avatar.Version;
             mongoAvatar.IsActive = avatar.IsActive;
+            mongoAvatar.CustomKey = avatar.CustomKey;
 
             return mongoAvatar;
         }
@@ -511,6 +514,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.ParentMoonId = avatar.ParentMoonId;
             mongoAvatar.ParentMoon = avatar.ParentMoon;
             mongoAvatar.Children = avatar.Children;
+            mongoAvatar.CustomKey = avatar.CustomKey;
             // mongoAvatar.Nodes = avatar.Nodes;
 
             if (avatar.Nodes != null)
@@ -593,6 +597,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.ParentMoonId = holon.Result.ParentMoonId;
             result.Result.ParentMoon = holon.Result.ParentMoon;
             result.Result.Children = holon.Result.Children;
+            result.Result.CustomKey = holon.Result.CustomKey;
+
             //result.Result.Nodes = holon.Result.Nodes;
 
             if (holon.Result.Nodes != null)
@@ -675,6 +681,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.ParentMoonId = holon.ParentMoonId;
             mongoHolon.ParentMoon = holon.ParentMoon;
             mongoHolon.Children = holon.Children;
+            mongoHolon.CustomKey = holon.CustomKey;
             //mongoHolon.Nodes = holon.Nodes;
 
             if (holon.Nodes != null)

@@ -52,6 +52,7 @@ namespace NextGenSoftware.OASIS.Common
         public static void Log(string message, LogType type, bool showWorkingAnimation = false, bool noLineBreaks = false, bool insertExtraNewLineAfterLogMessage = false, int? indentLogMessagesBy = 1, bool nextMessageOnSameLine = false)
         {
             Logger.Log($"{message}", type, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);
+            //Console.WriteLine(message);
 
             //if (nextMessageOnSameLine)
             //    Logger.Log($"{message}", type, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);

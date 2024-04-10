@@ -92,8 +92,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
-                
-                var olandsEntity = loadResult.Result.Select(holon => new Oland 
+
+                var olandsEntity = loadResult.Result.Select(holon => new Oland
                 {
                     Discount = Convert.ToDecimal(holon.MetaData[nameof(IOLand.Discount)].ToString().Replace(",", ".")),
                     Id = Guid.Parse(holon.MetaData[nameof(IOLand.Id)].ToString()),
@@ -235,7 +235,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         [nameof(IOLand.TopSize)] = request.TopSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
                     }
                 };
-                
+
                 var saveResult = await Data.SaveHolonAsync(olandHolon);
                 if (saveResult.IsError)
                 {
@@ -262,14 +262,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<Guid>> PurchaseOlandAsync(IOLandPurchase olandPurchase)
         {
             var response = new OASISResult<Guid>();
-            
+
             try
             {
                 Guid olandPurchaseId = new Guid();
 
                 var olandHolon = new Holon
                 {
-                   // IsNewHolon = true,
+                    // IsNewHolon = true,
                     MetaData =
                     {
                         [nameof(olandPurchaseId)] = olandPurchaseId.ToString(),
@@ -285,7 +285,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         //[nameof(IOLandPurchase.ErrorMessage)] = olandPurchase.ErrorMessage
                     }
                 };
-                
+
                 var saveResult = await Data.SaveHolonAsync(olandHolon);
 
                 if (saveResult.IsError)
@@ -350,7 +350,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     ToWalletAddress = request.WalletAddress,
                     FromProviderType = request.ProviderType,
                     FromToken = "POLY" //TODO: Currently OLAND's are minted on Polgon via OpenSea, this may change in future... This will also be dynamic in future...
-                }) ;
+                });
 
                 //var cargoPurchaseResponse = await _cargoService.PurchaseCargoSale(new PurchaseRequestModel(request.CargoSaleId));
                 //if (cargoPurchaseResponse.IsError)

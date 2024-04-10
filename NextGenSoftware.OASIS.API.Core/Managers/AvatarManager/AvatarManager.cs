@@ -17,7 +17,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private static AvatarManager _instance = null;
         private ProviderManagerConfig _config;
 
-        public static IAvatar LoggedInAvatar { get; set; }
+        public static IAvatar LoggedInAvatar { get; set; } //TODO: NEED TO REMOVE THIS ASAP AND JUST PASS THE AVATARID TO ALL FUNCTIONS, BIG REFACTOR BUT NEEDS TO BE DONE! GULP! ;-)
+        public static Dictionary<string, IAvatar> LoggedInAvatarSessions { get; set; }
         //public List<IOASISStorageProvider> OASISStorageProviders { get; set; }
 
         //TODO Implement this singleton pattern for other Managers...

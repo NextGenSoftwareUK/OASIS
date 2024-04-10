@@ -208,11 +208,10 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return toResult;
         }
 
-        public static OASISResult<IEnumerable<IHolon>> CopyResult(OASISResult<IEnumerable<T>> fromResult, bool copyMessage = true, bool copyInnerResult = true)    
+        public static OASISResult<IEnumerable<dynamic>> CopyResult(OASISResult<IEnumerable<dynamic>> fromResult, bool copyMessage = true, bool copyInnerResult = true)    
         {
             return CopyResult(fromResult, new OASISResult<IEnumerable<dynamic>>(), copyMessage, copyInnerResult);
         }
-
 
 
         public static OASISResult<IHolon> CopyResultFromHolonToIHolon(OASISResult<Holon> fromResult, OASISResult<IHolon> toResult, bool copyMessage = true, bool copyInnerResult = true)
@@ -235,8 +234,11 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.SavedCount = fromResult.SavedCount;
             toResult.MetaData = fromResult.MetaData;
 
-            if (copyInnerResult && !fromResult.IsError && fromResult.Result != null)
-                toResult.Result = Mapper.MapBaseHolonProperties(fromResult.Result);
+            //if (copyInnerResult && !fromResult.IsError && fromResult.Result != null)
+            //    toResult.Result = Mapper.MapBaseHolonProperties(fromResult.Result);
+
+            if (copyInnerResult)
+                toResult.Result = fromResult.Result;
 
             return toResult;
         }
@@ -302,7 +304,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             //     toResult.Result = Mapper.MapBaseHolonProperties<T>(fromResult.Result, toResult.Result);
             //toResult.Result = Mapper.MapBaseHolonProperties<T, IHolon>(fromResult.Result);
 
-            toResult.Result = (IHolon)fromResult.Result;
+            if (copyInnerResult)
+                toResult.Result = (IHolon)fromResult.Result;
+
             return toResult;
         }
 

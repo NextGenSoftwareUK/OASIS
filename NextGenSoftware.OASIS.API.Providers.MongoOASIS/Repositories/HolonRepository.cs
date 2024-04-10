@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -156,8 +157,43 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.MetaData[metaKey].ToString() == metaValue);
-                return _dbContext.Holon.Find(filter).FirstOrDefault();
+                var documents = _dbContext.Holon.Find(Builders<Holon>.Filter.Empty).ToList();
+                Holon matchedHolon = null;
+
+                foreach (Holon holon in documents)
+                {
+                    if (holon.MetaData[metaKey].ToString() == metaValue)
+                    {
+                        matchedHolon = holon;
+                        break;
+                    }
+                }
+
+                return matchedHolon;
+
+                //FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.MetaData[metaKey].ToString() == metaValue);
+
+                //var filter = Builders<Holon>.Filter.Lte("MetaData.NFTMintWalletAddress", metaValue);
+                //var filter = Builders<Holon>.Filter.AnyEq("MetaData", new BsonDocument { { "NFTMintWalletAddress", metaValue } });
+                //var filter = Builders<Holon>.Filter.ElemMatch<BsonValue>("MetaData", new BsonDocument { { "NFTMintWalletAddress", metaValue }});
+                //var result = _dbContext.Holon.Find(filter).ToList();
+
+
+
+                //var c = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue).FirstOrDefault();
+                //var e = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"])
+                //_dbContext.Holon.Find( { $text: { $search: "On" } } );
+
+                //var c = _dbContext.Holon.Find(x => x.MetaData[metaKey].ToString() == metaKey).FirstOrDefault();
+                //var c = _dbContext.Holon.Find(x => x.MetaData[metaKey].ToString() == metaValue).FirstOrDefault();
+                //var d = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue);
+                //var e = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue).FirstOrDefault();
+
+                //var c = _dbContext.Holon.Find({"comments.user": "AaravSingh" }).FirstOrDefault();
+                //var c = _dbContext.Holon.Find({"comments.user": "AaravSingh" }).FirstOrDefault();
+
+                //return _dbContext.Holon.Find(filter).FirstOrDefault();
+                return null;
             }
             catch
             {
@@ -345,7 +381,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).Result.ToListAsync();
+                //result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).Result.ToListAsync();
+                var documents = _dbContext.Holon.Find(Builders<Holon>.Filter.Empty).ToList();
+                List<Holon> matchedHolons = new List<Holon>();
+
+                foreach (Holon holon in documents)
+                {
+                    if (holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey] != null && holon.MetaData[metaKey].ToString() == metaValue)
+                        matchedHolons.Add(holon);
+                }
+
+                result.Result = matchedHolons;
             }
             catch (Exception ex)
             {

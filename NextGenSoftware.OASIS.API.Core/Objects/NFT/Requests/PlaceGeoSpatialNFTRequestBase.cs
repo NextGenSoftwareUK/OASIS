@@ -11,6 +11,5 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         public bool PermSpawn { get; set; }
         public int GlobalSpawnQuantity { get; set; }
         public int PlayerSpawnQuantity { get; set; }
-        public ProviderType ProviderType { get; set; }
     }
 }

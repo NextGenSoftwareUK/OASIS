@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -82,7 +83,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
-            OASISResult<IEnumerable<IHolon>>  holonResult = await base.LoadHolonsForParentAsync(HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, version);
+            OASISResult<IEnumerable<IHolon>>  holonResult = await base.LoadHolonsForParentAsync(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, version);
             OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, result);
             //OASISResultHelperForHolons<IHolon, IZome>.CopyResult(holonResult, result); //TODO: Ideally be good to get this version working then will not need seperate call to MapBaseHolonProperties below because this version calls it internally... ;-) 
 
@@ -101,7 +102,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
-            OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, version);
+            OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, version);
             OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, result);
             //OASISResultHelperForHolons<IHolon, IZome>.CopyResult(holonResult, result); //TODO: Ideally be good to get this version working then will not need seperate call to MapBaseHolonProperties below because this version calls it internally... ;-) 
 

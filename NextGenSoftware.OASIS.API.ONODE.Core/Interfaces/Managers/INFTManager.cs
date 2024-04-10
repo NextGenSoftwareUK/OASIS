@@ -17,8 +17,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers
         OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest request);
         //Task<OASISResult<INFTTransactionRespone>> CreateNftTransactionAsync(INFTWalletTransactionRequest request);
         //OASISResult<INFTTransactionRespone> CreateNftTransaction(INFTWalletTransactionRequest request);
-        Task<OASISResult<INFTTransactionRespone>> MintNftAsync(IMintNFTTransactionRequest request);
-        OASISResult<INFTTransactionRespone> MintNft(IMintNFTTransactionRequest request);
+        Task<OASISResult<INFTTransactionRespone>> MintNftAsync(IMintNFTTransactionRequest request, bool isGeoNFT = false);
+        OASISResult<INFTTransactionRespone> MintNft(IMintNFTTransactionRequest request, bool isGeoNFT = false);
         Task<OASISResult<IOASISNFT>> LoadNftAsync(Guid id, ProviderType providerType);
         OASISResult<IOASISNFT> LoadNft(Guid id, ProviderType providerType);
         Task<OASISResult<IOASISNFT>> LoadNftAsync(string hash, ProviderType providerType);

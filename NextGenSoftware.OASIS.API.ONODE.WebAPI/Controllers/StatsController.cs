@@ -40,14 +40,15 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpGet("get-current-live-version")]
         public OASISResult<string> GetCurrentLiveVersion()
         {
-            return new(_OASISDNA.OASIS.CurrentLiveVersion) { IsError = false, Message = "OK" };
+            //return new(_OASISDNA.OASIS.CurrentLiveVersion) { IsError = false, Message = "OK" };
+            return new(OASISBootLoader.OASISBootLoader.OASISVersion) { IsError = false, Message = "OK" };
         }
         
-        [AllowAnonymous]
-        [HttpGet("get-current-staging-version")]
-        public OASISResult<string> GetCurrentStagingVersion()
-        {
-            return new(_OASISDNA.OASIS.CurrentStagingVersion) { IsError = false, Message = "OK" };
-        }
+        //[AllowAnonymous]
+        //[HttpGet("get-current-staging-version")]
+        //public OASISResult<string> GetCurrentStagingVersion()
+        //{
+        //    return new(_OASISDNA.OASIS.CurrentStagingVersion) { IsError = false, Message = "OK" };
+        //}
     }
 }

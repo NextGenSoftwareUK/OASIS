@@ -118,8 +118,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 {
                     IsOASISBooting = true;
 
-                    //LoggingManager.Log($"INIT LOGGING...", LogType.Info, true);
-
                     if (OASISDNA == null)
                     {
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNA is null! Please make sure you pass in a valid OASISDNA and make sure the OASISDNA.json file exists in the path specefied.");
@@ -140,7 +138,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             break;
                     }
 
+                    //LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
                     //LoggingManager.Log($"INIT LOGGING... DONE", LogType.Info);
+
+                    LoggingManager.Log($"BOOTING OASIS...", LogType.Info, true);
 
                     OASISErrorHandling.LogAllErrors = OASISDNA.OASIS.ErrorHandling.LogAllErrors;
                     OASISErrorHandling.LogAllWarnings = OASISDNA.OASIS.ErrorHandling.LogAllWarnings;
@@ -157,7 +158,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     ProviderManager.Instance.IsAutoLoadBalanceEnabled = OASISDNA.OASIS.StorageProviders.AutoLoadBalanceEnabled;
                     ProviderManager.Instance.IsAutoReplicationEnabled = OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled;
 
-                    LoggingManager.Log($"\n FIRING UP THE OASIS HYPERDRIVE...", LogType.Info, true);
+                    LoggingManager.Log($"FIRING UP THE OASIS HYPERDRIVE...", LogType.Info, true);
                     LoggingManager.Log($"LOADING PROVIDER LISTS...", LogType.Info, true, false, false, 1, true);
                     OASISResult<bool> loadProviderListsResult = LoadProviderLists();
 
@@ -197,9 +198,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                                 if (activateResult != null && activateResult.IsError)
                                     OASISErrorHandling.HandleWarning(ref result, $"Error Occured In OASISBootLoader.BootOASISAsync. Reason: GetAndActivateDefaultStorageProviderAsync returned the following error: {activateResult.Message}");
-                                else
+                                //else
                                     //LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
-                                    LoggingManager.Log($"ACTIVATING DEFAULT PROVIDER... DONE", LogType.Info);
+                                    //LoggingManager.Log($"ACTIVATING DEFAULT PROVIDER... DONE", LogType.Info);
                             }
                         }
                         else

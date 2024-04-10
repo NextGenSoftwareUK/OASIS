@@ -8,12 +8,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
     public class MissionManager : OASISManager, IMissionManager
     {
-        public MissionManager(OASISDNA OASISDNA = null) : base(OASISDNA)
+        public MissionManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
         {
 
         }
 
-        public MissionManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
+        public MissionManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
         {
 
         }

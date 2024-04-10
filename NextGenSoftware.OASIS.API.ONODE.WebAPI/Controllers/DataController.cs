@@ -631,7 +631,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
          if (configResult.IsError && configResult.Response != null)
              return configResult.Response;
 
-         OASISResult<IHolon> response = await HolonManager.SaveHolonAsync(request.Holon, request.SaveChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError);
+         OASISResult<IHolon> response = await HolonManager.SaveHolonAsync(request.Holon, AvatarId, request.SaveChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError);
          ResetOASISSettings(request, configResult);
 
          return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);

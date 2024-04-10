@@ -4,17 +4,18 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
+using System;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
     public class MapManager : OASISManager, IMapManager
     {
-        public MapManager(OASISDNA OASISDNA = null) : base(OASISDNA)
+        public MapManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
         {
 
         }
 
-        public MapManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
+        public MapManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
         {
 
         }

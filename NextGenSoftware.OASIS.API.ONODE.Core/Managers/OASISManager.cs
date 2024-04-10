@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using System;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
@@ -11,15 +12,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
     {
         public HolonManager Data { get; set; }
         public OASISDNA OASISDNA {get; set; }
+        public Guid AvatarId { get; set; }
 
-        public OASISManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null)
+        public OASISManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null)
         {
+            AvatarId = avatarId;
             Data = new HolonManager(OASISStorageProvider, OASISDNA);
             Task.Run(async () => await HandleDNAAsync(OASISDNA)).Wait();
         }
 
-        public OASISManager(OASISDNA OASISDNA = null)
+        public OASISManager(Guid avatarId, OASISDNA OASISDNA = null)
         {
+            AvatarId = avatarId;
             Task.Run(async () => await HandleDNAAsync(OASISDNA)).Wait();
             OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
