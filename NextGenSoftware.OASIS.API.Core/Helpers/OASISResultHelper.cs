@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.Helpers
@@ -360,6 +361,87 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return result;
             
             //return CopyResultToIHolon(fromResult, new OASISResult<IEnumerable<IHolon>>(), copyMessage, copyInnerResult);
+        }
+
+        public static OASISResult<IZome> CopyResultToIZome<T>(OASISResult<T> fromResult, OASISResult<IZome> toResult, bool copyMessage = true, bool copyInnerResult = true)
+        {
+            toResult.Exception = fromResult.Exception;
+            toResult.IsError = fromResult.IsError;
+            toResult.IsSaved = fromResult.IsSaved;
+            toResult.IsWarning = fromResult.IsWarning;
+
+            //TODO: Implement for all other properties ASAP.
+            if (copyMessage)
+                toResult.Message = fromResult.Message;
+
+            toResult.DetailedMessage = fromResult.DetailedMessage;
+            toResult.WarningCount = fromResult.WarningCount;
+            toResult.ErrorCount = fromResult.ErrorCount;
+            toResult.HasAnyHolonsChanged = fromResult.HasAnyHolonsChanged;
+            toResult.InnerMessages = fromResult.InnerMessages;
+            toResult.LoadedCount = fromResult.LoadedCount;
+            toResult.SavedCount = fromResult.SavedCount;
+            toResult.MetaData = fromResult.MetaData;
+
+            //TODO: Come back to this!
+            //if (copyInnerResult && !fromResult.IsError && fromResult.Result != null)
+            //     toResult.Result = Mapper.MapBaseHolonProperties<T>(fromResult.Result, toResult.Result);
+            //toResult.Result = Mapper.MapBaseHolonProperties<T, IHolon>(fromResult.Result);
+
+            if (copyInnerResult)
+                toResult.Result = (IZome)fromResult.Result;
+
+            return toResult;
+        }
+
+        public static OASISResult<IZome> CopyResultToIZome<T>(OASISResult<T> fromResult, bool copyMessage = true, bool copyInnerResult = true)
+        {
+            return CopyResultToIZome(fromResult, new OASISResult<IZome>(), copyMessage, copyInnerResult);
+        }
+
+        //public static OASISResult<IEnumerable<IZome>> CopyResultToIZome(OASISResult<IEnumerable<Zome>> fromResult, OASISResult<IEnumerable<IZome>> toResult, bool copyMessage = true, bool copyInnerResult = true)
+        //{
+        //    toResult.Exception = fromResult.Exception;
+        //    toResult.IsError = fromResult.IsError;
+        //    toResult.IsSaved = fromResult.IsSaved;
+        //    toResult.IsWarning = fromResult.IsWarning;
+
+        //    //TODO: Implement for all other properties ASAP.
+        //    if (copyMessage)
+        //        toResult.Message = fromResult.Message;
+
+        //    toResult.DetailedMessage = fromResult.DetailedMessage;
+        //    toResult.WarningCount = fromResult.WarningCount;
+        //    toResult.ErrorCount = fromResult.ErrorCount;
+        //    toResult.HasAnyHolonsChanged = fromResult.HasAnyHolonsChanged;
+        //    toResult.InnerMessages = fromResult.InnerMessages;
+        //    toResult.LoadedCount = fromResult.LoadedCount;
+        //    toResult.SavedCount = fromResult.SavedCount;
+        //    toResult.MetaData = fromResult.MetaData;
+
+        //    if (copyInnerResult && !fromResult.IsError && fromResult.Result != null)
+        //        toResult.Result = Mapper.MapBaseHolonProperties(fromResult.Result);
+
+        //    return toResult;
+        //}
+
+        public static OASISResult<IEnumerable<IZome>> CopyResultToIZome<T>(OASISResult<IEnumerable<T>> fromResult, bool copyMessage = true, bool copyInnerResult = true)
+        {
+            OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
+            List<IZome> zomes = new List<IZome>();
+
+            foreach (T zome in fromResult.Result)
+            {
+                OASISResult<IZome> holonResult = CopyResultToIZome(new OASISResult<T>(zome), new OASISResult<IZome>(), copyMessage, copyInnerResult);
+
+                if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                    zomes.Add(holonResult.Result);
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISResultHelper.CopyResultToIZome. Reason: {holonResult.Message}");
+            }
+
+            result.Result = zomes;
+            return result;
         }
     }
     
