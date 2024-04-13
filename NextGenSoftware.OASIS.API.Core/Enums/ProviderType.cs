@@ -8,6 +8,7 @@
         SolanaOASIS,
         HoloOASIS,
         EthereumOASIS,
+        PolygonOASIS,
         EOSIOOASIS,
         TelosOASIS,
         SEEDSOASIS,
