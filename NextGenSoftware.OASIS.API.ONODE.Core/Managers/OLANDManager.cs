@@ -26,16 +26,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         private INFTManager _nftManager;
         private static OLandManager _instance = null;
 
-        public static OLandManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = new OLandManager(NFTManager.Instance, ProviderManager.Instance.CurrentStorageProvider);
+        //public static OLandManager Instance
+        //{
+        //    get
+        //    {
+        //        if (_instance == null)
+        //            _instance = new OLandManager(NFTManager.Instance, ProviderManager.Instance.CurrentStorageProvider);
 
-                return _instance;
-            }
-        }
+        //        return _instance;
+        //    }
+        //}
 
         //TODO: Move this to a DB (use OASIS Data API) so this data is dynamic and can be changed at runtime!
         //TODO: But better still is to replace this lookup and unit price above with an algorithm to calculate the price with a bigger and bigger discount the more that is purchased... similar to what I did for the level/karma score...
@@ -67,12 +67,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             { 819200, 13824000 },
         };
 
-        public OLandManager(INFTManager nftManager, IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
+        public OLandManager(INFTManager nftManager, IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
         {
             _nftManager = nftManager;
         }
 
-        public OLandManager(INFTManager nftManager, OASISDNA OASISDNA = null) : base(OASISDNA)
+        public OLandManager(INFTManager nftManager, Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
         {
             _nftManager = nftManager;
         }
@@ -189,7 +189,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         [nameof(IOLand.TopSize)] = request.TopSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
                     }
                 };
-                var saveResult = await Data.SaveHolonAsync(olandHolon);
+                var saveResult = await Data.SaveHolonAsync(olandHolon, AvatarId);
                 if (saveResult.IsError)
                 {
                     response.IsError = true;
@@ -236,7 +236,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     }
                 };
 
-                var saveResult = await Data.SaveHolonAsync(olandHolon);
+                var saveResult = await Data.SaveHolonAsync(olandHolon, AvatarId);
                 if (saveResult.IsError)
                 {
                     response.IsError = true;
@@ -286,7 +286,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     }
                 };
 
-                var saveResult = await Data.SaveHolonAsync(olandHolon);
+                var saveResult = await Data.SaveHolonAsync(olandHolon, AvatarId);
 
                 if (saveResult.IsError)
                 {
@@ -349,7 +349,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     MintWalletAddress = null, //TODO: Need to either pre-mint OLAND NFT's and then use FromWalletAddress of the NFT or mint on the fly and then use the new address...
                     ToWalletAddress = request.WalletAddress,
                     FromProviderType = request.ProviderType,
-                    FromToken = "POLY" //TODO: Currently OLAND's are minted on Polgon via OpenSea, this may change in future... This will also be dynamic in future...
+                    //FromToken = "POLY" //TODO: Currently OLAND's are minted on Polgon via OpenSea, this may change in future... This will also be dynamic in future...
                 });
 
                 //var cargoPurchaseResponse = await _cargoService.PurchaseCargoSale(new PurchaseRequestModel(request.CargoSaleId));

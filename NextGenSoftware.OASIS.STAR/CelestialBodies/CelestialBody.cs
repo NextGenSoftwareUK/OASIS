@@ -108,7 +108,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<ICelestialBody>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<ICelestialBody> result = await CelestialBodyCore.LoadCelestialBodyAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+            //OASISResult<ICelestialBody> result = await CelestialBodyCore.LoadCelestialBodyAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+            OASISResult<ICelestialBody> result = await CelestialBodyCore.LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
 
             if ((result != null && !result.IsError && result.Result != null)
                 || ((result == null || result.IsError || result.Result == null) && continueOnError))
@@ -188,7 +189,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return OASISResultHelperForHolons<IZome, T>.CopyResult(LoadZomes(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
-        public async Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        public new async Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>(this);
             OASISResult<IHolon> celestialBodyHolonResult = new OASISResult<IHolon>();
@@ -405,7 +406,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             if (saveChildren)
             {
-                zomesResult = await SaveZomesAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+                zomesResult = await SaveZomesAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                 if (!(zomesResult != null && !zomesResult.IsError && zomesResult.Result != null))
                 {
@@ -422,7 +423,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     result.SavedCount++;
             }
 
-            celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+            //celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+            celestialBodyHolonResult = await CelestialBodyCore.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
             OASISResultHelper<IHolon, ICelestialBody>.CopyResult(celestialBodyHolonResult, result);
 
             if (celestialBodyHolonResult != null && !celestialBodyHolonResult.IsError && celestialBodyHolonResult.Result != null)
@@ -642,40 +644,42 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //    return result;
         //}
 
-        public OASISResult<ICelestialBody> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        public new OASISResult<ICelestialBody> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            return SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType).Result; 
+            return SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType).Result; 
         }
 
-        public async Task<OASISResult<T>> SaveAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
+        //TODO: Is this needed?
+        //public new async Task<OASISResult<T>> SaveAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
+        //{
+        //    return OASISResultHelperForHolons<ICelestialBody, T>.CopyResult(await SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType));
+        //}
+
+        //public new OASISResult<T> Save<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
+        //{
+        //    return OASISResultHelperForHolons<ICelestialBody, T>.CopyResult(Save(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType));
+        //}
+
+        public async Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            return OASISResultHelperForHolons<ICelestialBody, T>.CopyResult(await SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            return await CelestialBodyCore.SaveZomesAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
         }
 
-        public OASISResult<T> Save<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
+        public OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            return OASISResultHelperForHolons<ICelestialBody, T>.CopyResult(Save(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            return CelestialBodyCore.SaveZomes(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
         }
 
-        public async Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
-        {
-            return await CelestialBodyCore.SaveZomesAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType);
-        }
+        //TODO: Is this needed?
+        //public async Task<OASISResult<IEnumerable<T>>> SaveZomesAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IZome, new()
+        //{
+        //    return OASISResultHelperForHolons<IZome, T>.CopyResult(await SaveZomesAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType));
+        //}
 
-        public OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
-        {
-            return CelestialBodyCore.SaveZomes(saveChildren, recursive, maxChildDepth, continueOnError, providerType);
-        }
-
-        public async Task<OASISResult<IEnumerable<T>>> SaveZomesAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IZome, new()
-        {
-            return OASISResultHelperForHolons<IZome, T>.CopyResult(await SaveZomesAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
-        }
-
-        public OASISResult<IEnumerable<T>> SaveZomes<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IZome, new()
-        {
-            return OASISResultHelperForHolons<IZome, T>.CopyResult(SaveZomes(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
-        }
+        //public OASISResult<IEnumerable<T>> SaveZomes<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IZome, new()
+        //{
+        //    return OASISResultHelperForHolons<IZome, T>.CopyResult(SaveZomes(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType));
+        //}
 
         ////TODO: Do we need to use ICelestialBody or IZome here? It will call different Saves depending which we use...
         //public async Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
@@ -1625,81 +1629,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         private void Zome_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
-            OnHolonSaved?.Invoke(sender, e);
-
-            // CODE BELOW IS OBSOLETE, PROVIDER KEYS AND PARENTS ARE AUTOMATICALLY SET BEFORE SAVING AND JUST AFTER SAVING SO NO NEED FOR BELOW...
-
-            /*
-            //TODO: Handle Error.
-            if (!e.Result.IsError)
-            {
-                if (e.Result.Result.HolonType == HolonType.Zome)
-                {
-                    IZome zome = GetZomeById(e.Result.Result.Id);
-
-                    if (zome != null)
-                    {
-                        //If the ProviderUniqueStorageKey is empty then this is the first time the zome has been saved so we now need to save the zomes holons.
-                        //if (string.IsNullOrEmpty(zome.ProviderUniqueStorageKey))
-                        // {
-                        zome.ProviderUniqueStorageKey = e.Result.Result.ProviderUniqueStorageKey;
-                        zome.ParentHolon = e.Result.Result;
-
-                        switch (HolonType)
-                        {
-                            case HolonType.Star:
-                                zome.ParentStar = (IStar)this;
-                                zome.ParentStarId = this.Id;
-                                break;
-
-                            case HolonType.Planet:
-                                zome.ParentPlanet = (IPlanet)this;
-                                zome.ParentPlanetId = this.Id;
-                                break;
-
-                            case HolonType.Moon:
-                                zome.ParentMoon = (IMoon)this;
-                                zome.ParentMoonId = this.Id;
-                                break;
-                        }
-
-                        foreach (Holon holon in GetHolonsThatBelongToZome(zome))
-                            zome.SaveHolonAsync(holon);
-                    }
-                }
-                else
-                {
-                    IHolon holon = CelestialBodyCore.Holons.FirstOrDefault(x => x.Id == e.Result.Result.Id);
-
-                    //TODO: Come back to this... Wouldn't parent already be set? Same for zomes? Need to check...
-                    if (holon != null)
-                    {
-                        holon.ProviderUniqueStorageKey = e.Result.Result.ProviderUniqueStorageKey;
-                        //holon.Parent = e.Holon;
-                        //holon.ParentCelestialBody = this;
-
-                        switch (HolonType)
-                        {
-                            case HolonType.Star:
-                                holon.ParentStar = (IStar)this;
-                                holon.ParentStarId = this.Id;
-                                break;
-
-                            case HolonType.Planet:
-                                holon.ParentPlanet = (IPlanet)this;
-                                holon.ParentPlanetId = this.Id;
-                                break;
-
-                            case HolonType.Moon:
-                                holon.ParentMoon = (IMoon)this;
-                                holon.ParentMoonId = this.Id;
-                                break;
-                        }
-                    }
-                }
-
-                OnHolonSaved?.Invoke(this, e);
-            }*/
+            OnHolonSaved?.Invoke(sender, e); 
         }
     }
 }

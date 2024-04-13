@@ -10,11 +10,11 @@ using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
     // EXAMPLE MANAGER ON HOW TO LOAD/SAVE DATA...
-    public class SampleManager2
+    public class SampleManager2 : OASISManager
     {
         private HolonManager _holonManager = null;
 
-        public SampleManager2()
+        public SampleManager2(Guid avatarId) : base(avatarId)
         {
             OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             //return _holonManager.SaveHolon<Holon>(purchaseHolon);
 
             //Or you can call the non-generic overload
-            return _holonManager.SaveHolon(purchaseHolon);
+            return _holonManager.SaveHolon(purchaseHolon, AvatarId);
         }
 
         public OASISResult<IHolon> LoadNFTPurchaseData(Guid holonId)
@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             purchaseHolon.JsonSelectedTiles = jsonSelectedTiles;
 
             //If you don't mind using reflection (very small overhead especially compared to I/O storage, etc then use this way (recommended).
-            return _holonManager.SaveHolon<PurchaseNFTHolon>(purchaseHolon);
+            return _holonManager.SaveHolon<PurchaseNFTHolon>(purchaseHolon, AvatarId);
         }
 
         public OASISResult<PurchaseNFTHolon> LoadNFTPurchaseData2(Guid holonId)

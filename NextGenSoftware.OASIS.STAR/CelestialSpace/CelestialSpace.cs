@@ -129,7 +129,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             if ((holonResult != null && !holonResult.IsError && holonResult.Result != null)
                 || ((holonResult == null || holonResult.IsError || holonResult.Result == null) && continueOnError))
             {
-                if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                if (holonResult != null && !holonResult.IsError && holonResult.Result != null) 
                 {
                     Mapper.MapBaseHolonProperties(holonResult.Result, this);
                     result.Result = this;

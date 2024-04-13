@@ -13,7 +13,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR.Zomes
 {
-    public abstract class ZomeBase : Holon//, IZomeBase
+    public abstract class ZomeBase : Holon, IZomeBase
     {
         private HolonManager _holonManager = null;
         private const string CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET = "Both Id and ProviderUniqueStorageKey are null, one of these need to be set before calling this method.";
@@ -203,6 +203,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
+        /*
         public virtual async Task<OASISResult<IHolon>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
@@ -262,7 +263,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual async Task<OASISResult<T>> LoadHolonAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public virtual async Task<OASISResult<T>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             OASISResult<T> result = new OASISResult<T>();
 
@@ -291,7 +292,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             //return OASISResultHelperForHolons<IHolon, T>.CopyResult(await LoadHolonAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
-        public virtual OASISResult<T> LoadHolon<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public virtual OASISResult<T> Load<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             OASISResult<T> result = new OASISResult<T>();
 
@@ -319,7 +320,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
 
             //return OASISResultHelperForHolons<IHolon, T>.CopyResult(LoadHolon(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
-        }
+        }*/
 
         protected virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {

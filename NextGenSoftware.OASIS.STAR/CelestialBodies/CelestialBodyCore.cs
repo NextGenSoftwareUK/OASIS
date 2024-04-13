@@ -14,7 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public abstract class CelestialBodyCore<T> : ZomeBase , ICelestialBodyCore where T : ICelestialBody, new()
+    public abstract class CelestialBodyCore<T> : ZomeBase, ICelestialBodyCore where T : ICelestialBody, new()
     {
         //public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         ////  public event HolonsLoaded OnHolonsLoaded;
