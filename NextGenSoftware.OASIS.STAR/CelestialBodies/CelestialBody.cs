@@ -109,7 +109,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public async Task<OASISResult<ICelestialBody>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             //OASISResult<ICelestialBody> result = await CelestialBodyCore.LoadCelestialBodyAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
-            OASISResult<ICelestialBody> result = await CelestialBodyCore.LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+            //OASISResult<ICelestialBody> result = await CelestialBodyCore.LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+            OASISResult<ICelestialBody> result = OASISResultHelper.CopyResultToICelestialBody(await CelestialBodyCore.LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
 
             if ((result != null && !result.IsError && result.Result != null)
                 || ((result == null || result.IsError || result.Result == null) && continueOnError))
@@ -157,12 +158,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<T>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
         {
-            return OASISResultHelperForHolons<ICelestialBody, T>.CopyResult(await LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+            return OASISResultHelper.CopyResult<ICelestialBody, T>(await LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
         public OASISResult<T> Load<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
         {
-            return OASISResultHelperForHolons<ICelestialBody, T>.CopyResult(Load(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+            return OASISResultHelper.CopyResult<ICelestialBody, T>(Load(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
         public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
@@ -181,12 +182,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<IEnumerable<T>>> LoadZomesAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IZome, new()
         {
-            return OASISResultHelperForHolons<IZome, T>.CopyResult(await LoadZomesAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+            return OASISResultHelper.CopyResult<IZome, T>(await LoadZomesAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
         public OASISResult<IEnumerable<T>> LoadZomes<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IZome, new()
         {
-            return OASISResultHelperForHolons<IZome, T>.CopyResult(LoadZomes(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
+            return OASISResultHelper.CopyResult<IZome, T>(LoadZomes(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
         public new async Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)

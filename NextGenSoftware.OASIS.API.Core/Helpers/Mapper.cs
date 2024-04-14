@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
@@ -36,6 +38,74 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             }
             else
                 return null;
+        }
+
+        public static IEnumerable<T> Convert<T>(IEnumerable<IHolon> sourceHolons) where T : IHolon
+        {
+            if (sourceHolons != null)
+            {
+                List<T> targetList = new List<T>();
+
+                foreach (IHolon sourceHolon in sourceHolons)
+                    targetList.Add((T)sourceHolon);
+
+                return targetList;
+            }
+            else
+                return null;
+        }
+
+        public static IEnumerable<IHolon> Convert<T>(IEnumerable<T> sourceHolons) where T : IHolon
+        {
+            if (sourceHolons != null)
+            {
+                IEnumerable<IHolon> targetList = [.. sourceHolons];
+                return targetList;
+            }
+            else
+                return null;
+        }
+
+        public static ICelestialBody ConvertIHolonToICelestialBody(IHolon holon)
+        {
+            ICelestialBody celestialBody = (ICelestialBody)holon;
+            celestialBody.Age = System.Convert.ToInt32(holon.MetaData["Age"]);
+            celestialBody.DistanceFromParentStarInMetres = System.Convert.ToInt32(holon.MetaData["DistanceFromParentStarInMetres"]);
+            celestialBody.EclipticLatitute = System.Convert.ToInt32(holon.MetaData["EclipticLatitute"]);
+            celestialBody.EclipticLongitute = System.Convert.ToInt32(holon.MetaData["EclipticLongitute"]);
+            celestialBody.EquatorialLatitute = System.Convert.ToInt32(holon.MetaData["EquatorialLatitute"]);
+            celestialBody.EquatorialLongitute = System.Convert.ToInt32(holon.MetaData["EquatorialLongitute"]);
+            celestialBody.GalacticLatitute = System.Convert.ToInt32(holon.MetaData["GalacticLatitute"]);
+            celestialBody.GalacticLongitute = System.Convert.ToInt32(holon.MetaData["GalacticLongitute"]);
+            celestialBody.GravitaionalPull = System.Convert.ToInt32(holon.MetaData["GravitaionalPull"]);
+            celestialBody.HorizontalLatitute = System.Convert.ToInt32(holon.MetaData["HorizontalLatitute"]);
+            celestialBody.HorizontalLongitute = System.Convert.ToInt32(holon.MetaData["HorizontalLongitute"]);
+            celestialBody.Mass = System.Convert.ToInt32(holon.MetaData["Mass"]);
+            celestialBody.NumberActiveAvatars = System.Convert.ToInt32(holon.MetaData["NumberActiveAvatars"]);
+            celestialBody.NumberRegisteredAvatars = System.Convert.ToInt32(holon.MetaData["NumberRegisteredAvatars"]);
+            celestialBody.OrbitPositionFromParentStar = System.Convert.ToInt32(holon.MetaData["OrbitPositionFromParentStar"]);
+            celestialBody.RotationSpeed = System.Convert.ToInt32(holon.MetaData["RotationSpeed"]);
+            celestialBody.Size = System.Convert.ToInt32(holon.MetaData["Size"]);
+            celestialBody.SpaceQuadrant = (SpaceQuadrantType)Enum.Parse(typeof(SpaceQuadrantType), holon.MetaData["SpaceQuadrant"].ToString());
+            celestialBody.SpaceSector = System.Convert.ToInt32(holon.MetaData["SpaceSector"]);
+            //celestialBody.SubDimensionLevel = System.Convert.ToInt32(holon.MetaData["SubDimensionLevel"]);
+            celestialBody.SuperGalacticLatitute = System.Convert.ToInt32(holon.MetaData["SuperGalacticLatitute"]);
+            celestialBody.SuperGalacticLongitute = System.Convert.ToInt32(holon.MetaData["SuperGalacticLongitute"]);
+            celestialBody.Temperature = System.Convert.ToInt32(holon.MetaData["Temperature"]);
+            celestialBody.TiltAngle = System.Convert.ToInt32(holon.MetaData["TiltAngle"]);
+            celestialBody.Weight = System.Convert.ToInt32(holon.MetaData["Weight"]);
+
+            return celestialBody;
+        }
+
+        public static IEnumerable<ICelestialBody> ConvertIHolonsToICelestialBodies(IEnumerable<IHolon> holons)
+        {
+            List<ICelestialBody> celestialBodies = new List<ICelestialBody>();
+
+            foreach (IHolon holon in holons)
+                celestialBodies.Add(ConvertIHolonToICelestialBody(holon));
+
+            return celestialBodies;
         }
 
         public static IHolon MapBaseHolonProperties(IHolon sourceHolon, IHolon targetHolon, bool mapCelestialProperties = true)

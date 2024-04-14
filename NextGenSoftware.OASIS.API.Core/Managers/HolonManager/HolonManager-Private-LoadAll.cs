@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class HolonManager : OASISManager
     {
-        private OASISResult<IEnumerable<IHolon>> LoadAllHolonsForProviderType(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        private OASISResult<IEnumerable<IHolon>> LoadAllHolonsForProviderType(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             try
             {
@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = providerResult.Result.LoadAllHolons(holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, version);
+                    result = providerResult.Result.LoadAllHolons(holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
                     result.IsLoaded = true;
                 }
             }
@@ -49,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IEnumerable<T>> LoadAllHolonsForProviderType<T>(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<T>> result, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : IHolon, new()
+        private OASISResult<IEnumerable<T>> LoadAllHolonsForProviderType<T>(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<T>> result, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) where T : IHolon, new()
         {
             string errorMessage = string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider.");
 
@@ -71,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
 
-                    OASISResult<IEnumerable<IHolon>> holonsResult = providerResult.Result.LoadAllHolons(holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, version);
+                    OASISResult<IEnumerable<IHolon>> holonsResult = providerResult.Result.LoadAllHolons(holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider,version);
 
                     if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                     {
@@ -98,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsForProviderTypeAsync(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsForProviderTypeAsync(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             try
             {
@@ -116,7 +116,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = await providerResult.Result.LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, version);
+                    result = await providerResult.Result.LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
                     result.IsLoaded = true;
                 }
             }
@@ -136,7 +136,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IEnumerable<T>>> LoadAllHolonsForProviderTypeAsync<T>(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<T>> result, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : IHolon, new()
+        private async Task<OASISResult<IEnumerable<T>>> LoadAllHolonsForProviderTypeAsync<T>(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<T>> result, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) where T : IHolon, new()
         {
             string errorMessage = string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider.");
 
@@ -157,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IEnumerable<IHolon>> holonsResult = await providerResult.Result.LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, version);
+                    OASISResult<IEnumerable<IHolon>> holonsResult = await providerResult.Result.LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
 
                     if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                     {
