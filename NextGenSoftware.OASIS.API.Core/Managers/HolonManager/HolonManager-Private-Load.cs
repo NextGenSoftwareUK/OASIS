@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class HolonManager : OASISManager
     {
-        private OASISResult<IHolon> LoadHolonForProviderType(Guid id, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<IHolon> result = null)
+        private OASISResult<IHolon> LoadHolonForProviderType(Guid id, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IHolon> result = null)
         {
             try
             {
@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = providerResult.Result.LoadHolon(id, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    result = providerResult.Result.LoadHolon(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
                     result.IsLoaded = true;
                 }
             }
@@ -49,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<T> LoadHolonForProviderType<T>(Guid id, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
+        private OASISResult<T> LoadHolonForProviderType<T>(Guid id, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
         {
             string errorMessage = string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider.");
 
@@ -70,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T));
-                    OASISResult<IHolon> holonResult = providerResult.Result.LoadHolon(id, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    OASISResult<IHolon> holonResult = providerResult.Result.LoadHolon(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
@@ -98,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //TODO: Finish Upgrading rest of HolonManager to work with this improved code (from AvatarManager):
-        private async Task<OASISResult<IHolon>> LoadHolonForProviderTypeAsync(Guid id, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<IHolon> result = null)
+        private async Task<OASISResult<IHolon>> LoadHolonForProviderTypeAsync(Guid id, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IHolon> result = null)
         {
             string errorMessageTemplate = "Error in LoadHolonForProviderTypeAsync method in HolonManager loading holon with id {0} for provider {1}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, id, providerType);
@@ -110,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
-                    var task = providerResult.Result.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    var task = providerResult.Result.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
@@ -141,7 +141,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<T>> LoadHolonForProviderTypeAsync<T>(Guid id, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
+        private async Task<OASISResult<T>> LoadHolonForProviderTypeAsync<T>(Guid id, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
         {
             string errorMessage = string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider.");
 
@@ -162,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IHolon> holonResult = await providerResult.Result.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    OASISResult<IHolon> holonResult = await providerResult.Result.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
@@ -189,7 +189,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IHolon> LoadHolonForProviderType(string providerKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<IHolon> result = null)
+        private OASISResult<IHolon> LoadHolonForProviderType(string providerKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IHolon> result = null)
         {
             try
             {
@@ -207,7 +207,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = providerResult.Result.LoadHolon(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    result = providerResult.Result.LoadHolon(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
                     result.IsLoaded = true;
                 }
             }
@@ -227,7 +227,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<T> LoadHolonForProviderType<T>(string providerKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
+        private OASISResult<T> LoadHolonForProviderType<T>(string providerKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
         {
             string errorMessage = string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider.");
 
@@ -248,7 +248,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IHolon> holonResult = providerResult.Result.LoadHolon(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    OASISResult<IHolon> holonResult = providerResult.Result.LoadHolon(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
@@ -275,7 +275,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IHolon>> LoadHolonForProviderTypeAsync(string providerKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<IHolon> result = null)
+        private async Task<OASISResult<IHolon>> LoadHolonForProviderTypeAsync(string providerKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IHolon> result = null)
         {
             try
             {
@@ -293,7 +293,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = await providerResult.Result.LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    result = await providerResult.Result.LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
                     result.IsLoaded = true;
                 }
             }
@@ -313,7 +313,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<T>> LoadHolonForProviderTypeAsync<T>(string providerKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
+        private async Task<OASISResult<T>> LoadHolonForProviderTypeAsync<T>(string providerKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
         {
             string errorMessage = string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider.");
 
@@ -334,7 +334,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IHolon> holonResult = await providerResult.Result.LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    OASISResult<IHolon> holonResult = await providerResult.Result.LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
@@ -361,7 +361,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IHolon> LoadHolonForProviderTypeByCustomKey(string customKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<IHolon> result = null)
+        private OASISResult<IHolon> LoadHolonForProviderTypeByCustomKey(string customKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IHolon> result = null)
         {
             try
             {
@@ -379,7 +379,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = providerResult.Result.LoadHolonByCustomKey(customKey, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    result = providerResult.Result.LoadHolonByCustomKey(customKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
                     result.IsLoaded = true;
                 }
             }
@@ -399,7 +399,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<T> LoadHolonForProviderTypeByCustomKey<T>(string customKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
+        private OASISResult<T> LoadHolonForProviderTypeByCustomKey<T>(string customKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
         {
             string errorMessage = string.Concat("An error occured attempting to load the holon for customKey ", customKey, " using the ", Enum.GetName(providerType), " provider.");
 
@@ -420,7 +420,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IHolon> holonResult = providerResult.Result.LoadHolonByCustomKey(customKey, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    OASISResult<IHolon> holonResult = providerResult.Result.LoadHolonByCustomKey(customKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
@@ -447,7 +447,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IHolon>> LoadHolonForProviderTypeByCustomKeyAsync(string customKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<IHolon> result = null)
+        private async Task<OASISResult<IHolon>> LoadHolonForProviderTypeByCustomKeyAsync(string customKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IHolon> result = null)
         {
             try
             {
@@ -465,7 +465,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = await providerResult.Result.LoadHolonByCustomKeyAsync(customKey, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    result = await providerResult.Result.LoadHolonByCustomKeyAsync(customKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
                     result.IsLoaded = true;
                 }
             }
@@ -485,7 +485,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<T>> LoadHolonForProviderTypeByCustomKeyAsync<T>(string customKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
+        private async Task<OASISResult<T>> LoadHolonForProviderTypeByCustomKeyAsync<T>(string customKey, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
         {
             string errorMessage = string.Concat("An error occured attempting to load the holon for customKey ", customKey, " using the ", Enum.GetName(providerType), " provider.");
 
@@ -506,7 +506,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IHolon> holonResult = await providerResult.Result.LoadHolonByCustomKeyAsync(customKey, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    OASISResult<IHolon> holonResult = await providerResult.Result.LoadHolonByCustomKeyAsync(customKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
@@ -533,7 +533,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IHolon> LoadHolonForProviderTypeByMetaData(string metaKey, string metaValue, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<IHolon> result = null)
+        private OASISResult<IHolon> LoadHolonForProviderTypeByMetaData(string metaKey, string metaValue, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IHolon> result = null)
         {
             try
             {
@@ -551,7 +551,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = providerResult.Result.LoadHolonByMetaData(metaKey, metaValue, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    result = providerResult.Result.LoadHolonByMetaData(metaKey, metaValue, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
                     result.IsLoaded = true;
                 }
             }
@@ -571,7 +571,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<T> LoadHolonForProviderTypeByMetaData<T>(string metaKey, string metaValue, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
+        private OASISResult<T> LoadHolonForProviderTypeByMetaData<T>(string metaKey, string metaValue, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
         {
             string errorMessage = string.Concat("An error occured attempting to load the holon for metaKey ", metaKey, " and metaValue ", metaValue, " using the ", Enum.GetName(providerType), " provider.");
 
@@ -592,7 +592,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IHolon> holonResult = providerResult.Result.LoadHolonByMetaData(metaKey, metaValue, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    OASISResult<IHolon> holonResult = providerResult.Result.LoadHolonByMetaData(metaKey, metaValue, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
@@ -619,7 +619,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IHolon>> LoadHolonForProviderTypeByMetaDataAsync(string metaKey, string metaValue, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<IHolon> result = null)
+        private async Task<OASISResult<IHolon>> LoadHolonForProviderTypeByMetaDataAsync(string metaKey, string metaValue, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IHolon> result = null)
         {
             try
             {
@@ -637,7 +637,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = await providerResult.Result.LoadHolonByMetaDataAsync(metaKey, metaValue, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    result = await providerResult.Result.LoadHolonByMetaDataAsync(metaKey, metaValue, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
                     result.IsLoaded = true;
                 }
             }
@@ -657,7 +657,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<T>> LoadHolonForProviderTypeByMetaDataAsync<T>(string metaKey, string metaValue, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
+        private async Task<OASISResult<T>> LoadHolonForProviderTypeByMetaDataAsync<T>(string metaKey, string metaValue, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<T> result = null) where T : IHolon, new()
         {
             string errorMessage = string.Concat("An error occured attempting to load the holon for metaKey ", metaKey, " and metaValue ", metaValue, " using the ", Enum.GetName(providerType), " provider.");
 
@@ -678,7 +678,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IHolon> holonResult = await providerResult.Result.LoadHolonByMetaDataAsync(metaKey, metaValue, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    OASISResult<IHolon> holonResult = await providerResult.Result.LoadHolonByMetaDataAsync(metaKey, metaValue, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
