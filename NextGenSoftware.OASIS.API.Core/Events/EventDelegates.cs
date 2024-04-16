@@ -41,6 +41,7 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public delegate void HolonAdded(object sender, HolonAddedEventArgs e);
         //public delegate void HolonRemoved<T>(object sender, HolonRemovedEventArgs<T> e);
         public delegate void HolonRemoved(object sender, HolonRemovedEventArgs e);
+        public delegate void HolonDeleted(object sender, HolonDeletedEventArgs e);
         public delegate void OASISManagerError(object sender, OASISErrorEventArgs e);
         public delegate void StorageProviderError(object sender, OASISErrorEventArgs e);
 

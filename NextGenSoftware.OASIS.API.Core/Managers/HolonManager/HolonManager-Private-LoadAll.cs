@@ -183,5 +183,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
+
+        private OASISResult<IEnumerable<T>> LoadChildHolonsRecursiveForAllHolons<T>(OASISResult<IEnumerable<T>> result, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, int currentChildDepth = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            return LoadChildHolonsRecursive(result, $"All holons with type {Enum.GetName(typeof(HolonType), holonType)} loaded fine but one or more of their children failed to load.", holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, currentChildDepth, providerType);
+        }
+
+        private async Task<OASISResult<IEnumerable<T>>> LoadChildHolonsRecursiveForAllHolonsAsync<T>(OASISResult<IEnumerable<T>> result, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, int currentChildDepth = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            return await LoadChildHolonsRecursiveAsync(result, $"All holons with type {Enum.GetName(typeof(HolonType), holonType)} loaded fine but one or more of their children failed to load.", holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, currentChildDepth, providerType);
+        }
+
+        private OASISResult<IEnumerable<IHolon>> LoadChildHolonsRecursiveForAllHolons(OASISResult<IEnumerable<IHolon>> result, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, int currentChildDepth = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return LoadChildHolonsRecursive(result, $"All holons with type {Enum.GetName(typeof(HolonType), holonType)} loaded fine but one or more of their children failed to load.", holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, currentChildDepth, providerType);
+        }
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadChildHolonsRecursiveForAllHolonsAsync(OASISResult<IEnumerable<IHolon>> result, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, int currentChildDepth = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return await LoadChildHolonsRecursiveAsync(result, $"All holons with type {Enum.GetName(typeof(HolonType), holonType)} loaded fine but one or more of their children failed to load.", holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, currentChildDepth, providerType);
+        }
     }
 }
