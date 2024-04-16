@@ -150,6 +150,11 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     }
 
+    public class HolonDeletedEventArgs : OASISEventArgs<bool>
+    {
+
+    }
+
     //public class HolonSavedEventArgs<IHolon> : OASISEventArgs<IHolon>
     //{
 

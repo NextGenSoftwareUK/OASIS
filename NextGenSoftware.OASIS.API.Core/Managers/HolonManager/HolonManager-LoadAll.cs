@@ -44,6 +44,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // Store the original holon for change tracking in STAR/COSMIC.
                 foreach (IHolon holon in result.Result)
                     holon.Original = holon;
+
+                if (loadChildren && !loadChildrenFromProvider)
+                    result = LoadChildHolonsRecursiveForAllHolons(result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, 0, providerType);
             }
 
             if (cache)
@@ -88,6 +91,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // Store the original holon for change tracking in STAR/COSMIC.
                 foreach (IHolon holon in result.Result)
                     holon.Original = holon;
+
+                if (loadChildren && !loadChildrenFromProvider)
+                    result = LoadChildHolonsRecursiveForAllHolons(result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, 0, providerType);
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
@@ -127,6 +133,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // Store the original holon for change tracking in STAR/COSMIC.
                 foreach (IHolon holon in result.Result)
                     holon.Original = holon;
+
+                if (loadChildren && !loadChildrenFromProvider)
+                    result = await LoadChildHolonsRecursiveForAllHolonsAsync(result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, 0, providerType);
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
@@ -168,6 +177,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // Store the original holon for change tracking in STAR/COSMIC.
                 foreach (IHolon holon in result.Result)
                     holon.Original = holon;
+
+                if (loadChildren && !loadChildrenFromProvider)
+                    result = await LoadChildHolonsRecursiveForAllHolonsAsync(result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, 0, providerType);
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);

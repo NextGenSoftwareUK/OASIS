@@ -93,10 +93,10 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Guid ParentZomeId { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         
-        public Guid ParentHolonId { get; set; }
-        public IHolon ParentHolon { get; set; }
-        public IEnumerable<IHolon> Children { get; set; }
-        public ObservableCollection<IHolon> ChildrenTest { get; set; }
+        //public Guid ParentHolonId { get; set; }
+        //public IHolon ParentHolon { get; set; }
+        //public IEnumerable<IHolon> Children { get; set; }
+        //public ObservableCollection<IHolon> ChildrenTest { get; set; }
 
         /*
         public Guid CreatedByAvatarId { get; set; }
@@ -165,49 +165,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
             if (Original != null)
             {
-                if (Original.Id != Id)
-                    return true;
-
-                if (Original.Name != Name)
-                    return true;
-
-                if (Original.Description != Description)
-                    return true;
-
-                if (Original.CreatedByAvatar != CreatedByAvatar)
-                    return true;
-
-                if (Original.CreatedByAvatarId != CreatedByAvatarId)
-                    return true;
-
-                if (Original.CreatedDate != CreatedDate)
-                    return true;
-
-                if (Original.ModifiedByAvatar != ModifiedByAvatar)
-                    return true;
-
-                if (Original.ModifiedByAvatarId != ModifiedByAvatarId)
-                    return true;
-
-                if (Original.ModifiedDate != ModifiedDate)
-                    return true;
-
-                if (Original.CreatedProviderType != CreatedProviderType)
-                    return true;
-
-                if (Original.DeletedByAvatar != DeletedByAvatar)
-                    return true;
-
-                if (Original.DeletedByAvatarId != DeletedByAvatarId)
-                    return true;
-
-                if (Original.DeletedDate != DeletedDate)
-                    return true;
-   
-                if (Original.HolonType != HolonType)
-                    return true;
-
-                if (Original.IsActive != IsActive)
+                if (Original.DimensionLevel != DimensionLevel)
                     return true;
 
                 if (Original.Nodes.Count != Nodes.Count)
