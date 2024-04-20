@@ -108,6 +108,16 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return celestialBodies;
         }
 
+        public static IEnumerable<ICelestialBody> ConvertIHolonsToICelestialBodies<T>(IEnumerable<T> holons)
+        {
+            List<ICelestialBody> celestialBodies = new List<ICelestialBody>();
+
+            foreach (IHolon holon in holons)
+                celestialBodies.Add(ConvertIHolonToICelestialBody(holon));
+
+            return celestialBodies;
+        }
+
         public static IHolon MapBaseHolonProperties(IHolon sourceHolon, IHolon targetHolon, bool mapCelestialProperties = true)
         {
             if (sourceHolon != null && targetHolon != null)

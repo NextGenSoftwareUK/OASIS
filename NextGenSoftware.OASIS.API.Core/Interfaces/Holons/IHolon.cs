@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
@@ -63,9 +62,5 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         //int Version { get; set; }
         //EnumValue<ProviderType> CreatedProviderType { get; set; }
         ObservableCollection<INode> Nodes { get; set; }
-
-        //  bool HasHolonChanged(bool checkChildren = true);
-
-        public OASISResult<IEnumerable<IHolon>> LoadChildHolons(HolonType holonType = HolonType.All, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, bool cache = true);
     }
 }

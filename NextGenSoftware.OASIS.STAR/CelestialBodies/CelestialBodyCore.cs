@@ -53,7 +53,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                         holons.Add(zome);
 
                     //Now we need to add the base holons that are linked directly to the celestialbody.
-                    holons.AddRange(base.Holons);
+                    //holons.AddRange(base.Holons);
+                    holons.AddRange(base.Children);
                     return holons;
                 }
 
@@ -80,12 +81,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
         }
 
-        public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
-            OASISResult<IEnumerable<IHolon>> holonResult = await base.LoadHolonsForParentAsync(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, version);
-            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, result);
-            //OASISResultHelperForHolons<IHolon, IZome>.CopyResult(holonResult, result); //TODO: Ideally be good to get this version working then will not need seperate call to MapBaseHolonProperties below because this version calls it internally... ;-) 
+            OASISResult<IEnumerable<IHolon>> holonResult = await base.LoadHolonsForParentAsync(Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+            OASISResultHelper.CopyResultToIZome(holonResult, result);
 
             if (holonResult.Result != null && !holonResult.IsError)
             {
@@ -99,11 +99,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
-            OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, version);
-            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, result);
+            OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+            OASISResultHelper.CopyResultToIZome(holonResult, result);
             //OASISResultHelperForHolons<IHolon, IZome>.CopyResult(holonResult, result); //TODO: Ideally be good to get this version working then will not need seperate call to MapBaseHolonProperties below because this version calls it internally... ;-) 
 
             if (holonResult.Result != null && !holonResult.IsError)
@@ -118,37 +118,31 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T>>> LoadZomesAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IZome, new()
+        public async Task<OASISResult<IEnumerable<T>>> LoadZomesAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IZome, new()
         {
-            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
-            OASISResult<IEnumerable<IHolon>> holonResult = await base.LoadHolonsForParentAsync(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, version);
-            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<T>>.CopyResult(holonResult, result);
-            //OASISResultHelperForHolons<IHolon, IZome>.CopyResult(holonResult, result); //TODO: Ideally be good to get this version working then will not need seperate call to MapBaseHolonProperties below because this version calls it internally... ;-) 
+            OASISResult<IEnumerable<T>> result = await base.LoadHolonsForParentAsync<T>(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
 
-            if (holonResult.Result != null && !holonResult.IsError)
+            if (result.Result != null && !result.IsError)
             {
-                result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result); //TODO: Not sure if this would work? DOUBLE CHECK ASAP! :)
-
                 foreach (T zome in result.Result)
                     this.Zomes.Add(zome);
 
                 //this.Zomes = result.Result.ToList();
-                OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = OASISResultHelperForHolons.CopyResultToIZome(result) });
+                OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = OASISResultHelper.CopyResultToIZome(result) });
             }
             else
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelperForHolons.CopyResultToIZome(result) });
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToIZome(result) });
 
             return result;
 
             //return OASISResultHelperForHolons<IZome, T>.CopyResult(await LoadZomesAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
-        public OASISResult<IEnumerable<T>> LoadZomes<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IZome, new()
+        public OASISResult<IEnumerable<T>> LoadZomes<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IZome, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
-            OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, version);
-            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<T>>.CopyResult(holonResult, result);
-            //OASISResultHelperForHolons<IHolon, IZome>.CopyResult(holonResult, result); //TODO: Ideally be good to get this version working then will not need seperate call to MapBaseHolonProperties below because this version calls it internally... ;-) 
+            OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider,version);
+            OASISResultHelper.CopyResult(holonResult, result);
 
             if (holonResult.Result != null && !holonResult.IsError)
             {
@@ -158,10 +152,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     this.Zomes.Add(zome);
 
                 //this.Zomes = result.Result.ToList();
-                OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = OASISResultHelperForHolons.CopyResultToIZome(result) });
+                OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = OASISResultHelper.CopyResultToIZome(result) });
             }
             else
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelperForHolons.CopyResultToIZome(result) });
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToIZome(result) });
 
             return result;
 
@@ -182,7 +176,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     if (zome.HasHolonChanged())
                     {
                         //zomeResult = await zome.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
-                        OASISResult<IHolon> holonResult = await zome.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                        OASISResult<IZome> holonResult = await zome.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                         if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
                         {
@@ -227,7 +221,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
-            OASISResult<IHolon> zomeResult = new OASISResult<IHolon>();
+            OASISResult<IZome> zomeResult = new OASISResult<IZome>();
             List<IZome> savedZomes = new List<IZome>();
 
             if (this.Zomes != null)
@@ -241,7 +235,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                         if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
                         {
                             result.SavedCount++;
-                            savedZomes.Add((IZome)zomeResult.Result);
+                            savedZomes.Add(zomeResult.Result);
                         }
                         else
                         {
@@ -322,13 +316,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     result.IsSaved = true;
                 }
 
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelperForHolons.CopyResultToIZome(result) });
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToIZome(result) });
             }
             else
                 result.IsSaved = true;
 
             result.Result = savedZomes;
-            OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelperForHolons.CopyResultToIZome(result) });
+            OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             return result;
 
             //return OASISResultHelperForHolons<IZome, T>.CopyResult(await SaveZomesAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
@@ -378,13 +372,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     result.IsSaved = true;
                 }
 
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelperForHolons.CopyResultToIZome(result) });
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToIZome(result) });
             }
             else
                 result.IsSaved = true;
 
             result.Result = savedZomes;
-            OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelperForHolons.CopyResultToIZome(result) });
+            OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             return result;
 
             //return OASISResultHelperForHolons<IZome, T>.CopyResult(SaveZomes(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
@@ -395,12 +389,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             OASISResult<IZome> result = new OASISResult<IZome>();
 
             SetParentsAndAddZome(zome);
-            OASISResult<IHolon> holonResult = await zome.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+            OASISResult<IZome> holonResult = await zome.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
             if (holonResult.IsError)
                 OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in CelestialBodyCore.AddZomeAsync method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", holonResult.Message), Exception = holonResult.Exception });
 
-            result = OASISResultHelperForHolons.CopyResultToIZome(holonResult);
+            result = OASISResultHelper.CopyResultToIZome(holonResult);
             OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = result });
             return result;
         }
@@ -410,12 +404,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             OASISResult<IZome> result = new OASISResult<IZome>();
 
             SetParentsAndAddZome(zome);
-            OASISResult<IHolon> holonResult = zome.Save(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+            OASISResult<IZome> holonResult = zome.Save(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
             if (holonResult.IsError)
                 OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in CelestialBodyCore.AddZome method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", holonResult.Message), Exception = holonResult.Exception });
 
-            result = OASISResultHelperForHolons.CopyResultToIZome(holonResult);
+            result = OASISResultHelper.CopyResultToIZome(holonResult);
             OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = result });
             return result;
         }
@@ -434,7 +428,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = errorMessage, Exception = result.Exception });
             }
 
-            OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = OASISResultHelperForHolons.CopyResultToIZome(result) });
+            OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             return result;
         }
 
@@ -452,7 +446,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = errorMessage, Exception = result.Exception });
             }
 
-            OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = OASISResultHelperForHolons.CopyResultToIZome(result) });
+            OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             return result;
         }
 
@@ -461,7 +455,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             OASISResult<IZome> result = new OASISResult<IZome>();
 
             BlankParentsAndRemoveZome(zome);
-            OASISResult<IHolon> holonResult = await zome.SaveAsync(true, true, 0, true, false, providerType);
+            OASISResult<IZome> holonResult = await zome.SaveAsync(true, true, 0, true, false, providerType);
 
             if (result != null && result.IsError)
             {
@@ -470,7 +464,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = errorMessage, Exception = result.Exception });
             }
 
-            result = OASISResultHelperForHolons.CopyResultToIZome(holonResult);
+            result = OASISResultHelper.CopyResultToIZome(holonResult);
             OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = result });
             return result;
         }
@@ -480,7 +474,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             OASISResult<IZome> result = new OASISResult<IZome>();
 
             BlankParentsAndRemoveZome(zome);
-            OASISResult<IHolon> holonResult = zome.Save(true, true, 0, true, false, providerType);
+            OASISResult<IZome> holonResult = zome.Save(true, true, 0, true, false, providerType);
 
             if (result != null && result.IsError)
             {
@@ -489,7 +483,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = errorMessage, Exception = result.Exception });
             }
 
-            result = OASISResultHelperForHolons.CopyResultToIZome(holonResult);
+            result = OASISResultHelper.CopyResultToIZome(holonResult);
             OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = result });
             return result;
         }
@@ -508,7 +502,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = errorMessage, Exception = result.Exception });
             }
 
-            OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = OASISResultHelperForHolons.CopyResultToIZome(result) });
+            OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             return result;
         }
 
@@ -526,7 +520,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = errorMessage, Exception = result.Exception });
             }
 
-            OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = OASISResultHelperForHolons.CopyResultToIZome(result) });
+            OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             return result;
         }
 
@@ -863,13 +857,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //    return result;
         //}
 
-        protected virtual async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsAsync(IEnumerable<IHolon> holons, HolonType holonType, bool refresh = true, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
+        protected virtual async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsAsync(IEnumerable<IHolon> holons, HolonType holonType, bool refresh = true, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 
             if (holons == null || refresh)
                 //result = await base.LoadHolonsForParentAsync(holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
-                result = await base.LoadChildHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
+                result = await base.LoadChildHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
             else
             {
                 result.Message = "Refresh not required";
