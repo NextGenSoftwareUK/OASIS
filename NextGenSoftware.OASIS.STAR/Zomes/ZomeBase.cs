@@ -2,16 +2,14 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.Common;
-using Microsoft.Azure.Cosmos.Serialization.HybridRow;
-using Nethereum.Contracts.QueryHandlers.MultiCall;
 
 namespace NextGenSoftware.OASIS.STAR.Zomes
 {
@@ -358,8 +356,9 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
             if (result.IsError)
                 OnError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadAllHolonsAsync method with holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), Exception = result.Exception });
+            else
+                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
 
-            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
             return result;
         }
 
@@ -369,8 +368,9 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
             if (result.IsError)
                 OnError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadAllHolonsAsync method with holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), Exception = result.Exception });
+            else
+                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
 
-            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
             return result;
         }
 
@@ -380,8 +380,9 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
             if (result.IsError)
                 OnError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolonsForParentAsync method with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), Exception = result.Exception });
+            else
+                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
 
-            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
             return result;
         }
 
@@ -1290,7 +1291,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
                 result.Result = (T)RestoreCelesialBodies(savingHolon);
                 OASISResult<IHolon> holonResult = new OASISResult<IHolon>(result.Result);
-                OASISResultHelper<T, IHolon>.CopyResult(result, holonResult);
+                OASISResultHelper.CopyResult(result, holonResult);
                 OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = holonResult });
             }
             else
