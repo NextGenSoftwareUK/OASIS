@@ -63,6 +63,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="NextGenSoftware.OASIS.STAR">
+      <HintPath>..\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\OASIS Runtime\3.1.1\NextGenSoftware.OASIS.STAR.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="README.md">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>

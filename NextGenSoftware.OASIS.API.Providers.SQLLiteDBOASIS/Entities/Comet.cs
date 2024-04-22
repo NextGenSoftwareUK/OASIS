@@ -13,7 +13,7 @@ using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
 {
 
-    public class Comet : Holon, IComet
+    public class Comet : Holon//, IComet
     {
         public SpaceQuadrantType SpaceQuadrant { get; set; }
         public int SpaceSector { get; set; }

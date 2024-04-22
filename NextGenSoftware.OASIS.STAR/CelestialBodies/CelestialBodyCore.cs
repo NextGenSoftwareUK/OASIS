@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     List<IHolon> holons = new List<IHolon>();
 
                     foreach (IZome zome in Zomes)
-                        holons.Add(zome);
+                        holons.Add((IHolon)zome);
 
                     //Now we need to add the base holons that are linked directly to the celestialbody.
                     //holons.AddRange(base.Holons);
@@ -85,7 +85,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
             OASISResult<IEnumerable<IHolon>> holonResult = await base.LoadHolonsForParentAsync(Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
-            OASISResultHelper.CopyResultToIZome(holonResult, result);
+            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, result);
 
             if (holonResult.Result != null && !holonResult.IsError)
             {
@@ -103,8 +103,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
             OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
-            OASISResultHelper.CopyResultToIZome(holonResult, result);
-            //OASISResultHelperForHolons<IHolon, IZome>.CopyResult(holonResult, result); //TODO: Ideally be good to get this version working then will not need seperate call to MapBaseHolonProperties below because this version calls it internally... ;-) 
+            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, result);
 
             if (holonResult.Result != null && !holonResult.IsError)
             {
@@ -127,8 +126,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 foreach (T zome in result.Result)
                     this.Zomes.Add(zome);
 
-                //this.Zomes = result.Result.ToList();
-                OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = OASISResultHelper.CopyResultToIZome(result) });
+                OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = OASISResultHelper.CopyResult(result) });
             }
             else
                 OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToIZome(result) });
