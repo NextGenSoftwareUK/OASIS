@@ -441,9 +441,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         where T2 : IHolon, new()
     {
 
-        public static T2 MapBaseHolonProperties(T1 sourceHolon)
+        public static T2 MapBaseHolonProperties(T1 sourceHolon, bool mapCelestialProperties = true)
         {
-            return MapBaseHolonProperties(sourceHolon, new T2());
+            return MapBaseHolonProperties(sourceHolon, new T2(), mapCelestialProperties);
         }
 
         public static T2 MapBaseHolonProperties(T1 sourceHolon, T2 targetHolon, bool mapCelestialProperties = true)
@@ -516,19 +516,27 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 
             return targetHolon;
         }
-        public static IEnumerable<T2> MapBaseHolonProperties(IEnumerable<T1> sourceHolons)
+
+        public static IEnumerable<T2> MapBaseHolonProperties(IEnumerable<T1> sourceHolons, IEnumerable<T2> targetHolons, bool mapCelestialProperties = true)
         {
             if (sourceHolons != null)
             {
                 List<T2> targetList = new List<T2>();
 
                 foreach (T1 sourceHolon in sourceHolons)
-                    targetList.Add(MapBaseHolonProperties(sourceHolon));
+                    //targetList.Add(MapBaseHolonProperties(sourceHolon, new T2(), mapCelestialProperties));
+                    targetList.Add(MapBaseHolonProperties(sourceHolon, mapCelestialProperties));
 
-                return targetList;
+                targetHolons = targetList;
+                return targetHolons;
             }
             else
                 return null;
+        }
+
+        public static IEnumerable<T2> MapBaseHolonProperties(IEnumerable<T1> sourceHolons, bool mapCelestialProperties = true)
+        {
+            return MapBaseHolonProperties(sourceHolons, new List<T2>(), mapCelestialProperties);
         }
 
         public static IEnumerable<IHolon> Convert(IEnumerable<T1> sourceHolons)
