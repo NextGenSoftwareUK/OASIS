@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    public interface IZomeBase
+    public interface IZomeBase : IHolon
     {
         event EventDelegates.ZomeError OnError;
         event EventDelegates.ZomeLoaded OnLoaded;

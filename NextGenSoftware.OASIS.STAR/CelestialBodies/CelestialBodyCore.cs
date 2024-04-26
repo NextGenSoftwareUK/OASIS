@@ -85,16 +85,18 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
             OASISResult<IEnumerable<IHolon>> holonResult = await base.LoadHolonsForParentAsync(Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
-            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, result);
+            OASISResultHelper.CopyResultToIZome(holonResult, result);
 
             if (holonResult.Result != null && !holonResult.IsError)
             {
-                result.Result = Mapper<IHolon, Zome>.MapBaseHolonProperties(holonResult.Result); //TODO: Not sure if this would work? DOUBLE CHECK ASAP! :)
                 this.Zomes = result.Result.ToList();
                 OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = result });
             }
             else
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat("Error in CelestialBodyCore.LoadZomesAsync method caling base.LoadHolonsForParentAsync. Reason: ", result.Message));
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = result, Exception = result.Exception });
+            }
 
             return result;
         }
@@ -103,16 +105,18 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
             OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
-            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, result);
+            OASISResultHelper.CopyResultToIZome(holonResult, result);
 
             if (holonResult.Result != null && !holonResult.IsError)
             {
-                result.Result = Mapper<IHolon, Zome>.MapBaseHolonProperties(holonResult.Result); //TODO: Not sure if this would work? DOUBLE CHECK ASAP! :)
                 this.Zomes = (List<IZome>)result.Result;
                 OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = result });
             }
             else
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat("Error in CelestialBodyCore.LoadZomes method caling base.LoadHolonsForParent. Reason: ", result.Message));
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
+            }
 
             return result;
         }
@@ -123,263 +127,310 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             if (result.Result != null && !result.IsError)
             {
+                //TODO: Do we want to empty the collection before adding the loaded zomes to it?
                 foreach (T zome in result.Result)
                     this.Zomes.Add(zome);
 
-                OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = OASISResultHelper.CopyResult(result) });
+                OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = OASISResultHelper.CopyResultToIZome(result) });
             }
             else
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToIZome(result) });
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat("Error in CelestialBodyCore.LoadZomesAsync<T> method caling base.LoadHolonsForParentAsync<T>. Reason: ", result.Message));
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
+            }
 
             return result;
-
-            //return OASISResultHelperForHolons<IZome, T>.CopyResult(await LoadZomesAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
         public OASISResult<IEnumerable<T>> LoadZomes<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IZome, new()
         {
-            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
-            OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider,version);
-            OASISResultHelper.CopyResult(holonResult, result);
+            OASISResult<IEnumerable<T>> result = base.LoadHolonsForParent<T>(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider,version);
 
-            if (holonResult.Result != null && !holonResult.IsError)
+            if (result.Result != null && !result.IsError)
             {
-                result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result); //TODO: Not sure if this would work? DOUBLE CHECK ASAP! :)
-
+                //TODO: Do we want to empty the collection before adding the loaded zomes to it?
                 foreach (T zome in result.Result)
                     this.Zomes.Add(zome);
 
-                //this.Zomes = result.Result.ToList();
                 OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = OASISResultHelper.CopyResultToIZome(result) });
             }
             else
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToIZome(result) });
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat("Error in CelestialBodyCore.LoadZomes<T> method caling base.LoadHolonsForParent<T>. Reason: ", result.Message));
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
+            }
 
             return result;
-
-            //return OASISResultHelperForHolons<IZome, T>.CopyResult(LoadZomes(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType));
         }
 
         //TODO: Do we need to use ICelestialBody or IZome here? It will call different Saves depending which we use...
         public async Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
-            //OASISResult<IZome> zomeResult = new OASISResult<IZome>();
-            List<IZome> savedZomes = new List<IZome>();
+            //List<IZome> savedZomes = new List<IZome>();
 
             if (this.Zomes != null)
             {
-                foreach (IZome zome in this.Zomes)
-                {
-                    if (zome.HasHolonChanged())
-                    {
-                        //zomeResult = await zome.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
-                        OASISResult<IZome> holonResult = await zome.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes, true, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                result = OASISResultHelper.CopyResultToIZome(holonsResult);
 
-                        if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
-                        {
-                            result.SavedCount++;
-                            savedZomes.Add((IZome)holonResult.Result);
-                        }
-                        else
-                        {
-                            result.ErrorCount++;
-                            OASISErrorHandling.HandleWarning(ref result, $"There was an error in the CelestialBodyCore.SaveZomes method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {holonResult.Message}", true, false, false, true, false);
-                            //OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+                //TODO: May be useful to use this logic in HolonManager?
+                //foreach (IZome zome in this.Zomes)
+                //{
+                //    if (zome.HasHolonChanged())
+                //    {
+                //        OASISResult<IZome> holonResult = await zome.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
-                            if (!continueOnError)
-                                break;
-                        }
-                    }
-                }
+                //        if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
+                //        {
+                //            result.SavedCount++;
+                //            savedZomes.Add(holonResult.Result);
+                //        }
+                //        else
+                //        {
+                //            result.ErrorCount++;
+                //            OASISErrorHandling.HandleWarning(ref result, $"There was an error in the CelestialBodyCore.SaveZomesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {holonResult.Message}", true, false, false, true, false);
+
+                //            if (!continueOnError)
+                //                break;
+                //        }
+                //    }
+                //}
             }
 
-            if (result.ErrorCount > 0)
-            {
-                string message = $"{result.ErrorCount} Error(s) occured in CelestialBodyCore.SaveZomes method whilst saving {Zomes.Count} Zomes in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+            //TODO: May be useful to use this logic in HolonManager?
+            //if (result.ErrorCount > 0)
+            //{
+            //    string message = $"{result.ErrorCount} Error(s) occured in CelestialBodyCore.SaveZomesAsync method whilst saving {Zomes.Count} Zomes in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
 
-                if (result.SavedCount == 0)
-                    OASISErrorHandling.HandleError(ref result, message);
-                else
-                {
-                    OASISErrorHandling.HandleWarning(ref result, message);
-                    result.IsSaved = true;
-                }
+            //    if (result.SavedCount == 0)
+            //        OASISErrorHandling.HandleError(ref result, message);
+            //    else
+            //    {
+            //        OASISErrorHandling.HandleWarning(ref result, message);
+            //        result.IsSaved = true;
+            //    }
 
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-            }
+            //    OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+            //}
+            //else
+            //    result.IsSaved = true;
+
+            //if (result.SavedCount > 0)
+            //{ 
+            //    result.Result = savedZomes;
+            //    OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = result });
+            //}
+
+            if (result != null && !result.IsError && result.Result != null)
+                OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = result });
             else
-                result.IsSaved = true;
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat("Error in CelestialBodyCore.SaveZomesAsync method caling base.SaveHolonsAsync. Reason: ", result.Message));
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = result, Exception = result.Exception });
+            }
 
-            result.Result = savedZomes;
-            OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = result });
             return result;
         }
 
         public OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
-            OASISResult<IZome> zomeResult = new OASISResult<IZome>();
-            List<IZome> savedZomes = new List<IZome>();
+            //OASISResult<IZome> zomeResult = new OASISResult<IZome>();
+            //List<IZome> savedZomes = new List<IZome>();
 
             if (this.Zomes != null)
             {
-                foreach (IZome zome in this.Zomes)
-                {
-                    if (zome.HasHolonChanged())
-                    {
-                        zomeResult = zome.Save(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes, true, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                result = OASISResultHelper.CopyResultToIZome(holonsResult);
 
-                        if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
-                        {
-                            result.SavedCount++;
-                            savedZomes.Add(zomeResult.Result);
-                        }
-                        else
-                        {
-                            result.ErrorCount++;
-                            OASISErrorHandling.HandleWarning(ref zomeResult, $"There was an error in the CelestialBodyCore.SaveZomes method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {zomeResult.Message}", true, false, false, true, false);
-                            //OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+                //foreach (IZome zome in this.Zomes)
+                //{
+                //    if (zome.HasHolonChanged())
+                //    {
+                //        zomeResult = zome.Save(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
-                            if (!continueOnError)
-                                break;
-                        }
-                    }
-                }
+                //        if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
+                //        {
+                //            result.SavedCount++;
+                //            savedZomes.Add(zomeResult.Result);
+                //        }
+                //        else
+                //        {
+                //            result.ErrorCount++;
+                //            OASISErrorHandling.HandleWarning(ref zomeResult, $"There was an error in the CelestialBodyCore.SaveZomes method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {zomeResult.Message}", true, false, false, true, false);
+                //            //OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+
+                //            if (!continueOnError)
+                //                break;
+                //        }
+                //    }
+                //}
             }
 
-            if (result.ErrorCount > 0)
-            {
-                string message = $"{result.ErrorCount} Error(s) occured in CelestialBodyCore.SaveZomes method whilst saving {Zomes.Count} Zomes in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+            //if (result.ErrorCount > 0)
+            //{
+            //    string message = $"{result.ErrorCount} Error(s) occured in CelestialBodyCore.SaveZomes method whilst saving {Zomes.Count} Zomes in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
 
-                if (result.SavedCount == 0)
-                    OASISErrorHandling.HandleError(ref result, message);
-                else
-                {
-                    OASISErrorHandling.HandleWarning(ref result, message);
-                    result.IsSaved = true;
-                }
+            //    if (result.SavedCount == 0)
+            //        OASISErrorHandling.HandleError(ref result, message);
+            //    else
+            //    {
+            //        OASISErrorHandling.HandleWarning(ref result, message);
+            //        result.IsSaved = true;
+            //    }
 
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-            }
+            //    OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+            //}
+            //else
+            //    result.IsSaved = true;
+
+            //result.Result = savedZomes;
+            //OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = result });
+
+            if (result != null && !result.IsError && result.Result != null)
+                OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = result });
             else
-                result.IsSaved = true;
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat("Error in CelestialBodyCore.SaveZomes method caling base.SaveHolons. Reason: ", result.Message));
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = result, Exception = result.Exception });
+            }
 
-            result.Result = savedZomes;
-            OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = result });
             return result;
         }
 
         public async Task<OASISResult<IEnumerable<T>>> SaveZomesAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IZome, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
-            OASISResult<T> zomeResult = new OASISResult<T>();
-            List<T> savedZomes = new List<T>();
+            //OASISResult<T> zomeResult = new OASISResult<T>();
+            //List<T> savedZomes = new List<T>();
 
             if (this.Zomes != null)
             {
-                foreach (IZome zome in this.Zomes)
-                {
-                    if (zome.HasHolonChanged())
-                    {
-                        zomeResult = await zome.SaveAsync<T>(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                //TODO: Not sure this cast will work? NEED TO TEST ASAP! ;-)
+                result = await base.SaveHolonsAsync<T>((IEnumerable<T>)this.Zomes, true, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
-                        if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
-                        {
-                            result.SavedCount++;
-                            savedZomes.Add(zomeResult.Result);
-                        }
-                        else
-                        {
-                            result.ErrorCount++;
-                            OASISErrorHandling.HandleWarning(ref zomeResult, $"There was an error in the CelestialBodyCore.SaveZomesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {zomeResult.Message}", true, false, false, true, false);
-                            //OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+                //foreach (IZome zome in this.Zomes)
+                //{
+                //    if (zome.HasHolonChanged())
+                //    {
+                //        zomeResult = await zome.SaveAsync<T>(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
-                            if (!continueOnError)
-                                break;
-                        }
-                    }
-                }
+                //        if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
+                //        {
+                //            result.SavedCount++;
+                //            savedZomes.Add(zomeResult.Result);
+                //        }
+                //        else
+                //        {
+                //            result.ErrorCount++;
+                //            OASISErrorHandling.HandleWarning(ref zomeResult, $"There was an error in the CelestialBodyCore.SaveZomesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {zomeResult.Message}", true, false, false, true, false);
+                //            //OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+
+                //            if (!continueOnError)
+                //                break;
+                //        }
+                //    }
+                //}
             }
 
-            if (result.ErrorCount > 0)
-            {
-                string message = $"{result.ErrorCount} Error(s) occured in CelestialBodyCore.SaveZomesAsync method whilst saving {Zomes.Count} Zomes in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+            //if (result.ErrorCount > 0)
+            //{
+            //    string message = $"{result.ErrorCount} Error(s) occured in CelestialBodyCore.SaveZomesAsync method whilst saving {Zomes.Count} Zomes in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
 
-                if (result.SavedCount == 0)
-                    OASISErrorHandling.HandleError(ref result, message);
-                else
-                {
-                    OASISErrorHandling.HandleWarning(ref result, message);
-                    result.IsSaved = true;
-                }
+            //    if (result.SavedCount == 0)
+            //        OASISErrorHandling.HandleError(ref result, message);
+            //    else
+            //    {
+            //        OASISErrorHandling.HandleWarning(ref result, message);
+            //        result.IsSaved = true;
+            //    }
 
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToIZome(result) });
-            }
+            //    OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToIZome(result) });
+            //}
+            //else
+            //    result.IsSaved = true;
+
+            //result.Result = savedZomes;
+            //OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
+            //return result;
+
+            if (result != null && !result.IsError && result.Result != null)
+                OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             else
-                result.IsSaved = true;
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat("Error in CelestialBodyCore.SaveZomesAsync<T> method caling base.SaveHolonsAsync<T>. Reason: ", result.Message));
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
+            }
 
-            result.Result = savedZomes;
-            OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             return result;
-
-            //return OASISResultHelperForHolons<IZome, T>.CopyResult(await SaveZomesAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
         }
 
         public OASISResult<IEnumerable<T>> SaveZomes<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = true, ProviderType providerType = ProviderType.Default) where T : IZome, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
             OASISResult<T> zomeResult = new OASISResult<T>();
-            List<T> savedZomes = new List<T>();
+            //List<T> savedZomes = new List<T>();
 
             if (this.Zomes != null)
             {
-                foreach (IZome zome in this.Zomes)
-                {
-                    if (zome.HasHolonChanged())
-                    {
-                        zomeResult = zome.Save<T>(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                //TODO: Not sure this cast will work? NEED TO TEST ASAP! ;-)
+                result = base.SaveHolons<T>((IEnumerable<T>)this.Zomes, true, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
-                        if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
-                        {
-                            result.SavedCount++;
-                            savedZomes.Add(zomeResult.Result);
-                        }
-                        else
-                        {
-                            result.ErrorCount++;
-                            OASISErrorHandling.HandleWarning(ref zomeResult, $"There was an error in the CelestialBodyCore.SaveZomes method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {zomeResult.Message}", true, false, false, true, false);
-                            //OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+                //foreach (IZome zome in this.Zomes)
+                //{
+                //    if (zome.HasHolonChanged())
+                //    {
+                //        zomeResult = zome.Save<T>(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
-                            if (!continueOnError)
-                                break;
-                        }
-                    }
-                }
+                //        if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
+                //        {
+                //            result.SavedCount++;
+                //            savedZomes.Add(zomeResult.Result);
+                //        }
+                //        else
+                //        {
+                //            result.ErrorCount++;
+                //            OASISErrorHandling.HandleWarning(ref zomeResult, $"There was an error in the CelestialBodyCore.SaveZomes method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {zomeResult.Message}", true, false, false, true, false);
+                //            //OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+
+                //            if (!continueOnError)
+                //                break;
+                //        }
+                //    }
+                //}
             }
 
-            if (result.ErrorCount > 0)
-            {
-                string message = $"{result.ErrorCount} Error(s) occured in CelestialBodyCore.SaveZomes method whilst saving {Zomes.Count} Zomes in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+            //if (result.ErrorCount > 0)
+            //{
+            //    string message = $"{result.ErrorCount} Error(s) occured in CelestialBodyCore.SaveZomes method whilst saving {Zomes.Count} Zomes in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
 
-                if (result.SavedCount == 0)
-                    OASISErrorHandling.HandleError(ref result, message);
-                else
-                {
-                    OASISErrorHandling.HandleWarning(ref result, message);
-                    result.IsSaved = true;
-                }
+            //    if (result.SavedCount == 0)
+            //        OASISErrorHandling.HandleError(ref result, message);
+            //    else
+            //    {
+            //        OASISErrorHandling.HandleWarning(ref result, message);
+            //        result.IsSaved = true;
+            //    }
 
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToIZome(result) });
-            }
+            //    OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToIZome(result) });
+            //}
+            //else
+            //    result.IsSaved = true;
+
+            //result.Result = savedZomes;
+            //OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
+            //return result;
+
+            if (result != null && !result.IsError && result.Result != null)
+                OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             else
-                result.IsSaved = true;
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat("Error in CelestialBodyCore.SaveZomes<T> method caling base.SaveHolons<T>. Reason: ", result.Message));
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
+            }
 
-            result.Result = savedZomes;
-            OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             return result;
-
-            //return OASISResultHelperForHolons<IZome, T>.CopyResult(SaveZomes(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
         }
 
         public async Task<OASISResult<IZome>> AddZomeAsync(IZome zome, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
@@ -388,12 +439,16 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             SetParentsAndAddZome(zome);
             OASISResult<IZome> holonResult = await zome.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+            result = OASISResultHelper.CopyResultToIZome(holonResult);
 
             if (holonResult.IsError)
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in CelestialBodyCore.AddZomeAsync method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", holonResult.Message), Exception = holonResult.Exception });
-
-            result = OASISResultHelper.CopyResultToIZome(holonResult);
-            OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = result });
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat("Error in CelestialBodyCore.AddZomeAsync method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", result.Message));
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = result, Exception = result.Exception });
+            }
+            else
+                OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = result });
+            
             return result;
         }
 
@@ -403,12 +458,16 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             SetParentsAndAddZome(zome);
             OASISResult<IZome> holonResult = zome.Save(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+            result = OASISResultHelper.CopyResultToIZome(holonResult);
 
             if (holonResult.IsError)
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in CelestialBodyCore.AddZome method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", holonResult.Message), Exception = holonResult.Exception });
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat("Error in CelestialBodyCore.AddZome method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", result.Message));
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = result, Exception = result.Exception });
+            }
+            else
+                OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = result });
 
-            result = OASISResultHelper.CopyResultToIZome(holonResult);
-            OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = result });
             return result;
         }
 
@@ -421,12 +480,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             if (result != null && result.IsError)
             {
-                string errorMessage = string.Concat("Error in CelestialBodyCore.AddZomeAsync<T> method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", result.Message);
-                OASISErrorHandling.HandleError(ref result, errorMessage);
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = errorMessage, Exception = result.Exception });
+                OASISErrorHandling.HandleError(ref result, string.Concat("Error in CelestialBodyCore.AddZomeAsync<T> method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", result.Message));
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
             }
+            else
+                OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
 
-            OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             return result;
         }
 
@@ -439,12 +498,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             if (result != null && result.IsError)
             {
-                string errorMessage = string.Concat("Error in CelestialBodyCore.AddZome<T> method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", result.Message);
-                OASISErrorHandling.HandleError(ref result, errorMessage);
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = errorMessage, Exception = result.Exception });
+                OASISErrorHandling.HandleError(ref result, string.Concat("Error in CelestialBodyCore.AddZome<T> method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", result.Message));
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
             }
+            else
+                OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
 
-            OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             return result;
         }
 

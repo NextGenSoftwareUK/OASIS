@@ -108,35 +108,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<ICelestialBody>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
+            //OASISResult<ICelestialBody> result = OASISResultHelper<IZome, ICelestialBody>.CopyResult(await CelestialBodyCore.LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
             OASISResult<ICelestialBody> result = OASISResultHelper.CopyResultToICelestialBody(await CelestialBodyCore.LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
-
-            //if ((result != null && !result.IsError && result.Result != null)
-            //    || ((result == null || result.IsError || result.Result == null) && continueOnError))
-            //{
-            //    if (result != null && !result.IsError && result.Result != null)
-            //        Mapper.MapBaseHolonProperties(result.Result, this);
-            //    else
-            //    {
-            //        // If there was an error then continueOnError must have been set to true.
-            //        OASISErrorHandling.HandleWarning(ref result, $"An errror occured in CelestialBody.LoadAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. ContinueOnError is set to true so continuing to attempt to load the celestial body zomes... Reason: {result.Message}");
-            //        OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-            //    }
-
-            //    //if (loadChildren)
-            //    //{
-            //    //    OASISResult<IEnumerable<IZome>> zomeResult = await LoadZomesAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
-
-            //    //    if (!(zomeResult != null && !zomeResult.IsError && zomeResult.Result != null))
-            //    //    {
-            //    //        if (result.IsWarning)
-            //    //            OASISErrorHandling.HandleError(ref result, $"The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} failed to load and one or more of it's zomes failed to load. Reason: {zomeResult.Message}");
-            //    //        else
-            //    //            OASISErrorHandling.HandleWarning(ref result, $"The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} loaded fine but one or more of it's zomes failed to load. Reason: {zomeResult.Message}");
-
-            //    //        OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Reason = "Error occured in CelestialBody.LoadAsync method. See Result.Message Property For More Info.", Result = result });
-            //    //    }
-            //    //}
-            //}
 
             if (result != null && result.IsError)
             {
