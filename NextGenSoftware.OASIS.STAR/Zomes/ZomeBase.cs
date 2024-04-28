@@ -126,11 +126,11 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             if (holonResult.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling base.LoadAsync. Reason: {holonResult.Message}");
-                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = result });
+                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = result, Reason = result.Message, Exception = result.Exception });
             }
             else
             {
-                result = OASISResultHelper<IHolon, IZome>.CopyResult(holonResult);
+                result = OASISResultHelper.CopyResult<IHolon, IZome>(holonResult);
                 OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = result });
             }
 
@@ -147,11 +147,11 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             if (holonResult.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling base.Load. Reason: {holonResult.Message}");
-                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = result });
+                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = result, Reason = result.Message, Exception = result.Exception });
             }
             else
             {
-                result = OASISResultHelper<IHolon, IZome>.CopyResult(holonResult);
+                result = OASISResultHelper.CopyResult<IHolon, IZome>(holonResult);
                 OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = result });
             }
 
@@ -168,10 +168,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             if (result.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling base.LoadAsync<T>. Reason: {result.Message}");
-                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = OASISResultHelper<T, IZome>.CopyResult(result) });
+                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result), Reason = result.Message, Exception = result.Exception });
             }
             else
-                OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = OASISResultHelper<T, IZome>.CopyResult(result) });
+                OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result) });
 
             return result;
         }
@@ -186,10 +186,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             if (result.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling base.Load<T>. Reason: {result.Message}");
-                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = OASISResultHelper<T, IZome>.CopyResult(result) });
+                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result), Reason = result.Message, Exception = result.Exception });
             }
             else
-                OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = OASISResultHelper<T, IZome>.CopyResult(result) });
+                OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result) });
 
             return result;
         }
@@ -204,11 +204,11 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             if (holonResult.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling base.SaveAsync. Reason: {holonResult.Message}");
-                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = result });
+                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = result, Reason = result.Message, Exception = result.Exception });
             }
             else
             {
-                result = OASISResultHelper<IHolon, IZome>.CopyResult(holonResult);
+                result = OASISResultHelper.CopyResult<IHolon, IZome>(holonResult);
                 OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = result });
             }
 
@@ -225,11 +225,11 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             if (holonResult.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling base.Save. Reason: {holonResult.Message}");
-                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = result });
+                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = result, Reason = result.Message, Exception = result.Exception });
             }
             else
             {
-                result = OASISResultHelper<IHolon, IZome>.CopyResult(holonResult);
+                result = OASISResultHelper.CopyResult<IHolon, IZome>(holonResult);
                 OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = result });
             }
 
@@ -246,10 +246,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             if (result.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling base.SaveAsync<T>. Reason: {result.Message}");
-                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = OASISResultHelper<T, IZome>.CopyResult(result) });
+                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result), Reason = result.Message, Exception = result.Exception });
             }
             else
-                OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = OASISResultHelper<T, IZome>.CopyResult(result) });
+                OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result) });
 
             return result;
         }
@@ -264,10 +264,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             if (result.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling ZomeBase.base.Save<T>. Reason: {result.Message}");
-                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = OASISResultHelper<T, IZome>.CopyResult(result) });
+                OnError.Invoke(this, new ZomeErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result), Reason = result.Message, Exception = result.Exception });
             }
             else
-                OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = OASISResultHelper<T, IZome>.CopyResult(result) });
+                OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result =  OASISResultHelper.CopyResult<T, IZome>(result) });
 
             return result;
         }

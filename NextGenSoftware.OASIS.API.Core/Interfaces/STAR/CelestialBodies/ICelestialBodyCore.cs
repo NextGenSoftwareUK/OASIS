@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Events;
+using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
@@ -11,20 +11,20 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         IEnumerable<IHolon> Holons { get; }
         List<IZome> Zomes { get; set; }
 
-        event EventDelegates.HolonError OnHolonError;
-        event EventDelegates.HolonLoaded OnHolonLoaded;
-        event EventDelegates.HolonSaved OnHolonSaved;
-        event EventDelegates.HolonsError OnHolonsError;
-        event EventDelegates.HolonsLoaded OnHolonsLoaded;
-        event EventDelegates.HolonsSaved OnHolonsSaved;
-        event EventDelegates.ZomeAdded OnZomeAdded;
-        event EventDelegates.ZomeError OnZomeError;
-        event EventDelegates.ZomeLoaded OnZomeLoaded;
-        event EventDelegates.ZomeRemoved OnZomeRemoved;
-        event EventDelegates.ZomeSaved OnZomeSaved;
-        event EventDelegates.ZomesError OnZomesError;
-        event EventDelegates.ZomesLoaded OnZomesLoaded;
-        event EventDelegates.ZomesSaved OnZomesSaved;
+        //public event ZomeLoaded OnZomeLoaded;
+        //public event ZomeSaved OnZomeSaved;
+        public event ZomeAdded OnZomeAdded;
+        public event ZomeRemoved OnZomeRemoved;
+        public event ZomeError OnZomeError;
+        public event ZomesLoaded OnZomesLoaded;
+        public event ZomesSaved OnZomesSaved;
+        public event ZomesError OnZomesError;
+        //public event HolonLoaded OnHolonLoaded;
+        //public event HolonSaved OnHolonSaved;
+        //public event HolonError OnHolonError;
+        //public event HolonsLoaded OnHolonsLoaded;
+        //public event HolonsSaved OnHolonsSaved;
+        //public event HolonsError OnHolonsError;
 
         OASISResult<IZome> AddZome(IZome zome, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default);
         OASISResult<T> AddZome<T>(IZome zome, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IZome, new();
