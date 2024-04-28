@@ -73,10 +73,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0);
         Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0);
         OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0);
-        Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true);
-        OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true);
-        Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true);
-        OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true);
+        Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true);
+        OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true);
+        Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true);
+        OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true);
         
 
         //TODO: Implement these methods ASAP - this is how we can share data across silos, then merge, aggregate, sense-make, perform actions on the full internet data, etc...

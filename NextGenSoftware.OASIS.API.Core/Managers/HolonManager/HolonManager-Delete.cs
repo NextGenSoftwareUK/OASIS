@@ -10,9 +10,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class HolonManager : OASISManager
     {
-        public OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     result = providerResult.Result.DeleteHolon(id, softDelete);
 
-                    if (!result.IsError && result.Result && ProviderManager.Instance.IsAutoReplicationEnabled)
+                    if (!result.IsError && result.Result != null && ProviderManager.Instance.IsAutoReplicationEnabled)
                     {
                         foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                         {
@@ -81,9 +81,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
@@ -98,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     result = await providerResult.Result.DeleteHolonAsync(id, softDelete);
 
-                    if (!result.IsError && result.Result && ProviderManager.Instance.IsAutoReplicationEnabled)
+                    if (!result.IsError && result.Result != null && ProviderManager.Instance.IsAutoReplicationEnabled)
                     {
                         foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                         {
@@ -152,9 +152,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
@@ -169,7 +169,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     result = providerResult.Result.DeleteHolon(providerKey, softDelete);
 
-                    if (!result.IsError && result.Result && ProviderManager.Instance.IsAutoReplicationEnabled)
+                    if (!result.IsError && result.Result != null && ProviderManager.Instance.IsAutoReplicationEnabled)
                     {
                         foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                         {
@@ -223,9 +223,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
@@ -240,7 +240,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     result = await providerResult.Result.DeleteHolonAsync(providerKey, softDelete);
 
-                    if (!result.IsError && result.Result && ProviderManager.Instance.IsAutoReplicationEnabled)
+                    if (!result.IsError && result.Result != null && ProviderManager.Instance.IsAutoReplicationEnabled)
                     {
                         foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProvidersThatAreAutoReplicating())
                         {
