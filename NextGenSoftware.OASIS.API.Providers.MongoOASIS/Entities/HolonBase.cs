@@ -1,14 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
-    public class HolonBase // Equvilant to the HolonBase object in OASIS.API.Core.
+    public class HolonBase : IHolonBase// Equvilant to the HolonBase object in OASIS.API.Core.
     {
         [BsonId]  
         [BsonRepresentation(BsonType.ObjectId)]  
@@ -62,5 +69,147 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 
        // [BsonRepresentation(BsonType.ObjectId)]
         public string DeletedByAvatarId { get; set; }
+        public IEnumerable<IHolon> Children { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public ObservableCollection<IHolon> ChildrenTest { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Core.Holons.Avatar CreatedByAvatar { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Core.Holons.Avatar DeletedByAvatar { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public EnumValue<ProviderType> InstanceSavedOnProviderType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool IsNewHolon { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool IsSaving { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Core.Holons.Avatar ModifiedByAvatar { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public IHolon Original { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public IHolon ParentHolon { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Guid ParentHolonId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Guid VersionId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public GlobalHolonData GlobalHolonData { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        Guid IHolonBase.CreatedByAvatarId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        Guid IHolonBase.DeletedByAvatarId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        Guid IHolonBase.Id { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        Guid IHolonBase.ModifiedByAvatarId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public event EventDelegates.HolonsLoaded OnChildrenLoaded;
+        public event EventDelegates.HolonsError OnChildrenLoadError;
+        public event EventDelegates.HolonDeleted OnDeleted;
+        public event EventDelegates.HolonError OnError;
+        public event EventDelegates.HolonAdded OnHolonAdded;
+        public event EventDelegates.HolonLoaded OnHolonLoaded;
+        public event EventDelegates.HolonRemoved OnHolonRemoved;
+        public event EventDelegates.HolonSaved OnHolonSaved;
+        public event EventDelegates.HolonsLoaded OnHolonsLoaded;
+        public event EventDelegates.HolonsSaved OnHolonsSaved;
+        public event EventDelegates.Initialized OnInitialized;
+        public event EventDelegates.HolonLoaded OnLoaded;
+        public event EventDelegates.HolonSaved OnSaved;
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public OASISResult<IHolon> AddHolon(IHolon holon, Guid avatarId, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<T> AddHolon<T>(T holon, Guid avatarId, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IHolon>> AddHolonAsync(IHolon holon, Guid avatarId, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<T>> AddHolonAsync<T>(T holon, Guid avatarId, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IHolon> Delete(bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IHolon>> DeleteAsync(bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasHolonChanged(bool checkChildren = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IHolon> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<T> Load<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IHolon>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<T>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IEnumerable<IHolon>> LoadChildHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IEnumerable<T>> LoadChildHolons<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon, new()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IEnumerable<IHolon>>> LoadChildHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IEnumerable<T>>> LoadChildHolonsAsync<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon, new()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void NotifyPropertyChanged(string propertyName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IHolon> RemoveHolon(IHolon holon, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IHolon>> RemoveHolonAsync(IHolon holon, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IHolon> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<T> Save<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IHolon>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<T>> SaveAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

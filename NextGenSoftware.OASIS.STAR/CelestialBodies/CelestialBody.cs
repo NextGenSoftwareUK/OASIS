@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             Initialize();
         }
 
-        public async Task<OASISResult<ICelestialBody>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public new async Task<OASISResult<ICelestialBody>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ICelestialBody> result = OASISResultHelper.CopyResult<IZome, ICelestialBody>(await CelestialBodyCore.LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
 
@@ -120,7 +120,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         }
 
         //TODO: Try to remove this method if possible and only use the new generic method.
-        public OASISResult<ICelestialBody> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public new OASISResult<ICelestialBody> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ICelestialBody> result = OASISResultHelper.CopyResult<IZome, ICelestialBody>(CelestialBodyCore.Load(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
 
