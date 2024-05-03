@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
         public static OASISResult<IEnumerable<IAvatar>> ConvertMongoEntitysToOASISAvatars(OASISResult<IEnumerable<Avatar>> avatars)
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
-            OASISResultHelper<IEnumerable<Avatar>, IEnumerable<IAvatar>>.CopyResult(avatars, result);
+            OASISResultHelper.CopyResult < IEnumerable<Avatar>, IEnumerable<IAvatar>>(avatars, result);
 
             if (!avatars.IsError && avatars.Result != null)
                 result.Result = ConvertMongoEntitysToOASISAvatars(avatars.Result);
@@ -79,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
         public static OASISResult<IAvatar> ConvertMongoEntityToOASISAvatar(OASISResult<Avatar> avatarResult)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            OASISResultHelper<Avatar, IAvatar>.CopyResult(avatarResult, result);
+            OASISResultHelper.CopyResult<Avatar, IAvatar>(avatarResult, result);
 
             if (avatarResult.IsError || avatarResult.Result == null)
                 return result;

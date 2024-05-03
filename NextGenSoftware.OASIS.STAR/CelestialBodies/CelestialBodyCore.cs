@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             try
             {
-                OASISResult<IEnumerable<IHolon>> holonResult = await base.LoadHolonsForParentAsync(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+                OASISResult<IEnumerable<IHolon>> holonResult = await GlobalHolonData.LoadHolonsForParentAsync(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
                 OASISResultHelper.CopyResult(holonResult, result);
 
                 if (holonResult.Result != null && !holonResult.IsError)
@@ -107,7 +107,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             try
             {
-                OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+                OASISResult<IEnumerable<IHolon>> holonResult = GlobalHolonData.LoadHolonsForParent(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
                 OASISResultHelper.CopyResult(holonResult, result);
 
                 if (holonResult.Result != null && !holonResult.IsError)
@@ -137,7 +137,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             try
             {
-                result = await base.LoadHolonsForParentAsync<T>(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+                result = await GlobalHolonData.LoadHolonsForParentAsync<T>(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
 
                 if (result.Result != null && !result.IsError)
                 {
@@ -169,7 +169,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             try
             {
-                result = base.LoadHolonsForParent<T>(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+                result = GlobalHolonData.LoadHolonsForParent<T>(AvatarManager.LoggedInAvatar.Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
 
                 if (result.Result != null && !result.IsError)
                 {
@@ -273,7 +273,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             {
                 if (this.Zomes != null)
                 {
-                    OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                    OASISResult<IEnumerable<IHolon>> holonsResult = await GlobalHolonData.SaveHolonsAsync(this.Zomes, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                     result = OASISResultHelper.CopyResult<IHolon, IZome>(holonsResult);
                 }
 
@@ -303,7 +303,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             {
                 if (this.Zomes != null)
                 {
-                    OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                    OASISResult<IEnumerable<IHolon>> holonsResult = GlobalHolonData.SaveHolons(this.Zomes, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                     result = OASISResultHelper.CopyResult<IHolon, IZome>(holonsResult);
                 }
 
@@ -332,7 +332,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             try
             {
                 if (this.Zomes != null)
-                    result = await base.SaveHolonsAsync<T>((IEnumerable<T>)this.Zomes, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                    result = await GlobalHolonData.SaveHolonsAsync<T>((IEnumerable<T>)this.Zomes, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                 if (result != null && !result.IsError && result.Result != null)
                     OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result) });
@@ -359,7 +359,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             try
             {
                 if (this.Zomes != null)
-                    result = base.SaveHolons<T>((IEnumerable<T>)this.Zomes, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                    result = GlobalHolonData.SaveHolons<T>((IEnumerable<T>)this.Zomes, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                 if (result != null && !result.IsError && result.Result != null)
                     OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result) });
