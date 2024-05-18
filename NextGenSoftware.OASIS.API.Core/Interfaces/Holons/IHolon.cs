@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -47,8 +46,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
         
-        IEnumerable<IHolon> Children { get; set; }
-        ObservableCollection<IHolon> ChildrenTest { get; set; }
+        //IEnumerable<IHolon> Children { get; set; }
+        //ObservableCollection<IHolon> ChildrenTest { get; set; }
         //Guid CreatedByAvatarId { get; set; }
         //Avatar CreatedByAvatar { get; set; }
         //DateTime CreatedDate { get; set; }

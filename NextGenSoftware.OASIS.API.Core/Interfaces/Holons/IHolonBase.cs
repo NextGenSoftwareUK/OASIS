@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
@@ -13,8 +12,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IHolonBase
     {
+        //IEnumerable<IHolon> Children { get; set; }
         IEnumerable<IHolon> Children { get; set; }
-        ObservableCollection<IHolon> ChildrenTest { get; set; }
+        //ObservableCollection<IHolon> ChildrenTest { get; set; }
         Avatar CreatedByAvatar { get; set; }
         Guid CreatedByAvatarId { get; set; }
         DateTime CreatedDate { get; set; }

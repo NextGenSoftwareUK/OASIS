@@ -1,37 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.Common;
+using System.Collections.ObjectModel;
+using NextGenSoftware.OASIS.STAR.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Events;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
-using NextGenSoftware.OASIS.STAR.Holons;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
-using Tmds.Linux;
-using System.Collections;
-using NextGenSoftware.OASIS.STAR.Objects;
-using System.Linq;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
     public abstract class CelestialSpace : CelestialHolon, ICelestialSpace
     {
+        private List<IHolon> _children = new List<IHolon>();
+        private List<ICelestialSpace> _celestialSpaces = new List<ICelestialSpace>();
+        private List<ICelestialBody> _celestialBodies = new List<ICelestialBody>();
         public event CelestialSpaceLoaded OnCelestialSpaceLoaded;
         public event CelestialSpaceSaved OnCelestialSpaceSaved;
+        public event CelestialSpaceAdded OnCelestialSpaceAdded;
+        public event CelestialSpaceRemoved OnCelestialSpaceRemoved;
         public event CelestialSpaceError OnCelestialSpaceError;
         public event CelestialSpacesLoaded OnCelestialSpacesLoaded;
         public event CelestialSpacesSaved OnCelestialSpacesSaved;
         public event CelestialSpacesError OnCelestialSpacesError;
         public event CelestialBodyLoaded OnCelestialBodyLoaded;
         public event CelestialBodySaved OnCelestialBodySaved;
+        public event CelestialBodyAdded OnCelestialBodyAdded;
+        public event CelestialBodyRemoved OnCelestialBodyRemoved;
         public event CelestialBodyError OnCelestialBodyError;
         public event CelestialBodiesLoaded OnCelestialBodiesLoaded;
         public event CelestialBodiesSaved OnCelestialBodiesSaved;
         public event CelestialBodiesError OnCelestialBodiesError;
+
         public event ZomeLoaded OnZomeLoaded;
         public event ZomeSaved OnZomeSaved;
         public event ZomeError OnZomeError;
@@ -46,8 +50,35 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         public event HolonsError OnHolonsError;
 
         public IStar NearestStar { get; set; }
-        public List<ICelestialSpace> CelestialSpaces = new List<ICelestialSpace>();
-        public List<ICelestialBody> CelestialBodies = new List<ICelestialBody>();
+
+        public ReadOnlyCollection<ICelestialSpace> CelestialSpaces
+        {
+            get
+            {
+                return _celestialSpaces.AsReadOnly();
+            }
+        }
+
+        public ReadOnlyCollection<ICelestialBody> CelestialBodies
+        {
+            get
+            {
+                return _celestialBodies.AsReadOnly();
+            }
+        }
+
+        public new ReadOnlyCollection<IHolon> Children
+        {
+            get
+            {
+                return _children.AsReadOnly();
+            }
+
+            //protected set
+            //{
+            //    _children = value.ToList();
+            //}
+        }
 
         public CelestialSpace(HolonType holonType) : base(holonType)
         {
@@ -172,7 +203,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                     }
                 }
             }*/
-            
+
             return result;
         }
 
@@ -200,7 +231,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        
+
         public async Task<OASISResult<IEnumerable<ICelestialBody>>> LoadCelestialBodiesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<ICelestialBody>> result = new OASISResult<IEnumerable<ICelestialBody>>();
@@ -264,7 +295,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             result = HandleLoadCelestialSpaces(result, star.CelestialBodyCore.GlobalHolonData.LoadHolonsForParent(this.Id, HolonType.All, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType), "LoadCelestialSpaces<T>");
             return result;
         }
-        
+
 
         public async Task<OASISResult<ICelestialBodiesAndSpaces>> LoadCelestialBodiesAndSpacesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
@@ -282,18 +313,18 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public async Task<OASISResult<ICelestialBodiesAndSpaces<T1, T2>>> LoadCelestialBodiesAndSpacesAsync<T1, T2>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T1 : ICelestialBody, new() where T2: ICelestialSpace, new()
+        public async Task<OASISResult<ICelestialBodiesAndSpaces<T1, T2>>> LoadCelestialBodiesAndSpacesAsync<T1, T2>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T1 : ICelestialBody, new() where T2 : ICelestialSpace, new()
         {
             OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result = new OASISResult<ICelestialBodiesAndSpaces<T1, T2>>();
-            IStar star = GetCelestialSpaceNearestStar(result, $"Error occured in CelestialSpace.LoadCelestialBodiesAndSpacesAsync<T> method loading the celestial bodies and spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}.");
+            IStar star = GetCelestialSpaceNearestStar(result, $"Error occured in CelestialSpace.LoadCelestialBodiesAndSpacesAsync<T1, T2> method loading the celestial bodies and spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}.");
             result = HandleLoadCelestialBodiesAndSpaces(result, await star.CelestialBodyCore.GlobalHolonData.LoadHolonsForParentAsync(this.Id, HolonType.All, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType), "LoadCelestialBodiesAndSpacesAsync<T>");
             return result;
         }
 
-        public OASISResult<IEnumerable<T>> LoadCelestialBodiesAndSpaces<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : ICelestialSpace, new()
+        public OASISResult<ICelestialBodiesAndSpaces<T1, T2>> LoadCelestialBodiesAndSpaces<T1, T2>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T1 : ICelestialBody, new() where T2 : ICelestialSpace, new()
         {
-            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
-            IStar star = GetCelestialSpaceNearestStar(result, $"Error occured in CelestialSpace.LoadCelestialBodiesAndSpaces<T> method loading the celestial bodies and spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}.");
+            OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result = new OASISResult<ICelestialBodiesAndSpaces<T1, T2>>();
+            IStar star = GetCelestialSpaceNearestStar(result, $"Error occured in CelestialSpace.LoadCelestialBodiesAndSpaces<T1, T2> method loading the celestial bodies and spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}.");
             result = HandleLoadCelestialBodiesAndSpaces(result, star.CelestialBodyCore.GlobalHolonData.LoadHolonsForParent(this.Id, HolonType.All, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType), "LoadCelestialBodiesAndSpaces<T>");
             return result;
         }
@@ -438,7 +469,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 //TODO: We could of course just save using the one line below instead of the 2 lines above but then it would break the STAR NET design of the stars being responsible for loading/saving the celestialspace/celestial bodies in its orbit.
                 //HandleSaveCelestialSpace(result, await base.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveAsync");
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling star.CelestialBodyCore.GlobalHolonData.SaveHolonAsync: {ex}", ex);
                 OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = result, Exception = result.Exception });
@@ -447,7 +478,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public new virtual async Task<OASISResult<ICelestialSpace>> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        public new virtual OASISResult<ICelestialSpace> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
             string errorMessage = $"Error occured in CelestialSpace.Save saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
@@ -616,260 +647,536 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         }
         */
 
-        public async Task<OASISResult<IEnumerable<ICelestialBody>>> SaveCelestialBodiesAndSpacesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<ICelestialBodiesAndSpaces>> SaveCelestialBodiesAndSpacesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<ICelestialBody>> result = new OASISResult<IEnumerable<ICelestialBody>>(this.CelestialBodies);
-            string errorMessage = $"Error occured in CelestialSpace.SaveCelestialBodiesAndSpacesAsync saving the celestial bodies for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+            OASISResult<ICelestialBodiesAndSpaces> result = new OASISResult<ICelestialBodiesAndSpaces>();
+            string errorMessage = $"Error occured in CelestialSpace.SaveCelestialBodiesAndSpacesAsync saving the celestial bodies and spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
 
             try
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialBodiesAndSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(this.Children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpacesAsync");
+                HandleSaveCelestialBodiesAndSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpacesAsync");
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync: {ex}", ex);
-                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = result, Exception = result.Exception });
+                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces, ICelestialSpace>(result), Exception = result.Exception });
             }
 
             IsSaving = false;
             return result;
         }
 
-        public OASISResult<IEnumerable<ICelestialBody>> SaveCelestialBodies(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        public OASISResult<ICelestialBodiesAndSpaces> SaveCelestialBodiesAndSpaces(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            return SaveCelestialBodiesAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType).Result;
-        }
+            OASISResult<ICelestialBodiesAndSpaces> result = new OASISResult<ICelestialBodiesAndSpaces>();
+            string errorMessage = $"Error occured in CelestialSpace.SaveCelestialBodiesAndSpacesAsync saving the celestial bodies and spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
 
-        public async Task<OASISResult<IEnumerable<T>>> SaveCelestialBodiesAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
-        {
-            return OASISResultHelperForHolons<ICelestialBody, T>.CopyResult(await SaveCelestialBodiesAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
-        }
-
-        public OASISResult<IEnumerable<T>> SaveCelestialBodies<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
-        {
-            return OASISResultHelperForHolons<ICelestialBody, T>.CopyResult(SaveCelestialBodies(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
-        }
-
-        public async Task<OASISResult<IEnumerable<ICelestialSpace>>> SaveCelestialSpacesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<ICelestialSpace>> result = new OASISResult<IEnumerable<ICelestialSpace>>(this.CelestialSpaces);
-            OASISResult<ICelestialSpace> celestialSpaceResult = null;
-            IsSaving = true;
-
-            //Save all CelestialSpaces contained within this space.
-            foreach (ICelestialSpace celestialSpace in CelestialSpaces)
+            try
             {
-                if (!celestialSpace.IsSaving)
-                {
-                    celestialSpaceResult = await celestialSpace.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType);
-
-                    if (celestialSpaceResult != null && celestialSpaceResult.Result != null && !celestialSpaceResult.IsError)
-                        result.SavedCount++;
-                    else
-                    {
-                        //result.ErrorCount++;
-                        //OASISErrorHandling.HandleWarning(ref celestialSpaceResult, $"Error occured in CelestialSpace.SaveCelestialSpacesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialSpace, "CelestialSpace")}. Reason: {celestialSpaceResult.Message}", true, false, false, true, false);
-                        OASISErrorHandling.HandleWarning(ref celestialSpaceResult, $"Error occured in CelestialSpace.SaveCelestialSpacesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialSpace, "CelestialSpace")}. Reason: {celestialSpaceResult.Message}");
-
-                        //TODO: Think better to just raise one error (below) rather than lots for every item?
-                        //OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-
-                        if (!continueOnError)
-                            break;
-                    }
-                }
+                IsSaving = true;
+                IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                HandleSaveCelestialBodiesAndSpaces(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpaces");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync: {ex}", ex);
+                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces, ICelestialSpace>(result), Exception = result.Exception });
             }
 
-            //if (result.ErrorCount > 0)
-            if (result.WarningCount > 0)
-            {
-                //string message = $"{result.ErrorCount} Error(s) occured in CelestialSpace.SaveCelestialSpacesAsync method saving {CelestialSpaces.Count} CelestialSpaces in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. {result.SavedCount} CelestialSpaces saved successfully. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
-                string message = $"{result.WarningCount} Error(s) occured in CelestialSpace.SaveCelestialSpacesAsync method saving {CelestialSpaces.Count} CelestialSpaces in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. {result.SavedCount} CelestialSpaces saved successfully. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
-
-                if (result.SavedCount == 0)
-                    OASISErrorHandling.HandleError(ref result, message);
-                else
-                {
-                    OASISErrorHandling.HandleWarning(ref result, message);
-                    result.IsSaved = true;
-                }
-
-                OnCelestialSpacesError?.Invoke(this, new CelestialSpacesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-            }
-            else
-                result.IsSaved = true;
-
-            OnCelestialSpacesSaved?.Invoke(this, new CelestialSpacesSavedEventArgs() { Result = result });
             IsSaving = false;
             return result;
         }
 
-        public OASISResult<IEnumerable<ICelestialSpace>> SaveCelestialSpaces(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<ICelestialBodiesAndSpaces<T1, T2>>> SaveCelestialBodiesAndSpacesAsync<T1, T2>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T1 : ICelestialBody, new() where T2 : ICelestialSpace, new()
         {
-            return SaveCelestialSpacesAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType).Result;
+            OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result = new OASISResult<ICelestialBodiesAndSpaces<T1, T2>>();
+            string errorMessage = $"Error occured in CelestialSpace.SaveCelestialBodiesAndSpacesAsync<T1, T2> saving the celestial bodies and spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                IsSaving = true;
+                IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                HandleSaveCelestialBodiesAndSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpacesAsync<T1, T2>");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync: {ex}", ex);
+                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces<T1, T2>, ICelestialSpace>(result), Exception = result.Exception });
+            }
+
+            IsSaving = false;
+            return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T>>> SaveCelestialSpacesAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : ICelestialSpace, new()
+        public OASISResult<ICelestialBodiesAndSpaces<T1, T2>> SaveCelestialBodiesAndSpaces<T1, T2>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T1 : ICelestialBody, new() where T2 : ICelestialSpace, new()
         {
-            return OASISResultHelperForHolons<ICelestialSpace, T>.CopyResult(await SaveCelestialSpacesAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result = new OASISResult<ICelestialBodiesAndSpaces<T1, T2>>();
+            string errorMessage = $"Error occured in CelestialSpace.SaveCelestialBodiesAndSpaces<T1, T2> saving the celestial bodies and spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                IsSaving = true;
+                IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                HandleSaveCelestialBodiesAndSpaces(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpaces<T1, T2>");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync: {ex}", ex);
+                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces<T1, T2>, ICelestialSpace>(result), Exception = result.Exception });
+            }
+
+            IsSaving = false;
+            return result;
         }
 
-        public OASISResult<IEnumerable<T>> SaveCelestialSpaces<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : ICelestialSpace, new()
-        {
-            return OASISResultHelperForHolons<ICelestialSpace, T>.CopyResult(SaveCelestialSpaces(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
-        }
-
-        /*
         public async Task<OASISResult<IEnumerable<ICelestialBody>>> SaveCelestialBodiesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<ICelestialBody>> result = new OASISResult<IEnumerable<ICelestialBody>>(this.CelestialBodies);
-            IsSaving = true;
-            OASISResult<ICelestialBody> celestialBodyResult = null;
+            OASISResult<IEnumerable<ICelestialBody>> result = new OASISResult<IEnumerable<ICelestialBody>>();
+            string errorMessage = $"Error occured in CelestialSpace.SaveCelestialBodiesAsync saving the celestial bodies for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
 
-            //Save all CelestialBodies contained within this space.
-            foreach (ICelestialBody celestialBody in CelestialBodies)
+            try
             {
-                if (!celestialBody.IsSaving)
-                {
-                    celestialBodyResult = await celestialBody.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType);
-
-                    if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
-                        result.SavedCount++;
-                    else
-                    {
-                        //result.ErrorCount++;
-                        //OASISErrorHandling.HandleWarning(ref celestialBodyResult, $"Error occured in CelestialSpace.SaveCelestialBodiesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")}. Reason: {celestialBodyResult.Message}", true, false, false, true, false);
-                        OASISErrorHandling.HandleWarning(ref celestialBodyResult, $"Error occured in CelestialSpace.SaveCelestialBodiesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")}. Reason: {celestialBodyResult.Message}");
-
-
-                        //TODO: Think better to just raise one error (below) rather than lots for every item?
-                        //OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-
-                        if (!continueOnError)
-                            break;
-                    }
-                }
+                IsSaving = true;
+                IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                HandleSaveCelestialBodies(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_celestialBodies, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAsync");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync: {ex}", ex);
+                OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = result, Exception = result.Exception });
             }
 
-            //if (result.ErrorCount > 0)
-            if (result.WarningCount > 0)
-            {
-                //string message = $"{result.ErrorCount} Error(s) occured in CelestialSpace.SaveCelestialBodiesAsync method saving {CelestialBodies.Count} CelestialBodies in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
-                string message = $"{result.WarningCount} Error(s) occured in CelestialSpace.SaveCelestialBodiesAsync method saving {CelestialBodies.Count} CelestialBodies in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. {result.SavedCount} CelestialBodies saved successfully. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
-
-                if (result.SavedCount == 0)
-                    OASISErrorHandling.HandleError(ref result, message);
-                else
-                {
-                    OASISErrorHandling.HandleWarning(ref result, message);
-                    result.IsSaved = true;
-                }
-
-                OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-            }
-            else
-                result.IsSaved = true;
-
-            OnCelestialBodiesSaved?.Invoke(this, new CelestialBodiesSavedEventArgs() { Result = result });
             IsSaving = false;
             return result;
         }
 
         public OASISResult<IEnumerable<ICelestialBody>> SaveCelestialBodies(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            return SaveCelestialBodiesAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType).Result;
+            OASISResult<IEnumerable<ICelestialBody>> result = new OASISResult<IEnumerable<ICelestialBody>>();
+            string errorMessage = $"Error occured in CelestialSpace.SaveCelestialBodies saving the celestial bodies for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                IsSaving = true;
+                IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                HandleSaveCelestialBodies(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_celestialBodies, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodies");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync: {ex}", ex);
+                OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = result, Exception = result.Exception });
+            }
+
+            IsSaving = false;
+            return result;
         }
 
         public async Task<OASISResult<IEnumerable<T>>> SaveCelestialBodiesAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
         {
-            return OASISResultHelperForHolons<ICelestialBody, T>.CopyResult(await SaveCelestialBodiesAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            string errorMessage = $"Error occured in CelestialSpace.SaveCelestialBodiesAsync<T> saving the celestial bodies for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                IsSaving = true;
+                IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                HandleSaveCelestialBodies(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync<T>(Mapper.Convert<ICelestialBody, T>(_celestialBodies), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAsync<T>");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync: {ex}", ex);
+                OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResult<T, ICelestialBody>(result), Exception = result.Exception });
+            }
+
+            IsSaving = false;
+            return result;
         }
 
-        public OASISResult<IEnumerable<T>> SaveCelestialBodies<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
+        public async Task<OASISResult<IEnumerable<T>>> SaveCelestialBodies<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
         {
-            return OASISResultHelperForHolons<ICelestialBody, T>.CopyResult(SaveCelestialBodies(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            string errorMessage = $"Error occured in CelestialSpace.SaveCelestialBodies<T> saving the celestial bodies for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                IsSaving = true;
+                IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                HandleSaveCelestialBodies(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync<T>(Mapper.Convert<ICelestialBody, T>(_celestialBodies), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAsync<T>");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync: {ex}", ex);
+                OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResult<T, ICelestialBody>(result), Exception = result.Exception });
+            }
+
+            IsSaving = false;
+            return result;
         }
 
         public async Task<OASISResult<IEnumerable<ICelestialSpace>>> SaveCelestialSpacesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<ICelestialSpace>> result = new OASISResult<IEnumerable<ICelestialSpace>>(this.CelestialSpaces);
-            OASISResult<ICelestialSpace> celestialSpaceResult = null;
-            IsSaving = true;
+            OASISResult<IEnumerable<ICelestialSpace>> result = new OASISResult<IEnumerable<ICelestialSpace>>();
+            string errorMessage = $"Error occured in CelestialSpace.SaveCelestialSpacesAsync saving the celestial spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
 
-            //Save all CelestialSpaces contained within this space.
-            foreach (ICelestialSpace celestialSpace in CelestialSpaces)
+            try
             {
-                if (!celestialSpace.IsSaving)
-                {
-                    celestialSpaceResult = await celestialSpace.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType);
-
-                    if (celestialSpaceResult != null && celestialSpaceResult.Result != null && !celestialSpaceResult.IsError)
-                        result.SavedCount++;
-                    else
-                    {
-                        //result.ErrorCount++;
-                        //OASISErrorHandling.HandleWarning(ref celestialSpaceResult, $"Error occured in CelestialSpace.SaveCelestialSpacesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialSpace, "CelestialSpace")}. Reason: {celestialSpaceResult.Message}", true, false, false, true, false);
-                        OASISErrorHandling.HandleWarning(ref celestialSpaceResult, $"Error occured in CelestialSpace.SaveCelestialSpacesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialSpace, "CelestialSpace")}. Reason: {celestialSpaceResult.Message}");
-
-                        //TODO: Think better to just raise one error (below) rather than lots for every item?
-                        //OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-
-                        if (!continueOnError)
-                            break;
-                    }
-                }
+                IsSaving = true;
+                IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                HandleSaveCelestialSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_celestialSpaces, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialSpacesAsync");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync: {ex}", ex);
+                OnCelestialSpacesError?.Invoke(this, new CelestialSpacesErrorEventArgs() { Reason = $"{result.Message}", Result = result, Exception = result.Exception });
             }
 
-            //if (result.ErrorCount > 0)
-            if (result.WarningCount > 0)
-            {
-                //string message = $"{result.ErrorCount} Error(s) occured in CelestialSpace.SaveCelestialSpacesAsync method saving {CelestialSpaces.Count} CelestialSpaces in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. {result.SavedCount} CelestialSpaces saved successfully. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
-                string message = $"{result.WarningCount} Error(s) occured in CelestialSpace.SaveCelestialSpacesAsync method saving {CelestialSpaces.Count} CelestialSpaces in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. {result.SavedCount} CelestialSpaces saved successfully. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
-
-                if (result.SavedCount == 0)
-                    OASISErrorHandling.HandleError(ref result, message);
-                else
-                {
-                    OASISErrorHandling.HandleWarning(ref result, message);
-                    result.IsSaved = true;
-                }
-
-                OnCelestialSpacesError?.Invoke(this, new CelestialSpacesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-            }
-            else
-                result.IsSaved = true;
-
-            OnCelestialSpacesSaved?.Invoke(this, new CelestialSpacesSavedEventArgs() { Result = result });
             IsSaving = false;
             return result;
         }
 
         public OASISResult<IEnumerable<ICelestialSpace>> SaveCelestialSpaces(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            return SaveCelestialSpacesAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType).Result;
+            OASISResult<IEnumerable<ICelestialSpace>> result = new OASISResult<IEnumerable<ICelestialSpace>>();
+            string errorMessage = $"Error occured in CelestialSpace.SaveCelestialSpaces saving the celestial spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                IsSaving = true;
+                IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                HandleSaveCelestialSpaces(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_celestialSpaces, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialSpaces");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync: {ex}", ex);
+                OnCelestialSpacesError?.Invoke(this, new CelestialSpacesErrorEventArgs() { Reason = $"{result.Message}", Result = result, Exception = result.Exception });
+            }
+
+            IsSaving = false;
+            return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T>>> SaveCelestialSpacesAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : ICelestialSpace, new()
+        public async Task<OASISResult<IEnumerable<T>>> SaveCelestialSpacesAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
         {
-            return OASISResultHelperForHolons<ICelestialSpace, T>.CopyResult(await SaveCelestialSpacesAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            string errorMessage = $"Error occured in CelestialSpace.SaveCelestialSpacesAsync<T> saving the celestial Spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                IsSaving = true;
+                IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                HandleSaveCelestialSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync<T>(Mapper.Convert<ICelestialSpace, T>(_celestialSpaces), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialSpacesAsync<T>");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync: {ex}", ex);
+                OnCelestialSpacesError?.Invoke(this, new CelestialSpacesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResult<T, ICelestialSpace>(result), Exception = result.Exception });
+            }
+
+            IsSaving = false;
+            return result;
         }
 
-        public OASISResult<IEnumerable<T>> SaveCelestialSpaces<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : ICelestialSpace, new()
+        public async Task<OASISResult<IEnumerable<T>>> SaveCelestialSpaces<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
         {
-            return OASISResultHelperForHolons<ICelestialSpace, T>.CopyResult(SaveCelestialSpaces(saveChildren, recursive, maxChildDepth, continueOnError, providerType));
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            string errorMessage = $"Error occured in CelestialSpace.SaveCelestialSpaces<T> saving the celestial Spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                IsSaving = true;
+                IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                HandleSaveCelestialSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync<T>(Mapper.Convert<ICelestialSpace, T>(_celestialSpaces), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialSpacesAsync<T>");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync: {ex}", ex);
+                OnCelestialSpacesError?.Invoke(this, new CelestialSpacesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResult<T, ICelestialSpace>(result), Exception = result.Exception });
+            }
+
+            IsSaving = false;
+            return result;
         }
-        */
+
+        public OASISResult<ICelestialBody> AddCelestialBody(ICelestialBody celestialBody, bool saveCelestialBody = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            string errorMessage = $"An error occured in CelestialSpace.AddCelestialBody adding the celestial body {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")} to the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                if (saveCelestialBody)
+                    result = celestialBody.Save(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+
+                if ((saveCelestialBody && result != null && !result.IsError) || !saveCelestialBody)
+                {
+                    _celestialBodies.Add(celestialBody);
+                    _children.Add(celestialBody);
+
+                    OnCelestialBodyAdded?.Invoke(this, new CelestialBodyAddedEventArgs() { Result = new OASISResult<ICelestialBody>(celestialBody) });
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from celestialBody.Save method: {result.Message}");
+                    OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result, Reason = result.Message, Exception = result.Exception });
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
+                OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result, Reason = result.Message, Exception = ex });
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<ICelestialBody>> AddCelestialBodyAsync(ICelestialBody celestialBody, bool saveCelestialBody = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            string errorMessage = $"An error occured in CelestialSpace.AddCelestialBodyAsync adding the celestial body {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")} to the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                if (saveCelestialBody)
+                    result = await celestialBody.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+
+                if ((saveCelestialBody && result != null && !result.IsError) || !saveCelestialBody)
+                {
+                    _celestialBodies.Add(celestialBody);
+                    _children.Add(celestialBody);
+
+                    OnCelestialBodyAdded?.Invoke(this, new CelestialBodyAddedEventArgs() { Result = new OASISResult<ICelestialBody>(celestialBody) });
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from celestialBody.SaveAsync method: {result.Message}");
+                    OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result, Reason = result.Message, Exception = result.Exception });
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
+                OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result, Reason = result.Message, Exception = ex });
+            }
+
+            return result;
+        }
+
+        public OASISResult<ICelestialBody> RemoveCelestialBody(ICelestialBody celestialBody, bool deleteCelestialBody = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<IHolon> holonResult = null;
+            string errorMessage = $"An error occured in CelestialSpace.RemoveCelestialBody removing the celestial body {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")} from the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                if (deleteCelestialBody)
+                    holonResult = celestialBody.Delete(softDelete, providerType);
+
+                if ((deleteCelestialBody && holonResult != null && !holonResult.IsError) || !deleteCelestialBody)
+                {
+                    _celestialBodies.Remove(celestialBody);
+                    _children.Remove(celestialBody);
+
+                    OnCelestialBodyRemoved?.Invoke(this, new CelestialBodyRemovedEventArgs() { Result = new OASISResult<ICelestialBody>(celestialBody) });
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from celestialBody.Delete method: {holonResult.Message}");
+                    OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result, Reason = result.Message, Exception = result.Exception });
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
+                OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result, Reason = result.Message, Exception = ex });
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<ICelestialBody>> RemoveCelestialBodyAsync(ICelestialBody celestialBody, bool deleteCelestialBody = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<IHolon> holonResult = null;
+            string errorMessage = $"An error occured in CelestialSpace.RemoveCelestialBodyAsync removing the celestial body {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")} from the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                if (deleteCelestialBody)
+                    holonResult = await celestialBody.DeleteAsync(softDelete, providerType);
+
+                if ((deleteCelestialBody && holonResult != null && !holonResult.IsError) || !deleteCelestialBody)
+                {
+                    _celestialBodies.Remove(celestialBody);
+                    _children.Remove(celestialBody);
+
+                    OnCelestialBodyRemoved?.Invoke(this, new CelestialBodyRemovedEventArgs() { Result = new OASISResult<ICelestialBody>(celestialBody) });
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from celestialBody.DeleteAsync method: {holonResult.Message}");
+                    OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result, Reason = result.Message, Exception = result.Exception });
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
+                OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result, Reason = result.Message, Exception = ex });
+            }
+
+            return result;
+        }
+
+        public OASISResult<ICelestialSpace> AddCelestialSpace(ICelestialSpace celestialSpace, bool saveCelestialSpace = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
+            string errorMessage = $"An error occured in CelestialSpace.AddCelestialSpace adding the celestial space {LoggingHelper.GetHolonInfoForLogging(celestialSpace, "CelestialSpace")} to the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                if (saveCelestialSpace)
+                    result = celestialSpace.Save(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+
+                if ((saveCelestialSpace && result != null && !result.IsError) || !saveCelestialSpace)
+                {
+                    _celestialSpaces.Remove(celestialSpace);
+                    _children.Remove(celestialSpace);
+
+                    OnCelestialSpaceAdded?.Invoke(this, new CelestialSpaceAddedEventArgs() { Result = new OASISResult<ICelestialSpace>(celestialSpace) });
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from celestialSpace.Save method: {result.Message}");
+                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Result = result, Reason = result.Message, Exception = result.Exception });
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
+                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Result = result, Reason = result.Message, Exception = ex });
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<ICelestialSpace>> AddCelestialSpaceAsync(ICelestialSpace celestialSpace, bool saveCelestialSpace = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
+            string errorMessage = $"An error occured in CelestialSpace.AddCelestialSpaceAsync adding the celestial space {LoggingHelper.GetHolonInfoForLogging(celestialSpace, "CelestialSpace")} to the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                if (saveCelestialSpace)
+                    result = await celestialSpace.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+
+                if ((saveCelestialSpace && result != null && !result.IsError) || !saveCelestialSpace)
+                {
+                    _celestialSpaces.Remove(celestialSpace);
+                    _children.Remove(celestialSpace);
+
+                    OnCelestialSpaceAdded?.Invoke(this, new CelestialSpaceAddedEventArgs() { Result = new OASISResult<ICelestialSpace>(celestialSpace) });
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from celestialSpace.SaveAsync method: {result.Message}");
+                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Result = result, Reason = result.Message, Exception = result.Exception });
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
+                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Result = result, Reason = result.Message, Exception = ex });
+            }
+
+            return result;
+        }
+
+        public OASISResult<ICelestialSpace> RemoveCelestialSpace(ICelestialSpace celestialSpace, bool deleteCelestialSpace = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
+            OASISResult<IHolon> holonResult = null;
+            string errorMessage = $"An error occured in CelestialSpace.RemoveCelestialSpace removing the celestial space {LoggingHelper.GetHolonInfoForLogging(celestialSpace, "CelestialSpace")} from the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                if (deleteCelestialSpace)
+                    holonResult = celestialSpace.Delete(softDelete, providerType);
+
+                if ((deleteCelestialSpace && holonResult != null && !holonResult.IsError) || !deleteCelestialSpace)
+                {
+                    _celestialSpaces.Remove(celestialSpace);
+                    _children.Remove(celestialSpace);
+
+                    OnCelestialSpaceRemoved?.Invoke(this, new CelestialSpaceRemovedEventArgs() { Result = new OASISResult<ICelestialSpace>(celestialSpace) });
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from celestialSpace.Delete method: {holonResult.Message}");
+                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Result = result, Reason = result.Message, Exception = result.Exception });
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
+                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Result = result, Reason = result.Message, Exception = ex });
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<ICelestialSpace>> RemoveCelestialSpaceAsync(ICelestialSpace celestialSpace, bool deleteCelestialSpace = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
+            OASISResult<IHolon> holonResult = null;
+            string errorMessage = $"An error occured in CelestialSpace.RemoveCelestialSpaceAsync removing the celestial space {LoggingHelper.GetHolonInfoForLogging(celestialSpace, "CelestialSpace")} from the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
+
+            try
+            {
+                if (deleteCelestialSpace)
+                    holonResult = await celestialSpace.DeleteAsync(softDelete, providerType);
+
+                if ((deleteCelestialSpace && holonResult != null && !holonResult.IsError) || !deleteCelestialSpace)
+                {
+                    _celestialSpaces.Remove(celestialSpace);
+                    _children.Remove(celestialSpace);
+
+                    OnCelestialSpaceRemoved?.Invoke(this, new CelestialSpaceRemovedEventArgs() { Result = new OASISResult<ICelestialSpace>(celestialSpace) });
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from celestialSpace.DeleteAsync method: {holonResult.Message}");
+                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Result = result, Reason = result.Message, Exception = result.Exception });
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
+                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Result = result, Reason = result.Message, Exception = ex });
+            }
+
+            return result;
+        }
+
+        //public IEnumerable<ICelestialBody> GetCelestialBodies()
+        //{
+        //    return _celestialBodies;
+        //}
+
+        //public IEnumerable<ICelestialSpace> GetCelestialSpaces()
+        //{
+        //    return _celestialSpaces;
+        //}
 
         protected void RegisterCelestialBodies(IEnumerable<ICelestialBody> celestialBodies, bool unregisterExistingBodiesFirst = true)
         {
             if (unregisterExistingBodiesFirst)
                 UnregisterAllCelestialSpaces();
 
-            this.CelestialBodies.AddRange(celestialBodies);
+            _celestialBodies.AddRange(celestialBodies);
 
-            foreach (ICelestialBody celestialBody in this.CelestialBodies)
+            foreach (ICelestialBody celestialBody in _celestialBodies)
             {
                 celestialBody.OnCelestialBodyLoaded += CelestialBody_OnCelestialBodyLoaded;
                 celestialBody.OnCelestialBodySaved += CelestialBody_OnCelestialBodySaved;
@@ -894,9 +1201,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             if (unregisterExistingSpacesFirst)
                 UnregisterAllCelestialSpaces();
 
-            this.CelestialSpaces.AddRange(celestialSpaces);
+            _celestialSpaces.AddRange(celestialSpaces);
 
-            foreach (ICelestialSpace celestialSpace in this.CelestialSpaces)
+            foreach (ICelestialSpace celestialSpace in _celestialSpaces)
             {
                 celestialSpace.OnCelestialSpaceLoaded += CelestialSpace_OnCelestialSpaceLoaded;
                 celestialSpace.OnCelestialSpaceSaved += CelestialSpace_OnCelestialSpaceSaved;
@@ -928,7 +1235,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         protected void UnregisterAllCelestialBodies()
         {
             //First unsubscibe events to prevent any memory leaks.
-            foreach (ICelestialBody celestialBody in this.CelestialBodies)
+            foreach (ICelestialBody celestialBody in _celestialBodies)
             {
                 celestialBody.OnCelestialBodyLoaded -= CelestialBody_OnCelestialBodyLoaded;
                 celestialBody.OnCelestialBodySaved -= CelestialBody_OnCelestialBodySaved;
@@ -947,13 +1254,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 celestialBody.OnZomesError -= CelestialBody_OnZomesError;
             }
 
-            this.CelestialBodies = new List<ICelestialBody>();
+            _celestialBodies = new List<ICelestialBody>();
         }
 
         protected void UnregisterAllCelestialSpaces()
         {
             //First unsubscibe events to prevent any memory leaks.
-            foreach (ICelestialSpace celestialSpace in this.CelestialSpaces)
+            foreach (ICelestialSpace celestialSpace in _celestialSpaces)
             {
                 celestialSpace.OnCelestialSpaceLoaded -= CelestialSpace_OnCelestialSpaceLoaded;
                 celestialSpace.OnCelestialSpaceSaved -= CelestialSpace_OnCelestialSpaceSaved;
@@ -981,7 +1288,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 celestialSpace.OnZomesError -= CelestialSpace_OnZomesError;
             }
 
-            this.CelestialSpaces = new List<ICelestialSpace>();
+            _celestialSpaces = new List<ICelestialSpace>();
         }
 
         private IStar GetCelestialSpaceNearestStar(OASISResult<ICelestialBodiesAndSpaces> result, string errorMessage)
@@ -998,7 +1305,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return star;
         }
 
-        private IStar GetCelestialSpaceNearestStar<T1, T2>(OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result, string errorMessage) where T1: ICelestialBody where T2 : ICelestialSpace
+        private IStar GetCelestialSpaceNearestStar<T1, T2>(OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result, string errorMessage) where T1 : ICelestialBody where T2 : ICelestialSpace
         {
             IStar star = GetCelestialSpaceNearestStar();
 
@@ -1124,7 +1431,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        
+
         private OASISResult<IEnumerable<T1>> HandleLoadCelestialSpaces<T1, T2>(OASISResult<IEnumerable<T1>> result, OASISResult<IEnumerable<T2>> holonResult, string methodName) where T1 : IHolon where T2 : IHolon
         {
             result = OASISResultHelper.CopyResult<T2, T1>(holonResult);
@@ -1161,44 +1468,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-
-        private OASISResult<ICelestialBodiesAndSpaces> MapCelestialBodieAndSpacessResult<T>(OASISResult<IEnumerable<T>> holonResult, OASISResult<ICelestialBodiesAndSpaces> result) where T : IHolon
-        {
-            OASISResult<ICelestialBodiesAndSpaces> celesialBodiesAndSpacesResult = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, ICelestialBodiesAndSpaces>(holonResult);
-            celesialBodiesAndSpacesResult.Result.CelestialSpaces = GetCelestialSpaces(holonResult.Result);
-            celesialBodiesAndSpacesResult.Result.CelestialBodies = GetCelestialBodies(holonResult.Result);
-            return celesialBodiesAndSpacesResult;
-        }
-
-
-        private OASISResult<IEnumerable<ICelestialBody>> CreateCelestialBodiesResult(OASISResult<ICelestialBodiesAndSpaces> result)
-        {
-            OASISResult<IEnumerable<ICelestialBody>> celesialBodiesResult = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces, IEnumerable<ICelestialBody>>(result);
-            celesialBodiesResult.Result = result.Result.CelestialBodies;
-            return celesialBodiesResult;
-        }
-
-        private OASISResult<IEnumerable<ICelestialSpace>> CreateCelestialSpacesResult(OASISResult<ICelestialBodiesAndSpaces> result)
-        {
-            OASISResult<IEnumerable<ICelestialSpace>> celesialSpacesResult = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces, IEnumerable<ICelestialSpace>>(result);
-            celesialSpacesResult.Result = result.Result.CelestialSpaces;
-            return celesialSpacesResult;
-        }
-
-        //private OASISResult<IEnumerable<ICelestialSpace>> CreateCelestialSpacesResult<T1, T2>(OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result) where T1: ICelestialBody where T2: ICelestialSpace
-        //{
-        //    OASISResult<IEnumerable<ICelestialSpace>> celesialSpacesResult = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces<T1, T2>, IEnumerable<ICelestialSpace>>(result);
-        //    celesialSpacesResult.Result = (IEnumerable<ICelestialSpace>)result.Result.CelestialSpaces; //TODO: Test this works or not?
-        //    return celesialSpacesResult;
-        //}
-
-        //private OASISResult<IEnumerable<ICelestialBody>> CreateCelestialBodiesResult<T1, T2>(OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result) where T1 : ICelestialBody where T2 : ICelestialSpace
-        //{
-        //    OASISResult<IEnumerable<ICelestialBody>> celesialBodiesResult = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces<T1, T2>, IEnumerable<ICelestialBody>>(result);
-        //    celesialBodiesResult.Result = (IEnumerable<ICelestialBody>)result.Result.CelestialBodies;
-        //    return celesialBodiesResult;
-        //}
-
         private OASISResult<ICelestialBodiesAndSpaces> HandleLoadCelestialBodiesAndSpaces<T>(OASISResult<ICelestialBodiesAndSpaces> result, OASISResult<IEnumerable<T>> holonResult, string methodName) where T : IHolon
         {
             result = MapCelestialBodieAndSpacessResult(holonResult, result);
@@ -1207,10 +1476,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                //GetCelestialBodies(holonResult.Result);
-                //GetCelestialSpaces(holonResult.Result);
-                this.CelestialBodies = result.Result.CelestialBodies.ToList();
-                this.CelestialSpaces = result.Result.CelestialSpaces.ToList();
+                _celestialBodies = result.Result.CelestialBodies.ToList();
+                _celestialSpaces = result.Result.CelestialSpaces.ToList();
 
                 OnCelestialBodiesLoaded?.Invoke(this, new CelestialBodiesLoadedEventArgs() { Result = celesialBodiesResult });
                 OnCelestialSpacesLoaded?.Invoke(this, new CelestialSpacesLoadedEventArgs() { Result = celesialSpacessResult });
@@ -1225,7 +1492,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        private OASISResult<ICelestialBodiesAndSpaces<T1, T2>> HandleLoadCelestialBodiesAndSpaces<T1, T2, T3>(OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result, OASISResult<IEnumerable<T3>> holonResult, string methodName) where T1: ICelestialBody where T2: ICelestialSpace where T3 : IHolon
+        private OASISResult<ICelestialBodiesAndSpaces<T1, T2>> HandleLoadCelestialBodiesAndSpaces<T1, T2, T3>(OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result, OASISResult<IEnumerable<T3>> holonResult, string methodName) where T1 : ICelestialBody where T2 : ICelestialSpace where T3 : IHolon
         {
             result = MapCelestialBodieAndSpacessResult(holonResult, result);
             OASISResult<IEnumerable<ICelestialBody>> celesialBodiesResult = CreateCelestialBodiesResult(result);
@@ -1233,10 +1500,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                //GetCelestialBodies(holonResult.Result);
-                //GetCelestialSpaces(holonResult.Result);
-                this.CelestialBodies = result.Result.CelestialBodies.ToList();
-                this.CelestialSpaces = result.Result.CelestialSpaces.ToList();
+                _celestialBodies = Mapper.Convert<T1, ICelestialBody>(result.Result.CelestialBodies).ToList();
+                _celestialSpaces = Mapper.Convert<T2, ICelestialSpace>(result.Result.CelestialSpaces).ToList();
 
                 OnCelestialBodiesLoaded?.Invoke(this, new CelestialBodiesLoadedEventArgs() { Result = celesialBodiesResult });
                 OnCelestialSpacesLoaded?.Invoke(this, new CelestialSpacesLoadedEventArgs() { Result = celesialSpacessResult });
@@ -1267,13 +1532,135 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                     OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResult<T1, ICelestialSpace>(result), Exception = result.Exception });
                 }
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
                 OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResult<T1, ICelestialSpace>(result), Exception = result.Exception });
             }
 
             return result;
+        }
+
+        private OASISResult<IEnumerable<T1>> HandleSaveCelestialBodies<T1, T2>(OASISResult<IEnumerable<T1>> result, OASISResult<IEnumerable<T2>> holonResult, string methodName) where T1 : IHolon where T2 : IHolon
+        {
+            result = OASISResultHelper.CopyResult<T2, T1>(holonResult);
+
+            if (result != null && !result.IsError && result.Result != null)
+                OnCelestialBodiesSaved?.Invoke(this, new CelestialBodiesSavedEventArgs() { Result = OASISResultHelper.CopyResult<T1, ICelestialBody>(result) });
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"An errror occured in CelestialSpace.{methodName} whilst loading the celestial spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason: {holonResult.Message}");
+                OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResult<T1, ICelestialBody>(result), Exception = result.Exception });
+            }
+
+            return result;
+        }
+
+        private OASISResult<IEnumerable<T1>> HandleSaveCelestialSpaces<T1, T2>(OASISResult<IEnumerable<T1>> result, OASISResult<IEnumerable<T2>> holonResult, string methodName) where T1 : IHolon where T2 : IHolon
+        {
+            result = OASISResultHelper.CopyResult<T2, T1>(holonResult);
+
+            if (result != null && !result.IsError && result.Result != null)
+                OnCelestialSpacesSaved?.Invoke(this, new CelestialSpacesSavedEventArgs() { Result = OASISResultHelper.CopyResult<T1, ICelestialSpace>(result) });
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"An errror occured in CelestialSpace.{methodName} whilst loading the celestial spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason: {holonResult.Message}");
+                OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResult<T1, ICelestialBody>(result), Exception = result.Exception });
+            }
+
+            return result;
+        }
+
+        private OASISResult<ICelestialBodiesAndSpaces> HandleSaveCelestialBodiesAndSpaces<T>(OASISResult<ICelestialBodiesAndSpaces> result, OASISResult<IEnumerable<T>> holonResult, string methodName) where T : IHolon
+        {
+            result = MapCelestialBodieAndSpacessResult(holonResult, result);
+            OASISResult<IEnumerable<ICelestialBody>> celesialBodiesResult = CreateCelestialBodiesResult(result);
+            OASISResult<IEnumerable<ICelestialSpace>> celesialSpacessResult = CreateCelestialSpacesResult(result);
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                _celestialBodies = result.Result.CelestialBodies.ToList();
+                _celestialSpaces = result.Result.CelestialSpaces.ToList();
+
+                OnCelestialBodiesSaved?.Invoke(this, new CelestialBodiesSavedEventArgs() { Result = celesialBodiesResult });
+                OnCelestialSpacesSaved?.Invoke(this, new CelestialSpacesSavedEventArgs() { Result = celesialSpacessResult });
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"An errror occured in CelestialSpace.{methodName} whilst saving the celestial bodies and spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason: {holonResult.Message}");
+                OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = celesialBodiesResult, Exception = result.Exception });
+                OnCelestialSpacesError?.Invoke(this, new CelestialSpacesErrorEventArgs() { Reason = $"{result.Message}", Result = celesialSpacessResult, Exception = result.Exception });
+            }
+
+            return result;
+        }
+
+        private OASISResult<ICelestialBodiesAndSpaces<T1, T2>> HandleSaveCelestialBodiesAndSpaces<T1, T2, T3>(OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result, OASISResult<IEnumerable<T3>> holonResult, string methodName) where T1 : ICelestialBody where T2 : ICelestialSpace where T3 : IHolon
+        {
+            result = MapCelestialBodieAndSpacessResult(holonResult, result);
+            OASISResult<IEnumerable<ICelestialBody>> celesialBodiesResult = CreateCelestialBodiesResult(result);
+            OASISResult<IEnumerable<ICelestialSpace>> celesialSpacessResult = CreateCelestialSpacesResult(result);
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                _celestialBodies = Mapper.Convert<T1, ICelestialBody>(result.Result.CelestialBodies).ToList();
+                _celestialSpaces = Mapper.Convert<T2, ICelestialSpace>(result.Result.CelestialSpaces).ToList();
+
+                OnCelestialBodiesSaved?.Invoke(this, new CelestialBodiesSavedEventArgs() { Result = celesialBodiesResult });
+                OnCelestialSpacesSaved?.Invoke(this, new CelestialSpacesSavedEventArgs() { Result = celesialSpacessResult });
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"An errror occured in CelestialSpace.{methodName} whilst saving the celestial bodies and spaces for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason: {holonResult.Message}");
+                OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = celesialBodiesResult, Exception = result.Exception });
+                OnCelestialSpacesError?.Invoke(this, new CelestialSpacesErrorEventArgs() { Reason = $"{result.Message}", Result = celesialSpacessResult, Exception = result.Exception });
+            }
+
+            return result;
+        }
+
+        private OASISResult<ICelestialBodiesAndSpaces> MapCelestialBodieAndSpacessResult<T>(OASISResult<IEnumerable<T>> holonResult, OASISResult<ICelestialBodiesAndSpaces> result) where T : IHolon
+        {
+            OASISResult<ICelestialBodiesAndSpaces> celesialBodiesAndSpacesResult = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, ICelestialBodiesAndSpaces>(holonResult);
+            celesialBodiesAndSpacesResult.Result.CelestialSpaces = GetCelestialSpaces(holonResult.Result);
+            celesialBodiesAndSpacesResult.Result.CelestialBodies = GetCelestialBodies(holonResult.Result);
+            return celesialBodiesAndSpacesResult;
+        }
+
+        private OASISResult<ICelestialBodiesAndSpaces<T1, T2>> MapCelestialBodieAndSpacessResult<T1, T2, T3>(OASISResult<IEnumerable<T3>> holonResult, OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result) where T1 : ICelestialBody where T2 : ICelestialSpace where T3 : IHolon
+        {
+            OASISResult<ICelestialBodiesAndSpaces<T1, T2>> celesialBodiesAndSpacesResult = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T3>, ICelestialBodiesAndSpaces<T1, T2>>(holonResult);
+            celesialBodiesAndSpacesResult.Result.CelestialSpaces = Mapper.Convert<T2>(GetCelestialSpaces(holonResult.Result));
+            celesialBodiesAndSpacesResult.Result.CelestialBodies = Mapper.Convert<T1>(GetCelestialSpaces(holonResult.Result));
+            return celesialBodiesAndSpacesResult;
+        }
+
+        private OASISResult<IEnumerable<ICelestialBody>> CreateCelestialBodiesResult(OASISResult<ICelestialBodiesAndSpaces> result)
+        {
+            OASISResult<IEnumerable<ICelestialBody>> celesialBodiesResult = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces, IEnumerable<ICelestialBody>>(result);
+            celesialBodiesResult.Result = result.Result.CelestialBodies;
+            return celesialBodiesResult;
+        }
+
+        private OASISResult<IEnumerable<ICelestialBody>> CreateCelestialBodiesResult<T1, T2>(OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result) where T1 : ICelestialBody where T2 : ICelestialSpace
+        {
+            OASISResult<IEnumerable<ICelestialBody>> celesialBodiesResult = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces<T1, T2>, IEnumerable<ICelestialBody>>(result);
+            celesialBodiesResult.Result = Mapper.MapBaseHolonProperties(result.Result.CelestialBodies, celesialBodiesResult.Result);
+            return celesialBodiesResult;
+        }
+
+        private OASISResult<IEnumerable<ICelestialSpace>> CreateCelestialSpacesResult(OASISResult<ICelestialBodiesAndSpaces> result)
+        {
+            OASISResult<IEnumerable<ICelestialSpace>> celesialSpacesResult = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces, IEnumerable<ICelestialSpace>>(result);
+            celesialSpacesResult.Result = result.Result.CelestialSpaces;
+            return celesialSpacesResult;
+        }
+
+        private OASISResult<IEnumerable<ICelestialSpace>> CreateCelestialSpacesResult<T1, T2>(OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result) where T1 : ICelestialBody where T2 : ICelestialSpace
+        {
+            OASISResult<IEnumerable<ICelestialSpace>> celesialBodiesResult = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces<T1, T2>, IEnumerable<ICelestialSpace>>(result);
+            celesialBodiesResult.Result = Mapper.MapBaseHolonProperties(result.Result.CelestialBodies, celesialBodiesResult.Result);
+            return celesialBodiesResult;
         }
 
         private IEnumerable<ICelestialBody> GetCelestialBodies<T>(IEnumerable<T> childHolons) where T : IHolon

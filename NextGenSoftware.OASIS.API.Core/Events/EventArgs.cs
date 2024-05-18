@@ -64,6 +64,16 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     }
 
+    public class CelestialBodyAddedEventArgs : OASISEventArgs<ICelestialBody>
+    {
+
+    }
+
+    public class CelestialBodyRemovedEventArgs : OASISEventArgs<ICelestialBody>
+    {
+
+    }
+
     public class CelestialBodyErrorEventArgs : OASISErrorEventArgs<ICelestialBody>
     {
 
@@ -89,6 +99,16 @@ namespace NextGenSoftware.OASIS.API.Core.Events
     }
 
     public class CelestialSpaceSavedEventArgs : OASISEventArgs<ICelestialSpace>
+    {
+
+    }
+
+    public class CelestialSpaceAddedEventArgs : OASISEventArgs<ICelestialSpace>
+    {
+
+    }
+
+    public class CelestialSpaceRemovedEventArgs : OASISEventArgs<ICelestialSpace>
     {
 
     }

@@ -3,14 +3,12 @@ using System.Reflection;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
@@ -19,25 +17,6 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         private const string CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET = "Both Id and ProviderUniqueStorageKey are null, one of these need to be set before calling this method.";
         private string _name;
         private string _description;
-        //private Dictionary<Guid, IOmiverse> _parentOmiverse = new Dictionary<Guid, IOmiverse>();
-        //private Dictionary<Guid, IDimension> _parentDimension = new Dictionary<Guid, IDimension>();
-        //private Dictionary<Guid, IMultiverse> _parentMultiverse = new Dictionary<Guid, IMultiverse>();
-        //private Dictionary<Guid, IUniverse> _parentUniverse = new Dictionary<Guid, IUniverse>();
-        //private Dictionary<Guid, IGalaxyCluster> _parentGalaxyCluster = new Dictionary<Guid, IGalaxyCluster>();
-        //private Dictionary<Guid, IGalaxy> _parentGalaxy = new Dictionary<Guid, IGalaxy>();
-        //private Dictionary<Guid, ISolarSystem> _parentSolarSystem = new Dictionary<Guid, ISolarSystem>();
-        //private Dictionary<Guid, IGreatGrandSuperStar> _parentGreatGrandSuperStar = new Dictionary<Guid, IGreatGrandSuperStar>();
-        //private Dictionary<Guid, IGrandSuperStar> _parentGrandSuperStar = new Dictionary<Guid, IGrandSuperStar>();
-        //private Dictionary<Guid, ISuperStar> _parentSuperStar = new Dictionary<Guid, ISuperStar>();
-        //private Dictionary<Guid, IStar> _parentStar = new Dictionary<Guid, IStar>();
-        //private Dictionary<Guid, IPlanet> _parentPlanet = new Dictionary<Guid, IPlanet>();
-        //private Dictionary<Guid, IMoon> _parentMoon = new Dictionary<Guid, IMoon>();
-        //private Dictionary<Guid, ICelestialSpace> _parentCelestialSpace = new Dictionary<Guid, ICelestialSpace>();
-        //private Dictionary<Guid, ICelestialBody> _parentCelestialBody = new Dictionary<Guid, ICelestialBody>();
-        //private Dictionary<Guid, IZome> _parentZome = new Dictionary<Guid, IZome>();
-        //private Dictionary<Guid, IHolon> _parentHolon = new Dictionary<Guid, IHolon>();
-        //private Dictionary<Guid, ICelestialBodyCore> _core = new Dictionary<Guid, ICelestialBodyCore>();
-
         public HolonBase(Guid id)
         {
             Id = id;
@@ -51,10 +30,6 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             this.ProviderUniqueStorageKey[providerType] = providerKey;
         }
 
-        //public HolonBase(Dictionary<ProviderType, string> providerKeys)
-        //{
-        //    ProviderUniqueStorageKey = providerKeys;
-        //}
 
         public HolonBase(HolonType holonType)
         {
@@ -69,24 +44,17 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         public GlobalHolonData GlobalHolonData { get; set; } = new GlobalHolonData();
 
-        public event Initialized OnInitialized;
-        public event HolonError OnError;
+        public event EventDelegates.Initialized OnInitialized;
+        public event EventDelegates.HolonError OnError;
 
         //Public method events for CRUD methods that apply to THIS holon.
-        public event HolonLoaded OnLoaded;
-        public event HolonSaved OnSaved;
-        public event HolonDeleted OnDeleted;
-        public event HolonAdded OnHolonAdded;
-        public event HolonRemoved OnHolonRemoved;
-        public event HolonsLoaded OnChildrenLoaded;
-        public event HolonsError OnChildrenLoadError;
-
-        //Protected method events for general loading/saving holons that classes such as ZomeBase, CelestialBody etc can extend and use...
-        //public event HolonLoaded OnHolonLoaded;
-        //public event HolonsLoaded OnHolonsLoaded;
-        //public event HolonSaved OnHolonSaved;
-        //public event HolonsSaved OnHolonsSaved;
-
+        public event EventDelegates.HolonLoaded OnLoaded;
+        public event EventDelegates.HolonSaved OnSaved;
+        public event EventDelegates.HolonDeleted OnDeleted;
+        public event EventDelegates.HolonAdded OnHolonAdded;
+        public event EventDelegates.HolonRemoved OnHolonRemoved;
+        public event EventDelegates.HolonsLoaded OnChildrenLoaded;
+        public event EventDelegates.HolonsError OnChildrenLoadError;
         public IHolon Original { get; set; }
 
         public Guid Id { get; set; } //Unique id within the OASIS.
@@ -132,58 +100,10 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
         public string CustomKey { get; set; } //A custom key that can be used to load the holon by (other than Id or ProviderKey).
-        //public Dictionary<string, string> CustomKeys { get; set; }
-
         public bool IsNewHolon { get; set; }
         public bool IsChanged { get; set; }
         public bool IsSaving { get; set; }
-
-        //public Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos, id in MongoDB etc).        
-        //public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
-        //public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
         public HolonType HolonType { get; set; }
-
-        /*
-        public Guid ParentOmniverseId { get; set; } //The Omniverse this Holon belongs to.
-        public IOmiverse ParentOmniverse { get; set; } //The Omniverse this Holon belongs to.
-        public Guid ParentMultiverseId { get; set; } //The Multiverse this Holon belongs to.
-        public IMultiverse ParentMultiverse { get; set; } //The Multiverse this Holon belongs to.
-        public Guid ParentUniverseId { get; set; } //The Universe this Holon belongs to.
-        public IUniverse ParentUniverse { get; set; } //The Universe this Holon belongs to.
-        public Guid ParentDimensionId { get; set; } //The Dimension this Holon belongs to.
-        public IDimension ParentDimension { get; set; } //The Dimension this Holon belongs to.
-        public DimensionLevel DimensionLevel { get; set; } //The dimension this Holon belongs to (a holon can have a different version of itself in each dimension (asscended/evolved versions of itself).
-        public SubDimensionLevel SubDimensionLevel { get; set; } //The sub-dimension/plane this Holon belongs to.
-        public Guid ParentGalaxyClusterId { get; set; } //The GalaxyCluster this Holon belongs to.
-        public IGalaxyCluster ParentGalaxyCluster { get; set; } //The GalaxyCluster this Holon belongs to.
-        public Guid ParentGalaxyId { get; set; } //The Galaxy this Holon belongs to.
-        public IGalaxy ParentGalaxy { get; set; } //The Galaxy this Holon belongs to.
-        public Guid ParentSolarSystemId { get; set; } //The SolarSystem this Holon belongs to.
-        public ISolarSystem ParentSolarSystem { get; set; } //The SolarSystem this Holon belongs to.
-        public Guid ParentGreatGrandSuperStarId { get; set; } //The GreatGrandSuperStar this Holon belongs to.
-        public IGreatGrandSuperStar ParentGreatGrandSuperStar { get; set; } //The GreatGrandSuperStar this Holon belongs to.
-        public Guid ParentGrandSuperStarId { get; set; } //The GrandSuperStar this Holon belongs to.
-        public IGrandSuperStar ParentGrandSuperStar { get; set; } //The GrandSuperStar this Holon belongs to.
-        public Guid ParentSuperStarId { get; set; } //The SuperStar this Holon belongs to.
-        public ISuperStar ParentSuperStar { get; set; } //The SuperStar this Holon belongs to.
-        public Guid ParentStarId { get; set; } //The Star this Holon belongs to.
-        //public ICelestialBody ParentStar { get; set; } //The Star this Holon belongs to.
-        public IStar ParentStar { get; set; } //The Star this Holon belongs to.
-        public Guid ParentPlanetId { get; set; } //The Planet this Holon belongs to.
-        //public ICelestialBody ParentPlanet { get; set; } //The Planet this Holon belongs to.
-        public IPlanet ParentPlanet { get; set; } //The Planet this Holon belongs to.
-        public Guid ParentMoonId { get; set; } //The Moon this Holon belongs to.
-        //public ICelestialBody ParentMoon { get; set; } //The Moon this Holon belongs to.
-        public IMoon ParentMoon { get; set; } //The Moon this Holon belongs to.
-        //public Guid ParentCelestialBodyId { get; set; } //The CelestialBody (Planet or Moon (OApp)) this Holon belongs to.
-        //public ICelestialBody ParentCelestialBody { get; set; } //The CelestialBody (Planet or Moon (OApp)) this Holon belongs to.
-        public Guid ParentZomeId { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
-        public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
-        public Guid ParentHolonId { get; set; }
-        public IHolon ParentHolon { get; set; }
-        public IEnumerable<IHolon> Children { get; set; }
-        public ObservableCollection<IHolon> ChildrenTest { get; set; }
-        */
         public Guid CreatedByAvatarId { get; set; }
         public Avatar CreatedByAvatar { get; set; }
         public DateTime CreatedDate { get; set; }
@@ -199,17 +119,12 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>();
         public bool IsActive { get; set; }
         public EnumValue<ProviderType> CreatedProviderType { get; set; } // The primary provider that this holon was originally saved with (it can then be auto-replicated to other providers to give maximum redundancy/speed via auto-load balancing etc).
-                                                                         //public List<INode> Nodes { get; set; } // List of nodes/fields (int, string, bool, etc) that belong to this Holon (STAR ODK auto-generates these when generating dynamic code from DNA Templates passed in).
-                                                                         //  public ObservableCollection<INode> Nodes { get; set; }
-
         public EnumValue<ProviderType> InstanceSavedOnProviderType { get; set; }
-
         public EnumValue<OASISType> CreatedOASISType { get; set; }
-
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
         public IEnumerable<IHolon> Children { get; set; }
-        public ObservableCollection<IHolon> ChildrenTest { get; set; }
+        //public ObservableCollection<IHolon> Children { get; set; }
 
         /// <summary>
         /// Fired when a property in this class changes.
@@ -558,6 +473,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
                 if (result != null && !result.IsError && result.Result != null)
                 {
+                    //this.Children = new ObservableCollection<IHolon>(result.Result);
                     this.Children = result.Result;
                     OnChildrenLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
                 }
@@ -603,6 +519,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
                 if (result != null && !result.IsError && result.Result != null)
                 {
+                    //this.Children = new ObservableCollection<IHolon>(result.Result);
                     this.Children = result.Result;
                     OnChildrenLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
                 }
@@ -648,6 +565,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
                 if (result != null && !result.IsError && result.Result != null)
                 {
+                    //this.Children = new ObservableCollection<IHolon>(Mapper.Convert(result.Result));
                     this.Children = Mapper.Convert(result.Result);
                     OnChildrenLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
                 }
@@ -693,6 +611,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
                 if (result != null && !result.IsError && result.Result != null)
                 {
+                    //this.Children = new ObservableCollection<IHolon>(Mapper.Convert(result.Result));
                     this.Children = Mapper.Convert(result.Result);
                     OnChildrenLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
                 }
@@ -881,6 +800,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             try
             {
                 holon.ParentHolonId = this.Id;
+                //this.Children.Add(holon);
                 ((List<IHolon>)this.Children).Add(holon);
 
                 if (saveHolon)
@@ -914,6 +834,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             try
             {
                 holon.ParentHolonId = this.Id;
+                //this.Children.Add(holon);
                 ((List<IHolon>)this.Children).Add(holon);
 
                 if (saveHolon)
@@ -948,6 +869,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             {
                 holon.ParentHolonId = this.Id;
                 ((List<IHolon>)this.Children).Add(holon);
+                //this.Children.Add(holon);
 
                 if (saveHolon)
                 {
@@ -981,6 +903,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             {
                 holon.ParentHolonId = this.Id;
                 ((List<IHolon>)this.Children).Add(holon);
+                //this.Children.Add(holon);
 
                 if (saveHolon)
                 {
@@ -1014,6 +937,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             {
                 holon.ParentHolonId = Guid.Empty;
                 ((List<IHolon>)this.Children).Remove(holon);
+                //this.Children.Add(holon);
 
                 if (deleteHolon)
                 {
@@ -1047,6 +971,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             {
                 holon.ParentHolonId = Guid.Empty;
                 ((List<IHolon>)this.Children).Remove(holon);
+                //this.Children.Add(holon);
 
                 if (deleteHolon)
                 {
