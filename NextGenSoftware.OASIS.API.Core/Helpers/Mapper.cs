@@ -40,26 +40,43 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         //        return null;
         //}
 
-        //public static IEnumerable<T> Convert<T>(IEnumerable<IHolon> sourceHolons) where T : IHolon
-        //{
-        //    if (sourceHolons != null)
-        //    {
-        //        List<T> targetList = new List<T>();
+        public static IEnumerable<T> Convert<T>(IEnumerable<IHolon> sourceHolons) where T : IHolon
+        {
+            if (sourceHolons != null)
+            {
+                List<T> targetList = new List<T>();
 
-        //        foreach (IHolon sourceHolon in sourceHolons)
-        //            targetList.Add((T)sourceHolon);
+                foreach (IHolon sourceHolon in sourceHolons)
+                    targetList.Add((T)sourceHolon);
 
-        //        return targetList;
-        //    }
-        //    else
-        //        return null;
-        //}
+                return targetList;
+            }
+            else
+                return null;
+        }
 
         public static IEnumerable<IHolon> Convert<T>(IEnumerable<T> sourceHolons) where T : IHolon
         {
             if (sourceHolons != null)
             {
                 IEnumerable<IHolon> targetList = [.. sourceHolons];
+                return targetList;
+            }
+            else
+                return null;
+        }
+
+        public static IEnumerable<T2> Convert<T1, T2>(IEnumerable<T1> sourceHolons) where T1 : IHolon where T2 : IHolon
+        {
+            if (sourceHolons != null)
+            {
+                //IEnumerable<T2> targetList = [.. sourceHolons];
+
+                List<T2> targetList = new List<T2>();
+
+                foreach (IHolon sourceHolon in sourceHolons)
+                    targetList.Add((T2)sourceHolon);
+
                 return targetList;
             }
             else

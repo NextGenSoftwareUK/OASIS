@@ -11,12 +11,16 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         //public delegate void CelestialHolonError(object sender, CelestialHolonErrorEventArgs e);
         public delegate void CelestialBodyLoaded(object sender, CelestialBodyLoadedEventArgs e);
         public delegate void CelestialBodySaved(object sender, CelestialBodySavedEventArgs e);
+        public delegate void CelestialBodyAdded(object sender, CelestialBodyAddedEventArgs e);
+        public delegate void CelestialBodyRemoved(object sender, CelestialBodyRemovedEventArgs e);
         public delegate void CelestialBodyError(object sender, CelestialBodyErrorEventArgs e);
         public delegate void CelestialBodiesLoaded(object sender, CelestialBodiesLoadedEventArgs e);
         public delegate void CelestialBodiesSaved(object sender, CelestialBodiesSavedEventArgs e);
         public delegate void CelestialBodiesError(object sender, CelestialBodiesErrorEventArgs e);
         public delegate void CelestialSpaceLoaded(object sender, CelestialSpaceLoadedEventArgs e);
         public delegate void CelestialSpaceSaved(object sender, CelestialSpaceSavedEventArgs e);
+        public delegate void CelestialSpaceAdded(object sender, CelestialSpaceAddedEventArgs e);
+        public delegate void CelestialSpaceRemoved(object sender, CelestialSpaceRemovedEventArgs e);
         public delegate void CelestialSpaceError(object sender, CelestialSpaceErrorEventArgs e);
         public delegate void CelestialSpacesLoaded(object sender, CelestialSpacesLoadedEventArgs e);
         public delegate void CelestialSpacesSaved(object sender, CelestialSpacesSavedEventArgs e);

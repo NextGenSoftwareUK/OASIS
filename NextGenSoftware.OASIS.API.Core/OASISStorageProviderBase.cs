@@ -107,10 +107,10 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false);
         public abstract Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false);
         public abstract OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false);
-        public abstract Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true);
-        public abstract OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true);
-        public abstract Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true);
-        public abstract OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true);
+        public abstract Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true);
+        public abstract OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true);
+        public abstract Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true);
+        public abstract OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true);
 
         public abstract Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons);
         public abstract OASISResult<bool> Import(IEnumerable<IHolon> holons);

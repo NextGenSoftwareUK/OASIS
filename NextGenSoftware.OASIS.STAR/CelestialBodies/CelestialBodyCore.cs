@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
+using NextGenSoftware.OASIS.STAR.CelestialSpace;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
