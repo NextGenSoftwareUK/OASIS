@@ -570,19 +570,19 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return result;
         }
 
-        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
         {
             return DeleteHolonAsync(id, softDelete).Result;
         }
 
-        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
         {
             return DeleteHolonAsync(providerKey, softDelete).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
@@ -590,23 +590,20 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
                 holon.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
                 holon.Result.DeletedDate = DateTime.Now;
-
-                await SaveHolonToFile(holon.Result);
-
-                result.Result = true;
+                result.Result = await SaveHolonToFile(holon.Result);
             }
             catch (Exception ex)
             {
-                result.Result = true;
+                //result.Result = true;
                 OASISErrorHandling.HandleError(ref result, $"Error occured in DeleteHolonAsync method in IPFS Provider. Reason: {ex}");
             }
 
             return result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
@@ -615,14 +612,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
                 holon.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
                 holon.Result.DeletedDate = DateTime.Now;
-
-                await SaveHolonToFile(holon.Result);
-
-                result.Result = true;
+                result.Result = await SaveHolonToFile(holon.Result);
             }
             catch (Exception ex)
             {
-                result.Result = true;
+                //result.Result = true;
                 OASISErrorHandling.HandleError(ref result, $"Error occured in DeleteHolonAsync method in IPFS Provider. Reason: {ex}");
             }
 

@@ -216,7 +216,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                         //If the parent Omniverse is not already saving (and it's children) then begin saving them now...
                         if (saveChildren && !((IGreatGrandSuperStar)this).ParentOmniverse.IsSaving)
                         {
-                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((IGreatGrandSuperStar)this).ParentOmniverse.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((IGreatGrandSuperStar)this).ParentOmniverse.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                             if (!(celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null))
                             {
@@ -292,7 +292,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                         if (saveChildren && !((IGrandSuperStar)this).ParentMultiverse.IsSaving)
                         {
-                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((IGrandSuperStar)this).ParentMultiverse.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((IGrandSuperStar)this).ParentMultiverse.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                             if (!(celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null))
                             {
@@ -342,7 +342,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                         if (saveChildren && !((ISuperStar)this).ParentGalaxy.IsSaving)
                         {
-                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((ISuperStar)this).ParentGalaxy.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((ISuperStar)this).ParentGalaxy.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                             if (!(celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null))
                             {
@@ -365,7 +365,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                         if (saveChildren && !((IStar)this).ParentSolarSystem.IsSaving)
                         {
-                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((IStar)this).ParentSolarSystem.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((IStar)this).ParentSolarSystem.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                             if (!(celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null))
                             {
@@ -1068,11 +1068,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             if (CelestialBodyCore != null)
             {
-                ((CelestialBodyCore<T>)CelestialBodyCore).OnHolonLoaded += CelestialBody_OnHolonLoaded;
-                ((CelestialBodyCore<T>)CelestialBodyCore).OnHolonSaved += CelestialBodyCore_OnHolonSaved;
+                ((CelestialBodyCore<T>)CelestialBodyCore).GlobalHolonData.OnHolonLoaded += CelestialBody_OnHolonLoaded;
+                ((CelestialBodyCore<T>)CelestialBodyCore).GlobalHolonData.OnHolonSaved += CelestialBodyCore_OnHolonSaved;
                 //((CelestialBodyCore<T>)CelestialBodyCore).OnHolonError += CelestialBody_OnHolonError;
-                ((CelestialBodyCore<T>)CelestialBodyCore).OnHolonsLoaded += CelestialBodyCore_OnHolonsLoaded;
-                ((CelestialBodyCore<T>)CelestialBodyCore).OnHolonsSaved += CelestialBody_OnHolonsSaved;
+                ((CelestialBodyCore<T>)CelestialBodyCore).GlobalHolonData.OnHolonsLoaded += CelestialBodyCore_OnHolonsLoaded;
+                ((CelestialBodyCore<T>)CelestialBodyCore).GlobalHolonData.OnHolonsSaved += CelestialBody_OnHolonsSaved;
                 //((CelestialBodyCore<T>)CelestialBodyCore).OnHolonsError += CelestialBody_OnHolonsError;
                 //((CelestialBodyCore<T>)CelestialBodyCore).OnZomeLoaded += CelestialBody_OnZomeLoaded;
                 //((CelestialBodyCore<T>)CelestialBodyCore).OnZomeSaved += CelestialBody_OnZomeSaved;

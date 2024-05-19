@@ -37,13 +37,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
 
         Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true);
 
-        OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true);
+        OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true);
 
-        Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true);
+        Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true);
 
-        OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true);
+        OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true);
 
-        Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true);
+        Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true);
         OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type);
     }
 }

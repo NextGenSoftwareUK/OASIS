@@ -313,22 +313,22 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
         {
             throw new NotImplementedException();
         }

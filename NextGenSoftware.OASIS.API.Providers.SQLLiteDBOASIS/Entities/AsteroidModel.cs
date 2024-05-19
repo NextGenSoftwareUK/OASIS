@@ -6,8 +6,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
     [Table("Asteroid")]
-    public class AsteroidModel : CelestialBodyAbstract{
-
+    public class AsteroidModel : CelestialBodyAbstract//, IAsteroid
+    {
         [Required, Key]
         public String AsteroidId{ set; get; }
 
@@ -57,7 +57,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             
         }
 
-        public IAsteroid GetAsteroid(){
+        //public IAsteroid GetAsteroid(){
+        public Asteroid GetAsteroid()
+        {
 
             Asteroid item=new Asteroid();
 

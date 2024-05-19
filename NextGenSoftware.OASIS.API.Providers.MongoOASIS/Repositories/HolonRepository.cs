@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using NextGenSoftware.Logging;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces;
-using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
@@ -504,95 +504,139 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public async Task<bool> DeleteAsync(Guid id, bool softDelete = true)
+        public async Task<OASISResult<IHolon>> DeleteAsync(Guid id, bool softDelete = true)
         {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+
             try
             {
                 if (softDelete)
                 {
                     Holon holon = await GetHolonAsync(id);
-                    return await SoftDeleteAsync(holon);
+                    result.Result = await SoftDeleteAsync(holon);
+
+                    if (result.Result != null)
+                    {
+                        result.IsDeleted = true;
+                        result.DeletedCount = 1;
+                    }
                 }
                 else
                 {
                     FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.HolonId == id);
                     await _dbContext.Holon.DeleteOneAsync(data);
-                    return true;
+                    result.IsDeleted = true;
+                    result.DeletedCount = 1;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In HolonRepository.DeleteAsync. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public bool Delete(Guid id, bool softDelete = true)
+        public OASISResult<IHolon> Delete(Guid id, bool softDelete = true)
         {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+
             try
             {
                 if (softDelete)
                 {
                     Holon holon = GetHolon(id);
-                    return SoftDelete(holon);
+                    result.Result = SoftDelete(holon);
+
+                    if (result.Result != null)
+                    {
+                        result.IsDeleted = true;
+                        result.DeletedCount = 1;
+                    }
                 }
                 else
                 {
                     FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.HolonId == id);
                     _dbContext.Holon.DeleteOne(data);
-                    return true;
+                    result.IsDeleted = true;
+                    result.DeletedCount = 1;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In HolonRepository.Delete. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public async Task<bool> DeleteAsync(string providerKey, bool softDelete = true)
+        public async Task<OASISResult<IHolon>> DeleteAsync(string providerKey, bool softDelete = true)
         {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+
             try
             {
                 if (softDelete)
                 {
                     Holon holon = await GetHolonAsync(providerKey);
-                    return await SoftDeleteAsync(holon);
+                    result.Result = await SoftDeleteAsync(holon);
+
+                    if (result.Result != null)
+                    {
+                        result.IsDeleted = true;
+                        result.DeletedCount = 1;
+                    }
                 }
                 else
                 {
                     FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
                     await _dbContext.Holon.DeleteOneAsync(data);
-                    return true;
+                    result.IsDeleted = true;
+                    result.DeletedCount = 1;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In HolonRepository.DeleteAsync. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public bool Delete(string providerKey, bool softDelete = true)
+        public OASISResult<IHolon> Delete(string providerKey, bool softDelete = true)
         {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+
             try
             {
                 if (softDelete)
                 {
                     Holon holon = GetHolon(providerKey);
-                    return SoftDelete(holon);
+                    result.Result = SoftDelete(holon);
+
+                    if (result.Result != null)
+                    {
+                        result.IsDeleted = true;
+                        result.DeletedCount = 1;
+                    }
                 }
                 else
                 {
                     FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
                     _dbContext.Holon.DeleteOne(data);
-                    return true;
+                    result.IsDeleted = true;
+                    result.DeletedCount = 1;
                 }
             }
             catch
             {
                 throw;
             }
+
+            return result;
         }
 
-        private async Task<bool> SoftDeleteAsync(Holon holon)
+        private async Task<IHolon> SoftDeleteAsync(Holon holon)
         {
             try
             {
@@ -603,10 +647,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                     holon.DeletedDate = DateTime.Now;
                     await _dbContext.Holon.ReplaceOneAsync(filter: g => g.Id == holon.Id, replacement: holon);
-                    return true;
+                    return (IHolon)holon;
                 }
                 else
-                    return false;
+                    return null;
             }
             catch
             {
@@ -614,7 +658,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
-        private bool SoftDelete(Holon holon)
+        private IHolon SoftDelete(Holon holon)
         {
             try
             {
@@ -625,10 +669,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                     holon.DeletedDate = DateTime.Now;
                     _dbContext.Holon.ReplaceOne(filter: g => g.Id == holon.Id, replacement: holon);
-                    return true;
+                    return (IHolon)holon;
                 }
                 else
-                    return false;
+                    return null;
             }
             catch
             {

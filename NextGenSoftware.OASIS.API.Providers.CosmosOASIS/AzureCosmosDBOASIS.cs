@@ -600,9 +600,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             return result;
         }
 
-        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
             string reason = "unknown";
             string softDeleting = "";
 
@@ -625,7 +625,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
                         if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
                         {
-                            result.Result = true;
+                            result.Result = saveHolonResult.Result;
                             result.IsSaved = true;
                         }
                         else
@@ -647,7 +647,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 else
                     holonRepository.DeleteAsync(id).Wait();
 
-                result.Result = true;
+               // result.Result = true;
                 result.IsSaved = true;
             }
             catch (Exception ex)
@@ -658,9 +658,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             return result;
         }
 
-        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
             string reason = "unknown";
             string softDeleting = "";
 
@@ -683,7 +683,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
                         if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
                         {
-                            result.Result = true;
+                            result.Result = saveHolonResult.Result;
                             result.IsSaved = true;
                         }
                         else
@@ -705,7 +705,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 else
                     holonRepository.DeleteAsync(providerKey).Wait();
 
-                result.Result = true;
+                //result.Result = true;
                 result.IsSaved = true;
             }
             catch (Exception ex)
@@ -716,9 +716,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             return result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
             string reason = "unknown";
             string softDeleting = "";
 
@@ -741,7 +741,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
                         if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
                         {
-                            result.Result = true;
+                            result.Result = saveHolonResult.Result;
                             result.IsSaved = true;
                         }
                         else
@@ -763,7 +763,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 else
                     await holonRepository.DeleteAsync(id);
 
-                result.Result = true;
+                //result.Result = true;
                 result.IsSaved = true;
             }
             catch (Exception ex)
@@ -774,9 +774,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             return result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
             string reason = "unknown";
             string softDeleting = "";
 
@@ -799,7 +799,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
                         if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
                         {
-                            result.Result = true;
+                            result.Result = saveHolonResult.Result;
                             result.IsSaved = true;
                         }
                         else
@@ -821,7 +821,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 else
                     await holonRepository.DeleteAsync(providerKey);
 
-                result.Result = true;
+                //result.Result = true;
                 result.IsSaved = true;
             }
             catch (Exception ex)
@@ -916,7 +916,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         //public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, int version = 0)
         {
             //return LoadAllHolonsAsync(type, version).Result;
-            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version).Result;
+            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
