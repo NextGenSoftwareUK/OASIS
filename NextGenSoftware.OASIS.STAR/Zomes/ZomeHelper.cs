@@ -97,9 +97,9 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             //SetParentIdsForHolon(greatGrandSuperStar, grandSuperStar, superStar, star, planet, moon, null, zome); //A zome is also a holon (everything is a holon).
             //SetParentIdsForHolon(greatGrandSuperStar, grandSuperStar, superStar, star, planet, moon, zome, null); //A zome is also a holon (everything is a holon).
 
-            if (zome.Holons != null)
+            if (zome.Children != null)
             {
-                foreach (IHolon holon in zome.Holons)
+                foreach (IHolon holon in zome.Children)
                     SetParentIdsForHolon(greatGrandSuperStar, grandSuperStar, superStar, star, planet, moon, zome, holon);
             }
         }

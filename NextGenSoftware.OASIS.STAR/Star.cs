@@ -1043,7 +1043,7 @@ namespace NextGenSoftware.OASIS.STAR
                             if (newBody != null )
                                 Mapper.MapParentCelestialBodyProperties(newBody, currentHolon);
                             
-                            currentZome.Holons.Add((Holon)currentHolon);
+                            ((List<IHolon>)currentZome.Children).Add((Holon)currentHolon);
 
                             holonNames.Add(holonName);
                             holonName = holonName.ToSnakeCase();

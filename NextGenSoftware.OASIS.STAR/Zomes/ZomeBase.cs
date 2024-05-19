@@ -49,6 +49,18 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         //    }
         //}
 
+        //public List<IHolon> Holons
+        //{
+        //    get
+        //    {
+        //        return _holons;
+        //    }
+        //    set
+        //    {
+        //        _holons = value;
+        //    }
+        //}
+
         public event ZomeLoaded OnLoaded;
         public event ZomeSaved OnSaved;
         public event ZomeError OnError;

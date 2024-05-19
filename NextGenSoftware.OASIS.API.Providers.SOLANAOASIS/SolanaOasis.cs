@@ -535,7 +535,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             return result;
         }
 
-        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
         {
             return DeleteHolonAsync(providerKey, softDelete).Result;
         }
@@ -545,17 +545,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             throw new NotImplementedException();
         }
 
-        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
             try

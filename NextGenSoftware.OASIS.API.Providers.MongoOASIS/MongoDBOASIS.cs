@@ -659,24 +659,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return result;
         }
 
-        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
         {
-            return new OASISResult<bool>(_holonRepository.Delete(id, softDelete));
+            return _holonRepository.Delete(id, softDelete);
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
-            return new OASISResult<bool>(await _holonRepository.DeleteAsync(id, softDelete));
+            return await _holonRepository.DeleteAsync(id, softDelete);
         }
 
-        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
         {
-            return new OASISResult<bool>(_holonRepository.Delete(providerKey, softDelete));
+            return _holonRepository.Delete(providerKey, softDelete);
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
-            return new OASISResult<bool>(await _holonRepository.DeleteAsync(providerKey, softDelete));
+            return await _holonRepository.DeleteAsync(providerKey, softDelete);
         }
 
         public IEnumerable<IHolon> GetHolonsNearMe(HolonType Type)

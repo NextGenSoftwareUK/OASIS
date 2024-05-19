@@ -49,8 +49,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IEnumerable<IMoon>> result = new OASISResult<IEnumerable<IMoon>>();
             OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(Planet.Moons, HolonType.Moon, refresh, loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
-            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IMoon>>.CopyResult(holonResult, result);
-            result.Result = Mapper<IHolon, Moon>.MapBaseHolonProperties(holonResult.Result);
+            OASISResultHelper.CopyResult(holonResult, result);
             return result;
         }
 
@@ -73,9 +72,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 return result;
             }
             
-            OASISResult<IEnumerable<IHolon>> holonResult = await SaveHolonsAsync(Planet.Moons, true, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
-            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IMoon>>.CopyResult(holonResult, result);
-            result.Result = Mapper<IHolon, Moon>.MapBaseHolonProperties(holonResult.Result);
+            OASISResult<IEnumerable<IHolon>> holonResult = await GlobalHolonData.SaveHolonsAsync(Planet.Moons, true, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+            OASISResultHelper.CopyResult(holonResult, result);
             return result;
         }
 

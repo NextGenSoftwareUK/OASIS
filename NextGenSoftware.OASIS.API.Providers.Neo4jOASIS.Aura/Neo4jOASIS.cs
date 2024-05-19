@@ -2573,7 +2573,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             return null;
         }
 
-        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
         {
             try
             {
@@ -2597,37 +2597,36 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
                 if (holonList.Count <= 0)
                 {
-                    return new OASISResult<bool>
+                    return new OASISResult<IHolon>
                     {
                         IsError = false,
                         Message = "Holon Deleted Successfully",
-                        Result = true
+                        IsDeleted = true,
+                        DeletedCount = 1
                     };
                 }
                 else
                 {
-                    return new OASISResult<bool>
+                    return new OASISResult<IHolon>
                     {
                         IsError = true,
-                        Message = "Something went wrong! please try again later",
-                        Result = false
+                        Message = "Something went wrong! please try again later"
                     };
                 }
 
             }
             catch (Exception ex)
             {
-                return new OASISResult<bool>
+                return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
+                    Message = ex.ToString()
                 };
             }
 
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
             try
             {
@@ -2653,35 +2652,34 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
                 if (holonList.Count <= 0)
                 {
-                    return new OASISResult<bool>
+                    return new OASISResult<IHolon>
                     {
                         IsError = false,
-                        Message = "Holon Deleted successfuly",
-                        Result = true
+                        IsDeleted = true,
+                        DeletedCount = 1,
+                        Message = "Holon Deleted successfuly"
                     };
                 }
                 else
                 {
-                    return new OASISResult<bool>
+                    return new OASISResult<IHolon>
                     {
                         IsError = true,
-                        Message = "Something went wrong! Please try again after sometime",
-                        Result = false
+                        Message = "Something went wrong! Please try again after sometime"
                     };
                 }
             }
             catch (Exception ex)
             {
-                return new OASISResult<bool>
+                return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
+                    Message = ex.ToString()
                 };
             }
         }
 
-        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
         {
             try
             {
@@ -2705,36 +2703,35 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
                 if (holonList.Count <= 0)
                 {
-                    return new OASISResult<bool>
+                    return new OASISResult<IHolon>
                     {
                         IsError = false,
-                        Message = "Holon Deleted Successfully",
-                        Result = true
+                        IsDeleted = true,
+                        DeletedCount = 1,
+                        Message = "Holon Deleted Successfully"
                     };
                 }
                 else
                 {
-                    return new OASISResult<bool>
+                    return new OASISResult<IHolon>
                     {
                         IsError = true,
-                        Message = "Something went wrong! please try again later",
-                        Result = false
+                        Message = "Something went wrong! please try again later"
                     };
                 }
 
             }
             catch (Exception ex)
             {
-                return new OASISResult<bool>
+                return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
+                    Message = ex.ToString()
                 };
             }
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
             try
             {
@@ -2760,30 +2757,29 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
                 if (holonList.Count <= 0)
                 {
-                    return new OASISResult<bool>
+                    return new OASISResult<IHolon>
                     {
                         IsError = false,
                         Message = "Holon Deleted successfuly",
-                        Result = true
+                        IsDeleted = true,
+                        DeletedCount = 1
                     };
                 }
                 else
                 {
-                    return new OASISResult<bool>
+                    return new OASISResult<IHolon>
                     {
                         IsError = true,
-                        Message = "Something went wrong! Please try again after sometime",
-                        Result = false
+                        Message = "Something went wrong! Please try again after sometime"
                     };
                 }
             }
             catch (Exception ex)
             {
-                return new OASISResult<bool>
+                return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
+                    Message = ex.ToString()
                 };
             }
         }

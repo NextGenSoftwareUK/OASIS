@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 using NextGenSoftware.OASIS.Common;
 
@@ -14,10 +15,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         Task<OASISResult<Holon>> AddAsync(Holon holon);
         OASISResult<Holon> Update(Holon holon);
         Task<OASISResult<Holon>> UpdateAsync(Holon holon);
-        bool Delete(Guid id, bool softDelete = true);
-        bool Delete(string providerKey, bool softDelete = true);
-        Task<bool> DeleteAsync(Guid id, bool softDelete = true);
-        Task<bool> DeleteAsync(string providerKey, bool softDelete = true);
+        OASISResult<IHolon> Delete(Guid id, bool softDelete = true);
+        OASISResult<IHolon> Delete(string providerKey, bool softDelete = true);
+        Task<OASISResult<IHolon>> DeleteAsync(Guid id, bool softDelete = true);
+        Task<OASISResult<IHolon>> DeleteAsync(string providerKey, bool softDelete = true);
         IEnumerable<Holon> GetAllHolons(HolonType holonType = HolonType.All);
         Task<IEnumerable<Holon>> GetAllHolonsAsync(HolonType holonType = HolonType.All);
         IEnumerable<Holon> GetAllHolonsForParent(Guid id, HolonType holonType);

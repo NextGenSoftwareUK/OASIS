@@ -1068,12 +1068,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
 
-            var result = new OASISResult<bool>();
+            var result = new OASISResult<IHolon>();
             try
             {
                 if (softDelete)
@@ -1081,7 +1081,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 else
                     _holonRepository.DeleteHard(id).Wait();
 
-                result.Result = true;
+                //result.Result = true;
                 result.IsSaved = true;
                 result.IsError = false;
             }
@@ -1093,12 +1093,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
 
-            var result = new OASISResult<bool>();
+            var result = new OASISResult<IHolon>();
             try
             {
                 if (softDelete)
@@ -1106,7 +1106,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 else
                     await _holonRepository.DeleteHard(id);
 
-                result.Result = true;
+                //result.Result = true;
                 result.IsSaved = true;
                 result.IsError = false;
             }
@@ -1118,12 +1118,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
@@ -1445,7 +1445,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 transation.Amount,
                 "SYS");
 
-            OASISResultHelper<ITransactionRespone, INFTTransactionRespone>.CopyResult(transferResult, result);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ITransactionRespone, INFTTransactionRespone>(transferResult, result);
             //OASISResultHelper.CopyResult<ITransactionRespone, INFTTransactionRespone>(transferResult, result);
             result.Result.TransactionResult = transferResult.Result.TransactionResult;
             result.Result.OASISNFT = null; //TODO: We may want to look up/pass the NFT MetaData in future...

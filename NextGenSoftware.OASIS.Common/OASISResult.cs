@@ -32,6 +32,7 @@ namespace NextGenSoftware.OASIS.Common
         public int WarningCount { get; set; }
         public int SavedCount { get; set; }
         public int LoadedCount { get; set; }
+        public int DeletedCount { get; set; }
         public bool HasAnyHolonsChanged { get; set; }
 
         public List<string> InnerMessages = new List<string>();
@@ -79,6 +80,7 @@ namespace NextGenSoftware.OASIS.Common
 
         public bool IsSaved { get; set; }
         public bool IsLoaded { get; set; }
+        public bool IsDeleted { get; set; }
 
         public string Message
         {

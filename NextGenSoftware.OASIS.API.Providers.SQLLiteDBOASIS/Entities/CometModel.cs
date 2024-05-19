@@ -56,7 +56,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             this.GenesisType = source.GenesisType;
         }
 
-        public IComet GetComet(){
+        //public IComet GetComet(){
+        public Comet GetComet()
+        {
 
             Comet item=new Comet();
 
