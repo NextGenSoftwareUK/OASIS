@@ -7,6 +7,7 @@
         Default,
         SolanaOASIS,
         HoloOASIS,
+        ArbitrumOASIS,
         EthereumOASIS,
         PolygonOASIS,
         EOSIOOASIS,
