@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -226,6 +226,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS Provider Template", "OASIS Provider Template", "{1E5E288F-133D-4ADC-B669-97FD8E5E67BC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS Providers", "OASIS Providers", "{B302F84B-2A07-453B-B148-DC9649BF335E}"
+	ProjectSection(SolutionItems) = preProject
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS.API.Core", "OASIS.API.Core", "{1CD64ADE-1AFF-46CC-A531-DFC6240C74C8}"
 EndProject
@@ -277,6 +279,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "STAR Runtime", "STAR Runtim
 	ProjectSection(SolutionItems) = preProject
 		Runtimes\STAR Runtime\STAR Runtime (With Holochain Conductors Embedded) v3.1.0.zip = Runtimes\STAR Runtime\STAR Runtime (With Holochain Conductors Embedded) v3.1.0.zip
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS", "NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj", "{443709F2-4574-456B-98C5-42BB600046FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness.csproj", "{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1962,6 +1968,42 @@ Global
 		{9D9AEA62-DB3B-4B1E-9AA6-8FB63AAAC4D0}.Release|x64.Build.0 = Release|Any CPU
 		{9D9AEA62-DB3B-4B1E-9AA6-8FB63AAAC4D0}.Release|x86.ActiveCfg = Release|Any CPU
 		{9D9AEA62-DB3B-4B1E-9AA6-8FB63AAAC4D0}.Release|x86.Build.0 = Release|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Debug|x64.Build.0 = Debug|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Debug|x86.Build.0 = Debug|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Linux|x64.Build.0 = Debug|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Linux|x86.Build.0 = Debug|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Release|x64.ActiveCfg = Release|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Release|x64.Build.0 = Release|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Release|x86.ActiveCfg = Release|Any CPU
+		{443709F2-4574-456B-98C5-42BB600046FD}.Release|x86.Build.0 = Release|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Debug|x64.Build.0 = Debug|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Debug|x86.Build.0 = Debug|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Linux|x64.Build.0 = Debug|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Linux|x86.Build.0 = Debug|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Release|x64.ActiveCfg = Release|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Release|x64.Build.0 = Release|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Release|x86.ActiveCfg = Release|Any CPU
+		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
