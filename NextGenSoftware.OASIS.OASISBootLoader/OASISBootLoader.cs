@@ -159,11 +159,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     ProviderManager.Instance.IsAutoReplicationEnabled = OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled;
 
                     LoggingManager.Log($"FIRING UP THE OASIS HYPERDRIVE...", LogType.Info, true);
-                    LoggingManager.Log($"LOADING PROVIDER LISTS...", LogType.Info, true, false, false, 1, true);
+                    //LoggingManager.Log($"LOADING PROVIDER LISTS...", LogType.Info, true, false, false, 1, true);
+                    LoggingManager.BeginLogAction($"LOADING PROVIDER LISTS...", LogType.Info);
                     OASISResult<bool> loadProviderListsResult = LoadProviderLists();
 
                     if (loadProviderListsResult != null && !loadProviderListsResult.IsError && !loadProviderListsResult.IsWarning)
-                        LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
+                        //LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
+                        LoggingManager.EndLogAction($"DONE", LogType.Info);
                     else
                     {
                         if (loadProviderListsResult.IsWarning)
@@ -186,10 +188,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         if (ProviderManager.Instance.OASISProviderBootType == OASISProviderBootType.Warm ||
                             ProviderManager.Instance.OASISProviderBootType == OASISProviderBootType.Hot)
                         {
-                            LoggingManager.Log($"REGISTERING PROVIDERS...", LogType.Info, true, false, false, 1, true);
+                            //LoggingManager.Log($"REGISTERING PROVIDERS...", LogType.Info, true, false, false, 1, true);
+                            LoggingManager.BeginLogAction($"REGISTERING PROVIDERS...", LogType.Info);
                             result = RegisterProvidersInAllLists();
-                            LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
-                            //LoggingManager.Log($"REGISTERING PROVIDERS... DONE", LogType.Info);
+                            LoggingManager.EndLogAction($"DONE", LogType.Info);
+                            //LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
 
                             if (activateDefaultStorageProvider)
                             {
@@ -218,9 +221,28 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                     if (result.Result && !result.IsError)
                     {
+                        if (!string.IsNullOrEmpty(OASISDNA.OASIS.OASISSystemAccountId))
+                            LoggingManager.Log($"OASISSystemAccountId Found In OASISDNA: {OASISDNA.OASIS.OASISSystemAccountId}.", LogType.Info);
+                        else
+                        {
+                            //LoggingManager.Log($"OASISSystemAccountId Not Found In OASISDNA So Generating Now...", LogType.Info, true, false, false, 1, true);
+                            LoggingManager.BeginLogAction($"OASISSystemAccountId Not Found In OASISDNA So Generating Now...", LogType.Info);
+
+                            //TODO: Later may need to actually create a avatar for this Id? So we can see which ids belong to OASIS Accounts outside of each ONODE (each ONODE has its own OASISDNA with its own system id's)
+                            OASISDNA.OASIS.OASISSystemAccountId = Guid.NewGuid().ToString();
+                            await OASISDNAManager.SaveDNAAsync(OASISDNAPath, OASISDNA);
+                            
+                            LoggingManager.EndLogAction($"DONE", LogType.Info);
+                            LoggingManager.Log($"OASISSystemAccountId Generated: {OASISDNA.OASIS.OASISSystemAccountId}.", LogType.Info);
+                        }
+
                         IsOASISBooted = true;
                         LoggingManager.Log($"OASIS HYPERDRIVE ONLINE.", LogType.Info);
                         LoggingManager.Log($"OASIS BOOTED.", LogType.Info);
+                        
+                        if (!string.IsNullOrEmpty(result.Message))
+                            LoggingManager.Log($"{result.Message}", LogType.Info);
+                        
                         LoggingManager.Log($"OASIS RUNTIME VERSION: {OASISVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (LIVE): {OASISDNA.OASIS.CurrentLiveVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (STAGING): {OASISDNA.OASIS.CurrentStagingVersion}.", LogType.Info);

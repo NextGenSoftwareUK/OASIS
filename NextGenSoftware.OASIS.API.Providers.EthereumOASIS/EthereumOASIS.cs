@@ -393,7 +393,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
         {
-            var result = new OASISResult<bool>();
+            var result = new OASISResult<IHolon>();
             string errorMessage = "Error in DeleteHolon method in EthereumOASIS while deleting holon. Reason: ";
 
             try
@@ -407,9 +407,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
                 
-                result.Result = true;
-                result.IsError = false;
-                result.IsSaved = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (RpcResponseException ex)
             {
@@ -439,9 +438,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
                 
-                //result.Result = true;
-                result.IsError = false;
-                result.IsSaved = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (RpcResponseException ex)
             {

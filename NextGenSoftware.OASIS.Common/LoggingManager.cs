@@ -49,6 +49,16 @@ namespace NextGenSoftware.OASIS.Common
             InitLogProvider();
         }
 
+        public static void BeginLogAction(string message, LogType logType)
+        {
+            Log(message, logType, true, false, false, 1, true);
+        }
+
+        public static void EndLogAction(string message, LogType logType)
+        {
+            Log(message, logType, false, false, false, 0);
+        }
+
         public static void Log(string message, LogType type, bool showWorkingAnimation = false, bool noLineBreaks = false, bool insertExtraNewLineAfterLogMessage = false, int? indentLogMessagesBy = 1, bool nextMessageOnSameLine = false)
         {
             Logger.Log($"{message}", type, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);

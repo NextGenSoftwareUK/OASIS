@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -453,7 +454,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                     var holonsResult = await SaveHolonsAsync(holon.Children, saveChildren, recursive, maxChildDepth, 0, continueOnError);
 
                     if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
-                        holon.Children = holonsResult.Result;
+                        holon.Children = holonsResult.Result.ToList();
                     else
                         OASISErrorHandling.HandleWarning(ref result, $"{holonsResult?.Message} saving {LoggingHelper.GetHolonInfoForLogging(holon)} children. Reason: {holonsResult?.Message}");
                 }
@@ -515,7 +516,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                         var holonsResult = await SaveHolonsAsync(holon.Children, saveChildren, recursive, maxChildDepth, currentChildDepth, continueOnError);
 
                         if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
-                            holon.Children = holonsResult.Result;
+                            holon.Children = holonsResult.Result.ToList();
                         else
                         {
                             OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} saving {LoggingHelper.GetHolonInfoForLogging(holon)} children. Reason: {holonsResult?.Message}");
@@ -557,19 +558,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
-            var result = new OASISResult<bool>();
+            var result = new OASISResult<IHolon>();
+
             try
             {
-                var deleteResult = await _solanaRepository.DeleteAsync(providerKey);
-                
-                result.IsError = !deleteResult;
-                result.IsSaved = deleteResult;
-                result.Result = deleteResult;
+                if (await _solanaRepository.DeleteAsync(providerKey))
+                {
+                    result.IsDeleted = true;
+                    result.DeletedCount = 1;
+                }
+                else
+                    result.IsError = true;
             }
             catch (Exception e)
             {
                 OASISErrorHandling.HandleError(ref result, e.Message);
             }
+
             return result;
         }
 

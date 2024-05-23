@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
-using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories
 {
@@ -428,7 +427,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
         }
 
-        public OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        public OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
         {
             try
             {
@@ -446,33 +445,31 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     }
 
                     _dbContext.SaveChangesAsync();
-                    return new OASISResult<bool>
+                    return new OASISResult<IHolon>
                     {
-                        IsError = false,
-                        Message = "Holon Deleted Successfully",
-                        Result = true
+                        IsDeleted = true,
+                        DeletedCount = 1,
+                        Message = "Holon Deleted Successfully"
                     };
                 }
 
-                return new OASISResult<bool>
+                return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = "Something went wrong! please try again later",
-                    Result = false
+                    Message = "Something went wrong! please try again later"
                 };
             }
             catch (Exception ex)
             {
-                return new OASISResult<bool>
+                return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
+                    Message = ex.ToString()
                 };
             }
         }
 
-        public async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
             try
             {
@@ -490,33 +487,33 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     }
 
                     await _dbContext.SaveChangesAsync();
-                    return new OASISResult<bool>
+                    return new OASISResult<IHolon>
                     {
                         IsError = false,
                         Message = "Holon Deleted Successfully",
-                        Result = true
+                        IsDeleted = true,
+                        DeletedCount = 1
+                        //Result = holon
                     };
                 }
 
-                return new OASISResult<bool>
+                return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = "Something went wrong! please try again later",
-                    Result = false
+                    Message = "Something went wrong! please try again later"
                 };
             }
             catch (Exception ex)
             {
-                return new OASISResult<bool>
+                return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
+                    Message = ex.ToString()
                 };
             }
         }
 
-        public OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        public OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
         {
             //try
             //{
@@ -544,7 +541,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             throw new NotImplementedException();
         }
 
-        public async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
             //try
             //{

@@ -162,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return response;
         }
 
-        public async Task<OASISResult<bool>> DeleteOlandAsync(Guid olandId)
+        public async Task<OASISResult<IHolon>> DeleteOlandAsync(Guid olandId)
         {
             return await Data.DeleteHolonAsync(olandId);
         }

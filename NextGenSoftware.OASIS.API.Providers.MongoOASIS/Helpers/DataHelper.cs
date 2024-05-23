@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
         public static OASISResult<IEnumerable<IAvatar>> ConvertMongoEntitysToOASISAvatars(OASISResult<IEnumerable<Avatar>> avatars)
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
-            OASISResultHelper.CopyResult < IEnumerable<Avatar>, IEnumerable<IAvatar>>(avatars, result);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(avatars, result);
 
             if (!avatars.IsError && avatars.Result != null)
                 result.Result = ConvertMongoEntitysToOASISAvatars(avatars.Result);
@@ -48,7 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
         {
             OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
             List<IAvatarDetail> oasisAvatars = new List<IAvatarDetail>();
-            OASISResultHelper<IEnumerable<AvatarDetail>, IEnumerable<IAvatarDetail>>.CopyResult(avatars, result);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(avatars, result);
 
             if (!avatars.IsError && avatars.Result != null)
             {
@@ -79,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
         public static OASISResult<IAvatar> ConvertMongoEntityToOASISAvatar(OASISResult<Avatar> avatarResult)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            OASISResultHelper.CopyResult<Avatar, IAvatar>(avatarResult, result);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(avatarResult, result);
 
             if (avatarResult.IsError || avatarResult.Result == null)
                 return result;
@@ -155,7 +155,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
         public static OASISResult<IAvatarDetail> ConvertMongoEntityToOASISAvatarDetail(OASISResult<AvatarDetail> avatar)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            OASISResultHelper<AvatarDetail, IAvatarDetail>.CopyResult(avatar, result);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(avatar, result);
 
             if (avatar.IsError || avatar.Result == null)
                 return result;
@@ -532,7 +532,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
         public static OASISResult<IHolon> ConvertMongoEntityToOASISHolon(OASISResult<Holon> holon)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISResultHelper<Holon, IHolon>.CopyResult(holon, result);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(holon, result);
 
             if (holon.IsError || holon.Result == null)
             {

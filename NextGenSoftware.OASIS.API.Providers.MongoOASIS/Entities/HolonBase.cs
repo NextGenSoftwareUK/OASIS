@@ -69,23 +69,23 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 
        // [BsonRepresentation(BsonType.ObjectId)]
         public string DeletedByAvatarId { get; set; }
-        public IEnumerable<IHolon> Children { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public ObservableCollection<IHolon> ChildrenTest { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public Core.Holons.Avatar CreatedByAvatar { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public Core.Holons.Avatar DeletedByAvatar { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public EnumValue<ProviderType> InstanceSavedOnProviderType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public bool IsNewHolon { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public bool IsSaving { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public Core.Holons.Avatar ModifiedByAvatar { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public IHolon Original { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public IHolon ParentHolon { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public Guid ParentHolonId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public Guid VersionId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public GlobalHolonData GlobalHolonData { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        Guid IHolonBase.CreatedByAvatarId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        Guid IHolonBase.DeletedByAvatarId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        Guid IHolonBase.Id { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        Guid IHolonBase.ModifiedByAvatarId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public IList<IHolon> Children { get; set; }
+        public ObservableCollection<IHolon> ChildrenTest { get; set; }
+        public Core.Holons.Avatar CreatedByAvatar { get; set; }
+        public Core.Holons.Avatar DeletedByAvatar { get; set; }
+        public EnumValue<ProviderType> InstanceSavedOnProviderType { get; set; }
+        public bool IsNewHolon { get; set; }
+        public bool IsSaving { get; set; }
+        public Core.Holons.Avatar ModifiedByAvatar { get; set; }
+        public IHolon Original { get; set; }
+        public IHolon ParentHolon { get; set; }
+        public Guid ParentHolonId { get; set; }
+        public Guid VersionId { get; set; }
+        public GlobalHolonData GlobalHolonData { get; set; }
+        Guid IHolonBase.CreatedByAvatarId { get; set; }
+        Guid IHolonBase.DeletedByAvatarId { get; set; }
+        Guid IHolonBase.Id { get; set; }
+        Guid IHolonBase.ModifiedByAvatarId { get; set; }
 
         public event EventDelegates.HolonsLoaded OnChildrenLoaded;
         public event EventDelegates.HolonsError OnChildrenLoadError;

@@ -38,8 +38,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<ISolarSystem>> AddSolarSystemAsync(ISolarSystem solarSystem)
         {
-            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(Star, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.Convert(Star.ParentGalaxy.SolarSystems));
-            OASISResult<ISolarSystem> result = OASISResultHelper<IHolon, ISolarSystem>.CopyResult(holonResult, new OASISResult<ISolarSystem>());
+            OASISResult<IHolon> holonResult = await GlobalHolonData.AddHolonToCollectionAsync(Star, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.Convert(Star.ParentGalaxy.SolarSystems));
+            OASISResult<ISolarSystem> result = OASISResultHelper.CopyResult(holonResult, new OASISResult<ISolarSystem>());
             result.Result = (ISolarSystem)holonResult.Result;
             return result;
 
@@ -60,15 +60,15 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 //Star.ParentSolarSystem = new SolarSystem(Star.ParentSolarSystemId);
 
 
-            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(Star, planet, (List<IHolon>)Mapper<IPlanet, Holon>.Convert(Star.ParentSolarSystem.Planets), false);
-            OASISResult<IPlanet> result = OASISResultHelper<IHolon, IPlanet>.CopyResult(holonResult, new OASISResult<IPlanet>());
+            OASISResult<IHolon> holonResult = await GlobalHolonData.AddHolonToCollectionAsync(Star, planet, (List<IHolon>)Mapper<IPlanet, Holon>.Convert(Star.ParentSolarSystem.Planets), false);
+            OASISResult<IPlanet> result = OASISResultHelper.CopyResult(holonResult, new OASISResult<IPlanet>());
             result.Result = (IPlanet)holonResult.Result;
 
             if (result != null && result.Result != null && !result.IsError)
             {
                 //OASISResult<ICelestialBody> celestialBodyResult = await planet.SaveAsync<Planet>();
                 OASISResult<ICelestialBody> celestialBodyResult = await planet.SaveAsync();
-                result = OASISResultHelper<ICelestialBody, IPlanet>.CopyResult(celestialBodyResult, result);
+                result = OASISResultHelper.CopyResult(celestialBodyResult, result);
                 result.Result = (IPlanet)celestialBodyResult.Result;
             }
 
@@ -92,8 +92,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             foreach (IMoon innerMoon in parentPlanet.Moons)
                 holons.Add(innerMoon);
 
-            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(parentPlanet, moon, holons);
-            OASISResultHelper<IHolon, IMoon>.CopyResult(holonResult, result);
+            OASISResult<IHolon> holonResult = await GlobalHolonData.AddHolonToCollectionAsync(parentPlanet, moon, holons);
+            OASISResultHelper.CopyResult(holonResult, result);
             result.Result = (IMoon)holonResult.Result;
             return result;
 
@@ -111,7 +111,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
             OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(Star.ParentSolarSystem.Planets, HolonType.Planet, refresh);
-            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IPlanet>>.CopyResult(holonResult, result);
+            OASISResultHelper.CopyResult(holonResult, result);
             result.Result = Mapper<IHolon, Planet>.MapBaseHolonProperties(holonResult.Result);
             return result;
         }
@@ -125,7 +125,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IEnumerable<IMoon>> result = new OASISResult<IEnumerable<IMoon>>();
             OASISResult<IEnumerable<IPlanet>> planetsResult = await GetAllPlanetsForSolarSystemAsync(refresh);
-            OASISResultHelper<IEnumerable<IPlanet>, IEnumerable<IMoon>>.CopyResult(planetsResult, result);
+            OASISResultHelper.CopyResult(planetsResult, result);
 
             if (!planetsResult.IsError)
             {

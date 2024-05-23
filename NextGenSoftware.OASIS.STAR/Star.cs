@@ -467,6 +467,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (!result.IsError)
             {
                 LoggedInAvatar = (Avatar)result.Result;
+                OASISAPI.LogAvatarIntoOASISManagers(); //TODO: Is there a better way of doing this?
 
                 OASISResult<IAvatarDetail> loggedInAvatarDetailResult = await OASISAPI.Avatar.LoadAvatarDetailAsync(LoggedInAvatar.Id);
 
@@ -1856,7 +1857,7 @@ namespace NextGenSoftware.OASIS.STAR
             //It will also create the GreatGrandCentralStar in the centre of the Omniverse and also a GrandCentralStar at the centre of the Multiverse.
             Omniverse omniverse = new Omniverse();
             celestialSpaceResult = await omniverse.SaveAsync();
-            OASISResultHelper<ICelestialSpace, IOmiverse>.CopyResult(celestialSpaceResult, result);
+            OASISResultHelper.CopyResult(celestialSpaceResult, result);
             result.Result = (IOmiverse)celestialSpaceResult.Result;
 
             if (!result.IsError && result.Result != null)
@@ -2024,28 +2025,28 @@ namespace NextGenSoftware.OASIS.STAR
                                 }
                                 else
                                 {
-                                    OASISResultHelper<IPlanet, IOmiverse>.CopyResult(ourWorldResult, result);
+                                    OASISResultHelper.CopyResult(ourWorldResult, result);
                                     OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Our World. Reason: {ourWorldResult.Message}." });
                                 }
                             }
                             else
-                                OASISResultHelper<ISolarSystem, IOmiverse>.CopyResult(solarSystemResult, result);
+                                OASISResultHelper.CopyResult(solarSystemResult, result);
                         }
                         else
                         {
-                            OASISResultHelper<IStar, IOmiverse>.CopyResult(starResult, result);
+                            OASISResultHelper.CopyResult(starResult, result);
                             OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Star. Reason: {starResult.Message}." });
                         }
                     }
                     else
                     {
-                        OASISResultHelper<IGalaxy, IOmiverse>.CopyResult(galaxyResult, result);
+                        OASISResultHelper.CopyResult(galaxyResult, result);
                         OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Galaxy. Reason: {galaxyResult.Message}." });
                     }
                 }
                 else
                 {
-                    OASISResultHelper<IGalaxyCluster, IOmiverse>.CopyResult(galaxyClusterResult, result);
+                    OASISResultHelper.CopyResult(galaxyClusterResult, result);
                     OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Galaxy Cluster. Reason: {galaxyClusterResult.Message}." });
                 }
                 //}

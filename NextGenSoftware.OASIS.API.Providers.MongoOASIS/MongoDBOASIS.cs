@@ -510,7 +510,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
 
                 if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
-                    result.Result.Children = saveChildrenResult.Result;
+                    result.Result.Children = saveChildrenResult.Result.ToList();
                 else
                 {
                     result.IsError = true;
@@ -532,7 +532,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
 
                 if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
-                    result.Result.Children = saveChildrenResult.Result;
+                    result.Result.Children = saveChildrenResult.Result.ToList();
                 else
                 {
                     result.IsError = true;
@@ -576,7 +576,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                         OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(holonResult.Result.Children);
 
                         if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
-                            holonResult.Result.Children = saveChildrenResult.Result;
+                            holonResult.Result.Children = saveChildrenResult.Result.ToList();
                         else
                         {
                             result.IsError = true;
@@ -634,7 +634,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                         OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(holonResult.Result.Children);
 
                         if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
-                            holonResult.Result.Children = saveChildrenResult.Result;
+                            holonResult.Result.Children = saveChildrenResult.Result.ToList();
                         else
                         {
                             result.IsError = true;

@@ -128,6 +128,11 @@ namespace NextGenSoftware.OASIS.API.DNA
             return result;
         }
 
+        public static async Task<OASISResult<bool>> SaveDNAAsync()
+        {
+            return await SaveDNAAsync(OASISDNAPath, OASISDNA);
+        }
+
         public static async Task<OASISResult<bool>> SaveDNAAsync(string OASISDNAPath, OASISDNA OASISDNA)
         {
             OASISResult<bool> result = new OASISResult<bool>();
@@ -138,7 +143,7 @@ namespace NextGenSoftware.OASIS.API.DNA
                 if (string.IsNullOrEmpty(OASISDNAPath))
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNAPath cannot be null.");
 
-                else if (File.Exists(OASISDNAPath))
+                else if (!File.Exists(OASISDNAPath))
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage}The OASISDNAPath ({OASISDNAPath}) is not valid. Please make sure the OASISDNAPath is valid and that it points to the OASISDNA.json file.");
 
                 else
