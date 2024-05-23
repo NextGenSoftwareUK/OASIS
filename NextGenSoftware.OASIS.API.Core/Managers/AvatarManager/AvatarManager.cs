@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -16,8 +16,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     {
         private static AvatarManager _instance = null;
         private ProviderManagerConfig _config;
+        private static IAvatar _loggedInAvatar = null;
 
-        public static IAvatar LoggedInAvatar { get; set; } //TODO: NEED TO REMOVE THIS ASAP AND JUST PASS THE AVATARID TO ALL FUNCTIONS, BIG REFACTOR BUT NEEDS TO BE DONE! GULP! ;-)
+        //public static IAvatar OASISSystemAccount { get; set; } //TODO: Later may need to actually create a avatar for this Id? So we can see which ids belong to OASIS Accounts outside of each ONODE (each ONODE has its own OASISDNA with its own system id's).
+
+        public static IAvatar LoggedInAvatar 
+        { 
+            get
+            {
+                //If there is no logged in user then default to the OASIS System Account Id. //TODO: May need to look into this in more detail later to work out all use/edge cases etc...
+                if (_loggedInAvatar == null)
+                    _loggedInAvatar = new Avatar() { Id = new Guid(Instance.OASISDNA.OASIS.OASISSystemAccountId) };
+
+                return _loggedInAvatar;
+            }
+            set
+            {
+                _loggedInAvatar = value;
+            }
+        } 
+        
         public static Dictionary<string, IAvatar> LoggedInAvatarSessions { get; set; }
         //public List<IOASISStorageProvider> OASISStorageProviders { get; set; }
 

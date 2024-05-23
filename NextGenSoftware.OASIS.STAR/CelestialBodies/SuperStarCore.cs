@@ -51,7 +51,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<IStar>> AddStarAsync(IStar star)
         {
-            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(SuperStar, star, (List<IHolon>)Mapper<IStar, Holon>.Convert(SuperStar.ParentGalaxy.Stars));
+            OASISResult<IHolon> holonResult = await GlobalHolonData.AddHolonToCollectionAsync(SuperStar, star, (List<IHolon>)Mapper<IStar, Holon>.Convert(SuperStar.ParentGalaxy.Stars));
             OASISResult<IStar> result = OASISResultHelper.CopyResult(holonResult, new OASISResult<IStar>());
             result.Result = (IStar)holonResult.Result;
             return result;
@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.STAR
         public async Task<OASISResult<IPlanet>> AddPlanetAsync(IPlanet planet)
         {
             return OASISResultHelper.CopyResult(
-                await AddHolonToCollectionAsync(SuperStar, planet, (List<IHolon>)Mapper<IPlanet, Holon>.MapBaseHolonProperties(
+                await GlobalHolonData.AddHolonToCollectionAsync(SuperStar, planet, (List<IHolon>)Mapper<IPlanet, Holon>.MapBaseHolonProperties(
                     SuperStar.ParentGalaxy.Planets)), new OASISResult<IPlanet>());
         }
 
@@ -81,7 +81,7 @@ namespace NextGenSoftware.OASIS.STAR
         public async Task<OASISResult<IAsteroid>> AddAsteroidAsync(IAsteroid asteroid)
         {
             return OASISResultHelper.CopyResult(
-                await AddHolonToCollectionAsync(SuperStar, asteroid, (List<IHolon>)Mapper<IAsteroid, Holon>.MapBaseHolonProperties(
+                await GlobalHolonData.AddHolonToCollectionAsync(SuperStar, asteroid, (List<IHolon>)Mapper<IAsteroid, Holon>.MapBaseHolonProperties(
                     SuperStar.ParentGalaxy.Asteroids)), new OASISResult<IAsteroid>());
         }
 
@@ -93,7 +93,7 @@ namespace NextGenSoftware.OASIS.STAR
         public async Task<OASISResult<IComet>> AddCometAsync(IComet comet)
         {
             return OASISResultHelper.CopyResult(
-                await AddHolonToCollectionAsync(SuperStar, comet, (List<IHolon>)Mapper<IComet, Holon>.MapBaseHolonProperties(
+                await GlobalHolonData.AddHolonToCollectionAsync(SuperStar, comet, (List<IHolon>)Mapper<IComet, Holon>.MapBaseHolonProperties(
                     SuperStar.ParentGalaxy.Comets)), new OASISResult<IComet>());
         }
 
@@ -105,7 +105,7 @@ namespace NextGenSoftware.OASIS.STAR
         public async Task<OASISResult<IMeteroid>> AddMeteroidAsync(IMeteroid meteroid)
         {
             return OASISResultHelper.CopyResult(
-                await AddHolonToCollectionAsync(SuperStar, meteroid, (List<IHolon>)Mapper<IMeteroid, Holon>.MapBaseHolonProperties(
+                await GlobalHolonData.AddHolonToCollectionAsync(SuperStar, meteroid, (List<IHolon>)Mapper<IMeteroid, Holon>.MapBaseHolonProperties(
                     SuperStar.ParentGalaxy.Meteroids)), new OASISResult<IMeteroid>());
         }
 
@@ -117,7 +117,7 @@ namespace NextGenSoftware.OASIS.STAR
         public async Task<OASISResult<INebula>> AddNebulaAsync(INebula nebula)
         {
             return OASISResultHelper.CopyResult(
-                await AddHolonToCollectionAsync(SuperStar, nebula, (List<IHolon>)Mapper<INebula, Holon>.MapBaseHolonProperties(
+                await GlobalHolonData.AddHolonToCollectionAsync(SuperStar, nebula, (List<IHolon>)Mapper<INebula, Holon>.MapBaseHolonProperties(
                     SuperStar.ParentGalaxy.Nebulas)), new OASISResult<INebula>());
         }
 

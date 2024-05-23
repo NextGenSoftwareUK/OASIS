@@ -75,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 result.Result.JsonSelectedTiles = result.Result.MetaData["AvatarId"].ToString();
             }
             else
-                OASISResultHelper<IHolon, PurchaseNFTHolon>.CopyResult(holonResult, result);
+                OASISResultHelper.CopyResult(holonResult, result);
 
             return result;
         }

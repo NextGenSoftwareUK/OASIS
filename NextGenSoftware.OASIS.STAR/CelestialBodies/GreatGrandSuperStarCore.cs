@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -8,7 +9,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.STAR.CelestialSpace;
-using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -40,13 +40,12 @@ namespace NextGenSoftware.OASIS.STAR
         public async Task<OASISResult<IOmiverse>> AddOmiverseAsync(IOmiverse omniverse)
         {
             OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
-            OASISResult<IHolon> holonResult = await SaveHolonAsync(omniverse, false);
+            OASISResult<IHolon> holonResult = await GlobalHolonData.SaveHolonAsync(omniverse, false);
 
             if (!holonResult.IsError && holonResult.Result != null)
                 result.Result = (IOmiverse)holonResult.Result;
-                //result.Result = Mapper<IHolon, Omniverse>.MapBaseHolonProperties(holonResult.Result);
             else
-                OASISResultHelper<IHolon, IOmiverse>.CopyResult(holonResult, result);
+                OASISResultHelper.CopyResult(holonResult, result);
 
             return result;
         }
@@ -77,8 +76,8 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<IDimension>> AddDimensionToOmniverseAsync(IDimension dimension)
         {
-            return OASISResultHelper<IHolon, IDimension>.CopyResult(
-                await AddHolonToCollectionAsync(GreatGrandSuperStar, dimension, (List<IHolon>)Mapper<IDimension, Holon>.MapBaseHolonProperties(
+            return OASISResultHelper.CopyResult(
+                await GlobalHolonData.AddHolonToCollectionAsync(GreatGrandSuperStar, dimension, (List<IHolon>)Mapper<IDimension, Holon>.MapBaseHolonProperties(
                     GreatGrandSuperStar.ParentOmniverse.Dimensions.CustomDimensions)), new OASISResult<IDimension>());
         }
 
@@ -105,8 +104,8 @@ namespace NextGenSoftware.OASIS.STAR
             multiverse.ParentGrandSuperStar = multiverse.GrandSuperStar;
             multiverse.ParentGrandSuperStarId = multiverse.GrandSuperStar.Id;
 
-            OASISResult<IHolon> holonResult =  await AddHolonToCollectionAsync(GreatGrandSuperStar, multiverse, (List<IHolon>)Mapper<IMultiverse, Holon>.Convert(GreatGrandSuperStar.ParentOmniverse.Multiverses));
-            OASISResult<IMultiverse> multiverseResult = OASISResultHelper<IHolon, IMultiverse>.CopyResult(holonResult, new OASISResult<IMultiverse>());
+            OASISResult<IHolon> holonResult =  await GlobalHolonData.AddHolonToCollectionAsync(GreatGrandSuperStar, multiverse, (List<IHolon>)Mapper<IMultiverse, Holon>.Convert(GreatGrandSuperStar.ParentOmniverse.Multiverses));
+            OASISResult<IMultiverse> multiverseResult = OASISResultHelper.CopyResult(holonResult, new OASISResult<IMultiverse>());
             multiverseResult.Result = (IMultiverse)holonResult.Result;
 
             if (!multiverseResult.IsError && multiverseResult.Result != null)

@@ -20,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public SecuritySettings Security { get; set; }
         public EmailSettings Email { get; set; }
         public StorageProviderSettings StorageProviders { get; set; }
+        public string OASISSystemAccountId { get; set; }
     }
 
     public class SecuritySettings

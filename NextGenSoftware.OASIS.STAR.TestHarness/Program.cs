@@ -174,7 +174,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 newHolon.HolonType = HolonType.Park;
 
                 CLIEngine.ShowWorkingMessage("Saving Test Holon...");
-                OASISResult<IHolon> holonResult =  await result.Result.CelestialBody.CelestialBodyCore.SaveHolonAsync(newHolon);
+                OASISResult<IHolon> holonResult =  await result.Result.CelestialBody.CelestialBodyCore.GlobalHolonData.SaveHolonAsync(newHolon);
 
                 if (!holonResult.IsError && holonResult.Result != null)
                 {
@@ -425,7 +425,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 CLIEngine.ShowErrorMessage("Error Loading Holon");
 
             CLIEngine.ShowWorkingMessage("Loading Test Holon Only For IPFSOASIS Provider...");
-            holonResult = STAR.OASISAPI.Data.LoadHolon(newHolon.Id, true, true, 0, true, 0, ProviderType.IPFSOASIS); // Only loads from IPFS.
+            holonResult = STAR.OASISAPI.Data.LoadHolon(newHolon.Id, true, true, 0, true, false, 0, ProviderType.IPFSOASIS); // Only loads from IPFS.
 
             if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
             {
@@ -438,19 +438,19 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 CLIEngine.ShowErrorMessage("Error Loading Holon");
 
             CLIEngine.ShowWorkingMessage("Loading All Holons Of Type Moon Only For HoloOASIS Provider...");
-            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Moon, true, true, 0, true, 0, ProviderType.HoloOASIS)); // Loads all moon (OAPPs) from Holochain.
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Moon, true, true, 0, true, false, 0, ProviderType.HoloOASIS)); // Loads all moon (OAPPs) from Holochain.
 
             CLIEngine.ShowWorkingMessage("Saving Test Holon (Load Balanced Across All Providers)...");
-            HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon), "Holon Saved Successfully.", "Error Saving Holon."); // Load-balanced across all providers.
+            HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon, STAR.LoggedInAvatar.Id), "Holon Saved Successfully.", "Error Saving Holon."); // Load-balanced across all providers.
 
             CLIEngine.ShowWorkingMessage("Saving Test Holon Only For The EthereumOASIS Provider...");
-            HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon, true, true, 0, true, ProviderType.EthereumOASIS), "Holon Saved Successfully.", "Error Saving Holon."); //  Only saves to Etherum.
+            HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon, STAR.LoggedInAvatar.Id, true, true, 0, true, false, ProviderType.EthereumOASIS), "Holon Saved Successfully.", "Error Saving Holon."); //  Only saves to Etherum.
 
             CLIEngine.ShowWorkingMessage("Loading All Holons From The Current Default Provider (With Auto-FailOver)...");
-            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, true, true, 0, true, 0, ProviderType.Default)); // Loads all holons from current default provider.
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, true, true, 0, true, false, 0, ProviderType.Default)); // Loads all holons from current default provider.
 
             CLIEngine.ShowWorkingMessage("Loading All Park Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
-            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park, true, true, 0, true, 0, ProviderType.All)); // Loads all parks from all providers (load-balanced/fail over).
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park, true, true, 0, true, false, 0, ProviderType.All)); // Loads all parks from all providers (load-balanced/fail over).
 
             //CLIEngine.ShowWorkingMessage("Loading All Park Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
             STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
@@ -870,7 +870,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 int iNoHolons = 0;
                 foreach (IZome zome in lightResult.Result.Zomes)
-                    iNoHolons += zome.Holons.Count;
+                    iNoHolons += zome.Children.Count();
 
                 CLIEngine.ShowSuccessMessage($"{lightResult.Result.Zomes.Count} Zomes & {iNoHolons} Holons Generated.");
 
@@ -890,8 +890,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             foreach (IZome zome in zomes)
             {
-                Console.WriteLine(string.Concat("  Zome Name: ", zome.Name, " Zome Id: ", zome.Id, " containing ", zome.Holons.Count(), " holon(s):"));
-                ShowHolons(zome.Holons, " ");
+                Console.WriteLine(string.Concat("  Zome Name: ", zome.Name, " Zome Id: ", zome.Id, " containing ", zome.Children.Count(), " holon(s):"));
+                ShowHolons(zome.Children, " ");
             }
         }
 
@@ -1401,8 +1401,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 switch (e.Status)
                 {
                     case Enums.StarStatus.BootingOASIS:
-                        CLIEngine.ShowWorkingMessage("BOOTING OASIS...");
-                        break;
+                        //CLIEngine.ShowWorkingMessage("BOOTING OASIS...");
+                        //break;
 
                     case Enums.StarStatus.OASISBooted:
                         //CLIEngine.ShowSuccessMessage("OASIS BOOTED"); //OASISBootLoader already shows this message so no need to show again! ;-)
@@ -1583,7 +1583,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine(string.Concat(" Holon Description: ", e.Result.Result.Description));
 
             //Console.WriteLine(string.Concat("ourWorld.Zomes[0].Holons[0].ProviderUniqueStorageKey: ", ourWorld.Zomes[0].Holons[0].ProviderUniqueStorageKey));
-            Console.WriteLine(string.Concat(" ourWorld.Zomes[0].Holons[0].ProviderUniqueStorageKey: ", _superWorld.CelestialBodyCore.Zomes[0].Holons[0].ProviderUniqueStorageKey));
+            Console.WriteLine(string.Concat(" ourWorld.Zomes[0].Holons[0].ProviderUniqueStorageKey: ", _superWorld.CelestialBodyCore.Zomes[0].Children[0].ProviderUniqueStorageKey));
         }
 
         private static void OurWorld_OnHolonSaved(object sender, HolonSavedEventArgs e)
@@ -1601,7 +1601,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 Console.WriteLine(" Loading Holon...");
                 //ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Name, e.Holon.ProviderUniqueStorageKey);
-                _superWorld.CelestialBodyCore.LoadHolonAsync(e.Result.Result.Id);
+                _superWorld.CelestialBodyCore.GlobalHolonData.LoadHolonAsync(e.Result.Result.Id);
             }
         }
     }

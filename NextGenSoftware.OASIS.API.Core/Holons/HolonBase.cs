@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
@@ -123,7 +124,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public EnumValue<OASISType> CreatedOASISType { get; set; }
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
-        public IEnumerable<IHolon> Children { get; set; }
+        //public IEnumerable<IHolon> Children { get; set; }
+        public IList<IHolon> Children { get; set; } = new List<IHolon>();
         //public ObservableCollection<IHolon> Children { get; set; }
 
         /// <summary>
@@ -474,7 +476,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (result != null && !result.IsError && result.Result != null)
                 {
                     //this.Children = new ObservableCollection<IHolon>(result.Result);
-                    this.Children = result.Result;
+                    this.Children = result.Result.ToList();
                     OnChildrenLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
                 }
                 else
@@ -520,7 +522,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (result != null && !result.IsError && result.Result != null)
                 {
                     //this.Children = new ObservableCollection<IHolon>(result.Result);
-                    this.Children = result.Result;
+                    this.Children = result.Result.ToList();
                     OnChildrenLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
                 }
                 else
@@ -566,7 +568,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (result != null && !result.IsError && result.Result != null)
                 {
                     //this.Children = new ObservableCollection<IHolon>(Mapper.Convert(result.Result));
-                    this.Children = Mapper.Convert(result.Result);
+                    this.Children = Mapper.Convert(result.Result).ToList();
                     OnChildrenLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
                 }
                 else
@@ -612,7 +614,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (result != null && !result.IsError && result.Result != null)
                 {
                     //this.Children = new ObservableCollection<IHolon>(Mapper.Convert(result.Result));
-                    this.Children = Mapper.Convert(result.Result);
+                    this.Children = Mapper.Convert(result.Result).ToList();
                     OnChildrenLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
                 }
                 else

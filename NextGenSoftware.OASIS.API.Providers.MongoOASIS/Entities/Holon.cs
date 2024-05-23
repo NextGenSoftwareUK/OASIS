@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson.Serialization.Options;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
@@ -71,9 +67,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 
         public Guid ParentZomeId { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
-        public Guid ParentHolonId { get; set; }
-        public IHolon ParentHolon { get; set; }
-        public IEnumerable<IHolon> Children { get; set; }
+        //public Guid ParentHolonId { get; set; }
+        //public IHolon ParentHolon { get; set; }
+        //public IEnumerable<IHolon> Children { get; set; }
         //public ProviderType CreatedProviderType { get; set; }
         //public ObservableCollection<INode> Nodes { get; set; }
 

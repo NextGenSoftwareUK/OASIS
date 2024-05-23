@@ -388,7 +388,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                         if (saveChildren)
                         {
-                            OASISResult<IEnumerable<IMoon>> moonsResult = await ((PlanetCore)this.CelestialBodyCore).SaveMoonsAsync(saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+                            OASISResult<IEnumerable<IMoon>> moonsResult = await ((PlanetCore)this.CelestialBodyCore).SaveMoonsAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                             if (!(moonsResult != null && !moonsResult.IsError))
                             {

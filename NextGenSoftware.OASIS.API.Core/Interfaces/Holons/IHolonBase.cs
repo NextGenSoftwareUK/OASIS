@@ -13,7 +13,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
     public interface IHolonBase
     {
         //IEnumerable<IHolon> Children { get; set; }
-        IEnumerable<IHolon> Children { get; set; }
+        //IEnumerable<IHolon> Children { get; set; }
+        IList<IHolon> Children { get; set; }
         //ObservableCollection<IHolon> ChildrenTest { get; set; }
         Avatar CreatedByAvatar { get; set; }
         Guid CreatedByAvatarId { get; set; }
