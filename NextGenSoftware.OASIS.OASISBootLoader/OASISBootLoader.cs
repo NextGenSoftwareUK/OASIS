@@ -21,6 +21,7 @@ using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
+using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 //using System.Reflection;
 
 namespace NextGenSoftware.OASIS.OASISBootLoader
@@ -34,7 +35,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public delegate void OASISBootLoaderError(object sender, OASISErrorEventArgs e);
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
-        public static string OASISVersion { get; set; } = "v3.1.1"; 
+        public static string OASISVersion { get; set; } = "v3.1.1";
 
         //public static string OASISVersion
         //{
@@ -52,7 +53,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         //}
 
         public static string OASISDNAPath
-        { 
+        {
             get
             {
                 return OASISDNAManager.OASISDNAPath;
@@ -74,7 +75,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 OASISDNAManager.OASISDNA = value;
             }
         }
-      
+
         public static OASISResult<bool> BootOASIS(string OASISDNAFileName, bool activateDefaultStorageProvider = true)
         {
             OASISResult<bool> result = new OASISResult<bool>();
@@ -112,7 +113,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             object OASISProviderBootTypeObject = null;
             string errorMessage = "Error Occured In OASISBootLoader.BootOASISAsync. Reason: ";
 
-           try
+            try
             {
                 if (!IsOASISBooting)
                 {
@@ -122,7 +123,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     {
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNA is null! Please make sure you pass in a valid OASISDNA and make sure the OASISDNA.json file exists in the path specefied.");
                         return result;
-                    }    
+                    }
 
                     OASISDNAManager.OASISDNA = OASISDNA;
                     LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
@@ -199,8 +200,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 if (activateResult != null && activateResult.IsError)
                                     OASISErrorHandling.HandleWarning(ref result, $"Error Occured In OASISBootLoader.BootOASISAsync. Reason: GetAndActivateDefaultStorageProviderAsync returned the following error: {activateResult.Message}");
                                 //else
-                                    //LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
-                                    //LoggingManager.Log($"ACTIVATING DEFAULT PROVIDER... DONE", LogType.Info);
+                                //LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
+                                //LoggingManager.Log($"ACTIVATING DEFAULT PROVIDER... DONE", LogType.Info);
                             }
                         }
                         else
@@ -261,14 +262,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             {
                 try
                 {
-                     OASISResult<bool> providerResult = provider.DeActivateProvider();
+                    OASISResult<bool> providerResult = provider.DeActivateProvider();
 
                     if (providerResult != null && providerResult.IsError)
                         result.InnerMessages.Add($"Error Occured In Provider {provider.ProviderName} Calling DeActivateProvider. Reason: {providerResult.Message}");
                 }
-                catch (Exception e) 
-                { 
-                    OASISErrorHandling.HandleWarning(ref result, $"Error Occured In OASISBootLoader In Method ShutdownOASIS Calling DeActivateProvider On Provider {provider.ProviderName}. Reason: {e}", true); 
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleWarning(ref result, $"Error Occured In OASISBootLoader In Method ShutdownOASIS Calling DeActivateProvider On Provider {provider.ProviderName}. Reason: {e}", true);
                 }
             }
 
@@ -776,6 +777,19 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
+                        case ProviderType.ArbitrumOASIS:
+                            {
+                                ArbitrumOASIS ArbitrumOASIS = new(
+                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ChainPrivateKey,
+                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ChainId,
+                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ContractAddress,
+                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.Abi);
+                                ArbitrumOASIS.OnStorageProviderError += EthereumOASIS_StorageProviderError;
+                                result.Result = ArbitrumOASIS;
+                            }
+                            break;
+
                         case ProviderType.ThreeFoldOASIS:
                             {
                                 ThreeFoldOASIS ThreeFoldOASIS = new ThreeFoldOASIS(overrideConnectionString == null
@@ -814,7 +828,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 else
                     result.Result = (IOASISStorageProvider)ProviderManager.Instance.GetProvider(providerType);
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In OASISBootLoader In Method RegisterProviderInternal. Reason: {e}");
             }

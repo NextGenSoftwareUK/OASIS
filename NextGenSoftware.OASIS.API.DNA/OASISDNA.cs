@@ -24,10 +24,10 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class SecuritySettings
     {
-        public bool HideVerificationToken { get; set; }  
+        public bool HideVerificationToken { get; set; }
         public bool HideRefreshTokens { get; set; }
         public string SecretKey { get; set; }
-        public int RemoveOldRefreshTokensAfterXDays{ set; get;}
+        public int RemoveOldRefreshTokensAfterXDays { set; get; }
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
     }
@@ -227,6 +227,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public SEEDSOASISProviderSettings SEEDSOASIS { get; set; }
         public ThreeFoldOASISProviderSettings ThreeFoldOASIS { get; set; }
         public EthereumOASISProviderSettings EthereumOASIS { get; set; }
+        public ArbitrumOASISProviderSettings ArbitrumOASIS { get; set; }
         public SQLLiteDBOASISSettings SQLLiteDBOASIS { get; set; }
         public IPFSOASISSettings IPFSOASIS { get; set; }
         public Neo4jOASISSettings Neo4jOASIS { get; set; }
@@ -251,14 +252,14 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public string ConnectionString { get; set; }
     }
-    
+
     public class CargoOASISSettings : ProviderSettingsBase
     {
         public string SingingMessage { get; set; }
         public string PrivateKey { get; set; }
         public string HostUrl { get; set; }
     }
-    
+
     public class SolanaOASISSettings : ProviderSettingsBase
     {
         public string WalletMnemonicWords { get; set; }
@@ -300,6 +301,14 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ChainPrivateKey { get; set; }
         public long ChainId { get; set; }
         public string ContractAddress { get; set; }
+    }
+
+    public class ArbitrumOASISProviderSettings : ProviderSettingsBase
+    {
+        public string ChainPrivateKey { get; set; }
+        public long ChainId { get; set; }
+        public string ContractAddress { get; set; }
+        public string Abi { get; set; }
     }
 
     public class SQLLiteDBOASISSettings : ProviderSettingsBase
