@@ -22,6 +22,7 @@ using Nethereum.RPC.Eth.DTOs;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using Nethereum.Contracts.ContractHandlers;
 using Nethereum.ABI.FunctionEncoding.Attributes;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 
@@ -882,22 +883,78 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transaction)
     {
-        throw new NotImplementedException();
+        return SendTransactionAsync(transaction).Result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction)
     {
-        throw new NotImplementedException();
+        OASISResult<ITransactionRespone> result = new();
+        string errorMessage = "Error in SendTransactionAsync method in ArbitrumOASIS sending transaction. Reason: ";
+
+        try
+        {
+            TransactionReceipt transactionResult = await _web3Client.Eth.GetEtherTransferService()
+                .TransferEtherAndWaitForReceiptAsync(transaction.ToWalletAddress, transaction.Amount);
+
+            if (transactionResult.HasErrors() is true)
+            {
+                result.Message = string.Concat(errorMessage, "Arbitrum transaction performing failed! " +
+                                 $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {transaction.Amount}." +
+                                 $"Reason: {transactionResult.Logs}");
+                OASISErrorHandling.HandleError(ref result, result.Message);
+                return result;
+            }
+
+            result.Result.TransactionResult = transactionResult.TransactionHash;
+            TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
+        }
+        catch (RpcResponseException ex)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+        }
+
+        return result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        throw new NotImplementedException();
+        return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        throw new NotImplementedException();
+        OASISResult<ITransactionRespone> result = new();
+        string errorMessage = "Error in SendTransactionByDefaultWalletAsync method in EthereumOASIS sending transaction. Reason: ";
+
+        OASISResult<IProviderWallet> senderAvatarPrivateKeysResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.EthereumOASIS);
+        OASISResult<IProviderWallet> receiverAvatarAddressesResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.EthereumOASIS);
+
+        if (senderAvatarPrivateKeysResult.IsError)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
+                senderAvatarPrivateKeysResult.Exception);
+            return result;
+        }
+
+        if (receiverAvatarAddressesResult.IsError)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
+                receiverAvatarAddressesResult.Exception);
+            return result;
+        }
+
+        string senderAvatarPrivateKey = senderAvatarPrivateKeysResult.Result.PrivateKey;
+        string receiverAvatarAddress = receiverAvatarAddressesResult.Result.WalletAddress;
+        result = await SendArbitrumTransaction(senderAvatarPrivateKey, receiverAvatarAddress, amount);
+
+        if (result.IsError)
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+
+        return result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
@@ -942,7 +999,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
     {
-        throw new NotImplementedException();
+        return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
@@ -950,14 +1007,70 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         throw new NotImplementedException();
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
     {
-        throw new NotImplementedException();
+        OASISResult<ITransactionRespone> result = new();
+        string errorMessage = "Error in SendTransactionByUsernameAsync method in ArbitrumOASIS sending transaction. Reason: ";
+
+        OASISResult<List<string>> senderAvatarPrivateKeysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarByUsername(fromAvatarUsername, this.ProviderType.Value);
+        OASISResult<List<string>> receiverAvatarAddressesResult = KeyManager.Instance.GetProviderPublicKeysForAvatarByUsername(toAvatarUsername, this.ProviderType.Value);
+
+        if (senderAvatarPrivateKeysResult.IsError)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
+                senderAvatarPrivateKeysResult.Exception);
+            return result;
+        }
+
+        if (receiverAvatarAddressesResult.IsError)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
+                receiverAvatarAddressesResult.Exception);
+            return result;
+        }
+
+        string senderAvatarPrivateKey = senderAvatarPrivateKeysResult.Result[0];
+        string receiverAvatarAddress = receiverAvatarAddressesResult.Result[0];
+        result = await SendArbitrumTransaction(senderAvatarPrivateKey, receiverAvatarAddress, amount);
+
+        if (result.IsError)
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+
+        return result;
     }
 
     public Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     {
         throw new NotImplementedException();
+    }
+
+    private async Task<OASISResult<ITransactionRespone>> SendArbitrumTransaction(string senderAccountPrivateKey, string receiverAccountAddress, decimal amount)
+    {
+        OASISResult<ITransactionRespone> result = new();
+        string errorMessage = "Error in SendArbitrumTransaction method in ArbitrumOASIS sending transaction. Reason: ";
+
+        try
+        {
+            Account senderEthAccount = new(senderAccountPrivateKey);
+
+            TransactionReceipt receipt = await _web3Client.Eth.GetEtherTransferService()
+                .TransferEtherAndWaitForReceiptAsync(receiverAccountAddress, amount);
+
+            if (receipt.HasErrors() is true)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, receipt.Logs));
+                return result;
+            }
+
+            result.Result.TransactionResult = receipt.TransactionHash;
+            TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+        }
+
+        return result;
     }
 }
 
