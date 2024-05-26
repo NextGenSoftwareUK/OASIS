@@ -16,12 +16,14 @@ using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
+using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 
 namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {
     public class OASISProviders
     {
         EthereumOASIS _ethereum;
+        ArbitrumOASIS _arbitrum;
         SolanaOASIS _solana;
         EOSIOOASIS _EOSIO;
         TelosOASIS _telos;
@@ -143,6 +145,27 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 }
 
                 return _ethereum;
+            }
+        }
+
+        public ArbitrumOASIS Arbitrum
+        {
+            get
+            {
+                if (_arbitrum == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.ArbitrumOASIS);
+
+                        if (result != null && !result.IsError)
+                            _arbitrum = (ArbitrumOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Arbitrum Property Getter. Reason: {result.Message}");
+                    });
+                }
+
+                return _arbitrum;
             }
         }
 
