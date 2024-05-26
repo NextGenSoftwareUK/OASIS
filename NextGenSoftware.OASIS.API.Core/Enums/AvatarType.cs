@@ -3,6 +3,7 @@
     public enum AvatarType
     {
         Wizard, 
-        User
+        User,
+        System
     }
 }

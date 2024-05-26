@@ -210,6 +210,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             {
                                 //await SaveHolonForProviderTypeAsync(childHolon, providerType, result, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
                             }
+
+                            result.Result = (T)saveHolonResult.Result;
+                            result.IsSaved = true;
                         }
                         else
                         {

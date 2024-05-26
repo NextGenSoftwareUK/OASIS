@@ -206,8 +206,11 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         //    return targetHolon;
         //}
 
-        public static T2 MapBaseHolonProperties<T1, T2>(T1 sourceHolon, T2 targetHolon, bool mapCelestialProperties = true) where T1 : IHolon where T2 : IHolon //, new()
+        public static T2 MapBaseHolonProperties<T1, T2>(T1 sourceHolon, T2 targetHolon, bool mapCelestialProperties = true) where T1 : IHolon where T2 : IHolon, new()
         {
+            if (targetHolon == null)
+                targetHolon = new T2();
+
             if (sourceHolon != null && targetHolon != null)
             {
                 targetHolon.Id = sourceHolon.Id;
@@ -283,7 +286,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         //}
 
 
-        public static IEnumerable<T2> MapBaseHolonProperties<T1, T2>(IEnumerable<T1> sourceHolons, IEnumerable<T2> targetHolons, bool mapCelestialProperties = true) where T1 : IHolon where T2 : IHolon
+        public static IEnumerable<T2> MapBaseHolonProperties<T1, T2>(IEnumerable<T1> sourceHolons, IEnumerable<T2> targetHolons, bool mapCelestialProperties = true) where T1 : IHolon where T2 : IHolon, new()
         {
             if (sourceHolons != null && targetHolons != null)
             {

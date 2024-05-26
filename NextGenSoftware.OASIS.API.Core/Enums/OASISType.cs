@@ -2,6 +2,7 @@
 {
     public enum OASISType
     {
+        OASISBootLoader,
         STARCLI,
         STARWeb,
         STARUnity,

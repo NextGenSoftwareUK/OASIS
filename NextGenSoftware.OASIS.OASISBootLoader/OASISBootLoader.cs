@@ -21,6 +21,7 @@ using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
+using NextGenSoftware.CLI.Engine;
 //using System.Reflection;
 
 namespace NextGenSoftware.OASIS.OASISBootLoader
@@ -221,19 +222,32 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                     if (result.Result && !result.IsError)
                     {
-                        if (!string.IsNullOrEmpty(OASISDNA.OASIS.OASISSystemAccountId))
+                       if (!string.IsNullOrEmpty(OASISDNA.OASIS.OASISSystemAccountId))
                             LoggingManager.Log($"OASISSystemAccountId Found In OASISDNA: {OASISDNA.OASIS.OASISSystemAccountId}.", LogType.Info);
                         else
                         {
                             //LoggingManager.Log($"OASISSystemAccountId Not Found In OASISDNA So Generating Now...", LogType.Info, true, false, false, 1, true);
                             LoggingManager.BeginLogAction($"OASISSystemAccountId Not Found In OASISDNA So Generating Now...", LogType.Info);
 
-                            //TODO: Later may need to actually create a avatar for this Id? So we can see which ids belong to OASIS Accounts outside of each ONODE (each ONODE has its own OASISDNA with its own system id's)
-                            OASISDNA.OASIS.OASISSystemAccountId = Guid.NewGuid().ToString();
-                            await OASISDNAManager.SaveDNAAsync(OASISDNAPath, OASISDNA);
-                            
-                            LoggingManager.EndLogAction($"DONE", LogType.Info);
-                            LoggingManager.Log($"OASISSystemAccountId Generated: {OASISDNA.OASIS.OASISSystemAccountId}.", LogType.Info);
+                            //TODO: Later may need to actually create a avatar for this Id? So we can see which ids belong to OASIS SYSTEM Accounts outside of each ONODE (each ONODE has its own OASISDNA with its own system id's)
+                            //OASISDNA.OASIS.OASISSystemAccountId = Guid.NewGuid().ToString();
+                            //await OASISDNAManager.SaveDNAAsync(OASISDNAPath, OASISDNA);
+
+                            //TODO: Need to make this more secure in future to prevent others creating similar accounts (but none will ever have AvatarType of System, this is the only place that can be created but we need to make sure a normal user accout is not hacked or changed to a system one. But currently it cannot do any harm because this system account is currently not used for anything, it simply creates the default OASIS Omniverse when STAR CLI first boots up on a running ONODE (before a avatar is created or logged in).
+                            CLIEngine.SupressConsoleLogging = true;
+                            OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.RegisterAsync("", "OASIS", "SYSTEM", OASISDNA.OASIS.Email.SmtpUser, "", "root", AvatarType.System, OASISType.OASISBootLoader);
+                            CLIEngine.SupressConsoleLogging = false;
+
+                            if (avatarResult != null && !avatarResult.IsError)
+                            {
+                                OASISDNA.OASIS.OASISSystemAccountId = avatarResult.Result.Id.ToString();
+                                await OASISDNAManager.SaveDNAAsync(OASISDNAPath, OASISDNA);
+
+                                LoggingManager.EndLogAction($"DONE", LogType.Info);
+                                LoggingManager.Log($"OASISSystemAccountId Generated: {OASISDNA.OASIS.OASISSystemAccountId}.", LogType.Info);
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISBootLoader.BootOASISAsync Calling AvatarManager.Instance.RegisterAsync Attempting To Create The OASISSystem Account. Reason: {avatarResult.Message}");
                         }
 
                         IsOASISBooted = true;
