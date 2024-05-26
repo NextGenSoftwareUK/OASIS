@@ -1516,7 +1516,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        private OASISResult<T1> HandleSaveCelestialSpace<T1, T2>(OASISResult<T1> result, OASISResult<T2> holonResult, string methodName) where T1 : IHolon where T2 : IHolon
+        private OASISResult<T1> HandleSaveCelestialSpace<T1, T2>(OASISResult<T1> result, OASISResult<T2> holonResult, string methodName) where T1 : IHolon, new() where T2 : IHolon, new()
         {
             string errorMessage = $"An errror occured in CelestialSpace.{methodName} whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
 
