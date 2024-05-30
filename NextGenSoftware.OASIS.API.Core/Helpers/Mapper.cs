@@ -86,6 +86,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         public static ICelestialBody ConvertIHolonToICelestialBody(IHolon holon)
         {
             ICelestialBody celestialBody = (ICelestialBody)holon;
+            MapBaseHolonProperties(holon, celestialBody);
+
             celestialBody.Age = System.Convert.ToInt32(holon.MetaData["Age"]);
             celestialBody.DistanceFromParentStarInMetres = System.Convert.ToInt32(holon.MetaData["DistanceFromParentStarInMetres"]);
             celestialBody.EclipticLatitute = System.Convert.ToInt32(holon.MetaData["EclipticLatitute"]);
@@ -133,6 +135,48 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 celestialBodies.Add(ConvertIHolonToICelestialBody(holon));
 
             return celestialBodies;
+        }
+
+        public static ICelestialSpace ConvertIHolonToICelestialSpace(IHolon holon)
+        {
+            ICelestialSpace celestialSpace = (ICelestialSpace)holon;
+            MapBaseHolonProperties(holon, celestialSpace);
+
+            celestialSpace.Age = System.Convert.ToInt32(holon.MetaData["Age"]);
+            celestialSpace.EclipticLatitute = System.Convert.ToInt32(holon.MetaData["EclipticLatitute"]);
+            celestialSpace.EclipticLongitute = System.Convert.ToInt32(holon.MetaData["EclipticLongitute"]);
+            celestialSpace.EquatorialLatitute = System.Convert.ToInt32(holon.MetaData["EquatorialLatitute"]);
+            celestialSpace.EquatorialLongitute = System.Convert.ToInt32(holon.MetaData["EquatorialLongitute"]);
+            celestialSpace.GalacticLatitute = System.Convert.ToInt32(holon.MetaData["GalacticLatitute"]);
+            celestialSpace.GalacticLongitute = System.Convert.ToInt32(holon.MetaData["GalacticLongitute"]);
+            celestialSpace.HorizontalLatitute = System.Convert.ToInt32(holon.MetaData["HorizontalLatitute"]);
+            celestialSpace.HorizontalLongitute = System.Convert.ToInt32(holon.MetaData["HorizontalLongitute"]);
+            //celestialBody.Mass = System.Convert.ToInt32(holon.MetaData["Mass"]);
+            //celestialBody.NumberActiveAvatars = System.Convert.ToInt32(holon.MetaData["NumberActiveAvatars"]);
+            //celestialBody.NumberRegisteredAvatars = System.Convert.ToInt32(holon.MetaData["NumberRegisteredAvatars"]);
+            //celestialBody.OrbitPositionFromParentStar = System.Convert.ToInt32(holon.MetaData["OrbitPositionFromParentStar"]);
+            //celestialBody.RotationSpeed = System.Convert.ToInt32(holon.MetaData["RotationSpeed"]);
+            celestialSpace.Size = System.Convert.ToInt32(holon.MetaData["Size"]);
+            celestialSpace.SpaceQuadrant = (SpaceQuadrantType)Enum.Parse(typeof(SpaceQuadrantType), holon.MetaData["SpaceQuadrant"].ToString());
+            celestialSpace.SpaceSector = System.Convert.ToInt32(holon.MetaData["SpaceSector"]);
+            //celestialBody.SubDimensionLevel = System.Convert.ToInt32(holon.MetaData["SubDimensionLevel"]);
+            celestialSpace.SuperGalacticLatitute = System.Convert.ToInt32(holon.MetaData["SuperGalacticLatitute"]);
+            celestialSpace.SuperGalacticLongitute = System.Convert.ToInt32(holon.MetaData["SuperGalacticLongitute"]);
+            celestialSpace.Temperature = System.Convert.ToInt32(holon.MetaData["Temperature"]);
+            //celestialBody.TiltAngle = System.Convert.ToInt32(holon.MetaData["TiltAngle"]);
+            //celestialBody.Weight = System.Convert.ToInt32(holon.MetaData["Weight"]);
+
+            return celestialSpace;
+        }
+
+        public static IEnumerable<ICelestialSpace> ConvertIHolonsToICelestialSpaces<T>(IEnumerable<T> holons)
+        {
+            List<ICelestialSpace> celestialSpaces = new List<ICelestialSpace>();
+
+            foreach (IHolon holon in holons)
+                celestialSpaces.Add(ConvertIHolonToICelestialSpace(holon));
+
+            return celestialSpaces;
         }
 
         //public static IHolon MapBaseHolonProperties(IHolon sourceHolon, IHolon targetHolon, bool mapCelestialProperties = true)
@@ -206,11 +250,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         //    return targetHolon;
         //}
 
-        public static T2 MapBaseHolonProperties<T1, T2>(T1 sourceHolon, T2 targetHolon, bool mapCelestialProperties = true) where T1 : IHolon where T2 : IHolon, new()
-        {
-            if (targetHolon == null)
-                targetHolon = new T2();
 
+        public static IHolon MapBaseHolonProperties(IHolon sourceHolon, IHolon targetHolon, bool mapCelestialProperties = true) 
+        {
             if (sourceHolon != null && targetHolon != null)
             {
                 targetHolon.Id = sourceHolon.Id;
@@ -280,11 +322,29 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return targetHolon;
         }
 
-        //public static IHolon MapBaseHolonProperties<T>(T sourceHolon)
-        //{
-        //    return MapBaseHolonProperties(sourceHolon, new Holon());
-        //}
+        public static IEnumerable<IHolon> MapBaseHolonProperties(IEnumerable<IHolon> sourceHolons, IEnumerable<IHolon> targetHolons, bool mapCelestialProperties = true)
+        {
+            if (sourceHolons != null && targetHolons != null)
+            {
+                List<IHolon> sourceList = sourceHolons.ToList();
+                List<IHolon> targetList = targetHolons.ToList();
 
+                for (int i = 0; i < sourceHolons.Count(); i++)
+                    targetList[i] = MapBaseHolonProperties(sourceList[i], targetList[i], mapCelestialProperties);
+
+                return targetList;
+            }
+            else
+                return null;
+        }
+
+        public static T2 MapBaseHolonProperties<T1, T2>(T1 sourceHolon, T2 targetHolon, bool mapCelestialProperties = true) where T1 : IHolon where T2 : IHolon, new()
+        {
+            if (targetHolon == null)
+                targetHolon = new T2();
+
+            return MapBaseHolonProperties(sourceHolon, targetHolon, mapCelestialProperties);
+        }
 
         public static IEnumerable<T2> MapBaseHolonProperties<T1, T2>(IEnumerable<T1> sourceHolons, IEnumerable<T2> targetHolons, bool mapCelestialProperties = true) where T1 : IHolon where T2 : IHolon, new()
         {

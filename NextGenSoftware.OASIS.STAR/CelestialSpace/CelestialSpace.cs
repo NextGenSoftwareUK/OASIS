@@ -1525,17 +1525,21 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 result = OASISResultHelper.CopyResult<T2, T1>(holonResult);
 
                 if (result != null && !result.IsError && result.Result != null)
-                    OnCelestialSpaceLoaded?.Invoke(this, new CelestialSpaceLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T1, ICelestialSpace>(result) });
+                    //OnCelestialSpaceLoaded?.Invoke(this, new CelestialSpaceLoadedEventArgs() { Result = OASISResultHelper<T1, ICelestialSpace>.CopyResult(result) });
+                    //OnCelestialSpaceLoaded?.Invoke(this, new CelestialSpaceLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T1, ICelestialSpace>(result) });
+                    OnCelestialSpaceLoaded?.Invoke(this, new CelestialSpaceLoadedEventArgs() { Result = OASISResultHelper.CopyResultToICelestialSpace(result) });
                 else
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} {holonResult.Message}");
-                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResult<T1, ICelestialSpace>(result), Exception = result.Exception });
+                    //OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResult<T1, ICelestialSpace>(result), Exception = result.Exception });
+                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToICelestialSpace(result), Exception = result.Exception });
                 }
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
-                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResult<T1, ICelestialSpace>(result), Exception = result.Exception });
+                //OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResult<T1, ICelestialSpace>(result), Exception = result.Exception });
+                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = OASISResultHelper.CopyResultToICelestialSpace(result), Exception = result.Exception });
             }
 
             return result;
@@ -1645,7 +1649,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         private OASISResult<IEnumerable<ICelestialBody>> CreateCelestialBodiesResult<T1, T2>(OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result) where T1 : ICelestialBody where T2 : ICelestialSpace
         {
             OASISResult<IEnumerable<ICelestialBody>> celesialBodiesResult = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces<T1, T2>, IEnumerable<ICelestialBody>>(result);
-            celesialBodiesResult.Result = Mapper.MapBaseHolonProperties(result.Result.CelestialBodies, celesialBodiesResult.Result);
+            celesialBodiesResult.Result = Mapper.Convert<T1, ICelestialBody>(result.Result.CelestialBodies);
             return celesialBodiesResult;
         }
 
@@ -1656,10 +1660,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return celesialSpacesResult;
         }
 
-        private OASISResult<IEnumerable<ICelestialSpace>> CreateCelestialSpacesResult<T1, T2>(OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result) where T1 : ICelestialBody where T2 : ICelestialSpace
+        private OASISResult<IEnumerable<ICelestialSpace>> CreateCelestialSpacesResult<T1, T2>(OASISResult<ICelestialBodiesAndSpaces<T1, T2>> result) where T1 : ICelestialBody where T2 : ICelestialSpace, new()
         {
             OASISResult<IEnumerable<ICelestialSpace>> celesialBodiesResult = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ICelestialBodiesAndSpaces<T1, T2>, IEnumerable<ICelestialSpace>>(result);
-            celesialBodiesResult.Result = Mapper.MapBaseHolonProperties(result.Result.CelestialBodies, celesialBodiesResult.Result);
+            celesialBodiesResult.Result = Mapper.Convert<T2, ICelestialSpace>(result.Result.CelestialSpaces);
             return celesialBodiesResult;
         }
 
