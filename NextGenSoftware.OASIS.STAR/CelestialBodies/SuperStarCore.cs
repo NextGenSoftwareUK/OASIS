@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.STAR
         public async Task<OASISResult<IStar>> AddStarAsync(IStar star)
         {
             OASISResult<IHolon> holonResult = await GlobalHolonData.AddHolonToCollectionAsync(SuperStar, star, (List<IHolon>)Mapper<IStar, Holon>.Convert(SuperStar.ParentGalaxy.Stars));
-            OASISResult<IStar> result = OASISResultHelper.CopyResult(holonResult, new OASISResult<IStar>());
+            OASISResult<IStar> result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(holonResult, new OASISResult<IStar>());
             result.Result = (IStar)holonResult.Result;
             return result;
 
@@ -68,9 +68,14 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<IPlanet>> AddPlanetAsync(IPlanet planet)
         {
-            return OASISResultHelper.CopyResult(
-                await GlobalHolonData.AddHolonToCollectionAsync(SuperStar, planet, (List<IHolon>)Mapper<IPlanet, Holon>.MapBaseHolonProperties(
-                    SuperStar.ParentGalaxy.Planets)), new OASISResult<IPlanet>());
+            return OASISResultHelper.CopyResult
+            (
+                await GlobalHolonData.AddHolonToCollectionAsync(SuperStar, planet, 
+                    (List<IHolon>)Mapper<IPlanet, Holon>.MapBaseHolonProperties(
+                    SuperStar.ParentGalaxy.Planets))
+                , 
+                    new OASISResult<IPlanet>(new Planet())
+            );
         }
 
         public OASISResult<IPlanet> AddPlanet(IPlanet planet)
@@ -82,7 +87,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             return OASISResultHelper.CopyResult(
                 await GlobalHolonData.AddHolonToCollectionAsync(SuperStar, asteroid, (List<IHolon>)Mapper<IAsteroid, Holon>.MapBaseHolonProperties(
-                    SuperStar.ParentGalaxy.Asteroids)), new OASISResult<IAsteroid>());
+                    SuperStar.ParentGalaxy.Asteroids)), new OASISResult<IAsteroid>(new Asteroid()));
         }
 
         public OASISResult<IAsteroid> AddAsteroid(IAsteroid asteroid)
@@ -94,7 +99,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             return OASISResultHelper.CopyResult(
                 await GlobalHolonData.AddHolonToCollectionAsync(SuperStar, comet, (List<IHolon>)Mapper<IComet, Holon>.MapBaseHolonProperties(
-                    SuperStar.ParentGalaxy.Comets)), new OASISResult<IComet>());
+                    SuperStar.ParentGalaxy.Comets)), new OASISResult<IComet>(new Comet()));
         }
 
         public OASISResult<IComet> AddComet(IComet comet)
@@ -102,11 +107,12 @@ namespace NextGenSoftware.OASIS.STAR
             return AddCometAsync(comet).Result;
         }
 
+        //TODO: Need to make sure all other calls like this in STAR etc create an instance of the object such as Meteroid below...
         public async Task<OASISResult<IMeteroid>> AddMeteroidAsync(IMeteroid meteroid)
         {
             return OASISResultHelper.CopyResult(
                 await GlobalHolonData.AddHolonToCollectionAsync(SuperStar, meteroid, (List<IHolon>)Mapper<IMeteroid, Holon>.MapBaseHolonProperties(
-                    SuperStar.ParentGalaxy.Meteroids)), new OASISResult<IMeteroid>());
+                    SuperStar.ParentGalaxy.Meteroids)), new OASISResult<IMeteroid>(new Meteroid()));
         }
 
         public OASISResult<IMeteroid> AddMeteroid(IMeteroid meteroid)
@@ -118,7 +124,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             return OASISResultHelper.CopyResult(
                 await GlobalHolonData.AddHolonToCollectionAsync(SuperStar, nebula, (List<IHolon>)Mapper<INebula, Holon>.MapBaseHolonProperties(
-                    SuperStar.ParentGalaxy.Nebulas)), new OASISResult<INebula>());
+                    SuperStar.ParentGalaxy.Nebulas)), new OASISResult<INebula>(new Nebula()));
         }
 
         public OASISResult<INebula> AddNebula(INebula nebula)

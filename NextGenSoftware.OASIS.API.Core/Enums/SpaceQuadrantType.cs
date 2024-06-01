@@ -2,6 +2,7 @@
 {
     public enum SpaceQuadrantType
     {
+        None,
         GalacticCore,
         Altha,
         Beta,

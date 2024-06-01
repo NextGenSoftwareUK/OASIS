@@ -146,18 +146,18 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     foreach (T zome in result.Result)
                         this.Zomes.Add(zome);
 
-                    OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = OASISResultHelper.CopyResult<T, IZome>(result) });
+                    OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = OASISResultHelper.CopyResultToIZome(result) });
                 }
                 else
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
-                    OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = result.Exception });
+                    OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
                 }
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = ex });
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = ex });
             }
 
             return result;
@@ -178,18 +178,18 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     foreach (T zome in result.Result)
                         this.Zomes.Add(zome);
 
-                    OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = OASISResultHelper.CopyResult<T, IZome>(result) });
+                    OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = OASISResultHelper.CopyResultToIZome(result) });
                 }
                 else
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
-                    OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = result.Exception });
+                    OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
                 }
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = ex });
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = ex });
             }
 
             return result;
@@ -275,7 +275,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 if (this.Zomes != null)
                 {
                     OASISResult<IEnumerable<IHolon>> holonsResult = await GlobalHolonData.SaveHolonsAsync(this.Zomes, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
-                    result = OASISResultHelper.CopyResult<IHolon, IZome>(holonsResult);
+                    result = OASISResultHelper.CopyResultToIZome(holonsResult);
                 }
 
                 if (result != null && !result.IsError && result.Result != null)
@@ -305,7 +305,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 if (this.Zomes != null)
                 {
                     OASISResult<IEnumerable<IHolon>> holonsResult = GlobalHolonData.SaveHolons(this.Zomes, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
-                    result = OASISResultHelper.CopyResult<IHolon, IZome>(holonsResult);
+                    result = OASISResultHelper.CopyResultToIZome(holonsResult);
                 }
 
                 if (result != null && !result.IsError && result.Result != null)
@@ -336,17 +336,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     result = await GlobalHolonData.SaveHolonsAsync<T>((IEnumerable<T>)this.Zomes, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                 if (result != null && !result.IsError && result.Result != null)
-                    OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result) });
+                    OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
                 else
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
-                    OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = result.Exception });
+                    OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
                 }
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = ex });
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = ex });
             }
 
             return result;
@@ -363,17 +363,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     result = GlobalHolonData.SaveHolons<T>((IEnumerable<T>)this.Zomes, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                 if (result != null && !result.IsError && result.Result != null)
-                    OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result) });
+                    OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
                 else
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
-                    OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = result.Exception });
+                    OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
                 }
             }
             catch (Exception ex) 
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
-                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = ex});
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = ex});
             }
 
             return result;
@@ -446,15 +446,15 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 if (result != null && result.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
-                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = result.Exception });
+                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
                 }
                 else
-                    OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result) });
+                    OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = ex });
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = ex });
             }
 
             return result;
@@ -473,15 +473,15 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 if (result != null && result.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
-                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = result.Exception });
+                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
                 }
                 else
-                    OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result) });
+                    OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = ex });
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = ex });
             }
 
             return result;
@@ -554,15 +554,15 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 if (result != null && result.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
-                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = result.Exception });
+                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
                 }
                 else
-                    OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result) });
+                    OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = ex });
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = ex });
             }
 
             return result;
@@ -581,15 +581,15 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 if (result != null && result.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
-                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = result.Exception });
+                    OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = result.Exception });
                 }
                 else
-                    OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = OASISResultHelper.CopyResult<T, IZome>(result) });
+                    OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}", ex);
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResult<T, IZome>(result), Exception = ex });
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = result.Message, Result = OASISResultHelper.CopyResultToIZome(result), Exception = ex });
             }
 
             return result;
