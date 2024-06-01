@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             return OASISResultHelper.CopyResult(
                 await GlobalHolonData.AddHolonToCollectionAsync(GrandSuperStar, universe, (List<IHolon>)Mapper<IUniverse, Holon>.MapBaseHolonProperties(
-                    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParallelUniverses)), new OASISResult<IUniverse>());
+                    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParallelUniverses)), new OASISResult<IUniverse>(new Universe()));
         }
 
         public OASISResult<IUniverse> AddParallelUniverseToThirdDimension(IUniverse universe)

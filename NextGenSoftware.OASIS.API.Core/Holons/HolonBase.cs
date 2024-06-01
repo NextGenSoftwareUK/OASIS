@@ -336,18 +336,18 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 {
                     SetProperties(result.Result);
                     MapMetaData<T>();
-                    OnLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                    OnLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
                 }
                 else
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error Occured in HolonBase.LoadAsync<T> Calling HolonManager.LoadHolonAsync<T>. Reason: {result.Message}");
-                    OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = result.Exception });
+                    OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = result.Exception });
                 }
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured in HolonBase.LoadAsync<T> Calling HolonManager.LoadHolonAsync<T>. Reason: {ex}", ex);
-                OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = ex });
+                OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = ex });
             }
 
             return result;
@@ -432,18 +432,18 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 {
                     SetProperties(result.Result);
                     MapMetaData<T>();
-                    OnLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                    OnLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
                 }
                 else
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error Occured in HolonBase.Load<T> Calling HolonManager.LoadHolon<T>. Reason: {result.Message}");
-                    OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = result.Exception });
+                    OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = result.Exception });
                 }
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured in HolonBase.Load<T> Calling HolonManager.LoadHolon<T>. Reason: {ex}", ex);
-                OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = ex });
+                OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = ex });
             }
 
             return result;
@@ -569,7 +569,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 {
                     //this.Children = new ObservableCollection<IHolon>(Mapper.Convert(result.Result));
                     this.Children = Mapper.Convert(result.Result).ToList();
-                    OnChildrenLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                    OnChildrenLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
                 }
                 else
                 {
@@ -581,7 +581,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured in HolonBase.LoadChildHolonsAsync<T> Calling HolonManager.LoadHolonsForParentAsync<T>. Reason: {ex}", ex);
-                OnChildrenLoadError?.Invoke(this, new HolonsErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = ex });
+                OnChildrenLoadError?.Invoke(this, new HolonsErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = ex });
             }
 
             return result;
@@ -615,7 +615,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 {
                     //this.Children = new ObservableCollection<IHolon>(Mapper.Convert(result.Result));
                     this.Children = Mapper.Convert(result.Result).ToList();
-                    OnChildrenLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                    OnChildrenLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
                 }
                 else
                 {
@@ -627,7 +627,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured in HolonBase.LoadChildHolons<T> Calling HolonManager.LoadHolonsForParent<T>. Reason: {ex}", ex);
-                OnChildrenLoadError?.Invoke(this, new HolonsErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = ex });
+                OnChildrenLoadError?.Invoke(this, new HolonsErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = ex });
             }
 
             return result;
@@ -672,18 +672,18 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (result != null && !result.IsError && result.Result != null)
                 {
                     SetProperties(result.Result);
-                    OnSaved?.Invoke(this, new HolonSavedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                    OnSaved?.Invoke(this, new HolonSavedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
                 }
                 else
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error Occured in HolonBase.SaveAsync<T> Calling HolonManager.SaveHolonAsync<T>. Reason: {result.Message}");
-                    OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = result.Exception });
+                    OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = result.Exception });
                 }
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured in HolonBase.SaveAsync<T> Calling HolonManager.SaveHolonAsync<T>. Reason: {ex}", ex);
-                OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = ex });
+                OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = ex });
             }
 
             return result;
@@ -728,18 +728,18 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (result != null && !result.IsError && result.Result != null)
                 {
                     SetProperties(result.Result);
-                    OnSaved?.Invoke(this, new HolonSavedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                    OnSaved?.Invoke(this, new HolonSavedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
                 }
                 else
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error Occured in HolonBase.Save<T> Calling HolonManager.SaveHolon<T>. Reason: {result.Message}");
-                    OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = result.Exception });
+                    OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = result.Exception });
                 }
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured in HolonBase.Save<T> Calling HolonManager.SaveHolon<T>. Reason: {ex}", ex);
-                OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = ex });
+                OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = ex });
             }
 
             return result;
@@ -880,18 +880,18 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                     if (result.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, string.Concat("Error in HolonBase.AddHolonAsync<T> method calling SaveHolonAsync<T> attempting to save the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message));
-                        OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = result.Exception });
+                        OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = result.Exception });
                     }
                     else
-                        OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                        OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
                 }
                 else
-                    OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                    OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured in HolonBase.AddHolonAsync<T> method attempting to save the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", ex));
-                OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = ex });
+                OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = ex });
             }
 
             return result;
@@ -914,18 +914,18 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                     if (result.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, string.Concat("Error in HolonBase.AddHolon<T> method calling SaveHolon<T> attempting to save the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message));
-                        OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = result.Exception });
+                        OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = result.Exception });
                     }
                     else
-                        OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                        OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
                 }
                 else
-                    OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                    OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured in HolonBase.AddHolon<T> method attempting to save the holon with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", ex));
-                OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result), Reason = result.Message, Exception = ex });
+                OnError?.Invoke(this, new HolonErrorEventArgs() { Result = OASISResultHelper.CopyResult(result), Reason = result.Message, Exception = ex });
             }
 
             return result;

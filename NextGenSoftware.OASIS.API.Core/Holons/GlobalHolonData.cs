@@ -73,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (result.IsError)
                 OnError?.Invoke(this, new HolonErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.LoadHolonAsync method with id ", id, ". Error Details: ", result.Message), Exception = result.Exception });
             else
-                OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
 
             return result;
         }
@@ -85,7 +85,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (result.IsError)
                 OnError?.Invoke(this, new HolonErrorEventArgs() { Reason = string.Concat("Error in ZomeBase.LoadHolon method with id ", id, ". Error Details: ", result.Message), Exception = result.Exception });
             else
-                OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
 
             return result;
         }
@@ -121,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (result.IsError)
                 OnError?.Invoke(this, new HolonErrorEventArgs() { Reason = string.Concat("Error in LoadHolonAsync method with providerKey ", providerKey, ". Error Details: ", result.Message), Exception = result.Exception });
             else
-                OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
 
             return result;
         }
@@ -133,7 +133,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (result.IsError)
                 OnError?.Invoke(this, new HolonErrorEventArgs() { Reason = string.Concat("Error in LoadHolonAsync method with providerKey ", providerKey, ". Error Details: ", result.Message), Exception = result.Exception });
             else
-                OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
 
             return result;
         }
@@ -169,7 +169,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (result.IsError)
                 OnError?.Invoke(this, new HolonErrorEventArgs() { Reason = string.Concat("Error in HolonBase.LoadAllHolonsAsync method with holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), Exception = result.Exception });
             else
-                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) }); //OASISResultHelper<IEnumerable<T>, IEnumerable<IHolon>>.CopyResult(result) });
+                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
 
             return result;
         }
@@ -181,7 +181,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (result.IsError)
                 OnError?.Invoke(this, new HolonErrorEventArgs() { Reason = string.Concat("Error in HolonBase.LoadAllHolonsAsync method with holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), Exception = result.Exception });
             else
-                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
 
             return result;
         }
@@ -217,7 +217,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (result.IsError)
                 OnError?.Invoke(this, new HolonErrorEventArgs() { Reason = string.Concat("Error in HolonBase.LoadHolonsForParentAsync method with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), Exception = result.Exception });
             else
-                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
 
             return result;
         }
@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (result.IsError)
                 OnError?.Invoke(this, new HolonErrorEventArgs() { Reason = string.Concat("Error in HolonBase.LoadHolonsForParent method with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), Exception = result.Exception });
             else
-                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
 
             return result;
         }
@@ -265,7 +265,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (result.IsError)
                 OnError?.Invoke(this, new HolonErrorEventArgs() { Reason = string.Concat("Error in HolonBase.LoadHolonsForParent method with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), Exception = result.Exception });
             else
-                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
 
             return result;
         }
@@ -277,7 +277,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (result.IsError)
                 OnError?.Invoke(this, new HolonErrorEventArgs() { Reason = string.Concat("Error in LoadHolonsForParent method with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), Exception = result.Exception });
             else
-                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
 
             return result;
         }
@@ -354,8 +354,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
             savingHolons = RemoveCelesialBodies(savingHolons);
             OASISResult<IEnumerable<T>> saveHolonResult = await HolonManager.Instance.SaveHolonsAsync<T>(savingHolons, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
-            OASISResult<IEnumerable<IHolon>> holonsResult = OASISResultHelper.CopyResult<T, IHolon>(saveHolonResult);
-            HandleSaveHolonsResult(OASISResultHelper.CopyResult<T, IHolon>(result).Result, "SaveHolonsAsync<T>", ref holonsResult);
+            OASISResult<IEnumerable<IHolon>> holonsResult = OASISResultHelper.CopyResult(saveHolonResult);
+            HandleSaveHolonsResult(OASISResultHelper.CopyResult(result).Result, "SaveHolonsAsync<T>", ref holonsResult);
             return result;
         }
 
@@ -372,8 +372,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             savingHolons = RemoveCelesialBodies(savingHolons);
             OASISResult<IEnumerable<T>> saveHolonResult = HolonManager.Instance.SaveHolons(savingHolons, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
-            OASISResult<IEnumerable<IHolon>> holonsResult = OASISResultHelper.CopyResult<T, IHolon>(saveHolonResult);
-            HandleSaveHolonsResult(OASISResultHelper.CopyResult<T, IHolon>(result).Result, "SaveHolonsAsync<T>", ref holonsResult);
+            OASISResult<IEnumerable<IHolon>> holonsResult = OASISResultHelper.CopyResult(saveHolonResult);
+            HandleSaveHolonsResult(OASISResultHelper.CopyResult(result).Result, "SaveHolonsAsync<T>", ref holonsResult);
             return result;
         }
 
@@ -786,7 +786,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 //OASISResultHelper.CopyResult(result, holonResult);
                 //OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = holonResult });
 
-                OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = OASISResultHelper.CopyResult<T, IHolon>(result) });
+                OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
             }
             else
                 OnError?.Invoke(this, new HolonErrorEventArgs() { Reason = string.Concat("Error in ", callingMethodName, " method for holon with ", LoggingHelper.GetHolonInfoForLogging(savingHolon), Enum.GetName(typeof(HolonType), savingHolon.HolonType), ". Error Details: ", result.Message), Exception = result.Exception });
