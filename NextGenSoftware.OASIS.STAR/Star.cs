@@ -1753,7 +1753,7 @@ namespace NextGenSoftware.OASIS.STAR
             ICelestialBody celestialBody = null;
             string name = longName.Replace(" ", "");
 
-            ShowStatusMessage(StarStatusMessageType.Processing, $"Initializing {longName}..");
+            ShowStatusMessage(StarStatusMessageType.Processing, $"Initializing {longName}...");
 
             if (!string.IsNullOrEmpty(id))
             {

@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         {
                             result.IsLoaded = true;
                             result.LoadedCount = 1;
-                            result.Result = result.Result;
+                            result.Result = holonResult.Result;
                         }
                     }
                     else
@@ -224,7 +224,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         {
                             result.IsLoaded = true;
                             result.LoadedCount = 1;
-                            result.Result = result.Result;
+                            result.Result = holonResult.Result;
                         }
                     }
                     else
@@ -410,7 +410,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         {
                             result.IsLoaded = true;
                             result.LoadedCount = 1;
-                            result.Result = result.Result;
+                            result.Result = holonResult.Result;
                         }
                     }
                     else
@@ -596,7 +596,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         {
                             result.IsLoaded = true;
                             result.LoadedCount = 1;
-                            result.Result = result.Result;
+                            result.Result = holonResult.Result;
                         }
                     }
                     else

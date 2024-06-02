@@ -368,22 +368,23 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return CopyResultToICelestialSpace(fromResult, new OASISResult<IEnumerable<ICelestialSpace>>(), copyMessage, copyInnerResult);
         }
 
-        public static OASISResult<IZome> CopyResultToIZome<T>(OASISResult<T> fromResult, OASISResult<IZome> toResult, bool copyMessage = true, bool copyInnerResult = true)
+        public static OASISResult<IZome> CopyResultToIZome<T>(OASISResult<T> fromResult, OASISResult<IZome> toResult, bool copyMessage = true, bool copyInnerResult = true) where T : IHolon
         {
             toResult = CopyOASISResultOnlyWithNoInnerResult(fromResult, toResult, copyMessage);
 
             if (copyInnerResult)
+                //toResult.Result = Mapper.MapBaseHolonProperties<IHolon, IZome>(fromResult.Result, toResult.Result, copyMessage);
                 toResult.Result = (IZome)fromResult.Result;
 
             return toResult;
         }
 
-        public static OASISResult<IZome> CopyResultToIZome<T>(OASISResult<T> fromResult, bool copyMessage = true, bool copyInnerResult = true)
+        public static OASISResult<IZome> CopyResultToIZome<T>(OASISResult<T> fromResult, bool copyMessage = true, bool copyInnerResult = true) where T : IHolon
         {
             return CopyResultToIZome(fromResult, new OASISResult<IZome>(), copyMessage, copyInnerResult);
         }
 
-        public static OASISResult<IEnumerable<IZome>> CopyResultToIZome<T>(OASISResult<IEnumerable<T>> fromResult, OASISResult<IEnumerable<IZome>> toResult, bool copyMessage = true, bool copyInnerResult = true)
+        public static OASISResult<IEnumerable<IZome>> CopyResultToIZome<T>(OASISResult<IEnumerable<T>> fromResult, OASISResult<IEnumerable<IZome>> toResult, bool copyMessage = true, bool copyInnerResult = true) where T : IHolon
         {
             List<IZome> zomes = new List<IZome>();
             toResult = CopyOASISResultOnlyWithNoInnerResult(fromResult, toResult, copyMessage);
@@ -398,7 +399,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return toResult;
         }
 
-        public static OASISResult<IEnumerable<IZome>> CopyResultToIZome<T>(OASISResult<IEnumerable<T>> fromResult, bool copyMessage = true, bool copyInnerResult = true)
+        public static OASISResult<IEnumerable<IZome>> CopyResultToIZome<T>(OASISResult<IEnumerable<T>> fromResult, bool copyMessage = true, bool copyInnerResult = true) where T : IHolon
         {
             return CopyResultToIZome(fromResult, new OASISResult<IEnumerable<IZome>>(), copyMessage, copyInnerResult);
         }

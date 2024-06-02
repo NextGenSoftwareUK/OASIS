@@ -152,58 +152,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         {
             OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
             IStar star = GetCelestialSpaceNearestStar(result, $"Error occured in CelestialSpace.LoadAsync method loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}.");
-            HandleLoadCelestialSpace(result, await star.CelestialBodyCore.GlobalHolonData.LoadHolonAsync(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType), "LoadAsync");
-
-            /*
-            if ((holonResult != null && !holonResult.IsError && holonResult.Result != null)
-                || ((holonResult == null || holonResult.IsError || holonResult.Result == null) && continueOnError))
-            {
-                if (holonResult != null && !holonResult.IsError && holonResult.Result != null) 
-                {
-                    //Mapper.MapBaseHolonProperties(holonResult.Result, this);
-                    //result.Result = this;
-                }
-                else
-                {
-                    // If there was an error then continueOnError must have been set to true.
-                    OASISErrorHandling.HandleWarning(ref result, $"An errror occured in CelestialSpace.LoadAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. ContinueOnError is set to true so continuing to attempt to load the celestial bodies... Reason: {holonResult.Message}");
-                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-                }
-
-                if (loadChildren)
-                {
-                    OASISResult<IEnumerable<ICelestialBody>> celestialBodiesResult = await LoadCelestialBodiesAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
-
-                    if (!(celestialBodiesResult != null && !celestialBodiesResult.IsError && celestialBodiesResult.Result != null))
-                    {
-                        if (result.IsWarning)
-                            OASISErrorHandling.HandleError(ref result, $"Error occured in CelestialSpace.LoadAsync method. The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")} failed to load and one or more of it's celestialbodies failed to load. Reason: {celestialBodiesResult.Message}");
-                        else
-                            OASISErrorHandling.HandleWarning(ref result, $"Error occured in CelestialSpace.LoadAsync method. The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")} loaded fine but one or more of it's celestialbodies failed to load. Reason: {celestialBodiesResult.Message}");
-
-                        OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-
-                        if (!continueOnError)
-                        {
-                            OnCelestialSpaceLoaded?.Invoke(this, new CelestialSpaceLoadedEventArgs() { Result = result });
-                            return result;
-                        }
-                    }
-
-                    OASISResult<IEnumerable<ICelestialSpace>> celestialSpacesResult = await LoadCelestialSpacesAsync(loadChildren, recursive, maxChildDepth, continueOnError, version, providerType);
-
-                    if (!(celestialSpacesResult != null && !celestialSpacesResult.IsError && celestialSpacesResult.Result != null))
-                    {
-                        if (result.IsWarning)
-                            OASISErrorHandling.HandleError(ref result, $"Error occured in CelestialSpace.LoadAsync method. The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")} failed to load and one or more of it's child celestialspaces failed to load. Reason: {celestialSpacesResult.Message}");
-                        else
-                            OASISErrorHandling.HandleWarning(ref result, $"Error occured in CelestialSpace.LoadAsync method. The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")} loaded fine but one or more of it's child celestialspaces failed to load. Reason: {celestialSpacesResult.Message}");
-
-                        OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-                    }
-                }
-            }*/
-
+            result = HandleLoadCelestialSpace(result, await star.CelestialBodyCore.GlobalHolonData.LoadHolonAsync(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType), "LoadAsync");
             return result;
         }
 
@@ -464,7 +413,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             try
             {
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialSpace(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonAsync(this, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveAsync");
+                result = HandleSaveCelestialSpace(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonAsync(this, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveAsync");
 
                 //TODO: We could of course just save using the one line below instead of the 2 lines above but then it would break the STAR NET design of the stars being responsible for loading/saving the celestialspace/celestial bodies in its orbit.
                 //HandleSaveCelestialSpace(result, await base.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveAsync");
@@ -486,7 +435,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             try
             {
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialSpace(result, star.CelestialBodyCore.GlobalHolonData.SaveHolon(this, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "Save");
+                result = HandleSaveCelestialSpace(result, star.CelestialBodyCore.GlobalHolonData.SaveHolon(this, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "Save");
 
                 //TODO: We could of course just save using the one line below instead of the 2 lines above but then it would break the STAR NET design of the stars being responsible for loading/saving the celestialspace/celestial bodies in its orbit.
                 //HandleSaveCelestialSpace(result, await base.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveAsync");
@@ -508,7 +457,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             try
             {
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialSpace(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonAsync<T>(this, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveAsync");
+                result = HandleSaveCelestialSpace(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonAsync<T>(this, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveAsync");
             }
             catch (Exception ex)
             {
@@ -527,7 +476,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             try
             {
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialSpace(result, star.CelestialBodyCore.GlobalHolonData.SaveHolon<T>(this, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveAsync");
+                result = HandleSaveCelestialSpace(result, star.CelestialBodyCore.GlobalHolonData.SaveHolon<T>(this, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveAsync");
             }
             catch (Exception ex)
             {
@@ -656,7 +605,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialBodiesAndSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpacesAsync");
+                result = HandleSaveCelestialBodiesAndSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpacesAsync");
             }
             catch (Exception ex)
             {
@@ -677,7 +626,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialBodiesAndSpaces(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpaces");
+                result = HandleSaveCelestialBodiesAndSpaces(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpaces");
             }
             catch (Exception ex)
             {
@@ -698,7 +647,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialBodiesAndSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpacesAsync<T1, T2>");
+                result = HandleSaveCelestialBodiesAndSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpacesAsync<T1, T2>");
             }
             catch (Exception ex)
             {
@@ -719,7 +668,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialBodiesAndSpaces(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpaces<T1, T2>");
+                result = HandleSaveCelestialBodiesAndSpaces(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpaces<T1, T2>");
             }
             catch (Exception ex)
             {
@@ -740,7 +689,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialBodies(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_celestialBodies, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAsync");
+                result = HandleSaveCelestialBodies(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_celestialBodies, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAsync");
             }
             catch (Exception ex)
             {
@@ -761,7 +710,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialBodies(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_celestialBodies, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodies");
+                result = HandleSaveCelestialBodies(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_celestialBodies, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodies");
             }
             catch (Exception ex)
             {
@@ -782,7 +731,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialBodies(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync<T>(Mapper.Convert<ICelestialBody, T>(_celestialBodies), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAsync<T>");
+                result = HandleSaveCelestialBodies(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync<T>(Mapper.Convert<ICelestialBody, T>(_celestialBodies), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAsync<T>");
             }
             catch (Exception ex)
             {
@@ -803,7 +752,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialBodies(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync<T>(Mapper.Convert<ICelestialBody, T>(_celestialBodies), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAsync<T>");
+                result = HandleSaveCelestialBodies(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync<T>(Mapper.Convert<ICelestialBody, T>(_celestialBodies), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAsync<T>");
             }
             catch (Exception ex)
             {
@@ -824,7 +773,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_celestialSpaces, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialSpacesAsync");
+                result = HandleSaveCelestialSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_celestialSpaces, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialSpacesAsync");
             }
             catch (Exception ex)
             {
@@ -845,7 +794,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialSpaces(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_celestialSpaces, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialSpaces");
+                result = HandleSaveCelestialSpaces(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_celestialSpaces, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialSpaces");
             }
             catch (Exception ex)
             {
@@ -866,7 +815,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync<T>(Mapper.Convert<ICelestialSpace, T>(_celestialSpaces), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialSpacesAsync<T>");
+                result = HandleSaveCelestialSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync<T>(Mapper.Convert<ICelestialSpace, T>(_celestialSpaces), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialSpacesAsync<T>");
             }
             catch (Exception ex)
             {
@@ -887,7 +836,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                HandleSaveCelestialSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync<T>(Mapper.Convert<ICelestialSpace, T>(_celestialSpaces), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialSpacesAsync<T>");
+                result = HandleSaveCelestialSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync<T>(Mapper.Convert<ICelestialSpace, T>(_celestialSpaces), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialSpacesAsync<T>");
             }
             catch (Exception ex)
             {
