@@ -68,39 +68,39 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return toResult;
         }
 
-        public static OASISResult<T2> CopyOASISResultOnlyWithNoInnerResult<T1, T2>(OASISResult<T1> fromResult, bool copyMessage = true)
+        public static OASISResult<T2> CopyOASISResultOnlyWithNoInnerResult<T1, T2>(OASISResult<T1> fromResult, bool copyMessage = true) 
         {
             return CopyOASISResultOnlyWithNoInnerResult(fromResult, new OASISResult<T2>(), copyMessage);
         }
 
-        public static OASISResult<T2> CopyResultAndCreateToResultObject<T1, T2>(OASISResult<T1> fromResult, OASISResult<T2> toResult, bool copyMessage = true, bool copyInnerResult = true) where T1 : IHolon where T2 : IHolon, new()
+        public static OASISResult<T2> CopyResultAndCreateToResultObjectIfNull<T1, T2>(OASISResult<T1> fromResult, OASISResult<T2> toResult, bool copyMessage = true, bool copyInnerResult = true) where T1 : IHolon where T2 : IHolon, new()
         {
             toResult = CopyOASISResultOnlyWithNoInnerResult(fromResult, toResult, copyMessage);
 
             if (copyInnerResult && !fromResult.IsError && fromResult.Result != null)
-                toResult.Result = Mapper.MapBaseHolonProperties(fromResult.Result, toResult.Result);
+                toResult.Result = Mapper.MapBaseHolonPropertiesAndCreateT2IfNull(fromResult.Result, toResult.Result);
 
             return toResult;
         }
 
-        public static OASISResult<T2> CopyResultAndCreateToResultObject<T1, T2>(OASISResult<T1> fromResult, bool copyMessage = true, bool copyInnerResult = true) where T1 : IHolon where T2 : IHolon, new()
+        public static OASISResult<T2> CopyResultAndCreateToResultObjectIfNull<T1, T2>(OASISResult<T1> fromResult, bool copyMessage = true, bool copyInnerResult = true) where T1 : IHolon where T2 : IHolon, new()
         {
-            return CopyResultAndCreateToResultObject(fromResult, new OASISResult<T2>(), copyMessage, copyInnerResult);
+            return CopyResultAndCreateToResultObjectIfNull(fromResult, new OASISResult<T2>(), copyMessage, copyInnerResult);
         }
 
-        public static OASISResult<IEnumerable<T2>> CopyResultAndCreateToResultObject<T1, T2>(OASISResult<IEnumerable<T1>> fromResult, OASISResult<IEnumerable<T2>> toResult, bool copyMessage = true, bool copyInnerResult = true) where T1 : IHolon where T2 : IHolon, new()
+        public static OASISResult<IEnumerable<T2>> CopyResultAndCreateToResultObjectIfNull<T1, T2>(OASISResult<IEnumerable<T1>> fromResult, OASISResult<IEnumerable<T2>> toResult, bool copyMessage = true, bool copyInnerResult = true) where T1 : IHolon where T2 : IHolon, new()
         {
             toResult = CopyOASISResultOnlyWithNoInnerResult(fromResult, toResult, copyMessage);
 
             if (copyInnerResult && !fromResult.IsError && fromResult.Result != null)
-                toResult.Result = Mapper.MapBaseHolonProperties(fromResult.Result, toResult.Result);
+                toResult.Result = Mapper.MapBaseHolonPropertiesAndCreateT2IfNull(fromResult.Result, toResult.Result);
 
             return toResult;
         }
 
-        public static OASISResult<IEnumerable<T2>> CopyResultAndCreateToResultObject<T1, T2>(OASISResult<IEnumerable<T1>> fromResult, bool copyMessage = true, bool copyInnerResult = true) where T1 : IHolon where T2 : IHolon, new()
+        public static OASISResult<IEnumerable<T2>> CopyResultAndCreateToResultObjectIfNull<T1, T2>(OASISResult<IEnumerable<T1>> fromResult, bool copyMessage = true, bool copyInnerResult = true) where T1 : IHolon where T2 : IHolon, new()
         {
-            return CopyResultAndCreateToResultObject(fromResult, new OASISResult<IEnumerable<T2>>(), copyMessage, copyInnerResult);
+            return CopyResultAndCreateToResultObjectIfNull(fromResult, new OASISResult<IEnumerable<T2>>(), copyMessage, copyInnerResult);
         }
 
 

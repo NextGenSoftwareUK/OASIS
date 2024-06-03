@@ -264,23 +264,41 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 return null;
         }
 
-        public static T2 MapBaseHolonProperties<T1, T2>(T1 sourceHolon, T2 targetHolon, bool mapCelestialProperties = true) where T1 : IHolon where T2 : IHolon, new()
+        public static T2 MapBaseHolonPropertiesAndCreateT2IfNull<T1, T2>(T1 sourceHolon, bool mapCelestialProperties = true) where T1 : IHolon where T2 : IHolon, new()
+        {
+            return MapBaseHolonPropertiesAndCreateT2IfNull(sourceHolon, new T2(), mapCelestialProperties);
+        }
+
+        public static T2 MapBaseHolonPropertiesAndCreateT2IfNull<T1, T2>(T1 sourceHolon, T2 targetHolon, bool mapCelestialProperties = true) where T1 : IHolon where T2 : IHolon, new()
         {
             if (targetHolon == null)
                 targetHolon = new T2();
 
-            return MapBaseHolonProperties(sourceHolon, targetHolon, mapCelestialProperties);
+            return (T2)MapBaseHolonProperties(sourceHolon, targetHolon, mapCelestialProperties);
         }
 
-        public static IEnumerable<T2> MapBaseHolonProperties<T1, T2>(IEnumerable<T1> sourceHolons, IEnumerable<T2> targetHolons, bool mapCelestialProperties = true) where T1 : IHolon where T2 : IHolon, new()
+        public static IEnumerable<T2> MapBaseHolonPropertiesAndCreateT2IfNull<T1, T2>(IEnumerable<T1> sourceHolons, bool mapCelestialProperties = true) where T1 : IHolon where T2 : IHolon, new()
         {
-            if (sourceHolons != null && targetHolons != null)
+            return MapBaseHolonPropertiesAndCreateT2IfNull(sourceHolons, new List<T2>(), mapCelestialProperties);
+        }
+
+        public static IEnumerable<T2> MapBaseHolonPropertiesAndCreateT2IfNull<T1, T2>(IEnumerable<T1> sourceHolons, IEnumerable<T2> targetHolons, bool mapCelestialProperties = true) where T1 : IHolon where T2 : IHolon, new()
+        {
+            if (sourceHolons != null)
             {
                 List<T1> sourceList = sourceHolons.ToList();
-                List<T2> targetList = targetHolons.ToList();
+                List<T2> targetList = new List<T2>();
+
+                if (targetHolons != null && targetHolons.Count() == sourceHolons.Count())
+                    targetList = targetHolons.ToList();
+                else
+                {
+                    foreach (T1 source in sourceHolons)
+                        targetList.Add(new T2());
+                }
 
                 for (int i = 0; i < sourceHolons.Count(); i++)
-                    targetList[i] = MapBaseHolonProperties(sourceList[i], targetList[i], mapCelestialProperties);
+                    targetList[i] = MapBaseHolonPropertiesAndCreateT2IfNull(sourceList[i], targetList[i], mapCelestialProperties);
 
                 return targetList;
             }

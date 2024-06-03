@@ -75,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                     {
-                        result.Result = Mapper.MapBaseHolonProperties<IHolon, T>(holonsResult.Result, result.Result);
+                        result.Result = Mapper.MapBaseHolonPropertiesAndCreateT2IfNull<IHolon, T>(holonsResult.Result);
                         result.IsLoaded = true;
                     }
                     else
@@ -174,7 +174,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                     {
-                        result.Result = Mapper.MapBaseHolonProperties<IHolon, T>(holonsResult.Result, result.Result);
+                        result.Result = Mapper.MapBaseHolonPropertiesAndCreateT2IfNull<IHolon, T>(holonsResult.Result);
                         result.IsLoaded = true;
                     }
                     else if (holonsResult != null)
@@ -276,7 +276,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
-                        result.Result = Mapper.MapBaseHolonProperties<IHolon, T>(holonResult.Result, result.Result);
+                        result.Result = Mapper.MapBaseHolonPropertiesAndCreateT2IfNull<IHolon, T>(holonResult.Result, result.Result);
                         result.IsLoaded = true;
                     }
                     else

@@ -1401,7 +1401,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private OASISResult<T1> HandleLoadCelestialSpace<T1, T2>(OASISResult<T1> result, OASISResult<T2> holonResult, string methodName) where T1 : IHolon, new() where T2 : IHolon
         {
-            result = OASISResultHelper.CopyResultAndCreateToResultObject<T2, T1>(holonResult);
+            result = OASISResultHelper.CopyResultAndCreateToResultObjectIfNull<T2, T1>(holonResult);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1425,7 +1425,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private OASISResult<IEnumerable<T1>> HandleLoadCelestialSpaces<T1, T2>(OASISResult<IEnumerable<T1>> result, OASISResult<IEnumerable<T2>> holonResult, string methodName) where T1 : IHolon, new() where T2 : IHolon
         {
-            result = OASISResultHelper.CopyResultAndCreateToResultObject<T2, T1>(holonResult);
+            result = OASISResultHelper.CopyResultAndCreateToResultObjectIfNull<T2, T1>(holonResult);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1461,7 +1461,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private OASISResult<IEnumerable<T1>> HandleLoadCelestialBodies<T1, T2>(OASISResult<IEnumerable<T1>> result, OASISResult<IEnumerable<T2>> holonResult, string methodName) where T1 : IHolon, new() where T2 : IHolon
         {
-            result = OASISResultHelper.CopyResultAndCreateToResultObject<T2, T1>(holonResult);
+            result = OASISResultHelper.CopyResultAndCreateToResultObjectIfNull<T2, T1>(holonResult);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1556,7 +1556,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             try
             {
-                result = OASISResultHelper.CopyResultAndCreateToResultObject<T2, T1>(holonResult);
+                result = OASISResultHelper.CopyResultAndCreateToResultObjectIfNull<T2, T1>(holonResult);
 
                 if (result != null && !result.IsError && result.Result != null)
                     OnCelestialSpaceSaved?.Invoke(this, new CelestialSpaceSavedEventArgs() { Result = OASISResultHelper.CopyResultToICelestialSpace(result) });
@@ -1577,7 +1577,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private OASISResult<IEnumerable<T1>> HandleSaveCelestialBodies<T1, T2>(OASISResult<IEnumerable<T1>> result, OASISResult<IEnumerable<T2>> holonResult, string methodName) where T1 : IHolon, new() where T2 : IHolon
         {
-            result = OASISResultHelper.CopyResultAndCreateToResultObject<T2, T1>(holonResult);
+            result = OASISResultHelper.CopyResultAndCreateToResultObjectIfNull<T2, T1>(holonResult);
 
             if (result != null && !result.IsError && result.Result != null)
                 OnCelestialBodiesSaved?.Invoke(this, new CelestialBodiesSavedEventArgs() { Result = OASISResultHelper.CopyResultToICelestialBody(result) });
@@ -1622,7 +1622,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private OASISResult<IEnumerable<T1>> HandleSaveCelestialSpaces<T1, T2>(OASISResult<IEnumerable<T1>> result, OASISResult<IEnumerable<T2>> holonResult, string methodName) where T1 : IHolon, new() where T2 : IHolon, new()
         {
-            result = OASISResultHelper.CopyResultAndCreateToResultObject<T2, T1>(holonResult);
+            result = OASISResultHelper.CopyResultAndCreateToResultObjectIfNull<T2, T1>(holonResult);
 
             if (result != null && !result.IsError && result.Result != null)
                 OnCelestialSpacesSaved?.Invoke(this, new CelestialSpacesSavedEventArgs() { Result = OASISResultHelper.CopyResultToICelestialSpace(result) });
