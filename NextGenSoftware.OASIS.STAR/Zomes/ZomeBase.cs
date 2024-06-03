@@ -149,53 +149,53 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        //public virtual OASISResult<IZome> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
-        //{
-        //    OASISResult<IZome> result = new OASISResult<IZome>(new Zome());
-        //    //OASISResult<IZome> result = new OASISResult<IZome>();
-        //    string errorMessage = "Error occured in ZomeBase.Load. Reason: ";
-
-        //    OASISResult<IHolon> holonResult = base.Load(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
-
-        //    if (!holonResult.IsError && holonResult.Result != null )
-        //    {
-        //        result = OASISResultHelper.CopyResult(holonResult, result);
-        //        //result = OASISResultHelper.CopyResultToIZome(holonResult, result);
-
-        //        //result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(holonResult, result);
-        //        //result.Result = (IZome)holonResult.Result;
-        //        OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = result });
-        //    }
-        //    else
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling base.Load. Reason: {holonResult.Message}");
-        //        OnError?.Invoke(this, new ZomeErrorEventArgs() { Result = result, Reason = result != null ? result.Message : null, Exception = result != null ? result.Exception : null });
-        //    }
-
-        //    return result;
-        //}
-
-        public virtual OASISResult<IHolon> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public virtual OASISResult<IZome> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
+            OASISResult<IZome> result = new OASISResult<IZome>(new Zome());
             //OASISResult<IZome> result = new OASISResult<IZome>();
             string errorMessage = "Error occured in ZomeBase.Load. Reason: ";
 
-            result = base.Load(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
+            OASISResult<IHolon> holonResult = base.Load(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
 
-            if (!result.IsError && result.Result != null)
+            if (!holonResult.IsError && holonResult.Result != null)
             {
-                
-                OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
+                result = OASISResultHelper.CopyResult(holonResult, result);
+                //result = OASISResultHelper.CopyResultToIZome(holonResult, result);
+
+                //result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(holonResult, result);
+                //result.Result = (IZome)holonResult.Result;
+                OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = result });
             }
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling base.Load. Reason: {result.Message}");
-                OnError?.Invoke(this, new ZomeErrorEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result), Reason = result != null ? result.Message : null, Exception = result != null ? result.Exception : null });
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling base.Load. Reason: {holonResult.Message}");
+                OnError?.Invoke(this, new ZomeErrorEventArgs() { Result = result, Reason = result != null ? result.Message : null, Exception = result != null ? result.Exception : null });
             }
 
             return result;
         }
+
+        //public virtual OASISResult<IHolon> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<IHolon> result = new OASISResult<IHolon>();
+        //    //OASISResult<IZome> result = new OASISResult<IZome>();
+        //    string errorMessage = "Error occured in ZomeBase.Load. Reason: ";
+
+        //    result = base.Load(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
+
+        //    if (!result.IsError && result.Result != null)
+        //    {
+
+        //        OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result) });
+        //    }
+        //    else
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling base.Load. Reason: {result.Message}");
+        //        OnError?.Invoke(this, new ZomeErrorEventArgs() { Result = OASISResultHelper.CopyResultToIZome(result), Reason = result != null ? result.Message : null, Exception = result != null ? result.Exception : null });
+        //    }
+
+        //    return result;
+        //}
 
         public virtual async Task<OASISResult<T>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {

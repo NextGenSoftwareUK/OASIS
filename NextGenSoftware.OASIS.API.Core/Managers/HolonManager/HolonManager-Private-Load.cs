@@ -82,7 +82,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         {
                             result.IsLoaded = true;
                             result.LoadedCount = 1;
-                            result.Result = Mapper.MapBaseHolonProperties(holoResult.Result, result.Result);
+                            result.Result = Mapper.MapBaseHolonPropertiesAndCreateT2IfNull<IHolon, T>(holoResult.Result);
                         }
                     }
                     else
@@ -179,7 +179,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             {
                                 result.IsLoaded = true;
                                 result.LoadedCount = 1;
-                                result.Result = Mapper.MapBaseHolonProperties(task.Result.Result, result.Result);
+                                result.Result = Mapper.MapBaseHolonPropertiesAndCreateT2IfNull(task.Result.Result, result.Result);
                             }
                         }
                         else
@@ -270,7 +270,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         {
                             result.IsLoaded = true;
                             result.LoadedCount = 1;
-                            result.Result = Mapper.MapBaseHolonProperties(holonResult.Result, result.Result);
+                            result.Result = Mapper.MapBaseHolonPropertiesAndCreateT2IfNull(holonResult.Result, result.Result);
                         }
                     }
                     else
@@ -365,7 +365,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             {
                                 result.IsLoaded = true;
                                 result.LoadedCount = 1;
-                                result.Result = Mapper.MapBaseHolonProperties(task.Result.Result, result.Result);
+                                result.Result = Mapper.MapBaseHolonPropertiesAndCreateT2IfNull(task.Result.Result, result.Result);
                             }
                         }
                         else
@@ -456,7 +456,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         {
                             result.IsLoaded = true;
                             result.LoadedCount = 1;
-                            result.Result = Mapper.MapBaseHolonProperties(holonResult.Result, result.Result);
+                            result.Result = Mapper.MapBaseHolonPropertiesAndCreateT2IfNull(holonResult.Result, result.Result);
                         }
                     }
                     else
@@ -551,7 +551,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             {
                                 result.IsLoaded = true;
                                 result.LoadedCount = 1;
-                                result.Result = Mapper.MapBaseHolonProperties(task.Result.Result, result.Result);
+                                result.Result = Mapper.MapBaseHolonPropertiesAndCreateT2IfNull(task.Result.Result, result.Result);
                             }
                         }
                         else
@@ -642,7 +642,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         {
                             result.IsLoaded = true;
                             result.LoadedCount = 1;
-                            result.Result = Mapper.MapBaseHolonProperties(holonResult.Result, result.Result);
+                            result.Result = Mapper.MapBaseHolonPropertiesAndCreateT2IfNull(holonResult.Result, result.Result);
                         }
                     }
                     else
@@ -737,7 +737,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             {
                                 result.IsLoaded = true;
                                 result.LoadedCount = 1;
-                                result.Result = Mapper.MapBaseHolonProperties(task.Result.Result, result.Result);
+                                result.Result = Mapper.MapBaseHolonPropertiesAndCreateT2IfNull(task.Result.Result, result.Result);
                             }
                         }
                         else

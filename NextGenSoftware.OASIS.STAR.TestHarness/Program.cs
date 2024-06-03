@@ -85,29 +85,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 if (result.IsError)
                     CLIEngine.ShowErrorMessage(string.Concat("Error Igniting STAR. Error Message: ", result.Message));
                 else
-                {
-                    //Console.ForegroundColor = ConsoleColor.Yellow;
-
-                    if (!CLIEngine.GetConfirmation("Do you have an existing avatar? "))
-                        CreateAvatar();
-                    else
-                        CLIEngine.ShowMessage("", false);
-
-                    LoginAvatar();
-
-                    CLIEngine.ShowMessage("", false);
-                    CLIEngine.WriteAsciMessage(" READY PLAYER ONE?", Color.Green);
-                    CLIEngine.ShowMessage("", false);
-
-                    //Colorful.Console.WriteAlternating(" READY PLAYER ONE", new Colorful.ColorAlternator(Color.Green, Color.Blue));
-                    //Colorful.Console.WriteAsciiStyled(" READY PLAYER ONE", new Colorful.StyleSheet(Color.Green));
-                    //Colorful.Console.WriteLineWithGradient()
-
-                    //TODO: TEMP - REMOVE AFTER TESTING! :)
-                    await Test(celestialBodyDNAFolder, geneisFolder);
-
-                    Console.ReadKey();
-                }
+                    await LoginAvatar();
             }
             catch (Exception ex)
             {
@@ -115,6 +93,20 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 CLIEngine.ShowErrorMessage(string.Concat("An unknown error has occured. Error Details: ", ex.ToString()));
                 //AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
             }
+        }
+
+        private static async Task ReadyPlayerOne()
+        {
+            ShowAvatarStats();
+
+            CLIEngine.ShowMessage("", false);
+            CLIEngine.WriteAsciMessage(" READY PLAYER ONE?", Color.Green);
+            CLIEngine.ShowMessage("", false);
+
+            //TODO: TEMP - REMOVE AFTER TESTING! :)
+            await Test(celestialBodyDNAFolder, geneisFolder);
+
+            Console.ReadKey();
         }
 
         private static async Task Test(string celestialBodyDNAFolder, string geneisFolder)
@@ -1020,7 +1012,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             return username;
         }
 
-        private static void CreateAvatar()
+        private static bool CreateAvatar()
         {
             ConsoleColor favColour = ConsoleColor.Green;
             ConsoleColor cliColour = ConsoleColor.Green;
@@ -1045,9 +1037,15 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             CLIEngine.ShowMessage("");
 
             if (createAvatarResult.IsError)
+            {
                 CLIEngine.ShowErrorMessage(string.Concat("Error creating avatar. Error message: ", createAvatarResult.Message));
+                return false;
+            }
             else
+            {
                 CLIEngine.ShowSuccessMessage("Successfully Created Avatar. Please Check Your Email To Verify Your Account Before Logging In.");
+                return true;
+            }
         }
 
         private static void ShowHeader()
@@ -1156,12 +1154,17 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine("************************************************************************************************");
         }
 
-        private static void LoginAvatar()
+        private static async Task LoginAvatar()
         {
             OASISResult<IAvatar> beamInResult = null;
 
             while (beamInResult == null || (beamInResult != null && beamInResult.IsError))
             {
+                if (!CLIEngine.GetConfirmation("Do you have an existing avatar? "))
+                    CreateAvatar();
+                else
+                    CLIEngine.ShowMessage("", false);
+
                 CLIEngine.ShowMessage("Please login below:");
                 string username = GetValidEmail("Username/Email? ", false);
                 string password = CLIEngine.ReadPassword("Password? ");
@@ -1184,7 +1187,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 if (beamInResult.IsError)
                 {
-                    CLIEngine.ShowErrorMessage(string.Concat("Error logging in. Error Message: ", beamInResult.Message));
+                    CLIEngine.ShowErrorMessage(string.Concat("Error Beaming in. Error Message: ", beamInResult.Message));
 
                     if (beamInResult.Message == "Avatar has not been verified. Please check your email.")
                     {
@@ -1213,7 +1216,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             }
 
             CLIEngine.ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", STAR.LoggedInAvatar.FullName, ". Have a nice day! :)"));
-            ShowAvatarStats();
+            await ReadyPlayerOne();
         }
 
         private static void ShowAvatarStats()

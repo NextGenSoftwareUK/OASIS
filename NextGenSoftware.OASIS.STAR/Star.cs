@@ -1762,10 +1762,7 @@ namespace NextGenSoftware.OASIS.STAR
                     //Normally you would leave autoLoad set to true but if you need to process the result in-line then you need to manually call Load as we do here (otherwise you would process the result from the OnCelestialBodyLoaded or OnCelestialBodyError event handlers).
                     //ICelestialBody celestialBody = new T(guidId, false);
                     celestialBody = new T() {  Id = guidId};
-
-                    //OASISResult<ICelestialBody> celestialBodyResult = celestialBody.Initialize();
-                    OASISResult<ICelestialBody> celestialBodyResult = celestialBody.Load();
-                    //OASISResult<ICelestialBody> celestialBodyResult = loadFunc();
+                    OASISResult<T> celestialBodyResult = celestialBody.Load<T>();
 
                     if (celestialBodyResult.IsError || celestialBodyResult.Result == null)
                     {
@@ -1776,10 +1773,10 @@ namespace NextGenSoftware.OASIS.STAR
                         ShowStatusMessage(StarStatusMessageType.Success, $"{longName} Initialized.");
                 }
                 else
-                    HandleCelesitalBodyInitError(result, name, id, $"The {name}Id value in STARDNA.json is not a valid Guid.");
+                    HandleCelesitalBodyInitError<T>(result, name, id, $"The {name}Id value in STARDNA.json is not a valid Guid.");
             }
             else
-                HandleCelesitalBodyInitError(result, name, id, $"The {name}Id value in STARDNA.json is missing.");
+                HandleCelesitalBodyInitError<T>(result, name, id, $"The {name}Id value in STARDNA.json is missing.");
 
             return (result, (T)celestialBody);
         }
@@ -1799,10 +1796,7 @@ namespace NextGenSoftware.OASIS.STAR
                     //Normally you would leave autoLoad set to true but if you need to process the result in-line then you need to manually call Load as we do here (otherwise you would process the result from the OnCelestialBodyLoaded or OnCelestialBodyError event handlers).
                     //ICelestialBody celestialBody = new T(guidId, false);
                     celestialBody = new T() { Id = guidId };
-
-                    //OASISResult<ICelestialBody> celestialBodyResult = celestialBody.Initialize();
-                    OASISResult<ICelestialBody> celestialBodyResult = await celestialBody.LoadAsync();
-                    //OASISResult<ICelestialBody> celestialBodyResult = loadFunc();
+                    OASISResult<T> celestialBodyResult = await celestialBody.LoadAsync<T>();
 
                     if (celestialBodyResult.IsError || celestialBodyResult.Result == null)
                     {
@@ -1813,15 +1807,32 @@ namespace NextGenSoftware.OASIS.STAR
                         ShowStatusMessage(StarStatusMessageType.Success, $"{longName} Initialized.");
                 }
                 else
-                    HandleCelesitalBodyInitError(result, name, id, $"The {name}Id value in STARDNA.json is not a valid Guid.");
+                    HandleCelesitalBodyInitError<T>(result, name, id, $"The {name}Id value in STARDNA.json is not a valid Guid.");
             }
             else
-                HandleCelesitalBodyInitError(result, name, id, $"The {name}Id value in STARDNA.json is missing.");
+                HandleCelesitalBodyInitError<T>(result, name, id, $"The {name}Id value in STARDNA.json is missing.");
 
             return (result, (T)celestialBody);
         }
 
-        private static void HandleCelesitalBodyInitError(OASISResult<IOmiverse> result, string name, string id, string errorMessage, OASISResult<ICelestialBody> celstialBodyResult = null)
+        //private static void HandleCelesitalBodyInitError(OASISResult<IOmiverse> result, string name, string id, string errorMessage, OASISResult<ICelestialBody> celstialBodyResult = null)
+        //{
+        //    string msg = $"Error occured in IgniteInnerStar initializing {name} with Id {id}. {errorMessage} Please correct or delete STARDNA to reset STAR ODK to then auto-generate new defaults.";
+
+        //    if (celstialBodyResult != null)
+        //        msg = string.Concat(msg, " Reason: ", celstialBodyResult.Message);
+
+        //    OASISErrorHandling.HandleError(ref result, msg, celstialBodyResult != null ? celstialBodyResult.DetailedMessage : null);
+        //}
+
+        //private static void HandleCelesitalBodyInitError(OASISResult<IOmiverse> result, string name, string id, OASISResult<ICelestialBody> celstialBodyResult)
+        //{
+        //    HandleCelesitalBodyInitError(result, name, id, "Likely reason is that the id does not exist.", celstialBodyResult);
+        //    //OASISErrorHandling.HandleError(ref result, $"Error occured in IgniteInnerStar initializing {name} with Id {id}. Likely reason is that the id does not exist. Please correct or delete STARDNA to reset STAR ODK to then auto-generate new defaults. Reason: {celstialBodyResult.Message}", celstialBodyResult.DetailedMessage);
+        //    //OASISErrorHandling.HandleError(ref result, $"Error occured in IgniteInnerStar initializing {name} with Id {id}. Likely reason is that the id does not exist, in this case remove the {name}Id from STARDNA.json and then try again. Reason: {celstialBodyResult.Message}", celstialBodyResult.DetailedMessage);
+        //}
+
+        private static void HandleCelesitalBodyInitError<T>(OASISResult<IOmiverse> result, string name, string id, string errorMessage, OASISResult<T> celstialBodyResult = null) where T : ICelestialBody
         {
             string msg = $"Error occured in IgniteInnerStar initializing {name} with Id {id}. {errorMessage} Please correct or delete STARDNA to reset STAR ODK to then auto-generate new defaults.";
 
@@ -1831,11 +1842,9 @@ namespace NextGenSoftware.OASIS.STAR
             OASISErrorHandling.HandleError(ref result, msg, celstialBodyResult != null ? celstialBodyResult.DetailedMessage : null);
         }
 
-        private static void HandleCelesitalBodyInitError(OASISResult<IOmiverse> result, string name, string id, OASISResult<ICelestialBody> celstialBodyResult)
+        private static void HandleCelesitalBodyInitError<T>(OASISResult<IOmiverse> result, string name, string id, OASISResult<T> celstialBodyResult) where T : ICelestialBody
         {
             HandleCelesitalBodyInitError(result, name, id, "Likely reason is that the id does not exist.", celstialBodyResult);
-            //OASISErrorHandling.HandleError(ref result, $"Error occured in IgniteInnerStar initializing {name} with Id {id}. Likely reason is that the id does not exist. Please correct or delete STARDNA to reset STAR ODK to then auto-generate new defaults. Reason: {celstialBodyResult.Message}", celstialBodyResult.DetailedMessage);
-            //OASISErrorHandling.HandleError(ref result, $"Error occured in IgniteInnerStar initializing {name} with Id {id}. Likely reason is that the id does not exist, in this case remove the {name}Id from STARDNA.json and then try again. Reason: {celstialBodyResult.Message}", celstialBodyResult.DetailedMessage);
         }
 
 
