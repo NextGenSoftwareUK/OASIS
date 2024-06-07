@@ -429,5 +429,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             OASISErrorHandling.HandleWarning(ref result, BuildSaveHolonAutoReplicateErrorMessage(result.InnerMessages, holon));
         }
+
+        private List<IHolon> BuildChildHolonsList(IHolon holon, List<IHolon> childHolons, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            currentChildDepth++;
+
+            if ((recursive && currentChildDepth >= maxChildDepth) || (!recursive && currentChildDepth > 1))
+                return childHolons;
+
+            foreach (IHolon childHolon in holon.Children)
+                childHolons = BuildChildHolonsList(childHolon, childHolons);
+
+            return childHolons;
+        }
     }
 }

@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class HolonManager : OASISManager
     {
-        private OASISResult<IHolon> SaveHolonForProviderType(IHolon holon, ProviderType providerType, OASISResult<IHolon> result, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        private OASISResult<IHolon> SaveHolonForProviderType(IHolon holon, Guid avatarId, ProviderType providerType, OASISResult<IHolon> result, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             try
             {
@@ -65,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<T> SaveHolonForProviderType<T>(IHolon holon, ProviderType providerType, OASISResult<T> result, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        private OASISResult<T> SaveHolonForProviderType<T>(IHolon holon, Guid avatarId, ProviderType providerType, OASISResult<T> result, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             try
             {
@@ -119,7 +119,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IHolon>> SaveSaveHolonForProviderTypeHolonForProviderTypeAsync(IHolon holon, ProviderType providerType, OASISResult<IHolon> result, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) //TODO: Dont think this should be an optional param?!
+        private async Task<OASISResult<IHolon>> SaveHolonForProviderTypeAsync(IHolon holon, Guid avatarId, ProviderType providerType, OASISResult<IHolon> result, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) //TODO: Dont think this should be an optional param?!
         {
             try
             {
@@ -173,10 +173,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<T>> SaveHolonForProviderTypeAsync<T>(IHolon holon, Guid avatarId, ProviderType providerType, OASISResult<T> result, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) where T : IHolon, new()
+        //private async Task<OASISResult<T>> SaveHolonForProviderTypeAsync<T>(IHolon holon, Guid avatarId, ProviderType providerType, OASISResult<T> result, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) where T : IHolon, new()
+        private async Task<OASISResult<T>> SaveHolonForProviderTypeAsync<T>(IHolon holon, Guid avatarId, ProviderType providerType, OASISResult<T> result, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) where T : IHolon, new()
         {
             string errorMessage = $"An error occured attempting to save the {LoggingHelper.GetHolonInfoForLogging(holon)} in the HolonManager.SaveHolonAsync method for the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason:";
-            List<string> childSaveErrors = new List<string>();
+            //List<string> childSaveErrors = new List<string>();
 
             try
             {
@@ -206,32 +207,52 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         if (saveChildren && !saveChildrenOnProvider)
                         {
-                            currentChildDepth++;
+                            //currentChildDepth++;
 
-                            if ((recursive && currentChildDepth >= maxChildDepth) || (!recursive && currentChildDepth > 1))
-                                return result;
+                            //if ((recursive && currentChildDepth >= maxChildDepth) || (!recursive && currentChildDepth > 1))
+                            //    return result;
 
-                            //TODO:Need to recursively save all children here...
-                            foreach (IHolon childHolon in holon.Children)
+                            List<IHolon> childHolons = BuildChildHolonsList(holon, new List<IHolon>());
+
+                            if (childHolons.Count > 0)
                             {
-                                OASISResult<T> saveChildResult = await SaveHolonAsync<T>(childHolon, avatarId, saveChildren, recursive, maxChildDepth, currentChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                                OASISResult<IEnumerable<T>> saveChildHolonsResult = await SaveHolonsAsync<T>((IEnumerable<T>)childHolons, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
-                                if (saveChildResult != null && saveChildResult.Result != null && !saveChildResult.IsError)
-                                {
-                                    result.SavedCount++;                                    
-                                }
+                                if (saveChildHolonsResult != null && saveChildHolonsResult.Result != null && !saveChildHolonsResult.IsError)
+                                    result.SavedCount += childHolons.Count;
                                 else
                                 {
                                     //Make sure it DOESN'T add to the innerMessages because we need to keep these reserved for the top level holon that is saving and any auto-failover save messaged used in SaveHolon method.
-                                    childSaveErrors.Add($"An error occured saving the child holon {LoggingHelper.GetHolonInfoForLogging(childHolon)} in the HolonManager.SaveHolonAsync method for the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveChildResult.Message}");
-                                    result.WarningCount++;
-                                    result.IsWarning = true;
+                                    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} The holon {LoggingHelper.GetHolonInfoForLogging(holon)} saved fine but errors occured saving some of it's children: {saveChildHolonsResult.Message}");
+
+
+                                    //childSaveErrors.Add($"An error occured saving the child holons for the holon {LoggingHelper.GetHolonInfoForLogging(holon)} in the HolonManager.SaveHolonAsync method for the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveChildHolonsResult.Message}");
+                                    //result.WarningCount++;
+                                    //result.IsWarning = true;
                                     //OASISErrorHandling.HandleWarning(ref result, $"An error occured saving the child holon {LoggingHelper.GetHolonInfoForLogging(childHolon)} in the HolonManager.SaveHolonAsync method for the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveChildResult.Message}", false, false, false, false, true) ;
                                 }
                             }
+                        
+                            //foreach (IHolon childHolon in holon.Children)
+                            //{
+                            //    OASISResult<T> saveChildResult = await SaveHolonAsync<T>(childHolon, avatarId, saveChildren, recursive, maxChildDepth, currentChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
-                            if (childSaveErrors.Count > 0)
-                                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} The holon {LoggingHelper.GetHolonInfoForLogging(holon)} saved fine but errors occured saving some of it's children:\n\n{OASISResultHelper.BuildInnerMessageError(childSaveErrors)}");
+                            //    if (saveChildResult != null && saveChildResult.Result != null && !saveChildResult.IsError)
+                            //    {
+                            //        result.SavedCount++;
+                            //    }
+                            //    else
+                            //    {
+                            //        //Make sure it DOESN'T add to the innerMessages because we need to keep these reserved for the top level holon that is saving and any auto-failover save messaged used in SaveHolon method.
+                            //        childSaveErrors.Add($"An error occured saving the child holon {LoggingHelper.GetHolonInfoForLogging(childHolon)} in the HolonManager.SaveHolonAsync method for the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveChildResult.Message}");
+                            //        result.WarningCount++;
+                            //        result.IsWarning = true;
+                            //        //OASISErrorHandling.HandleWarning(ref result, $"An error occured saving the child holon {LoggingHelper.GetHolonInfoForLogging(childHolon)} in the HolonManager.SaveHolonAsync method for the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveChildResult.Message}", false, false, false, false, true) ;
+                            //    }
+                            //}
+
+                            //if (childSaveErrors.Count > 0)
+                            //    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} The holon {LoggingHelper.GetHolonInfoForLogging(holon)} saved fine but errors occured saving some of it's children:\n\n{OASISResultHelper.BuildInnerMessageError(childSaveErrors)}");
                         }
 
                         result.Result = (T)saveHolonResult.Result;
@@ -564,7 +585,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<T> SaveHolonForListOfProviders<T>(IHolon holon, OASISResult<T> result, ProviderType currentProviderType, List<EnumValue<ProviderType>> providers, string listName, bool continueOSuccess, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) where T : IHolon
+        private OASISResult<T> SaveHolonForListOfProviders<T>(IHolon holon, Guid avatarId, OASISResult<T> result, ProviderType currentProviderType, List<EnumValue<ProviderType>> providers, string listName, bool continueOSuccess, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) where T : IHolon
         {
             OASISResult<T> holonSaveResult = new OASISResult<T>();
             ProviderType originalCurrentProvider = ProviderManager.Instance.CurrentStorageProviderType.Value;
@@ -579,7 +600,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 //if (type.Value != currentProviderType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                 if (type.Value != originalCurrentProvider)
                 { 
-                    holonSaveResult = SaveHolonForProviderType(holon, type.Value, holonSaveResult, saveChildren, recursive, maxChildDepth, continueOnError);
+                    holonSaveResult = SaveHolonForProviderType(holon, avatarId, type.Value, holonSaveResult, saveChildren, recursive, maxChildDepth, continueOnError);
 
                     if (holonSaveResult.IsError || holonSaveResult.Result == null)
                         HandleSaveHolonForListOfProviderError(result, holonSaveResult, listName, type.Name);
@@ -607,7 +628,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 //if (type.Value != currentProviderType && type.Value != ProviderManager.Instance.CurrentStorageProviderType.Value)
                 if (type.Value != originalCurrentProvider)
                 {
-                    holonSaveResult = await SaveHolonForProviderTypeAsync<T>(holon, avatarId, type.Value, holonSaveResult, saveChildren, recursive, maxChildDepth, currentChildDepth, continueOnError, saveChildrenOnProvider);
+                    holonSaveResult = await SaveHolonForProviderTypeAsync<T>(holon, avatarId, type.Value, holonSaveResult, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
 
                     if (holonSaveResult.IsError || holonSaveResult.Result == null)
                         HandleSaveHolonForListOfProviderError<T>(result, holonSaveResult, listName, type.Name);
