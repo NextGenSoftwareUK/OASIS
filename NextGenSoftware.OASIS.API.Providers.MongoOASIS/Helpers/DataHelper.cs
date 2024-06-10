@@ -256,7 +256,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.ParentPlanet = avatar.Result.ParentPlanet;
             oasisAvatar.ParentMoonId = avatar.Result.ParentMoonId;
             oasisAvatar.ParentMoon = avatar.Result.ParentMoon;
-            oasisAvatar.Children = avatar.Result.Children;
+            //oasisAvatar.Children = avatar.Result.Children;
             oasisAvatar.CustomKey = avatar.Result.CustomKey;
             //oasisAvatar.Nodes = avatar.Result.Nodes;
 
@@ -596,7 +596,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.ParentPlanet = holon.Result.ParentPlanet;
             result.Result.ParentMoonId = holon.Result.ParentMoonId;
             result.Result.ParentMoon = holon.Result.ParentMoon;
-            result.Result.Children = holon.Result.Children;
+            //result.Result.Children = holon.Result.Children;
             result.Result.CustomKey = holon.Result.CustomKey;
 
             //result.Result.Nodes = holon.Result.Nodes;
@@ -680,7 +680,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.ParentPlanet = holon.ParentPlanet;
             mongoHolon.ParentMoonId = holon.ParentMoonId;
             mongoHolon.ParentMoon = holon.ParentMoon;
-            mongoHolon.Children = holon.Children;
+            //mongoHolon.Children = holon.Children;
             mongoHolon.CustomKey = holon.CustomKey;
             //mongoHolon.Nodes = holon.Nodes;
 

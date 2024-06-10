@@ -161,20 +161,20 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void RegisterAllCelestialSpaces()
         {
-            base.UnregisterAllCelestialSpaces();
-            base.RegisterCelestialSpaces(this.SolarSystems, false);
-            base.RegisterCelestialSpaces(this.Nebulas, false);
-            base.RegisterCelestialSpaces(this.GalaxyClusters, false);
+            base.RemoveAllCelestialSpaces(false, true, true);
+            base.AddCelestialSpaces(this.SolarSystems, false);
+            base.AddCelestialSpaces(this.Nebulas, false);
+            base.AddCelestialSpaces(this.GalaxyClusters, false);
         }
 
         private void RegisterAllCelestialBodies()
         {
-            base.UnregisterAllCelestialBodies();
-            base.RegisterCelestialBodies(this.Stars, false);
-            base.RegisterCelestialBodies(this.Planets, false);
-            base.RegisterCelestialBodies(this.Asteroids, false);
-            base.RegisterCelestialBodies(this.Comets, false);
-            base.RegisterCelestialBodies(this.Meteroids, false);
+            base.RemoveAllCelestialBodies(false, true, true);
+            base.AddCelestialBodies(this.Stars, false);
+            base.AddCelestialBodies(this.Planets, false);
+            base.AddCelestialBodies(this.Asteroids, false);
+            base.AddCelestialBodies(this.Comets, false);
+            base.AddCelestialBodies(this.Meteroids, false);
         }
     }
 }

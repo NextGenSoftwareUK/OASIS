@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -39,6 +40,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public event HolonsSaved OnHolonsSaved;
         public event HolonsError OnHolonsError;
 
+        [BsonIgnore]
         public new Guid Id
         {
             get
@@ -54,6 +56,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             }
         }
 
+        [BsonIgnore]
         public new Dictionary<ProviderType, string> ProviderUniqueStorageKey
         {
             get

@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             this.Description = "The Core Crystal Of Gaia (the planet) - ancient friendly Galactic Societies exist in Hollow Earth waiting to make contact when we are finally ready... :)";
             this.DimensionLevel = DimensionLevel.First;
             Universe = new Universe(this) { Name = $"{this.Name} Universe" };
-            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Universe });
+            base.AddCelestialSpace(Universe, false);
         }
     }
 }

@@ -451,7 +451,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsStarIgnited)
                 await IgniteStarAsync();
 
-            return await OASISAPI.Avatar.RegisterAsync(title, firstName, lastName, email, username, password, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
+            return await OASISAPI.Avatar.RegisterAsync(title, firstName, lastName, email, password, username, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
         }
 
         public static async Task<OASISResult<IAvatar>> BeamInAsync(string username, string password)
@@ -1865,7 +1865,7 @@ namespace NextGenSoftware.OASIS.STAR
             //The 3rd Dimension will contain the UniversePrime and MagicVerse.
             //It will also create the GreatGrandCentralStar in the centre of the Omniverse and also a GrandCentralStar at the centre of the Multiverse.
             Omniverse omniverse = new Omniverse();
-            celestialSpaceResult = await omniverse.SaveAsync();
+           celestialSpaceResult = await omniverse.SaveAsync();
             OASISResultHelper.CopyResult(celestialSpaceResult, result);
             result.Result = (IOmiverse)celestialSpaceResult.Result;
 

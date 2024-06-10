@@ -81,11 +81,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void RegisterAllCelestialBodies()
         {
-            base.UnregisterAllCelestialBodies();
-            base.RegisterCelestialBodies(this.Planets, false);
-            base.RegisterCelestialBodies(this.Asteroids, false);
-            base.RegisterCelestialBodies(this.Comets, false);
-            base.RegisterCelestialBodies(this.Meteroids, false);
+            base.RemoveAllCelestialBodies(false, true, true);
+            base.AddCelestialBodies(this.Planets, false);
+            base.AddCelestialBodies(this.Asteroids, false);
+            base.AddCelestialBodies(this.Comets, false);
+            base.AddCelestialBodies(this.Meteroids, false);
+
+            //base.UnregisterAllCelestialBodies();
+            //base.RegisterCelestialBodies(this.Planets, false);
+            //base.RegisterCelestialBodies(this.Asteroids, false);
+            //base.RegisterCelestialBodies(this.Comets, false);
+            //base.RegisterCelestialBodies(this.Meteroids, false);
         }
 
         //protected override void RegisterCelestialBodies(IEnumerable<ICelestialBody> celestialBodies)

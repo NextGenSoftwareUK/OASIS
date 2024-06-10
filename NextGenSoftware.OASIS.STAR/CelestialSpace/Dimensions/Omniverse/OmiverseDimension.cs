@@ -47,7 +47,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             }
 
             SuperVerse = new SuperVerse(omniverse) { Name = "SuperVerse", Description = "SuperVerse that spans ALL Multiverses/Universes." };
-            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { SuperVerse });
+            base.AddCelestialSpace(SuperVerse, false);
         }
     }
 }
