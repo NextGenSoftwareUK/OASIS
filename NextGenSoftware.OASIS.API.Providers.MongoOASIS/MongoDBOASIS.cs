@@ -17,6 +17,8 @@ using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using MailKit.Search;
 using NextGenSoftware.OASIS.Common;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -62,6 +64,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             this.ProviderDescription = "MongoDB Atlas Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+
+            var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("NextGenSoftware")); 
+            BsonSerializer.RegisterSerializer(objectSerializer);
 
             /*
             ConventionRegistry.Register(

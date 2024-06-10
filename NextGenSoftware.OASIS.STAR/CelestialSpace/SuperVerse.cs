@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         private void Init(IOmiverse omniverse = null)
         {
             this.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
-            base.RegisterCelestialSpaces(Universes);
+            //base.RegisterCelestialSpaces(Universes); //TODO: Not sure why it was doing this twice?! lol
 
             if (omniverse != null)
             {
@@ -47,7 +47,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 ParentHolonId = omniverse.Id;
             }
 
-            base.RegisterCelestialSpaces(Universes);
+            //base.RegisterCelestialSpaces(Universes);
+            base.AddCelestialSpaces(Universes, false);
         }
     }
 }

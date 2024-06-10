@@ -125,7 +125,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
         //public IEnumerable<IHolon> Children { get; set; }
-        public IList<IHolon> Children { get; set; } = new List<IHolon>();
+        public virtual IList<IHolon> Children { get; set; } = new List<IHolon>();
         //public ObservableCollection<IHolon> Children { get; set; }
 
         /// <summary>

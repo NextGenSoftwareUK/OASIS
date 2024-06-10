@@ -49,8 +49,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             //UniversePrime = new Universe(this) { Name = $"{this.Name} Universe Prime" };
             Universe = new Universe(this) { Name = $"{this.Name} Universe Prime" };
             MagicVerse = new Universe(this) { Name = $"{this.Name} Universe (MagicVerse)" };
-            //base.RegisterCelestialSpaces(new List<ICelestialSpace>() { UniversePrime, MagicVerse });
-            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Universe, MagicVerse });
+            base.AddCelestialSpace(Universe, false);
+            base.AddCelestialSpace(MagicVerse, false);
         }
     }
 }

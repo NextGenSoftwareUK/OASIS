@@ -66,8 +66,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 Description = "The GrandSuperStar at the centre of this Multiverse/Universe. Can create Universes within it's parent Multiverse.",
             };
 
-            //GrandSuperStar.OnCelestialBodySaved += GrandSuperStar_OnCelestialBodySaved;
-            base.RegisterCelestialBodies(new List<ICelestialBody>() { this.GrandSuperStar }, false);
+            //Set it to not save/persist it because all children will be saved in one atomic batch operation when the parent (Omniverse/Multiverse) is saved.
+            base.AddCelestialBody(this.GrandSuperStar, false); 
 
             ParentGrandSuperStar = GrandSuperStar;
             ParentGrandSuperStarId = GrandSuperStar.Id;
@@ -97,9 +97,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void RegisterAllCelestialSpaces()
         {
-            base.UnregisterAllCelestialSpaces();
-            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Dimensions.FirstDimension, Dimensions.SecondDimension, Dimensions.ThirdDimension, Dimensions.FourthDimension, Dimensions.FifthDimension, Dimensions.SixthDimension, Dimensions.SeventhDimension }, false);
-            base.RegisterCelestialSpaces(Dimensions.CustomDimensions, false);
+            base.RemoveAllCelestialSpaces(false, true, true);
+            base.AddCelestialSpaces(new List<ICelestialSpace>() { Dimensions.FirstDimension, Dimensions.SecondDimension, Dimensions.ThirdDimension, Dimensions.FourthDimension, Dimensions.FifthDimension, Dimensions.SixthDimension, Dimensions.SeventhDimension }, false);
+            base.AddCelestialSpaces(Dimensions.CustomDimensions, false);
         }
     }
 }

@@ -4,8 +4,6 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.STAR.Enums;
-using NextGenSoftware.OASIS.STAR.EventArgs;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
@@ -89,8 +87,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 ParentHolonId = this.Id
             };
 
-            //GreatGrandSuperStar.OnCelestialBodySaved += GreatGrandSuperStar_OnCelestialBodySaved;
-            base.RegisterCelestialBodies(new List<ICelestialBody>() { this.GreatGrandSuperStar }, false);
+            //Set it to not save/persist it because all children will be saved in one atomic batch operation when the parent (Omniverse/Multiverse) is saved.
+            base.AddCelestialBody(this.GreatGrandSuperStar, false);
 
             ParentGreatGrandSuperStar = GreatGrandSuperStar;
             ParentGreatGrandSuperStarId = GreatGrandSuperStar.Id;
@@ -110,20 +108,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             defaultMultiverse.GrandSuperStar.Description = "The GrandSuperStar at the centre of our Multiverse/Universe. Can create Universes within it's parent Multiverse.";
             Multiverses.Add(defaultMultiverse); //NOTE: Adding items to a collection does not trigger the Property Setter.
-            base.RegisterCelestialSpaces(this.Multiverses, false);
+            base.AddCelestialSpaces(this.Multiverses, false);
         }
-
-        //private void GreatGrandSuperStar_OnCelestialBodySaved(object sender, API.Core.Events.CelestialBodySavedEventArgs e)
-        //{
-        //    STAR.ShowStatusMessage(e);
-        //    GreatGrandSuperStar.OnCelestialBodySaved -= GreatGrandSuperStar_OnCelestialBodySaved;
-        //}
 
         private void RegisterAllCelestialSpaces()
         {
-            base.UnregisterAllCelestialSpaces();
-            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Dimensions.EighthDimension, Dimensions.NinthDimension, Dimensions.TenthDimension, Dimensions.EleventhDimension, Dimensions.TwelfthDimension }, false);
-            base.RegisterCelestialSpaces(this.Multiverses, false);
+            base.RemoveAllCelestialSpaces(false, true, true);
+            base.AddCelestialSpaces(new List<ICelestialSpace>() { Dimensions.EighthDimension, Dimensions.NinthDimension, Dimensions.TenthDimension, Dimensions.EleventhDimension, Dimensions.TwelfthDimension }, false);
+            base.AddCelestialSpaces(this.Multiverses, false);
         }
     }
 }

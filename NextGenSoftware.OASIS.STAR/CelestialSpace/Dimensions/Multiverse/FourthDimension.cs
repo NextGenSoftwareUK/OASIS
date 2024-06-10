@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             this.Description = "The Astral Plane.";
             this.DimensionLevel = DimensionLevel.Fourth;
             Universe = new Universe(this) { Name = $"{this.Name} Universe" };
-            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Universe });
+            base.AddCelestialSpace(Universe, false);
         }
     }
 }

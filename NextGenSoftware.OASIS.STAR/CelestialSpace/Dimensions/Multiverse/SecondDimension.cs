@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             this.Description = "The Animal/Vegetation Plane - where aniamls and plants exist.";
             this.DimensionLevel = DimensionLevel.Second;
             Universe = new Universe(this) { Name = $"{this.Name} Universe" };
-            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Universe });
+            base.AddCelestialSpace(Universe, false);
         }
     }
 }

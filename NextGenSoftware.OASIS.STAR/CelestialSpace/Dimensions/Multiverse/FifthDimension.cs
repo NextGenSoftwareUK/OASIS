@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
@@ -19,11 +18,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Init(multiverse);
         }
 
-        //public FifthDimension(Dictionary<ProviderType, string> providerKey, IMultiverse multiverse = null) : base(providerKey, multiverse)
-        //{
-        //    Init(multiverse);
-        //}
-
         public FifthDimension(string providerKey, ProviderType providerType, IMultiverse multiverse = null) : base(providerKey, providerType, multiverse)
         {
             Init(multiverse);
@@ -35,7 +29,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             this.Description = "Love/Wisdom/Unity Conciusouness dimension. We will be asscending to this dimension soon... ;-)";
             this.DimensionLevel = DimensionLevel.Fifth;
             Universe = new Universe(this) { Name = $"{this.Name} Universe"};
-            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Universe });
+            base.AddCelestialSpace(Universe, false);
         }
     }
 }
