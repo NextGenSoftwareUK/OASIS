@@ -73,8 +73,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             this.Description = "The OASIS Omniverse that contains everything else including Multiverses and dimensions 8-12, each of which contain it's own SuperVerse that spams all Multiverses/Universes & Dimensions (1-12).";
             CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
 
+            if (this.Id == Guid.Empty)
+                this.Id = Guid.NewGuid();
+
             GreatGrandSuperStar = new GreatGrandSuperStar()
             {
+                Id = Guid.NewGuid(),
                 CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
                 Name = "GreatGrandSuperStar",
                 Description = "GreatGrandSuperStar at the centre of the Omniverse (The OASIS). Can create Multiverses.",

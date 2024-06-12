@@ -161,6 +161,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     try
                     {
                         holon.Children = children;
+                        saveHolonResult.Result.Children = children;
                     }
                     catch (Exception e) { }
 

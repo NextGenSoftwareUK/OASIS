@@ -1,22 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Linq;
-using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Holons;
+using System.Reflection;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.Common;
-using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class HolonManager : OASISManager
     {
-        //private IHolon PrepareHolonForSaving(IHolon holon, Guid avatarId, bool extractMetaData, bool setParentIds = true) //where T : IHolon, new()
-        private IHolon PrepareHolonForSaving(IHolon holon, Guid avatarId, bool extractMetaData) //where T : IHolon, new()
+        private Dictionary<Guid, IOmiverse> _parentOmiverse = new Dictionary<Guid, IOmiverse>();
+        private Dictionary<Guid, IDimension> _parentDimension = new Dictionary<Guid, IDimension>();
+        private Dictionary<Guid, IMultiverse> _parentMultiverse = new Dictionary<Guid, IMultiverse>();
+        private Dictionary<Guid, IUniverse> _parentUniverse = new Dictionary<Guid, IUniverse>();
+        private Dictionary<Guid, IGalaxyCluster> _parentGalaxyCluster = new Dictionary<Guid, IGalaxyCluster>();
+        private Dictionary<Guid, IGalaxy> _parentGalaxy = new Dictionary<Guid, IGalaxy>();
+        private Dictionary<Guid, ISolarSystem> _parentSolarSystem = new Dictionary<Guid, ISolarSystem>();
+        private Dictionary<Guid, IGreatGrandSuperStar> _parentGreatGrandSuperStar = new Dictionary<Guid, IGreatGrandSuperStar>();
+        private Dictionary<Guid, IGrandSuperStar> _parentGrandSuperStar = new Dictionary<Guid, IGrandSuperStar>();
+        private Dictionary<Guid, ISuperStar> _parentSuperStar = new Dictionary<Guid, ISuperStar>();
+        private Dictionary<Guid, IStar> _parentStar = new Dictionary<Guid, IStar>();
+        private Dictionary<Guid, IPlanet> _parentPlanet = new Dictionary<Guid, IPlanet>();
+        private Dictionary<Guid, IMoon> _parentMoon = new Dictionary<Guid, IMoon>();
+        private Dictionary<Guid, ICelestialSpace> _parentCelestialSpace = new Dictionary<Guid, ICelestialSpace>();
+        private Dictionary<Guid, ICelestialBody> _parentCelestialBody = new Dictionary<Guid, ICelestialBody>();
+        private Dictionary<Guid, IZome> _parentZome = new Dictionary<Guid, IZome>();
+        private Dictionary<Guid, IHolon> _parentHolon = new Dictionary<Guid, IHolon>();
+        private Dictionary<Guid, ICelestialBodyCore> _core = new Dictionary<Guid, ICelestialBodyCore>();
+
+        private IHolon PrepareHolonForSaving(IHolon holon, Guid avatarId, bool extractMetaData)
         {
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
             // Providers could always override this behaviour if they choose...
@@ -48,7 +67,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 holon.IsActive = true;
                 holon.CreatedDate = DateTime.Now;
                 holon.CreatedByAvatarId = avatarId;
-                //holon.ParentHolonId = avatarId;
 
                 //if (AvatarManager.LoggedInAvatar != null)
                 //{
@@ -87,6 +105,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             SetParentIdsForHolon(avatarId, extractMetaData, holon);
+            RemoveCelesialBodies(holon);
+
             return holon;
         }
 
@@ -182,15 +202,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 if (holon.ParentHolon.ParentGreatGrandSuperStar != null)
                 {
-                    if (holon.ParentGreatGrandSuperStar == null)
-                        holon.ParentGreatGrandSuperStar = holon.ParentHolon.ParentGreatGrandSuperStar;
+                    if (holon.ParentGreatGrandSuperStarId == Guid.Empty && holon.Id != holon.ParentHolon.ParentGreatGrandSuperStar.Id)
+                    {
+                        holon.ParentMultiverseId = holon.ParentHolon.ParentGreatGrandSuperStar.Id;
 
-                    if (holon.ParentGreatGrandSuperStarId == Guid.Empty)
-                        holon.ParentGreatGrandSuperStarId = holon.ParentHolon.ParentGreatGrandSuperStar.Id;
+                        if (holon.ParentGreatGrandSuperStar == null)
+                            holon.ParentGreatGrandSuperStar = holon.ParentHolon.ParentGreatGrandSuperStar;
+                    }
                 }
-                else if (holon.ParentGreatGrandSuperStarId == Guid.Empty)
+                else if (holon.ParentGreatGrandSuperStarId == Guid.Empty && holon.ParentHolon.ParentGreatGrandSuperStarId != holon.Id)
                     holon.ParentGreatGrandSuperStarId = holon.ParentHolon.ParentGreatGrandSuperStarId;
 
+
+                //TODO: Apply above to all below ASAP!
                 if (holon.ParentHolon.ParentGrandSuperStar != null)
                 {
                     if (holon.ParentGrandSuperStar == null)
@@ -268,39 +292,50 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (holon.ParentCelestialBodyId == Guid.Empty)
                     holon.ParentCelestialBodyId = holon.ParentHolon.ParentCelestialBodyId;
 
+
+
                 if (holon.ParentHolon.ParentCelestialSpace != null)
                 {
-                    if (holon.ParentCelestialSpace == null)
-                        holon.ParentCelestialSpace = holon.ParentHolon.ParentCelestialSpace;
-
-                    if (holon.ParentCelestialSpaceId == Guid.Empty)
+                    if (holon.ParentCelestialSpaceId == Guid.Empty && holon.Id != holon.ParentHolon.ParentCelestialSpace.Id)
+                    {
                         holon.ParentCelestialSpaceId = holon.ParentHolon.ParentCelestialSpace.Id;
+
+                        if (holon.ParentCelestialSpace == null)
+                            holon.ParentCelestialSpace = holon.ParentHolon.ParentCelestialSpace;
+                    }
                 }
-                else if (holon.ParentCelestialSpaceId == Guid.Empty)
+                else if (holon.ParentCelestialSpaceId == Guid.Empty && holon.ParentHolon.ParentCelestialSpaceId != holon.Id)
                     holon.ParentCelestialSpaceId = holon.ParentHolon.ParentCelestialSpaceId;
+
 
                 if (holon.ParentHolon.ParentOmniverse != null)
                 {
-                    if (holon.ParentOmniverse == null)
-                        holon.ParentOmniverse = holon.ParentHolon.ParentOmniverse;
-
-                    if (holon.ParentOmniverseId == Guid.Empty)
+                    if (holon.ParentOmniverseId == Guid.Empty && holon.Id != holon.ParentHolon.ParentOmniverse.Id)
+                    {
                         holon.ParentOmniverseId = holon.ParentHolon.ParentOmniverse.Id;
+
+                        if (holon.ParentOmniverse == null)
+                            holon.ParentOmniverse = holon.ParentHolon.ParentOmniverse;
+                    }
                 }
-                else if (holon.ParentOmniverseId == Guid.Empty)
+                else if (holon.ParentOmniverseId == Guid.Empty && holon.ParentHolon.ParentOmniverseId != holon.Id)
                     holon.ParentOmniverseId = holon.ParentHolon.ParentOmniverseId;
+
 
                 if (holon.ParentHolon.ParentMultiverse != null)
                 {
-                    if (holon.ParentMultiverse == null)
-                        holon.ParentMultiverse = holon.ParentHolon.ParentMultiverse;
-
-                    if (holon.ParentMultiverseId == Guid.Empty)
+                    if (holon.ParentMultiverseId == Guid.Empty && holon.Id != holon.ParentHolon.ParentMultiverse.Id)
+                    {
                         holon.ParentMultiverseId = holon.ParentHolon.ParentMultiverse.Id;
+
+                        if (holon.ParentMultiverse == null)
+                            holon.ParentMultiverse = holon.ParentHolon.ParentMultiverse;
+                    }
                 }
-                else if (holon.ParentMultiverseId == Guid.Empty)
+                else if (holon.ParentMultiverseId == Guid.Empty && holon.ParentHolon.ParentMultiverseId != holon.Id)
                     holon.ParentMultiverseId = holon.ParentHolon.ParentMultiverseId;
 
+       
                 if (holon.ParentHolon.ParentUniverse != null)
                 {
                     if (holon.ParentUniverse == null)
@@ -377,7 +412,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         childHolon.ParentHolon = holon;
 
                     if (childHolon.ParentHolonId == Guid.Empty)
-                        childHolon.ParentHolonId = holon.Id;
+                    {
+                        if (childHolon.ParentHolon != null)
+                            childHolon.ParentHolonId = childHolon.ParentHolon.Id;
+                        else
+                            childHolon.ParentHolonId = holon.Id;
+                    }
 
                     PrepareHolonForSaving(childHolon, avatarId, extractMetaData);
                 }
@@ -645,6 +685,238 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             return childHolons;
+        }
+
+        private T RemoveCelesialBodies<T>(T holon) where T : IHolon
+        {
+            //if (holon.Id == Guid.Empty)
+            //{
+            //    holon.Id = Guid.NewGuid();
+            //    holon.IsNewHolon = true;
+            //}
+
+            ICelestialBody celestialBody = holon as ICelestialBody;
+
+            if (celestialBody != null)
+            {
+                _core[holon.Id] = celestialBody.CelestialBodyCore;
+                celestialBody.CelestialBodyCore = null;
+            }
+
+            if (holon.ParentOmniverse != null)
+                _parentOmiverse[holon.Id] = holon.ParentOmniverse;
+
+            if (holon.ParentDimension != null)
+                _parentDimension[holon.Id] = holon.ParentDimension;
+
+            if (holon.ParentMultiverse != null)
+                _parentMultiverse[holon.Id] = holon.ParentMultiverse;
+
+            if (holon.ParentUniverse != null)
+                _parentUniverse[holon.Id] = holon.ParentUniverse;
+
+            if (holon.ParentGalaxyCluster != null)
+                _parentGalaxyCluster[holon.Id] = holon.ParentGalaxyCluster;
+
+            if (holon.ParentGalaxy != null)
+                _parentGalaxy[holon.Id] = holon.ParentGalaxy;
+
+            if (holon.ParentSolarSystem != null)
+                _parentSolarSystem[holon.Id] = holon.ParentSolarSystem;
+
+            if (holon.ParentGreatGrandSuperStar != null)
+                _parentGreatGrandSuperStar[holon.Id] = holon.ParentGreatGrandSuperStar;
+
+            if (holon.ParentGrandSuperStar != null)
+                _parentGrandSuperStar[holon.Id] = holon.ParentGrandSuperStar;
+
+            if (holon.ParentSuperStar != null)
+                _parentSuperStar[holon.Id] = holon.ParentSuperStar;
+
+            if (holon.ParentStar != null)
+                _parentStar[holon.Id] = holon.ParentStar;
+
+            if (holon.ParentPlanet != null)
+                _parentPlanet[holon.Id] = holon.ParentPlanet;
+
+            if (holon.ParentMoon != null)
+                _parentMoon[holon.Id] = holon.ParentMoon;
+
+            if (holon.ParentCelestialSpace != null)
+                _parentCelestialSpace[holon.Id] = holon.ParentCelestialSpace;
+
+            if (holon.ParentCelestialBody != null)
+                _parentCelestialBody[holon.Id] = holon.ParentCelestialBody;
+
+            if (holon.ParentZome != null)
+                _parentZome[holon.Id] = holon.ParentZome;
+
+            if (holon.ParentHolon != null)
+                _parentHolon[holon.Id] = holon.ParentHolon;
+
+            holon.ParentOmniverse = null;
+            holon.ParentDimension = null;
+            holon.ParentMultiverse = null;
+            holon.ParentUniverse = null;
+            holon.ParentGalaxyCluster = null;
+            holon.ParentGalaxy = null;
+            holon.ParentSolarSystem = null;
+            holon.ParentGreatGrandSuperStar = null;
+            holon.ParentGrandSuperStar = null;
+            holon.ParentSuperStar = null;
+            holon.ParentStar = null;
+            holon.ParentPlanet = null;
+            holon.ParentMoon = null;
+            holon.ParentCelestialBody = null;
+            holon.ParentCelestialSpace = null;
+            holon.ParentZome = null;
+            holon.ParentHolon = null;
+
+            return holon;
+        }
+
+        private IEnumerable<IHolon> RemoveCelesialBodies(IEnumerable<IHolon> holons)
+        {
+            List<IHolon> holonsList = holons.ToList();
+
+            for (int i = 0; i < holonsList.Count(); i++)
+                holonsList[i] = RemoveCelesialBodies(holonsList[i]);
+
+            return holonsList;
+        }
+
+        private IEnumerable<T> RemoveCelesialBodies<T>(IEnumerable<T> holons) where T : IHolon
+        {
+            List<T> holonsList = holons.ToList();
+
+            for (int i = 0; i < holonsList.Count(); i++)
+                holonsList[i] = (T)RemoveCelesialBodies(holonsList[i]);
+
+            return holonsList;
+        }
+
+        //private IHolon RestoreCelesialBodies(IHolon originalHolon)
+        private T RestoreCelesialBodies<T>(T originalHolon) where T : IHolon
+        {
+            originalHolon.IsNewHolon = false;
+
+            if (_parentOmiverse.ContainsKey(originalHolon.Id))
+                originalHolon.ParentOmniverse = _parentOmiverse[originalHolon.Id];
+
+            if (_parentDimension.ContainsKey(originalHolon.Id))
+                originalHolon.ParentDimension = _parentDimension[originalHolon.Id];
+
+            if (_parentMultiverse.ContainsKey(originalHolon.Id))
+                originalHolon.ParentMultiverse = _parentMultiverse[originalHolon.Id];
+
+            if (_parentUniverse.ContainsKey(originalHolon.Id))
+                originalHolon.ParentUniverse = _parentUniverse[originalHolon.Id];
+
+            if (_parentGalaxyCluster.ContainsKey(originalHolon.Id))
+                originalHolon.ParentGalaxyCluster = _parentGalaxyCluster[originalHolon.Id];
+
+            if (_parentGalaxy.ContainsKey(originalHolon.Id))
+                originalHolon.ParentGalaxy = _parentGalaxy[originalHolon.Id];
+
+            if (_parentSolarSystem.ContainsKey(originalHolon.Id))
+                originalHolon.ParentSolarSystem = _parentSolarSystem[originalHolon.Id];
+
+            if (_parentGreatGrandSuperStar.ContainsKey(originalHolon.Id))
+                originalHolon.ParentGreatGrandSuperStar = _parentGreatGrandSuperStar[originalHolon.Id];
+
+            if (_parentGrandSuperStar.ContainsKey(originalHolon.Id))
+                originalHolon.ParentGrandSuperStar = _parentGrandSuperStar[originalHolon.Id];
+
+            if (_parentSuperStar.ContainsKey(originalHolon.Id))
+                originalHolon.ParentSuperStar = _parentSuperStar[originalHolon.Id];
+
+            if (_parentStar.ContainsKey(originalHolon.Id))
+                originalHolon.ParentStar = _parentStar[originalHolon.Id];
+
+            if (_parentPlanet.ContainsKey(originalHolon.Id))
+                originalHolon.ParentPlanet = _parentPlanet[originalHolon.Id];
+
+            if (_parentMoon.ContainsKey(originalHolon.Id))
+                originalHolon.ParentMoon = _parentMoon[originalHolon.Id];
+
+            if (_parentCelestialSpace.ContainsKey(originalHolon.Id))
+                originalHolon.ParentCelestialSpace = _parentCelestialSpace[originalHolon.Id];
+
+            if (_parentCelestialBody.ContainsKey(originalHolon.Id))
+                originalHolon.ParentCelestialBody = _parentCelestialBody[originalHolon.Id];
+
+            if (_parentZome.ContainsKey(originalHolon.Id))
+                originalHolon.ParentZome = _parentZome[originalHolon.Id];
+
+            if (_parentHolon.ContainsKey(originalHolon.Id))
+                originalHolon.ParentHolon = _parentHolon[originalHolon.Id];
+
+            _parentOmiverse.Remove(originalHolon.Id);
+            _parentDimension.Remove(originalHolon.Id);
+            _parentMultiverse.Remove(originalHolon.Id);
+            _parentUniverse.Remove(originalHolon.Id);
+            _parentGalaxyCluster.Remove(originalHolon.Id);
+            _parentGalaxy.Remove(originalHolon.Id);
+            _parentSolarSystem.Remove(originalHolon.Id);
+            _parentGreatGrandSuperStar.Remove(originalHolon.Id);
+            _parentGrandSuperStar.Remove(originalHolon.Id);
+            _parentSuperStar.Remove(originalHolon.Id);
+            _parentStar.Remove(originalHolon.Id);
+            _parentPlanet.Remove(originalHolon.Id);
+            _parentMoon.Remove(originalHolon.Id);
+            _parentCelestialSpace.Remove(originalHolon.Id);
+            _parentCelestialBody.Remove(originalHolon.Id);
+            _parentZome.Remove(originalHolon.Id);
+            _parentHolon.Remove(originalHolon.Id);
+
+            ICelestialBody celestialBody = originalHolon as ICelestialBody;
+
+            if (celestialBody != null)
+            {
+                if (_core.ContainsKey(originalHolon.Id))
+                    celestialBody.CelestialBodyCore = _core[originalHolon.Id];
+
+                _core.Remove(originalHolon.Id);
+                return (T)celestialBody;
+            }
+
+            if (originalHolon.HolonType == HolonType.Omniverse ||
+                originalHolon.HolonType == HolonType.Multiverse ||
+                originalHolon.HolonType == HolonType.Universe)
+            {
+                celestialBody = originalHolon as ICelestialBody;
+
+                if (celestialBody != null)
+                {
+                    if (_core.ContainsKey(originalHolon.Id))
+                        celestialBody.CelestialBodyCore = _core[originalHolon.Id];
+
+                    _core.Remove(originalHolon.Id);
+                    return (T)celestialBody;
+                }
+            }
+
+            return originalHolon;
+        }
+
+        private IEnumerable<IHolon> RestoreCelesialBodies(IEnumerable<IHolon> holons)
+        {
+            List<IHolon> restoredHolons = new List<IHolon>();
+
+            foreach (IHolon holon in holons)
+                restoredHolons.Add(RestoreCelesialBodies(holon));
+
+            return restoredHolons;
+        }
+
+        private IEnumerable<T> RestoreCelesialBodies<T>(IEnumerable<T> holons) where T : IHolon
+        {
+            List<T> restoredHolons = new List<T>();
+
+            foreach (T holon in holons)
+                restoredHolons.Add(RestoreCelesialBodies(holon));
+
+            return restoredHolons;
         }
     }
 }

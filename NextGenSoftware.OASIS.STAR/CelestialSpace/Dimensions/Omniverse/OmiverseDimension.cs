@@ -39,6 +39,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void Init(IOmiverse omniverse = null)
         {
+            if (this.Id == Guid.Empty)
+                this.Id = Guid.NewGuid();
+
             if (omniverse != null)
             {
                 Mapper<IOmiverse, OmniverseDimension>.MapParentCelestialBodyProperties(omniverse, this);

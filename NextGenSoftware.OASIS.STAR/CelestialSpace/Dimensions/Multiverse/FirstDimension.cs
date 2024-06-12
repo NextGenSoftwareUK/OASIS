@@ -31,6 +31,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void Init(IMultiverse multiverse = null)
         {
+            if (this.Id == Guid.Empty)
+                this.Id = Guid.NewGuid();
+
             this.Name = "The First Dimension";
             this.Description = "The Core Crystal Of Gaia (the planet) - ancient friendly Galactic Societies exist in Hollow Earth waiting to make contact when we are finally ready... :)";
             this.DimensionLevel = DimensionLevel.First;

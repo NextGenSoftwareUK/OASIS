@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.ComponentModel;
 using System.Threading.Tasks;
@@ -9,7 +10,6 @@ using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
