@@ -29,6 +29,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void Init(IOmiverse omniverse = null)
         {
+            if (this.Id == Guid.Empty)
+                this.Id = Guid.NewGuid();
+
             this.Name = "The Ninth Dimension";
             this.Description = "Coming Soon...";
             this.DimensionLevel = DimensionLevel.Ninth;

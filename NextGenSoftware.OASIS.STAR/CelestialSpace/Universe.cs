@@ -146,6 +146,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         private void Init(IDimension dimension = null)
         {
             this.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
+            
+            if (this.Id == Guid.Empty)
+                this.Id = Guid.NewGuid();
 
             if (dimension != null)
             {

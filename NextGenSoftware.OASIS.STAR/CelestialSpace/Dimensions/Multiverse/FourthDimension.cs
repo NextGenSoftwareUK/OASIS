@@ -31,6 +31,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void Init(IMultiverse multiverse = null)
         {
+            if (this.Id == Guid.Empty)
+                this.Id = Guid.NewGuid();
+
             this.Name = "The Fourth Dimension";
             this.Description = "The Astral Plane.";
             this.DimensionLevel = DimensionLevel.Fourth;

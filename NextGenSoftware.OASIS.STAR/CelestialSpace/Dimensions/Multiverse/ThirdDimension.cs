@@ -43,6 +43,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void Init(IMultiverse multiverse = null)
         {
+            if (this.Id == Guid.Empty)
+                this.Id = Guid.NewGuid();
+
             this.Name = "The Third Dimension";
             this.Description = "The Physical Plane - what people see and experience during day to day living.";
             this.DimensionLevel = DimensionLevel.Third;

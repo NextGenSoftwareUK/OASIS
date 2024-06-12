@@ -31,6 +31,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void Init(IMultiverse multiverse = null)
         {
+            if (this.Id == Guid.Empty)
+                this.Id = Guid.NewGuid();
+
             this.Name = "The Seventh Dimension";
             this.Description = "The Asscended Masters reside here.";
             this.DimensionLevel = DimensionLevel.Seventh;

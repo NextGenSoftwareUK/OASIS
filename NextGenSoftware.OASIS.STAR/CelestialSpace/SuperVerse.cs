@@ -36,6 +36,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             this.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
             //base.RegisterCelestialSpaces(Universes); //TODO: Not sure why it was doing this twice?! lol
 
+            if (this.Id == Guid.Empty)
+                this.Id = Guid.NewGuid();
+
             if (omniverse != null)
             {
                 Mapper<IOmiverse, SuperVerse>.MapParentCelestialBodyProperties(omniverse, this);

@@ -45,6 +45,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result != null)
                 result.Result.IsChanged = !result.IsSaved;
 
+            result.Result = RestoreCelesialBodies(result.Result);
             return result;
         }
 
@@ -87,6 +88,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result != null)
                 result.Result.IsChanged = !result.IsSaved;
 
+            result.Result = RestoreCelesialBodies(result.Result);
             return result;
         }
 
@@ -126,6 +128,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result != null)
                 result.Result.IsChanged = !result.IsSaved;
 
+            result.Result = RestoreCelesialBodies(result.Result);
             return result;
         }
 
@@ -170,6 +173,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result != null)
                 result.Result.IsChanged = !result.IsSaved;
 
+            result.Result = RestoreCelesialBodies(result.Result);
             return result;
         }
 
@@ -217,6 +221,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
+            result.Result = RestoreCelesialBodies(result.Result);
             return result;
         }
 
@@ -278,6 +283,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             result.Result = originalHolons;
             SwitchBackToCurrentProvider(currentProviderType, ref result);
 
+            result.Result = RestoreCelesialBodies(result.Result);
             return result;
         }
 
@@ -326,6 +332,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
+            result.Result = RestoreCelesialBodies(result.Result);
             return result;
         }
 
@@ -385,6 +392,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
+            result.Result = RestoreCelesialBodies(result.Result);
             return result;
         }
     }

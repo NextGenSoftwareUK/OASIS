@@ -31,6 +31,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void Init(IMultiverse multiverse = null)
         {
+            if (this.Id == Guid.Empty)
+                this.Id = Guid.NewGuid();
+
             this.Name = "The Second Dimension";
             this.Description = "The Animal/Vegetation Plane - where aniamls and plants exist.";
             this.DimensionLevel = DimensionLevel.Second;
