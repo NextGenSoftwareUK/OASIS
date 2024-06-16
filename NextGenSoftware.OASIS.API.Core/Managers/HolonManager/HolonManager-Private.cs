@@ -11,6 +11,8 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
+using Newtonsoft.Json;
+using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -34,6 +36,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private Dictionary<Guid, IZome> _parentZome = new Dictionary<Guid, IZome>();
         private Dictionary<Guid, IHolon> _parentHolon = new Dictionary<Guid, IHolon>();
         private Dictionary<Guid, ICelestialBodyCore> _core = new Dictionary<Guid, ICelestialBodyCore>();
+
+        public Dictionary<Guid, ICelestialBodyCore> CelestialBodyCoreCache
+        {
+            get
+            {
+                return _core;
+            }
+        }
 
         private IHolon PrepareHolonForSaving(IHolon holon, Guid avatarId, bool extractMetaData)
         {
@@ -699,7 +709,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (celestialBody != null)
             {
-                _core[holon.Id] = celestialBody.CelestialBodyCore;
+                if (celestialBody.CelestialBodyCore != null)
+                    _core[holon.Id] = celestialBody.CelestialBodyCore;
+                
                 celestialBody.CelestialBodyCore = null;
             }
 
@@ -798,6 +810,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //private IHolon RestoreCelesialBodies(IHolon originalHolon)
         private T RestoreCelesialBodies<T>(T originalHolon) where T : IHolon
         {
+            //dynamic paramsObject = new ExpandoObject();
             originalHolon.IsNewHolon = false;
 
             if (_parentOmiverse.ContainsKey(originalHolon.Id))
@@ -880,21 +893,91 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 return (T)celestialBody;
             }
 
-            if (originalHolon.HolonType == HolonType.Omniverse ||
-                originalHolon.HolonType == HolonType.Multiverse ||
-                originalHolon.HolonType == HolonType.Universe)
-            {
-                celestialBody = originalHolon as ICelestialBody;
+            //switch (originalHolon.HolonType)
+            //{
+            //    case HolonType.GreatGrandSuperStar:
+            //        {
+            //            if (_core.ContainsKey(originalHolon.Id))
+            //            {
+            //                GreatGrandSuperStar celestialBody = JsonConvert.DeserializeObject<GreatGrandSuperStar>(JsonConvert.SerializeObject(originalHolon));
+            //                celestialBody.CelestialBodyCore = _core[originalHolon.Id];
+            //                originalHolon = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(celestialBody));
+            //            }
+            //        }
+            //        break;
+            //}
 
-                if (celestialBody != null)
-                {
-                    if (_core.ContainsKey(originalHolon.Id))
-                        celestialBody.CelestialBodyCore = _core[originalHolon.Id];
+            //if (originalHolon.HolonType == HolonType.GreatGrandSuperStar ||
+            //    originalHolon.HolonType == HolonType.GrandSuperStar ||
+            //    originalHolon.HolonType == HolonType.SuperStar ||
+            //    originalHolon.HolonType == HolonType.Star ||
+            //    originalHolon.HolonType == HolonType.Planet ||
+            //    originalHolon.HolonType == HolonType.Moon)
+            //{
+            //    //celestialBody = originalHolon as ICelestialBody;
 
-                    _core.Remove(originalHolon.Id);
-                    return (T)celestialBody;
-                }
-            }
+            //    // celestialBody = (ICelestialBody)originalHolon;
+
+            //    if (_core.ContainsKey(originalHolon.Id))
+            //    {
+            //        PlayerData player = JsonConvert.DeserializeObject<PlayerData>(JsonConvert.SerializeObject(item));
+
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "CelestialBodyCore", _core[originalHolon.Id]);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "Id", originalHolon.Id);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentHolonId", originalHolon.ParentHolonId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ProviderUniqueStorageKey", originalHolon.ProviderUniqueStorageKey);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "Name", originalHolon.Name);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "Description", originalHolon.Description);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "HolonType", originalHolon.HolonType);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "Children", originalHolon.Children);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "CreatedByAvatar", originalHolon.CreatedByAvatar);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "CreatedByAvatarId", originalHolon.CreatedByAvatarId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "CreatedDate", originalHolon.Name);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ModifiedByAvatar", originalHolon.ModifiedByAvatar);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ModifiedByAvatarId", originalHolon.ModifiedByAvatarId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "DeletedDate", originalHolon.DeletedDate);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "Version", originalHolon.Version);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "IsActive", originalHolon.IsActive);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "IsChanged", originalHolon.IsChanged);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "IsNewHolon", originalHolon.IsNewHolon);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "MetaData", originalHolon.MetaData);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ProviderMetaData", originalHolon.ProviderMetaData);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "Original", originalHolon.Original);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentGreatGrandSuperStar", originalHolon.ParentGreatGrandSuperStar);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentGreatGrandSuperStarId", originalHolon.ParentGreatGrandSuperStarId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentGrandSuperStar", originalHolon.ParentGrandSuperStar);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentGrandSuperStarId", originalHolon.ParentGrandSuperStarId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentStar", originalHolon.ParentStar);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentStarId", originalHolon.ParentStarId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentPlanet", originalHolon.ParentPlanet);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentPlanetId", originalHolon.ParentPlanetId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentMoon", originalHolon.ParentGreatGrandSuperStarId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentMoonId", originalHolon.ParentMoonId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentCelestialSpace", originalHolon.ParentCelestialSpace);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentCelestialSpaceId", originalHolon.ParentCelestialSpaceId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentCelestialBody", originalHolon.ParentCelestialBody);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentCelestialBodyId", originalHolon.ParentCelestialBodyId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentZome", originalHolon.ParentZome);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentZomeId", originalHolon.ParentZomeId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentHolon", originalHolon.ParentHolon);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentHolonId", originalHolon.ParentHolonId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentOmniverse", originalHolon.ParentOmniverse);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentOmniverseId", originalHolon.ParentOmniverseId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentMultiverse", originalHolon.ParentMultiverse);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentMultiverseId", originalHolon.ParentMultiverseId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentDimension", originalHolon.ParentDimension);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentDimensionId", originalHolon.ParentDimensionId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentUniverse", originalHolon.ParentUniverse);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentUniverseId", originalHolon.ParentUniverseId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentGalaxyCluster", originalHolon.ParentGalaxyCluster);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentGalaxyClusterId", originalHolon.ParentGalaxyClusterId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentGalaxy", originalHolon.ParentGalaxy);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentGalaxyId", originalHolon.ParentGalaxyId);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentSolarSystem", originalHolon.ParentSolarSystem);
+            //        //ExpandoObjectHelpers.AddProperty(paramsObject, "ParentSolarSystemId", originalHolon.ParentSolarSystemId);
+
+            //        //return (T)paramsObject;
+            //    }
 
             return originalHolon;
         }

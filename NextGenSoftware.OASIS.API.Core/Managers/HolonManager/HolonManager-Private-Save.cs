@@ -158,15 +158,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     OASISResult<IHolon> saveHolonResult = await providerResult.Result.SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
 
-                    try
+                    if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
                     {
-                        holon.Children = children;
-                        saveHolonResult.Result.Children = children;
-                    }
-                    catch (Exception e) { }
+                        try
+                        {
+                            holon.Children = children;
+                            saveHolonResult.Result.Children = children;
+                        }
+                        catch (Exception e) { }
 
-                    if (!saveHolonResult.IsError && saveHolonResult != null)
-                    {
                         if (saveChildren && !saveChildrenOnProvider)
                         {
                             List<IHolon> childHolons = BuildChildHolonsList(holon, new List<IHolon>());
@@ -176,7 +176,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                 OASISResult<IEnumerable<IHolon>> saveChildHolonsResult = await SaveHolonsAsync((IEnumerable<IHolon>)childHolons, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
                                 if (saveChildHolonsResult != null && saveChildHolonsResult.Result != null && !saveChildHolonsResult.IsError)
+                                {
                                     result.SavedCount += childHolons.Count;
+           
+                                    for (int i = 0; i < saveHolonResult.Result.Children.Count; i++)
+                                    {
+                                        IHolon child = saveChildHolonsResult.Result.FirstOrDefault(x => x.Id == saveHolonResult.Result.Children[i].Id);
+
+                                        if (child != null)
+                                        {
+                                            saveHolonResult.Result.Children[i] = Mapper.MapBaseHolonProperties(child, saveHolonResult.Result.Children[i]);
+
+                                            //saveHolonResult.Result.Children[i].ParentCelestialBody = child.ParentCelestialBody;
+                                            //saveHolonResult.Result.Children[i].ParentCelestialBodyId = child.ParentCelestialBodyId;
+                                            //saveHolonResult.Result.Children[i].ParentCelestialSpace = child.ParentCelestialSpace;
+                                            //saveHolonResult.Result.Children[i].ParentCelestialSpaceId = child.ParentCelestialSpaceId;
+                                            //saveHolonResult.Result.Children[i] = child;
+                                        }
+                                    }
+                                }
                                 else
                                     OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} The holon {LoggingHelper.GetHolonInfoForLogging(holon)} saved fine but errors occured saving some of it's children: {saveChildHolonsResult.Message}");
                             }
