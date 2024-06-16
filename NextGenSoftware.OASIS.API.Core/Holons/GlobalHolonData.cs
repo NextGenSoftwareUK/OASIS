@@ -615,7 +615,6 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         {
             if (!result.IsError && result.Result != null)
             {
-                //Mapper.MapBaseHolonProperties(result.Result, savingHolon);
                 result.Result = (T)savingHolon;
                 OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
             }
@@ -627,19 +626,54 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         {
             if (!result.IsError && result.Result != null)
             {
-                //Mapper.MapBaseHolonProperties(result.Result, savingHolon);
-                result.Result = savingHolon;
+                savingHolon = Mapper.MapBaseHolonProperties(result.Result, savingHolon);
+                result.Result = RestoreCelestialBodyCores(savingHolon);
                 OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = result });
             }
             else
                 OnError?.Invoke(this, new HolonErrorEventArgs() { Reason = string.Concat("Error in ", callingMethodName, " method for holon with ", LoggingHelper.GetHolonInfoForLogging(savingHolon), Enum.GetName(typeof(HolonType), savingHolon.HolonType), ". Error Details: ", result.Message), Exception = result.Exception });
         }
 
+        private IHolon RestoreCelestialBodyCores(IHolon savingHolon)
+        {
+            //First restore the parent.
+            if (HolonManager.Instance.CelestialBodyCoreCache.ContainsKey(savingHolon.Id))
+            {
+                ICelestialBody celestialBody = savingHolon as ICelestialBody;
+
+                if (celestialBody != null)
+                {
+                    celestialBody.CelestialBodyCore = HolonManager.Instance.CelestialBodyCoreCache[savingHolon.Id];
+                    savingHolon = celestialBody;
+                    HolonManager.Instance.CelestialBodyCoreCache.Remove(savingHolon.Id);
+                }
+            }
+
+            //Then restore the children.
+            for (int i = 0; i < savingHolon.Children.Count; i++)
+            {
+                if (HolonManager.Instance.CelestialBodyCoreCache.ContainsKey(savingHolon.Children[i].Id))
+                {
+                    ICelestialBody celestialBody = savingHolon.Children[i] as ICelestialBody;
+
+                    if (celestialBody != null)
+                    {
+                        celestialBody.CelestialBodyCore = HolonManager.Instance.CelestialBodyCoreCache[savingHolon.Children[i].Id];
+                        HolonManager.Instance.CelestialBodyCoreCache.Remove(savingHolon.Children[i].Id);
+                    }
+                }
+
+                //savingHolon.Children[i] = RestoreCelestialBodyCores(savingHolon.Children[i]);
+                RestoreCelestialBodyCores(savingHolon.Children[i]);
+            }
+
+            return savingHolon;
+        }
+
         private void HandleSaveHolonsResult(IEnumerable<IHolon> savingHolons, string callingMethodName, ref OASISResult<IEnumerable<IHolon>> result)
         {
             if (!result.IsError && result.Result != null)
             {
-                //Mapper.MapBaseHolonProperties(result.Result, savingHolon);
                 result.Result = savingHolons;
                 OnHolonsSaved?.Invoke(this, new HolonsSavedEventArgs() { Result = result });
             }

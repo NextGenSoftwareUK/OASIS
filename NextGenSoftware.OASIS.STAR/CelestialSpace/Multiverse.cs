@@ -49,7 +49,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void Init(IOmiverse omniverse = null)
         {
-            this.Id = Guid.NewGuid();
             this.Name = "Multiverse";
             this.Description = "A Multiverse that contains dimensions 1-7, each of which contain it's own Universe.";
             this.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);

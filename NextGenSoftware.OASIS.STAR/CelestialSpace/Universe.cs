@@ -153,6 +153,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             if (dimension != null)
             {
                 Mapper<IDimension, Universe>.MapParentCelestialBodyProperties(dimension, this);
+                this.ParentOmniverse = dimension.ParentOmniverse;
+                this.ParentOmniverseId = dimension.ParentOmniverseId;
+                this.ParentMultiverse = dimension.ParentMultiverse;
+                this.ParentMultiverseId = dimension.ParentMultiverseId;
                 this.ParentDimension = dimension;
                 this.ParentDimensionId = dimension.Id;
                 ParentCelestialSpace = dimension;
