@@ -1166,7 +1166,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     CLIEngine.ShowMessage("", false);
 
                 CLIEngine.ShowMessage("Please login below:");
-                string username = GetValidEmail("Username/Email? ", false);
+                //string username = GetValidEmail("Username? ", false);
+                string username = GetValidUsername("Username? ", false);
                 string password = CLIEngine.ReadPassword("Password? ");
                 CLIEngine.ShowWorkingMessage("Beaming In...");
 

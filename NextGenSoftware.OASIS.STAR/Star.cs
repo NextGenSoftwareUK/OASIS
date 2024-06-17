@@ -75,15 +75,25 @@ namespace NextGenSoftware.OASIS.STAR
         {
             get
             {
-                return _defaultGreatGrandSuperStar;
-            }
-            set
-            {
+                //return _defaultGreatGrandSuperStar;
+
                 if (_defaultGreatGrandSuperStar == null)
                 {
                     if (STARDNA != null && !string.IsNullOrEmpty(STARDNA.DefaultGreatGrandSuperStarId) && Guid.TryParse(STARDNA.DefaultGreatGrandSuperStarId, out _))
                         _defaultGreatGrandSuperStar = new GreatGrandSuperStar(new Guid(STARDNA.DefaultGreatGrandSuperStarId));
                 }
+
+                return _defaultGreatGrandSuperStar;
+            }
+            set
+            {
+                _defaultGreatGrandSuperStar = value;
+
+                //if (_defaultGreatGrandSuperStar == null)
+                //{
+                //    if (STARDNA != null && !string.IsNullOrEmpty(STARDNA.DefaultGreatGrandSuperStarId) && Guid.TryParse(STARDNA.DefaultGreatGrandSuperStarId, out _))
+                //        _defaultGreatGrandSuperStar = new GreatGrandSuperStar(new Guid(STARDNA.DefaultGreatGrandSuperStarId));
+                //}
             }
         }
 
