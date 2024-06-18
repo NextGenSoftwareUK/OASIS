@@ -217,6 +217,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                         SetParentIdsForGreatGrandSuperStar((IGreatGrandSuperStar)this);
 
                         //If the parent Omniverse is not already saving (and it's children) then begin saving them now...
+                        
+                        //OBSOLETE: ALL CHILDREN ARE NOW SAVED IN HOLONMANAGER.
+                        //TODO: NEED TO CHECK WHY WE ARE CALLING SAVE ON THE PARENT OMNIVERSE? DO THE CHILDREN BELONG TO THE OMNIVERSE OR THE GREAT GRAND SUPER STAR?
+
+                        
                         if (saveChildren && !((IGreatGrandSuperStar)this).ParentOmniverse.IsSaving)
                         {
                             OASISResult<ICelestialSpace> celestialSpaceResult = await ((IGreatGrandSuperStar)this).ParentOmniverse.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
@@ -411,6 +416,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     break;
             }
 
+            //TODO: CURRENTLY ZOMES ARE TREATED SEPERATELY TO CHILDREN BUT ONCE THEY ARE SYNCED/MERGED LIKE CELESTIALSPACE WE CAN REMOVE THIS BLOCK OF CODE BECAUSE THE CelestialBodyCore.SaveAsync CALL BELOW WILL AUTOMATICALLY SAVE ALL CHILDREN (INCLUDING ZOMES) IN HOLONMANAGER.
             if (saveChildren)
             {
                 zomesResult = await SaveZomesAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
@@ -430,7 +436,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     result.SavedCount++;
             }
 
-            //celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this, saveChildren, recursive, maxChildDepth, continueOnError, providerType);
+            CelestialBodyCore = (ICelestialBodyCore)Mapper.MapBaseHolonProperties(this, CelestialBodyCore);
+
             celestialBodyHolonResult = await CelestialBodyCore.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
             OASISResultHelper.CopyResult(celestialBodyHolonResult, result);
 
