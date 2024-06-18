@@ -902,7 +902,7 @@ namespace NextGenSoftware.OASIS.STAR
                             if (newBody != null)
                             {
                                 Mapper.MapParentCelestialBodyProperties(newBody, currentZome);
-                                await newBody.CelestialBodyCore.AddZomeAsync(currentZome); //TODO: May need to save this once holons and nodes/fields have been added?
+                                await newBody.CelestialBodyCore.AddZomeAsync(currentZome, false); //TODO: May need to save this once holons and nodes/fields have been added?
                             }
                             else
                                 zomes.Add(currentZome); //used only for Zomes & Holons Only Genesis Type.

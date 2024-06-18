@@ -484,6 +484,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (!saveHolonsResult.IsError && saveHolonsResult != null)
                     {
+                        //TODO: Need to save child holons here (copy from above), make generic function... and make it recursive to make sure all child holons are mapped after etc...
+
                         result.Result = saveHolonsResult.Result;
                         result.IsSaved = true;
                     }
