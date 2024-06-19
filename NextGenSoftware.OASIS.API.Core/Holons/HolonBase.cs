@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using System.Collections.ObjectModel;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
@@ -124,13 +125,22 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public EnumValue<OASISType> CreatedOASISType { get; set; }
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
-        //public IEnumerable<IHolon> Children { get; set; }
-        public virtual IList<IHolon> Children { get; set; } = new List<IHolon>();
+        
+        public IList<IHolon> Children { get; set; } = new List<IHolon>();
+
+        public virtual IReadOnlyCollection<IHolon> AllChildren 
+        { 
+            get
+            {
+                return Children.AsReadOnly();
+            }
+        } 
+
         //public ObservableCollection<IHolon> Children { get; set; }
 
-        /// <summary>
-        /// Fired when a property in this class changes.
-        /// </summary>
+            /// <summary>
+            /// Fired when a property in this class changes.
+            /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
         /*
        public Holon()

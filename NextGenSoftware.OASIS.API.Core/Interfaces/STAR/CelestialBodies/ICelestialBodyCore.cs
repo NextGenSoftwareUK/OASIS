@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     public interface ICelestialBodyCore : IZome
     {
-        IEnumerable<IHolon> Holons { get; }
+        //IEnumerable<IHolon> Holons { get; }
         List<IZome> Zomes { get; set; }
 
         //public event ZomeLoaded OnZomeLoaded;

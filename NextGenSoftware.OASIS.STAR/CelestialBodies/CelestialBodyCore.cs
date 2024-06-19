@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
@@ -15,6 +15,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
     public abstract class CelestialBodyCore<T> : ZomeBase, ICelestialBodyCore where T : ICelestialBody, new()
     {
+        private List<IHolon> _allchildren = new List<IHolon>();
+
         //public event ZomeLoaded OnZomeLoaded;
         //public event ZomeSaved OnZomeSaved;
         public event ZomeAdded OnZomeAdded;
@@ -36,24 +38,36 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //TODO: Need to make this like CelestialSpace so Zomes and Holons are synced with the Children property and then ONLY the children are saved in HolonManager automatically, no need to save/load holons/zomes seperately as we do now.
         public List<IZome> Zomes { get; set; } = new List<IZome>();
 
-        public new IEnumerable<IHolon> Holons
+        //public IEnumerable<IHolon> Holons
+        //{
+        //    get
+        //    {
+        //        if (Zomes != null)
+        //        {
+        //            List<IHolon> holons = new List<IHolon>();
+
+        //            foreach (IZome zome in Zomes)
+        //                holons.Add((IHolon)zome);
+
+        //            //Now we need to add the base holons that are linked directly to the celestialbody.
+        //            //holons.AddRange(base.Holons);
+        //            holons.AddRange(base.Children);
+        //            return holons;
+        //        }
+
+        //        return null;
+        //    }
+        //}
+
+        public override ReadOnlyCollection<IHolon> AllChildren
         {
             get
             {
-                if (Zomes != null)
-                {
-                    List<IHolon> holons = new List<IHolon>();
+                _allchildren.Clear();
+                _allchildren.AddRange(Children);
+                _allchildren.AddRange(Zomes);
 
-                    foreach (IZome zome in Zomes)
-                        holons.Add((IHolon)zome);
-
-                    //Now we need to add the base holons that are linked directly to the celestialbody.
-                    //holons.AddRange(base.Holons);
-                    holons.AddRange(base.Children);
-                    return holons;
-                }
-
-                return null;
+                return _allchildren.AsReadOnly();
             }
         }
 
