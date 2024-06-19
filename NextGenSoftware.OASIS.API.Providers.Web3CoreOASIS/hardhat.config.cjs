@@ -1,0 +1,33 @@
+require("@nomicfoundation/hardhat-toolbox");
+
+module.exports = {
+    solidity: "0.8.17",
+    networks: {
+        hardhat: {
+            chainId: 1337,
+        },
+        localhost: {
+            url: "http://127.0.0.1:8545",
+            chainId: 1337,
+        },
+        rootstock: {
+            url: "https://public-node.rsk.co",
+            accounts: [process.env.PRIVATE_KEY],
+        },
+        polygon: {
+            url: "https://polygon-rpc.com",
+            accounts: [process.env.PRIVATE_KEY],
+        },
+    },
+    etherscan: {
+        apiKey: process.env.SCAN_API_KEY,
+    },
+    type: "module",
+};
+
+task("accounts", "Prints the list of accounts", async (_, { ethers }) => {
+    const accounts = await ethers.getSigners();
+    for (const account of accounts) {
+        console.log(account.address);
+    }
+});
