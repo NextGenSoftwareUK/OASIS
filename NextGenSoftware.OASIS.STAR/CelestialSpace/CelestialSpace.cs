@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
     public abstract class CelestialSpace : CelestialHolon, ICelestialSpace
     {
-        private List<IHolon> _children = new List<IHolon>();
+        private List<IHolon> _allchildren = new List<IHolon>();
         private List<ICelestialSpace> _celestialSpaces = new List<ICelestialSpace>();
         private List<ICelestialBody> _celestialBodies = new List<ICelestialBody>();
         public event CelestialSpaceLoaded OnCelestialSpaceLoaded;
@@ -67,19 +67,24 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             }
         }
 
-        //public new ReadOnlyCollection<IHolon> Children
+        //public override ReadOnlyCollection<IHolon> Children
         //{
         //    get
         //    {
-        //        return _children.AsReadOnly();
+        //        return _allchildren.AsReadOnly();
         //    }
         //}
 
-        public override ReadOnlyCollection<IHolon> Children
+        public override ReadOnlyCollection<IHolon> AllChildren
         {
             get
             {
-                return _children.AsReadOnly();
+                _allchildren.Clear();
+                _allchildren.AddRange(Children);
+                _allchildren.AddRange(CelestialBodies);
+                _allchildren.AddRange(CelestialSpaces);
+
+                return _allchildren.AsReadOnly();
             }
         }
 
@@ -361,7 +366,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                result = HandleSaveCelestialBodiesAndSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpacesAsync");
+                result = HandleSaveCelestialBodiesAndSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_allchildren, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpacesAsync");
             }
             catch (Exception ex)
             {
@@ -382,7 +387,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                result = HandleSaveCelestialBodiesAndSpaces(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpaces");
+                result = HandleSaveCelestialBodiesAndSpaces(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_allchildren, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpaces");
             }
             catch (Exception ex)
             {
@@ -403,7 +408,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                result = HandleSaveCelestialBodiesAndSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpacesAsync<T1, T2>");
+                result = HandleSaveCelestialBodiesAndSpaces(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonsAsync(_allchildren, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpacesAsync<T1, T2>");
             }
             catch (Exception ex)
             {
@@ -424,7 +429,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 IsSaving = true;
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
-                result = HandleSaveCelestialBodiesAndSpaces(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_children, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpaces<T1, T2>");
+                result = HandleSaveCelestialBodiesAndSpaces(result, star.CelestialBodyCore.GlobalHolonData.SaveHolons(_allchildren, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveCelestialBodiesAndSpaces<T1, T2>");
             }
             catch (Exception ex)
             {
@@ -617,7 +622,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 if ((saveCelestialBody && result != null && !result.IsError) || !saveCelestialBody)
                 {
                     _celestialBodies.Add(celestialBody);
-                    _children.Add(celestialBody);
+                    _allchildren.Add(celestialBody);
                     RegisterCelestialBody(celestialBody);
 
                     OnCelestialBodyAdded?.Invoke(this, new CelestialBodyAddedEventArgs() { Result = new OASISResult<ICelestialBody>(celestialBody) });
@@ -650,7 +655,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 if ((saveCelestialBody && result != null && !result.IsError) || !saveCelestialBody)
                 {
                     _celestialBodies.Add(celestialBody);
-                    _children.Add(celestialBody);
+                    _allchildren.Add(celestialBody);
                     RegisterCelestialBody(celestialBody);
 
                     OnCelestialBodyAdded?.Invoke(this, new CelestialBodyAddedEventArgs() { Result = new OASISResult<ICelestialBody>(celestialBody) });
@@ -684,7 +689,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 if ((deleteCelestialBody && holonResult != null && !holonResult.IsError) || !deleteCelestialBody)
                 {
                     _celestialBodies.Remove(celestialBody);
-                    _children.Remove(celestialBody);
+                    _allchildren.Remove(celestialBody);
                     UnregisterCelestialBody(celestialBody);
 
                     OnCelestialBodyRemoved?.Invoke(this, new CelestialBodyRemovedEventArgs() { Result = new OASISResult<ICelestialBody>(celestialBody) });
@@ -718,7 +723,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 if ((deleteCelestialBody && holonResult != null && !holonResult.IsError) || !deleteCelestialBody)
                 {
                     _celestialBodies.Remove(celestialBody);
-                    _children.Remove(celestialBody);
+                    _allchildren.Remove(celestialBody);
                     UnregisterCelestialBody(celestialBody);
 
                     OnCelestialBodyRemoved?.Invoke(this, new CelestialBodyRemovedEventArgs() { Result = new OASISResult<ICelestialBody>(celestialBody) });
@@ -895,7 +900,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 if ((saveCelestialSpace && result != null && !result.IsError) || !saveCelestialSpace)
                 {
                     _celestialSpaces.Add(celestialSpace);
-                    _children.Add(celestialSpace);
+                    _allchildren.Add(celestialSpace);
                     RegisterCelestialSpace(celestialSpace);
 
                     OnCelestialSpaceAdded?.Invoke(this, new CelestialSpaceAddedEventArgs() { Result = new OASISResult<ICelestialSpace>(celestialSpace) });
@@ -928,7 +933,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 if ((saveCelestialSpace && result != null && !result.IsError) || !saveCelestialSpace)
                 {
                     _celestialSpaces.Add(celestialSpace);
-                    _children.Add(celestialSpace);
+                    _allchildren.Add(celestialSpace);
                     RegisterCelestialSpace(celestialSpace);
 
                     OnCelestialSpaceAdded?.Invoke(this, new CelestialSpaceAddedEventArgs() { Result = new OASISResult<ICelestialSpace>(celestialSpace) });
@@ -962,7 +967,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 if ((deleteCelestialSpace && holonResult != null && !holonResult.IsError) || !deleteCelestialSpace)
                 {
                     _celestialSpaces.Remove(celestialSpace);
-                    _children.Remove(celestialSpace);
+                    _allchildren.Remove(celestialSpace);
                     UnregisterCelestialSpace(celestialSpace);
 
                     OnCelestialSpaceRemoved?.Invoke(this, new CelestialSpaceRemovedEventArgs() { Result = new OASISResult<ICelestialSpace>(celestialSpace) });
@@ -996,7 +1001,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 if ((deleteCelestialSpace && holonResult != null && !holonResult.IsError) || !deleteCelestialSpace)
                 {
                     _celestialSpaces.Remove(celestialSpace);
-                    _children.Remove(celestialSpace);
+                    _allchildren.Remove(celestialSpace);
                     UnregisterCelestialSpace(celestialSpace);
 
                     OnCelestialSpaceRemoved?.Invoke(this, new CelestialSpaceRemovedEventArgs() { Result = new OASISResult<ICelestialSpace>(celestialSpace) });

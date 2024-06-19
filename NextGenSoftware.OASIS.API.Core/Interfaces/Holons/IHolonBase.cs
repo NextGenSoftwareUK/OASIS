@@ -12,10 +12,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IHolonBase
     {
-        //IEnumerable<IHolon> Children { get; set; }
-        //IEnumerable<IHolon> Children { get; set; }
-        IList<IHolon> Children { get; set; }
-        //ObservableCollection<IHolon> ChildrenTest { get; set; }
+        IList<IHolon> Children { get; set; } //Allows any holon to add any number of custom child holons to it.
+        IReadOnlyCollection<IHolon> AllChildren { get; } //Readonly collection of all the total children including all the zomes, celestialbodies, celestialspaces, moons, holons, planets, stars etc belong to the holon.
         Avatar CreatedByAvatar { get; set; }
         Guid CreatedByAvatarId { get; set; }
         DateTime CreatedDate { get; set; }

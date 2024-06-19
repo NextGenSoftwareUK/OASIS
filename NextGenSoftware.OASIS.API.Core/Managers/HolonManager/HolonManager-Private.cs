@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
+using System.Collections.Immutable;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -111,6 +112,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     }
                 }
             }
+
+            //if (holon.AllChildren == null)
+            //    holon.AllChildren = new List<IHolon>(holon.Children);
+                //holon.AllChildren = new List<Holon>(holon.Children.ToImmutableList()); //TODO: Investigate ImmutableList...
 
             SetParentIdsForHolon(avatarId, extractMetaData, holon);
             RemoveCelesialBodies(holon);

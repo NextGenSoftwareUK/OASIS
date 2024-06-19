@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 
@@ -146,13 +147,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     holon.InstanceSavedOnProviderType = new EnumValue<ProviderType>(providerType);
-                    
+
                     //We will save the children seperateley so temp remove and restore after.
-                    List<IHolon> children = holon.Children.ToList();
+                    //List<IHolon> children = holon.Children.ToList();
+                    List<IHolon> children = holon.AllChildren.ToList();
 
                     try
                     {
-                        holon.Children.Clear();
+                        //holon.Children.Clear();
+                        holon.AllChildren.ToList(); //TODO: Will always fail because it's a readonlycollection... needs more thought...
                     }
                     catch (Exception e) { }
 
@@ -184,15 +187,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                         IHolon child = saveChildHolonsResult.Result.FirstOrDefault(x => x.Id == saveHolonResult.Result.Children[i].Id);
 
                                         if (child != null)
-                                        {
                                             saveHolonResult.Result.Children[i] = Mapper.MapBaseHolonProperties(child, saveHolonResult.Result.Children[i]);
-
-                                            //saveHolonResult.Result.Children[i].ParentCelestialBody = child.ParentCelestialBody;
-                                            //saveHolonResult.Result.Children[i].ParentCelestialBodyId = child.ParentCelestialBodyId;
-                                            //saveHolonResult.Result.Children[i].ParentCelestialSpace = child.ParentCelestialSpace;
-                                            //saveHolonResult.Result.Children[i].ParentCelestialSpaceId = child.ParentCelestialSpaceId;
-                                            //saveHolonResult.Result.Children[i] = child;
-                                        }
                                     }
                                 }
                                 else
@@ -477,8 +472,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    foreach (IHolon holon in holons) 
+                    foreach (IHolon holon in holons)
+                    {
                         holon.InstanceSavedOnProviderType = new EnumValue<ProviderType>(providerType);
+
+                        //We will save the children seperateley so temp remove and restore after.
+                        //List<IHolon> children = holon.Children.ToList();
+                        List<IHolon> children = holon.AllChildren.ToList();
+
+                        try
+                        {
+                            //holon.Children.Clear();
+                            holon.AllChildren.ToList(); //TODO: Will always fail because it's a readonlycollection... needs more thought...
+                        }
+                        catch (Exception e) { }
+                    }
 
                     OASISResult<IEnumerable<IHolon>> saveHolonsResult = await providerResult.Result.SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, 0, continueOnError, saveChildrenOnProvider);
 
@@ -510,6 +518,41 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             return result;
+        }
+
+        private async Task ProcessChildrenAsync<T>(IHolon holon, Guid avatarId, IEnumerable<IHolon> children, OASISResult<T> result, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) where T : IHolon
+        {
+            try
+            {
+                holon.Children = children;
+                result.Result.Children = children;
+            }
+            catch (Exception e) { }
+
+            if (saveChildren && !saveChildrenOnProvider)
+            {
+                List<IHolon> childHolons = BuildChildHolonsList(holon, new List<IHolon>());
+
+                if (childHolons.Count > 0)
+                {
+                    OASISResult<IEnumerable<IHolon>> saveChildHolonsResult = await SaveHolonsAsync(childHolons, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+
+                    if (saveChildHolonsResult != null && saveChildHolonsResult.Result != null && !saveChildHolonsResult.IsError)
+                    {
+                        result.SavedCount += childHolons.Count;
+
+                        for (int i = 0; i < saveHolonResult.Result.Children.Count; i++)
+                        {
+                            IHolon child = saveChildHolonsResult.Result.FirstOrDefault(x => x.Id == saveHolonResult.Result.Children[i].Id);
+
+                            if (child != null)
+                                saveHolonResult.Result.Children[i] = Mapper.MapBaseHolonProperties(child, saveHolonResult.Result.Children[i]);
+                        }
+                    }
+                    else
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} The holon {LoggingHelper.GetHolonInfoForLogging(holon)} saved fine but errors occured saving some of it's children: {saveChildHolonsResult.Message}");
+                }
+            }
         }
 
         private async Task<OASISResult<IEnumerable<T>>> SaveHolonsForProviderTypeAsync<T>(IEnumerable<T> holons, ProviderType providerType, OASISResult<IEnumerable<T>> result, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
