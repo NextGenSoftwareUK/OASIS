@@ -1,0 +1,113 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/abdurrahmanberdiev/Documents/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/contracts/EntityOASIS.sol": {
+      "lastModificationDate": 1718498254614,
+      "contentHash": "15e14141345bba2d17c8978e92b3d692",
+      "sourceName": "contracts/EntityOASIS.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": []
+    },
+    "/Users/abdurrahmanberdiev/Documents/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/contracts/Web3CoreOASIS.sol": {
+      "lastModificationDate": 1718588757131,
+      "contentHash": "0dc8cd9b872eb17f3fb3c7a593afe927",
+      "sourceName": "contracts/Web3CoreOASIS.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IWeb3CoreOASIS.sol",
+        "./EntityOASIS.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "Web3CoreOASIS"
+      ]
+    },
+    "/Users/abdurrahmanberdiev/Documents/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/contracts/IWeb3CoreOASIS.sol": {
+      "lastModificationDate": 1718580846908,
+      "contentHash": "72bb9dbf066754946032351b4e4d86c8",
+      "sourceName": "contracts/IWeb3CoreOASIS.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./EntityOASIS.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "IWeb3CoreOASIS"
+      ]
+    }
+  }
+}
