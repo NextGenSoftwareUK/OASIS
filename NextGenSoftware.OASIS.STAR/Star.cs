@@ -902,7 +902,8 @@ namespace NextGenSoftware.OASIS.STAR
                             if (newBody != null)
                             {
                                 Mapper.MapParentCelestialBodyProperties(newBody, currentZome);
-                                await newBody.CelestialBodyCore.AddZomeAsync(currentZome, false); //TODO: May need to save this once holons and nodes/fields have been added?
+                                //await newBody.CelestialBodyCore.AddZomeAsync(currentZome);
+                                await newBody.CelestialBodyCore.AddZomeAsync(currentZome, false); //Ideally wanted to save the zomes/holons all in one go when the celestialbody is saved (and it would have if we called .save() on the newBody below... but for some reason we implemented it differently! ;-) lol
                             }
                             else
                                 zomes.Add(currentZome); //used only for Zomes & Holons Only Genesis Type.
@@ -1089,7 +1090,25 @@ namespace NextGenSoftware.OASIS.STAR
             switch (genesisType)
             {
                 case GenesisType.ZomesAndHolonsOnly:
-                    return new OASISResult<CoronalEjection>() { IsError = false, Message = "Zomes And Holons Successfully Created.", Result = new CoronalEjection() { Zomes = zomes } };
+                    {
+                        OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>();
+
+                        foreach (IZome zome in zomes)
+                        {
+                            OASISResult<IZome> saveZomeResult = await zome.SaveAsync();
+
+                            if (!(saveZomeResult != null && saveZomeResult.Result != null && !saveZomeResult.IsError))
+                                OASISErrorHandling.HandleError(ref result, $"Error occured saving zome {LoggingHelper.GetHolonInfoForLogging(zome, "zome")}. Reason: {saveZomeResult.Message}.", true);
+                        }
+
+                        if (!result.IsError)
+                            result.Message = "Zomes And Holons Successfully Created.";
+                        else
+                            result.Message = $"Some errors occured saving zomes and holons: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+
+                        result.Result.Zomes = zomes;
+                        return result;
+                    }
 
                 case GenesisType.Moon:
                     {

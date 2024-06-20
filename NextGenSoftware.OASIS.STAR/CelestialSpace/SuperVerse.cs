@@ -25,7 +25,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Init(omniverse);
         }
 
-        //public SuperVerse(Dictionary<ProviderType, string> providerKey, IOmiverse omniverse = null) : base(providerKey, HolonType.SuperVerse) 
         public SuperVerse(string providerKey, ProviderType providerType, IOmiverse omniverse = null, bool autoLoad = true) : base(providerKey, providerType, HolonType.Omniverse, autoLoad)
         {
             Init(omniverse);
@@ -34,7 +33,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         private void Init(IOmiverse omniverse = null)
         {
             this.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
-            //base.RegisterCelestialSpaces(Universes); //TODO: Not sure why it was doing this twice?! lol
 
             if (this.Id == Guid.Empty)
                 this.Id = Guid.NewGuid();
@@ -50,7 +48,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 ParentHolonId = omniverse.Id;
             }
 
-            //base.RegisterCelestialSpaces(Universes);
             base.AddCelestialSpaces(Universes, false);
         }
     }

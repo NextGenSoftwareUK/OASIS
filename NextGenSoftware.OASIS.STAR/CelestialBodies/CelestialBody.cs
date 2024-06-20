@@ -14,7 +14,6 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -40,7 +39,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public event HolonsSaved OnHolonsSaved;
         public event HolonsError OnHolonsError;
 
-        [BsonIgnore]
+        //[BsonIgnore]
         public new Guid Id
         {
             get
@@ -56,7 +55,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             }
         }
 
-        [BsonIgnore]
+        //[BsonIgnore]
         public new Dictionary<ProviderType, string> ProviderUniqueStorageKey
         {
             get
@@ -69,6 +68,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                 if (CelestialBodyCore != null)
                     CelestialBodyCore.ProviderUniqueStorageKey = value;
+            }
+        }
+
+        public override ReadOnlyCollection<IHolon> AllChildren
+        {
+            get
+            {
+                if (CelestialBodyCore != null)
+                    return (ReadOnlyCollection<IHolon>)CelestialBodyCore.AllChildren;
+                else
+                    return Children.AsReadOnly();
             }
         }
 
@@ -218,79 +228,26 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                         //If the parent Omniverse is not already saving (and it's children) then begin saving them now...
                         
-                        //OBSOLETE: ALL CHILDREN ARE NOW SAVED IN HOLONMANAGER.
+                        //OBSOLETE: ALL CHILDREN ARE NOW SAVED IN HOLONMANAGER VIA THE CELESTIALBODY.SAVE METHOD (SAVES ALL CHILDREN RECURSIVELY VIA THE ALLCHILDEN PROPERTY).
                         //TODO: NEED TO CHECK WHY WE ARE CALLING SAVE ON THE PARENT OMNIVERSE? DO THE CHILDREN BELONG TO THE OMNIVERSE OR THE GREAT GRAND SUPER STAR?
 
                         
-                        if (saveChildren && !((IGreatGrandSuperStar)this).ParentOmniverse.IsSaving)
-                        {
-                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((IGreatGrandSuperStar)this).ParentOmniverse.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
-
-                            if (!(celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null))
-                            {
-                                OASISErrorHandling.HandleWarning(ref result, $"There was an error in CelestialBody.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} (GreatGrandSuperStar) ParentOmniverse. Reason: {celestialSpaceResult.Message}");
-                                OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result });
-
-                                if (!continueOnError)
-                                {
-                                    IsSaving = false;
-                                    return result;
-                                }
-                            }
-                        }
-
-                        //TODO: NEED TO ADD SAVE METHODS TO EVERY CELESTIALSPACEHOLON, WHICH WILL RECURSIVELY SAVE ALL IT'S CHILDREN, SAME AS CELESTIALBODY
-                        //THIS WILL REPLACE ALL THE MANUAL CODE BELOW! ;-) DOH! LOL
-                        //if (saveChildren)
+                        //if (saveChildren && !((IGreatGrandSuperStar)this).ParentOmniverse.IsSaving)
                         //{
+                        //    OASISResult<ICelestialSpace> celestialSpaceResult = await ((IGreatGrandSuperStar)this).ParentOmniverse.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
+                        //    if (!(celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null))
+                        //    {
+                        //        OASISErrorHandling.HandleWarning(ref result, $"There was an error in CelestialBody.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} (GreatGrandSuperStar) ParentOmniverse. Reason: {celestialSpaceResult.Message}");
+                        //        OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result });
 
-                        /*
-                        holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IMultiverse, Holon>.MapBaseHolonProperties(((IGreatGrandSuperStar)this).ParentOmniverse.Multiverses));
-
-                        if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
-                        {
-                            OASISErrorHandling.HandleError(ref result, string.Concat("Error occured saving GreatGrandSuperStar.ParentOmniverse.Multiverses. Error Details: ", holonsResult.Message));
-                            return result;
-                        }
-
-                        //TODO: Finish this later...
-                        foreach (IMultiverse multiverse in ParentOmniverse.Multiverses)
-                        {
-                            await multiverse.SaveAsync(saveChildren, recursive, continueOnError);
-
-                            holonResult = await CelestialBodyCore.SaveHolonAsync(Mapper<IUniverse, Holon>.MapBaseHolonProperties(multiverse.Dimensions.ThirdDimension.UniversePrime));
-
-                            if (!continueOnError && (holonResult.IsError || holonResult.Result == null))
-                            {
-                                result.IsError = true;
-                                result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmniverse.Multiverses[].Dimensions.ThirdDimension.UniversePrime. Error Details: ", holonResult.Message);
-                                return result;
-                            }
-
-                            holonResult = await CelestialBodyCore.SaveHolonAsync(Mapper<IUniverse, Holon>.MapBaseHolonProperties(multiverse.Dimensions.ThirdDimension.MagicVerse));
-
-                            if (!continueOnError && (holonResult.IsError || holonResult.Result == null))
-                            {
-                                result.IsError = true;
-                                result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmniverse.Multiverses[].Dimensions.ThirdDimension.MagicVerse. Error Details: ", holonResult.Message);
-                                return result;
-                            }
-
-                            holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IUniverse, Holon>.MapBaseHolonProperties(multiverse.Dimensions.ThirdDimension.ParallelUniverses));
-
-                            if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
-                            {
-                                result.IsError = true;
-                                result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmniverse.Multiverses[].Dimensions.ThirdDimension.ParallelUniverses. Error Details: ", holonsResult.Message);
-                                return result;
-                            }
-
-                            //celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)multiverse.Dimensions.ThirdDimension.ParallelUniverses);
-
-                            //Need to save all other dimensions too... ;-)*/
+                        //        if (!continueOnError)
+                        //        {
+                        //            IsSaving = false;
+                        //            return result;
+                        //        }
+                        //    }
                         //}
-                        // }
                     }
                     break;
 
@@ -298,49 +255,22 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     {
                         SetParentIdsForGrandSuperStar(this.ParentGreatGrandSuperStar, (IGrandSuperStar)this);
 
-                        if (saveChildren && !((IGrandSuperStar)this).ParentMultiverse.IsSaving)
-                        {
-                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((IGrandSuperStar)this).ParentMultiverse.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                        //if (saveChildren && !((IGrandSuperStar)this).ParentMultiverse.IsSaving)
+                        //{
+                        //    OASISResult<ICelestialSpace> celestialSpaceResult = await ((IGrandSuperStar)this).ParentMultiverse.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
-                            if (!(celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null))
-                            {
-                                OASISErrorHandling.HandleWarning(ref result, $"There was an error in CelestialBody.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} (GrandSuperStar) ParentMultiverse. Reason: {celestialSpaceResult.Message}");
-                                OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result });
+                        //    if (!(celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null))
+                        //    {
+                        //        OASISErrorHandling.HandleWarning(ref result, $"There was an error in CelestialBody.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} (GrandSuperStar) ParentMultiverse. Reason: {celestialSpaceResult.Message}");
+                        //        OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result });
 
-                                if (!continueOnError)
-                                {
-                                    IsSaving = false;
-                                    return result;
-                                }
-                            }
-                        }
-
-                        /*
-                        if (saveChildren)
-                        {
-                            holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IGalaxyCluster, Holon>.MapBaseHolonProperties(((IGrandSuperStar)this).ParentUniverse.GalaxyClusters));
-
-                            if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
-                            {
-                                result.IsError = true;
-                                result.Message = string.Concat("Error occured saving GrandSuperStar.ParentUniverse.GalaxyClusters. Error Details: ", holonsResult.Message);
-                                return result;
-                            }
-
-                            foreach (IGalaxyCluster galaxyCluster in ((IGrandSuperStar)this).ParentUniverse.GalaxyClusters)
-                            {
-                                holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IGalaxy, Holon>.MapBaseHolonProperties(galaxyCluster.Galaxies));
-
-                                if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
-                                {
-                                    result.IsError = true;
-                                    result.Message = string.Concat("Error occured saving GrandSuperStar.ParentUniverse.GalaxyClusters[].Galaxies. Error Details: ", holonsResult.Message);
-                                    return result;
-                                }
-
-                                //TODO: Finish this later...
-                            }
-                        }*/
+                        //        if (!continueOnError)
+                        //        {
+                        //            IsSaving = false;
+                        //            return result;
+                        //        }
+                        //    }
+                        //}
                     }
                     break;
 
@@ -348,22 +278,22 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     {
                         SetParentIdsForSuperStar(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, (ISuperStar)this);
 
-                        if (saveChildren && !((ISuperStar)this).ParentGalaxy.IsSaving)
-                        {
-                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((ISuperStar)this).ParentGalaxy.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                        //if (saveChildren && !((ISuperStar)this).ParentGalaxy.IsSaving)
+                        //{
+                        //    OASISResult<ICelestialSpace> celestialSpaceResult = await ((ISuperStar)this).ParentGalaxy.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
-                            if (!(celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null))
-                            {
-                                OASISErrorHandling.HandleWarning(ref result, $"There was an error in CelestialBody.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} (SuperStar) ParentGalaxy. Reason: {celestialSpaceResult.Message}");
-                                OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result });
+                        //    if (!(celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null))
+                        //    {
+                        //        OASISErrorHandling.HandleWarning(ref result, $"There was an error in CelestialBody.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} (SuperStar) ParentGalaxy. Reason: {celestialSpaceResult.Message}");
+                        //        OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result });
 
-                                if (!continueOnError)
-                                {
-                                    IsSaving = false;
-                                    return result;
-                                }
-                            }
-                        }
+                        //        if (!continueOnError)
+                        //        {
+                        //            IsSaving = false;
+                        //            return result;
+                        //        }
+                        //    }
+                        //}
                     }
                     break;
 
@@ -371,22 +301,22 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     {
                         SetParentIdsForStar(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, (IStar)this);
 
-                        if (saveChildren && !((IStar)this).ParentSolarSystem.IsSaving)
-                        {
-                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((IStar)this).ParentSolarSystem.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                        //if (saveChildren && !((IStar)this).ParentSolarSystem.IsSaving)
+                        //{
+                        //    OASISResult<ICelestialSpace> celestialSpaceResult = await ((IStar)this).ParentSolarSystem.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
-                            if (!(celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null))
-                            {
-                                OASISErrorHandling.HandleWarning(ref result, $"There was an error in CelestialBody.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} (Star) ParentSolarSystem. Reason: {celestialSpaceResult.Message}");
-                                OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result });
+                        //    if (!(celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null))
+                        //    {
+                        //        OASISErrorHandling.HandleWarning(ref result, $"There was an error in CelestialBody.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} (Star) ParentSolarSystem. Reason: {celestialSpaceResult.Message}");
+                        //        OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result });
 
-                                if (!continueOnError)
-                                {
-                                    IsSaving = false;
-                                    return result;
-                                }
-                            }
-                        }
+                        //        if (!continueOnError)
+                        //        {
+                        //            IsSaving = false;
+                        //            return result;
+                        //        }
+                        //    }
+                        //}
                     }
                     break;
 
@@ -394,29 +324,30 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     {
                         SetParentIdsForPlanet(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, this.ParentStar, (IPlanet)this);
 
-                        if (saveChildren)
-                        {
-                            OASISResult<IEnumerable<IMoon>> moonsResult = await ((PlanetCore)this.CelestialBodyCore).SaveMoonsAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                        //if (saveChildren)
+                        //{
+                        //    OASISResult<IEnumerable<IMoon>> moonsResult = await ((PlanetCore)this.CelestialBodyCore).SaveMoonsAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
-                            if (!(moonsResult != null && !moonsResult.IsError))
-                            {
-                                OASISErrorHandling.HandleWarning(ref result, $"There was an error in CelestialBody.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} (Planet) Moons. Reason: {moonsResult.Message}");
-                                OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result });
+                        //    if (!(moonsResult != null && !moonsResult.IsError))
+                        //    {
+                        //        OASISErrorHandling.HandleWarning(ref result, $"There was an error in CelestialBody.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} (Planet) Moons. Reason: {moonsResult.Message}");
+                        //        OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result });
 
-                                if (!continueOnError)
-                                {
-                                    IsSaving = false;
-                                    return result;
-                                }
-                            }
-                            else
-                                result.SavedCount++;
-                        }
+                        //        if (!continueOnError)
+                        //        {
+                        //            IsSaving = false;
+                        //            return result;
+                        //        }
+                        //    }
+                        //    else
+                        //        result.SavedCount++;
+                        //}
                     }
                     break;
             }
 
             //TODO: CURRENTLY ZOMES ARE TREATED SEPERATELY TO CHILDREN BUT ONCE THEY ARE SYNCED/MERGED LIKE CELESTIALSPACE WE CAN REMOVE THIS BLOCK OF CODE BECAUSE THE CelestialBodyCore.SaveAsync CALL BELOW WILL AUTOMATICALLY SAVE ALL CHILDREN (INCLUDING ZOMES) IN HOLONMANAGER.
+            /*
             if (saveChildren)
             {
                 zomesResult = await SaveZomesAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
@@ -434,9 +365,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 }
                 else
                     result.SavedCount++;
-            }
+            }*/
 
             CelestialBodyCore = (ICelestialBodyCore)Mapper.MapBaseHolonProperties(this, CelestialBodyCore);
+            //this.Children = CelestialBodyCore.AllChildren.ToList(); 
 
             celestialBodyHolonResult = await CelestialBodyCore.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
             OASISResultHelper.CopyResult(celestialBodyHolonResult, result);
@@ -1415,12 +1347,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public IZome GetZomeThatHolonBelongsTo(IHolon holon)
         {
-            return (IZome)CelestialBodyCore.Holons.FirstOrDefault(x => x.Id == holon.Id).ParentHolon;
+            return (IZome)CelestialBodyCore.AllChildren.FirstOrDefault(x => x.Id == holon.Id).ParentHolon;
         }
 
         public List<IHolon> GetHolonsThatBelongToZome(IZome zome)
         {
-            return CelestialBodyCore.Holons.Where(x => x.ParentHolon.Id == zome.Id).ToList();
+            return CelestialBodyCore.AllChildren.Where(x => x.ParentHolon.Id == zome.Id).ToList();
         }
 
         public IZome GetZomeByName(string name)

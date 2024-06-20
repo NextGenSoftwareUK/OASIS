@@ -289,7 +289,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         
         //TODO: Need to implement this format to ALL other Holon/Avatar Manager methods with OASISResult, etc.
-        public async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, Guid avatarId, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, Guid avatarId, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, bool childHolonsFlattened = false, ProviderType providerType = ProviderType.Default)
         {
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
@@ -302,7 +302,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 return result;
             }
 
-            result = await SaveHolonsForProviderTypeAsync(PrepareHolonsForSaving(holons, avatarId, false), providerType, result, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+            result = await SaveHolonsForProviderTypeAsync(PrepareHolonsForSaving(holons, avatarId, false), providerType, result, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, childHolonsFlattened);
 
             if ((result.IsError || result.Result == null) && ProviderManager.Instance.IsAutoFailOverEnabled)
             {
@@ -337,7 +337,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //TODO: Need to implement this format to ALL other Holon/Avatar Manager methods with OASISResult, etc.
-        public async Task<OASISResult<IEnumerable<T>>> SaveHolonsAsync<T>(IEnumerable<T> holons, Guid avatarId, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public async Task<OASISResult<IEnumerable<T>>> SaveHolonsAsync<T>(IEnumerable<T> holons, Guid avatarId, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, bool childHolonsFlattened = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
@@ -355,7 +355,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             foreach (IHolon holon in holons)
                 originalHolons.Add((T)holon);
 
-            holonSaveResult = await SaveHolonsForProviderTypeAsync(PrepareHolonsForSaving(holons, avatarId, true), providerType, holonSaveResult, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+            holonSaveResult = await SaveHolonsForProviderTypeAsync(PrepareHolonsForSaving(holons, avatarId, true), providerType, holonSaveResult, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, childHolonsFlattened);
 
             if ((holonSaveResult.IsError || holonSaveResult.Result == null) && ProviderManager.Instance.IsAutoFailOverEnabled)
             {
