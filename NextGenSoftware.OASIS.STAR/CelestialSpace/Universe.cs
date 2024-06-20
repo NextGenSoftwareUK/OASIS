@@ -137,7 +137,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Init(dimension);
         }
 
-        //public Universe(Dictionary<ProviderType, string> providerKey, IDimension dimension = null) : base(providerKey, HolonType.Universe) 
         public Universe(string providerKey, ProviderType providerType, IDimension dimension = null, bool autoLoad = true) : base(providerKey, providerType, HolonType.Universe, autoLoad)
         {
             Init(dimension);

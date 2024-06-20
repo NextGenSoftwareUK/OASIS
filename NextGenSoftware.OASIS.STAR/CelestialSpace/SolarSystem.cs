@@ -13,8 +13,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         private List<IPlanet> _planets { get; set; } = new List<IPlanet>();
         private List<IMeteroid> _meteroids { get; set; } = new List<IMeteroid>();
 
-        public IStar Star { get; set; } = new CelestialBodies.Star() { CreatedOASISType = new API.Core.Helpers.EnumValue<API.Core.Enums.OASISType>(API.Core.Enums.OASISType.STARCLI) };
-        //public List<IPlanet> Planets { get; set; } = new List<IPlanet>();
+        public IStar Star { get; set; } = new Star() { CreatedOASISType = new API.Core.Helpers.EnumValue<OASISType>(OASISType.STARCLI) };
 
         public List<IPlanet> Planets
         {
@@ -74,7 +73,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         public SolarSystem(Guid id, IStar parentStar, bool autoLoad = true) : base(id, HolonType.SolarSystem, parentStar, autoLoad) { }
         public SolarSystem(Guid id, Guid parentStarId, bool autoLoad = true) : base(id, HolonType.SolarSystem, parentStarId, autoLoad) { }
 
-        //public SolarSystem(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.SolarSystem) { }
         public SolarSystem(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.SolarSystem, autoLoad) { }
         public SolarSystem(string providerKey, ProviderType providerType, IStar parentStar, bool autoLoad = true) : base(providerKey, providerType, HolonType.SolarSystem, parentStar, autoLoad) { }
         public SolarSystem(string providerKey, ProviderType providerType, Guid parentStarId, bool autoLoad = true) : base(providerKey, providerType, HolonType.SolarSystem, parentStarId, autoLoad) { }
@@ -86,22 +84,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             base.AddCelestialBodies(this.Asteroids, false);
             base.AddCelestialBodies(this.Comets, false);
             base.AddCelestialBodies(this.Meteroids, false);
-
-            //base.UnregisterAllCelestialBodies();
-            //base.RegisterCelestialBodies(this.Planets, false);
-            //base.RegisterCelestialBodies(this.Asteroids, false);
-            //base.RegisterCelestialBodies(this.Comets, false);
-            //base.RegisterCelestialBodies(this.Meteroids, false);
         }
-
-        //protected override void RegisterCelestialBodies(IEnumerable<ICelestialBody> celestialBodies)
-        ////protected override void RegisterCelestialBodies()
-        //{
-        //    List<ICelestialBody> c
-        //    celestialBodies = Planets;
-        //    celestialBodies.Add
-
-        //    base.RegisterCelestialBodies(celestialBodies);
-        //}
     }
 }

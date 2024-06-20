@@ -12,8 +12,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         IStar NearestStar { get; set; }
         ReadOnlyCollection<ICelestialBody> CelestialBodies { get; }
         ReadOnlyCollection<ICelestialSpace> CelestialSpaces { get; }
-        new ReadOnlyCollection<IHolon> Children { get; }
-       
+        //new ReadOnlyCollection<IHolon> Children { get; }
+
         event CelestialBodiesError OnCelestialBodiesError;
         event CelestialBodiesLoaded OnCelestialBodiesLoaded;
         event CelestialBodiesSaved OnCelestialBodiesSaved;

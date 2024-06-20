@@ -595,7 +595,7 @@ namespace NextGenSoftware.OASIS.STAR
                 List<ISolarSystem> solarSystems = new List<ISolarSystem>();
 
                 foreach (IGalaxyCluster cluster in galaxyClustersResult.Result)
-                    solarSystems.AddRange(cluster.SoloarSystems);
+                    solarSystems.AddRange(cluster.SolarSystems);
 
                 result.Result = solarSystems;
             }

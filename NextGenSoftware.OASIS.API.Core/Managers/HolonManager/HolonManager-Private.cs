@@ -417,9 +417,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 //holon.ParentHolon = holon;
             }
 
-            if (holon.Children != null)
+            //if (holon.Children != null)
+            if (holon.AllChildren != null)
             {
-                foreach (IHolon childHolon in holon.Children)
+                //foreach (IHolon childHolon in holon.Children)
+                foreach (IHolon childHolon in holon.AllChildren)
                 {
                     if (childHolon.ParentHolon == null)
                         childHolon.ParentHolon = holon;
@@ -663,14 +665,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISErrorHandling.HandleWarning(ref result, BuildSaveHolonAutoReplicateErrorMessage(result.InnerMessages, holon));
         }
 
-        private List<IHolon> BuildChildHolonsList(IHolon holon, List<IHolon> childHolons, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        private List<IHolon> BuildChildHolonsList(IHolon holon, List<IHolon> childHolons, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true)
         {
             currentChildDepth++;
 
             if ((recursive && currentChildDepth >= maxChildDepth && maxChildDepth > 0) || (!recursive && currentChildDepth > 1))
                 return childHolons;
 
-            foreach (IHolon child in holon.Children) 
+            //foreach (IHolon child in holon.Children) 
+            foreach (IHolon child in holon.AllChildren)
             { 
                 if (child.Id == Guid.Empty)
                     child.Id = Guid.NewGuid();
@@ -682,9 +685,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     childHolons.Add(child);
             }
 
-            foreach (IHolon childHolon in holon.Children)
+            //foreach (IHolon childHolon in holon.Children)
+            foreach (IHolon childHolon in holon.AllChildren)
             {
-                foreach (IHolon innerChildHolon in BuildChildHolonsList(childHolon, childHolons, recursive, maxChildDepth, currentChildDepth, continueOnError, saveChildrenOnProvider))
+                foreach (IHolon innerChildHolon in BuildChildHolonsList(childHolon, childHolons, recursive, maxChildDepth, currentChildDepth, continueOnError))
                 {
                     if (innerChildHolon.Id == Guid.Empty)
                         innerChildHolon.Id = Guid.NewGuid();
@@ -696,6 +700,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         childHolons.Add(innerChildHolon);
                 }
             }
+
+            return childHolons;
+        }
+
+        private List<IHolon> BuildChildHolonsList(IEnumerable<IHolon> holons, List<IHolon> childHolons, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true)
+        {
+            foreach (IHolon holon in holons)
+                BuildChildHolonsList(holon, childHolons, recursive, maxChildDepth, currentChildDepth, continueOnError);
 
             return childHolons;
         }
@@ -713,7 +725,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (celestialBody != null)
             {
                 if (celestialBody.CelestialBodyCore != null)
+                {
                     _core[holon.Id] = celestialBody.CelestialBodyCore;
+                    celestialBody.Children = celestialBody.CelestialBodyCore.AllChildren.ToList(); //We need to set the children holons before the core is removed during saving... The AllChildren property of CelestialBody will default to Children if the core is not found.
+                }
                 
                 celestialBody.CelestialBodyCore = null;
             }

@@ -70,6 +70,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
        // [BsonRepresentation(BsonType.ObjectId)]
         public string DeletedByAvatarId { get; set; }
         public IList<IHolon> Children { get; set; }
+
+        public virtual IReadOnlyCollection<IHolon> AllChildren
+        {
+            get
+            {
+                return Children.AsReadOnly();
+            }
+        }
+
         public ObservableCollection<IHolon> ChildrenTest { get; set; }
         public Core.Holons.Avatar CreatedByAvatar { get; set; }
         public Core.Holons.Avatar DeletedByAvatar { get; set; }
