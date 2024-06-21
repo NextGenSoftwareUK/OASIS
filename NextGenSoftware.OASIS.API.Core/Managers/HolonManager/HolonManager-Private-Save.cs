@@ -150,12 +150,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     //We will save the children seperateley so temp remove and restore after.
                     //List<IHolon> children = holon.Children.ToList();
-                    List<IHolon> children = holon.AllChildren.ToList();
+                    List<IHolon> children = holon.Children.ToList();
 
                     try
                     {
-                        //holon.Children.Clear();
-                        holon.AllChildren.ToList(); //TODO: Will always fail because it's a readonlycollection... needs more thought...
+                        holon.Children.Clear();
+                        //holon.AllChildren.Clear() //TODO: Will always fail because it's a readonlycollection... needs more thought...
                     }
                     catch (Exception e) { }
 
@@ -182,14 +182,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                 if (saveChildHolonsResult != null && saveChildHolonsResult.Result != null && !saveChildHolonsResult.IsError)
                                 {
                                     result.SavedCount += childHolons.Count;
-                                    saveHolonResult.Result.Children = MapChildren(saveChildHolonsResult.Result, saveHolonResult.Result.Children); //Map the saved holons back onto their original non flattened holons.
+                                    
+                                    //TODO: Dont think this is needed because updated automatically because all objects are byRef! ;-) But double check...
+                                    //saveHolonResult.Result.Children = MapChildren(saveChildHolonsResult.Result, saveHolonResult.Result.Children); //Map the saved holons back onto their original non flattened holons.
                                 }
                                 else
                                     OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} The holon {LoggingHelper.GetHolonInfoForLogging(holon)} saved fine but errors occured saving some of it's children: {saveChildHolonsResult.Message}");
                             }
                         }
 
-                        result.Result = saveHolonResult.Result;
+                        //result.Result = saveHolonResult.Result;
+                        result.Result = holon; //Automatically updated because ByRef! ;-)
                         result.IsSaved = true;
                         result.SavedCount++;
                     }
@@ -255,7 +258,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                 if (saveChildHolonsResult != null && saveChildHolonsResult.Result != null && !saveChildHolonsResult.IsError)
                                 {
                                     result.SavedCount += childHolons.Count;
-                                    saveHolonResult.Result.Children = MapChildren(saveChildHolonsResult.Result, saveHolonResult.Result.Children); //Map the saved holons back onto their original non flattened holons.
+                                    //saveHolonResult.Result.Children = MapChildren(saveChildHolonsResult.Result, saveHolonResult.Result.Children); //Map the saved holons back onto their original non flattened holons.
                                 }
                                 else
                                     //Make sure it DOESN'T add to the innerMessages because we need to keep these reserved for the top level holon that is saving and any auto-failover save messaged used in SaveHolon method.
@@ -442,14 +445,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         //We will save the children seperateley so temp remove and restore after.
                         //List<IHolon> children = holon.Children.ToList();
-                        List<IHolon> children = holon.AllChildren.ToList();
 
-                        try
-                        {
-                            //holon.Children.Clear();
-                            holon.AllChildren.ToList(); //TODO: Will always fail because it's a readonlycollection... needs more thought...
-                        }
-                        catch (Exception e) { }
+                        //try
+                        //{
+                        //    holon.Children.Clear();
+                        //}
+                        //catch (Exception e) { }
                     }
 
                     if (saveChildren && !saveChildrenOnProvider)
@@ -806,30 +807,34 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private IList<IHolon> MapChildren(IEnumerable<IHolon> sourceHolons, IList<IHolon> targetHolons)
-        {
-            for (int i = 0; i < targetHolons.Count(); i++)
-            {
-                IHolon child = sourceHolons.FirstOrDefault(x => x.Id == targetHolons[i].Id);
+        //private IList<IHolon> MapChildren(IEnumerable<IHolon> sourceFlattenedHolons, IList<IHolon> targetHolons)
+        //{
+        //    for (int i = 0; i < targetHolons.Count(); i++)
+        //    {
+        //        IHolon child = sourceFlattenedHolons.FirstOrDefault(x => x.Id == targetHolons[i].Id);
 
-                if (child != null)
-                    targetHolons[i] = Mapper.MapBaseHolonProperties(child, targetHolons[i]);
-            }
+        //        if (child != null)
+        //            targetHolons[i] = Mapper.MapBaseHolonProperties(child, targetHolons[i], true, false);
 
-            return targetHolons;
-        }
+        //        targetHolons[i].Children = MapChildren(sourceFlattenedHolons, targetHolons[i].Children);
+        //    }
 
-        private IList<IHolon> MapChildren<T>(IEnumerable<T> sourceHolons, IList<IHolon> targetHolons) where T : IHolon
-        {
-            for (int i = 0; i < targetHolons.Count(); i++)
-            {
-                IHolon child = sourceHolons.FirstOrDefault(x => x.Id == targetHolons[i].Id);
+        //    return targetHolons;
+        //}
 
-                if (child != null)
-                    targetHolons[i] = Mapper.MapBaseHolonProperties(child, targetHolons[i]);
-            }
+        //private IList<IHolon> MapChildren<T>(IEnumerable<T> sourceFlattenedHolons, IList<IHolon> targetHolons) where T : IHolon
+        //{
+        //    for (int i = 0; i < targetHolons.Count(); i++)
+        //    {
+        //        IHolon child = sourceFlattenedHolons.FirstOrDefault(x => x.Id == targetHolons[i].Id);
 
-            return targetHolons;
-        }
+        //        if (child != null)
+        //            targetHolons[i] = Mapper.MapBaseHolonProperties(child, targetHolons[i], true, false);
+
+        //        targetHolons[i].Children = MapChildren(sourceFlattenedHolons, targetHolons[i].Children);
+        //    }
+
+        //    return targetHolons;
+        //}
     }
 }

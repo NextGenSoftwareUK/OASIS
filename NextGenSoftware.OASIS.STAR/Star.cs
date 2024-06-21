@@ -1091,7 +1091,7 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 case GenesisType.ZomesAndHolonsOnly:
                     {
-                        OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>();
+                        OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>(new CoronalEjection());
 
                         foreach (IZome zome in zomes)
                         {
@@ -1106,7 +1106,7 @@ namespace NextGenSoftware.OASIS.STAR
                         else
                             result.Message = $"Some errors occured saving zomes and holons: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
 
-                        result.Result.Zomes = zomes;
+                        result.Result.Zomes = new List<IZome>(zomes);
                         return result;
                     }
 

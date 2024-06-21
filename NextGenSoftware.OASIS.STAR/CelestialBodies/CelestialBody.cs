@@ -378,7 +378,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 //celestialBodyHolonResult.Result.Adapt(this);
                 //Mapper<IHolon, CelestialBody>.MapBaseHolonProperties(celestialBodyHolonResult.Result, this);
                 result.SavedCount++;
-                SetProperties(celestialBodyHolonResult.Result);
+                //SetProperties(celestialBodyHolonResult.Result); //Redundant. TODO: Double check! ;-)
             }
             else
             {

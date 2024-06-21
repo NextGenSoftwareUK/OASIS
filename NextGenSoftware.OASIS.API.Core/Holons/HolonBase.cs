@@ -1866,8 +1866,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             this.Id = holon.Id;
             this.InstanceSavedOnProviderType = holon.InstanceSavedOnProviderType;
             this.IsActive = holon.IsActive;
-            this.IsChanged = holon.IsChanged;
-            this.IsNewHolon = holon.IsNewHolon;
+            this.IsChanged = holon.IsChanged; //these appear to be the only properties that need updating, the rest are done automatically due to the objects being byref! ;-)
+            this.IsNewHolon = holon.IsNewHolon; //these appear to be the only properties that need updating, the rest are done automatically due to the objects being byref! ;-)
             this.IsSaving = holon.IsSaving;
             this.MetaData = holon.MetaData;
             this.ModifiedByAvatar = holon.ModifiedByAvatar;

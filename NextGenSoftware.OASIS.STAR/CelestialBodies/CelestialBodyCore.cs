@@ -93,10 +93,19 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             try
             {
                 OASISResult<IEnumerable<IHolon>> holonResult = await GlobalHolonData.LoadHolonsForParentAsync(Id, HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
-                OASISResultHelper.CopyResult(holonResult, result);
+
+                //OASISResultHelper.CopyResult(holonResult, result);
+                //OASISResultHelper.CopyResultToIZome(holonResult, result);
+                OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(result, holonResult);
 
                 if (holonResult.Result != null && !holonResult.IsError)
                 {
+                    List<IZome> zomes = new List<IZome>();
+
+                    foreach (IHolon holon in holonResult.Result)
+                        zomes.Add((IZome)Mapper.MapBaseHolonProperties(holon, new Zome()));
+
+                    result.Result = zomes;
                     this.Zomes = (List<IZome>)result.Result;
                     OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Result = result });
                 }
