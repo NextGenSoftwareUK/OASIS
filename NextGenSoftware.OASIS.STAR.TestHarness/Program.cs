@@ -137,6 +137,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 result.Result.CelestialBody.OnZomeError += CelestialBody_OnZomeError;
 
                 CLIEngine.ShowWorkingMessage("Loading Zomes & Holons...");
+                //OASISResult<IEnumerable<IZome>> zomesResult = await result.Result.CelestialBody.LoadZomesAsync<IZome>();
                 OASISResult<IEnumerable<IZome>> zomesResult = await result.Result.CelestialBody.LoadZomesAsync();
 
                 bool finished = false;

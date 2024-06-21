@@ -177,7 +177,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return celestialSpaces;
         }
 
-        public static IHolon MapBaseHolonProperties(IHolon sourceHolon, IHolon targetHolon, bool mapCelestialProperties = true) 
+        public static IHolon MapBaseHolonProperties(IHolon sourceHolon, IHolon targetHolon, bool mapCelestialProperties = true, bool mapChildren = true) 
         {
             if (sourceHolon != null && targetHolon != null)
             {
@@ -186,7 +186,10 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 targetHolon.Name = sourceHolon.Name;
                 targetHolon.Description = sourceHolon.Description;
                 targetHolon.HolonType = sourceHolon.HolonType;
-                targetHolon.Children = sourceHolon.Children;
+                
+                if (mapChildren)
+                    targetHolon.Children = sourceHolon.Children;
+
                 targetHolon.Nodes = sourceHolon.Nodes;
                 //targetHolon.CelestialBodyCore.Id = sourceHolon.Id; //TODO: Dont think need targetHolon now?
                 //targetHolon.CelestialBodyCore.ProviderUniqueStorageKey = sourceHolon.ProviderUniqueStorageKey; //TODO: Dont think need targetHolon now?
