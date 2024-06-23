@@ -147,29 +147,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     holon.InstanceSavedOnProviderType = new EnumValue<ProviderType>(providerType);
+                    List<IHolon> children = null;
 
                     //We will save the children seperateley so temp remove and restore after.
-                    //List<IHolon> children = holon.Children.ToList();
-                    List<IHolon> children = holon.Children.ToList();
-
-                    try
+                    if (!saveChildrenOnProvider)
                     {
+                        children = holon.Children.ToList();
                         holon.Children.Clear();
-                        //holon.AllChildren.Clear() //TODO: Will always fail because it's a readonlycollection... needs more thought...
                     }
-                    catch (Exception e) { }
 
                     OASISResult<IHolon> saveHolonResult = await providerResult.Result.SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
 
                     if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
                     {
-                        try
+                        if (!saveChildrenOnProvider)
                         {
                             holon.Children = children;
                             saveHolonResult.Result.Children = children;
                         }
-                        catch (Exception e) { }
-
+                       
                         if (saveChildren && !saveChildrenOnProvider)
                         {
                             //Build child holon list recursively (flatten holons).
@@ -214,11 +210,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        //private async Task<OASISResult<T>> SaveHolonForProviderTypeAsync<T>(IHolon holon, Guid avatarId, ProviderType providerType, OASISResult<T> result, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) where T : IHolon, new()
         private async Task<OASISResult<T>> SaveHolonForProviderTypeAsync<T>(IHolon holon, Guid avatarId, ProviderType providerType, OASISResult<T> result, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) where T : IHolon, new()
         {
             string errorMessage = $"An error occured attempting to save the {LoggingHelper.GetHolonInfoForLogging(holon)} in the HolonManager.SaveHolonForProviderTypeAsync<T> method for the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason:";
-            //List<string> childSaveErrors = new List<string>();
 
             try
             {
@@ -242,10 +236,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     holon.InstanceSavedOnProviderType = new EnumValue<ProviderType>(providerType);
+                    List<IHolon> children = null;
+
+                    //We will save the children seperateley so temp remove and restore after.
+                    if (!saveChildrenOnProvider)
+                    {
+                        children = holon.Children.ToList();
+                        holon.Children.Clear();
+                    }
+
                     OASISResult<IHolon> saveHolonResult = await providerResult.Result.SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
 
                     if (!saveHolonResult.IsError && saveHolonResult != null)
                     {
+                        if (!saveChildrenOnProvider)
+                        {
+                            holon.Children = children;
+                            saveHolonResult.Result.Children = children;
+                        }
+
                         if (saveChildren && !saveChildrenOnProvider)
                         {
                             //Build child holon list recursively (flatten holons).
@@ -266,7 +275,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             }
                         }
 
-                        result.Result = (T)saveHolonResult.Result;
+                        //result.Result = (T)saveHolonResult.Result;
+                        result.Result = (T)holon; //Automatically updated because ByRef! ;-)
                         result.IsSaved = true;
                         result.SavedCount++;
                     }
@@ -439,18 +449,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
+                    Dictionary<string, List<IHolon>> children = new Dictionary<string, List<IHolon>>();
+
                     foreach (IHolon holon in holons)
                     {
                         holon.InstanceSavedOnProviderType = new EnumValue<ProviderType>(providerType);
-
+     
                         //We will save the children seperateley so temp remove and restore after.
-                        //List<IHolon> children = holon.Children.ToList();
-
-                        //try
-                        //{
-                        //    holon.Children.Clear();
-                        //}
-                        //catch (Exception e) { }
+                        if (!saveChildrenOnProvider)
+                        {
+                            children[holon.Id.ToString()] = new List<IHolon>(holon.Children);
+                            holon.Children.Clear();
+                        }
                     }
 
                     if (saveChildren && !saveChildrenOnProvider)
@@ -463,8 +473,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (saveHolonsResult != null && !saveHolonsResult.IsError && saveHolonsResult.Result != null)
                         {
+                            if (!saveChildrenOnProvider)
+                            {
+                                foreach (IHolon holon in holons)
+                                    holon.Children = children[holon.Id.ToString()];
+                            }
+
                             result.SavedCount += saveHolonsResult.Result.Count();
-                            result.Result = saveHolonsResult.Result;
+                            //result.Result = saveHolonsResult.Result;
+                            result.Result = holons; //Automatically updated because ByRef! ;-) //TODO: Check this works for lists like it does above for single holons! ;-)
                             result.IsSaved = true;
                         }
                         else

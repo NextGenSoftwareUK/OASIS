@@ -26,6 +26,7 @@ using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.STAR.Zomes;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
@@ -123,7 +124,11 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             // They will still be able to use a shared zomes/holons DNA folder as it is now if they wish or a combo of the two approaches...
 
             if (result != null && !result.IsError && result.Result != null && result.Result.CelestialBody != null)
+            {
                 _jlaMoon = (Moon)result.Result.CelestialBody;
+                await LoadCelestialBodyAsync(_jlaMoon, "The Justice League Academy Moon");
+                await LoadHolonAsync(_jlaMoon.Id, "The Justice League Academy Moon");
+            }
 
             //Passing in null for the ParentCelestialBody will default it to the default Star (Our Sun Sol).
             result = await GenerateCelestialBody("Our World", null, DefaultOAPPType, GenesisType.Planet, celestialBodyDNAFolder, Path.Combine(geneisFolder, "Our World"), "NextGenSoftware.OASIS.OAPPS.OurWorld");
@@ -137,7 +142,6 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 result.Result.CelestialBody.OnZomeError += CelestialBody_OnZomeError;
 
                 CLIEngine.ShowWorkingMessage("Loading Zomes & Holons...");
-                //OASISResult<IEnumerable<IZome>> zomesResult = await result.Result.CelestialBody.LoadZomesAsync<IZome>();
                 OASISResult<IEnumerable<IZome>> zomesResult = await result.Result.CelestialBody.LoadZomesAsync();
 
                 bool finished = false;
@@ -151,35 +155,187 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     else
                         CLIEngine.ShowSuccessMessage("No Zomes Found.");
 
-                    finished = true;
+                   // finished = true;
                 }
                 else
                 {
                     CLIEngine.ShowErrorMessage($"An Error Occured Loading Zomes/Holons. Reason: {zomesResult.Message}");
-                    finished = true;
+                    //finished = true;
                 }
 
-                while (!finished) { }
+                // while (!finished) { }
+
+                //Example of adding a holon to Our World using AddHolonAsync
+                CLIEngine.ShowWorkingMessage("Saving Test Holon To Our World...");
+                OASISResult<Holon> ourWorldHolonResult = await _superWorld.AddHolonAsync(new Holon() { Name = "Our World Test Holon" }, STAR.LoggedInAvatar.Id);
+
+                if (ourWorldHolonResult != null && !ourWorldHolonResult.IsError && ourWorldHolonResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("Test Holon Saved Successfully.");
+                    ShowHolonProperties(ourWorldHolonResult.Result);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error Saving Test Holon. Reason: {ourWorldHolonResult.Message}");
+
+
+                //Example of adding a holon to a new zome using AddHolonAsync
+                Zome zome = new Zome() { Name = "Our World Test Zome" };
+                zome.Children.Add(new Holon() { Name = "Our World Test Zome Sub-Holon" });
+
+                CLIEngine.ShowWorkingMessage("Saving Test Sub-Holon To Zome...");
+                ourWorldHolonResult = await zome.AddHolonAsync(new Holon() { Name = "Our World Test Sub-Holon " }, STAR.LoggedInAvatar.Id);
+
+                if (ourWorldHolonResult != null && !ourWorldHolonResult.IsError && ourWorldHolonResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("Test Sub-Holon Saved Successfully.");
+                    ShowHolonProperties(ourWorldHolonResult.Result);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error Saving Test Sub-Holon. Reason: {ourWorldHolonResult.Message}");
+
+
+                //And then saving that new Zome to Our World using AddZomeAsync
+                CLIEngine.ShowWorkingMessage("Saving Test Zome To Our World...");
+                OASISResult<IZome> ourWorldZomeResult = await _superWorld.CelestialBodyCore.AddZomeAsync(zome);
+
+                if (ourWorldZomeResult != null && !ourWorldZomeResult.IsError && ourWorldZomeResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("Test Zome Saved Successfully.");
+                    ShowHolonProperties(ourWorldZomeResult.Result);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error Saving Test Zome. Reason: {ourWorldZomeResult.Message}");
+
+                //await LoadCelestialBodyAsync(_superWorld, "Our World Planet");
+                //await LoadHolonAsync(_superWorld.Id, "Our World Planet");
+
+                //Example of adding zomes/holons in-memory and then saving all in one batch/atomic operation.
+                CLIEngine.ShowWorkingMessage("Saving Test Zome 2 To Our World...");
+                zome = new Zome() { Name = "Our World Test Zome 2" };
+                zome.Children.Add(new Holon() { Name = "Our World Test Zome 2 Sub-Holon 2" });
+
+                _superWorld.CelestialBodyCore.Zomes.Add(zome);
+                OASISResult<ICelestialBody> ourWorldResult = await _superWorld.SaveAsync();
+
+                if (ourWorldResult != null && !ourWorldResult.IsError && ourWorldResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("Test Zome 2 Saved Successfully.");
+                    ShowHolonProperties(ourWorldResult.Result);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error Saving Test Zome 2. Reason: {ourWorldZomeResult.Message}");
+
+
+                await LoadCelestialBodyAsync(_superWorld, "Our World Planet");
+                await LoadHolonAsync(_superWorld.Id, "Our World Planet");
+
+
+                CLIEngine.ShowWorkingMessage("Saving Generic Test Zome...");
+                zome = new Zome() { Name = "Generic Test Zome 2" };
+                OASISResult<IZome> zomeResult = await zome.SaveAsync();
+
+                if (zomeResult != null && !zomeResult.IsError && zomeResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("Test Zome 2 Saved Successfully.");
+                    ShowHolonProperties(zomeResult.Result);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error Saving Test Zome 2. Reason: {zomeResult.Message}");
 
                 Holon newHolon = new Holon();
                 newHolon.Name = "Test Data";
                 newHolon.Description = "Test Desc";
                 newHolon.HolonType = HolonType.Park;
 
-                CLIEngine.ShowWorkingMessage("Saving Test Holon...");
+
+                //Example saving using Save on the Our World Core GlobalHolonData (shortcut to the Data API below), shows how ALL holons are connected through the cores...
+                CLIEngine.ShowWorkingMessage("Saving Generic Test Holon...");
                 OASISResult<IHolon> holonResult =  await result.Result.CelestialBody.CelestialBodyCore.GlobalHolonData.SaveHolonAsync(newHolon);
 
                 if (!holonResult.IsError && holonResult.Result != null)
                 {
                     CLIEngine.ShowSuccessMessage("Test Holon Saved Successfully.");
-                    CLIEngine.ShowSuccessMessage($"Id: {newHolon.Id}");
-                    CLIEngine.ShowSuccessMessage($"Created By Avatar Id: {newHolon.CreatedByAvatarId}");
-                    CLIEngine.ShowSuccessMessage($"Created Date: {newHolon.CreatedDate}");
+                    ShowHolonProperties(holonResult.Result);
                 }
                 else
                     CLIEngine.ShowErrorMessage($"Error Saving Test Holon. Reason: {holonResult.Message}");
 
-                
+
+                OASISResult<IHolon> holonLoadResult = await newHolon.LoadAsync();
+
+                if (!holonLoadResult.IsError && holonLoadResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("Test Holon Loaded Successfully.");
+                    ShowHolonProperties(holonLoadResult.Result);
+                    ShowHolonProperties(newHolon);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error Loading Test Holon. Reason: {holonLoadResult.Message}");
+
+                newHolon = new Holon();
+                newHolon.Name = "Test Data2";
+                newHolon.Description = "Test Desc2";
+                newHolon.HolonType = HolonType.Restaurant;
+
+
+                //Example saving using Save direct on holon
+                CLIEngine.ShowWorkingMessage("Saving Generic Test Holon 2...");
+                holonResult = await newHolon.SaveAsync();
+
+                if (!holonResult.IsError && holonResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("Test Holon 2 Saved Successfully.");
+                    ShowHolonProperties(holonResult.Result);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error Saving Test Holon 2. Reason: {holonResult.Message}");
+
+                holonLoadResult = await newHolon.LoadAsync();
+
+                if (!holonLoadResult.IsError && holonLoadResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("Test Holon 2 Loaded Successfully.");
+                    ShowHolonProperties(holonLoadResult.Result);
+                    ShowHolonProperties(newHolon);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error Loading Test Holon 2. Reason: {holonLoadResult.Message}");
+
+
+                //Example saving using the Data API
+                newHolon = new Holon();
+                newHolon.Name = "Test Data3";
+                newHolon.Description = "Test Desc3";
+                newHolon.HolonType = HolonType.Restaurant;
+
+                CLIEngine.ShowWorkingMessage("Saving Generic Test Holon 3...");
+                OASISResult<IHolon> holonResult2 = await STAR.OASISAPI.Data.SaveHolonAsync(newHolon, STAR.LoggedInAvatar.Id);
+
+                if (!holonResult2.IsError && holonResult2.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("Test Holon 3 Saved Successfully.");
+                    ShowHolonProperties(holonResult2.Result);
+                    //CLIEngine.ShowSuccessMessage($"Id: {newHolon.Id}");
+                    //CLIEngine.ShowSuccessMessage($"Created By Avatar Id: {newHolon.CreatedByAvatarId}");
+                    //CLIEngine.ShowSuccessMessage($"Created Date: {newHolon.CreatedDate}");
+                    //CLIEngine.ShowSuccessMessage($"Name: {newHolon.Name}");
+                    //CLIEngine.ShowSuccessMessage($"Desc: {newHolon.Description}");
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error Saving Test Holon 3. Reason: {holonResult2.Message}");
+
+                holonLoadResult = await newHolon.LoadAsync();
+
+                if (!holonLoadResult.IsError && holonLoadResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("Test Holon 3 Loaded Successfully.");
+                    ShowHolonProperties(holonLoadResult.Result);
+                    ShowHolonProperties(newHolon);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error Loading Test Holon 3. Reason: {holonLoadResult.Message}");
+
+
                 await InitiateOASISAPTests(newHolon);
                 
 
@@ -228,6 +384,170 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 // Delete a planet (OApp).
                 STAR.Dust(result.Result.CelestialBody);
             }
+        }
+
+        private static async Task LoadCelestialBodyAsync(ICelestialBody celestialBody, string name)
+        {
+            CLIEngine.ShowWorkingMessage($"Loading {name}...");
+            OASISResult<ICelestialBody> worldResult = await celestialBody.LoadAsync();
+
+            if (worldResult != null && !worldResult.IsError && worldResult.Result != null)
+            {
+                CLIEngine.ShowSuccessMessage($"{name} Loaded Successfully.");
+                ShowHolonProperties(worldResult.Result);
+                Console.WriteLine("");
+                ShowZomesAndHolons(worldResult.Result.CelestialBodyCore.Zomes, $"{name} Contains {worldResult.Result.CelestialBodyCore.Zomes.Count()} Zome(s): ");
+            }
+        }
+
+        private static async Task LoadHolonAsync(Guid id, string name)
+        {
+            CLIEngine.ShowWorkingMessage($"Loading Holon {name}...");
+            OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.LoadHolonAsync(id);
+
+            if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+            {
+                CLIEngine.ShowSuccessMessage($"{name} Loaded Successfully.");
+                ShowHolonProperties(holonResult.Result);
+                Console.WriteLine("");
+
+                if (holonResult.Result.Children != null && holonResult.Result.Children.Count > 0)
+                    ShowHolons(holonResult.Result.Children);
+            }
+        }
+
+        private static void ShowHolonProperties(IHolon holon)
+        {
+            Console.WriteLine(string.Concat(" Id: ", holon.Id));
+            Console.WriteLine(string.Concat(" Holon Type: ", Enum.GetName(typeof(HolonType), holon.HolonType)));
+            Console.WriteLine(string.Concat(" Created By Avatar Id: ", holon.CreatedByAvatarId));
+            Console.WriteLine(string.Concat(" Created Date: ", holon.CreatedDate));
+            Console.WriteLine(string.Concat(" Modifed By Avatar Id: ", holon.ModifiedByAvatarId));
+            Console.WriteLine(string.Concat(" Modifed Date: ", holon.ModifiedDate));
+            Console.WriteLine(string.Concat(" Name: ", holon.Name));
+            Console.WriteLine(string.Concat(" Description: ", holon.Description));
+            Console.WriteLine(string.Concat(" Created OASIS Type: ", holon.CreatedOASISType.Name));
+            Console.WriteLine(string.Concat(" Created On Provider Type: ", holon.CreatedProviderType.Name));
+            Console.WriteLine(string.Concat(" Instance Saved On Provider Type: ", holon.InstanceSavedOnProviderType.Name));
+            Console.WriteLine(string.Concat(" IsActive: ", holon.IsActive ? "True" : "False"));
+            Console.WriteLine(string.Concat(" Version: ", holon.Version));
+            Console.WriteLine(string.Concat(" VersionId: ", holon.VersionId));
+            Console.WriteLine(string.Concat(" Custom Key: ", holon.CustomKey));
+            Console.WriteLine(string.Concat(" Dimension Level: ", Enum.GetName(typeof(DimensionLevel), holon.DimensionLevel)));
+            Console.WriteLine(string.Concat(" Sub-Dimension Level: ", Enum.GetName(typeof(SubDimensionLevel), holon.SubDimensionLevel)));
+            Console.WriteLine(string.Concat(" Parent Holon Id: ", holon.ParentHolonId));
+
+            if (holon.ParentHolon != null)
+                Console.WriteLine(string.Concat(" Parent Holon Name: ", holon.ParentHolon.Name));
+
+            Console.WriteLine(string.Concat(" Parent CelestialBody Id: ", holon.ParentCelestialBodyId));
+
+            if (holon.ParentCelestialBody != null)
+                Console.WriteLine(string.Concat(" Parent CelestialBody Name: ", holon.ParentCelestialBody.Name));
+
+            Console.WriteLine(string.Concat(" Parent CelestialSpace Id: ", holon.ParentCelestialSpaceId));
+
+            if (holon.ParentCelestialSpace != null)
+                Console.WriteLine(string.Concat(" Parent CelestialSpace Name: ", holon.ParentCelestialSpace.Name));
+
+            Console.WriteLine(string.Concat(" Parent GreatGrandSuperStar Id: ", holon.ParentGreatGrandSuperStarId));
+
+            if (holon.ParentGreatGrandSuperStar != null)
+                Console.WriteLine(string.Concat(" Parent GreatGrandSuperStar Name: ", holon.ParentGreatGrandSuperStar.Name));
+
+            Console.WriteLine(string.Concat(" Parent GrandSuperStar Id: ", holon.ParentGrandSuperStarId));
+
+            if (holon.ParentGrandSuperStar != null)
+                Console.WriteLine(string.Concat(" Parent GrandSuperStar Name: ", holon.ParentGrandSuperStar.Name));
+
+            Console.WriteLine(string.Concat(" Parent SuperStar Id: ", holon.ParentSuperStarId));
+
+            if (holon.ParentSuperStar != null)
+                Console.WriteLine(string.Concat(" Parent SuperStar Name: ", holon.ParentSuperStar.Name));
+
+            Console.WriteLine(string.Concat(" Parent Star Id: ", holon.ParentStarId));
+
+            if (holon.ParentStar != null)
+                Console.WriteLine(string.Concat(" Parent Star Name: ", holon.ParentStar.Name));
+
+            Console.WriteLine(string.Concat(" Parent Planet Id: ", holon.ParentPlanetId));
+
+            if (holon.ParentPlanet != null)
+                Console.WriteLine(string.Concat(" Parent Planet Name: ", holon.ParentPlanet.Name));
+
+            Console.WriteLine(string.Concat(" Parent Moon Id: ", holon.ParentMoonId));
+
+            if (holon.ParentMoon != null)
+                Console.WriteLine(string.Concat(" Parent Moon Name: ", holon.ParentMoon.Name));
+
+            Console.WriteLine(string.Concat(" Parent Omniverse Id: ", holon.ParentOmniverseId));
+
+            if (holon.ParentOmniverse != null)
+                Console.WriteLine(string.Concat(" Parent Omniverse Name: ", holon.ParentOmniverse.Name));
+
+            Console.WriteLine(string.Concat(" Parent Multiverse Id: ", holon.ParentMultiverseId));
+
+            if (holon.ParentMultiverse != null)
+                Console.WriteLine(string.Concat(" Parent Multiverse Name: ", holon.ParentMultiverse.Name));
+
+            Console.WriteLine(string.Concat(" Parent Dimension Id: ", holon.ParentDimensionId));
+
+            if (holon.ParentDimension != null)
+                Console.WriteLine(string.Concat(" Parent Dimension Name: ", holon.ParentDimension.Name));
+
+            Console.WriteLine(string.Concat(" Parent Universe Id: ", holon.ParentUniverseId));
+
+            if (holon.ParentUniverse != null)
+                Console.WriteLine(string.Concat(" Parent Universe Name: ", holon.ParentUniverse.Name));
+
+            Console.WriteLine(string.Concat(" Parent GalaxyCluster Id: ", holon.ParentGalaxyClusterId));
+
+            if (holon.ParentGalaxyCluster != null)
+                Console.WriteLine(string.Concat(" Parent GalaxyCluster Name: ", holon.ParentGalaxyCluster.Name));
+
+            Console.WriteLine(string.Concat(" Parent Galaxy Id: ", holon.ParentGalaxyId));
+
+            if (holon.ParentGalaxy != null)
+                Console.WriteLine(string.Concat(" Parent Galaxy Name: ", holon.ParentGalaxy.Name));
+
+            Console.WriteLine(string.Concat(" Parent SolarSystem Id: ", holon.ParentSolarSystemId));
+
+            if (holon.ParentSolarSystem != null)
+                Console.WriteLine(string.Concat(" Parent SolarSystem Name: ", holon.ParentSolarSystem.Name));
+
+
+            Console.WriteLine(string.Concat(" Children: ", holon.Children.Count));
+            Console.WriteLine(string.Concat(" All Children: ", holon.AllChildren.Count));
+
+            if (holon.MetaData != null && holon.MetaData.Keys.Count > 0)
+            {
+                Console.WriteLine(string.Concat(" Meta Data: ", holon.MetaData.Keys.Count, " Keys Found:"));
+                foreach (string key in holon.MetaData.Keys)
+                    Console.WriteLine(string.Concat("Key: ", key, "Value: ", holon.MetaData[key]));
+            }
+            else
+                Console.WriteLine(string.Concat(" Meta Data: None"));
+
+            if (holon.ProviderMetaData != null && holon.ProviderMetaData.Keys.Count > 0)
+            {
+                Console.WriteLine(string.Concat(" Provider Meta Data: "));
+                
+                foreach (ProviderType providerType in holon.ProviderMetaData.Keys)
+                {
+                    Console.WriteLine(string.Concat(" Provider: ", Enum.GetName(typeof(ProviderType), providerType)));
+
+                    foreach (string key in holon.ProviderMetaData[providerType].Keys)
+                        Console.WriteLine(string.Concat("Key: ", key, "Value: ", holon.ProviderMetaData[providerType][key]));
+                }
+            }
+            else
+                Console.WriteLine(string.Concat(" Provider Meta Data: None"));
+
+            Console.WriteLine(string.Concat(" Provider Unique Storage Keys: "));
+
+            foreach (ProviderType providerType in holon.ProviderUniqueStorageKey.Keys)
+                Console.WriteLine(string.Concat(" Provider: ", Enum.GetName(typeof(ProviderType), providerType)), " = ", holon.ProviderUniqueStorageKey[providerType]);
+
         }
 
         private static async Task InitiateOASISAPTests(IHolon newHolon)
@@ -418,7 +738,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 CLIEngine.ShowErrorMessage("Error Loading Holon");
 
             CLIEngine.ShowWorkingMessage("Loading Test Holon Only For IPFSOASIS Provider...");
-            holonResult = STAR.OASISAPI.Data.LoadHolon(newHolon.Id, true, true, 0, true, false, 0, ProviderType.IPFSOASIS); // Only loads from IPFS.
+            holonResult = STAR.OASISAPI.Data.LoadHolon(newHolon.Id, true, true, 0, true, false, HolonType.All, 0, ProviderType.IPFSOASIS); // Only loads from IPFS.
 
             if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
             {
@@ -431,7 +751,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 CLIEngine.ShowErrorMessage("Error Loading Holon");
 
             CLIEngine.ShowWorkingMessage("Loading All Holons Of Type Moon Only For HoloOASIS Provider...");
-            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Moon, true, true, 0, true, false, 0, ProviderType.HoloOASIS)); // Loads all moon (OAPPs) from Holochain.
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Moon, true, true, 0, true, false, HolonType.All, 0, ProviderType.HoloOASIS)); // Loads all moon (OAPPs) from Holochain.
 
             CLIEngine.ShowWorkingMessage("Saving Test Holon (Load Balanced Across All Providers)...");
             HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon, STAR.LoggedInAvatar.Id), "Holon Saved Successfully.", "Error Saving Holon."); // Load-balanced across all providers.
@@ -440,10 +760,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon, STAR.LoggedInAvatar.Id, true, true, 0, true, false, ProviderType.EthereumOASIS), "Holon Saved Successfully.", "Error Saving Holon."); //  Only saves to Etherum.
 
             CLIEngine.ShowWorkingMessage("Loading All Holons From The Current Default Provider (With Auto-FailOver)...");
-            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, true, true, 0, true, false, 0, ProviderType.Default)); // Loads all holons from current default provider.
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, true, true, 0, true, false, HolonType.All, 0, ProviderType.Default)); // Loads all holons from current default provider.
 
             CLIEngine.ShowWorkingMessage("Loading All Park Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
-            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park, true, true, 0, true, false, 0, ProviderType.All)); // Loads all parks from all providers (load-balanced/fail over).
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park, true, true, 0, true, false, HolonType.All, 0, ProviderType.All)); // Loads all parks from all providers (load-balanced/fail over).
 
             //CLIEngine.ShowWorkingMessage("Loading All Park Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
             STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
@@ -888,17 +1208,17 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             }
         }
 
-        private static void ShowHolons(IEnumerable<IHolon> holons, string customHeader = null)
+        private static void ShowHolons(IEnumerable<IHolon> holons, string customHeader = null, int indentBy = 0)
         {
             if (string.IsNullOrEmpty(customHeader))
-                Console.WriteLine($"{holons.Count()} Holons(s) Found:");
+                Console.WriteLine($"{holons.Count()} Child Holons(s) Found:");
             else
                 Console.WriteLine(customHeader);
 
             foreach (IHolon holon in holons)
             {
                 Console.WriteLine("");
-                Console.WriteLine(string.Concat("   Holon Name: ", holon.Name, " Holon Id: ", holon.Id, " containing ", holon.Nodes != null ? holon.Nodes.Count() : 0, " node(s): "));
+                Console.WriteLine(string.Concat("   Holon Name: ", holon.Name, " Holon Id: ", holon.Id, ", Holon Type: ", Enum.GetName(typeof(HolonType), holon.HolonType), " containing ", holon.Nodes != null ? holon.Nodes.Count() : 0, " node(s): "));
 
                 if (holon.Nodes != null)
                 {
@@ -908,6 +1228,9 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                         Console.WriteLine(string.Concat("    Node Name: ", node.NodeName, " Node Id: ", node.Id, " Node Type: ", Enum.GetName(node.NodeType)));
                     }
                 }
+
+                if (holon.Children != null && holon.Children.Count > 0)
+                    ShowHolons(holon.Children, $"    {holon.Children.Count} Child Sub-Holon(s) Found:");
             }
         }
 
