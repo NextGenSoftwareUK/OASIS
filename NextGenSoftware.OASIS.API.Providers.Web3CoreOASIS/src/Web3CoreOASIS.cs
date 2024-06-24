@@ -1,6 +1,7 @@
 using Nethereum.Web3;
 using Nethereum.Contracts;
 using Nethereum.Web3.Accounts;
+using Nethereum.RPC.Eth.DTOs;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
@@ -125,6 +126,9 @@ public sealed class Web3CoreOASIS
         Function getHolonsCountFunction = contract.GetFunction(Web3CoreOASISHelper.GetHolonsCountFuncName);
         return getHolonsCountFunction.CallAsync<uint>();
     }
+
+    public Task<TransactionReceipt> SendTransactionAsync(string receiverAddress, decimal etherAmount) =>
+        _web3.Eth.GetEtherTransferService().TransferEtherAndWaitForReceiptAsync(receiverAddress, etherAmount);
 }
 
 file static class Web3CoreOASISHelper
