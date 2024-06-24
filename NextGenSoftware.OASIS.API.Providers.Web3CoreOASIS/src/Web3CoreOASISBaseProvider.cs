@@ -18,7 +18,7 @@ using System.Text;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
-public sealed class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, string contractAddress, string abi) :
+public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, string contractAddress, string abi) :
     OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider
 {
     private readonly string _hostURI = hostUri;

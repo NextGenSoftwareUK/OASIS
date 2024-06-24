@@ -17,6 +17,8 @@ using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
+using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
+using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 
 namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {
@@ -24,6 +26,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
     {
         EthereumOASIS _ethereum;
         ArbitrumOASIS _arbitrum;
+        RootstockOASIS _rootstock;
+        PolygonOASIS _polygon;
         SolanaOASIS _solana;
         EOSIOOASIS _EOSIO;
         TelosOASIS _telos;
@@ -166,6 +170,48 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 }
 
                 return _arbitrum;
+            }
+        }
+
+        public PolygonOASIS Polygon
+        {
+            get
+            {
+                if (_polygon == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.PolygonOASIS);
+
+                        if (result != null && !result.IsError)
+                            _polygon = (PolygonOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Polygon Property Getter. Reason: {result.Message}");
+                    });
+                }
+
+                return _polygon;
+            }
+        }
+
+        public RootstockOASIS Rootstock
+        {
+            get
+            {
+                if (_rootstock == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.RootstockOASIS);
+
+                        if (result != null && !result.IsError)
+                            _rootstock = (RootstockOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Rootstock Property Getter. Reason: {result.Message}");
+                    });
+                }
+
+                return _rootstock;
             }
         }
 

@@ -229,6 +229,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public ThreeFoldOASISProviderSettings ThreeFoldOASIS { get; set; }
         public EthereumOASISProviderSettings EthereumOASIS { get; set; }
         public ArbitrumOASISProviderSettings ArbitrumOASIS { get; set; }
+        public RootstockOASISProviderSettings RootstockOASIS { get; set; }
+        public PolygonOASISProviderSettings PolygonOASIS { get; set; }
         public SQLLiteDBOASISSettings SQLLiteDBOASIS { get; set; }
         public IPFSOASISSettings IPFSOASIS { get; set; }
         public Neo4jOASISSettings Neo4jOASIS { get; set; }
@@ -308,6 +310,20 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public string ChainPrivateKey { get; set; }
         public long ChainId { get; set; }
+        public string ContractAddress { get; set; }
+        public string Abi { get; set; }
+    }
+
+    public class PolygonOASISProviderSettings : ProviderSettingsBase
+    {
+        public string ChainPrivateKey { get; set; }
+        public string ContractAddress { get; set; }
+        public string Abi { get; set; }
+    }
+
+    public class RootstockOASISProviderSettings : ProviderSettingsBase
+    {
+        public string ChainPrivateKey { get; set; }
         public string ContractAddress { get; set; }
         public string Abi { get; set; }
     }
