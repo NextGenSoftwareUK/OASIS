@@ -11,11 +11,11 @@ module.exports = {
             chainId: 1337,
         },
         rootstock: {
-            url: "https://public-node.rsk.co",
+            url: "https://public-node.testnet.rsk.co",
             accounts: [process.env.PRIVATE_KEY],
         },
         polygon: {
-            url: "https://polygon-rpc.com",
+            url: "https://rpc-amoy.polygon.technology/",
             accounts: [process.env.PRIVATE_KEY],
         },
     },

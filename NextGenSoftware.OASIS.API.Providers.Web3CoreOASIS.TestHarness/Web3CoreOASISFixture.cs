@@ -2,10 +2,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness;
 
 public sealed class Web3CoreOASISFixture
 {
-    private const string BlockchainUrl = "http://127.0.0.1:8545";
-    private const string AccountPrivateKey = "0x4e964e893315ea9c669a774ab533e8c708e184d8f59f4a895e7a326f605296e9";
-    private const string ContractAddress = "0x7BdEAEbF915D9BAdfe1D789FD4387CCacE9d2ab7";
-    private const string Abi = @"
+  private const string BlockchainUrl = "https://public-node.testnet.rsk.co";
+  private const string AccountPrivateKey = "d3c80ec102d5fe42beadcb7346f74df529a0a10a1906f6ecc5fe3770eb65fb1a";
+  private const string ContractAddress = "0xF676D2790797559eD7DD4033d043EE8dec09A0B5";
+  private const string Abi = @"
 [
     {
       ""inputs"": [],
@@ -378,7 +378,7 @@ public sealed class Web3CoreOASISFixture
   ]
 ";
 
-    public Web3CoreOASIS Web3CoreOASIS { get; private set; }
+  public Web3CoreOASIS Web3CoreOASIS { get; private set; }
 
-    public Web3CoreOASISFixture() => Web3CoreOASIS = new(AccountPrivateKey, BlockchainUrl, ContractAddress, Abi);
+  public Web3CoreOASISFixture() => Web3CoreOASIS = new(AccountPrivateKey, BlockchainUrl, ContractAddress, Abi);
 }
