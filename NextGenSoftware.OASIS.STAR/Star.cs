@@ -186,6 +186,9 @@ namespace NextGenSoftware.OASIS.STAR
             }
         }
 
+        public static bool DetailedCOSMICOutputsEnabled { get; set; } = false;
+
+
         //public static IMapper Mapper { get; set; }
 
         //public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
@@ -227,6 +230,9 @@ namespace NextGenSoftware.OASIS.STAR
         public static event HolonsLoaded OnHolonsLoaded;
         public static event HolonsSaved OnHolonsSaved;
         public static event HolonsError OnHolonsError;
+
+        public delegate void DefaultCeletialBodyInit(object sender, DefaultCelestialBodyInitEventArgs e);
+        public static event DefaultCeletialBodyInit OnDefaultCeletialBodyInit;
 
         public delegate void StarIgnited(object sender, StarIgnitedEventArgs e);
         public static event StarIgnited OnStarIgnited;
@@ -1799,7 +1805,10 @@ namespace NextGenSoftware.OASIS.STAR
                         HandleCelesitalBodyInitError(result, name, id, celestialBodyResult);
                     }
                     else
+                    {
                         ShowStatusMessage(StarStatusMessageType.Success, $"{longName} Initialized.");
+                        OnDefaultCeletialBodyInit?.Invoke(null, new DefaultCelestialBodyInitEventArgs() { Result = OASISResultHelper.CopyResultToICelestialBody(celestialBodyResult) });
+                    }
                 }
                 else
                     HandleCelesitalBodyInitError<T>(result, name, id, $"The {name}Id value in STARDNA.json is not a valid Guid.");
@@ -1833,7 +1842,10 @@ namespace NextGenSoftware.OASIS.STAR
                         HandleCelesitalBodyInitError(result, name, id, celestialBodyResult);
                     }
                     else
+                    {
                         ShowStatusMessage(StarStatusMessageType.Success, $"{longName} Initialized.");
+                        OnDefaultCeletialBodyInit?.Invoke(null, new DefaultCelestialBodyInitEventArgs() { Result = OASISResultHelper.CopyResultToICelestialBody(celestialBodyResult) });
+                    }
                 }
                 else
                     HandleCelesitalBodyInitError<T>(result, name, id, $"The {name}Id value in STARDNA.json is not a valid Guid.");
