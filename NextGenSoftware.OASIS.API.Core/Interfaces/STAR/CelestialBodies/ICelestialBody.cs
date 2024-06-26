@@ -12,20 +12,20 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
     {
         ICelestialBodyCore CelestialBodyCore { get; set; }
         int CurrentOrbitAngleOfParentStar { get; set; }
-        int Density { get; set; }
-        int DistanceFromParentStarInMetres { get; set; }
-        int GravitaionalPull { get; set; }
+        long Density { get; set; }
+        long DistanceFromParentStarInMetres { get; set; }
+        long GravitaionalPull { get; set; }
         Guid Id { get; set; }
-        int Mass { get; set; }
+        long Mass { get; set; }
         int NumberActiveAvatars { get; set; }
         int NumberRegisteredAvatars { get; set; }
-        int OrbitPeriod { get; set; }
+        long OrbitPeriod { get; set; }
         int OrbitPositionFromParentStar { get; set; }
         Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; }
-        int RotationPeriod { get; set; }
-        int RotationSpeed { get; set; }
+        long RotationPeriod { get; set; }
+        long RotationSpeed { get; set; }
         int TiltAngle { get; set; }
-        int Weight { get; set; }
+        long Weight { get; set; }
 
         event EventDelegates.CelestialBodyError OnCelestialBodyError;
         event EventDelegates.CelestialBodyLoaded OnCelestialBodyLoaded;

@@ -738,7 +738,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             currentChildDepth++;
 
-            if ((recursive && currentChildDepth >= maxChildDepth) || (!recursive && currentChildDepth > 1))
+            if ((recursive && currentChildDepth >= maxChildDepth && maxChildDepth > 0) || (!recursive && currentChildDepth > 1))
                 return result;
 
             foreach (IHolon childHolon in result.Result)
@@ -766,7 +766,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             currentChildDepth++;
 
-            if ((recursive && currentChildDepth >= maxChildDepth) || (!recursive && currentChildDepth > 1))
+            if ((recursive && currentChildDepth >= maxChildDepth && maxChildDepth > 0) || (!recursive && currentChildDepth > 1))
                 return result;
 
             foreach (IHolon childHolon in result.Result)
@@ -794,7 +794,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             currentChildDepth++;
 
-            if ((recursive && currentChildDepth >= maxChildDepth) || (!recursive && currentChildDepth > 1))
+            if ((recursive && currentChildDepth >= maxChildDepth && maxChildDepth > 0) || (!recursive && currentChildDepth > 1))
                 return result;
 
             foreach (IHolon childHolon in result.Result)

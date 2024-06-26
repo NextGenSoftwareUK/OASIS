@@ -37,6 +37,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
         public static string OASISVersion { get; set; } = "v3.1.1";
+        public static string COSMICVersion { get; set; } = "v2.0.1";
+        public static string STARODKVersion { get; set; } = "v2.0.0";
 
         //public static string OASISVersion
         //{
@@ -259,6 +261,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             LoggingManager.Log($"{result.Message}", LogType.Info);
                         
                         LoggingManager.Log($"OASIS RUNTIME VERSION: {OASISVersion}.", LogType.Info);
+                        LoggingManager.Log($"COSMIC ORM RUNTIME VERSION: {COSMICVersion}.", LogType.Info);
+                        LoggingManager.Log($"STAR ODK VERSION: {STARODKVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (LIVE): {OASISDNA.OASIS.CurrentLiveVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (STAGING): {OASISDNA.OASIS.CurrentStagingVersion}.", LogType.Info);
                     }

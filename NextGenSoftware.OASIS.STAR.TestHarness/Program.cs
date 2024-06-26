@@ -127,9 +127,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static async Task Test(string celestialBodyDNAFolder, string geneisFolder)
         {
-
             OASISResult<CoronalEjection> result = await GenerateZomesAndHolons("Zomes And Holons Only", DefaultOAPPType, celestialBodyDNAFolder, Path.Combine(geneisFolder, "ZomesAndHolons"), "NextGenSoftware.OASIS.OAPPS.ZomesAndHolonsOnly");
-
 
             //Passing in null for the ParentCelestialBody will default it to the default planet (Our World).
             result = await GenerateCelestialBody("The Justice League Academy", null, DefaultOAPPType, GenesisType.Moon, celestialBodyDNAFolder, Path.Combine(geneisFolder, "JLA"), "NextGenSoftware.OASIS.OAPPS.JLA");
@@ -169,16 +167,46 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     }
                     else
                         CLIEngine.ShowSuccessMessage("No Zomes Found.");
-
-                   // finished = true;
                 }
                 else
-                {
                     CLIEngine.ShowErrorMessage($"An Error Occured Loading Zomes/Holons. Reason: {zomesResult.Message}");
-                    //finished = true;
-                }
 
-                // while (!finished) { }
+
+                //Set some custom properties (will save and load again below to check they persist).
+                //TODO: Eventually you will be able to set these in the meta data when creating the celestial body.
+                
+                
+                _superWorld.Age = 777777777777;
+                _superWorld.Colour = Color.Blue;
+                _superWorld.CurrentOrbitAngleOfParentStar = 44;
+                _superWorld.Density = 44;
+                _superWorld.DimensionLevel = DimensionLevel.Fourth;
+                _superWorld.SubDimensionLevel = SubDimensionLevel.Second;
+                _superWorld.DistanceFromParentStarInMetres = 77777777777777;
+                _superWorld.EclipticLatitute = 33;
+                _superWorld.EclipticLongitute = 44;
+                _superWorld.EquatorialLatitute = 11;
+                _superWorld.EquatorialLongitute = 22;
+                _superWorld.GalacticLatitute = 23323232;
+                _superWorld.GalacticLongitute = 43434323;
+                _superWorld.GravitaionalPull = 7777;
+                _superWorld.HorizontalLatitute = 452323;
+                _superWorld.HorizontalLongitute = 4343422;
+                _superWorld.Mass = 4343232323;
+                _superWorld.NumberActiveAvatars = 77;
+                _superWorld.NumberRegisteredAvatars = 444;
+                _superWorld.Radius = 8888;
+                _superWorld.OrbitPositionFromParentStar = 77;
+                _superWorld.RotationPeriod = 878232;
+                _superWorld.RotationSpeed = 77777;
+                _superWorld.Size = 88888888;
+                _superWorld.SpaceQuadrant = SpaceQuadrantType.Gamma;
+                _superWorld.SpaceSector = 4;
+                _superWorld.SuperGalacticLatitute = 7777;
+                _superWorld.SuperGalacticLongitute = 7777;
+                _superWorld.Temperature = 77;
+                _superWorld.TiltAngle = 45;
+                _superWorld.Weight = 77;
 
                 //Example of adding a holon to Our World using AddHolonAsync
                 CLIEngine.ShowWorkingMessage("Saving Test Holon To Our World...");
@@ -228,7 +256,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 zome.Children.Add(new Holon() { Name = "Our World Test Zome 2 Sub-Holon 2" });
 
                 _superWorld.CelestialBodyCore.Zomes.Add(zome);
-                OASISResult<ICelestialBody> ourWorldResult = await _superWorld.SaveAsync();
+                OASISResult<ICelestialBody> ourWorldResult = await _superWorld.SaveAsync(); //Will also save the custom properties we set earlier (above).
 
                 if (ourWorldResult != null && !ourWorldResult.IsError && ourWorldResult.Result != null)
                 {
@@ -401,24 +429,38 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             }
         }
 
-        private static async Task LoadCelestialBodyAsync(ICelestialBody celestialBody, string name)
+        //private static async Task LoadCelestialBodyAsync(ICelestialBody celestialBody, string name)
+        //{
+        //    CLIEngine.ShowWorkingMessage($"Loading {name}...");
+        //    OASISResult<ICelestialBody> celestialBodyResult = await celestialBody.LoadAsync();
+            
+        //    //switch (celestialBody.HolonType)
+        //    //{
+        //    //    case HolonType.Moon:
+        //    //        OASISResult<Moon> worldResult = await celestialBody.LoadAsync<Moon>();
+        //    //        break;
+        //    //}
+            
+        //    if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
+        //    {
+        //        CLIEngine.ShowSuccessMessage($"{name} Loaded Successfully.");
+        //        ShowHolonProperties(celestialBodyResult.Result);
+        //        Console.WriteLine("");
+        //        ShowZomesAndHolons(celestialBodyResult.Result.CelestialBodyCore.Zomes, $"{name} Contains {celestialBodyResult.Result.CelestialBodyCore.Zomes.Count()} Zome(s): ");
+        //    }
+        //}
+
+        private static async Task LoadCelestialBodyAsync<T>(T celestialBody, string name) where T : ICelestialBody, new()
         {
             CLIEngine.ShowWorkingMessage($"Loading {name}...");
-            OASISResult<ICelestialBody> celestialBodyResult = await celestialBody.LoadAsync();
-            
-            //switch (celestialBody.HolonType)
-            //{
-            //    case HolonType.Moon:
-            //        OASISResult<Moon> worldResult = await celestialBody.LoadAsync<Moon>();
-            //        break;
-            //}
-            
+            OASISResult<T> celestialBodyResult = await celestialBody.LoadAsync<T>();
+
             if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
             {
                 CLIEngine.ShowSuccessMessage($"{name} Loaded Successfully.");
                 ShowHolonProperties(celestialBodyResult.Result);
                 Console.WriteLine("");
-                ShowZomesAndHolons(celestialBodyResult.Result.CelestialBodyCore.Zomes, $"{name} Contains {celestialBodyResult.Result.CelestialBodyCore.Zomes.Count()} Zome(s): ");
+                ShowZomesAndHolons(celestialBodyResult.Result.CelestialBodyCore.Zomes, string.Concat(" ", name, " Contains ", celestialBodyResult.Result.CelestialBodyCore.Zomes.Count(), " Zome(s)", celestialBodyResult.Result.CelestialBodyCore.Zomes.Count > 0 ? ":" : ""));
             }
         }
 
@@ -431,10 +473,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 CLIEngine.ShowSuccessMessage($"{name} Loaded Successfully.");
                 ShowHolonProperties(holonResult.Result);
-                Console.WriteLine("");
+                //Console.WriteLine("");
 
-                if (holonResult.Result.Children != null && holonResult.Result.Children.Count > 0)
-                    ShowHolons(holonResult.Result.Children);
+                //if (holonResult.Result.Children != null && holonResult.Result.Children.Count > 0)
+                //    ShowHolons(holonResult.Result.Children);
             }
         }
 
@@ -452,13 +494,53 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine(string.Concat(" Created OASIS Type: ", holon.CreatedOASISType != null ? holon.CreatedOASISType.Name : ""));
             Console.WriteLine(string.Concat(" Created On Provider Type: ", holon.CreatedProviderType != null ? holon.CreatedProviderType.Name : ""));
             Console.WriteLine(string.Concat(" Instance Saved On Provider Type: ", holon.InstanceSavedOnProviderType != null ? holon.InstanceSavedOnProviderType.Name : ""));
-            Console.WriteLine(string.Concat(" IsActive: ", holon.IsActive ? "True" : "False"));
+            Console.WriteLine(string.Concat(" Active: ", holon.IsActive ? "True" : "False"));
             Console.WriteLine(string.Concat(" Version: ", holon.Version));
-            Console.WriteLine(string.Concat(" VersionId: ", holon.VersionId));
+            Console.WriteLine(string.Concat(" Version Id: ", holon.VersionId));
             Console.WriteLine(string.Concat(" Custom Key: ", holon.CustomKey));
             Console.WriteLine(string.Concat(" Dimension Level: ", Enum.GetName(typeof(DimensionLevel), holon.DimensionLevel)));
             Console.WriteLine(string.Concat(" Sub-Dimension Level: ", Enum.GetName(typeof(SubDimensionLevel), holon.SubDimensionLevel)));
 
+            ICelestialHolon celestialHolon = holon as ICelestialHolon;
+
+            if (celestialHolon != null)
+            {
+                Console.WriteLine(string.Concat(" Age: ", celestialHolon.Age));
+                Console.WriteLine(string.Concat(" Colour: ", celestialHolon.Colour));
+                Console.WriteLine(string.Concat(" Ecliptic Latitute: ", celestialHolon.EclipticLatitute));
+                Console.WriteLine(string.Concat(" Ecliptic Longitute: ", celestialHolon.EclipticLongitute));
+                Console.WriteLine(string.Concat(" Equatorial Latitute: ", celestialHolon.EquatorialLatitute));
+                Console.WriteLine(string.Concat(" Equatorial Longitute: ", celestialHolon.EquatorialLongitute));
+                Console.WriteLine(string.Concat(" Galactic Latitute: ", celestialHolon.GalacticLatitute));
+                Console.WriteLine(string.Concat(" Galactic Longitute: ", celestialHolon.GalacticLongitute));
+                Console.WriteLine(string.Concat(" Horizontal Latitute: ", celestialHolon.HorizontalLatitute));
+                Console.WriteLine(string.Concat(" Horizontal Longitute: ", celestialHolon.HorizontalLongitute));
+                Console.WriteLine(string.Concat(" Radius: ", celestialHolon.Radius));
+                Console.WriteLine(string.Concat(" Size: ", celestialHolon.Size));
+                Console.WriteLine(string.Concat(" Space Quadrant: ", Enum.GetName(typeof(SpaceQuadrantType), celestialHolon.SpaceQuadrant)));
+                Console.WriteLine(string.Concat(" Space Sector: ", celestialHolon.SpaceSector));
+                Console.WriteLine(string.Concat(" Super Galactic Latitute: ", celestialHolon.SuperGalacticLatitute));
+                Console.WriteLine(string.Concat(" Super Galactic Longitute: ", celestialHolon.SuperGalacticLongitute));
+                Console.WriteLine(string.Concat(" Temperature: ", celestialHolon.Temperature));
+            }
+
+            ICelestialBody celestialBody = holon as ICelestialBody;
+
+            if (celestialBody != null)
+            {
+                Console.WriteLine(string.Concat(" Current Orbit Angle Of Parent Star: ", celestialBody.Age));
+                Console.WriteLine(string.Concat(" Density: ", celestialBody.Age));
+                Console.WriteLine(string.Concat(" Distance From Parent Star In Metres: ", celestialBody.Age));
+                Console.WriteLine(string.Concat(" Gravitaional Pull: ", celestialBody.Age));
+                Console.WriteLine(string.Concat(" Mass: ", celestialBody.Age));
+                Console.WriteLine(string.Concat(" Number Active Avatars: ", celestialBody.Age));
+                Console.WriteLine(string.Concat(" Number Registered Avatars: ", celestialBody.Age));
+                Console.WriteLine(string.Concat(" Orbit Position From Parent Star: ", celestialBody.Age));
+                Console.WriteLine(string.Concat(" Rotation Period: ", celestialBody.Age));
+                Console.WriteLine(string.Concat(" Rotation Speed: ", celestialBody.Age));
+                Console.WriteLine(string.Concat(" Tilt Angle: ", celestialBody.Age));
+                Console.WriteLine(string.Concat(" Weight: ", celestialBody.Age));
+            }
 
             if (holon.ParentHolon != null)
                 ShowHolonBasicProperties(holon.ParentHolon, "Parent Holon");
@@ -467,33 +549,33 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
 
             if (holon.ParentCelestialBody != null)
-                ShowHolonBasicProperties(holon.ParentHolon, "Parent CelestialBody");
+                ShowHolonBasicProperties(holon.ParentHolon, "Parent Celestial Body");
             else
-                Console.WriteLine(string.Concat(" Parent CelestialBody Id: ", holon.ParentCelestialBodyId));
+                Console.WriteLine(string.Concat(" Parent Celestial Body Id: ", holon.ParentCelestialBodyId));
 
 
             if (holon.ParentCelestialSpace != null)
-                ShowHolonBasicProperties(holon.ParentHolon, "Parent CelestialSpace");
+                ShowHolonBasicProperties(holon.ParentHolon, "Parent Celestial Space");
             else
-                Console.WriteLine(string.Concat(" Parent CelestialSpace Id: ", holon.ParentCelestialSpaceId));
+                Console.WriteLine(string.Concat(" Parent Celestial Space Id: ", holon.ParentCelestialSpaceId));
 
   
             if (holon.ParentGreatGrandSuperStar != null)
-                ShowHolonBasicProperties(holon.ParentHolon, "Parent GreatGrandSuperStar");
+                ShowHolonBasicProperties(holon.ParentHolon, "Parent Great Grand Super Star");
             else
-                Console.WriteLine(string.Concat(" Parent GreatGrandSuperStar Id: ", holon.ParentGreatGrandSuperStarId));
+                Console.WriteLine(string.Concat(" Parent Great Grand Super Star Id: ", holon.ParentGreatGrandSuperStarId));
 
 
             if (holon.ParentGrandSuperStar != null)
-                ShowHolonBasicProperties(holon.ParentHolon, "Parent GrandSuperStar");
+                ShowHolonBasicProperties(holon.ParentHolon, "Parent Grand Super Star");
             else
-                Console.WriteLine(string.Concat(" Parent GrandSuperStar Id: ", holon.ParentGrandSuperStarId));
+                Console.WriteLine(string.Concat(" Parent Grand Super Star Id: ", holon.ParentGrandSuperStarId));
 
 
             if (holon.ParentSuperStar != null)
-                ShowHolonBasicProperties(holon.ParentHolon, "Parent SuperStar");
+                ShowHolonBasicProperties(holon.ParentHolon, "Parent Super Star");
             else
-                Console.WriteLine(string.Concat(" Parent SuperStar Id: ", holon.ParentSuperStarId));
+                Console.WriteLine(string.Concat(" Parent Super Star Id: ", holon.ParentSuperStarId));
             
 
             if (holon.ParentStar != null)
@@ -538,9 +620,9 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
 
             if (holon.ParentGalaxyCluster != null)
-                ShowHolonBasicProperties(holon.ParentHolon, "Parent GalaxyCluster");
+                ShowHolonBasicProperties(holon.ParentHolon, "Parent Galaxy Cluster");
             else
-                Console.WriteLine(string.Concat(" Parent GalaxyCluster Id: ", holon.ParentGalaxyClusterId));
+                Console.WriteLine(string.Concat(" Parent Galaxy Cluster Id: ", holon.ParentGalaxyClusterId));
 
 
             if (holon.ParentGalaxy != null)
@@ -550,9 +632,9 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
 
             if (holon.ParentSolarSystem != null)
-                ShowHolonBasicProperties(holon.ParentHolon, "Parent SolarSystem");
+                ShowHolonBasicProperties(holon.ParentHolon, "Parent Solar System");
             else
-                Console.WriteLine(string.Concat(" Parent SolarSystem Id: ", holon.ParentSolarSystemId));
+                Console.WriteLine(string.Concat(" Parent Solar System Id: ", holon.ParentSolarSystemId));
 
             
             Console.WriteLine(string.Concat(" Children: ", holon.Children.Count));
@@ -594,16 +676,6 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             foreach (ProviderType providerType in holon.ProviderUniqueStorageKey.Keys)
                 Console.WriteLine(string.Concat("   Provider: ", Enum.GetName(typeof(ProviderType), providerType), " = ", holon.ProviderUniqueStorageKey[providerType]));
 
-        }
-
-        private static void ShowHolonBasicProperties(IHolon holon, string prefix = "", string indentBuffer = " ", bool showNodes = false)
-        {
-            string nodes = "";
-
-            if (showNodes)
-                nodes = string.Concat(" | Containing ", holon.Nodes != null ? holon.Nodes.Count() : 0, " Node(s)", holon.Nodes != null && holon.Nodes.Count > 0 ? ":" : "");
-
-            Console.WriteLine(string.Concat(indentBuffer, prefix, " Name: ", holon.Name, prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType), nodes));
         }
 
         private static async Task InitiateOASISAPTests(IHolon newHolon)
@@ -1261,12 +1333,12 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             foreach (IZome zome in zomes)
             {
-                Console.WriteLine(string.Concat("  Name: ", zome.Name, " | Id: ", zome.Id, " | Containing ", zome.Children.Count(), " Holon(s)", zome.Children.Count > 0 ? ":" : ""));
+                Console.WriteLine(string.Concat("  | ZOME | Name: ", zome.Name.PadRight(20), " | Id: ", zome.Id, " | Containing ", zome.Children.Count(), " Holon(s)", zome.Children.Count > 0 ? ":" : ""));
                 ShowHolons(zome.Children, false);
             }
         }
 
-        private static void ShowHolons(IEnumerable<IHolon> holons, bool showHeader = true, string customHeader = null, int indentBy = 2)
+        private static void ShowHolons(IEnumerable<IHolon> holons, bool showHeader = true, string customHeader = null, int indentBy = 2, int level = 0)
         {
             //Console.WriteLine("");
 
@@ -1284,8 +1356,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             for (int i = 0; i <= indentBy; i++)
                 indentPadding = indentPadding.Insert(0, " ");
 
+          //  int parentIndent = indentBy;
             foreach (IHolon holon in holons)
             {
+               // indentBy = parentIndent;
                 Console.WriteLine("");
                 ShowHolonBasicProperties(holon, "", indentPadding, true);
                 //Console.WriteLine(string.Concat("   Holon Name: ", holon.Name, " Holon Id: ", holon.Id, ", Holon Type: ", Enum.GetName(typeof(HolonType), holon.HolonType), " containing ", holon.Nodes != null ? holon.Nodes.Count() : 0, " node(s): "));
@@ -1295,18 +1369,43 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     foreach (API.Core.Interfaces.INode node in holon.Nodes)
                     {
                         Console.WriteLine("");
-                        Console.WriteLine(string.Concat(indentPadding, "   Name: ", node.NodeName, " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType)));
+                        string tree = string.Concat("|", indentPadding, "  NODE").PadRight(22);
+                        //Console.WriteLine(string.Concat(indentPadding, "  | NODE | Name: ", node.NodeName.PadRight(20), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(10)));
+                        Console.WriteLine(string.Concat(tree, " | Name: ", node.NodeName.PadRight(40), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(10), " | ".PadRight(30), " | ".PadRight(30), "|"));
                     }
                 }
 
                 if (holon.Children != null && holon.Children.Count > 0)
                 {
-                    indentBy += 2;
-                    ShowHolons(holon.Children, showHeader, $"{indentPadding}{holon.Children.Count} Child Sub-Holon(s) Found:", indentBy);
+                    //indentBy += 2;
+                    //ShowHolons(holon.Children, showHeader, $"{indentPadding}{holon.Children.Count} Child Sub-Holon(s) Found:", indentBy);
+                    ShowHolons(holon.Children, false, "", indentBy + 2, level + 1);
                 }
             }
 
-            Console.WriteLine("");
+            if (level == 0)
+                Console.WriteLine("");
+        }
+
+        private static void ShowHolonBasicProperties(IHolon holon, string prefix = "", string indentBuffer = " ", bool showChildren = true, bool showNodes = true)
+        {
+            string children = "";
+            string nodes = "";
+
+            if (showChildren)
+                children = string.Concat(" | Containing ", holon.Children != null ? holon.Children.Count() : 0, " Child Holon(s)");
+            else
+                children = " |";
+
+            if (showNodes)
+                nodes = string.Concat(" | Containing ", holon.Nodes != null ? holon.Nodes.Count() : 0, " Node(s)");
+            else
+                nodes = " |";
+
+            string tree = string.Concat("|", indentBuffer, "HOLON").PadRight(22);
+
+            //Console.WriteLine(string.Concat(indentBuffer, prefix, "| HOLON | Name: ", holon.Name.PadRight(20), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(10), children, nodes));
+            Console.WriteLine(string.Concat(tree, " | Name: ", holon.Name.PadRight(40), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(10), children.PadRight(30), nodes.PadRight(30), "|"));
         }
 
         private static void CelestialBody_OnZomeError(object sender, ZomeErrorEventArgs e)
