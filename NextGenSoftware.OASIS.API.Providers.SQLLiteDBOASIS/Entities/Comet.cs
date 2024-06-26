@@ -27,17 +27,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public float EquatorialLongitute { get; set; }
         public float EclipticLatitute { get; set; }
         public float EclipticLongitute { get; set; }
-        public int Size { get; set; }
+        public long Size { get; set; }
         public int Radius { get; set; }
-        public int Age { get; set; }
-        public int Mass { get; set; }
+        public long Age { get; set; }
+        public long Mass { get; set; }
         public int Temperature { get; set; }
-        public int Weight { get; set; }
-        public int GravitaionalPull { get; set; }
+        public long Weight { get; set; }
+        public long GravitaionalPull { get; set; }
         public int OrbitPositionFromParentStar { get; set; }
         public int CurrentOrbitAngleOfParentStar { get; set; } //Angle between 0 and 360 degrees of how far around the orbit it it of its parent star.
-        public int DistanceFromParentStarInMetres { get; set; }
-        public int RotationSpeed { get; set; }
+        public long DistanceFromParentStarInMetres { get; set; }
+        public long RotationSpeed { get; set; }
         public int TiltAngle { get; set; }
         public int NumberRegisteredAvatars { get; set; }
         public int NunmerActiveAvatars { get; set; }

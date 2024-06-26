@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
+using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
@@ -305,6 +306,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             try
             {
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                SetCelestialHolonMetaData();
                 result = HandleSaveCelestialSpace(result, star.CelestialBodyCore.GlobalHolonData.SaveHolon(this, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "Save");
 
                 //TODO: We could of course just save using the one line below instead of the 2 lines above but then it would break the STAR NET design of the stars being responsible for loading/saving the celestialspace/celestial bodies in its orbit.
@@ -327,6 +329,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             try
             {
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                SetCelestialHolonMetaData();
                 result = HandleSaveCelestialSpace(result, await star.CelestialBodyCore.GlobalHolonData.SaveHolonAsync<T>(this, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveAsync");
             }
             catch (Exception ex)
@@ -346,6 +349,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             try
             {
                 IStar star = GetCelestialSpaceNearestStar(result, errorMessage);
+                SetCelestialHolonMetaData();
                 result = HandleSaveCelestialSpace(result, star.CelestialBodyCore.GlobalHolonData.SaveHolon<T>(this, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType), "SaveAsync");
             }
             catch (Exception ex)
@@ -1858,6 +1862,28 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             }
 
             return celestialSpaces;
+        }
+
+        private void SetCelestialHolonMetaData()
+        {
+            //CelestialHolon Properties
+            MetaData["Age"] = this.Age;
+            MetaData["Colour"] = this.Colour;
+            MetaData["EclipticLatitute"] = this.EclipticLatitute;
+            MetaData["EclipticLongitute"] = this.EclipticLongitute;
+            MetaData["EquatorialLatitute"] = this.EquatorialLatitute;
+            MetaData["EquatorialLongitute"] = this.EquatorialLongitute;
+            MetaData["GalacticLatitute"] = this.GalacticLatitute;
+            MetaData["GalacticLongitute"] = this.GalacticLongitute;
+            MetaData["HorizontalLatitute"] = this.HorizontalLatitute;
+            MetaData["HorizontalLongitute"] = this.HorizontalLongitute;
+            MetaData["Radius"] = this.Radius;
+            MetaData["Size"] = this.Size;
+            MetaData["SpaceQuadrant"] = this.SpaceQuadrant;
+            MetaData["SpaceSector"] = this.SpaceSector;
+            MetaData["SuperGalacticLatitute"] = this.SuperGalacticLatitute;
+            MetaData["SuperGalacticLongitute"] = this.SuperGalacticLongitute;
+            MetaData["Temperature"] = this.Temperature;
         }
 
         private void CelestialSpace_OnCelestialSpaceLoaded(object sender, CelestialSpaceLoadedEventArgs e)

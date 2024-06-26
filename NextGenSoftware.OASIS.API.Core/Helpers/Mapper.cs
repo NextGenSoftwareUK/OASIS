@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
@@ -90,7 +90,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 ICelestialBody celestialBody = (ICelestialBody)holon;
                 //ICelestialBody celestialBody = MapBaseHolonProperties(holon, celestialBody);
 
-                celestialBody.Age = holon.MetaData != null && holon.MetaData.ContainsKey("Age") && holon.MetaData["Age"] != null ? System.Convert.ToInt32(holon.MetaData["Age"]) : 0;
+                //CelestialHolon Properties
+                celestialBody.Age = holon.MetaData != null && holon.MetaData.ContainsKey("Age") && holon.MetaData["Age"] != null ? System.Convert.ToInt64(holon.MetaData["Age"]) : 0;
+                celestialBody.Colour = holon.MetaData != null && holon.MetaData.ContainsKey("Colour") && holon.MetaData["Colour"] != null ? (Color)holon.MetaData["Colour"] : Color.Blue;
                 celestialBody.EclipticLatitute = holon.MetaData != null && holon.MetaData.ContainsKey("EclipticLatitute") && holon.MetaData["EclipticLatitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["EclipticLatitute"]) : 0;
                 celestialBody.EclipticLongitute = holon.MetaData != null && holon.MetaData.ContainsKey("EclipticLongitute") && holon.MetaData["EclipticLongitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["EclipticLongitute"]) : 0;
                 celestialBody.EquatorialLatitute = holon.MetaData != null && holon.MetaData.ContainsKey("EquatorialLatitute") && holon.MetaData["EquatorialLatitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["EquatorialLatitute"]) : 0;
@@ -99,18 +101,25 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 celestialBody.GalacticLongitute = holon.MetaData != null && holon.MetaData.ContainsKey("GalacticLongitute") && holon.MetaData["GalacticLongitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["GalacticLongitute"]) : 0;
                 celestialBody.HorizontalLatitute = holon.MetaData != null && holon.MetaData.ContainsKey("HorizontalLatitute") && holon.MetaData["HorizontalLatitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["HorizontalLatitute"]) : 0;
                 celestialBody.HorizontalLongitute = holon.MetaData != null && holon.MetaData.ContainsKey("HorizontalLongitute") && holon.MetaData["HorizontalLongitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["HorizontalLongitute"]) : 0;
-                celestialBody.Mass = holon.MetaData != null && holon.MetaData.ContainsKey("Mass") && holon.MetaData["Mass"] != null ? System.Convert.ToInt32(holon.MetaData["Mass"]) : 0;
-                celestialBody.NumberActiveAvatars = holon.MetaData != null && holon.MetaData.ContainsKey("NumberActiveAvatars") && holon.MetaData["NumberActiveAvatars"] != null ? System.Convert.ToInt32(holon.MetaData["NumberActiveAvatars"]) : 0;
-                celestialBody.NumberRegisteredAvatars = holon.MetaData != null && holon.MetaData.ContainsKey("NumberRegisteredAvatars") && holon.MetaData["NumberRegisteredAvatars"] != null ? System.Convert.ToInt32(holon.MetaData["NumberRegisteredAvatars"]) : 0;
-                celestialBody.OrbitPositionFromParentStar = holon.MetaData != null && holon.MetaData.ContainsKey("OrbitPositionFromParentStar") && holon.MetaData["OrbitPositionFromParentStar"] != null ? System.Convert.ToInt32(holon.MetaData["OrbitPositionFromParentStar"]) : 0;
-                celestialBody.RotationSpeed = holon.MetaData != null && holon.MetaData.ContainsKey("RotationSpeed") && holon.MetaData["RotationSpeed"] != null ? System.Convert.ToInt32(holon.MetaData["RotationSpeed"]) : 0;
-                celestialBody.Size = holon.MetaData != null && holon.MetaData.ContainsKey("Size") && holon.MetaData["Size"] != null ? System.Convert.ToInt32(holon.MetaData["Size"]) : 0;
+                celestialBody.Radius = holon.MetaData != null && holon.MetaData.ContainsKey("Radius") && holon.MetaData["Radius"] != null ? System.Convert.ToInt32(holon.MetaData["Radius"]) : 0;
+                celestialBody.Size = holon.MetaData != null && holon.MetaData.ContainsKey("Size") && holon.MetaData["Size"] != null ? System.Convert.ToInt64(holon.MetaData["Size"]) : 0;
                 celestialBody.SpaceQuadrant = holon.MetaData != null && holon.MetaData.ContainsKey("SpaceQuadrant") && holon.MetaData["SpaceQuadrant"] != null ? (SpaceQuadrantType)Enum.Parse(typeof(SpaceQuadrantType), holon.MetaData["SpaceQuadrant"].ToString()) : SpaceQuadrantType.None;
                 celestialBody.SpaceSector = holon.MetaData != null && holon.MetaData.ContainsKey("SpaceSector") && holon.MetaData["SpaceSector"] != null ? System.Convert.ToInt32(holon.MetaData["SpaceSector"]) : 0;
-                celestialBody.SubDimensionLevel = holon.MetaData != null && holon.MetaData.ContainsKey("SubDimensionLevel") && holon.MetaData["SubDimensionLevel"] != null ? (SubDimensionLevel)Enum.Parse(typeof(SubDimensionLevel), holon.MetaData["SubDimensionLevel"].ToString()) : SubDimensionLevel.None;
                 celestialBody.SuperGalacticLatitute = holon.MetaData != null && holon.MetaData.ContainsKey("SuperGalacticLatitute") && holon.MetaData["SuperGalacticLatitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["SuperGalacticLatitute"]) : 0;
                 celestialBody.SuperGalacticLongitute = holon.MetaData != null && holon.MetaData.ContainsKey("SuperGalacticLongitute") && holon.MetaData["SuperGalacticLongitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["SuperGalacticLongitute"]) : 0;
                 celestialBody.Temperature = holon.MetaData != null && holon.MetaData.ContainsKey("Temperature") && holon.MetaData["Temperature"] != null ? System.Convert.ToInt32(holon.MetaData["Temperature"]) : 0;
+
+                //CelestialBody Properties
+                celestialBody.CurrentOrbitAngleOfParentStar = holon.MetaData != null && holon.MetaData.ContainsKey("CurrentOrbitAngleOfParentStar") && holon.MetaData["CurrentOrbitAngleOfParentStar"] != null ? System.Convert.ToInt32(holon.MetaData["CurrentOrbitAngleOfParentStar"]) : 0;
+                celestialBody.Density = holon.MetaData != null && holon.MetaData.ContainsKey("Density") && holon.MetaData["Density"] != null ? System.Convert.ToInt32(holon.MetaData["Density"]) : 0;
+                celestialBody.DistanceFromParentStarInMetres = holon.MetaData != null && holon.MetaData.ContainsKey("DistanceFromParentStarInMetres") && holon.MetaData["DistanceFromParentStarInMetres"] != null ? System.Convert.ToInt64(holon.MetaData["DistanceFromParentStarInMetres"]) : 0;
+                celestialBody.GravitaionalPull = holon.MetaData != null && holon.MetaData.ContainsKey("GravitaionalPull") && holon.MetaData["GravitaionalPull"] != null ? System.Convert.ToInt64(holon.MetaData["GravitaionalPull"]) : 0;
+                celestialBody.Mass = holon.MetaData != null && holon.MetaData.ContainsKey("Mass") && holon.MetaData["Mass"] != null ? System.Convert.ToInt64(holon.MetaData["Mass"]) : 0;
+                celestialBody.NumberActiveAvatars = holon.MetaData != null && holon.MetaData.ContainsKey("NumberActiveAvatars") && holon.MetaData["NumberActiveAvatars"] != null ? System.Convert.ToInt32(holon.MetaData["NumberActiveAvatars"]) : 0;
+                celestialBody.NumberRegisteredAvatars = holon.MetaData != null && holon.MetaData.ContainsKey("NumberRegisteredAvatars") && holon.MetaData["NumberRegisteredAvatars"] != null ? System.Convert.ToInt32(holon.MetaData["NumberRegisteredAvatars"]) : 0;
+                celestialBody.OrbitPositionFromParentStar = holon.MetaData != null && holon.MetaData.ContainsKey("OrbitPositionFromParentStar") && holon.MetaData["OrbitPositionFromParentStar"] != null ? System.Convert.ToInt32(holon.MetaData["OrbitPositionFromParentStar"]) : 0;
+                celestialBody.RotationSpeed = holon.MetaData != null && holon.MetaData.ContainsKey("RotationSpeed") && holon.MetaData["RotationSpeed"] != null ? System.Convert.ToInt64(holon.MetaData["RotationSpeed"]) : 0;
+                celestialBody.RotationPeriod = holon.MetaData != null && holon.MetaData.ContainsKey("RotationPeriod") && holon.MetaData["RotationPeriod"] != null ? System.Convert.ToInt64(holon.MetaData["RotationPeriod"]) : 0;
                 celestialBody.TiltAngle = holon.MetaData != null && holon.MetaData.ContainsKey("TiltAngle") && holon.MetaData["TiltAngle"] != null ? System.Convert.ToInt32(holon.MetaData["TiltAngle"]) : 0;
                 celestialBody.Weight = holon.MetaData != null && holon.MetaData.ContainsKey("Weight") && holon.MetaData["Weight"] != null ? System.Convert.ToInt32(holon.MetaData["Weight"]) : 0;
 
@@ -147,7 +156,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 ICelestialSpace celestialSpace = (ICelestialSpace)holon;
                 //MapBaseHolonProperties(holon, celestialSpace);
 
-                celestialSpace.Age = holon.MetaData != null && holon.MetaData.ContainsKey("Age") && holon.MetaData["Age"] != null ? System.Convert.ToInt32(holon.MetaData["Age"]) : 0;
+                //CelestialHolon Properties
+                celestialSpace.Age = holon.MetaData != null && holon.MetaData.ContainsKey("Age") && holon.MetaData["Age"] != null ? System.Convert.ToInt64(holon.MetaData["Age"]) : 0;
+                celestialSpace.Colour = holon.MetaData != null && holon.MetaData.ContainsKey("Colour") && holon.MetaData["Colour"] != null ? (Color)holon.MetaData["Colour"] : Color.Blue;
                 celestialSpace.EclipticLatitute = holon.MetaData != null && holon.MetaData.ContainsKey("EclipticLatitute") && holon.MetaData["EclipticLatitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["EclipticLatitute"]) : 0;
                 celestialSpace.EclipticLongitute = holon.MetaData != null && holon.MetaData.ContainsKey("EclipticLongitute") && holon.MetaData["EclipticLongitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["EclipticLongitute"]) : 0;
                 celestialSpace.EquatorialLatitute = holon.MetaData != null && holon.MetaData.ContainsKey("EquatorialLatitute") && holon.MetaData["EquatorialLatitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["EquatorialLatitute"]) : 0;
@@ -156,20 +167,13 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 celestialSpace.GalacticLongitute = holon.MetaData != null && holon.MetaData.ContainsKey("GalacticLongitute") && holon.MetaData["GalacticLongitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["GalacticLongitute"]) : 0;
                 celestialSpace.HorizontalLatitute = holon.MetaData != null && holon.MetaData.ContainsKey("HorizontalLatitute") && holon.MetaData["HorizontalLatitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["HorizontalLatitute"]) : 0;
                 celestialSpace.HorizontalLongitute = holon.MetaData != null && holon.MetaData.ContainsKey("HorizontalLongitute") && holon.MetaData["HorizontalLongitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["HorizontalLongitute"]) : 0;
-                //celestialBody.Mass = System.Convert.ToInt32(holon.MetaData["Mass"]);
-                //celestialBody.NumberActiveAvatars = System.Convert.ToInt32(holon.MetaData["NumberActiveAvatars"]);
-                //celestialBody.NumberRegisteredAvatars = System.Convert.ToInt32(holon.MetaData["NumberRegisteredAvatars"]);
-                //celestialBody.OrbitPositionFromParentStar = System.Convert.ToInt32(holon.MetaData["OrbitPositionFromParentStar"]);
-                //celestialBody.RotationSpeed = System.Convert.ToInt32(holon.MetaData["RotationSpeed"]);
-                celestialSpace.Size = holon.MetaData != null && holon.MetaData.ContainsKey("Size") && holon.MetaData["Size"] != null ? System.Convert.ToInt32(holon.MetaData["Size"]) : 0;
+                celestialSpace.Radius = holon.MetaData != null && holon.MetaData.ContainsKey("Radius") && holon.MetaData["Radius"] != null ? System.Convert.ToInt32(holon.MetaData["Radius"]) : 0;
+                celestialSpace.Size = holon.MetaData != null && holon.MetaData.ContainsKey("Size") && holon.MetaData["Size"] != null ? System.Convert.ToInt64(holon.MetaData["Size"]) : 0;
                 celestialSpace.SpaceQuadrant = holon.MetaData != null && holon.MetaData.ContainsKey("SpaceQuadrant") && holon.MetaData["SpaceQuadrant"] != null ? (SpaceQuadrantType)Enum.Parse(typeof(SpaceQuadrantType), holon.MetaData["SpaceQuadrant"].ToString()) : SpaceQuadrantType.None;
                 celestialSpace.SpaceSector = holon.MetaData != null && holon.MetaData.ContainsKey("SpaceSector") && holon.MetaData["SpaceSector"] != null ? System.Convert.ToInt32(holon.MetaData["SpaceSector"]) : 0;
-                //celestialBody.SubDimensionLevel = System.Convert.ToInt32(holon.MetaData["SubDimensionLevel"]);
                 celestialSpace.SuperGalacticLatitute = holon.MetaData != null && holon.MetaData.ContainsKey("SuperGalacticLatitute") && holon.MetaData["SuperGalacticLatitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["SuperGalacticLatitute"]) : 0;
                 celestialSpace.SuperGalacticLongitute = holon.MetaData != null && holon.MetaData.ContainsKey("SuperGalacticLongitute") && holon.MetaData["SuperGalacticLongitute"] != null ? (float)System.Convert.ToDouble(holon.MetaData["SuperGalacticLongitute"]) : 0;
                 celestialSpace.Temperature = holon.MetaData != null && holon.MetaData.ContainsKey("Temperature") && holon.MetaData["Temperature"] != null ? System.Convert.ToInt32(holon.MetaData["Temperature"]) : 0;
-                //celestialBody.TiltAngle = System.Convert.ToInt32(holon.MetaData["TiltAngle"]);
-                //celestialBody.Weight = System.Convert.ToInt32(holon.MetaData["Weight"]);
 
                 return celestialSpace;
             }

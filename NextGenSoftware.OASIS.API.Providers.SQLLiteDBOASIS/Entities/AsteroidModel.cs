@@ -78,9 +78,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             item.EquatorialLongitute = this.EquatorialLongitute;
             item.EclipticLatitute = this.EclipticLatitute;
             item.EclipticLongitute = this.EclipticLongitute;
-            item.Size = this.Size;
+            //item.Size = this.Size;
             item.Radius = this.Radius;
-            item.Age = this.Age;
+            //item.Age = this.Age;
             item.Mass = this.Mass;
             item.Temperature = this.Temperature;
             item.Weight = this.Weight;
