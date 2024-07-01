@@ -665,7 +665,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISErrorHandling.HandleWarning(ref result, BuildSaveHolonAutoReplicateErrorMessage(result.InnerMessages, holon));
         }
 
-        private List<IHolon> BuildChildHolonsList(IHolon holon, List<IHolon> childHolons, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true)
+        private List<IHolon> BuildAllChildHolonsList(IHolon holon, List<IHolon> childHolons, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true)
         {
             currentChildDepth++;
 
@@ -688,7 +688,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //foreach (IHolon childHolon in holon.Children)
             foreach (IHolon childHolon in holon.AllChildren)
             {
-                foreach (IHolon innerChildHolon in BuildChildHolonsList(childHolon, childHolons, recursive, maxChildDepth, currentChildDepth, continueOnError))
+                foreach (IHolon innerChildHolon in BuildAllChildHolonsList(childHolon, childHolons, recursive, maxChildDepth, currentChildDepth, continueOnError))
                 {
                     if (innerChildHolon.Id == Guid.Empty)
                         innerChildHolon.Id = Guid.NewGuid();
@@ -704,12 +704,38 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return childHolons;
         }
 
-        private List<IHolon> BuildChildHolonsList(IEnumerable<IHolon> holons, List<IHolon> childHolons, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true)
+        private List<IHolon> BuildAllChildHolonsList(IEnumerable<IHolon> holons, List<IHolon> childHolons, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true)
         {
             foreach (IHolon holon in holons)
-                BuildChildHolonsList(holon, childHolons, recursive, maxChildDepth, currentChildDepth, continueOnError);
+                BuildAllChildHolonsList(holon, childHolons, recursive, maxChildDepth, currentChildDepth, continueOnError);
 
             return childHolons;
+        }
+
+        private string BuildChildHolonIdList(IHolon holon)
+        {
+            string ids = "";
+
+            foreach (IHolon child in holon.Children) 
+                ids = string.Concat(ids, ",", child.Id);
+
+            if (ids.Length > 1)
+                ids = ids.Substring(1);
+
+            return ids;
+        }
+
+        private string BuildAllChildHolonIdList(List<IHolon> allchildHolons)
+        {
+            string ids = "";
+
+            foreach (IHolon holon in allchildHolons)
+                ids = string.Concat(ids, ",", holon.Id);
+
+            if (ids.Length > 1)
+                ids = ids.Substring(1);
+
+            return ids;
         }
 
         private T RemoveCelesialBodies<T>(T holon) where T : IHolon

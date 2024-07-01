@@ -212,17 +212,37 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (loadChildren && !loadChildrenFromProvider)
                 {
-                    OASISResult<IEnumerable<T>> holonsResult = await LoadHolonsForParentAsync<T>(id, childHolonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
-
-                    if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
-                        result.Result.Children = [.. holonsResult.Result];
-                    else
+                    if (string.IsNullOrEmpty(result.Result.AllChildIdListCache))
                     {
-                        if (result.IsWarning)
-                            OASISErrorHandling.HandleError(ref result, $"The holon with id {id} failed to load and one or more of it's children failed to load. Reason: {holonsResult.Message}");
-                        else
-                            OASISErrorHandling.HandleWarning(ref result, $"The holon with id {id} loaded fine but one or more of it's children failed to load. Reason: {holonsResult.Message}");
+                        //TODO: Need to add LoadHolonsForIds methods to IOASISStorage interface & providers which takes the AllChildIdList as a param..
+
+
+                        //List<string> childIds = new List<string>();
+                        //childIds = result.Result.AllChildIdList.Split(",").ToList();
+                        //Guid childId = Guid.Empty;
+
+                        //foreach (string guid in childIds)
+                        //{
+                        //    if (Guid.TryParse(guid, out childId))
+                        //    {
+
+                        //    }
+                        //}
                     }
+                    //else
+                    //{
+                        OASISResult<IEnumerable<T>> holonsResult = await LoadHolonsForParentAsync<T>(id, childHolonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
+
+                        if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
+                            result.Result.Children = [.. holonsResult.Result];
+                        else
+                        {
+                            if (result.IsWarning)
+                                OASISErrorHandling.HandleError(ref result, $"The holon with id {id} failed to load and one or more of it's children failed to load. Reason: {holonsResult.Message}");
+                            else
+                                OASISErrorHandling.HandleWarning(ref result, $"The holon with id {id} loaded fine but one or more of it's children failed to load. Reason: {holonsResult.Message}");
+                        }
+                   //}
                 }
             }
 
