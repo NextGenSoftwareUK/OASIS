@@ -79,7 +79,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
             }
         }
 
-        public ObservableCollection<IHolon> ChildrenTest { get; set; }
+        public string ChildIdListCache { get; set; } //This will store the list of id's for the direct childen of this holon.
+        public string AllChildIdListCache { get; set; } //This will store the list of id's for the ALL the childen of this holon (including all sub-childen).
+
+        //public ObservableCollection<IHolon> ChildrenTest { get; set; }
         public Core.Holons.Avatar CreatedByAvatar { get; set; }
         public Core.Holons.Avatar DeletedByAvatar { get; set; }
         public EnumValue<ProviderType> InstanceSavedOnProviderType { get; set; }

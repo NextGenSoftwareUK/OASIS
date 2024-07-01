@@ -10,7 +10,6 @@ using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using System.Collections.ObjectModel;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
@@ -102,7 +101,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
         public string CustomKey { get; set; } //A custom key that can be used to load the holon by (other than Id or ProviderKey).
-        public bool IsNewHolon { get; set; }
+        public bool IsNewHolon { get; set; } //TODO: Want to remove this ASAP!
         public bool IsChanged { get; set; }
         public bool IsSaving { get; set; }
         public HolonType HolonType { get; set; }
@@ -125,7 +124,9 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public EnumValue<OASISType> CreatedOASISType { get; set; }
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
-        
+        public string ChildIdListCache { get; set; } //This will store the list of id's for the direct childen of this holon.
+        public string AllChildIdListCache { get; set; } //This will store the list of id's for the ALL the childen of this holon (including all sub-childen).
+
         public IList<IHolon> Children { get; set; } = new List<IHolon>();
 
         public virtual IReadOnlyCollection<IHolon> AllChildren 

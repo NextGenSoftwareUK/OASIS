@@ -46,6 +46,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; }
         int Version { get; set; }
         Guid VersionId { get; set; }
+        string ChildIdListCache { get; set; } //This will store the list of id's for the direct childen of this holon.
+        string AllChildIdListCache { get; set; } //This will store the list of id's for the ALL the childen of this holon (including all sub-childen).
 
         event EventDelegates.HolonsLoaded OnChildrenLoaded;
         event EventDelegates.HolonsError OnChildrenLoadError;
