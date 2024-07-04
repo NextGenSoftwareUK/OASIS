@@ -346,7 +346,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (result != null && !result.IsError && result.Result != null)
                 {
                     SetProperties(result.Result);
-                    MapMetaData<T>();
+                    //MapMetaData<T>(); //TODO: Don't think we need to do this? Because HolonManager does this for us...
                     OnLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
                 }
                 else
@@ -442,7 +442,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (result != null && !result.IsError && result.Result != null)
                 {
                     SetProperties(result.Result);
-                    MapMetaData<T>();
+                    //MapMetaData<T>(); //TODO: Don't think we need to do this? Because HolonManager does this for us...
                     OnLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
                 }
                 else

@@ -648,9 +648,9 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             if (holon.MetaData != null && holon.MetaData.Keys.Count > 0)
             {
-                Console.WriteLine(string.Concat(" Meta Data: ", holon.MetaData.Keys.Count, " Keys Found:"));
+                Console.WriteLine(string.Concat(" Meta Data: ", holon.MetaData.Keys.Count, " Key(s) Found:"));
                 foreach (string key in holon.MetaData.Keys)
-                    Console.WriteLine(string.Concat("Key: ", key, "Value: ", holon.MetaData[key]));
+                    Console.WriteLine(string.Concat("   ", key, "=", holon.MetaData[key]));
             }
             else
                 Console.WriteLine(string.Concat(" Meta Data: None"));
