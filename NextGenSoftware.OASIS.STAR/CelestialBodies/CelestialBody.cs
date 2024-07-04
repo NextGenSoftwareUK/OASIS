@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
+using System.Drawing;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -117,40 +118,40 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             Initialize();
         }
 
-        //TODO: Dont think this method works because impossible to cast to ICelestialBody when we dont know the type, use the generic LoadAsync<T> version instead! 
-        [Obsolete("Dont think this method works because impossible to cast to ICelestialBody when we dont know the type, use the generic LoadAsync<T> version instead!")]
-        public new async Task<OASISResult<ICelestialBody>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<ICelestialBody> result = OASISResultHelper.CopyResultToICelestialBody(await CelestialBodyCore.LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
-            //OASISResult<ICelestialBody> result = OASISResultHelper.CopyResultToICelestialBody(await CelestialBodyCore.GlobalHolonData.LoadHolonAsync(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
+        ////TODO: Dont think this method works because impossible to cast to ICelestialBody when we dont know the type, use the generic LoadAsync<T> version instead! 
+        //[Obsolete("Dont think this method works because impossible to cast to ICelestialBody when we dont know the type, use the generic LoadAsync<T> version instead!")]
+        //public new async Task<OASISResult<ICelestialBody>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<ICelestialBody> result = OASISResultHelper.CopyResultToICelestialBody(await CelestialBodyCore.LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
+        //    //OASISResult<ICelestialBody> result = OASISResultHelper.CopyResultToICelestialBody(await CelestialBodyCore.GlobalHolonData.LoadHolonAsync(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
 
-            if (result != null && result.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An errror occured in CelestialBody.LoadAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Reason: {result.Message}");
-                OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-            }
-            else
-                OnCelestialBodyLoaded?.Invoke(this, new CelestialBodyLoadedEventArgs() { Result = result });
+        //    if (result != null && result.IsError)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"An errror occured in CelestialBody.LoadAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Reason: {result.Message}");
+        //        OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+        //    }
+        //    else
+        //        OnCelestialBodyLoaded?.Invoke(this, new CelestialBodyLoadedEventArgs() { Result = result });
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        //TODO: Dont think this method works because impossible to cast to ICelestialBody when we dont know the type, use the generic Load<T> version instead! 
-        [Obsolete("Dont think this method works because impossible to cast to ICelestialBody when we dont know the type, use the generic Load<T> version instead!")]
-        public new OASISResult<ICelestialBody> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<ICelestialBody> result = OASISResultHelper.CopyResultToICelestialBody(CelestialBodyCore.Load(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
+        ////TODO: Dont think this method works because impossible to cast to ICelestialBody when we dont know the type, use the generic Load<T> version instead! 
+        //[Obsolete("Dont think this method works because impossible to cast to ICelestialBody when we dont know the type, use the generic Load<T> version instead!")]
+        //public new OASISResult<ICelestialBody> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<ICelestialBody> result = OASISResultHelper.CopyResultToICelestialBody(CelestialBodyCore.Load(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
 
-            if (result != null && result.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An errror occured in CelestialBody.Load method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Reason: {result.Message}");
-                OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Reason = $"{result.Message}", Result = result });
-            }
-            else
-                OnCelestialBodyLoaded?.Invoke(this, new CelestialBodyLoadedEventArgs() { Result = result });
+        //    if (result != null && result.IsError)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"An errror occured in CelestialBody.Load method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Reason: {result.Message}");
+        //        OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+        //    }
+        //    else
+        //        OnCelestialBodyLoaded?.Invoke(this, new CelestialBodyLoadedEventArgs() { Result = result });
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public new async Task<OASISResult<T>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
@@ -570,16 +571,18 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //    return result;
         //}
 
-        protected async Task<OASISResult<ICelestialBody>> InitializeAsync(bool autoLoad = true)
+        //protected async Task<OASISResult<ICelestialBody>> InitializeAsync(bool autoLoad = true)
+        protected async Task<OASISResult<T>> InitializeAsync(bool autoLoad = true)
         {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            //OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<T> result = new OASISResult<T>();
 
             InitCelestialBodyCore();
             WireUpEvents();
 
             if (autoLoad && !IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
             {
-                result = await LoadAsync();
+                result = await LoadAsync<T>();
 
                 if (result != null && !result.IsError && result.Result != null)
                     await base.InitializeAsync();
@@ -590,16 +593,18 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        protected OASISResult<ICelestialBody> Initialize(bool autoLoad = true)
+        //protected OASISResult<ICelestialBody> Initialize(bool autoLoad = true)
+        protected OASISResult<T> Initialize(bool autoLoad = true)
         {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            //OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<T> result = new OASISResult<T>();
 
             InitCelestialBodyCore();
             WireUpEvents();
 
             if (autoLoad && !IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
             {
-                result = Load();
+                result = Load<T>();
 
                 if (result != null && !result.IsError && result.Result != null)
                     base.Initialize();
@@ -1131,7 +1136,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             //CelestialHolon Properties
             CelestialBodyCore.MetaData["Age"] = this.Age;
-            CelestialBodyCore.MetaData["Colour"] = this.Colour;
+            CelestialBodyCore.MetaData["Colour"] = ColorTranslator.ToHtml(this.Colour);
             CelestialBodyCore.MetaData["EclipticLatitute"] = this.EclipticLatitute;
             CelestialBodyCore.MetaData["EclipticLongitute"] = this.EclipticLongitute;
             CelestialBodyCore.MetaData["EquatorialLatitute"] = this.EquatorialLatitute;
