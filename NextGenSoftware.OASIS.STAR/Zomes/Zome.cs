@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
     {
         public Zome() : base()
         {
-
+            this.HolonType = HolonType.Zome;
         }
 
         public Zome(Guid id) : base()

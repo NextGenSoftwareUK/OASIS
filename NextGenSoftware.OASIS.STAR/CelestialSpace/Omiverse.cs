@@ -97,8 +97,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             ParentGreatGrandSuperStarId = GreatGrandSuperStar.Id;
             ParentCelestialBody = GreatGrandSuperStar;
             ParentCelestialBodyId = GreatGrandSuperStar.Id;
-            ParentHolon = GreatGrandSuperStar;
-            ParentHolonId = GreatGrandSuperStar.Id;
+            //ParentHolon = GreatGrandSuperStar;
+            //ParentHolonId = GreatGrandSuperStar.Id;
 
             Dimensions = new OmniverseDimensions(this);
 

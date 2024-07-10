@@ -254,11 +254,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                     transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDto);
                 }
 
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
+                if (string.IsNullOrEmpty(transactionHash))
+                {
+                    avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
 
-                result.IsSaved = true;
-                result.IsError = false;
-                result.Result = avatar;
+                    result.IsSaved = true;
+                    result.IsError = false;
+                    result.Result = avatar;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, "Error Occured In SolanaOASIS.SaveAvatarAsync. Transaction processing failed!");
             }
             catch (Exception e)
             {
@@ -291,12 +296,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                     var solanaAvatarDetailDto = avatar.GetSolanaAvatarDetailDto();
                     transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
                 }
-                
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
 
-                result.IsSaved = true;
-                result.IsError = false;
-                result.Result = avatar;
+                if (string.IsNullOrEmpty(transactionHash))
+                {
+                    avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
+
+                    result.IsSaved = true;
+                    result.IsError = false;
+                    result.Result = avatar;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, "Error Occured In SolanaOASIS.SaveAvatarAsync. Transaction processing failed!");
             }
             catch (Exception e)
             {
@@ -446,22 +456,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                     var solanaAvatarDetailDto = holon.GetSolanaHolonDto();
                     transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
                 }
-                
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
 
-                if (saveChildren)
+                if (string.IsNullOrEmpty(transactionHash))
                 {
-                    var holonsResult = await SaveHolonsAsync(holon.Children, saveChildren, recursive, maxChildDepth, 0, continueOnError);
+                    holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
 
-                    if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
-                        holon.Children = holonsResult.Result.ToList();
-                    else
-                        OASISErrorHandling.HandleWarning(ref result, $"{holonsResult?.Message} saving {LoggingHelper.GetHolonInfoForLogging(holon)} children. Reason: {holonsResult?.Message}");
+                    if (saveChildren)
+                    {
+                        var holonsResult = await SaveHolonsAsync(holon.Children, saveChildren, recursive, maxChildDepth, 0, continueOnError);
+
+                        if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
+                            holon.Children = holonsResult.Result.ToList();
+                        else
+                            OASISErrorHandling.HandleWarning(ref result, $"{holonsResult?.Message} saving {LoggingHelper.GetHolonInfoForLogging(holon)} children. Reason: {holonsResult?.Message}");
+                    }
+
+                    result.Result = holon;
+                    result.IsSaved = true;
+                    result.IsError = false;
                 }
-
-                result.Result = holon;
-                result.IsSaved = true;
-                result.IsError = false;
+                else
+                    OASISErrorHandling.HandleError(ref result, "Error Occured In SolanaOASIS.SaveAvatarAsync. Transaction processing failed!");
             }
             catch (Exception ex)
             {
@@ -499,7 +514,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                         var solanaAvatarDetailDto = holon.GetSolanaHolonDto();
                         transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
                     }
-                    
+
                     holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
 
                     if(string.IsNullOrEmpty(transactionHash))
