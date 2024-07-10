@@ -33,6 +33,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         public Holon() : base()
         {
+            this.HolonType = HolonType.Holon;
             Init();
         }
 

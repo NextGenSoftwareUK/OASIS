@@ -154,7 +154,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 result.Result.CelestialBody.OnHolonSaved += CelestialBody_OnHolonSaved;
                 result.Result.CelestialBody.OnZomeError += CelestialBody_OnZomeError;
 
-                CLIEngine.ShowWorkingMessage("Loading Zomes & Holons...");
+                CLIEngine.ShowWorkingMessage("Loading Our World Zomes & Holons...");
                 OASISResult<IEnumerable<IZome>> zomesResult = await result.Result.CelestialBody.LoadZomesAsync();
 
                 bool finished = false;
@@ -163,6 +163,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     if (zomesResult.Result.Count() > 0)
                     {
                         CLIEngine.ShowSuccessMessage("Zomes & Holons Loaded Successfully.");
+                        Console.WriteLine("");
                         ShowZomesAndHolons(zomesResult.Result);
                     }
                     else
@@ -256,6 +257,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 zome.Children.Add(new Holon() { Name = "Our World Test Zome 2 Sub-Holon 2" });
 
                 _superWorld.CelestialBodyCore.Zomes.Add(zome);
+
+                CLIEngine.ShowWorkingMessage("Saving Our World...");
                 OASISResult<ICelestialBody> ourWorldResult = await _superWorld.SaveAsync(); //Will also save the custom properties we set earlier (above).
 
                 if (ourWorldResult != null && !ourWorldResult.IsError && ourWorldResult.Result != null)
@@ -303,14 +306,15 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 else
                     CLIEngine.ShowErrorMessage($"Error Saving Test Holon. Reason: {holonResult.Message}");
 
-
+                
+                CLIEngine.ShowWorkingMessage("Loading Generic Test Holon...");
                 OASISResult<IHolon> holonLoadResult = await newHolon.LoadAsync();
 
                 if (!holonLoadResult.IsError && holonLoadResult.Result != null)
                 {
                     CLIEngine.ShowSuccessMessage("Test Holon Loaded Successfully.");
                     ShowHolonProperties(holonLoadResult.Result);
-                    ShowHolonProperties(newHolon);
+                    //ShowHolonProperties(newHolon); //Can use either this line or the one above.
                 }
                 else
                     CLIEngine.ShowErrorMessage($"Error Loading Test Holon. Reason: {holonLoadResult.Message}");
@@ -333,12 +337,14 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 else
                     CLIEngine.ShowErrorMessage($"Error Saving Test Holon 2. Reason: {holonResult.Message}");
 
+
+                CLIEngine.ShowWorkingMessage("Loading Generic Test Holon 2...");
                 holonLoadResult = await newHolon.LoadAsync();
 
                 if (!holonLoadResult.IsError && holonLoadResult.Result != null)
                 {
                     CLIEngine.ShowSuccessMessage("Test Holon 2 Loaded Successfully.");
-                    ShowHolonProperties(holonLoadResult.Result);
+                    //ShowHolonProperties(holonLoadResult.Result); //Can use either this line or the one below.
                     ShowHolonProperties(newHolon);
                 }
                 else
@@ -349,7 +355,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 newHolon = new Holon();
                 newHolon.Name = "Test Data3";
                 newHolon.Description = "Test Desc3";
-                newHolon.HolonType = HolonType.Restaurant;
+                newHolon.HolonType = HolonType.BusStation;
 
                 CLIEngine.ShowWorkingMessage("Saving Generic Test Holon 3...");
                 OASISResult<IHolon> holonResult2 = await STAR.OASISAPI.Data.SaveHolonAsync(newHolon, STAR.LoggedInAvatar.Id);
@@ -358,22 +364,19 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 {
                     CLIEngine.ShowSuccessMessage("Test Holon 3 Saved Successfully.");
                     ShowHolonProperties(holonResult2.Result);
-                    //CLIEngine.ShowSuccessMessage($"Id: {newHolon.Id}");
-                    //CLIEngine.ShowSuccessMessage($"Created By Avatar Id: {newHolon.CreatedByAvatarId}");
-                    //CLIEngine.ShowSuccessMessage($"Created Date: {newHolon.CreatedDate}");
-                    //CLIEngine.ShowSuccessMessage($"Name: {newHolon.Name}");
-                    //CLIEngine.ShowSuccessMessage($"Desc: {newHolon.Description}");
                 }
                 else
                     CLIEngine.ShowErrorMessage($"Error Saving Test Holon 3. Reason: {holonResult2.Message}");
 
+
+                CLIEngine.ShowWorkingMessage("Loading Generic Test Holon 3...");
                 holonLoadResult = await newHolon.LoadAsync();
 
                 if (!holonLoadResult.IsError && holonLoadResult.Result != null)
                 {
                     CLIEngine.ShowSuccessMessage("Test Holon 3 Loaded Successfully.");
                     ShowHolonProperties(holonLoadResult.Result);
-                    ShowHolonProperties(newHolon);
+                    //ShowHolonProperties(newHolon); //Can use either this line or the one above.
                 }
                 else
                     CLIEngine.ShowErrorMessage($"Error Loading Test Holon 3. Reason: {holonLoadResult.Message}");
@@ -650,7 +653,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 Console.WriteLine(string.Concat(" Meta Data: ", holon.MetaData.Keys.Count, " Key(s) Found:"));
                 foreach (string key in holon.MetaData.Keys)
-                    Console.WriteLine(string.Concat("   ", key, "=", holon.MetaData[key]));
+                    Console.WriteLine(string.Concat("   ", key, " = ", holon.MetaData[key]));
             }
             else
                 Console.WriteLine(string.Concat(" Meta Data: None"));
@@ -1322,7 +1325,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             return lightResult;
         }
 
-        private static void ShowZomesAndHolons(IEnumerable<IZome> zomes, string customHeader = null)
+        private static void ShowZomesAndHolons(IEnumerable<IZome> zomes, string customHeader = null, string indentBuffer = " ")
         {
             if (string.IsNullOrEmpty(customHeader))
                 Console.WriteLine($" {zomes.Count()} Zome(s) Found", zomes.Count() > 0 ? ":" : "");
@@ -1333,7 +1336,11 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             foreach (IZome zome in zomes)
             {
-                Console.WriteLine(string.Concat("  | ZOME | Name: ", zome.Name.PadRight(20), " | Id: ", zome.Id, " | Containing ", zome.Children.Count(), " Holon(s)", zome.Children.Count > 0 ? ":" : ""));
+                //Console.WriteLine(string.Concat("  | ZOME | Name: ", zome.Name.PadRight(20), " | Id: ", zome.Id, " | Containing ", zome.Children.Count(), " Holon(s)", zome.Children.Count > 0 ? ":" : ""));
+                string tree = string.Concat(" |", indentBuffer, "ZOME").PadRight(22);
+                string children = string.Concat(" | Containing ", zome.Children != null ? zome.Children.Count() : 0, " Child Holon(s)");
+
+                Console.WriteLine(string.Concat(tree, " | Name: ", zome.Name.PadRight(40), " | Id: ", zome.Id, " | Type: ", "Zome".PadRight(10), children.PadRight(30), " |".PadRight(30), "|"));
                 ShowHolons(zome.Children, false);
             }
         }
@@ -1369,7 +1376,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     foreach (API.Core.Interfaces.INode node in holon.Nodes)
                     {
                         Console.WriteLine("");
-                        string tree = string.Concat("|", indentPadding, "  NODE").PadRight(22);
+                        string tree = string.Concat(" |", indentPadding, "  NODE").PadRight(22);
                         //Console.WriteLine(string.Concat(indentPadding, "  | NODE | Name: ", node.NodeName.PadRight(20), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(10)));
                         Console.WriteLine(string.Concat(tree, " | Name: ", node.NodeName.PadRight(40), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(10), " | ".PadRight(30), " | ".PadRight(30), "|"));
                     }
@@ -1402,10 +1409,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             else
                 nodes = " |";
 
-            string tree = string.Concat("|", indentBuffer, "HOLON").PadRight(22);
+            string tree = string.Concat(" |", indentBuffer, "HOLON").PadRight(22);
 
             //Console.WriteLine(string.Concat(indentBuffer, prefix, "| HOLON | Name: ", holon.Name.PadRight(20), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(10), children, nodes));
-            Console.WriteLine(string.Concat(tree, " | Name: ", holon.Name.PadRight(40), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(10), children.PadRight(30), nodes.PadRight(30), "|"));
+            Console.WriteLine(string.Concat(tree, " | Name: ", holon.Name != null ? holon.Name.PadRight(40) : "".PadRight(40), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(10), children.PadRight(30), nodes.PadRight(30), "|"));
         }
 
         private static void CelestialBody_OnZomeError(object sender, ZomeErrorEventArgs e)
@@ -1966,7 +1973,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         private static void STAR_OnCelestialBodySaved(object sender, CelestialBodySavedEventArgs e)
         {
             string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            CLIEngine.ShowSuccessMessage($"CelesitalBody Saved Successfully. {detailedMessage}");
+            //CLIEngine.ShowSuccessMessage($"CelesitalBody Saved Successfully. {detailedMessage}");
         }
 
         private static void STAR_OnCelestialBodyError(object sender, CelestialBodyErrorEventArgs e)
@@ -2037,7 +2044,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             if (e.Result.IsError)
                 CLIEngine.ShowErrorMessage(e.Result.Message);
             else
-                CLIEngine.ShowSuccessMessage(string.Concat(" STAR Holons Saved. Holon Saved: ", e.Result.Result.Name));
+                CLIEngine.ShowSuccessMessage(string.Concat("STAR Holons Saved. Holon Saved: ", e.Result.Result.Name));
         }
 
         private static void STAR_OnHolonError(object sender, HolonErrorEventArgs e)

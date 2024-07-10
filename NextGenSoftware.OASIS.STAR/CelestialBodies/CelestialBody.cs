@@ -223,7 +223,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             IsSaving = true;
 
             if (!STAR.IsStarIgnited)
-                STAR.ShowStatusMessage(Enums.StarStatusMessageType.Processing, $"Creating CelestialBody {this.Name}...");
+                STAR.ShowStatusMessage(Enums.StarStatusMessageType.Processing, $"Saving CelestialBody {this.Name}...");
 
             //TODO: CURRENTLY ZOMES ARE TREATED SEPERATELY TO CHILDREN BUT ONCE THEY ARE SYNCED/MERGED LIKE CELESTIALSPACE WE CAN REMOVE THIS BLOCK OF CODE BECAUSE THE CelestialBodyCore.SaveAsync CALL BELOW WILL AUTOMATICALLY SAVE ALL CHILDREN (INCLUDING ZOMES) IN HOLONMANAGER.
             /*
@@ -1203,7 +1203,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 result.IsSaved = true;
 
                 if (STAR.IsStarIgnited)
-                    STAR.ShowStatusMessage(Enums.StarStatusMessageType.Success, $"CelestialBody {this.Name} Created.");
+                    STAR.ShowStatusMessage(Enums.StarStatusMessageType.Success, $"CelestialBody {this.Name} Saved Successfully.");
             }
 
             IsSaving = false;

@@ -30,21 +30,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
             var walletAccount = _wallet.Account;
             var blockHash = await _rpcClient.GetRecentBlockHashAsync();
 
-            var serializedEntity = JsonConvert.SerializeObject(entity);
+            if (blockHash.Result != null)
+            {
+                var serializedEntity = JsonConvert.SerializeObject(entity);
 
-            var entityTransactionBytes = new TransactionBuilder()
-                .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
-                .SetFeePayer(walletAccount)
-                .AddInstruction(MemoProgram.NewMemo(walletAccount, serializedEntity))
-                .Build(walletAccount);
+                var entityTransactionBytes = new TransactionBuilder()
+                    .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
+                    .SetFeePayer(walletAccount)
+                    .AddInstruction(MemoProgram.NewMemo(walletAccount, serializedEntity))
+                    .Build(walletAccount);
 
-            var transactionResult = await _rpcClient.SendTransactionAsync(entityTransactionBytes);
-            if (!transactionResult.WasSuccessful || transactionResult.HttpStatusCode != HttpStatusCode.OK)
-                throw new Exception($"{transactionResult.RawRpcResponse} Reason: Transaction processing failed, entity Id: {entity.Id}");
+                var transactionResult = await _rpcClient.SendTransactionAsync(entityTransactionBytes);
+                if (!transactionResult.WasSuccessful || transactionResult.HttpStatusCode != HttpStatusCode.OK)
+                    throw new Exception($"{transactionResult.RawRpcResponse} Reason: Transaction processing failed, entity Id: {entity.Id}");
 
-            // Wait for transaction creating is done on provider side...
-            await Task.Delay(3000);
-            return transactionResult.Result;
+                // Wait for transaction creating is done on provider side...
+                await Task.Delay(3000);
+                return transactionResult.Result;
+            }
+            else
+                return "";
         }
 
         public async Task<string> UpdateAsync<T>(T entity) 
