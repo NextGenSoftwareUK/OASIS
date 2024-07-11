@@ -28,6 +28,7 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using Mapster;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 {
@@ -143,6 +144,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             exit = true;
                             break;
 
+                        case "version":
+                            {
+                                CLIEngine.ShowMessage($"STAR ODK Version: {OASISBootLoader.OASISBootLoader.STARODKVersion}");
+                                CLIEngine.ShowMessage($"COSMIC ORM Version: {OASISBootLoader.OASISBootLoader.COSMICVersion}");
+                                CLIEngine.ShowMessage($"OASIS Runtime Version: {OASISBootLoader.OASISBootLoader.OASISVersion}");
+                            }
+                            break;
+
+                        case "status":
+                            {
+                                CLIEngine.ShowMessage($"STAR ODK Status: {Enum.GetName(typeof(StarStatus), STAR.Status)}");
+                            }
+                            break;
+
                         case "help":
                             ShowCommands();
                             break;
@@ -224,47 +239,50 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 if (inputArgs.Length > 1)
                                 {
-                                    CLIEngine.ShowWorkingMessage("Generating OAPP...");
-
-                                    if (Enum.TryParse(typeof(OAPPType), inputArgs[2], true, out oappTypeObj))
+                                    if (inputArgs[1].ToLower() == "wiz")
+                                        await LightWizard();
+                                    else
                                     {
-                                        oappType = (OAPPType)oappTypeObj;
+                                        CLIEngine.ShowWorkingMessage("Generating OAPP...");
 
-                                        if (inputArgs.Length > 5)
+                                        if (Enum.TryParse(typeof(OAPPType), inputArgs[2], true, out oappTypeObj))
                                         {
-                                            if (Enum.TryParse(typeof(GenesisType), inputArgs[6], true, out genesisTypeObj))
+                                            oappType = (OAPPType)oappTypeObj;
+
+                                            if (inputArgs.Length > 5)
                                             {
-                                                genesisType = (GenesisType)genesisTypeObj;
-
-                                                if (inputArgs.Length > 7)
+                                                if (Enum.TryParse(typeof(GenesisType), inputArgs[6], true, out genesisTypeObj))
                                                 {
-                                                    Guid parentId = Guid.Empty;
+                                                    genesisType = (GenesisType)genesisTypeObj;
 
-                                                    if (Guid.TryParse(inputArgs[7], out parentId))
-                                                        lightResult = await STAR.LightAsync(inputArgs[1], oappType, genesisType, inputArgs[3], inputArgs[4], inputArgs[5], parentId);
+                                                    if (inputArgs.Length > 7)
+                                                    {
+                                                        Guid parentId = Guid.Empty;
+
+                                                        if (Guid.TryParse(inputArgs[7], out parentId))
+                                                            lightResult = await STAR.LightAsync(inputArgs[1], oappType, genesisType, inputArgs[3], inputArgs[4], inputArgs[5], parentId);
+                                                        else
+                                                            CLIEngine.ShowErrorMessage($"The ParentCelestialBodyId Passed In ({inputArgs[5]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                    }
                                                     else
-                                                        CLIEngine.ShowErrorMessage($"The ParentCelestialBodyId Passed In ({inputArgs[5]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                        lightResult = await STAR.LightAsync(inputArgs[1], oappType, genesisType, inputArgs[3], inputArgs[4], inputArgs[5]);
                                                 }
                                                 else
-                                                    lightResult = await STAR.LightAsync(inputArgs[1], oappType, genesisType, inputArgs[3], inputArgs[4], inputArgs[5]);
+                                                    CLIEngine.ShowErrorMessage($"The GenesisType Passed In ({inputArgs[6]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
                                             }
                                             else
-                                                CLIEngine.ShowErrorMessage($"The GenesisType Passed In ({inputArgs[6]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                lightResult = await STAR.LightAsync(inputArgs[1], oappType, inputArgs[3], inputArgs[4], inputArgs[5]);
                                         }
                                         else
-                                            lightResult = await STAR.LightAsync(inputArgs[1], oappType, inputArgs[3], inputArgs[4], inputArgs[5]);
-                                    }
-                                    else
-                                        CLIEngine.ShowErrorMessage($"The OAPPType Passed In ({inputArgs[2]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                            CLIEngine.ShowErrorMessage($"The OAPPType Passed In ({inputArgs[2]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.");
 
-                                    if (lightResult != null)
-                                    {
-                                        if (!lightResult.IsError && lightResult.Result != null)
+                                        if (lightResult != null)
                                         {
-                                            CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                                            if (!lightResult.IsError && lightResult.Result != null)
+                                                CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                                            else
+                                                CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
                                         }
-                                        else
-                                            CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
                                     }
                                 }
                                 else
@@ -277,8 +295,80 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     CLIEngine.ShowMessage("GenesisNameSpace = The namespace of the OAPP to generate.", ConsoleColor.Green);
                                     CLIEngine.ShowMessage($"GenesisType = The Genesis Type can be any of the following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green);
                                     CLIEngine.ShowMessage("ParentCelestialBodyId = The ID (GUID) of the Parent CelestialBody the generated OAPP will belong to. (optional)", ConsoleColor.Green);
-                                    //CLIEngine.ShowMessage("");
+                                    CLIEngine.ShowMessage("NOTE: Use 'light wiz' to start the light wizard.", ConsoleColor.Green);
+
+                                    if (CLIEngine.GetConfirmation("Do you wish to start the wizard?"))
+                                        await LightWizard();
+
                                     Console.ForegroundColor = ConsoleColor.Yellow;
+                                }
+                            }
+                            break;
+
+                        case "bang":
+                            {
+                                object value = CLIEngine.GetValidInputForEnum("What type of metaverse do you wish to create?", typeof(MetaverseType));
+
+                                if (value != null)
+                                {
+                                    MetaverseType metaverseType = (MetaverseType)value;
+                                }
+                            }
+                            break;
+
+                        case "wiz":
+                            {
+                                OASISResult<CoronalEjection> lightResult = null;
+                                string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
+                                object value = CLIEngine.GetValidInputForEnum("What type of OAPP do you wish to create?", typeof(OAPPType));
+
+                                if (value != null)
+                                {
+                                    OAPPType OAPPType = (OAPPType)value;
+
+                                    value = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create?", typeof(GenesisType));
+
+                                    if (value != null)
+                                    {
+                                        GenesisType genesisType = (GenesisType)value;
+
+                                        string genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace?");
+                                        Guid parentId = Guid.Empty;
+
+                                        if (!CLIEngine.GetConfirmation("Do you wish to add support for all OASIS Providers (recommeneded) or only specefic ones?"))
+                                        {
+                                            bool providersSelected = false;
+                                            List<ProviderType> providers = new List<ProviderType>();
+
+                                            while (!providersSelected)
+                                            {
+                                                object providerType = CLIEngine.GetValidInputForEnum("What provider do you wish to add?", typeof(ProviderType));
+                                                providers.Add((ProviderType)providerType);
+
+                                                if (!CLIEngine.GetConfirmation("Do you wish to add any other providers?"))
+                                                    providersSelected = true;
+                                             }
+                                        }
+
+                                        string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
+                                        string holonName = CLIEngine.GetValidInput("What is the name of the Holon (OASIS Data Object)?");
+                                        string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
+                                        object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(HolonPropType));
+
+                                        //TODO: Come back to this... :)
+
+                                        if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody?"))
+                                            parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+
+
+                                        if (lightResult != null)
+                                        {
+                                            if (!lightResult.IsError && lightResult.Result != null)
+                                                CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                                            else
+                                                CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                                        }
+                                    }
                                 }
                             }
                             break;
@@ -294,6 +384,109 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             {
                                 STAR.IsDetailedCOSMICOutputsEnabled = false;
                                 CLIEngine.ShowMessage("Detailed COSMIC Output Disabled.");
+                            }
+                            break;
+
+                        case "loadholon":
+                            {
+                                if (inputArgs.Length > 1)
+                                {
+                                    Guid id = Guid.Empty;
+
+                                    if (Guid.TryParse(inputArgs[1], out id))
+                                    {
+                                        OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.LoadHolonAsync(id);
+
+                                        if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                                            ShowHolonProperties(holonResult.Result);
+                                        else
+                                            CLIEngine.ShowMessage($"Error Occured: {holonResult.Message}");
+                                    }
+                                    else
+                                        CLIEngine.ShowMessage("The HolonID Is Not Valid.");
+                                }
+                                else
+                                    CLIEngine.ShowMessage("No HolonID Specified.");
+                            }
+                            break;
+
+                        case "saveholon":
+                            {
+                                if (inputArgs.Length > 1)
+                                {
+                                    if (inputArgs[1].ToLower().Contains("json="))
+                                    {
+                                        string[] parts = inputArgs[1].Split('=');
+
+                                        //TODO: Finish implementing...
+                                        CLIEngine.ShowMessage("Coming Soon...");
+                                    }
+                                    else if (inputArgs[1].ToLower() == "wiz")
+                                        await SaveHolonWizard();
+                                    else
+                                        CLIEngine.ShowErrorMessage("Unknown Sub-Command. Use 'wiz' or 'json={holonJSONFile}'");
+                                }
+                                else
+                                {
+                                    if (CLIEngine.GetConfirmation($"Do you wish to start the Save Holon Wizard?"))
+                                        await SaveHolonWizard();
+                                }
+                            }
+                            break;
+
+                        case "deleteholon":
+                            {
+                                if (inputArgs.Length > 1)
+                                {
+                                    Guid id = Guid.Empty;
+
+                                    if (Guid.TryParse(inputArgs[1], out id))
+                                    {
+                                        if (CLIEngine.GetConfirmation($"Are you sure you wish to delete the holon with id {inputArgs[1]}?"))
+                                        {
+                                            OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.DeleteHolonAsync(id);
+
+                                            if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                                                ShowHolonProperties(holonResult.Result);
+                                            else
+                                                CLIEngine.ShowMessage($"Error Occured: {holonResult.Message}");
+                                        }
+                                    }
+                                    else
+                                        CLIEngine.ShowMessage("The HolonID Is Not Valid.");
+                                }
+                                else
+                                    CLIEngine.ShowMessage("No HolonID Specified.");
+                            }
+                            break;
+
+                        case "loadavatar":
+                            {
+                                if (inputArgs.Length > 1)
+                                {
+                                    Guid id = Guid.Empty;
+
+                                    if (Guid.TryParse(inputArgs[1], out id))
+                                    {
+                                        OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatar.LoadAvatarAsync(id);
+
+                                        if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                                        {
+                                            OASISResult<IAvatarDetail> avatarDetailResult = await STAR.OASISAPI.Avatar.LoadAvatarDetailAsync(id);
+
+                                            if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                                                ShowAvatar(avatarResult.Result, avatarDetailResult.Result);
+                                            else
+                                                CLIEngine.ShowMessage($"Error Occured Loading Avatar Detail: {avatarDetailResult.Message}");
+                                        }
+                                        else
+                                            CLIEngine.ShowMessage($"Error Occured Loading Avatar: {avatarResult.Message}");
+                                    }
+                                    else
+                                        CLIEngine.ShowMessage("The AvatarID Is Not Valid.");
+                                }
+                                else
+                                    CLIEngine.ShowMessage("No AvatarID Specified.");
                             }
                             break;
 
@@ -347,6 +540,52 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     }
                 }
             } while (!exit);
+        }
+
+        private static async Task SaveHolonWizard()
+        {
+            //TODO: Finish implementing...
+            CLIEngine.ShowMessage("Coming Soon...");
+        }
+
+        private static async Task LightWizard()
+        {
+            OASISResult<CoronalEjection> lightResult = null;
+            string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
+            object value = CLIEngine.GetValidInputForEnum("What type of OAPP do you wish to create?", typeof(OAPPType));
+
+            if (value != null)
+            {
+                OAPPType OAPPType = (OAPPType)value;
+
+                value = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create?", typeof(GenesisType));
+
+                if (value != null)
+                {
+                    GenesisType genesisType = (GenesisType)value;
+
+                    string dnaFolder = CLIEngine.GetValidPath("What is the path to the Zomes & Holons DNA?");
+                    string genesisFolder = CLIEngine.GetValidPath("What is the path to the GenesisFolder?");
+                    string genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace?");
+                    Guid parentId = Guid.Empty;
+
+                    if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody?"))
+                    {
+                        parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+                        lightResult = await STAR.LightAsync(OAPPName, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, parentId);
+                    }
+                    else
+                        lightResult = await STAR.LightAsync(OAPPName, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace);
+
+                    if (lightResult != null)
+                    {
+                        if (!lightResult.IsError && lightResult.Result != null)
+                            CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                        else
+                            CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -1440,29 +1679,32 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         }
 
 
-        private static void ShowAvatars(IEnumerable<IAvatar> avatars)
-        {
-            foreach (IAvatar avatar in avatars)
-                ShowAvatar(avatar);
-        }
+        //private static void ShowAvatars(IEnumerable<IAvatar> avatars)
+        //{
+        //    foreach (IAvatar avatar in avatars)
+        //        ShowAvatar(avatar);
+        //}
 
-        private static void ShowAvatar(IAvatar avatar)
+        private static void ShowAvatar(IAvatar avatar, IAvatarDetail avatarDetail)
         {
             if (avatar != null)
             {
-                CLIEngine.ShowSuccessMessage("Avatar Loaded Successfully");
-                CLIEngine.ShowSuccessMessage($"Avatar ID: {avatar.Id}");
-                CLIEngine.ShowSuccessMessage($"Avatar Name: {avatar.FullName}");
-                CLIEngine.ShowSuccessMessage($"Avatar Username: {avatar.Username}");
-                CLIEngine.ShowSuccessMessage($"Avatar Type: {avatar.AvatarType.Name}");
-                CLIEngine.ShowSuccessMessage($"Avatar Created Date: {avatar.CreatedDate}");
-                CLIEngine.ShowSuccessMessage($"Avatar Modifed Date: {avatar.ModifiedDate}");
-                CLIEngine.ShowSuccessMessage($"Avatar Last Beamed In Date: {avatar.LastBeamedIn}");
-                CLIEngine.ShowSuccessMessage($"Avatar Last Beamed Out Date: {avatar.LastBeamedOut}");
-                CLIEngine.ShowSuccessMessage(String.Concat("Avatar Is Active: ", avatar.IsActive ? "True" : "False"));
-                CLIEngine.ShowSuccessMessage(String.Concat("Avatar Is Beamed In: ", avatar.IsBeamedIn ? "True" : "False"));
-                CLIEngine.ShowSuccessMessage(String.Concat("Avatar Is Verified: ", avatar.IsVerified ? "True" : "False"));
-                CLIEngine.ShowSuccessMessage($"Avatar Version: {avatar.Version}");
+                //CLIEngine.ShowSuccessMessage("Avatar Loaded Successfully");
+                CLIEngine.ShowMessage($"Avatar ID: {avatar.Id}");
+                CLIEngine.ShowMessage($"Avatar Name: {avatar.FullName}");
+                CLIEngine.ShowMessage($"Avatar Username: {avatar.Username}");
+                CLIEngine.ShowMessage($"Avatar Type: {avatar.AvatarType.Name}");
+                CLIEngine.ShowMessage($"Avatar Created Date: {avatar.CreatedDate}");
+                CLIEngine.ShowMessage($"Avatar Modifed Date: {avatar.ModifiedDate}");
+                CLIEngine.ShowMessage($"Avatar Last Beamed In Date: {avatar.LastBeamedIn}");
+                CLIEngine.ShowMessage($"Avatar Last Beamed Out Date: {avatar.LastBeamedOut}");
+                CLIEngine.ShowMessage(String.Concat("Avatar Is Active: ", avatar.IsActive ? "True" : "False"));
+                CLIEngine.ShowMessage(String.Concat("Avatar Is Beamed In: ", avatar.IsBeamedIn ? "True" : "False"));
+                CLIEngine.ShowMessage(String.Concat("Avatar Is Verified: ", avatar.IsVerified ? "True" : "False"));
+                CLIEngine.ShowMessage($"Avatar Version: {avatar.Version}");
+
+                if (CLIEngine.GetConfirmation($"Do you wish to view more detailed information?"))
+                    ShowAvatarStats(avatar, avatarDetail);
             }
             else
                 CLIEngine.ShowErrorMessage("Error Loading Avatar.");
@@ -1886,26 +2128,39 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star whoisbeamedin = Display who is currently beamed in (if any) and the last time they beamed in and out.");
             Console.WriteLine("   star showavatar = Display the currently beamed in avatar details (if any).");
             Console.WriteLine("   star showkarmalevels = Display the karma thresholds.");
-            Console.WriteLine("   star light -OAPPName -OAPPType -dnaFolder -geneisFolder -genesisNameSpace -genesisType -parentCelestialBodyId (optional) = Creates a new OAPP (Zomes/Holons/Star/Planet/Moon) at the given genesis folder location, from the given OAPP DNA.");
-            Console.WriteLine("   star light = Displays more detail on how to use this command.");
-            Console.WriteLine("   star light -transmute -hAppDNA -geneisFolder  = Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
-            Console.WriteLine("   star flare -OAPPName = Build a OAPP.");
-            Console.WriteLine("   star shine -OAPPName = Launch & activate a OAPP by shining the star's light upon it...");
-            Console.WriteLine("   star dim -OAPPName = Deactivate a OAPP.");
-            Console.WriteLine("   star seed -OAPPName = Deploy a OAPP.");
-            Console.WriteLine("   star twinkle -OAPPName = Deactivate a OAPP.");
-            Console.WriteLine("   star dust -OAPPNName = Delete a OAPP.");
-            Console.WriteLine("   star radiate -OAPPNName = Highlight the OAPP in the OAPP Store (StarNET). *Admin Only*");
-            Console.WriteLine("   star emit -OAPPNName = Show how much light the OAPP is emitting into the solar system (StarNET/HoloNET)");
-            Console.WriteLine("   star reflect -OAPPNName = Show stats of the OAPP.");
-            Console.WriteLine("   star evolve -OAPPNName = Upgrade/update a OAPP).");
-            Console.WriteLine("   star mutate -OAPPNName = Import/Export hApp, dApp & others.");
-            Console.WriteLine("   star love -OAPPNName = Send/Receive Love.");
+            Console.WriteLine("   star help = Show this help page.");
+            Console.WriteLine("   star version = Show the versions of STAR ODK, COSMIC ORM, OASIS Runtime & the OASIS Providers..");
+            Console.WriteLine("   star status = Show the status of STAR ODK.");
+            Console.WriteLine("   star exit = Exit the STAR CLI.");
+            Console.WriteLine("   star light {OAPPName} {OAPPType} {dnaFolder} {geneisFolder} {genesisNameSpace} {genesisTyp} {parentCelestialBodyId} (optional) = Creates a new OAPP (Zomes/Holons/Star/Planet/Moon) at the given genesis folder location, from the given OAPP DNA.");
+            Console.WriteLine("   star light = Displays more detail on how to use this command and optionally launches the Light Wizard.");
+            Console.WriteLine("   star light wiz = Start the Light Wizard.");
+            Console.WriteLine("   star light transmute {hAppDNA} {geneisFolder}  = Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
+            Console.WriteLine("   star bang = Generate a metaverse (such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc).");
+            Console.WriteLine("   star wiz = Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
+            Console.WriteLine("   star flare {OAPPName} = Build a OAPP.");
+            Console.WriteLine("   star shine {OAPPName} = Launch & activate a OAPP by shining the star's light upon it...");
+            Console.WriteLine("   star dim {OAPPName} = Deactivate a OAPP.");
+            Console.WriteLine("   star seed {OAPPName} = Deploy a OAPP.");
+            Console.WriteLine("   star twinkle {OAPPName} = Deactivate a OAPP.");
+            Console.WriteLine("   star dust {OAPPName} = Delete a OAPP.");
+            Console.WriteLine("   star radiate {OAPPName} = Highlight the OAPP in the OAPP Store (StarNET). *Admin Only*");
+            Console.WriteLine("   star emit {OAPPName} = Show how much light the OAPP is emitting into the solar system (StarNET/HoloNET)");
+            Console.WriteLine("   star reflect {OAPPName} = Show stats of the OAPP.");
+            Console.WriteLine("   star evolve {OAPPName} = Upgrade/update a OAPP).");
+            Console.WriteLine("   star mutate {OAPPName} = Import/Export hApp, dApp & others.");
+            Console.WriteLine("   star love {OAPPName} = Send/Receive Love.");
             Console.WriteLine("   star burst = View network stats/management/settings.");
             Console.WriteLine("   star super - Reserved For Future Use...");
             Console.WriteLine("   star enablecosmicdetailedoutput = Enables COSMIC Detailed Output.");
             Console.WriteLine("   star disablecosmicdetailedoutput = Disables COSMIC Detailed Output.");
-            Console.WriteLine("   star runcosmictests -OAPPType -dnaFolder -geneisFolder = Run the STAR ODK/COSMIC Tests... If OAPPType, DNAFolder or GenesisFolder are not specified it will use the defaults.");
+            Console.WriteLine("   star loadholon {holonID} = Loads a holon for the given {holonId}.");
+            Console.WriteLine("   star saveholon json={holonJSONFile} = Creates/Saves a holon from the given {holonJSONFile}.");
+            Console.WriteLine("   star saveholon wiz = Starts the Save Holon Wizard.");
+            Console.WriteLine("   star saveholon = Shows more info on how to use this command and optionally lauches the Save Holon Wizard.");
+            Console.WriteLine("   star deleteHolon {holonID} = Deletes a holon for the given {holonId}.");
+            Console.WriteLine("   star loadavatar {avatarID} = Loads the avatar for the given {avatarID}.");
+            Console.WriteLine("   star runcosmictests {OAPPType} {dnaFolder} {geneisFolder} = Run the STAR ODK/COSMIC Tests... If OAPPType, DNAFolder or GenesisFolder are not specified it will use the defaults.");
             Console.WriteLine("   star runoasisapitests = Run the OASIS API Tests...");
             Console.WriteLine("");
             Console.WriteLine(" NOTE: star is not needed if using the STAR CLI Console directly. Star is only needed if calling from the command line or another external script (star is simply the name of the exe).");
@@ -1983,140 +2238,145 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void ShowAvatarStats()
         {
+            ShowAvatarStats(STAR.LoggedInAvatar, STAR.LoggedInAvatarDetail);
+        }
+
+        private static void ShowAvatarStats(IAvatar avatar, IAvatarDetail avatarDetail)
+        {
             CLIEngine.ShowMessage("", false);
-            CLIEngine.ShowMessage($" Avatar {STAR.LoggedInAvatar.Username} Beamed In On {STAR.LoggedInAvatar.LastBeamedIn} And Last Beamed Out On {STAR.LoggedInAvatar.LastBeamedOut}.");
-            Console.WriteLine(string.Concat(" Name: ", STAR.LoggedInAvatar.FullName));
-            Console.WriteLine(string.Concat(" Created: ", STAR.LoggedInAvatar.CreatedDate));
-            Console.WriteLine(string.Concat(" Karma: ", STAR.LoggedInAvatarDetail.Karma));
-            Console.WriteLine(string.Concat(" Level: ", STAR.LoggedInAvatarDetail.Level));
-            Console.WriteLine(string.Concat(" XP: ", STAR.LoggedInAvatarDetail.XP));
+            CLIEngine.ShowMessage($" Avatar {avatar.Username} Beamed In On {avatar.LastBeamedIn} And Last Beamed Out On {avatar.LastBeamedOut}.");
+            Console.WriteLine(string.Concat(" Name: ", avatar.FullName));
+            Console.WriteLine(string.Concat(" Created: ", avatar.CreatedDate));
+            Console.WriteLine(string.Concat(" Karma: ", avatarDetail.Karma));
+            Console.WriteLine(string.Concat(" Level: ", avatarDetail.Level));
+            Console.WriteLine(string.Concat(" XP: ", avatarDetail.XP));
 
             Console.WriteLine("");
             Console.WriteLine(" Chakras:");
-            Console.WriteLine(string.Concat(" Crown XP: ", STAR.LoggedInAvatarDetail.Chakras.Crown.XP));
-            Console.WriteLine(string.Concat(" Crown Level: ", STAR.LoggedInAvatarDetail.Chakras.Crown.Level));
-            Console.WriteLine(string.Concat(" ThirdEye XP: ", STAR.LoggedInAvatarDetail.Chakras.ThirdEye.XP));
-            Console.WriteLine(string.Concat(" ThirdEye Level: ", STAR.LoggedInAvatarDetail.Chakras.ThirdEye.Level));
-            Console.WriteLine(string.Concat(" Throat XP: ", STAR.LoggedInAvatarDetail.Chakras.Throat.XP));
-            Console.WriteLine(string.Concat(" Throat Level: ", STAR.LoggedInAvatarDetail.Chakras.Throat.Level));
-            Console.WriteLine(string.Concat(" Heart XP: ", STAR.LoggedInAvatarDetail.Chakras.Heart.XP));
-            Console.WriteLine(string.Concat(" Heart Level: ", STAR.LoggedInAvatarDetail.Chakras.Heart.Level));
-            Console.WriteLine(string.Concat(" SoloarPlexus XP: ", STAR.LoggedInAvatarDetail.Chakras.SoloarPlexus.XP));
-            Console.WriteLine(string.Concat(" SoloarPlexus Level: ", STAR.LoggedInAvatarDetail.Chakras.SoloarPlexus.Level));
-            Console.WriteLine(string.Concat(" Sacral XP: ", STAR.LoggedInAvatarDetail.Chakras.Sacral.XP));
-            Console.WriteLine(string.Concat(" Sacral Level: ", STAR.LoggedInAvatarDetail.Chakras.Sacral.Level));
+            Console.WriteLine(string.Concat(" Crown XP: ", avatarDetail.Chakras.Crown.XP));
+            Console.WriteLine(string.Concat(" Crown Level: ", avatarDetail.Chakras.Crown.Level));
+            Console.WriteLine(string.Concat(" ThirdEye XP: ", avatarDetail.Chakras.ThirdEye.XP));
+            Console.WriteLine(string.Concat(" ThirdEye Level: ", avatarDetail.Chakras.ThirdEye.Level));
+            Console.WriteLine(string.Concat(" Throat XP: ", avatarDetail.Chakras.Throat.XP));
+            Console.WriteLine(string.Concat(" Throat Level: ", avatarDetail.Chakras.Throat.Level));
+            Console.WriteLine(string.Concat(" Heart XP: ", avatarDetail.Chakras.Heart.XP));
+            Console.WriteLine(string.Concat(" Heart Level: ", avatarDetail.Chakras.Heart.Level));
+            Console.WriteLine(string.Concat(" SoloarPlexus XP: ", avatarDetail.Chakras.SoloarPlexus.XP));
+            Console.WriteLine(string.Concat(" SoloarPlexus Level: ", avatarDetail.Chakras.SoloarPlexus.Level));
+            Console.WriteLine(string.Concat(" Sacral XP: ", avatarDetail.Chakras.Sacral.XP));
+            Console.WriteLine(string.Concat(" Sacral Level: ", avatarDetail.Chakras.Sacral.Level));
 
-            Console.WriteLine(string.Concat(" Root SanskritName: ", STAR.LoggedInAvatarDetail.Chakras.Root.SanskritName));
-            Console.WriteLine(string.Concat(" Root XP: ", STAR.LoggedInAvatarDetail.Chakras.Root.XP));
-            Console.WriteLine(string.Concat(" Root Level: ", STAR.LoggedInAvatarDetail.Chakras.Root.Level));
-            Console.WriteLine(string.Concat(" Root Progress: ", STAR.LoggedInAvatarDetail.Chakras.Root.Progress));
-            // Console.WriteLine(string.Concat(" Root Color: ", SuperSTAR.LoggedInAvatar.Chakras.Root.Color.Name));
-            Console.WriteLine(string.Concat(" Root Element: ", STAR.LoggedInAvatarDetail.Chakras.Root.Element.Name));
-            Console.WriteLine(string.Concat(" Root YogaPose: ", STAR.LoggedInAvatarDetail.Chakras.Root.YogaPose.Name));
-            Console.WriteLine(string.Concat(" Root WhatItControls: ", STAR.LoggedInAvatarDetail.Chakras.Root.WhatItControls));
-            Console.WriteLine(string.Concat(" Root WhenItDevelops: ", STAR.LoggedInAvatarDetail.Chakras.Root.WhenItDevelops));
-            Console.WriteLine(string.Concat(" Root Crystal Name: ", STAR.LoggedInAvatarDetail.Chakras.Root.Crystal.Name.Name));
-            Console.WriteLine(string.Concat(" Root Crystal AmplifyicationLevel: ", STAR.LoggedInAvatarDetail.Chakras.Root.Crystal.AmplifyicationLevel));
-            Console.WriteLine(string.Concat(" Root Crystal CleansingLevel: ", STAR.LoggedInAvatarDetail.Chakras.Root.Crystal.CleansingLevel));
-            Console.WriteLine(string.Concat(" Root Crystal EnergisingLevel: ", STAR.LoggedInAvatarDetail.Chakras.Root.Crystal.EnergisingLevel));
-            Console.WriteLine(string.Concat(" Root Crystal GroundingLevel: ", STAR.LoggedInAvatarDetail.Chakras.Root.Crystal.GroundingLevel));
-            Console.WriteLine(string.Concat(" Root Crystal ProtectionLevel: ", STAR.LoggedInAvatarDetail.Chakras.Root.Crystal.ProtectionLevel));
+            Console.WriteLine(string.Concat(" Root SanskritName: ", avatarDetail.Chakras.Root.SanskritName));
+            Console.WriteLine(string.Concat(" Root XP: ", avatarDetail.Chakras.Root.XP));
+            Console.WriteLine(string.Concat(" Root Level: ", avatarDetail.Chakras.Root.Level));
+            Console.WriteLine(string.Concat(" Root Progress: ", avatarDetail.Chakras.Root.Progress));
+            // Console.WriteLine(string.Concat(" Root Color: ", Superavatar.Chakras.Root.Color.Name));
+            Console.WriteLine(string.Concat(" Root Element: ", avatarDetail.Chakras.Root.Element.Name));
+            Console.WriteLine(string.Concat(" Root YogaPose: ", avatarDetail.Chakras.Root.YogaPose.Name));
+            Console.WriteLine(string.Concat(" Root WhatItControls: ", avatarDetail.Chakras.Root.WhatItControls));
+            Console.WriteLine(string.Concat(" Root WhenItDevelops: ", avatarDetail.Chakras.Root.WhenItDevelops));
+            Console.WriteLine(string.Concat(" Root Crystal Name: ", avatarDetail.Chakras.Root.Crystal.Name.Name));
+            Console.WriteLine(string.Concat(" Root Crystal AmplifyicationLevel: ", avatarDetail.Chakras.Root.Crystal.AmplifyicationLevel));
+            Console.WriteLine(string.Concat(" Root Crystal CleansingLevel: ", avatarDetail.Chakras.Root.Crystal.CleansingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal EnergisingLevel: ", avatarDetail.Chakras.Root.Crystal.EnergisingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal GroundingLevel: ", avatarDetail.Chakras.Root.Crystal.GroundingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal ProtectionLevel: ", avatarDetail.Chakras.Root.Crystal.ProtectionLevel));
 
             Console.WriteLine("");
             Console.WriteLine(" Aurua:");
-            Console.WriteLine(string.Concat(" Brightness: ", STAR.LoggedInAvatarDetail.Aura.Brightness));
-            Console.WriteLine(string.Concat(" Size: ", STAR.LoggedInAvatarDetail.Aura.Size));
-            Console.WriteLine(string.Concat(" Level: ", STAR.LoggedInAvatarDetail.Aura.Level));
-            Console.WriteLine(string.Concat(" Value: ", STAR.LoggedInAvatarDetail.Aura.Value));
-            Console.WriteLine(string.Concat(" Progress: ", STAR.LoggedInAvatarDetail.Aura.Progress));
-            Console.WriteLine(string.Concat(" ColourRed: ", STAR.LoggedInAvatarDetail.Aura.ColourRed));
-            Console.WriteLine(string.Concat(" ColourGreen: ", STAR.LoggedInAvatarDetail.Aura.ColourGreen));
-            Console.WriteLine(string.Concat(" ColourBlue: ", STAR.LoggedInAvatarDetail.Aura.ColourBlue));
+            Console.WriteLine(string.Concat(" Brightness: ", avatarDetail.Aura.Brightness));
+            Console.WriteLine(string.Concat(" Size: ", avatarDetail.Aura.Size));
+            Console.WriteLine(string.Concat(" Level: ", avatarDetail.Aura.Level));
+            Console.WriteLine(string.Concat(" Value: ", avatarDetail.Aura.Value));
+            Console.WriteLine(string.Concat(" Progress: ", avatarDetail.Aura.Progress));
+            Console.WriteLine(string.Concat(" ColourRed: ", avatarDetail.Aura.ColourRed));
+            Console.WriteLine(string.Concat(" ColourGreen: ", avatarDetail.Aura.ColourGreen));
+            Console.WriteLine(string.Concat(" ColourBlue: ", avatarDetail.Aura.ColourBlue));
 
             Console.WriteLine("");
             Console.WriteLine(" Attributes:");
-            Console.WriteLine(string.Concat(" Strength: ", STAR.LoggedInAvatarDetail.Attributes.Strength));
-            Console.WriteLine(string.Concat(" Speed: ", STAR.LoggedInAvatarDetail.Attributes.Speed));
-            Console.WriteLine(string.Concat(" Dexterity: ", STAR.LoggedInAvatarDetail.Attributes.Dexterity));
-            Console.WriteLine(string.Concat(" Intelligence: ", STAR.LoggedInAvatarDetail.Attributes.Intelligence));
-            Console.WriteLine(string.Concat(" Magic: ", STAR.LoggedInAvatarDetail.Attributes.Magic));
-            Console.WriteLine(string.Concat(" Wisdom: ", STAR.LoggedInAvatarDetail.Attributes.Wisdom));
-            Console.WriteLine(string.Concat(" Toughness: ", STAR.LoggedInAvatarDetail.Attributes.Toughness));
-            Console.WriteLine(string.Concat(" Vitality: ", STAR.LoggedInAvatarDetail.Attributes.Vitality));
-            Console.WriteLine(string.Concat(" Endurance: ", STAR.LoggedInAvatarDetail.Attributes.Endurance));
+            Console.WriteLine(string.Concat(" Strength: ", avatarDetail.Attributes.Strength));
+            Console.WriteLine(string.Concat(" Speed: ", avatarDetail.Attributes.Speed));
+            Console.WriteLine(string.Concat(" Dexterity: ", avatarDetail.Attributes.Dexterity));
+            Console.WriteLine(string.Concat(" Intelligence: ", avatarDetail.Attributes.Intelligence));
+            Console.WriteLine(string.Concat(" Magic: ", avatarDetail.Attributes.Magic));
+            Console.WriteLine(string.Concat(" Wisdom: ", avatarDetail.Attributes.Wisdom));
+            Console.WriteLine(string.Concat(" Toughness: ", avatarDetail.Attributes.Toughness));
+            Console.WriteLine(string.Concat(" Vitality: ", avatarDetail.Attributes.Vitality));
+            Console.WriteLine(string.Concat(" Endurance: ", avatarDetail.Attributes.Endurance));
 
             Console.WriteLine("");
             Console.WriteLine(" Stats:");
-            Console.WriteLine(string.Concat(" HP: ", STAR.LoggedInAvatarDetail.Stats.HP.Current, "/", STAR.LoggedInAvatarDetail.Stats.HP.Max));
-            Console.WriteLine(string.Concat(" Mana: ", STAR.LoggedInAvatarDetail.Stats.Mana.Current, "/", STAR.LoggedInAvatarDetail.Stats.Mana.Max));
-            Console.WriteLine(string.Concat(" Energy: ", STAR.LoggedInAvatarDetail.Stats.Energy.Current, "/", STAR.LoggedInAvatarDetail.Stats.Energy.Max));
-            Console.WriteLine(string.Concat(" Staminia: ", STAR.LoggedInAvatarDetail.Stats.Staminia.Current, "/", STAR.LoggedInAvatarDetail.Stats.Staminia.Max));
+            Console.WriteLine(string.Concat(" HP: ", avatarDetail.Stats.HP.Current, "/", avatarDetail.Stats.HP.Max));
+            Console.WriteLine(string.Concat(" Mana: ", avatarDetail.Stats.Mana.Current, "/", avatarDetail.Stats.Mana.Max));
+            Console.WriteLine(string.Concat(" Energy: ", avatarDetail.Stats.Energy.Current, "/", avatarDetail.Stats.Energy.Max));
+            Console.WriteLine(string.Concat(" Staminia: ", avatarDetail.Stats.Staminia.Current, "/", avatarDetail.Stats.Staminia.Max));
 
             Console.WriteLine("");
             Console.WriteLine(" Super Powers:");
-            Console.WriteLine(string.Concat(" Flight: ", STAR.LoggedInAvatarDetail.SuperPowers.Flight));
-            Console.WriteLine(string.Concat(" Astral Projection: ", STAR.LoggedInAvatarDetail.SuperPowers.AstralProjection));
-            Console.WriteLine(string.Concat(" Bio-Locatation: ", STAR.LoggedInAvatarDetail.SuperPowers.BioLocatation));
-            Console.WriteLine(string.Concat(" Heat Vision: ", STAR.LoggedInAvatarDetail.SuperPowers.HeatVision));
-            Console.WriteLine(string.Concat(" Invulerability: ", STAR.LoggedInAvatarDetail.SuperPowers.Invulerability));
-            Console.WriteLine(string.Concat(" Remote Viewing: ", STAR.LoggedInAvatarDetail.SuperPowers.RemoteViewing));
-            Console.WriteLine(string.Concat(" Super Speed: ", STAR.LoggedInAvatarDetail.SuperPowers.SuperSpeed));
-            Console.WriteLine(string.Concat(" Super Strength: ", STAR.LoggedInAvatarDetail.SuperPowers.SuperStrength));
-            Console.WriteLine(string.Concat(" Telekineseis: ", STAR.LoggedInAvatarDetail.SuperPowers.Telekineseis));
-            Console.WriteLine(string.Concat(" XRay Vision: ", STAR.LoggedInAvatarDetail.SuperPowers.XRayVision));
+            Console.WriteLine(string.Concat(" Flight: ", avatarDetail.SuperPowers.Flight));
+            Console.WriteLine(string.Concat(" Astral Projection: ", avatarDetail.SuperPowers.AstralProjection));
+            Console.WriteLine(string.Concat(" Bio-Locatation: ", avatarDetail.SuperPowers.BioLocatation));
+            Console.WriteLine(string.Concat(" Heat Vision: ", avatarDetail.SuperPowers.HeatVision));
+            Console.WriteLine(string.Concat(" Invulerability: ", avatarDetail.SuperPowers.Invulerability));
+            Console.WriteLine(string.Concat(" Remote Viewing: ", avatarDetail.SuperPowers.RemoteViewing));
+            Console.WriteLine(string.Concat(" Super Speed: ", avatarDetail.SuperPowers.SuperSpeed));
+            Console.WriteLine(string.Concat(" Super Strength: ", avatarDetail.SuperPowers.SuperStrength));
+            Console.WriteLine(string.Concat(" Telekineseis: ", avatarDetail.SuperPowers.Telekineseis));
+            Console.WriteLine(string.Concat(" XRay Vision: ", avatarDetail.SuperPowers.XRayVision));
 
             Console.WriteLine("");
             Console.WriteLine(" Skills:");
-            Console.WriteLine(string.Concat(" Computers: ", STAR.LoggedInAvatarDetail.Skills.Computers));
-            Console.WriteLine(string.Concat(" Engineering: ", STAR.LoggedInAvatarDetail.Skills.Engineering));
-            Console.WriteLine(string.Concat(" Farming: ", STAR.LoggedInAvatarDetail.Skills.Farming));
-            Console.WriteLine(string.Concat(" FireStarting: ", STAR.LoggedInAvatarDetail.Skills.FireStarting));
-            Console.WriteLine(string.Concat(" Fishing: ", STAR.LoggedInAvatarDetail.Skills.Fishing));
-            Console.WriteLine(string.Concat(" Languages: ", STAR.LoggedInAvatarDetail.Skills.Languages));
-            Console.WriteLine(string.Concat(" Meditation: ", STAR.LoggedInAvatarDetail.Skills.Meditation));
-            Console.WriteLine(string.Concat(" MelleeCombat: ", STAR.LoggedInAvatarDetail.Skills.MelleeCombat));
-            Console.WriteLine(string.Concat(" Mindfulness: ", STAR.LoggedInAvatarDetail.Skills.Mindfulness));
-            Console.WriteLine(string.Concat(" Negotiating: ", STAR.LoggedInAvatarDetail.Skills.Negotiating));
-            Console.WriteLine(string.Concat(" RangeCombat: ", STAR.LoggedInAvatarDetail.Skills.RangeCombat));
-            Console.WriteLine(string.Concat(" Research: ", STAR.LoggedInAvatarDetail.Skills.Research));
-            Console.WriteLine(string.Concat(" Science: ", STAR.LoggedInAvatarDetail.Skills.Science));
-            Console.WriteLine(string.Concat(" SpellCasting: ", STAR.LoggedInAvatarDetail.Skills.SpellCasting));
-            Console.WriteLine(string.Concat(" Translating: ", STAR.LoggedInAvatarDetail.Skills.Translating));
-            Console.WriteLine(string.Concat(" Yoga: ", STAR.LoggedInAvatarDetail.Skills.Yoga));
+            Console.WriteLine(string.Concat(" Computers: ", avatarDetail.Skills.Computers));
+            Console.WriteLine(string.Concat(" Engineering: ", avatarDetail.Skills.Engineering));
+            Console.WriteLine(string.Concat(" Farming: ", avatarDetail.Skills.Farming));
+            Console.WriteLine(string.Concat(" FireStarting: ", avatarDetail.Skills.FireStarting));
+            Console.WriteLine(string.Concat(" Fishing: ", avatarDetail.Skills.Fishing));
+            Console.WriteLine(string.Concat(" Languages: ", avatarDetail.Skills.Languages));
+            Console.WriteLine(string.Concat(" Meditation: ", avatarDetail.Skills.Meditation));
+            Console.WriteLine(string.Concat(" MelleeCombat: ", avatarDetail.Skills.MelleeCombat));
+            Console.WriteLine(string.Concat(" Mindfulness: ", avatarDetail.Skills.Mindfulness));
+            Console.WriteLine(string.Concat(" Negotiating: ", avatarDetail.Skills.Negotiating));
+            Console.WriteLine(string.Concat(" RangeCombat: ", avatarDetail.Skills.RangeCombat));
+            Console.WriteLine(string.Concat(" Research: ", avatarDetail.Skills.Research));
+            Console.WriteLine(string.Concat(" Science: ", avatarDetail.Skills.Science));
+            Console.WriteLine(string.Concat(" SpellCasting: ", avatarDetail.Skills.SpellCasting));
+            Console.WriteLine(string.Concat(" Translating: ", avatarDetail.Skills.Translating));
+            Console.WriteLine(string.Concat(" Yoga: ", avatarDetail.Skills.Yoga));
 
             Console.WriteLine("");
             Console.WriteLine(" Gifts:");
 
-            foreach (AvatarGift gift in STAR.LoggedInAvatarDetail.Gifts)
+            foreach (AvatarGift gift in avatarDetail.Gifts)
                 Console.WriteLine(string.Concat(" ", Enum.GetName(gift.GiftType), " earnt on ", gift.GiftEarnt.ToString()));
 
             Console.WriteLine("");
             Console.WriteLine(" Spells:");
 
-            foreach (Spell spell in STAR.LoggedInAvatarDetail.Spells)
+            foreach (Spell spell in avatarDetail.Spells)
                 Console.WriteLine(string.Concat(" ", spell.Name));
 
             Console.WriteLine("");
             Console.WriteLine(" Inventory:");
 
-            foreach (InventoryItem inventoryItem in STAR.LoggedInAvatarDetail.Inventory)
+            foreach (InventoryItem inventoryItem in avatarDetail.Inventory)
                 Console.WriteLine(string.Concat(" ", inventoryItem.Name));
 
             Console.WriteLine("");
             Console.WriteLine(" Achievements:");
 
-            foreach (Achievement achievement in STAR.LoggedInAvatarDetail.Achievements)
+            foreach (Achievement achievement in avatarDetail.Achievements)
                 Console.WriteLine(string.Concat(" ", achievement.Name));
 
             Console.WriteLine("");
             Console.WriteLine(" Gene Keys:");
 
-            foreach (GeneKey geneKey in STAR.LoggedInAvatarDetail.GeneKeys)
+            foreach (GeneKey geneKey in avatarDetail.GeneKeys)
                 Console.WriteLine(string.Concat(" ", geneKey.Name));
 
             Console.WriteLine("");
             Console.WriteLine(" Human Design:");
-            Console.WriteLine(string.Concat(" Type: ", STAR.LoggedInAvatarDetail.HumanDesign.Type));
+            Console.WriteLine(string.Concat(" Type: ", avatarDetail.HumanDesign.Type));
         }
 
         private static void STAR_OnInitialized(object sender, System.EventArgs e)

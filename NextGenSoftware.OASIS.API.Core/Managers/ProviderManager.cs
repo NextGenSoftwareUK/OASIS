@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -816,7 +817,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public OASISResult<IEnumerable<EnumValue<ProviderType>>> GetProvidersFromListAsEnumList(string listName, string providerList)
         {
-            OASISResult<IEnumerable<EnumValue<ProviderType>>> result = new OASISResult<IEnumerable<EnumValue<ProviderType>>>();
+            IEnumerable<EnumValue<ProviderType>> result;
             OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList(listName, providerList);
 
             if (!listResult.IsError && listResult.Result != null)

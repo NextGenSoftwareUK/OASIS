@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
 {
