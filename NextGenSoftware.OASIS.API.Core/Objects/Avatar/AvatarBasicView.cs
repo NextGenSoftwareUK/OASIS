@@ -1,6 +1,7 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.Utilities;
 using System;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.Avatar
