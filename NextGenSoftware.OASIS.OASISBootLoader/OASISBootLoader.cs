@@ -23,6 +23,7 @@ using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.Utilities;
 //using System.Reflection;
 
 namespace NextGenSoftware.OASIS.OASISBootLoader

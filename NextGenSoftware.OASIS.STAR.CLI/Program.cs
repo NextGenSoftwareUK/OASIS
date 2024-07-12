@@ -27,7 +27,6 @@ using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.Zomes;
-using Mapster;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
@@ -44,6 +43,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         //private static Spinner _spinner = new Spinner();
         private static string _privateKey = ""; //Set to privatekey when testing BUT remember to remove again before checking in code! Better to use avatar methods so private key is retreived from avatar and then no need to pass them in.
         private static string[] _args = null;
+        private static bool _exiting = false;
+        private static bool _inMainMenu = false;
 
         static async Task Main(string[] args)
         {
@@ -52,6 +53,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 _args = args;
                 ShowHeader();
                 CLIEngine.ShowMessage("", false);
+                Console.CancelKeyPress += Console_CancelKeyPress;
 
                 // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
                 // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
@@ -89,15 +91,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 STAR.IsDetailedCOSMICOutputsEnabled = CLIEngine.GetConfirmation("Do you wish to enable detailed COSMIC outputs?");
 
                 Console.WriteLine("");
-                await ReadyPlayerOne(); //TODO: TEMP!  Remove after testing!
+                //await ReadyPlayerOne(); //TODO: TEMP!  Remove after testing!
 
-                /*
                 OASISResult<IOmiverse> result = STAR.IgniteStar();
 
                 if (result.IsError)
                     CLIEngine.ShowErrorMessage(string.Concat("Error Igniting STAR. Error Message: ", result.Message));
                 else
-                    await LoginAvatar();*/
+                    await LoginAvatar();
             }
             catch (Exception ex)
             {
@@ -105,6 +106,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowErrorMessage(string.Concat("An unknown error has occured. Error Details: ", ex.ToString()));
                 //AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
             }
+        }
+
+        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            //e.Cancel = !CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
+            //_exiting = !e.Cancel;
+
+            e.Cancel = true;
+
+                //if (_inMainMenu = false)
+                //    e.Cancel = !CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
+                //else
+                //    e.Cancel = true;
+
+                ////Console.WriteLine("\nThe read operation has been interrupted.");
+                ////Console.WriteLine($"  Key pressed: {e.SpecialKey}");
+                ////Console.WriteLine($"  Cancel property: {e.Cancel}");
+
+                //if (e.Cancel)
+                //    ReadyPlayerOne();
         }
 
         private static void STAR_OnDefaultCeletialBodyInit(object sender, EventArgs.DefaultCelestialBodyInitEventArgs e)
@@ -131,415 +152,496 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             bool exit = false;
             do
             {
+                //if (_exiting)
+                //    exit = true;
+
+                _inMainMenu = true;
                 Console.WriteLine("");
                 CLIEngine.ShowMessage("STAR: ", false, true);
                 string input = Console.ReadLine();
-                string[] inputArgs = input.Split(" ");
 
-                if (inputArgs.Length > 0)
+                if (!string.IsNullOrEmpty(input))
                 {
-                    switch (inputArgs[0].ToLower())
+                    string[] inputArgs = input.Split(" ");
+
+                    if (inputArgs.Length > 0)
                     {
-                        case "exit":
-                            exit = true;
-                            break;
+                        switch (inputArgs[0].ToLower())
+                        {
+                            case "exit":
+                                exit = CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
+                                break;
 
-                        case "version":
-                            {
-                                CLIEngine.ShowMessage($"STAR ODK Version: {OASISBootLoader.OASISBootLoader.STARODKVersion}");
-                                CLIEngine.ShowMessage($"COSMIC ORM Version: {OASISBootLoader.OASISBootLoader.COSMICVersion}");
-                                CLIEngine.ShowMessage($"OASIS Runtime Version: {OASISBootLoader.OASISBootLoader.OASISVersion}");
-                            }
-                            break;
-
-                        case "status":
-                            {
-                                CLIEngine.ShowMessage($"STAR ODK Status: {Enum.GetName(typeof(StarStatus), STAR.Status)}");
-                            }
-                            break;
-
-                        case "help":
-                            ShowCommands();
-                            break;
-
-                        case "ignite":
-                            {
-                                if (!STAR.IsStarIgnited)
-                                    await STAR.IgniteStarAsync();
-                                else
-                                    CLIEngine.ShowErrorMessage("STAR Is Already Ignited!");
-                            }
-                            break;
-
-                        case "extinguish":
-                            {
-                                if (STAR.IsStarIgnited)
-                                    await STAR.ExtinguishSuperStarAsync();
-                                else
-                                    CLIEngine.ShowErrorMessage("STAR Is Not Ignited!");
-                            }
-                            break;
-
-                        case "beamin":
-                            {
-                                if (STAR.LoggedInAvatar == null)
-                                    await LoginAvatar();
-                                else
-                                    CLIEngine.ShowErrorMessage($"Avatar {STAR.LoggedInAvatar.Username} Already Beamed In. Please Beam Out First!");
-                            }
-                            break;
-
-                        case "beamout":
-                            {
-                                if (STAR.LoggedInAvatar != null)
+                            case "version":
                                 {
-                                    STAR.LoggedInAvatar = null;
-                                    STAR.LoggedInAvatarDetail = null;
-                                    CLIEngine.ShowSuccessMessage("Avatar Successfully Beamed Out! We Hope You Enjoyed Your Time In The OASIS! :)");
+                                    CLIEngine.ShowMessage($"STAR ODK Version: {OASISBootLoader.OASISBootLoader.STARODKVersion}");
+                                    CLIEngine.ShowMessage($"COSMIC ORM Version: {OASISBootLoader.OASISBootLoader.COSMICVersion}");
+                                    CLIEngine.ShowMessage($"OASIS Runtime Version: {OASISBootLoader.OASISBootLoader.OASISVersion}");
+                                    CLIEngine.ShowMessage($"OASIS Provider Versions: Coming Soon..."); //TODO Implement ASAP.
                                 }
-                                else
-                                    CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
-                            }
-                            break;
+                                break;
 
-                        case "whoisbeamedin":
-                            {
-                                if (STAR.LoggedInAvatar != null)
-                                    CLIEngine.ShowMessage($" Avatar {STAR.LoggedInAvatar.Username} Beamed In On {STAR.LoggedInAvatar.LastBeamedIn} And Last Beamed Out On {STAR.LoggedInAvatar.LastBeamedOut}. They Are Level {STAR.LoggedInAvatarDetail.Level} With {STAR.LoggedInAvatarDetail.Karma} Karma.");
-                                else
-                                    CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
-                            }
-                            break;
-
-                        case "showavatar":
-                            {
-                                if (STAR.LoggedInAvatar != null)
-                                    ShowAvatarStats();
-                                else
-                                    CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
-                            }
-                            break;
-
-                        case "showkarmalevels":
-                            {
-                                if (STAR.IsStarIgnited)
-                                    STAR.OASISAPI.Avatar.ShowKarmaThresholds();
-                                else
-                                    CLIEngine.ShowErrorMessage("STAR Is Not Ignited! You Need To Ignite STAR Before Calling This Command!");
-                            }
-                            break;
-
-                        case "light":
-                            {
-                                object oappTypeObj = null;
-                                object genesisTypeObj = null;
-                                OAPPType oappType = DEFAULT_OAPP_TYPE;
-                                GenesisType genesisType = GenesisType.Planet;
-                                OASISResult<CoronalEjection> lightResult = null;
-
-                                if (inputArgs.Length > 1)
+                            case "status":
                                 {
-                                    if (inputArgs[1].ToLower() == "wiz")
-                                        await LightWizard();
+                                    CLIEngine.ShowMessage($"STAR ODK Status: {Enum.GetName(typeof(StarStatus), STAR.Status)}");
+                                }
+                                break;
+
+                            case "help":
+                                ShowCommands();
+                                break;
+
+                            case "ignite":
+                                {
+                                    if (!STAR.IsStarIgnited)
+                                        await STAR.IgniteStarAsync();
                                     else
+                                        CLIEngine.ShowErrorMessage("STAR Is Already Ignited!");
+                                }
+                                break;
+
+                            case "extinguish":
+                                {
+                                    if (STAR.IsStarIgnited)
+                                        await STAR.ExtinguishSuperStarAsync();
+                                    else
+                                        CLIEngine.ShowErrorMessage("STAR Is Not Ignited!");
+                                }
+                                break;
+
+                            case "beamin":
+                                {
+                                    if (STAR.LoggedInAvatar == null)
+                                        await LoginAvatar();
+                                    else
+                                        CLIEngine.ShowErrorMessage($"Avatar {STAR.LoggedInAvatar.Username} Already Beamed In. Please Beam Out First!");
+                                }
+                                break;
+
+                            case "beamout":
+                                {
+                                    if (STAR.LoggedInAvatar != null)
                                     {
-                                        CLIEngine.ShowWorkingMessage("Generating OAPP...");
+                                        STAR.LoggedInAvatar = null;
+                                        STAR.LoggedInAvatarDetail = null;
+                                        CLIEngine.ShowSuccessMessage("Avatar Successfully Beamed Out! We Hope You Enjoyed Your Time In The OASIS! :)");
+                                    }
+                                    else
+                                        CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                                }
+                                break;
 
-                                        if (Enum.TryParse(typeof(OAPPType), inputArgs[2], true, out oappTypeObj))
+                            case "whoisbeamedin":
+                                {
+                                    if (STAR.LoggedInAvatar != null)
+                                        CLIEngine.ShowMessage($" Avatar {STAR.LoggedInAvatar.Username} Beamed In On {STAR.LoggedInAvatar.LastBeamedIn} And Last Beamed Out On {STAR.LoggedInAvatar.LastBeamedOut}. They Are Level {STAR.LoggedInAvatarDetail.Level} With {STAR.LoggedInAvatarDetail.Karma} Karma.");
+                                    else
+                                        CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                                }
+                                break;
+
+                            case "showavatar":
+                                {
+                                    if (STAR.LoggedInAvatar != null)
+                                        ShowAvatarStats();
+                                    else
+                                        CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                                }
+                                break;
+
+                            case "showkarmalevels":
+                                {
+                                    if (STAR.IsStarIgnited)
+                                        STAR.OASISAPI.Avatar.ShowKarmaThresholds();
+                                    else
+                                        CLIEngine.ShowErrorMessage("STAR Is Not Ignited! You Need To Ignite STAR Before Calling This Command!");
+                                }
+                                break;
+
+                            case "light":
+                                {
+                                    object oappTypeObj = null;
+                                    object genesisTypeObj = null;
+                                    OAPPType oappType = DEFAULT_OAPP_TYPE;
+                                    GenesisType genesisType = GenesisType.Planet;
+                                    OASISResult<CoronalEjection> lightResult = null;
+                                    _inMainMenu = false;
+
+                                    if (inputArgs.Length > 1)
+                                    {
+                                        if (inputArgs[1].ToLower() == "wiz")
+                                            await LightWizard();
+                                        else
                                         {
-                                            oappType = (OAPPType)oappTypeObj;
+                                            CLIEngine.ShowWorkingMessage("Generating OAPP...");
 
-                                            if (inputArgs.Length > 5)
+                                            if (Enum.TryParse(typeof(OAPPType), inputArgs[2], true, out oappTypeObj))
                                             {
-                                                if (Enum.TryParse(typeof(GenesisType), inputArgs[6], true, out genesisTypeObj))
+                                                oappType = (OAPPType)oappTypeObj;
+
+                                                if (inputArgs.Length > 5)
                                                 {
-                                                    genesisType = (GenesisType)genesisTypeObj;
-
-                                                    if (inputArgs.Length > 7)
+                                                    if (Enum.TryParse(typeof(GenesisType), inputArgs[6], true, out genesisTypeObj))
                                                     {
-                                                        Guid parentId = Guid.Empty;
+                                                        genesisType = (GenesisType)genesisTypeObj;
 
-                                                        if (Guid.TryParse(inputArgs[7], out parentId))
-                                                            lightResult = await STAR.LightAsync(inputArgs[1], oappType, genesisType, inputArgs[3], inputArgs[4], inputArgs[5], parentId);
+                                                        if (inputArgs.Length > 7)
+                                                        {
+                                                            Guid parentId = Guid.Empty;
+
+                                                            if (Guid.TryParse(inputArgs[7], out parentId))
+                                                                lightResult = await STAR.LightAsync(inputArgs[1], oappType, genesisType, inputArgs[3], inputArgs[4], inputArgs[5], parentId);
+                                                            else
+                                                                CLIEngine.ShowErrorMessage($"The ParentCelestialBodyId Passed In ({inputArgs[5]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                        }
                                                         else
-                                                            CLIEngine.ShowErrorMessage($"The ParentCelestialBodyId Passed In ({inputArgs[5]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                            lightResult = await STAR.LightAsync(inputArgs[1], oappType, genesisType, inputArgs[3], inputArgs[4], inputArgs[5]);
                                                     }
                                                     else
-                                                        lightResult = await STAR.LightAsync(inputArgs[1], oappType, genesisType, inputArgs[3], inputArgs[4], inputArgs[5]);
+                                                        CLIEngine.ShowErrorMessage($"The GenesisType Passed In ({inputArgs[6]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
                                                 }
                                                 else
-                                                    CLIEngine.ShowErrorMessage($"The GenesisType Passed In ({inputArgs[6]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                    lightResult = await STAR.LightAsync(inputArgs[1], oappType, inputArgs[3], inputArgs[4], inputArgs[5]);
                                             }
                                             else
-                                                lightResult = await STAR.LightAsync(inputArgs[1], oappType, inputArgs[3], inputArgs[4], inputArgs[5]);
-                                        }
-                                        else
-                                            CLIEngine.ShowErrorMessage($"The OAPPType Passed In ({inputArgs[2]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                CLIEngine.ShowErrorMessage($"The OAPPType Passed In ({inputArgs[2]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.");
 
-                                        if (lightResult != null)
-                                        {
-                                            if (!lightResult.IsError && lightResult.Result != null)
-                                                CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
-                                            else
-                                                CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                                            if (lightResult != null)
+                                            {
+                                                if (!lightResult.IsError && lightResult.Result != null)
+                                                    CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                                                else
+                                                    CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                                            }
                                         }
                                     }
+                                    else
+                                    {
+                                        CLIEngine.ShowMessage("Light Command Args:", ConsoleColor.Green);
+                                        CLIEngine.ShowMessage("OAPPName = The name of the OAPP.", ConsoleColor.Green);
+                                        CLIEngine.ShowMessage($"OAPPType = The type of the OAPP, which can be any of the following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green);
+                                        CLIEngine.ShowMessage("DnaFolder = The path to the DNA Folder which will be used to generate the OAPP from.", ConsoleColor.Green);
+                                        CLIEngine.ShowMessage("GenesisFolder = The path to the Genesis Folder where the OAPP will be created.", ConsoleColor.Green);
+                                        CLIEngine.ShowMessage("GenesisNameSpace = The namespace of the OAPP to generate.", ConsoleColor.Green);
+                                        CLIEngine.ShowMessage($"GenesisType = The Genesis Type can be any of the following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green);
+                                        CLIEngine.ShowMessage("ParentCelestialBodyId = The ID (GUID) of the Parent CelestialBody the generated OAPP will belong to. (optional)", ConsoleColor.Green);
+                                        CLIEngine.ShowMessage("NOTE: Use 'light wiz' to start the light wizard.", ConsoleColor.Green);
+
+                                        if (CLIEngine.GetConfirmation("Do you wish to start the wizard?"))
+                                            await LightWizard();
+                                        else
+                                            Console.WriteLine("");
+
+                                        Console.ForegroundColor = ConsoleColor.Yellow;
+                                    }
                                 }
-                                else
+                                break;
+
+                            case "bang":
                                 {
-                                    CLIEngine.ShowMessage("Light Command Args:", ConsoleColor.Green);
-                                    CLIEngine.ShowMessage("OAPPName = The name of the OAPP.", ConsoleColor.Green);
-                                    CLIEngine.ShowMessage($"OAPPType = The type of the OAPP, which can be any of the following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green);
-                                    CLIEngine.ShowMessage("DnaFolder = The path to the DNA Folder which will be used to generate the OAPP from.", ConsoleColor.Green);
-                                    CLIEngine.ShowMessage("GenesisFolder = The path to the Genesis Folder where the OAPP will be created.", ConsoleColor.Green);
-                                    CLIEngine.ShowMessage("GenesisNameSpace = The namespace of the OAPP to generate.", ConsoleColor.Green);
-                                    CLIEngine.ShowMessage($"GenesisType = The Genesis Type can be any of the following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green);
-                                    CLIEngine.ShowMessage("ParentCelestialBodyId = The ID (GUID) of the Parent CelestialBody the generated OAPP will belong to. (optional)", ConsoleColor.Green);
-                                    CLIEngine.ShowMessage("NOTE: Use 'light wiz' to start the light wizard.", ConsoleColor.Green);
-
-                                    if (CLIEngine.GetConfirmation("Do you wish to start the wizard?"))
-                                        await LightWizard();
-
-                                    Console.ForegroundColor = ConsoleColor.Yellow;
-                                }
-                            }
-                            break;
-
-                        case "bang":
-                            {
-                                object value = CLIEngine.GetValidInputForEnum("What type of metaverse do you wish to create?", typeof(MetaverseType));
-
-                                if (value != null)
-                                {
-                                    MetaverseType metaverseType = (MetaverseType)value;
-                                }
-                            }
-                            break;
-
-                        case "wiz":
-                            {
-                                OASISResult<CoronalEjection> lightResult = null;
-                                string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
-                                object value = CLIEngine.GetValidInputForEnum("What type of OAPP do you wish to create?", typeof(OAPPType));
-
-                                if (value != null)
-                                {
-                                    OAPPType OAPPType = (OAPPType)value;
-
-                                    value = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create?", typeof(GenesisType));
+                                    _inMainMenu = false;
+                                    object value = CLIEngine.GetValidInputForEnum("What type of metaverse do you wish to create?", typeof(MetaverseType));
 
                                     if (value != null)
                                     {
-                                        GenesisType genesisType = (GenesisType)value;
+                                        MetaverseType metaverseType = (MetaverseType)value;
+                                    }
+                                }
+                                break;
 
-                                        string genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace?");
-                                        Guid parentId = Guid.Empty;
+                            case "wiz":
+                                {
+                                    _inMainMenu = false;
+                                    OASISResult<CoronalEjection> lightResult = null;
+                                    string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
+                                    object value = CLIEngine.GetValidInputForEnum("What type of OAPP do you wish to create?", typeof(OAPPType));
 
-                                        if (!CLIEngine.GetConfirmation("Do you wish to add support for all OASIS Providers (recommeneded) or only specefic ones?"))
+                                    if (value != null)
+                                    {
+                                        OAPPType OAPPType = (OAPPType)value;
+
+                                        value = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create?", typeof(GenesisType));
+
+                                        if (value != null)
                                         {
-                                            bool providersSelected = false;
-                                            List<ProviderType> providers = new List<ProviderType>();
+                                            GenesisType genesisType = (GenesisType)value;
 
-                                            while (!providersSelected)
+                                            string genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace?");
+                                            Guid parentId = Guid.Empty;
+
+                                            if (!CLIEngine.GetConfirmation("Do you wish to add support for all OASIS Providers (recommeneded) or only specefic ones?"))
                                             {
-                                                object providerType = CLIEngine.GetValidInputForEnum("What provider do you wish to add?", typeof(ProviderType));
-                                                providers.Add((ProviderType)providerType);
+                                                bool providersSelected = false;
+                                                List<ProviderType> providers = new List<ProviderType>();
 
-                                                if (!CLIEngine.GetConfirmation("Do you wish to add any other providers?"))
-                                                    providersSelected = true;
-                                             }
+                                                while (!providersSelected)
+                                                {
+                                                    object providerType = CLIEngine.GetValidInputForEnum("What provider do you wish to add?", typeof(ProviderType));
+                                                    providers.Add((ProviderType)providerType);
+
+                                                    if (!CLIEngine.GetConfirmation("Do you wish to add any other providers?"))
+                                                        providersSelected = true;
+                                                }
+                                            }
+
+                                            string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
+                                            string holonName = CLIEngine.GetValidInput("What is the name of the Holon (OASIS Data Object)?");
+                                            string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
+                                            object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(HolonPropType));
+
+                                            //TODO: Come back to this... :)
+
+                                            if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody?"))
+                                                parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+
+
+                                            if (lightResult != null)
+                                            {
+                                                if (!lightResult.IsError && lightResult.Result != null)
+                                                    CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                                                else
+                                                    CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                                            }
                                         }
+                                    }
+                                }
+                                break;
 
-                                        string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
-                                        string holonName = CLIEngine.GetValidInput("What is the name of the Holon (OASIS Data Object)?");
-                                        string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
-                                        object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(HolonPropType));
+                            case "enablecosmicdetailedoutput":
+                                {
+                                    STAR.IsDetailedCOSMICOutputsEnabled = true;
+                                    CLIEngine.ShowMessage("Detailed COSMIC Output Enabled.");
+                                }
+                                break;
 
-                                        //TODO: Come back to this... :)
+                            case "disablecosmicdetailedoutput":
+                                {
+                                    STAR.IsDetailedCOSMICOutputsEnabled = false;
+                                    CLIEngine.ShowMessage("Detailed COSMIC Output Disabled.");
+                                }
+                                break;
 
-                                        if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody?"))
-                                            parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+                            case "loadholon":
+                                {
+                                    if (inputArgs.Length > 1)
+                                    {
+                                        Guid id = Guid.Empty;
 
-
-                                        if (lightResult != null)
+                                        if (Guid.TryParse(inputArgs[1], out id))
                                         {
-                                            if (!lightResult.IsError && lightResult.Result != null)
-                                                CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
-                                            else
-                                                CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
-                                        }
-                                    }
-                                }
-                            }
-                            break;
-
-                        case "enablecosmicdetailedoutput":
-                            {
-                                STAR.IsDetailedCOSMICOutputsEnabled = true;
-                                CLIEngine.ShowMessage("Detailed COSMIC Output Enabled.");
-                            }
-                            break;
-
-                        case "disablecosmicdetailedoutput":
-                            {
-                                STAR.IsDetailedCOSMICOutputsEnabled = false;
-                                CLIEngine.ShowMessage("Detailed COSMIC Output Disabled.");
-                            }
-                            break;
-
-                        case "loadholon":
-                            {
-                                if (inputArgs.Length > 1)
-                                {
-                                    Guid id = Guid.Empty;
-
-                                    if (Guid.TryParse(inputArgs[1], out id))
-                                    {
-                                        OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.LoadHolonAsync(id);
-
-                                        if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
-                                            ShowHolonProperties(holonResult.Result);
-                                        else
-                                            CLIEngine.ShowMessage($"Error Occured: {holonResult.Message}");
-                                    }
-                                    else
-                                        CLIEngine.ShowMessage("The HolonID Is Not Valid.");
-                                }
-                                else
-                                    CLIEngine.ShowMessage("No HolonID Specified.");
-                            }
-                            break;
-
-                        case "saveholon":
-                            {
-                                if (inputArgs.Length > 1)
-                                {
-                                    if (inputArgs[1].ToLower().Contains("json="))
-                                    {
-                                        string[] parts = inputArgs[1].Split('=');
-
-                                        //TODO: Finish implementing...
-                                        CLIEngine.ShowMessage("Coming Soon...");
-                                    }
-                                    else if (inputArgs[1].ToLower() == "wiz")
-                                        await SaveHolonWizard();
-                                    else
-                                        CLIEngine.ShowErrorMessage("Unknown Sub-Command. Use 'wiz' or 'json={holonJSONFile}'");
-                                }
-                                else
-                                {
-                                    if (CLIEngine.GetConfirmation($"Do you wish to start the Save Holon Wizard?"))
-                                        await SaveHolonWizard();
-                                }
-                            }
-                            break;
-
-                        case "deleteholon":
-                            {
-                                if (inputArgs.Length > 1)
-                                {
-                                    Guid id = Guid.Empty;
-
-                                    if (Guid.TryParse(inputArgs[1], out id))
-                                    {
-                                        if (CLIEngine.GetConfirmation($"Are you sure you wish to delete the holon with id {inputArgs[1]}?"))
-                                        {
-                                            OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.DeleteHolonAsync(id);
+                                            OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.LoadHolonAsync(id);
 
                                             if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                                                 ShowHolonProperties(holonResult.Result);
                                             else
-                                                CLIEngine.ShowMessage($"Error Occured: {holonResult.Message}");
-                                        }
-                                    }
-                                    else
-                                        CLIEngine.ShowMessage("The HolonID Is Not Valid.");
-                                }
-                                else
-                                    CLIEngine.ShowMessage("No HolonID Specified.");
-                            }
-                            break;
-
-                        case "loadavatar":
-                            {
-                                if (inputArgs.Length > 1)
-                                {
-                                    Guid id = Guid.Empty;
-
-                                    if (Guid.TryParse(inputArgs[1], out id))
-                                    {
-                                        OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatar.LoadAvatarAsync(id);
-
-                                        if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                                        {
-                                            OASISResult<IAvatarDetail> avatarDetailResult = await STAR.OASISAPI.Avatar.LoadAvatarDetailAsync(id);
-
-                                            if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
-                                                ShowAvatar(avatarResult.Result, avatarDetailResult.Result);
-                                            else
-                                                CLIEngine.ShowMessage($"Error Occured Loading Avatar Detail: {avatarDetailResult.Message}");
+                                                CLIEngine.ShowErrorMessage($"Error Occured: {holonResult.Message}");
                                         }
                                         else
-                                            CLIEngine.ShowMessage($"Error Occured Loading Avatar: {avatarResult.Message}");
+                                            CLIEngine.ShowErrorMessage("The HolonID Is Not Valid.");
                                     }
                                     else
-                                        CLIEngine.ShowMessage("The AvatarID Is Not Valid.");
+                                        CLIEngine.ShowErrorMessage("No HolonID Specified.");
                                 }
-                                else
-                                    CLIEngine.ShowMessage("No AvatarID Specified.");
-                            }
-                            break;
+                                break;
 
-                        case "runcosmictests":
-                            {
-                                object oappTypeObj = null;
-                                OAPPType OAPPType = DEFAULT_OAPP_TYPE;
-                                string dnaFolder = DEFAULT_DNA_FOLDER;
-                                string genesisFolder = DEFAULT_GENESIS_FOLDER;
-                                //string genesisNameSpace = DEFAULT_GENESIS_NAMESPACE;
-
-                                if (inputArgs.Length > 1)
+                            case "saveholon":
                                 {
-                                    if (Enum.TryParse(typeof(OAPPType), inputArgs[2], true, out oappTypeObj))
-                                        OAPPType = (OAPPType)oappTypeObj;
+                                    if (inputArgs.Length > 1)
+                                    {
+                                        if (inputArgs[1].ToLower().Contains("json="))
+                                        {
+                                            string[] parts = inputArgs[1].Split('=');
+
+                                            //TODO: Finish implementing...
+                                            CLIEngine.ShowMessage("Coming Soon...");
+                                        }
+                                        else if (inputArgs[1].ToLower() == "wiz")
+                                            await SaveHolonWizard();
+                                        else
+                                            CLIEngine.ShowErrorMessage("Unknown Sub-Command. Use 'wiz' or 'json={holonJSONFile}'");
+                                    }
+                                    else
+                                    {
+                                        if (CLIEngine.GetConfirmation($"Do you wish to start the Save Holon Wizard?"))
+                                            await SaveHolonWizard();
+                                    }
                                 }
+                                break;
 
-                                if (inputArgs.Length > 2)
-                                    dnaFolder = inputArgs[1];
+                            case "deleteholon":
+                                {
+                                    _inMainMenu = false;
 
-                                if (inputArgs.Length > 3)
-                                    genesisFolder = inputArgs[2];
+                                    if (inputArgs.Length > 1)
+                                    {
+                                        Guid id = Guid.Empty;
 
-                                if (OAPPType == DEFAULT_OAPP_TYPE)
-                                    CLIEngine.ShowWorkingMessage($"OAPPType Not Specified, Using Default: {Enum.GetName(typeof(OAPPType), OAPPType)}");
-                                else
-                                    CLIEngine.ShowWorkingMessage($"OAPPType Specified: {Enum.GetName(typeof(OAPPType), OAPPType)}");
+                                        if (Guid.TryParse(inputArgs[1], out id))
+                                        {
+                                            if (CLIEngine.GetConfirmation($"Are you sure you wish to delete the holon with id {inputArgs[1]}?"))
+                                            {
+                                                OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.DeleteHolonAsync(id);
 
-                                if (dnaFolder == DEFAULT_DNA_FOLDER)
-                                    CLIEngine.ShowWorkingMessage($"DNAFolder Not Specified, Using Default: {dnaFolder}");
-                                else
-                                    CLIEngine.ShowWorkingMessage($"DNAFolder Specified: {dnaFolder}");
+                                                if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                                                    ShowHolonProperties(holonResult.Result);
+                                                else
+                                                    CLIEngine.ShowErrorMessage($"Error Occured: {holonResult.Message}");
+                                            }
+                                        }
+                                        else
+                                            CLIEngine.ShowErrorMessage("The HolonID Is Not Valid.");
+                                    }
+                                    else
+                                        CLIEngine.ShowErrorMessage("No HolonID Specified.");
+                                }
+                                break;
 
-                                if (genesisFolder == DEFAULT_GENESIS_FOLDER)
-                                    CLIEngine.ShowWorkingMessage($"GenesisFolder Not Specified, Using Default: {genesisFolder}");
-                                else
-                                    CLIEngine.ShowWorkingMessage($"GenesisFolder Specified: {genesisFolder}");
+                            case "loadavatar":
+                                {
+                                    if (inputArgs.Length > 1)
+                                    {
+                                        Guid id = Guid.Empty;
 
-                                await RunCOSMICTests(OAPPType, dnaFolder, genesisFolder);
-                            }
-                            break;
+                                        if (Guid.TryParse(inputArgs[1], out id))
+                                        {
+                                            OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatar.LoadAvatarAsync(id);
 
-                        case "runoasisapitests":
-                            await RunOASISAPTests();
-                            break;
+                                            if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                                            {
+                                                OASISResult<IAvatarDetail> avatarDetailResult = await STAR.OASISAPI.Avatar.LoadAvatarDetailAsync(id);
 
-                        default:
-                            CLIEngine.ShowMessage("Unknown Command.", ConsoleColor.Green);
-                            //Console.WriteLine("");
-                            break;
+                                                if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                                                    ShowAvatar(avatarResult.Result, avatarDetailResult.Result);
+                                                else
+                                                    CLIEngine.ShowErrorMessage($"Error Occured Loading Avatar Detail: {avatarDetailResult.Message}");
+                                            }
+                                            else
+                                                CLIEngine.ShowErrorMessage($"Error Occured Loading Avatar: {avatarResult.Message}");
+                                        }
+                                        else
+                                            CLIEngine.ShowErrorMessage("The AvatarID Is Not Valid.");
+                                    }
+                                    else
+                                        CLIEngine.ShowErrorMessage("No AvatarID Specified.");
+                                }
+                                break;
+
+                            case "loadallavatars":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "linkkey":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "showkeys":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "showwallets":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "search":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "mintnft":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "mintgeonft":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "shownfts":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "showgeonfts":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "runcosmictests":
+                                {
+                                    object oappTypeObj = null;
+                                    OAPPType OAPPType = DEFAULT_OAPP_TYPE;
+                                    string dnaFolder = DEFAULT_DNA_FOLDER;
+                                    string genesisFolder = DEFAULT_GENESIS_FOLDER;
+                                    //string genesisNameSpace = DEFAULT_GENESIS_NAMESPACE;
+
+                                    if (inputArgs.Length > 1)
+                                    {
+                                        if (Enum.TryParse(typeof(OAPPType), inputArgs[2], true, out oappTypeObj))
+                                            OAPPType = (OAPPType)oappTypeObj;
+                                    }
+
+                                    if (inputArgs.Length > 2)
+                                        dnaFolder = inputArgs[1];
+
+                                    if (inputArgs.Length > 3)
+                                        genesisFolder = inputArgs[2];
+
+                                    if (OAPPType == DEFAULT_OAPP_TYPE)
+                                        CLIEngine.ShowWorkingMessage($"OAPPType Not Specified, Using Default: {Enum.GetName(typeof(OAPPType), OAPPType)}");
+                                    else
+                                        CLIEngine.ShowWorkingMessage($"OAPPType Specified: {Enum.GetName(typeof(OAPPType), OAPPType)}");
+
+                                    if (dnaFolder == DEFAULT_DNA_FOLDER)
+                                        CLIEngine.ShowWorkingMessage($"DNAFolder Not Specified, Using Default: {dnaFolder}");
+                                    else
+                                        CLIEngine.ShowWorkingMessage($"DNAFolder Specified: {dnaFolder}");
+
+                                    if (genesisFolder == DEFAULT_GENESIS_FOLDER)
+                                        CLIEngine.ShowWorkingMessage($"GenesisFolder Not Specified, Using Default: {genesisFolder}");
+                                    else
+                                        CLIEngine.ShowWorkingMessage($"GenesisFolder Specified: {genesisFolder}");
+
+                                    await RunCOSMICTests(OAPPType, dnaFolder, genesisFolder);
+                                }
+                                break;
+
+                            case "runoasisapitests":
+                                await RunOASISAPTests();
+                                break;
+
+                            default:
+                                CLIEngine.ShowMessage("Unknown Command.", ConsoleColor.Green);
+                                //Console.WriteLine("");
+                                break;
+                        }
                     }
                 }
-            } while (!exit);
+                else
+                {
+                    //ConsoleKeyInfo keyInfo = Console.ReadKey();
+
+                    //if (keyInfo.KeyChar == 'c' && keyInfo.Modifiers == ConsoleModifiers.Control)
+                    //    exit = CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
+                }
+            } 
+            while (!exit);
+
+            CLIEngine.ShowMessage("Thank you for using STAR & The OASIS! We hope you enjoyed your stay, have a nice day! :)");
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         private static async Task SaveHolonWizard()
@@ -550,6 +652,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static async Task LightWizard()
         {
+            Console.WriteLine("");
             OASISResult<CoronalEjection> lightResult = null;
             string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
             object value = CLIEngine.GetValidInputForEnum("What type of OAPP do you wish to create?", typeof(OAPPType));
@@ -572,10 +675,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody?"))
                     {
                         parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+
+                        Console.WriteLine("");
                         lightResult = await STAR.LightAsync(OAPPName, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, parentId);
                     }
                     else
+                    {
+                        Console.WriteLine("");
                         lightResult = await STAR.LightAsync(OAPPName, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace);
+                    }
 
                     if (lightResult != null)
                     {
@@ -2160,6 +2268,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star saveholon = Shows more info on how to use this command and optionally lauches the Save Holon Wizard.");
             Console.WriteLine("   star deleteHolon {holonID} = Deletes a holon for the given {holonId}.");
             Console.WriteLine("   star loadavatar {avatarID} = Loads the avatar for the given {avatarID}.");
+            Console.WriteLine("   star loadallavatars = Loads all avatars (Wizard/Admin Only)");
+            Console.WriteLine("   star linkkey = Links a OASIS Provider Key to the current beamed in avatar.");
+            Console.WriteLine("   star showkeys = Shows the keys for the current beamed in avatar.");
+            Console.WriteLine("   star showwallets = Shows the wallets for the current beamed in avatar.");
+            Console.WriteLine("   star search = Seaches The OASIS for the given seach parameters.");
+            Console.WriteLine("   star mintnft = Mints a NFT for the current beamed in avatar.");
+            Console.WriteLine("   star mintgeonft = Mints a Geo-NFT for the current beamed in avatar.");
+            Console.WriteLine("   star shownfts = Shows the NFT's that belong to current beamed in avatar.");
+            Console.WriteLine("   star showgeonfts = Shows the Geo-NFT's that belong to current beamed in avatar.");
             Console.WriteLine("   star runcosmictests {OAPPType} {dnaFolder} {geneisFolder} = Run the STAR ODK/COSMIC Tests... If OAPPType, DNAFolder or GenesisFolder are not specified it will use the defaults.");
             Console.WriteLine("   star runoasisapitests = Run the OASIS API Tests...");
             Console.WriteLine("");

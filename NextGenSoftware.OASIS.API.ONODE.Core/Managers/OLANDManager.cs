@@ -17,6 +17,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONode.Core.Objects;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {

@@ -21,6 +21,7 @@ using Nethereum.Contracts.Standards.ERC721;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using System.Linq;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
