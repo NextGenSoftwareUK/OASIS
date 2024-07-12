@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.STAR.Enums
         Igniting,
         BootingOASIS,
         OASISBooted,
-        Ingited,
+        Ignited,
         Error
     }
 }

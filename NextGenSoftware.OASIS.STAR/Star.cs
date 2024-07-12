@@ -69,6 +69,9 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         public static bool IsStarIgnited { get; private set; }
+        public static bool IsDetailedCOSMICOutputsEnabled { get; set; } = false;
+        public static bool IsDetailedStatusUpdatesEnabled { get; set; }
+
         //public static GreatGrandSuperStar InnerStar { get; set; } //Only ONE of these can ever exist and is at the centre of the Omniverse (also only ONE).
 
         //Will default to the GreatGrandSuperStar at the centre of our Omniverse.
@@ -186,9 +189,6 @@ namespace NextGenSoftware.OASIS.STAR
                 return _OASISAPI;
             }
         }
-
-        public static bool IsDetailedCOSMICOutputsEnabled { get; set; } = false;
-
 
         //public static IMapper Mapper { get; set; }
 
@@ -326,7 +326,7 @@ namespace NextGenSoftware.OASIS.STAR
                 Status = StarStatus.Error;
             else
             {
-                Status = StarStatus.Ingited;
+                Status = StarStatus.Ignited;
                 OnStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
                 IsStarIgnited = true;
             }
@@ -400,7 +400,7 @@ namespace NextGenSoftware.OASIS.STAR
                 Status = StarStatus.Error;
             else
             {
-                Status = StarStatus.Ingited;
+                Status = StarStatus.Ignited;
                 OnStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
                 IsStarIgnited = true;
             }
@@ -1118,7 +1118,10 @@ namespace NextGenSoftware.OASIS.STAR
 
             // Currently the OApp Name is the same as the CelestialBody name (each CelestialBody is a seperate OApp), but in future a OApp may be able to contain more than one celestialBody...
             // TODO: Currently the OApp templates only contain sample load/save for one holon... this may change in future... likely will... ;-) Want to show for every zome/holon inside the celestialbody...
-            ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, oAPPName, oAPPName, holonNames[0], firstStringProperty);
+            if (holonNames.Count > 0)
+                ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, oAPPName, oAPPName, holonNames[0], firstStringProperty);
+            else
+                ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, oAPPName, oAPPName, "", firstStringProperty);
 
             //Generate any native code for the current provider.
             //TODO: Add option to pass into STAR which providers to generate native code for (can be more than one provider).
@@ -1278,7 +1281,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static void NewBody_OnCelestialBodySaved(object sender, CelestialBodySavedEventArgs e)
         {
-            if (e.Result != null && e.Result.Result != null)
+            if (IsDetailedStatusUpdatesEnabled && e.Result != null && e.Result.Result != null)
             {
                 if (!e.Result.IsError)
                     OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = $"{e.Result.Result.Name} Saved." });

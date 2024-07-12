@@ -63,7 +63,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 LevelThresholdWeighting = 1;
 
             if (showKarmaThreshholds)
-                Console.WriteLine("Karma Level Thresholds:\n");
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("\n Karma Level Thresholds:\n");
+            }
 
             long currentKarma = 1;
             for (int i = 2; i < (MaxLevel + 1); i++)
@@ -72,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 _levelLookup[i] = currentKarma;
 
                 if (showKarmaThreshholds)
-                    Console.WriteLine($"Level {i} = {currentKarma} karma.");
+                    Console.WriteLine($" Level {i} = {currentKarma} karma.");
             }
 
             if (showKarmaThreshholds)
