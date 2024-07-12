@@ -222,7 +222,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>(this);
             IsSaving = true;
 
-            if (!STAR.IsStarIgnited)
+            if (STAR.IsStarIgnited && STAR.IsDetailedStatusUpdatesEnabled)
                 STAR.ShowStatusMessage(Enums.StarStatusMessageType.Processing, $"Saving CelestialBody {this.Name}...");
 
             //TODO: CURRENTLY ZOMES ARE TREATED SEPERATELY TO CHILDREN BUT ONCE THEY ARE SYNCED/MERGED LIKE CELESTIALSPACE WE CAN REMOVE THIS BLOCK OF CODE BECAUSE THE CelestialBodyCore.SaveAsync CALL BELOW WILL AUTOMATICALLY SAVE ALL CHILDREN (INCLUDING ZOMES) IN HOLONMANAGER.
@@ -257,7 +257,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             IsSaving = true;
 
-            if (!STAR.IsStarIgnited)
+            if (STAR.IsStarIgnited && STAR.IsDetailedStatusUpdatesEnabled)
                 STAR.ShowStatusMessage(Enums.StarStatusMessageType.Processing, $"Creating CelestialBody {this.Name}...");
 
 
@@ -271,7 +271,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             IsSaving = true;
 
-            if (!STAR.IsStarIgnited)
+            if (STAR.IsStarIgnited && STAR.IsDetailedStatusUpdatesEnabled)
                 STAR.ShowStatusMessage(Enums.StarStatusMessageType.Processing, $"Creating CelestialBody {this.Name}...");
 
             SetParentIds();
@@ -1195,14 +1195,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                 OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result });
 
-                if (STAR.IsStarIgnited)
+                if (STAR.IsStarIgnited && STAR.IsDetailedStatusUpdatesEnabled)
                     STAR.ShowStatusMessage(Enums.StarStatusMessageType.Error, $"Error Creating CelestialBody {this.Name}. Reason: {result.Message}");
             }
             else
             {
                 result.IsSaved = true;
 
-                if (STAR.IsStarIgnited)
+                if (STAR.IsStarIgnited && STAR.IsDetailedStatusUpdatesEnabled)
                     STAR.ShowStatusMessage(Enums.StarStatusMessageType.Success, $"CelestialBody {this.Name} Saved Successfully.");
             }
 
@@ -1238,14 +1238,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                 OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = OASISResultHelper.CopyResultToICelestialBody(result) });
 
-                if (STAR.IsStarIgnited)
+                if (STAR.IsStarIgnited && STAR.IsDetailedStatusUpdatesEnabled)
                     STAR.ShowStatusMessage(Enums.StarStatusMessageType.Error, $"Error Creating CelestialBody {this.Name}. Reason: {result.Message}");
             }
             else
             {
                 result.IsSaved = true;
 
-                if (STAR.IsStarIgnited)
+                if (STAR.IsStarIgnited && STAR.IsDetailedStatusUpdatesEnabled)
                     STAR.ShowStatusMessage(Enums.StarStatusMessageType.Success, $"CelestialBody {this.Name} Created.");
             }
 

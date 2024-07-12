@@ -356,6 +356,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        public OASISResult<IAvatar> BeamOut(IAvatar avatar, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            avatar.LastBeamedOut = DateTime.Now;
+            result = SaveAvatar(avatar, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult, providerType);
+            return result;
+        }
+
+        public async Task<OASISResult<IAvatar>> BeamOutAsync(IAvatar avatar, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            avatar.LastBeamedOut = DateTime.Now;
+            result = await SaveAvatarAsync(avatar, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult, providerType);
+            return result;
+        }
+
         public OASISResult<bool> VerifyEmail(string token)
         {
             OASISResult<bool> result = new OASISResult<bool>();

@@ -143,6 +143,15 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return AvatarManager.Instance.SaveAvatar(this, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult, providerType);
         }
 
+        public async Task<OASISResult<IAvatar>> BeamOutAsync(AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
+        {
+            return await AvatarManager.Instance.BeamOutAsync(this, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult, providerType);
+        }
+        public OASISResult<IAvatar> BeamOut(AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
+        {
+            return AvatarManager.Instance.BeamOut(this, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult, providerType);
+        }
+
         //public OASISResult<bool> SaveProviderWallets(ProviderType providerType = ProviderType.Default)
         //{
         //    return AvatarManager.Instance.SaveProviderWallets(this, providerType);

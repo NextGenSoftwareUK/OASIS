@@ -89,6 +89,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 STAR.OnDefaultCeletialBodyInit += STAR_OnDefaultCeletialBodyInit;
 
                 STAR.IsDetailedCOSMICOutputsEnabled = CLIEngine.GetConfirmation("Do you wish to enable detailed COSMIC outputs?");
+                STAR.IsDetailedStatusUpdatesEnabled = CLIEngine.GetConfirmation("Do you wish to enable detailed STAR ODK Status outputs?");
 
                 Console.WriteLine("");
                 //await ReadyPlayerOne(); //TODO: TEMP!  Remove after testing!
@@ -156,6 +157,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 //    exit = true;
 
                 _inMainMenu = true;
+                Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine("");
                 CLIEngine.ShowMessage("STAR: ", false, true);
                 string input = Console.ReadLine();
@@ -174,16 +176,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                             case "version":
                                 {
-                                    CLIEngine.ShowMessage($"STAR ODK Version: {OASISBootLoader.OASISBootLoader.STARODKVersion}");
-                                    CLIEngine.ShowMessage($"COSMIC ORM Version: {OASISBootLoader.OASISBootLoader.COSMICVersion}");
-                                    CLIEngine.ShowMessage($"OASIS Runtime Version: {OASISBootLoader.OASISBootLoader.OASISVersion}");
-                                    CLIEngine.ShowMessage($"OASIS Provider Versions: Coming Soon..."); //TODO Implement ASAP.
+                                    Console.WriteLine("");
+                                    CLIEngine.ShowMessage($"STAR ODK Version: {OASISBootLoader.OASISBootLoader.STARODKVersion}", ConsoleColor.Green, false);
+                                    CLIEngine.ShowMessage($"COSMIC ORM Version: {OASISBootLoader.OASISBootLoader.COSMICVersion}", ConsoleColor.Green, false);
+                                    CLIEngine.ShowMessage($"OASIS Runtime Version: {OASISBootLoader.OASISBootLoader.OASISVersion}", ConsoleColor.Green, false);
+                                    CLIEngine.ShowMessage($"OASIS Provider Versions: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
                                 }
                                 break;
 
                             case "status":
                                 {
-                                    CLIEngine.ShowMessage($"STAR ODK Status: {Enum.GetName(typeof(StarStatus), STAR.Status)}");
+                                    Console.WriteLine("");
+                                    CLIEngine.ShowMessage($"STAR ODK Status: {Enum.GetName(typeof(StarStatus), STAR.Status)}", ConsoleColor.Green, false);
+                                    CLIEngine.ShowMessage($"COSMIC ORM Status: Online", ConsoleColor.Green, false);
+                                    CLIEngine.ShowMessage($"OASIS Runtime Status: Online", ConsoleColor.Green, false);
+                                    CLIEngine.ShowMessage($"OASIS Provider Status: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
                                 }
                                 break;
 
@@ -222,9 +229,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 {
                                     if (STAR.LoggedInAvatar != null)
                                     {
-                                        STAR.LoggedInAvatar = null;
-                                        STAR.LoggedInAvatarDetail = null;
-                                        CLIEngine.ShowSuccessMessage("Avatar Successfully Beamed Out! We Hope You Enjoyed Your Time In The OASIS! :)");
+                                        OASISResult<IAvatar> avatarResult = await STAR.LoggedInAvatar.BeamOutAsync();
+
+                                        if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                                        {
+                                            STAR.LoggedInAvatar = null;
+                                            STAR.LoggedInAvatarDetail = null;
+                                            CLIEngine.ShowSuccessMessage("Avatar Successfully Beamed Out! We Hope You Enjoyed Your Time In The OASIS! Please Come Again! :)");
+                                        }
+                                        else
+                                            CLIEngine.ShowErrorMessage($"Error Beaming Out Avatar: {avatarResult.Message}");
                                     }
                                     else
                                         CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
@@ -234,7 +248,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             case "whoisbeamedin":
                                 {
                                     if (STAR.LoggedInAvatar != null)
-                                        CLIEngine.ShowMessage($" Avatar {STAR.LoggedInAvatar.Username} Beamed In On {STAR.LoggedInAvatar.LastBeamedIn} And Last Beamed Out On {STAR.LoggedInAvatar.LastBeamedOut}. They Are Level {STAR.LoggedInAvatarDetail.Level} With {STAR.LoggedInAvatarDetail.Karma} Karma.");
+                                        CLIEngine.ShowMessage($"Avatar {STAR.LoggedInAvatar.Username} Beamed In On {STAR.LoggedInAvatar.LastBeamedIn} And Last Beamed Out On {STAR.LoggedInAvatar.LastBeamedOut}. They Are Level {STAR.LoggedInAvatarDetail.Level} With {STAR.LoggedInAvatarDetail.Karma} Karma.", ConsoleColor.Green);
                                     else
                                         CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
                                 }
@@ -317,18 +331,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     }
                                     else
                                     {
+                                        Console.WriteLine("");
                                         CLIEngine.ShowMessage("Light Command Args:", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("OAPPName = The name of the OAPP.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage($"OAPPType = The type of the OAPP, which can be any of the following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("DnaFolder = The path to the DNA Folder which will be used to generate the OAPP from.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("GenesisFolder = The path to the Genesis Folder where the OAPP will be created.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("GenesisNameSpace = The namespace of the OAPP to generate.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage($"GenesisType = The Genesis Type can be any of the following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("ParentCelestialBodyId = The ID (GUID) of the Parent CelestialBody the generated OAPP will belong to. (optional)", ConsoleColor.Green);
+                                        CLIEngine.ShowMessage("OAPPName = The name of the OAPP.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"OAPPType = The type of the OAPP, which can be any of the following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage("DnaFolder = The path to the DNA Folder which will be used to generate the OAPP from.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage("GenesisFolder = The path to the Genesis Folder where the OAPP will be created.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage("GenesisNameSpace = The namespace of the OAPP to generate.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"GenesisType = The Genesis Type can be any of the following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage("ParentCelestialBodyId = The ID (GUID) of the Parent CelestialBody the generated OAPP will belong to. (optional)", ConsoleColor.Green, false);
                                         CLIEngine.ShowMessage("NOTE: Use 'light wiz' to start the light wizard.", ConsoleColor.Green);
 
                                         if (CLIEngine.GetConfirmation("Do you wish to start the wizard?"))
+                                        {
+                                            Console.WriteLine("");
                                             await LightWizard();
+                                        }
                                         else
                                             Console.WriteLine("");
 
@@ -418,6 +436,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 {
                                     STAR.IsDetailedCOSMICOutputsEnabled = false;
                                     CLIEngine.ShowMessage("Detailed COSMIC Output Disabled.");
+                                }
+                                break;
+
+                            case "enablestarstatusdetailedoutput":
+                                {
+                                    STAR.IsDetailedStatusUpdatesEnabled = true;
+                                    CLIEngine.ShowMessage("Detailed STAR ODK Status Output Enabled.");
+                                }
+                                break;
+
+                            case "disablestarstatusdetailedoutput":
+                                {
+                                    STAR.IsDetailedStatusUpdatesEnabled = false;
+                                    CLIEngine.ShowMessage("Detailed STAR ODK Status Output Disabled.");
                                 }
                                 break;
 
@@ -652,7 +684,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static async Task LightWizard()
         {
-            Console.WriteLine("");
             OASISResult<CoronalEjection> lightResult = null;
             string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
             object value = CLIEngine.GetValidInputForEnum("What type of OAPP do you wish to create?", typeof(OAPPType));
@@ -666,32 +697,51 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 if (value != null)
                 {
                     GenesisType genesisType = (GenesisType)value;
+                    string dnaFolder = "";
 
-                    string dnaFolder = CLIEngine.GetValidPath("What is the path to the Zomes & Holons DNA?");
-                    string genesisFolder = CLIEngine.GetValidPath("What is the path to the GenesisFolder?");
-                    string genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace?");
-                    Guid parentId = Guid.Empty;
+                    //if (CLIEngine.GetConfirmation("Do you wish to create the CelestialBody/Zomes/Holons DNA now? (Enter 'n' if you already have a folder containing the DNA)."))
+                    //{
+                    //    //string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
+                    //    //string holonName = CLIEngine.GetValidInput("What is the name of the Holon (OASIS Data Object)?");
+                    //    //string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
+                    //    //object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(HolonPropType));
+                        
+                    //    //TODO:Come back to this.
+                    //}
+                    //else
+                        dnaFolder = CLIEngine.GetValidPath("What is the path to the CelestialBody/Zomes/Holons DNA?");
 
-                    if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody?"))
+                    if (Directory.Exists(dnaFolder) && Directory.GetFiles(dnaFolder).Length > 0)
                     {
-                        parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+                        string genesisFolder = CLIEngine.GetValidPath("What is the path to the GenesisFolder?");
+                        string genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace?");
+                        Guid parentId = Guid.Empty;
 
-                        Console.WriteLine("");
-                        lightResult = await STAR.LightAsync(OAPPName, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, parentId);
+                        if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody?"))
+                        {
+                            parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+
+                            Console.WriteLine("");
+                            CLIEngine.ShowWorkingMessage("Generating OAPP...");
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, parentId);
+                        }
+                        else
+                        {
+                            Console.WriteLine("");
+                            CLIEngine.ShowWorkingMessage("Generating OAPP...");
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace);
+                        }
+
+                        if (lightResult != null)
+                        {
+                            if (!lightResult.IsError && lightResult.Result != null)
+                                CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                            else
+                                CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                        }
                     }
                     else
-                    {
-                        Console.WriteLine("");
-                        lightResult = await STAR.LightAsync(OAPPName, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace);
-                    }
-
-                    if (lightResult != null)
-                    {
-                        if (!lightResult.IsError && lightResult.Result != null)
-                            CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
-                        else
-                            CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
-                    }
+                        CLIEngine.ShowErrorMessage($"The DnaFolder {dnaFolder} Is Not Valid. It Does Mot Contain Any Files!");
                 }
             }
         }
@@ -1933,7 +1983,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 string tree = string.Concat(" |", indentBuffer, "ZOME").PadRight(22);
                 string children = string.Concat(" | Containing ", zome.Children != null ? zome.Children.Count() : 0, " Child Holon(s)");
 
-                Console.WriteLine(string.Concat(tree, " | Name: ", zome.Name.PadRight(40), " | Id: ", zome.Id, " | Type: ", "Zome".PadRight(10), children.PadRight(30), " |".PadRight(30), "|"));
+                Console.WriteLine(string.Concat(tree, " | Name: ", zome.Name.PadRight(40), " | Id: ", zome.Id, " | Type: ", "Zome".PadRight(15), children.PadRight(30), " |".PadRight(30), "|"));
                 ShowHolons(zome.Children, false);
             }
         }
@@ -1971,7 +2021,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         Console.WriteLine("");
                         string tree = string.Concat(" |", indentPadding, "  NODE").PadRight(22);
                         //Console.WriteLine(string.Concat(indentPadding, "  | NODE | Name: ", node.NodeName.PadRight(20), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(10)));
-                        Console.WriteLine(string.Concat(tree, " | Name: ", node.NodeName.PadRight(40), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(10), " | ".PadRight(30), " | ".PadRight(30), "|"));
+                        Console.WriteLine(string.Concat(tree, " | Name: ", node.NodeName.PadRight(40), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(15), " | ".PadRight(30), " | ".PadRight(30), "|"));
                     }
                 }
 
@@ -2005,7 +2055,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             string tree = string.Concat(" |", indentBuffer, "HOLON").PadRight(22);
 
             //Console.WriteLine(string.Concat(indentBuffer, prefix, "| HOLON | Name: ", holon.Name.PadRight(20), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(10), children, nodes));
-            Console.WriteLine(string.Concat(tree, " | Name: ", holon.Name != null ? holon.Name.PadRight(40) : "".PadRight(40), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(10), children.PadRight(30), nodes.PadRight(30), "|"));
+            Console.WriteLine(string.Concat(tree, " | Name: ", holon.Name != null ? holon.Name.PadRight(40) : "".PadRight(40), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(15), children.PadRight(30), nodes.PadRight(30), "|"));
         }
 
         private static void CelestialBody_OnZomeError(object sender, ZomeErrorEventArgs e)
@@ -2262,6 +2312,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star super - Reserved For Future Use...");
             Console.WriteLine("   star enablecosmicdetailedoutput = Enables COSMIC Detailed Output.");
             Console.WriteLine("   star disablecosmicdetailedoutput = Disables COSMIC Detailed Output.");
+            Console.WriteLine("   star enablestarstatusdetailedoutput = Enables STAR ODK Detailed Output.");
+            Console.WriteLine("   star disablestarstatusdetailedoutput = Disables STAR ODK Detailed Output.");
             Console.WriteLine("   star loadholon {holonID} = Loads a holon for the given {holonId}.");
             Console.WriteLine("   star saveholon json={holonJSONFile} = Creates/Saves a holon from the given {holonJSONFile}.");
             Console.WriteLine("   star saveholon wiz = Starts the Save Holon Wizard.");
@@ -2360,8 +2412,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void ShowAvatarStats(IAvatar avatar, IAvatarDetail avatarDetail)
         {
+            Console.ForegroundColor = ConsoleColor.Green;
             CLIEngine.ShowMessage("", false);
-            CLIEngine.ShowMessage($" Avatar {avatar.Username} Beamed In On {avatar.LastBeamedIn} And Last Beamed Out On {avatar.LastBeamedOut}.");
+            CLIEngine.ShowMessage($"Avatar {avatar.Username} Beamed In On {avatar.LastBeamedIn} And Last Beamed Out On {avatar.LastBeamedOut}.");
+            Console.WriteLine("");
             Console.WriteLine(string.Concat(" Name: ", avatar.FullName));
             Console.WriteLine(string.Concat(" Created: ", avatar.CreatedDate));
             Console.WriteLine(string.Concat(" Karma: ", avatarDetail.Karma));
@@ -2494,6 +2548,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("");
             Console.WriteLine(" Human Design:");
             Console.WriteLine(string.Concat(" Type: ", avatarDetail.HumanDesign.Type));
+            Console.ForegroundColor = ConsoleColor.Yellow;
         }
 
         private static void STAR_OnInitialized(object sender, System.EventArgs e)
@@ -2557,7 +2612,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         CLIEngine.ShowWorkingMessage("IGNITING STAR...");
                         break;
 
-                    case Enums.StarStatus.Ingited:
+                    case Enums.StarStatus.Ignited:
                         CLIEngine.ShowSuccessMessage("STAR IGNITED");
                         break;
 
