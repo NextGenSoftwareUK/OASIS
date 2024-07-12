@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {

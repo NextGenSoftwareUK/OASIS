@@ -102,14 +102,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS", "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.csproj", "{B0E187E1-F913-40D1-A5EE-0F371087F8B4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.HoloNET.HDK.EntityFrameworkCore.Web.MVC", "NextGenSoftware.Holochain.HoloNET.HDK.EntityFrameworkCore.Web.MVC\NextGenSoftware.Holochain.HoloNET.HDK.EntityFrameworkCore.Web.MVC.csproj", "{BB44EA96-C1B7-45B0-A60D-674D6891C135}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.HoloNET.HDK.EntityFrameworkCore.Razor", "NextGenSoftware.Holochain.HoloNET.HDK.EntityFrameworkCore.Ra\NextGenSoftware.Holochain.HoloNET.HDK.EntityFrameworkCore.Razor.csproj", "{5D462C68-0AC0-44B8-A28F-7E9C5F7CDB08}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.HoloNET.HDK.Blazor", "NextGenSoftware.Holochain.HoloNET.HDK.Blazor\NextGenSoftware.Holochain.HoloNET.HDK.Blazor.csproj", "{68FE02AE-DD13-4178-9CF6-16DA2F4874FD}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NextGenSoftware.Holochain.HoloNET.HDK.Terminal", "NextGenSoftware.Holochain.HoloNET.HDK.Terminal\NextGenSoftware.Holochain.HoloNET.HDK.Terminal.vcxproj", "{1BA321C4-DE77-4DF3-B146-0FCF59EDDCD4}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.ONixOS", "NextGenSoftware.OASIS.API.ONODE.ONIXOS\NextGenSoftware.OASIS.API.ONode.ONixOS.csproj", "{9F36CE67-A2E1-4B47-8721-CF7B81F1337C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.OPortal", "NextGenSoftware.OASIS.API.ONODE.OPORTAL\NextGenSoftware.OASIS.API.ONode.OPortal.csproj", "{4176271D-9A21-4C8B-A551-93587AE1E6E1}"

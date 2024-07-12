@@ -27,6 +27,7 @@ using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Extensions;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 {

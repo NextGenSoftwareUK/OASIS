@@ -14,6 +14,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Linq;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {

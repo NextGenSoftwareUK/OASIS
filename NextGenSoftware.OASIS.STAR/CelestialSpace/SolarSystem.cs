@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
@@ -13,7 +14,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         private List<IPlanet> _planets { get; set; } = new List<IPlanet>();
         private List<IMeteroid> _meteroids { get; set; } = new List<IMeteroid>();
 
-        public IStar Star { get; set; } = new Star() { CreatedOASISType = new API.Core.Helpers.EnumValue<OASISType>(OASISType.STARCLI) };
+        public IStar Star { get; set; } = new Star() { CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI) };
 
         public List<IPlanet> Planets
         {
