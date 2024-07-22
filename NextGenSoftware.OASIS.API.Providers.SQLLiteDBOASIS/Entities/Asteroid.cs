@@ -2,19 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.STAR.Holons;
+//using NextGenSoftware.OASIS.STAR.Holons;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
 {
 
     //public class Asteroid : Holon, IAsteroid
-    public class Asteroid : CelestialHolon//, IAsteroid
+    public class Asteroid //: CelestialHolon//, IAsteroid
     {
         //public SpaceQuadrantType SpaceQuadrant { get; set; }
         //public int SpaceSector { get; set; }
@@ -50,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public List<IMoon> Moons { get; set; } = new List<IMoon>();
         public int NumberActiveAvatars { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public Asteroid() : base(HolonType.Asteroid) { } 
+        //public Asteroid() : base(HolonType.Asteroid) { } 
 
         public event HolonLoaded OnHolonLoaded;
         public event HolonSaved OnHolonSaved;
