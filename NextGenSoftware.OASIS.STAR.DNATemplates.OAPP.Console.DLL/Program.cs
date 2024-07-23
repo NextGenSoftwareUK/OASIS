@@ -2,6 +2,8 @@
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR;
+using NextGenSoftware.OASIS.STAR.CLI.Lib;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using {OAPPNAMESPACE};
 
 Console.WriteLine("Welcome To The {OAPPNAME} Console");
@@ -15,24 +17,25 @@ if (bootResult != null && !bootResult.IsError)
 {
     SuperZome2 zome = new SuperZome2();
 
-    //CLIEngine.ShowWorkingMessage("Loading Child Holons...");
-    //OASISResult<IEnumerable<IHolon>> holonsReuslt = zome.LoadChildHolons();
+    CLIEngine.ShowWorkingMessage("Loading Child Holons...");
+    OASISResult<IEnumerable<IHolon>> holonsReuslt = zome.LoadChildHolons();
 
-    //if (!holonsReuslt.IsError && holonsReuslt.Result != null)
-    //{
-    //    CLIEngine.ShowErrorMessage($"{holonsReuslt.Result.Count()} Child Holons Loaded.");
-    //}
-    //else
-    //    CLIEngine.ShowErrorMessage($"Error Loading Child Holons. Reason: {holonsReuslt.Message}");
+    if (!holonsReuslt.IsError && holonsReuslt.Result != null)
+    {
+        CLIEngine.ShowErrorMessage($"{holonsReuslt.Result.Count()} Child Holons Loaded.");
+        STARCLI.ShowHolons(holonsReuslt.Result);
+    }
+    else
+        CLIEngine.ShowErrorMessage($"Error Loading Child Holons. Reason: {holonsReuslt.Message}");
 
 
-    //CLIEngine.ShowWorkingMessage("Loading Zome...");
-    //OASISResult<IHolon> zomeResult = await zome.LoadAsync();
+    CLIEngine.ShowWorkingMessage("Loading Zome...");
+    OASISResult<IHolon> zomeResult = await zome.LoadAsync();
 
-    //if (!zomeResult.IsError && zomeResult.Result != null)
-    //    CLIEngine.ShowErrorMessage($"Zome Loaded. Name: {zomeResult.Result.Name}, Name: {zome.Name}, Holons Count: {zome.Holons.Count}, Children Count: {zome.Children.Count()}");
-    //else
-    //    CLIEngine.ShowErrorMessage($"Error Loading Zome. Reason: {zomeResult.Message}");
+    if (!zomeResult.IsError && zomeResult.Result != null)
+        CLIEngine.ShowErrorMessage($"Zome Loaded. Name: {zomeResult.Result.Name}, Name: {zome.Name}, Holons Count: {zome.Holons.Count}, Children Count: {zome.Children.Count()}");
+    else
+        CLIEngine.ShowErrorMessage($"Error Loading Zome. Reason: {zomeResult.Message}");
 
 
     CLIEngine.ShowWorkingMessage("Saving Test Holon (Using Zome)...");
