@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public delegate void OASISBootLoaderError(object sender, OASISErrorEventArgs e);
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
-        public static string OASISVersion { get; set; } = "v3.2.1";
+        public static string OASISVersion { get; set; } = "v3.2.2";
         public static string COSMICVersion { get; set; } = "v2.0.1";
         public static string STARODKVersion { get; set; } = "v2.0.1";
 
@@ -258,8 +258,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         LoggingManager.Log($"OASIS HYPERDRIVE ONLINE.", LogType.Info);
                         LoggingManager.Log($"OASIS BOOTED.", LogType.Info);
                         
-                        if (!string.IsNullOrEmpty(result.Message))
-                            LoggingManager.Log($"{result.Message}", LogType.Info);
+                        //if (!string.IsNullOrEmpty(result.Message))
+                        //    LoggingManager.Log($"{result.Message}", LogType.Info);
                         
                         LoggingManager.Log($"OASIS RUNTIME VERSION: {OASISVersion}.", LogType.Info);
                         LoggingManager.Log($"COSMIC ORM RUNTIME VERSION: {COSMICVersion}.", LogType.Info);

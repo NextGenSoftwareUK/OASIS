@@ -383,6 +383,12 @@
 		<Reference Include="NextGenSoftware.OASIS.STAR">
 			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.STAR.dll</HintPath>
 		</Reference>
+		<Reference Include="NextGenSoftware.OASIS.STAR.CLI">
+		  <HintPath>Runtimes\STAR Runtime v2.0.1\NextGenSoftware.OASIS.STAR.CLI.dll</HintPath>
+		</Reference>
+		<Reference Include="NextGenSoftware.OASIS.STAR.CLI.Lib">
+		  <HintPath>Runtimes\STAR Runtime v2.0.1\NextGenSoftware.OASIS.STAR.CLI.Lib.dll</HintPath>
+		</Reference>
 		<Reference Include="NextGenSoftware.Utilities">
 			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.Utilities.dll</HintPath>
 		</Reference>
