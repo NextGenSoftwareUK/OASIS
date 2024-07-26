@@ -21,7 +21,7 @@ if (bootResult != null && !bootResult.IsError)
 
     if (!holonsReuslt.IsError && holonsReuslt.Result != null)
     {
-        CLIEngine.ShowErrorMessage($"{holonsReuslt.Result.Count()} Child Holons Loaded.");
+        CLIEngine.ShowSuccessMessage($"{holonsReuslt.Result.Count()} Child Holons Loaded.");
         STARCLI.ShowHolons(holonsReuslt.Result);
     }
     else
@@ -64,8 +64,7 @@ if (bootResult != null && !bootResult.IsError)
         if (!loadHolonResult.IsError && loadHolonResult.Result != null)
         {
             holon = loadHolonResult.Result;
-            ShowHolon(saveHolonResult.Result, "saveHolonResult: Test Holon Loaded (Using Zome).");
-            ShowHolon(holon, "holon: Test Holon Loaded (Using Zome).");
+            ShowHolon(loadHolonResult.Result, "loadHolonResult: Test Holon Loaded (Using Zome).");
         }
         else
             CLIEngine.ShowErrorMessage($"Error Loading Holon (Using Zome). Reason: {loadHolonResult.Message}");
@@ -94,10 +93,7 @@ if (bootResult != null && !bootResult.IsError)
         OASISResult<{HOLON}> loadHolonResult = await zome.GlobalHolonData.LoadHolonAsync<{HOLON}> (holon.Id);
 
         if (!loadHolonResult.IsError && loadHolonResult.Result != null)
-        {
-            ShowHolon(saveHolonResult.Result, "saveHolonResult: Test Holon Loaded (Using Zome GlobalHolonData Generic SaveAsync).");
-            ShowHolon(holon, "holon: Test Holon Loaded (Using Zome GlobalHolonData Generic SaveAsync).");
-        }
+            ShowHolon(loadHolonResult.Result, "loadHolonResult: Test Holon Loaded (Using Zome GlobalHolonData Generic SaveAsync).");
         else
             CLIEngine.ShowErrorMessage($"Error Loading Holon (Using Zome GlobalHolonData Generic LoadAsync). Reason: {loadHolonResult.Message}");
     }
@@ -127,10 +123,7 @@ if (bootResult != null && !bootResult.IsError)
         OASISResult<IHolon> loadHolonResult = await zome.GlobalHolonData.LoadHolonAsync(holon.Id);
 
         if (!loadHolonResult.IsError && loadHolonResult.Result != null)
-        {
-            ShowHolon(saveGlobalHolonResult.Result, "saveGlobalHolonResult: Test Holon Loaded (Using Zome GlobalHolonData Standard SaveAsync).");
-            ShowHolon(holon, "holon: Test Holon Loaded (Using Zome GlobalHolonData Standard SaveAsync).");
-        }
+            ShowHolon(loadHolonResult.Result, "loadHolonResult: Test Holon Loaded (Using Zome GlobalHolonData Standard SaveAsync).");
         else
             CLIEngine.ShowErrorMessage($"Error Loading Holon (Using Zome GlobalHolonData Standard LoadAsync). Reason: {loadHolonResult.Message}");
     }
@@ -147,8 +140,8 @@ if (bootResult != null && !bootResult.IsError)
 
     //CelestialBodyOnly:{CELESTIALBODY} {CELESTIALBODYVAR} = new {CELESTIALBODY}();
     //CelestialBodyOnly:saveHolonResult = await {CELESTIALBODYVAR}.Save{HOLON}Async(holon);
-    //CelestialBodyOnly://saveHolonResult = await supermama.GlobalHolonData.SaveHolonAsync<{HOLON}>(holon); //Alternatively you can use the generic GlobalHolonData functions just like you could with the zome example above (GlobalHolonData is available on ALL COSMIC objects so includes CelestialBodies, CelesitalSpaces, Zomes & Holons).
-    //CelestialBodyOnly://saveGlobalHolonResult = await supermama.GlobalHolonData.SaveHolonAsync(holon);
+    //CelestialBodyOnly://saveHolonResult = await {CELESTIALBODY}.GlobalHolonData.SaveHolonAsync<{HOLON}>(holon); //Alternatively you can use the generic GlobalHolonData functions just like you could with the zome example above (GlobalHolonData is available on ALL COSMIC objects so includes CelestialBodies, CelesitalSpaces, Zomes & Holons).
+    //CelestialBodyOnly://saveGlobalHolonResult = await {CELESTIALBODY}.GlobalHolonData.SaveHolonAsync(holon);
 
     //CelestialBodyOnly:if (!saveHolonResult.IsError && saveHolonResult.Result != null)
     //CelestialBodyOnly:{
@@ -160,8 +153,7 @@ if (bootResult != null && !bootResult.IsError)
 
     //CelestialBodyOnly:if (!loadHolonResult.IsError && loadHolonResult.Result != null)
     //CelestialBodyOnly:{
-    //CelestialBodyOnly:ShowHolon(saveGlobalHolonResult.Result, "saveGlobalHolonResult: Test Holon Loaded (Using CelestialBody).");
-    //CelestialBodyOnly:ShowHolon(holon, "holon: Test Holon Loaded (Using CelestialBody).");
+    //CelestialBodyOnly:ShowHolon(loadHolonResult.Result, "loadHolonResult: Test Holon Loaded (Using CelestialBody).");
     //CelestialBodyOnly:}
     //CelestialBodyOnly:else
     //CelestialBodyOnly:CLIEngine.ShowErrorMessage($"Error Loading Holon (Using Zome GlobalHolonData Standard LoadAsync). Reason: {loadHolonResult.Message}");
@@ -192,10 +184,7 @@ if (bootResult != null && !bootResult.IsError)
         OASISResult<{HOLON}> loadHolonResult = await holon.LoadAsync<{HOLON}>();
 
         if (!loadHolonResult.IsError && loadHolonResult.Result != null)
-        {
-            ShowHolon(saveHolonResult.Result, "saveHolonResult: Test Holon Loaded (Using Holon).");
-            ShowHolon(holon, "holon: Test Holon Loaded (Using Holon).");
-        }
+            ShowHolon(loadHolonResult.Result, "loadHolonResult: Test Holon Loaded (Using Holon).");
         else
             CLIEngine.ShowErrorMessage($"Error Loading Holon (Using Holon). Reason: {loadHolonResult.Message}");
     }
@@ -227,10 +216,7 @@ if (bootResult != null && !bootResult.IsError)
         OASISResult<{HOLON}> loadHolonResult = await STAR.OASISAPI.Data.LoadHolonAsync<{HOLON}>(holon.Id);
 
         if (!loadHolonResult.IsError && loadHolonResult.Result != null)
-        {
-            ShowHolon(saveHolonResult.Result, "saveHolonResult: Test Holon Loaded (Using Data API).");
-            ShowHolon(holon, "holon: Test Holon Loaded (Using Data API).");
-        }
+            ShowHolon(loadHolonResult.Result, "loadHolonResult: Test Holon Loaded (Using Data API).");
         else
             CLIEngine.ShowErrorMessage($"Error Loading Holon (Using Data API). Reason: {loadHolonResult.Message}");
     }
