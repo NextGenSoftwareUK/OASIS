@@ -34,498 +34,498 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Reference Include="AutoMapper">
-			<HintPath>OASIS Runtime\3.1.1\AutoMapper.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\AutoMapper.dll</HintPath>
 		</Reference>
 		<Reference Include="AutoMapper.Extensions.Microsoft.DependencyInjection">
-			<HintPath>OASIS Runtime\3.1.1\AutoMapper.Extensions.Microsoft.DependencyInjection.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\AutoMapper.Extensions.Microsoft.DependencyInjection.dll</HintPath>
 		</Reference>
 		<Reference Include="AWSSDK.Core">
-			<HintPath>OASIS Runtime\3.1.1\AWSSDK.Core.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\AWSSDK.Core.dll</HintPath>
 		</Reference>
 		<Reference Include="AWSSDK.SecurityToken">
-			<HintPath>OASIS Runtime\3.1.1\AWSSDK.SecurityToken.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\AWSSDK.SecurityToken.dll</HintPath>
 		</Reference>
 		<Reference Include="Azure.Core">
-			<HintPath>OASIS Runtime\3.1.1\Azure.Core.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Azure.Core.dll</HintPath>
 		</Reference>
 		<Reference Include="BCrypt.Net-Next">
-			<HintPath>OASIS Runtime\3.1.1\BCrypt.Net-Next.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\BCrypt.Net-Next.dll</HintPath>
 		</Reference>
 		<Reference Include="BouncyCastle.Crypto">
-			<HintPath>OASIS Runtime\3.1.1\BouncyCastle.Crypto.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\BouncyCastle.Crypto.dll</HintPath>
 		</Reference>
 		<Reference Include="CBOR">
-			<HintPath>OASIS Runtime\3.1.1\CBOR.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\CBOR.dll</HintPath>
 		</Reference>
 		<Reference Include="Chaos.NaCl">
-			<HintPath>OASIS Runtime\3.1.1\Chaos.NaCl.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Chaos.NaCl.dll</HintPath>
 		</Reference>
 		<Reference Include="Colorful.Console">
-			<HintPath>OASIS Runtime\3.1.1\Colorful.Console.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Colorful.Console.dll</HintPath>
 		</Reference>
 		<Reference Include="Common.Logging">
-			<HintPath>OASIS Runtime\3.1.1\Common.Logging.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Common.Logging.dll</HintPath>
 		</Reference>
 		<Reference Include="Common.Logging.Core">
-			<HintPath>OASIS Runtime\3.1.1\Common.Logging.Core.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Common.Logging.Core.dll</HintPath>
 		</Reference>
 		<Reference Include="Cryptography.ECDSA">
-			<HintPath>OASIS Runtime\3.1.1\Cryptography.ECDSA.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Cryptography.ECDSA.dll</HintPath>
 		</Reference>
 		<Reference Include="DnsClient">
-			<HintPath>OASIS Runtime\3.1.1\DnsClient.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\DnsClient.dll</HintPath>
 		</Reference>
 		<Reference Include="EosSharp">
-			<HintPath>OASIS Runtime\3.1.1\EosSharp.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\EosSharp.dll</HintPath>
 		</Reference>
 		<Reference Include="EosSharp.Core">
-			<HintPath>OASIS Runtime\3.1.1\EosSharp.Core.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\EosSharp.Core.dll</HintPath>
 		</Reference>
 		<Reference Include="Google.Protobuf">
-			<HintPath>OASIS Runtime\3.1.1\Google.Protobuf.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Google.Protobuf.dll</HintPath>
 		</Reference>
 		<Reference Include="Humanizer">
-			<HintPath>OASIS Runtime\3.1.1\Humanizer.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Humanizer.dll</HintPath>
 		</Reference>
 		<Reference Include="ICSharpCode.SharpZipLib">
-			<HintPath>OASIS Runtime\3.1.1\ICSharpCode.SharpZipLib.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\ICSharpCode.SharpZipLib.dll</HintPath>
 		</Reference>
 		<Reference Include="Ipfs.Core">
-			<HintPath>OASIS Runtime\3.1.1\Ipfs.Core.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Ipfs.Core.dll</HintPath>
 		</Reference>
 		<Reference Include="Ipfs.Engine">
-			<HintPath>OASIS Runtime\3.1.1\Ipfs.Engine.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Ipfs.Engine.dll</HintPath>
 		</Reference>
 		<Reference Include="Ipfs.Http.Client">
-			<HintPath>OASIS Runtime\3.1.1\Ipfs.Http.Client.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Ipfs.Http.Client.dll</HintPath>
 		</Reference>
 		<Reference Include="MailKit">
-			<HintPath>OASIS Runtime\3.1.1\MailKit.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\MailKit.dll</HintPath>
 		</Reference>
 		<Reference Include="Makaretu.Dns">
-			<HintPath>OASIS Runtime\3.1.1\Makaretu.Dns.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Makaretu.Dns.dll</HintPath>
 		</Reference>
 		<Reference Include="Makaretu.Dns.Multicast">
-			<HintPath>OASIS Runtime\3.1.1\Makaretu.Dns.Multicast.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Makaretu.Dns.Multicast.dll</HintPath>
 		</Reference>
 		<Reference Include="Makaretu.Dns.Unicast">
-			<HintPath>OASIS Runtime\3.1.1\Makaretu.Dns.Unicast.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Makaretu.Dns.Unicast.dll</HintPath>
 		</Reference>
 		<Reference Include="Makaretu.KBucket">
-			<HintPath>OASIS Runtime\3.1.1\Makaretu.KBucket.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Makaretu.KBucket.dll</HintPath>
 		</Reference>
 		<Reference Include="MessagePack">
-			<HintPath>OASIS Runtime\3.1.1\MessagePack.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\MessagePack.dll</HintPath>
 		</Reference>
 		<Reference Include="MessagePack.Annotations">
-			<HintPath>OASIS Runtime\3.1.1\MessagePack.Annotations.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\MessagePack.Annotations.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.AspNetCore.Authentication.JwtBearer">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.AspNetCore.Authentication.JwtBearer.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.AspNetCore.Authentication.JwtBearer.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.Azure.Cosmos.Client">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.Azure.Cosmos.Client.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.Azure.Cosmos.Client.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.Azure.Cosmos.Core">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.Azure.Cosmos.Core.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.Azure.Cosmos.Core.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.Azure.Cosmos.Direct">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.Azure.Cosmos.Direct.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.Azure.Cosmos.Direct.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.Azure.Cosmos.Serialization.HybridRow">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.Azure.Cosmos.Serialization.HybridRow.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.Azure.Cosmos.Serialization.HybridRow.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.Azure.DocumentDB.Core">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.Azure.DocumentDB.Core.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.Azure.DocumentDB.Core.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.Bcl.AsyncInterfaces">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.Bcl.HashCode">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.Bcl.HashCode.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.Bcl.HashCode.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.Data.Sqlite">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.Data.Sqlite.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.Data.Sqlite.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.EntityFrameworkCore">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.EntityFrameworkCore.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.EntityFrameworkCore.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.EntityFrameworkCore.Abstractions">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.EntityFrameworkCore.Abstractions.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.EntityFrameworkCore.Abstractions.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.EntityFrameworkCore.Design">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.EntityFrameworkCore.Design.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.EntityFrameworkCore.Design.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.EntityFrameworkCore.Relational">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.EntityFrameworkCore.Relational.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.EntityFrameworkCore.Relational.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.EntityFrameworkCore.Sqlite">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.EntityFrameworkCore.Sqlite.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.EntityFrameworkCore.Sqlite.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.Extensions.DependencyModel">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.Extensions.DependencyModel.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.Extensions.DependencyModel.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.IdentityModel.Abstractions">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.IdentityModel.Abstractions.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.IdentityModel.Abstractions.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.IdentityModel.JsonWebTokens">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.IdentityModel.Logging">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.IdentityModel.Logging.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.IdentityModel.Logging.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.IdentityModel.Protocols">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.IdentityModel.Protocols.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.IdentityModel.Protocols.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.IdentityModel.Tokens">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.IdentityModel.Tokens.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.IdentityModel.Tokens.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.NET.StringTools">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.NET.StringTools.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.NET.StringTools.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.OpenApi">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.OpenApi.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.OpenApi.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.Win32.SystemEvents">
-			<HintPath>OASIS Runtime\3.1.1\Microsoft.Win32.SystemEvents.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Microsoft.Win32.SystemEvents.dll</HintPath>
 		</Reference>
 		<Reference Include="MimeKit">
-			<HintPath>OASIS Runtime\3.1.1\MimeKit.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\MimeKit.dll</HintPath>
 		</Reference>
 		<Reference Include="MongoDB.Bson">
-			<HintPath>OASIS Runtime\3.1.1\MongoDB.Bson.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\MongoDB.Bson.dll</HintPath>
 		</Reference>
 		<Reference Include="MongoDB.Driver">
-			<HintPath>OASIS Runtime\3.1.1\MongoDB.Driver.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\MongoDB.Driver.dll</HintPath>
 		</Reference>
 		<Reference Include="MongoDB.Driver.Core">
-			<HintPath>OASIS Runtime\3.1.1\MongoDB.Driver.Core.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\MongoDB.Driver.Core.dll</HintPath>
 		</Reference>
 		<Reference Include="MongoDB.Libmongocrypt">
-			<HintPath>OASIS Runtime\3.1.1\MongoDB.Libmongocrypt.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\MongoDB.Libmongocrypt.dll</HintPath>
 		</Reference>
 		<Reference Include="NBitcoin.Secp256k1">
-			<HintPath>OASIS Runtime\3.1.1\NBitcoin.Secp256k1.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NBitcoin.Secp256k1.dll</HintPath>
 		</Reference>
 		<Reference Include="Neo4j.Driver">
-			<HintPath>OASIS Runtime\3.1.1\Neo4j.Driver.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Neo4j.Driver.dll</HintPath>
 		</Reference>
 		<Reference Include="Neo4j.Driver.Simple">
-			<HintPath>OASIS Runtime\3.1.1\Neo4j.Driver.Simple.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Neo4j.Driver.Simple.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.ABI">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.ABI.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.ABI.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.Accounts">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.Accounts.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.Accounts.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.BlockchainProcessing">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.BlockchainProcessing.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.BlockchainProcessing.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.Contracts">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.Contracts.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.Contracts.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.Hex">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.Hex.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.Hex.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.JsonRpc.Client">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.JsonRpc.Client.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.JsonRpc.Client.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.JsonRpc.RpcClient">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.JsonRpc.RpcClient.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.JsonRpc.RpcClient.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.KeyStore">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.KeyStore.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.KeyStore.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.Model">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.Model.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.Model.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.RLP">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.RLP.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.RLP.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.RPC">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.RPC.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.RPC.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.Signer">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.Signer.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.Signer.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.Util">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.Util.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.Util.dll</HintPath>
 		</Reference>
 		<Reference Include="Nethereum.Web3">
-			<HintPath>OASIS Runtime\3.1.1\Nethereum.Web3.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nethereum.Web3.dll</HintPath>
 		</Reference>
 		<Reference Include="Newtonsoft.Json">
-			<HintPath>OASIS Runtime\3.1.1\Newtonsoft.Json.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Newtonsoft.Json.dll</HintPath>
 		</Reference>
 		<Reference Include="Newtonsoft.Json.Bson">
-			<HintPath>OASIS Runtime\3.1.1\Newtonsoft.Json.Bson.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Newtonsoft.Json.Bson.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.CLI.Engine">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.CLI.Engine.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.CLI.Engine.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.ErrorHandling">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.ErrorHandling.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.ErrorHandling.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.Holochain.HoloNET.Client">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.Holochain.HoloNET.Client.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.Holochain.HoloNET.Client.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.Holochain.HoloNET.ORM">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.Holochain.HoloNET.ORM.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.Holochain.HoloNET.ORM.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.Logging">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.Logging.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.Logging.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.Logging.NLog">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.Logging.NLog.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.Logging.NLog.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Core">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Core.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Core.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Core.Apollo.Server">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Core.Apollo.Server.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Core.Apollo.Server.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.COSMIC">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.COSMIC.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.COSMIC.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.DNA">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.DNA.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.DNA.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Native.Integrated.EndPoint">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.ONode.Core">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.ONode.Core.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.ONode.Core.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.ONode.WebAPI">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.ONode.WebAPI.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.ONode.WebAPI.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.BlockStackOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.EOSIOOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.EthereumOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.HashgraphOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.HoloOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.HoloOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.HoloOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.HoloWebOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.HoloWebOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.HoloWebOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.IPFSOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.LocalFileOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.MongoDBOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.PLANOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.PLANOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.PLANOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.SEEDSOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.SOLANAOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.SOLIDOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.TelosOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.TelosOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.TelosOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.API.Providers.TRONOASIS">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.API.Providers.TRONOASIS.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.API.Providers.TRONOASIS.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.Common">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.Common.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.Common.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.OASISBootLoader">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.OASISBootLoader.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.OASISBootLoader.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.STAR">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.OASIS.STAR.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.OASIS.STAR.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.STAR.CLI">
-		  <HintPath>Runtimes\STAR Runtime v2.0.1\NextGenSoftware.OASIS.STAR.CLI.dll</HintPath>
+			<HintPath>Runtimes\STAR Runtime v2.0.1\NextGenSoftware.OASIS.STAR.CLI.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.OASIS.STAR.CLI.Lib">
-		  <HintPath>Runtimes\STAR Runtime v2.0.1\NextGenSoftware.OASIS.STAR.CLI.Lib.dll</HintPath>
+			<HintPath>Runtimes\STAR Runtime v2.0.1\NextGenSoftware.OASIS.STAR.CLI.Lib.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.Utilities">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.Utilities.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.Utilities.dll</HintPath>
 		</Reference>
 		<Reference Include="NextGenSoftware.WebSocket">
-			<HintPath>OASIS Runtime\3.1.1\NextGenSoftware.WebSocket.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NextGenSoftware.WebSocket.dll</HintPath>
 		</Reference>
 		<Reference Include="Nito.AsyncEx.Context">
-			<HintPath>OASIS Runtime\3.1.1\Nito.AsyncEx.Context.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nito.AsyncEx.Context.dll</HintPath>
 		</Reference>
 		<Reference Include="Nito.AsyncEx.Coordination">
-			<HintPath>OASIS Runtime\3.1.1\Nito.AsyncEx.Coordination.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nito.AsyncEx.Coordination.dll</HintPath>
 		</Reference>
 		<Reference Include="Nito.AsyncEx.Interop.WaitHandles">
-			<HintPath>OASIS Runtime\3.1.1\Nito.AsyncEx.Interop.WaitHandles.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nito.AsyncEx.Interop.WaitHandles.dll</HintPath>
 		</Reference>
 		<Reference Include="Nito.AsyncEx.Oop">
-			<HintPath>OASIS Runtime\3.1.1\Nito.AsyncEx.Oop.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nito.AsyncEx.Oop.dll</HintPath>
 		</Reference>
 		<Reference Include="Nito.AsyncEx.Tasks">
-			<HintPath>OASIS Runtime\3.1.1\Nito.AsyncEx.Tasks.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nito.AsyncEx.Tasks.dll</HintPath>
 		</Reference>
 		<Reference Include="Nito.Cancellation">
-			<HintPath>OASIS Runtime\3.1.1\Nito.Cancellation.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nito.Cancellation.dll</HintPath>
 		</Reference>
 		<Reference Include="Nito.Collections.Deque">
-			<HintPath>OASIS Runtime\3.1.1\Nito.Collections.Deque.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nito.Collections.Deque.dll</HintPath>
 		</Reference>
 		<Reference Include="Nito.Disposables">
-			<HintPath>OASIS Runtime\3.1.1\Nito.Disposables.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Nito.Disposables.dll</HintPath>
 		</Reference>
 		<Reference Include="NLog">
-			<HintPath>OASIS Runtime\3.1.1\NLog.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\NLog.dll</HintPath>
 		</Reference>
 		<Reference Include="Numbers">
-			<HintPath>OASIS Runtime\3.1.1\Numbers.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Numbers.dll</HintPath>
 		</Reference>
 		<Reference Include="PeerTalk">
-			<HintPath>OASIS Runtime\3.1.1\PeerTalk.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\PeerTalk.dll</HintPath>
 		</Reference>
 		<Reference Include="protobuf-net">
-			<HintPath>OASIS Runtime\3.1.1\protobuf-net.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\protobuf-net.dll</HintPath>
 		</Reference>
 		<Reference Include="Rijndael256">
-			<HintPath>OASIS Runtime\3.1.1\Rijndael256.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Rijndael256.dll</HintPath>
 		</Reference>
 		<Reference Include="SauceControl.Blake2Fast">
-			<HintPath>OASIS Runtime\3.1.1\SauceControl.Blake2Fast.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\SauceControl.Blake2Fast.dll</HintPath>
 		</Reference>
 		<Reference Include="Semver">
-			<HintPath>OASIS Runtime\3.1.1\Semver.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Semver.dll</HintPath>
 		</Reference>
 		<Reference Include="SharpCompress">
-			<HintPath>OASIS Runtime\3.1.1\SharpCompress.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\SharpCompress.dll</HintPath>
 		</Reference>
 		<Reference Include="SimpleBase">
-			<HintPath>OASIS Runtime\3.1.1\SimpleBase.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\SimpleBase.dll</HintPath>
 		</Reference>
 		<Reference Include="Snappier">
-			<HintPath>OASIS Runtime\3.1.1\Snappier.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Snappier.dll</HintPath>
 		</Reference>
 		<Reference Include="Sodium.Core">
-			<HintPath>OASIS Runtime\3.1.1\Sodium.Core.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Sodium.Core.dll</HintPath>
 		</Reference>
 		<Reference Include="Solnet.Extensions">
-			<HintPath>OASIS Runtime\3.1.1\Solnet.Extensions.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Solnet.Extensions.dll</HintPath>
 		</Reference>
 		<Reference Include="Solnet.KeyStore">
-			<HintPath>OASIS Runtime\3.1.1\Solnet.KeyStore.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Solnet.KeyStore.dll</HintPath>
 		</Reference>
 		<Reference Include="Solnet.Programs">
-			<HintPath>OASIS Runtime\3.1.1\Solnet.Programs.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Solnet.Programs.dll</HintPath>
 		</Reference>
 		<Reference Include="Solnet.Rpc">
-			<HintPath>OASIS Runtime\3.1.1\Solnet.Rpc.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Solnet.Rpc.dll</HintPath>
 		</Reference>
 		<Reference Include="Solnet.Serum">
-			<HintPath>OASIS Runtime\3.1.1\Solnet.Serum.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Solnet.Serum.dll</HintPath>
 		</Reference>
 		<Reference Include="Solnet.Wallet">
-			<HintPath>OASIS Runtime\3.1.1\Solnet.Wallet.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Solnet.Wallet.dll</HintPath>
 		</Reference>
 		<Reference Include="SQLitePCLRaw.batteries_v2">
-			<HintPath>OASIS Runtime\3.1.1\SQLitePCLRaw.batteries_v2.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\SQLitePCLRaw.batteries_v2.dll</HintPath>
 		</Reference>
 		<Reference Include="SQLitePCLRaw.core">
-			<HintPath>OASIS Runtime\3.1.1\SQLitePCLRaw.core.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\SQLitePCLRaw.core.dll</HintPath>
 		</Reference>
 		<Reference Include="SQLitePCLRaw.provider.e_sqlite3">
-			<HintPath>OASIS Runtime\3.1.1\SQLitePCLRaw.provider.e_sqlite3.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\SQLitePCLRaw.provider.e_sqlite3.dll</HintPath>
 		</Reference>
 		<Reference Include="Swashbuckle.AspNetCore.Swagger">
-			<HintPath>OASIS Runtime\3.1.1\Swashbuckle.AspNetCore.Swagger.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Swashbuckle.AspNetCore.Swagger.dll</HintPath>
 		</Reference>
 		<Reference Include="Swashbuckle.AspNetCore.SwaggerGen">
-			<HintPath>OASIS Runtime\3.1.1\Swashbuckle.AspNetCore.SwaggerGen.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Swashbuckle.AspNetCore.SwaggerGen.dll</HintPath>
 		</Reference>
 		<Reference Include="Swashbuckle.AspNetCore.SwaggerUI">
-			<HintPath>OASIS Runtime\3.1.1\Swashbuckle.AspNetCore.SwaggerUI.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\Swashbuckle.AspNetCore.SwaggerUI.dll</HintPath>
 		</Reference>
 		<Reference Include="System.Configuration.ConfigurationManager">
-			<HintPath>OASIS Runtime\3.1.1\System.Configuration.ConfigurationManager.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\System.Configuration.ConfigurationManager.dll</HintPath>
 		</Reference>
 		<Reference Include="System.Drawing.Common">
-			<HintPath>OASIS Runtime\3.1.1\System.Drawing.Common.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\System.Drawing.Common.dll</HintPath>
 		</Reference>
 		<Reference Include="System.IdentityModel.Tokens.Jwt">
-			<HintPath>OASIS Runtime\3.1.1\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\System.IdentityModel.Tokens.Jwt.dll</HintPath>
 		</Reference>
 		<Reference Include="System.Net.Http.Formatting">
-			<HintPath>OASIS Runtime\3.1.1\System.Net.Http.Formatting.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\System.Net.Http.Formatting.dll</HintPath>
 		</Reference>
 		<Reference Include="System.Net.IPNetwork">
-			<HintPath>OASIS Runtime\3.1.1\System.Net.IPNetwork.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\System.Net.IPNetwork.dll</HintPath>
 		</Reference>
 		<Reference Include="System.Security.Cryptography.ProtectedData">
-			<HintPath>OASIS Runtime\3.1.1\System.Security.Cryptography.ProtectedData.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\System.Security.Cryptography.ProtectedData.dll</HintPath>
 		</Reference>
 		<Reference Include="System.Security.Permissions">
-			<HintPath>OASIS Runtime\3.1.1\System.Security.Permissions.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\System.Security.Permissions.dll</HintPath>
 		</Reference>
 		<Reference Include="System.ServiceModel">
-			<HintPath>OASIS Runtime\3.1.1\System.ServiceModel.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\System.ServiceModel.dll</HintPath>
 		</Reference>
 		<Reference Include="System.ServiceModel.Primitives">
-			<HintPath>OASIS Runtime\3.1.1\System.ServiceModel.Primitives.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\System.ServiceModel.Primitives.dll</HintPath>
 		</Reference>
 		<Reference Include="System.Web.Http">
-			<HintPath>OASIS Runtime\3.1.1\System.Web.Http.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\System.Web.Http.dll</HintPath>
 		</Reference>
 		<Reference Include="System.Windows.Extensions">
-			<HintPath>OASIS Runtime\3.1.1\System.Windows.Extensions.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\System.Windows.Extensions.dll</HintPath>
 		</Reference>
 		<Reference Include="YamlDotNet">
-			<HintPath>OASIS Runtime\3.1.1\YamlDotNet.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\YamlDotNet.dll</HintPath>
 		</Reference>
 		<Reference Include="ZstdSharp">
-			<HintPath>OASIS Runtime\3.1.1\ZstdSharp.dll</HintPath>
+			<HintPath>Runtimes\OASIS Runtime\3.2.2\ZstdSharp.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 
