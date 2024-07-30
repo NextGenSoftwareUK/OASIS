@@ -7,7 +7,12 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using {OAPPNAMESPACE};
 
+int dividerLength = 119;
+
+CLIEngine.ShowDivider("*", dividerLength);
 Console.WriteLine("Welcome To The {OAPPNAME} Console");
+CLIEngine.ShowDivider("*", dividerLength);
+Console.WriteLine("");
 
 //OASISResult<bool> bootResult = await OASISAPI.BootOASISAsync();
 OASISResult<bool> bootResult = await STAR.OASISAPI.BootOASISAsync();
@@ -16,56 +21,52 @@ if (bootResult != null && !bootResult.IsError)
 {
     SuperZome2 zome = new SuperZome2();
 
-    CLIEngine.ShowWorkingMessage("Loading Child Holons...");
-    OASISResult<IEnumerable<IHolon>> holonsReuslt = zome.LoadChildHolons();
-
-    if (!holonsReuslt.IsError && holonsReuslt.Result != null)
-    {
-        CLIEngine.ShowSuccessMessage($"{holonsReuslt.Result.Count()} Child Holons Loaded.");
-        STARCLI.ShowHolons(holonsReuslt.Result);
-    }
-    else
-        CLIEngine.ShowErrorMessage($"Error Loading Child Holons. Reason: {holonsReuslt.Message}");
-
-
+    CLIEngine.ShowDivider("*", dividerLength);
     CLIEngine.ShowWorkingMessage("Loading Zome...");
     OASISResult<IZome> zomeResult = await zome.LoadAsync();
 
     if (!zomeResult.IsError && zomeResult.Result != null)
-        CLIEngine.ShowErrorMessage($"Zome Loaded. Name: {zomeResult.Result.Name}, Name: {zome.Name}, Children Count: {zome.Children.Count()}");
+        CLIEngine.ShowSuccessMessage($"Zome Loaded. Name: {zomeResult.Result.Name}, Name: {zome.Name}, Children Count: {zome.Children.Count()}");
     else
         CLIEngine.ShowErrorMessage($"Error Loading Zome. Reason: {zomeResult.Message}");
 
 
+    CLIEngine.ShowWorkingMessage("Loading Child Holons...");
+    OASISResult<IEnumerable<IHolon>> holonsReuslt = zome.LoadChildHolons();
+
+    if (!holonsReuslt.IsError && holonsReuslt.Result != null)
+        STARCLI.ShowHolons(holonsReuslt.Result);
+    else
+        CLIEngine.ShowErrorMessage($"Error Loading Child Holons. Reason: {holonsReuslt.Message}");
+
+    
+    CLIEngine.ShowDivider("*", dividerLength);
     CLIEngine.ShowWorkingMessage("Saving Test Holon (Using Zome)...");
 
     {HOLON} holon = new {HOLON}();
 
     //Example of how to set one of the generated properties/fields of our strongly typed type (holon). The same applies for any generated zomes or celestial bodies.
-    holon.{STRINGPROPERTY} = "test custom property value (Using Zome).";
+    holon.{STRINGPROPERTY} = "test custom property value (Using Zome)";
 
     //Name and Description are two built-in properties for all COSMIC objects.
-    holon.Name = "test name (Using Zome).";
-    holon.Description = "test desc (Using Zome).";
+    holon.Name = "test name (Using Zome)";
+    holon.Description = "test desc (Using Zome)";
 
     //We can save any custom meta data like this (there is no limit to how much metadata you wish to save in the keyvalue pairs.
-    holon.MetaData["CustomData"] = "test custom data (Using Zome).";
+    holon.MetaData["CustomData"] = "test custom data (Using Zome)";
 
     OASISResult<SuperTest2> saveHolonResult = zome.SaveSuperTest2(holon);
 
     if (!saveHolonResult.IsError && saveHolonResult.Result != null)
     {
-        ShowHolon(saveHolonResult.Result, "saveHolonResult: Test Holon Saved (Using Zome).");
-        ShowHolon(holon, "holon: Test Holon Saved (Using Zome).");
+        ShowHolon(saveHolonResult.Result, "saveHolonResult: Test Holon Saved (Using Zome)");
+        ShowHolon(holon, "holon: Test Holon Saved (Using Zome)");
 
         CLIEngine.ShowWorkingMessage("Loading Test Holon (Using Zome)...");
         OASISResult<SuperTest2> loadHolonResult = await zome.LoadSuperTest2Async(holon.Id);
 
         if (!loadHolonResult.IsError && loadHolonResult.Result != null)
-        {
-            holon = loadHolonResult.Result;
-            ShowHolon(loadHolonResult.Result, "loadHolonResult: Test Holon Loaded (Using Zome).");
-        }
+            ShowHolon(loadHolonResult.Result, "loadHolonResult: Test Holon Loaded (Using Zome)");
         else
             CLIEngine.ShowErrorMessage($"Error Loading Holon (Using Zome). Reason: {loadHolonResult.Message}");
     }
@@ -74,13 +75,14 @@ if (bootResult != null && !bootResult.IsError)
 
 
     //Alternatively you can use the generic functions in GlobalHolonData to save/load/delete holons. There are generic and standard versions of all load & save functions. If you use the generic versions then it works in the same way as above, however if you use the standard versions then they are not strongly typed to the generated holons/zomes, etc
+    CLIEngine.ShowDivider("*", dividerLength);
     CLIEngine.ShowWorkingMessage("Saving Test Holon (Using Zome GlobalHolonData Generic SaveAsync)...");
 
     holon = new {HOLON}();
-    holon.{STRINGPROPERTY} = "test custom property value (Using Zome GlobalHolonData Standard SaveAsync).";
-    holon.Name = "test name (Using Zome GlobalHolonData Standard SaveAsync).";
-    holon.Description = "test desc (Using Zome GlobalHolonData Standard SaveAsync).";
-    holon.MetaData["CustomData"] = "test custom data (Using Zome GlobalHolonData Standard SaveAsync).";
+    holon.{STRINGPROPERTY} = "test custom property value (Using Zome GlobalHolonData Standard SaveAsync)";
+    holon.Name = "test name (Using Zome GlobalHolonData Standard SaveAsync)";
+    holon.Description = "test desc (Using Zome GlobalHolonData Standard SaveAsync)";
+    holon.MetaData["CustomData"] = "test custom data (Using Zome GlobalHolonData Standard SaveAsync)";
 
     saveHolonResult = await zome.GlobalHolonData.SaveHolonAsync<{HOLON}> (holon);
 
@@ -103,14 +105,15 @@ if (bootResult != null && !bootResult.IsError)
 
 
     //Below is an example of using the standard versions of the GlobalHolonData functions.
+    CLIEngine.ShowDivider("*", dividerLength);
     CLIEngine.ShowWorkingMessage("Saving Test Holon (Using Zome GlobalHolonData Standard SaveAsync)...");
 
     //Because this test uses Standard SaveAsync it means that any custom properties generated from the DNA metadata will still be saved in the MetaData property and to view after saving you will only be able to view via the MetaData property (see the ShowHolon overload at the bottom that takes IHolon as a param) rather than a strongly typed property (as the other tests use).
     holon = new {HOLON}();
-    holon.{STRINGPROPERTY} = "test custom property value (Using Zome GlobalHolonData Standard SaveAsync).";
-    holon.Name = "test name (Using Zome GlobalHolonData Standard SaveAsync).";
-    holon.Description = "test desc (Using Zome GlobalHolonData Standard SaveAsync).";
-    holon.MetaData["CustomData"] = "test custom data (Using Zome GlobalHolonData Standard SaveAsync).";
+    holon.{STRINGPROPERTY} = "test custom property value (Using Zome GlobalHolonData Standard SaveAsync)";
+    holon.Name = "test name (Using Zome GlobalHolonData Standard SaveAsync)";
+    holon.Description = "test desc (Using Zome GlobalHolonData Standard SaveAsync)";
+    holon.MetaData["CustomData"] = "test custom data (Using Zome GlobalHolonData Standard SaveAsync)";
 
     OASISResult<IHolon> saveGlobalHolonResult = await zome.GlobalHolonData.SaveHolonAsync(holon);
 
@@ -131,12 +134,14 @@ if (bootResult != null && !bootResult.IsError)
         CLIEngine.ShowErrorMessage($"Error Saving Holon (Using Zome GlobalHolonData Standard LoadAsync). Reason: {saveGlobalHolonResult.Message}");
 
 
-
+    //CelestialBodyOnly:CLIEngine.ShowDivider("*", dividerLength);
+    //CelestialBodyOnly:CLIEngine.ShowWorkingMessage("Saving Test Holon (Using CelestialBody)...");
+    //CelestialBodyOnly:
     //CelestialBodyOnly:holon = new {HOLON}();
-    //CelestialBodyOnly:holon.{STRINGPROPERTY} = "test custom property value (Using CelestialBody).";
-    //CelestialBodyOnly:holon.Name = "test name (Using CelestialBody).";
-    //CelestialBodyOnly:holon.Description = "test desc (Using CelestialBody).";
-    //CelestialBodyOnly:holon.MetaData["CustomData"] = "test custom data (Using CelestialBody).";
+    //CelestialBodyOnly:holon.{STRINGPROPERTY} = "test custom property value (Using CelestialBody)";
+    //CelestialBodyOnly:holon.Name = "test name (Using CelestialBody)";
+    //CelestialBodyOnly:holon.Description = "test desc (Using CelestialBody)";
+    //CelestialBodyOnly:holon.MetaData["CustomData"] = "test custom data (Using CelestialBody)";
 
     //CelestialBodyOnly:{CELESTIALBODY} {CELESTIALBODYVAR} = new {CELESTIALBODY}();
     //CelestialBodyOnly:saveHolonResult = await {CELESTIALBODYVAR}.Save{HOLON}Async(holon);
@@ -164,12 +169,13 @@ if (bootResult != null && !bootResult.IsError)
 
 
     holon = new {HOLON}();
-    holon.{STRINGPROPERTY} = "test custom property value (Using Holon).";
-    holon.Name = "test name (Using Holon).";
-    holon.Description = "test desc (Using Holon).";
-    holon.MetaData["CustomData"] = "test custom data (Using Holon).";
+    holon.{STRINGPROPERTY} = "test custom property value (Using Holon)";
+    holon.Name = "test name (Using Holon)";
+    holon.Description = "test desc (Using Holon)";
+    holon.MetaData["CustomData"] = "test custom data (Using Holon)";
 
-    CLIEngine.ShowWorkingMessage("Saving Test Holon (Using Holon)...", true, 1, true);
+    CLIEngine.ShowDivider("*", dividerLength);
+    CLIEngine.ShowWorkingMessage("Saving Test Holon (Using Holon)...");
     saveHolonResult = await holon.SaveAsync<{HOLON}>();
 
     if (!saveHolonResult.IsError && saveHolonResult.Result != null)
@@ -184,7 +190,10 @@ if (bootResult != null && !bootResult.IsError)
         OASISResult<{HOLON}> loadHolonResult = await holon.LoadAsync<{HOLON}>();
 
         if (!loadHolonResult.IsError && loadHolonResult.Result != null)
+        {
             ShowHolon(loadHolonResult.Result, "loadHolonResult: Test Holon Loaded (Using Holon).");
+            ShowHolon(holon, "holon: Test Holon Loaded (Using Holon).");
+        }
         else
             CLIEngine.ShowErrorMessage($"Error Loading Holon (Using Holon). Reason: {loadHolonResult.Message}");
     }
@@ -195,13 +204,14 @@ if (bootResult != null && !bootResult.IsError)
 
     //Alternatively you can save/load holons/data using the Data API/HolonManager on the OASIS API (this is what is also used on the REST API).
     //This works in a similar way to the GlobalHolonData functions above.
+    CLIEngine.ShowDivider("*", dividerLength);
     CLIEngine.ShowWorkingMessage("Saving Test Holon (Using Data API)...");
 
     holon = new {HOLON}();
-    holon.{STRINGPROPERTY} = "test custom property value (Using Data API).";
-    holon.Name = "test name (Using Data API).";
-    holon.Description = "test desc (Using Data API).";
-    holon.MetaData["CustomData"] = "test custom data (Using Data API).";
+    holon.{STRINGPROPERTY} = "test custom property value (Using Data API)";
+    holon.Name = "test name (Using Data API)";
+    holon.Description = "test desc (Using Data API)";
+    holon.MetaData["CustomData"] = "test custom data (Using Data API)";
 
     saveHolonResult = await STAR.OASISAPI.Data.SaveHolonAsync<{HOLON}>(holon);
     //saveGlobalHolonResult = await OASISAPI.Data.SaveHolonAsync(holon); //Just like with the GlobalHolonData you can use the Generic of Standard versions of the functions.
