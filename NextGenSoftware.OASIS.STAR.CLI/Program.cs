@@ -449,6 +449,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
+                            case "listoapps":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }break;
+
+                            case "listhapps":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "listzomes":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "listholons":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
                             case "loadholon":
                                 {
                                     if (inputArgs.Length > 1)
@@ -2294,10 +2317,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star love {OAPPName} = Send/Receive Love.");
             Console.WriteLine("   star burst = View network stats/management/settings.");
             Console.WriteLine("   star super - Reserved For Future Use...");
-            Console.WriteLine("   star enablecosmicdetailedoutput = Enables COSMIC Detailed Output.");
-            Console.WriteLine("   star disablecosmicdetailedoutput = Disables COSMIC Detailed Output.");
-            Console.WriteLine("   star enablestarstatusdetailedoutput = Enables STAR ODK Detailed Output.");
-            Console.WriteLine("   star disablestarstatusdetailedoutput = Disables STAR ODK Detailed Output.");
+            Console.WriteLine("   star listoapps - Show all OAPPs (contains zomes and holons) that have been generated.");
+            Console.WriteLine("   star listhapps - Show all hApps (contains zomes) that have been generated.");
+            Console.WriteLine("   star listzomes - Show all zomes (modules that contain holons) that have been generated.");
+            Console.WriteLine("   star listholons - Show all holons (OASIS Data Objects) that have been generated.");
             Console.WriteLine("   star loadholon {holonID} = Loads a holon for the given {holonId}.");
             Console.WriteLine("   star saveholon json={holonJSONFile} = Creates/Saves a holon from the given {holonJSONFile}.");
             Console.WriteLine("   star saveholon wiz = Starts the Save Holon Wizard.");
@@ -2313,6 +2336,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star mintgeonft = Mints a Geo-NFT for the current beamed in avatar.");
             Console.WriteLine("   star shownfts = Shows the NFT's that belong to current beamed in avatar.");
             Console.WriteLine("   star showgeonfts = Shows the Geo-NFT's that belong to current beamed in avatar.");
+            Console.WriteLine("   star enablecosmicdetailedoutput = Enables COSMIC Detailed Output.");
+            Console.WriteLine("   star disablecosmicdetailedoutput = Disables COSMIC Detailed Output.");
+            Console.WriteLine("   star enablestarstatusdetailedoutput = Enables STAR ODK Detailed Output.");
+            Console.WriteLine("   star disablestarstatusdetailedoutput = Disables STAR ODK Detailed Output.");
             Console.WriteLine("   star runcosmictests {OAPPType} {dnaFolder} {geneisFolder} = Run the STAR ODK/COSMIC Tests... If OAPPType, DNAFolder or GenesisFolder are not specified it will use the defaults.");
             Console.WriteLine("   star runoasisapitests = Run the OASIS API Tests...");
             Console.WriteLine("");

@@ -710,12 +710,12 @@ namespace NextGenSoftware.OASIS.STAR
                 genesisNameSpace = $"{STARDNA.BasePath}\\{STARDNA.GenesisNamespace}";
 
             if (string.IsNullOrEmpty(genesisNameSpace))
-                genesisNameSpace = string.Concat(oAPPName, "OApp");
+                genesisNameSpace = string.Concat(oAPPName, "OAPP");
 
             //Setup the OApp files from the relevant template.
             if (OAPPType != OAPPType.GeneratedCodeOnly)
             {
-                OAPPFolder = string.Concat(genesisFolder, "\\", oAPPName, " OApp");
+                OAPPFolder = string.Concat(genesisFolder, "\\", oAPPName, " OAPP");
 
                 if (Directory.Exists(OAPPFolder))
                     Directory.Delete(OAPPFolder, true);
@@ -2461,30 +2461,49 @@ namespace NextGenSoftware.OASIS.STAR
                     using (TextReader tr = File.OpenText(file.FullName))
                     using (TextWriter tw = File.CreateText(string.Concat(file.FullName, ".temp")))
                     {
+                        bool celestialBodyBlock = false;
+
                         while ((line = tr.ReadLine()) != null)
                         {
                             celestialBodyName = celestialBodyName.Replace(" ", "");
                             line = line.Replace("{OAPPNAMESPACE}", oAppNameSpace);
                             line = line.Replace("{OAPPNAME}", oAppName);
 
-                            if (genesisType == GenesisType.ZomesAndHolonsOnly)
+                            if (line.Contains("CelestialBodyOnly:BEGIN"))
                             {
-                                line = line.Replace("//ZomesAndHolonsOnly:", "");
+                                celestialBodyBlock = true;
+                                continue;
 
-                                if (line.Contains("CelestialBodyOnly"))
-                                    continue;
                             }
+                            else if (line.Contains("CelestialBodyOnly:END"))
+                            {
+                                celestialBodyBlock = false;
+                                continue;
+                            }
+                            else if (celestialBodyBlock && genesisType == GenesisType.ZomesAndHolonsOnly)
+                                continue;
+
                             else
                             {
-                                line = line.Replace("{CELESTIALBODY}", celestialBodyName.ToPascalCase()).Replace("//CelestialBodyOnly:", "");
-                                line = line.Replace("{CELESTIALBODYVAR}", celestialBodyName.ToCamelCase()).Replace("//CelestialBodyOnly:", "");
+                                if (genesisType == GenesisType.ZomesAndHolonsOnly)
+                                {
+                                    line = line.Replace("//ZomesAndHolonsOnly:", "");
 
-                                if (line.Contains("ZomesAndHolonsOnly"))
-                                    continue;
+                                    if (line.Contains("CelestialBodyOnly"))
+                                        continue;
+                                }
+                                else
+                                {
+                                    line = line.Replace("{CELESTIALBODY}", celestialBodyName.ToPascalCase()).Replace("//CelestialBodyOnly:", "");
+                                    line = line.Replace("{CELESTIALBODYVAR}", celestialBodyName.ToCamelCase()).Replace("//CelestialBodyOnly:", "");
+
+                                    if (line.Contains("ZomesAndHolonsOnly"))
+                                        continue;
+                                }
+
+                                line = line.Replace("{HOLON}", holonName.ToPascalCase());
+                                line = line.Replace("{STRINGPROPERTY}", firstStringProperty.ToPascalCase());
                             }
-
-                            line = line.Replace("{HOLON}", holonName.ToPascalCase());
-                            line = line.Replace("{STRINGPROPERTY}", firstStringProperty.ToPascalCase());
 
                             tw.WriteLine(line);
                             lineNumber++;
