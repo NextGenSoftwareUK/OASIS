@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
+using System.Diagnostics;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -61,6 +62,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         string genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace?");
                         Guid parentId = Guid.Empty;
 
+                        //bool multipleHolonInstances = CLIEngine.GetConfirmation("Do you want holons to create multiple instances of themselves?");
+
                         if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody?"))
                         {
                             parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
@@ -79,7 +82,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (lightResult != null)
                         {
                             if (!lightResult.IsError && lightResult.Result != null)
+                            {
                                 CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+
+                                if (CLIEngine.GetConfirmation("Do you wish to open the OAPP now?"))
+                                    Process.Start("explorer.exe", Path.Combine(genesisFolder, string.Concat(OAPPName, " OAPP"), string.Concat(genesisNamespace, ".csproj")));
+
+                                Console.WriteLine("");
+
+                                if (CLIEngine.GetConfirmation("Do you wish to open the OAPP folder now?"))
+                                    Process.Start("explorer.exe", Path.Combine(genesisFolder, string.Concat(OAPPName, " OAPP")));
+
+                                Console.WriteLine("");
+                            }
                             else
                                 CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
                         }
@@ -581,9 +596,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (showHeader)
             {
                 if (string.IsNullOrEmpty(customHeader))
-                    Console.WriteLine(string.Concat(" ", holons.Count(), " Child Holons(s) Found", holons.Count() > 0 ? ":" : ""));
+                    CLIEngine.ShowMessage(string.Concat(holons.Count(), " Child Holons(s) Found", holons.Count() > 0 ? ":" : ""), false);
+                    //Console.WriteLine(string.Concat(" ", holons.Count(), " Child Holons(s) Found", holons.Count() > 0 ? ":" : ""));
                 else
-                    Console.WriteLine(customHeader);
+                    CLIEngine.ShowMessage(customHeader, false);
+                    //Console.WriteLine(customHeader);
             }
 
             //Console.WriteLine("");
@@ -596,7 +613,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             foreach (IHolon holon in holons)
             {
                 // indentBy = parentIndent;
-                Console.WriteLine("");
+                //Console.WriteLine("");
+                CLIEngine.ShowMessage("", false);
                 ShowHolonBasicProperties(holon, "", indentPadding, true);
                 //Console.WriteLine(string.Concat("   Holon Name: ", holon.Name, " Holon Id: ", holon.Id, ", Holon Type: ", Enum.GetName(typeof(HolonType), holon.HolonType), " containing ", holon.Nodes != null ? holon.Nodes.Count() : 0, " node(s): "));
 
@@ -604,10 +622,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     foreach (API.Core.Interfaces.INode node in holon.Nodes)
                     {
-                        Console.WriteLine("");
+                        //Console.WriteLine("");
+                        CLIEngine.ShowMessage("", false);
                         string tree = string.Concat(" |", indentPadding, "  NODE").PadRight(22);
                         //Console.WriteLine(string.Concat(indentPadding, "  | NODE | Name: ", node.NodeName.PadRight(20), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(10)));
-                        Console.WriteLine(string.Concat(tree, " | Name: ", node.NodeName.PadRight(40), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(15), " | ".PadRight(30), " | ".PadRight(30), "|"));
+                        //Console.WriteLine(string.Concat(tree, " | Name: ", node.NodeName.PadRight(40), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(15), " | ".PadRight(30), " | ".PadRight(30), "|"));
+                        CLIEngine.ShowMessage(string.Concat(tree, " | Name: ", node.NodeName.PadRight(40), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(15), " | ".PadRight(30), " | ".PadRight(30), "|"), false);
                     }
                 }
 
@@ -620,7 +640,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             if (level == 0)
-                Console.WriteLine("");
+                //Console.WriteLine("");
+                CLIEngine.ShowMessage("", false);
         }
 
         public static void ShowHolonBasicProperties(IHolon holon, string prefix = "", string indentBuffer = " ", bool showChildren = true, bool showNodes = true)
@@ -640,8 +661,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             string tree = string.Concat(" |", indentBuffer, "HOLON").PadRight(22);
 
-            //Console.WriteLine(string.Concat(indentBuffer, prefix, "| HOLON | Name: ", holon.Name.PadRight(20), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(10), children, nodes));
-            Console.WriteLine(string.Concat(tree, " | Name: ", holon.Name != null ? holon.Name.PadRight(40) : "".PadRight(40), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(15), children.PadRight(30), nodes.PadRight(30), "|"));
+            //Console.WriteLine(string.Concat(tree, " | Name: ", holon.Name != null ? holon.Name.PadRight(40) : "".PadRight(40), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(15), children.PadRight(30), nodes.PadRight(30), "|"));
+            CLIEngine.ShowMessage(string.Concat(tree, " | Name: ", holon.Name != null ? holon.Name.PadRight(40) : "".PadRight(40), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(15), children.PadRight(30), nodes.PadRight(30), "|"), false);
         }
 
         public static void ShowHolonProperties(IHolon holon, bool showChildren = true)
