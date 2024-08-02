@@ -30,14 +30,70 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public static async Task LightWizard()
         {
             OASISResult<CoronalEjection> lightResult = null;
+
+            CLIEngine.ShowDivider();
+            CLIEngine.ShowMessage("Welcome to the OASIS Omniverse/MagicVerse Light Wizard!");
+            CLIEngine.ShowDivider();
+            CLIEngine.ShowMessage("This wizard will allow you create an OAPP (Moon, Planet, Star & More) which will appear in the MagicVerse within the OASIS Omniverse.", false);
+            CLIEngine.ShowMessage("The OAPP will also optionally appear within the AR geo-location Our World/AR World platform/game in your desired geo-location.");
+            CLIEngine.ShowMessage("The OAPP will also optionally appear within the One World (Open World MMORPG) game/platform. VR support is also provided.");
+            CLIEngine.ShowMessage("The OAPP can have as many interfaces/lenses (way to visualize/represent the data of your OAPP) as you like, for example you can also have a 2D web view as well as a 3D view, Metaverse/Omniverse view, etc.");
+            CLIEngine.ShowMessage("Each OAPP is composed of zomes (re-usable/composable modules containing collections of holons) & holons (generic/composable re-usable OASIS Data Objects). This means the zomes and holons can be shared and re-used with other OAPPs within the STARNET Library. Different zomes and holons can be plugged together to form unique combinations for new OAPPs saving lots of time!");
+            CLIEngine.ShowMessage("Each OAPP is built/generated on top of a powerful easy to use ORM called (WEB5) COSMIC (The Worlds ORM because it aggregrates all of the worlds data into a simple to use ORM) which allows very easy data management across all of web2 and web3 making data interoperability and interchange very simple and makes silos a thing of the past!");
+            CLIEngine.ShowMessage("COSMIC is built on top of the powerful WEB4 OASIS API so each OAPP also has easy to use API's for manging keys, wallets, data, nfts, geo-nfts, providers, avatars, karma & much more!");
+            CLIEngine.ShowMessage("A OAPP can be anything you want such as a website, game, app, service, api, protocol or anything else that a template exists for!");
+            CLIEngine.ShowMessage("Data can be shared between OAPP's but you are always in full control of your data, you own your data and you can choose exactly who and how that data is shared. You have full data sovereignty.");
+            CLIEngine.ShowMessage("Due to your OAPP being built on the OASIS API you also benefit from many other advanced features such as auto-replication, auto-failover and auto-load balancing so if one node goes down in your local area it will automatically find the next fastest one in your area irrespective of network.");
+            CLIEngine.ShowMessage("The more users your OAPP has the larger that celestial body (moon, planet or star) will appear within The MagicVerse. The higher the karma score of the owner (can be a individual or company/organisation) of the OAPP becomes the closer that celestial bodies orbit will be to it's parent so if it's a moon it will get closer and closer to the planet and if it's a planet it will get closer and closer to it's star.");
+            CLIEngine.ShowDivider();
+
             string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
             object value = CLIEngine.GetValidInputForEnum("What type of OAPP do you wish to create?", typeof(OAPPType));
+            long ourWorldLat = 0;
+            long ourWorldLong = 0;
+            long oneWorlddLat = 0;
+            long oneWorldLong = 0;
+            string ourWorld3dObjectPath = "";
+            string ourWorld2dObjectPath = "";
+            string oneWorld3dObjectPath = "";
+            string oneWorld2dObjectPath = "";
 
             if (value != null)
             {
                 OAPPType OAPPType = (OAPPType)value;
 
-                value = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create?", typeof(GenesisType));
+                //TODO: I think star bang was going to be used to create non OAPP Celestial bodies or spaces outside of the magic verse.
+                //if (CLIEngine.GetConfirmation("Do you wish the OAPP to be part of the MagicVerse within the OASIS Omniverse (will optionally appear in Our World/AR World)? If you say yes then new avatars will only be able to create moons that orbit Our World until you reach karma level 33 where you will then be able to create planets, when you reach level 77 you can create stars. If you select no then you can create whatever you like outside of the MagicVerse but it will still be within the OASIS Omniverse."))
+                //{
+
+                //}
+
+
+                if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the AR geo-location Our World/AR World game/platform? (recommeneded)"))
+                {
+                    Console.WriteLine("");
+                    ourWorldLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in Our World/AR World?");
+                    ourWorldLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your OAPP to appear in Our World/AR World?");
+                    
+                    if (CLIEngine.GetConfirmation("Would you rather use a 3D Object or a 2D Sprite to represent your OAPP within Our World/AR World? Press Y for 3D or N for 2D."))
+                        ourWorld3dObjectPath = CLIEngine.GetValidInput("What is the full path to the 3D Object you wish to represent your OAPP in Our World/AR World? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+                    else
+                        ourWorld2dObjectPath = CLIEngine.GetValidInput("What is the full path to the 2D Sprite you wish to represent your OAPP in Our World/AR World? (Press Enter if you wish to skip and use a default sprite instead. You can always change this later.)");
+                }
+
+                if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the Open World MMORPG One World game/platform? (recommeneded)"))
+                {
+                    Console.WriteLine("");
+                    oneWorlddLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in One World?");
+                    oneWorldLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your OAPP to appear in One World?");
+
+                    if (CLIEngine.GetConfirmation("Would you rather use a 3D Object or a 2D Sprite to represent your OAPP within Our World/AR World? Press Y for 3D or N for 2D."))
+                        oneWorld3dObjectPath = CLIEngine.GetValidInput("What is the full path to the 3D Object you wish to represent your OAPP in One World? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+                    else
+                        oneWorld2dObjectPath = CLIEngine.GetValidInput("What is the full path to the 2D Sprite you wish to represent your OAPP in One World? (Press Enter if you wish to skip and use a default sprite instead. You can always change this later.)");
+                }
+
+                value = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create? (New avatars will only be able to create moons that orbit Our World until you reach karma level 33 where you will then be able to create planets, when you reach level 77 you can create stars & beyond 77 you can create Galaxies and even entire Universes in your jounrey to become fully God realised!.)", typeof(GenesisType));
 
                 if (value != null)
                 {
@@ -1747,3 +1803,4 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
     }
 }
+
