@@ -80,7 +80,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 STAR.OnDefaultCeletialBodyInit += STAR_OnDefaultCeletialBodyInit;
 
                 STAR.IsDetailedCOSMICOutputsEnabled = CLIEngine.GetConfirmation("Do you wish to enable detailed COSMIC outputs?");
-                CLIEngine.ShowMessage("");
+                Console.WriteLine("");
+                //CLIEngine.ShowMessage("");
 
                 STAR.IsDetailedStatusUpdatesEnabled = CLIEngine.GetConfirmation("Do you wish to enable detailed STAR ODK Status outputs?");
 
@@ -214,23 +215,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                             case "beamin":
                                 {
-                                    if (STAR.LoggedInAvatar == null)
+                                    if (STAR.BeamedInAvatar == null)
                                         await STARCLI.BeamInAvatar();
                                     else
-                                        CLIEngine.ShowErrorMessage($"Avatar {STAR.LoggedInAvatar.Username} Already Beamed In. Please Beam Out First!");
+                                        CLIEngine.ShowErrorMessage($"Avatar {STAR.BeamedInAvatar.Username} Already Beamed In. Please Beam Out First!");
                                 }
                                 break;
 
                             case "beamout":
                                 {
-                                    if (STAR.LoggedInAvatar != null)
+                                    if (STAR.BeamedInAvatar != null)
                                     {
-                                        OASISResult<IAvatar> avatarResult = await STAR.LoggedInAvatar.BeamOutAsync();
+                                        OASISResult<IAvatar> avatarResult = await STAR.BeamedInAvatar.BeamOutAsync();
 
                                         if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
                                         {
-                                            STAR.LoggedInAvatar = null;
-                                            STAR.LoggedInAvatarDetail = null;
+                                            STAR.BeamedInAvatar = null;
+                                            STAR.BeamedInAvatarDetail = null;
                                             CLIEngine.ShowSuccessMessage("Avatar Successfully Beamed Out! We Hope You Enjoyed Your Time In The OASIS! Please Come Again! :)");
                                         }
                                         else
@@ -243,8 +244,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                             case "whoisbeamedin":
                                 {
-                                    if (STAR.LoggedInAvatar != null)
-                                        CLIEngine.ShowMessage($"Avatar {STAR.LoggedInAvatar.Username} Beamed In On {STAR.LoggedInAvatar.LastBeamedIn} And Last Beamed Out On {STAR.LoggedInAvatar.LastBeamedOut}. They Are Level {STAR.LoggedInAvatarDetail.Level} With {STAR.LoggedInAvatarDetail.Karma} Karma.", ConsoleColor.Green);
+                                    if (STAR.BeamedInAvatar != null)
+                                        CLIEngine.ShowMessage($"Avatar {STAR.BeamedInAvatar.Username} Beamed In On {STAR.BeamedInAvatar.LastBeamedIn} And Last Beamed Out On {STAR.BeamedInAvatar.LastBeamedOut}. They Are Level {STAR.BeamedInAvatarDetail.Level} With {STAR.BeamedInAvatarDetail.Karma} Karma.", ConsoleColor.Green);
                                     else
                                         CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
                                 }
@@ -252,7 +253,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                             case "showavatar":
                                 {
-                                    if (STAR.LoggedInAvatar != null)
+                                    if (STAR.BeamedInAvatar != null)
                                         STARCLI.ShowAvatarStats();
                                     else
                                         CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
@@ -418,6 +419,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                             }
                                         }
                                     }
+                                }
+                                break;
+
+                            case "updatezome":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "updateholon":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
                                 }
                                 break;
 
@@ -608,15 +621,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 break;
 
                             case "mintnft":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
+                                await STARCLI.MintNFTAsync();
                                 break;
 
                             case "mintgeonft":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
+                                await STARCLI.MintGeoNFTAsync();
                                 break;
 
                             case "shownfts":
@@ -2316,6 +2325,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star mutate {OAPPName} = Import/Export hApp, dApp & others.");
             Console.WriteLine("   star love {OAPPName} = Send/Receive Love.");
             Console.WriteLine("   star burst = View network stats/management/settings.");
+            Console.WriteLine("   star updatezome - Update an existing zome (can upload a zome.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
+            Console.WriteLine("   star updateholon - Update an existing holon (can upload a holon.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
             Console.WriteLine("   star super - Reserved For Future Use...");
             Console.WriteLine("   star listoapps - Show all OAPPs (contains zomes and holons) that have been generated.");
             Console.WriteLine("   star listhapps - Show all hApps (contains zomes) that have been generated.");
