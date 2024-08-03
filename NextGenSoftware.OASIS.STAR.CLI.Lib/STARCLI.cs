@@ -17,6 +17,10 @@ using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using System.Diagnostics;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -54,9 +58,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             long oneWorlddLat = 0;
             long oneWorldLong = 0;
             string ourWorld3dObjectPath = "";
-            string ourWorld2dObjectPath = "";
+            byte[] ourWorld3dObject = null;
+            string ourWorld3dObjectURI = "";
+            string ourWorld2dSpritePath = "";
+            byte[] ourWorld2dSprite = null;
+            string ourWorld2dSpriteURI = "";
+
             string oneWorld3dObjectPath = "";
-            string oneWorld2dObjectPath = "";
+            byte[] oneWorld3dObject = null;
+            string oneWorld3dObjectURI = "";
+            string oneWorld2dSpritePath = "";
+            byte[] oneWorld2dSprite = null;
+            string oneWorld2dSpriteURI = "";
 
             if (value != null)
             {
@@ -74,11 +87,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     Console.WriteLine("");
                     ourWorldLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in Our World/AR World?");
                     ourWorldLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your OAPP to appear in Our World/AR World?");
-                    
-                    if (CLIEngine.GetConfirmation("Would you rather use a 3D Object or a 2D Sprite to represent your OAPP within Our World/AR World? Press Y for 3D or N for 2D."))
-                        ourWorld3dObjectPath = CLIEngine.GetValidInput("What is the full path to the 3D Object you wish to represent your OAPP in Our World/AR World? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                    if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your OAPP within Our World/AR World? Press Y for 3D or N for 2D."))
+                    {
+                        if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
+                        {
+                            ourWorld3dObjectPath = CLIEngine.GetValidPath("What is the full path to the local 3D object you wish to represent your OAPP in Our World/AR World? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)", false);
+                            ourWorld3dObject = File.ReadAllBytes(ourWorld3dObjectPath);
+                        }
+                        else
+                            ourWorld3dObjectURI = CLIEngine.GetValidPath("What is the URI to the 3D object you want to represent your OAPP in Our World/AR World? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)", false);
+                    }
                     else
-                        ourWorld2dObjectPath = CLIEngine.GetValidInput("What is the full path to the 2D Sprite you wish to represent your OAPP in Our World/AR World? (Press Enter if you wish to skip and use a default sprite instead. You can always change this later.)");
+                    {
+                        if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
+                        {
+                            ourWorld2dSpritePath = CLIEngine.GetValidPath("What is the full path to the local 2d sprite/image you wish to represent your OAPP in Our World/AR World? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)", false);
+                            ourWorld2dSprite = File.ReadAllBytes(ourWorld2dSpritePath);
+                        }
+                        else
+                            ourWorld2dSpriteURI = CLIEngine.GetValidPath("What is the URI to the 2D sprite/image you want to represent your OAPP in Our World/AR World? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)", false);
+                    }
                 }
 
                 if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the Open World MMORPG One World game/platform? (recommeneded)"))
@@ -87,10 +116,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     oneWorlddLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in One World?");
                     oneWorldLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your OAPP to appear in One World?");
 
-                    if (CLIEngine.GetConfirmation("Would you rather use a 3D Object or a 2D Sprite to represent your OAPP within Our World/AR World? Press Y for 3D or N for 2D."))
-                        oneWorld3dObjectPath = CLIEngine.GetValidInput("What is the full path to the 3D Object you wish to represent your OAPP in One World? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+                    if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your OAPP within One World? Press Y for 3D or N for 2D."))
+                    {
+                        if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
+                        {
+                            oneWorld3dObjectPath = CLIEngine.GetValidPath("What is the full path to the local 3D object you wish to represent your OAPP in One World? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)", false);
+                            oneWorld3dObject = File.ReadAllBytes(oneWorld3dObjectPath);
+                        }
+                        else
+                            oneWorld3dObjectURI = CLIEngine.GetValidPath("What is the URI to the 3D object you want to represent your OAPP in One World? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)", false);
+                    }
                     else
-                        oneWorld2dObjectPath = CLIEngine.GetValidInput("What is the full path to the 2D Sprite you wish to represent your OAPP in One World? (Press Enter if you wish to skip and use a default sprite instead. You can always change this later.)");
+                    {
+                        if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
+                        {
+                            oneWorld2dSpritePath = CLIEngine.GetValidPath("What is the full path to the local 2d sprite/image you wish to represent your OAPP in One World? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)", false);
+                            oneWorld2dSprite = File.ReadAllBytes(oneWorld2dSpritePath);
+                        }
+                        else
+                            oneWorld2dSpriteURI = CLIEngine.GetValidPath("What is the URI to the 2D sprite/image you want to represent your OAPP in One World? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)", false);
+                    }
                 }
 
                 value = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create? (New avatars will only be able to create moons that orbit Our World until you reach karma level 33 where you will then be able to create planets, when you reach level 77 you can create stars & beyond 77 you can create Galaxies and even entire Universes in your jounrey to become fully God realised!.)", typeof(GenesisType));
@@ -252,6 +297,202 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 //if (holonResult.Result.Children != null && holonResult.Result.Children.Count > 0)
                 //    ShowHolons(holonResult.Result.Children);
             }
+        }
+
+        private static MintNFTTransactionRequest GenerateNFTRequest()
+        {
+            Console.WriteLine("");
+            string nft3dObjectPath = "";
+            string nft2dObjectPath = "";
+            byte[] imageLocal = null;
+            byte[] imageThumbnailLocal = null;
+            string imageURI = "";
+            string imageThumbnailURI = "";
+            string title = CLIEngine.GetValidInput("What is the NFT's title?");
+            string desc = CLIEngine.GetValidInput("What is the NFT's description?");
+            string memotext = CLIEngine.GetValidInput("What is the NFT's memotext? (optional)");
+            ProviderType offChainProvider = ProviderType.None;
+            Dictionary<string, object> metaData = new Dictionary<string, object>();
+
+            if (CLIEngine.GetConfirmation("Do you want to upload a local image on your device to represent the NFT or input a URI to an online image? (Press Y for local or N for online)"))
+            {
+                string localImagePath = CLIEngine.GetValidPath("What is the full path to the local image you want to represent the NFT?", false);
+                imageLocal = File.ReadAllBytes(localImagePath);
+            }
+            else
+                imageURI = CLIEngine.GetValidPath("What is the URI to the image you want to represent the NFT?", false);
+
+
+            if (CLIEngine.GetConfirmation("Do you want to upload a local image on your device to represent the NFT Thumbnail or input a URI to an online image? (Press Y for local or N for online)"))
+            {
+                string localImagePath = CLIEngine.GetValidPath("What is the full path to the local image you want to represent the NFT Thumbnail?", false);
+                imageThumbnailLocal = File.ReadAllBytes(localImagePath);
+            }
+            else
+                imageThumbnailURI = CLIEngine.GetValidPath("What is the URI to the image you want to represent the NFT Thumbnail?", false);
+
+
+            string mintWalletAddress = CLIEngine.GetValidInput("What is the mint wallet address?");
+
+            long nftLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your NFT to appear in Our World/AR World?");
+            long nftLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your NFT to appear in Our World/AR World?");
+
+            if (CLIEngine.GetConfirmation("Would you rather use a 3D Object or a 2D Sprite to represent your NFT within Our World/AR World? Press Y for 3D or N for 2D."))
+                nft3dObjectPath = CLIEngine.GetValidInput("What is the full path to the 3D Object you wish to represent your NFT in Our World/AR World? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+            else
+                nft2dObjectPath = CLIEngine.GetValidInput("What is the full path to the 2D Sprite you wish to represent your NFT in Our World/AR World? (Press Enter if you wish to skip and use the NFT Image instead. You can always change this later.)");
+
+
+            long price = CLIEngine.GetValidInputForLong("What is the price for the NFT?");
+            long discount = CLIEngine.GetValidInputForLong("Is there any discount for the NFT? If so enter it now or leave blank. (This can always be changed later.)");
+
+            object onChainProviderObj = CLIEngine.GetValidInputForEnum("What on-chain provider do you wish to mint on?", typeof(ProviderType));
+            ProviderType onChainProvider = (ProviderType)onChainProviderObj;
+
+
+            bool storeMetaDataOnChain = CLIEngine.GetConfirmation("Do you wish to store the NFT metadata on-chain or off-chain? (Press Y for on-chain or N for off-chain)");
+
+            if (!storeMetaDataOnChain)
+            {
+                object offChainProviderObj = CLIEngine.GetValidInputForEnum("What off-chain provider do you wish to store the metadata on?", typeof(ProviderType));
+                offChainProvider = (ProviderType)offChainProviderObj;
+            }
+
+            if (CLIEngine.GetConfirmation("Do you wish to add any metadata to this NFT?"))
+            {
+                metaData = AddMetaDataToNFT(metaData);
+                bool metaDataDone = false;
+
+                do
+                {
+                    if (CLIEngine.GetConfirmation("Do you wish to add more metadata?"))
+                        metaData = AddMetaDataToNFT(metaData);
+                    else
+                        metaDataDone = true;
+                }
+                while (metaDataDone);
+            }
+
+            int numberToMint = CLIEngine.GetValidInputForInt("How many NFT's do you wish to mint?");
+
+            return new MintNFTTransactionRequest()
+            {
+                Title = title,
+                Description = desc,
+                MemoText = memotext,
+                Image = imageLocal,
+                ImageUrl = imageURI,
+                MintedByAvatarId = STAR.BeamedInAvatar.Id,
+                MintWalletAddress = mintWalletAddress,
+                Thumbnail = imageThumbnailLocal,
+                ThumbnailUrl = imageThumbnailURI,
+                Price = price,
+                Discount = discount,
+                OnChainProvider = new EnumValue<ProviderType>(onChainProvider),
+                OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
+                StoreNFTMetaDataOnChain = storeMetaDataOnChain,
+                NumberToMint = numberToMint,
+                MetaData = metaData
+            };
+        }
+
+        public static async Task MintNFTAsync()
+        {
+            OASISResult<INFTTransactionRespone> nftResult = await STAR.OASISAPI.NFTs.MintNftAsync(GenerateNFTRequest());
+
+            if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
+                CLIEngine.ShowSuccessMessage($"NFT Successfully Minted. {nftResult.Message} Transaction Result: {nftResult.Result.TransactionResult}, Id: {nftResult.Result.OASISNFT.Id}, Hash: {nftResult.Result.OASISNFT.Hash} Minted On: {nftResult.Result.OASISNFT.MintedOn}, Minted By Avatar Id: {nftResult.Result.OASISNFT.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.OASISNFT.MintedByAddress}.");
+            else
+                CLIEngine.ShowErrorMessage($"Error Occured: {nftResult.Message}");
+        }
+
+        public static async Task MintGeoNFTAsync()
+        {
+            MintNFTTransactionRequest request = GenerateNFTRequest();
+            string nft3dObjectPath = "";
+            string nft2dSpritePath = "";
+            byte[] nft3dObject = null;
+            byte[] nft2dSprite = null;
+            string nft3dObjectURI = "";
+            string nft2dSpriteURI = "";
+            int globalSpawnQuanity = 0;
+            int respawnDurationInSeconds = 0;
+            int playerSpawnQuanity = 0;
+            bool allowOtherPlayersToAlsoCollect = false;
+
+            long nftLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your NFT to appear in Our World/AR World?");
+            long nftLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your NFT to appear in Our World/AR World?");
+
+            if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your NFT within Our World/AR World? Press Y for 3D or N for 2D."))
+            {
+                if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
+                {
+                    nft3dObjectPath = CLIEngine.GetValidPath("What is the full path to the local 3D object you wish to represent your NFT in Our World/AR World? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)", false);
+                    nft3dObject = File.ReadAllBytes(nft3dObjectPath);
+                }
+                else
+                    nft3dObjectURI = CLIEngine.GetValidPath("What is the URI to the 3D object you want to represent your NFT in Our World/AR World? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)", false);
+            }
+            else
+            {
+                if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
+                {
+                    nft2dSpritePath = CLIEngine.GetValidPath("What is the full path to the local 2d sprite/image you wish to represent your NFT in Our World/AR World? (Press Enter if you wish to skip and use the NFT Image instead. You can always change this later.)", false);
+                    nft2dSprite = File.ReadAllBytes(nft2dSpritePath);
+                }
+                else
+                    nft2dSpriteURI = CLIEngine.GetValidPath("What is the URI to the 2D sprite/image you want to represent your NFT in Our World/AR World? (Press Enter if you wish to skip and use the NFT Image instead. You can always change this later.)", false);
+            }
+
+            bool permSpawn = CLIEngine.GetConfirmation("Will the NFT be permantly spawned allowing infinite number of players to collect as many times as they wish? If you select Y to this then the NFT will always be available with zero re-spawn time.");
+
+            if (!permSpawn)
+            {
+                allowOtherPlayersToAlsoCollect = CLIEngine.GetConfirmation("Once the NFT has been collected by a given player/avatar, do you want it to also still be collectable by other players/avatars?");
+
+                if (allowOtherPlayersToAlsoCollect)
+                {
+                    globalSpawnQuanity = CLIEngine.GetValidInputForInt("How many times can the NFT re-spawn once it has been collected?");
+                    respawnDurationInSeconds = CLIEngine.GetValidInputForInt("How long will it take (in seconds) for the NFT to re-spawn once it has been collected?");
+                    playerSpawnQuanity = CLIEngine.GetValidInputForInt("How many times can the NFT re-spawn once it has been collected for a given player/avatar? (If you want to enforce that players/avatars can only collect each NFT once then set this to 0.)");
+                }
+            }
+
+            OASISResult<IOASISGeoSpatialNFT> nftResult = await STAR.OASISAPI.NFTs.MintAndPlaceGeoNFTAsync(new MintAndPlaceGeoSpatialNFTRequest()
+            {
+                Title = request.Title,
+                Description = request.Description,
+                MemoText = request.MemoText,
+                Image = request.Image,
+                ImageUrl = request.ImageUrl,
+                MintedByAvatarId = request.MintedByAvatarId,
+                MintWalletAddress = request.MintWalletAddress,
+                Thumbnail = request.Thumbnail,
+                ThumbnailUrl = request.ThumbnailUrl,
+                Price = request.Price,
+                Discount = request.Discount,
+                OnChainProvider = request.OnChainProvider,
+                OffChainProvider = request.OffChainProvider,
+                StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
+                NumberToMint = request.NumberToMint,
+                MetaData = request.MetaData,
+                AllowOtherPlayersToAlsoCollect = allowOtherPlayersToAlsoCollect,
+                PermSpawn = permSpawn,
+                GlobalSpawnQuantity = globalSpawnQuanity,
+                PlayerSpawnQuantity = playerSpawnQuanity,
+                RespawnDurationInSeconds = respawnDurationInSeconds,
+                Lat = nftLat,
+                Long = nftLong,
+                Nft2DSprite = nft2dSprite,
+                Nft3DSpriteURI = nft2dSpriteURI,
+                Nft3DObject = nft3dObject,
+                Nft3DObjectURI = nft3dObjectURI,
+            });
+
+            if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
+                CLIEngine.ShowSuccessMessage($"Geo-NFT Successfully Minted. {nftResult.Message} OriginalOASISNFTId: {nftResult.Result.OriginalOASISNFTId}, Id: {nftResult.Result.Id}, Hash: {nftResult.Result.Hash} Minted On: {nftResult.Result.MintedOn}, Minted By Avatar Id: {nftResult.Result.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.MintedByAddress}.");
+            else
+                CLIEngine.ShowErrorMessage($"Error Occured: {nftResult.Message}");
         }
 
         public static string GetValidEmail(string message, bool checkIfEmailAlreadyInUse)
@@ -435,18 +676,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
 
-                else if (STAR.LoggedInAvatar == null)
+                else if (STAR.BeamedInAvatar == null)
                     CLIEngine.ShowErrorMessage("Error Beaming In. Username/Password may be incorrect.");
             }
 
-            CLIEngine.ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", STAR.LoggedInAvatar.Username, ". Have a nice day! :) You Are Level ", STAR.LoggedInAvatarDetail.Level, " And Have ", STAR.LoggedInAvatarDetail.Karma, " Karma."));
+            CLIEngine.ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", STAR.BeamedInAvatar.Username, ". Have a nice day! :) You Are Level ", STAR.BeamedInAvatarDetail.Level, " And Have ", STAR.BeamedInAvatarDetail.Karma, " Karma."));
             //ShowAvatarStats();
             //await ReadyPlayerOne();
         }
 
         public static void ShowAvatarStats()
         {
-            ShowAvatarStats(STAR.LoggedInAvatar, STAR.LoggedInAvatarDetail);
+            ShowAvatarStats(STAR.BeamedInAvatar, STAR.BeamedInAvatarDetail);
         }
 
         public static void ShowAvatarStats(IAvatar avatar, IAvatarDetail avatarDetail)
@@ -1040,7 +1281,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 //Example of adding a holon to Our World using AddHolonAsync
                 CLIEngine.ShowWorkingMessage("Saving Test Holon To Our World...");
-                OASISResult<Holon> ourWorldHolonResult = await _superWorld.AddHolonAsync(new Holon() { Name = "Our World Test Holon" }, STAR.LoggedInAvatar.Id);
+                OASISResult<Holon> ourWorldHolonResult = await _superWorld.AddHolonAsync(new Holon() { Name = "Our World Test Holon" }, STAR.BeamedInAvatar.Id);
 
                 if (ourWorldHolonResult != null && !ourWorldHolonResult.IsError && ourWorldHolonResult.Result != null)
                 {
@@ -1056,7 +1297,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 zome.Children.Add(new Holon() { Name = "Our World Test Zome Sub-Holon" });
 
                 CLIEngine.ShowWorkingMessage("Saving Test Sub-Holon To Zome...");
-                ourWorldHolonResult = await zome.AddHolonAsync(new Holon() { Name = "Our World Test Sub-Holon " }, STAR.LoggedInAvatar.Id);
+                ourWorldHolonResult = await zome.AddHolonAsync(new Holon() { Name = "Our World Test Sub-Holon " }, STAR.BeamedInAvatar.Id);
 
                 if (ourWorldHolonResult != null && !ourWorldHolonResult.IsError && ourWorldHolonResult.Result != null)
                 {
@@ -1187,7 +1428,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 newHolon.HolonType = HolonType.BusStation;
 
                 CLIEngine.ShowWorkingMessage("Saving Generic Test Holon 3...");
-                OASISResult<IHolon> holonResult2 = await STAR.OASISAPI.Data.SaveHolonAsync(newHolon, STAR.LoggedInAvatar.Id);
+                OASISResult<IHolon> holonResult2 = await STAR.OASISAPI.Data.SaveHolonAsync(newHolon, STAR.BeamedInAvatar.Id);
 
                 if (!holonResult2.IsError && holonResult2.Result != null)
                 {
@@ -1423,7 +1664,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"Error occured loading avatars. Reason: {avatarsResult.Message}");
 
             CLIEngine.ShowWorkingMessage("Loading Avatar Only For The HoloOASIS Provider...");
-            OASISResult<IAvatar> avatarResult = STAR.OASISAPI.Avatar.LoadAvatar(STAR.LoggedInAvatar.Id, false, true, ProviderType.HoloOASIS); // Only loads from Holochain.
+            OASISResult<IAvatar> avatarResult = STAR.OASISAPI.Avatar.LoadAvatar(STAR.BeamedInAvatar.Id, false, true, ProviderType.HoloOASIS); // Only loads from Holochain.
 
             if (!avatarResult.IsError && avatarResult.Result != null)
             {
@@ -1443,10 +1684,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             newHolon.HolonType = HolonType.Park;
 
             CLIEngine.ShowWorkingMessage("Saving Test Holon (Load Balanced Across All Providers)...");
-            HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon, STAR.LoggedInAvatar.Id), "Holon Saved Successfully.", "Error Saving Holon."); // Load-balanced across all providers.
+            HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon, STAR.BeamedInAvatar.Id), "Holon Saved Successfully.", "Error Saving Holon."); // Load-balanced across all providers.
 
             CLIEngine.ShowWorkingMessage("Saving Test Holon Only For The EthereumOASIS Provider...");
-            HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon, STAR.LoggedInAvatar.Id, true, true, 0, true, false, ProviderType.EthereumOASIS), "Holon Saved Successfully.", "Error Saving Holon."); //  Only saves to Etherum.
+            HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon, STAR.BeamedInAvatar.Id, true, true, 0, true, false, ProviderType.EthereumOASIS), "Holon Saved Successfully.", "Error Saving Holon."); //  Only saves to Etherum.
 
 
             CLIEngine.ShowWorkingMessage("Creating & Drawing Route On Map Between 2 Test Holons (Load Balanced Across All Providers)...");
@@ -1713,10 +1954,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowErrorMessage("Account not found.");
 
                 // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
-                if (!STAR.LoggedInAvatar.ProviderUniqueStorageKey.ContainsKey(ProviderType.TelosOASIS))
+                if (!STAR.BeamedInAvatar.ProviderUniqueStorageKey.ContainsKey(ProviderType.TelosOASIS))
                 {
                     CLIEngine.ShowWorkingMessage("Linking Telos Account to Avatar...");
-                    OASISResult<Guid> linkKeyResult = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarById(Guid.Empty, STAR.LoggedInAvatar.Id, ProviderType.TelosOASIS, "davidsellams");
+                    OASISResult<Guid> linkKeyResult = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarById(Guid.Empty, STAR.BeamedInAvatar.Id, ProviderType.TelosOASIS, "davidsellams");
 
                     if (!linkKeyResult.IsError && linkKeyResult.Result != Guid.Empty)
                         CLIEngine.ShowSuccessMessage($"Telos Account Successfully Linked to Avatar. WalletID: {linkKeyResult.Result}");
@@ -1785,6 +2026,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             CLIEngine.ShowSuccessMessage("OASIS API TESTS COMPLETE.");
             // END OASIS API DEMO ***********************************************************************************
+        }
+
+        private static Dictionary<string, object> AddMetaDataToNFT(Dictionary<string, object> metaData)
+        {
+            string key = CLIEngine.GetValidInput("What is the key?");
+            string value = "";
+            byte[] metaFile = null;
+
+            if (CLIEngine.GetConfirmation("Is the value a file?"))
+            {
+                string metaPath = CLIEngine.GetValidPath("What is the full path to the file?", false);
+                metaFile = System.IO.File.ReadAllBytes(metaPath);
+            }
+            else
+                value = CLIEngine.GetValidInput("What is the value?");
+
+            if (metaFile != null)
+                metaData[key] = metaFile;
+            else
+                metaData[key] = value;
+
+            return metaData;
         }
 
         private static void CelestialBody_OnZomeError(object sender, ZomeErrorEventArgs e)

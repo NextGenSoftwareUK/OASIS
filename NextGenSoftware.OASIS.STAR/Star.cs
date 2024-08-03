@@ -176,8 +176,8 @@ namespace NextGenSoftware.OASIS.STAR
         //    }
         //}
 
-        public static IAvatar LoggedInAvatar { get; set; }
-        public static IAvatarDetail LoggedInAvatarDetail { get; set; }
+        public static IAvatar BeamedInAvatar { get; set; }
+        public static IAvatarDetail BeamedInAvatarDetail { get; set; }
 
         public static OASISAPI OASISAPI
         {
@@ -483,13 +483,13 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (!result.IsError)
             {
-                LoggedInAvatar = (Avatar)result.Result;
+                BeamedInAvatar = (Avatar)result.Result;
                 OASISAPI.LogAvatarIntoOASISManagers(); //TODO: Is there a better way of doing this?
 
-                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = await OASISAPI.Avatar.LoadAvatarDetailAsync(LoggedInAvatar.Id);
+                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = await OASISAPI.Avatar.LoadAvatarDetailAsync(BeamedInAvatar.Id);
 
                 if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
-                    LoggedInAvatarDetail = loggedInAvatarDetailResult.Result;
+                    BeamedInAvatarDetail = loggedInAvatarDetailResult.Result;
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error Occured In BeamInAsync Calling LoadAvatarDetailAsync. Reason: {loggedInAvatarDetailResult.Message}");
             }
@@ -513,12 +513,12 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (!result.IsError)
             {
-                LoggedInAvatar = (Avatar)result.Result;
+                BeamedInAvatar = (Avatar)result.Result;
 
-                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = OASISAPI.Avatar.LoadAvatarDetail(LoggedInAvatar.Id);
+                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = OASISAPI.Avatar.LoadAvatarDetail(BeamedInAvatar.Id);
 
                 if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
-                    LoggedInAvatarDetail = loggedInAvatarDetailResult.Result;
+                    BeamedInAvatarDetail = loggedInAvatarDetailResult.Result;
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error Occured In BeamIn Calling LoadAvatarDetail. Reason: {loggedInAvatarDetailResult.Message}");
             }
@@ -624,13 +624,13 @@ namespace NextGenSoftware.OASIS.STAR
             List<string> holonNames = new List<string>();
             string firstStringProperty = "";
 
-            if (LoggedInAvatarDetail == null)
+            if (BeamedInAvatarDetail == null)
                 return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar is not logged in. Please log in before calling this command." };
 
-            if (LoggedInAvatarDetail.Level < 77 && genesisType == GenesisType.Star)
+            if (BeamedInAvatarDetail.Level < 77 && genesisType == GenesisType.Star)
                 return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar must have reached level 77 before they can create stars. Please create a planet or moon instead..." };
 
-            if (LoggedInAvatarDetail.Level < 33 && genesisType == GenesisType.Planet)
+            if (BeamedInAvatarDetail.Level < 33 && genesisType == GenesisType.Planet)
                 return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar must have reached level 33 before they can create planets. Please create a moon instead..." };
 
             //if (celestialBodyParent == null && type == GenesisType.Moon)
