@@ -422,6 +422,90 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
+                            case "flare":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "shine":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "dim":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "seed":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "twinkle":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "dust":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "radiate":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "emit":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "reflect":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "evolve":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "mutate":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "love":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "burst":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "super":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
                             case "updatezome":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
