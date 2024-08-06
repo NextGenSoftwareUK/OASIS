@@ -21,6 +21,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -334,7 +335,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        private static async Task<MintNFTTransactionRequest> GenerateNFTRequestAsync()
+        private static async Task<IMintNFTTransactionRequest> GenerateNFTRequestAsync()
         {
             //Console.WriteLine("");
             string nft3dObjectPath = "";
@@ -381,42 +382,42 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             string mintWalletAddress = CLIEngine.GetValidInput("What is the mint wallet address?");
 
-            long nftLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your NFT to appear in Our World/AR World?");
-            long nftLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your NFT to appear in Our World/AR World?");
+            //long nftLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your NFT to appear in Our World/AR World?");
+            //long nftLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your NFT to appear in Our World/AR World?");
 
 
-            if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your NFT within Our World/AR World? Press Y for 3D or N for 2D."))
-            {
-                Console.WriteLine("");
+            //if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your NFT within Our World/AR World? Press Y for 3D or N for 2D."))
+            //{
+            //    Console.WriteLine("");
 
-                if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
-                {
-                    Console.WriteLine("");
-                    nft3dObjectPath = CLIEngine.GetValidFile("What is the full path to the local 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
-                    nft3dObject = File.ReadAllBytes(nft3dObjectPath);
-                }
-                else
-                {
-                    Console.WriteLine("");
-                    nft3dObjectURI = await CLIEngine.GetValidURIAsync("What is the URI to the 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
-                }
-            }
-            else
-            {
-                Console.WriteLine("");
+            //    if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
+            //    {
+            //        Console.WriteLine("");
+            //        nft3dObjectPath = CLIEngine.GetValidFile("What is the full path to the local 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+            //        nft3dObject = File.ReadAllBytes(nft3dObjectPath);
+            //    }
+            //    else
+            //    {
+            //        Console.WriteLine("");
+            //        nft3dObjectURI = await CLIEngine.GetValidURIAsync("What is the URI to the 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+            //    }
+            //}
+            //else
+            //{
+            //    Console.WriteLine("");
 
-                if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
-                {
-                    Console.WriteLine("");
-                    nft2dSpritePath = CLIEngine.GetValidFile("What is the full path to the local 2d sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
-                    nft2dSprite = File.ReadAllBytes(nft2dSpritePath);
-                }
-                else
-                {
-                    Console.WriteLine("");
-                    nft2dSpriteURI = await CLIEngine.GetValidURIAsync("What is the URI to the 2D sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
-                }
-            }
+            //    if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
+            //    {
+            //        Console.WriteLine("");
+            //        nft2dSpritePath = CLIEngine.GetValidFile("What is the full path to the local 2d sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+            //        nft2dSprite = File.ReadAllBytes(nft2dSpritePath);
+            //    }
+            //    else
+            //    {
+            //        Console.WriteLine("");
+            //        nft2dSpriteURI = await CLIEngine.GetValidURIAsync("What is the URI to the 2D sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+            //    }
+            //}
 
 
             long price = CLIEngine.GetValidInputForLong("What is the price for the NFT?");
@@ -427,6 +428,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
 
             bool storeMetaDataOnChain = CLIEngine.GetConfirmation("Do you wish to store the NFT metadata on-chain or off-chain? (Press Y for on-chain or N for off-chain)");
+            Console.WriteLine("");
 
             if (!storeMetaDataOnChain)
             {
@@ -446,9 +448,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     else
                         metaDataDone = true;
                 }
-                while (metaDataDone);
+                while (!metaDataDone);
             }
 
+            Console.WriteLine("");
             int numberToMint = CLIEngine.GetValidInputForInt("How many NFT's do you wish to mint?");
 
             return new MintNFTTransactionRequest()
@@ -457,11 +460,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Description = desc,
                 MemoText = memotext,
                 Image = imageLocal,
-                ImageUrl = imageURI,
+                ImageUrl = imageURI != null ? imageURI.AbsoluteUri : null,
                 MintedByAvatarId = STAR.BeamedInAvatar.Id,
                 MintWalletAddress = mintWalletAddress,
                 Thumbnail = imageThumbnailLocal,
-                ThumbnailUrl = imageThumbnailURI,
+                ThumbnailUrl = imageThumbnailURI != null ? imageThumbnailURI.AbsoluteUri : null,
                 Price = price,
                 Discount = discount,
                 OnChainProvider = new EnumValue<ProviderType>(onChainProvider),
@@ -474,17 +477,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task MintNFTAsync()
         {
-            OASISResult<INFTTransactionRespone> nftResult = await STAR.OASISAPI.NFTs.MintNftAsync(await GenerateNFTRequestAsync());
+            IMintNFTTransactionRequest request = await GenerateNFTRequestAsync();
+
+            CLIEngine.ShowWorkingMessage("Minting OASIS NFT...");
+            OASISResult<INFTTransactionRespone> nftResult = await STAR.OASISAPI.NFTs.MintNftAsync(request);
 
             if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
-                CLIEngine.ShowSuccessMessage($"NFT Successfully Minted. {nftResult.Message} Transaction Result: {nftResult.Result.TransactionResult}, Id: {nftResult.Result.OASISNFT.Id}, Hash: {nftResult.Result.OASISNFT.Hash} Minted On: {nftResult.Result.OASISNFT.MintedOn}, Minted By Avatar Id: {nftResult.Result.OASISNFT.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.OASISNFT.MintedByAddress}.");
+                CLIEngine.ShowSuccessMessage($"OASIS NFT Successfully Minted. {nftResult.Message} Transaction Result: {nftResult.Result.TransactionResult}, Id: {nftResult.Result.OASISNFT.Id}, Hash: {nftResult.Result.OASISNFT.Hash} Minted On: {nftResult.Result.OASISNFT.MintedOn}, Minted By Avatar Id: {nftResult.Result.OASISNFT.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.OASISNFT.MintedByAddress}.");
             else
                 CLIEngine.ShowErrorMessage($"Error Occured: {nftResult.Message}");
         }
 
         public static async Task MintGeoNFTAsync()
         {
-            MintNFTTransactionRequest request = await GenerateNFTRequestAsync();
+            IMintNFTTransactionRequest request = await GenerateNFTRequestAsync();
             string nft3dObjectPath = "";
             string nft2dSpritePath = "";
             byte[] nft3dObject = null;
@@ -533,6 +539,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             bool permSpawn = CLIEngine.GetConfirmation("Will the NFT be permantly spawned allowing infinite number of players to collect as many times as they wish? If you select Y to this then the NFT will always be available with zero re-spawn time.");
+            Console.WriteLine("");
 
             if (!permSpawn)
             {
@@ -540,12 +547,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (allowOtherPlayersToAlsoCollect)
                 {
+                    Console.WriteLine("");
                     globalSpawnQuanity = CLIEngine.GetValidInputForInt("How many times can the NFT re-spawn once it has been collected?");
                     respawnDurationInSeconds = CLIEngine.GetValidInputForInt("How long will it take (in seconds) for the NFT to re-spawn once it has been collected?");
                     playerSpawnQuanity = CLIEngine.GetValidInputForInt("How many times can the NFT re-spawn once it has been collected for a given player/avatar? (If you want to enforce that players/avatars can only collect each NFT once then set this to 0.)");
                 }
             }
 
+            CLIEngine.ShowWorkingMessage("Minting OASIS Geo-NFT...");
             OASISResult<IOASISGeoSpatialNFT> nftResult = await STAR.OASISAPI.NFTs.MintAndPlaceGeoNFTAsync(new MintAndPlaceGeoSpatialNFTRequest()
             {
                 Title = request.Title,
@@ -578,7 +587,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             });
 
             if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
-                CLIEngine.ShowSuccessMessage($"Geo-NFT Successfully Minted. {nftResult.Message} OriginalOASISNFTId: {nftResult.Result.OriginalOASISNFTId}, Id: {nftResult.Result.Id}, Hash: {nftResult.Result.Hash} Minted On: {nftResult.Result.MintedOn}, Minted By Avatar Id: {nftResult.Result.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.MintedByAddress}.");
+                CLIEngine.ShowSuccessMessage($"OASIS Geo-NFT Successfully Minted. {nftResult.Message} OriginalOASISNFTId: {nftResult.Result.OriginalOASISNFTId}, Id: {nftResult.Result.Id}, Hash: {nftResult.Result.Hash} Minted On: {nftResult.Result.MintedOn}, Minted By Avatar Id: {nftResult.Result.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.MintedByAddress}.");
             else
                 CLIEngine.ShowErrorMessage($"Error Occured: {nftResult.Message}");
         }
@@ -2118,17 +2127,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private static Dictionary<string, object> AddMetaDataToNFT(Dictionary<string, object> metaData)
         {
+            Console.WriteLine("");
             string key = CLIEngine.GetValidInput("What is the key?");
             string value = "";
             byte[] metaFile = null;
 
             if (CLIEngine.GetConfirmation("Is the value a file?"))
             {
+                Console.WriteLine("");
                 string metaPath = CLIEngine.GetValidFile("What is the full path to the file?");
-                metaFile = System.IO.File.ReadAllBytes(metaPath);
+                metaFile = File.ReadAllBytes(metaPath);
             }
             else
+            {
+                Console.WriteLine("");
                 value = CLIEngine.GetValidInput("What is the value?");
+            }
 
             if (metaFile != null)
                 metaData[key] = metaFile;
