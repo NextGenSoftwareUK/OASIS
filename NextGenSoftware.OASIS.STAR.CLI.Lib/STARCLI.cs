@@ -416,6 +416,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task ListGeoNFTsAsync()
         {
+            CLIEngine.ShowWorkingMessage("Loading Geo-NFTs...");
             OASISResult<IEnumerable<IOASISGeoSpatialNFT>> nfts = await STAR.OASISAPI.NFTs.LoadAllGeoNFTsForAvatarAsync(STAR.BeamedInAvatar.Id);
                 
             if (nfts != null && !nfts.IsError && nfts.Result != null)
@@ -471,6 +472,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task ListNFTsAsync()
         {
+            CLIEngine.ShowWorkingMessage("Loading NFTs...");
             OASISResult<IEnumerable<IOASISNFT>> nfts = await STAR.OASISAPI.NFTs.LoadAllNFTsForAvatarAsync(STAR.BeamedInAvatar.Id);
 
             if (nfts != null && !nfts.IsError && nfts.Result != null)

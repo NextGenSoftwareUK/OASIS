@@ -518,34 +518,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
-                            case "enablecosmicdetailedoutput":
-                                {
-                                    STAR.IsDetailedCOSMICOutputsEnabled = true;
-                                    CLIEngine.ShowMessage("Detailed COSMIC Output Enabled.");
-                                }
-                                break;
-
-                            case "disablecosmicdetailedoutput":
-                                {
-                                    STAR.IsDetailedCOSMICOutputsEnabled = false;
-                                    CLIEngine.ShowMessage("Detailed COSMIC Output Disabled.");
-                                }
-                                break;
-
-                            case "enablestarstatusdetailedoutput":
-                                {
-                                    STAR.IsDetailedStatusUpdatesEnabled = true;
-                                    CLIEngine.ShowMessage("Detailed STAR ODK Status Output Enabled.");
-                                }
-                                break;
-
-                            case "disablestarstatusdetailedoutput":
-                                {
-                                    STAR.IsDetailedStatusUpdatesEnabled = false;
-                                    CLIEngine.ShowMessage("Detailed STAR ODK Status Output Disabled.");
-                                }
-                                break;
-
                             case "listoapps":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
@@ -712,15 +684,47 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 await STARCLI.MintGeoNFTAsync();
                                 break;
 
+                            case "placegeonft":
+                                await STARCLI.PlaceGeoNFTAsync();
+                                break;
+
                             case "shownfts":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
+                                await STARCLI.ListNFTsAsync();
                                 break;
 
                             case "showgeonfts":
+                                await STARCLI.ListGeoNFTsAsync();
+                                break;
+
+                            case "sendnft":
+                                await STARCLI.SendNFTAsync();
+                                break;
+
+                            case "enablecosmicdetailedoutput":
                                 {
-                                    CLIEngine.ShowMessage("Coming soon...");
+                                    STAR.IsDetailedCOSMICOutputsEnabled = true;
+                                    CLIEngine.ShowMessage("Detailed COSMIC Output Enabled.");
+                                }
+                                break;
+
+                            case "disablecosmicdetailedoutput":
+                                {
+                                    STAR.IsDetailedCOSMICOutputsEnabled = false;
+                                    CLIEngine.ShowMessage("Detailed COSMIC Output Disabled.");
+                                }
+                                break;
+
+                            case "enablestarstatusdetailedoutput":
+                                {
+                                    STAR.IsDetailedStatusUpdatesEnabled = true;
+                                    CLIEngine.ShowMessage("Detailed STAR ODK Status Output Enabled.");
+                                }
+                                break;
+
+                            case "disablestarstatusdetailedoutput":
+                                {
+                                    STAR.IsDetailedStatusUpdatesEnabled = false;
+                                    CLIEngine.ShowMessage("Detailed STAR ODK Status Output Disabled.");
                                 }
                                 break;
 
@@ -768,8 +772,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 break;
 
                             default:
-                                CLIEngine.ShowMessage("Unknown Command.", ConsoleColor.Green);
-                                //Console.WriteLine("");
+                                CLIEngine.ShowErrorMessage("Unknown Command.");
                                 break;
                         }
                     }
@@ -2427,10 +2430,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star showkeys = Shows the keys for the current beamed in avatar.");
             Console.WriteLine("   star showwallets = Shows the wallets for the current beamed in avatar.");
             Console.WriteLine("   star search = Seaches The OASIS for the given seach parameters.");
-            Console.WriteLine("   star mintnft = Mints a NFT for the current beamed in avatar.");
-            Console.WriteLine("   star mintgeonft = Mints a Geo-NFT for the current beamed in avatar.");
+            Console.WriteLine("   star mintnft = Mints a OASIS NFT for the current beamed in avatar.");
+            Console.WriteLine("   star mintgeonft = Mints a OASIS Geo-NFT and places in Our World/AR World for the current beamed in avatar.");
+            Console.WriteLine("   star placegeonft = Places an existing OASIS NFT in Our World/AR World for the current beamed in avatar.");
             Console.WriteLine("   star shownfts = Shows the NFT's that belong to current beamed in avatar.");
             Console.WriteLine("   star showgeonfts = Shows the Geo-NFT's that belong to current beamed in avatar.");
+            Console.WriteLine("   star sendnft = Send a NFT to another wallet cross-chain.");
             Console.WriteLine("   star enablecosmicdetailedoutput = Enables COSMIC Detailed Output.");
             Console.WriteLine("   star disablecosmicdetailedoutput = Disables COSMIC Detailed Output.");
             Console.WriteLine("   star enablestarstatusdetailedoutput = Enables STAR ODK Detailed Output.");
