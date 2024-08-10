@@ -17,6 +17,8 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
+using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
+using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 
 namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 {
@@ -24,6 +26,8 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
     {
         EthereumOASIS _ethereum;
         ArbitrumOASIS _arbitrum;
+        RootstockOASIS _rootstock;
+        PolygonOASIS _polygon;
         SolanaOASIS _solana;
         EOSIOOASIS _EOSIO;
         TelosOASIS _telos;
@@ -169,6 +173,48 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
             }
         }
 
+        public PolygonOASIS Polygon
+        {
+            get
+            {
+                if (_polygon == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.PolygonOASIS);
+
+                        if (result != null && !result.IsError)
+                            _polygon = (PolygonOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Polygon Property Getter. Reason: {result.Message}");
+                    });
+                }
+
+                return _polygon;
+            }
+        }
+
+        public RootstockOASIS Rootstock
+        {
+            get
+            {
+                if (_rootstock == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.RootstockOASIS);
+
+                        if (result != null && !result.IsError)
+                            _rootstock = (RootstockOASIS)result.Result;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Rootstock Property Getter. Reason: {result.Message}");
+                    });
+                }
+
+                return _rootstock;
+            }
+        }
+
         public TelosOASIS Telos
         {
             get
@@ -246,9 +292,9 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
                             _neo4j = (Neo4jOASIS)result.Result;
                         else
                             OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Neo4j Property Getter. Reason: {result.Message}");
-                    }); 
+                    });
                 }
-                    
+
                 return _neo4j;
             }
         }
