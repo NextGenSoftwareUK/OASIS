@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
@@ -137,7 +138,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Init(dimension);
         }
 
-        //public Universe(Dictionary<ProviderType, string> providerKey, IDimension dimension = null) : base(providerKey, HolonType.Universe) 
         public Universe(string providerKey, ProviderType providerType, IDimension dimension = null, bool autoLoad = true) : base(providerKey, providerType, HolonType.Universe, autoLoad)
         {
             Init(dimension);
@@ -153,6 +153,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             if (dimension != null)
             {
                 Mapper<IDimension, Universe>.MapParentCelestialBodyProperties(dimension, this);
+                this.ParentOmniverse = dimension.ParentOmniverse;
+                this.ParentOmniverseId = dimension.ParentOmniverseId;
+                this.ParentMultiverse = dimension.ParentMultiverse;
+                this.ParentMultiverseId = dimension.ParentMultiverseId;
                 this.ParentDimension = dimension;
                 this.ParentDimensionId = dimension.Id;
                 ParentCelestialSpace = dimension;

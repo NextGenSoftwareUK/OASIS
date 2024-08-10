@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
@@ -61,7 +62,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Init();
         }
 
-        //public Omniverse(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Omniverse) 
         public Omniverse(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.Omniverse, autoLoad)
         {
             Init();
@@ -98,8 +98,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             ParentGreatGrandSuperStarId = GreatGrandSuperStar.Id;
             ParentCelestialBody = GreatGrandSuperStar;
             ParentCelestialBodyId = GreatGrandSuperStar.Id;
-            ParentHolon = GreatGrandSuperStar;
-            ParentHolonId = GreatGrandSuperStar.Id;
+            //ParentHolon = GreatGrandSuperStar;
+            //ParentHolonId = GreatGrandSuperStar.Id;
 
             Dimensions = new OmniverseDimensions(this);
 

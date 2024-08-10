@@ -332,21 +332,22 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (!result.IsError && result.Result != null)
             {
-                //Mapper<IHolon, Galaxy>.MapBaseHolonProperties(result.Result, (Galaxy)galaxy);
 
-                // Now we need to save the SuperStar as a seperate Holon.
-                OASISResult<IHolon> superStarResult = await GlobalHolonData.SaveHolonAsync(galaxy.SuperStar, false);
 
-                if (!superStarResult.IsError && superStarResult.Result != null)
-                {
-                   // Mapper<IHolon, SuperStar>.MapBaseHolonProperties(superStarResult.Result, (SuperStar)galaxy.SuperStar);
-                    result.Result = galaxy;
-                }
-                else
-                {
-                    result.IsError = true;
-                    result.Message = superStarResult.Message;
-                }
+                //No longer need to save the superstar seperately because it is automatically saved when the galaxy is saved because it is a child.
+                //// Now we need to save the SuperStar as a seperate Holon.
+                //OASISResult<IHolon> superStarResult = await GlobalHolonData.SaveHolonAsync(galaxy.SuperStar, false);
+
+                //if (!superStarResult.IsError && superStarResult.Result != null)
+                //{
+                //   // Mapper<IHolon, SuperStar>.MapBaseHolonProperties(superStarResult.Result, (SuperStar)galaxy.SuperStar);
+                //    result.Result = galaxy;
+                //}
+                //else
+                //{
+                //    result.IsError = true;
+                //    result.Message = superStarResult.Message;
+                //}
             }
 
             return result;
@@ -594,7 +595,7 @@ namespace NextGenSoftware.OASIS.STAR
                 List<ISolarSystem> solarSystems = new List<ISolarSystem>();
 
                 foreach (IGalaxyCluster cluster in galaxyClustersResult.Result)
-                    solarSystems.AddRange(cluster.SoloarSystems);
+                    solarSystems.AddRange(cluster.SolarSystems);
 
                 result.Result = solarSystems;
             }

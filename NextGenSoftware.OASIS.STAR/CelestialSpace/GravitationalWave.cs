@@ -10,7 +10,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         public GravitationalWave(Guid id, bool autoLoad = true) : base(id, HolonType.GalaxyCluster, autoLoad) { }
 
-        //public GravitationalWave(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.GalaxyCluster) { }
         public GravitationalWave(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.GravitationalWave, autoLoad) { }
     }
 }

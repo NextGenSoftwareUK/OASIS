@@ -13,23 +13,23 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 {
     public static class DataHelper
     {
-        public static OASISResult<IEnumerable<IAvatar>> ConvertMongoEntitysToOASISAvatars(OASISResult<IEnumerable<Avatar>> avatars)
+        public static OASISResult<IEnumerable<IAvatar>> ConvertMongoEntitysToOASISAvatars(OASISResult<IEnumerable<Avatar>> avatars, bool mapChildren = true)
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(avatars, result);
 
             if (!avatars.IsError && avatars.Result != null)
-                result.Result = ConvertMongoEntitysToOASISAvatars(avatars.Result);
+                result.Result = ConvertMongoEntitysToOASISAvatars(avatars.Result, mapChildren);
 
             return result;
         }
 
-        public static IEnumerable<IAvatar> ConvertMongoEntitysToOASISAvatars(IEnumerable<Avatar> avatars)
+        public static IEnumerable<IAvatar> ConvertMongoEntitysToOASISAvatars(IEnumerable<Avatar> avatars, bool mapChildren = true)
         {
             List<IAvatar> oasisAvatars = new List<IAvatar>();
 
             foreach (Avatar avatar in avatars)
-                oasisAvatars.Add(ConvertMongoEntityToOASISAvatar(new OASISResult<Avatar>(avatar)).Result);
+                oasisAvatars.Add(ConvertMongoEntityToOASISAvatar(new OASISResult<Avatar>(avatar), mapChildren).Result);
 
             return oasisAvatars;
         }
@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
         //    return oasisAvatars;
         //}
 
-        public static OASISResult<IEnumerable<IAvatarDetail>> ConvertMongoEntitysToOASISAvatarDetails(OASISResult<IEnumerable<AvatarDetail>> avatars)
+        public static OASISResult<IEnumerable<IAvatarDetail>> ConvertMongoEntitysToOASISAvatarDetails(OASISResult<IEnumerable<AvatarDetail>> avatars, bool mapChildren = true)
         {
             OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
             List<IAvatarDetail> oasisAvatars = new List<IAvatarDetail>();
@@ -53,7 +53,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             if (!avatars.IsError && avatars.Result != null)
             {
                 foreach (AvatarDetail avatar in avatars.Result)
-                    oasisAvatars.Add(ConvertMongoEntityToOASISAvatarDetail(new OASISResult<AvatarDetail>(avatar)).Result);
+                    oasisAvatars.Add(ConvertMongoEntityToOASISAvatarDetail(new OASISResult<AvatarDetail>(avatar), mapChildren).Result);
 
                 result.Result = oasisAvatars;
             }
@@ -61,13 +61,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             return result;
         }
 
-        public static IEnumerable<IHolon> ConvertMongoEntitysToOASISHolons(IEnumerable<Holon> holons)
+        public static IEnumerable<IHolon> ConvertMongoEntitysToOASISHolons(IEnumerable<Holon> holons, bool mapChildren = true)
         {
             List<IHolon> oasisHolons = new List<IHolon>();
 
             foreach (Holon holon in holons)
             {
-                OASISResult<IHolon> convertedResult = ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(holon));
+                OASISResult<IHolon> convertedResult = ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(holon), mapChildren);
 
                 if (!convertedResult.IsError && convertedResult.Result != null)
                     oasisHolons.Add(convertedResult.Result);
@@ -76,7 +76,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             return oasisHolons;
         }
 
-        public static OASISResult<IAvatar> ConvertMongoEntityToOASISAvatar(OASISResult<Avatar> avatarResult)
+        public static OASISResult<IAvatar> ConvertMongoEntityToOASISAvatar(OASISResult<Avatar> avatarResult, bool mapChildren = true)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(avatarResult, result);
@@ -149,10 +149,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.IsActive = avatarResult.Result.IsActive;
             result.Result.CustomKey = avatarResult.Result.CustomKey;
 
+            if (mapChildren)
+                result.Result.Children = avatarResult.Result.Children;
+
+            result.Result.AllChildIdListCache = avatarResult.Result.AllChildIdListCache;
+            result.Result.ChildIdListCache = avatarResult.Result.ChildIdListCache;
+
             return result;
         }
 
-        public static OASISResult<IAvatarDetail> ConvertMongoEntityToOASISAvatarDetail(OASISResult<AvatarDetail> avatar)
+        public static OASISResult<IAvatarDetail> ConvertMongoEntityToOASISAvatarDetail(OASISResult<AvatarDetail> avatar, bool mapChildren = true)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(avatar, result);
@@ -256,6 +262,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.ParentPlanet = avatar.Result.ParentPlanet;
             oasisAvatar.ParentMoonId = avatar.Result.ParentMoonId;
             oasisAvatar.ParentMoon = avatar.Result.ParentMoon;
+
+            if (mapChildren)
+                oasisAvatar.Children = avatar.Result.Children;
+
+            oasisAvatar.AllChildIdListCache = avatar.Result.AllChildIdListCache;
+            oasisAvatar.ChildIdListCache = avatar.Result.ChildIdListCache;
+
             //oasisAvatar.Children = avatar.Result.Children;
             oasisAvatar.CustomKey = avatar.Result.CustomKey;
             //oasisAvatar.Nodes = avatar.Result.Nodes;
@@ -270,7 +283,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             return result;
         }
 
-        public static Avatar ConvertOASISAvatarToMongoEntity(IAvatar avatar)
+        public static Avatar ConvertOASISAvatarToMongoEntity(IAvatar avatar, bool mapChildren = true)
         {
             if (avatar == null)
                 return null;
@@ -347,6 +360,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.IsActive = avatar.IsActive;
             mongoAvatar.CustomKey = avatar.CustomKey;
 
+            if (mapChildren)
+                mongoAvatar.Children = avatar.Children;
+
+            mongoAvatar.AllChildIdListCache = avatar.AllChildIdListCache;
+            mongoAvatar.ChildIdListCache = avatar.ChildIdListCache;
+
             return mongoAvatar;
         }
 
@@ -401,7 +420,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             return mongoAvatar;
         }*/
 
-        public static AvatarDetail ConvertOASISAvatarDetailToMongoEntity(IAvatarDetail avatar)
+        public static AvatarDetail ConvertOASISAvatarDetailToMongoEntity(IAvatarDetail avatar, bool mapChildren = true)
         {
             if (avatar == null)
                 return null;
@@ -513,9 +532,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.ParentPlanet = avatar.ParentPlanet;
             mongoAvatar.ParentMoonId = avatar.ParentMoonId;
             mongoAvatar.ParentMoon = avatar.ParentMoon;
-            mongoAvatar.Children = avatar.Children;
+            //mongoAvatar.Children = avatar.Children;
             mongoAvatar.CustomKey = avatar.CustomKey;
             // mongoAvatar.Nodes = avatar.Nodes;
+
+            if (mapChildren)
+                mongoAvatar.Children = avatar.Children;
+
+            mongoAvatar.AllChildIdListCache = avatar.AllChildIdListCache;
+            mongoAvatar.ChildIdListCache = avatar.ChildIdListCache;
 
             if (avatar.Nodes != null)
             {
@@ -529,7 +554,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             return mongoAvatar;
         }
 
-        public static OASISResult<IHolon> ConvertMongoEntityToOASISHolon(OASISResult<Holon> holon)
+        public static OASISResult<IHolon> ConvertMongoEntityToOASISHolon(OASISResult<Holon> holon, bool mapChildren = true)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(holon, result);
@@ -596,8 +621,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.ParentPlanet = holon.Result.ParentPlanet;
             result.Result.ParentMoonId = holon.Result.ParentMoonId;
             result.Result.ParentMoon = holon.Result.ParentMoon;
-            //result.Result.Children = holon.Result.Children;
             result.Result.CustomKey = holon.Result.CustomKey;
+
+            if (mapChildren)
+                result.Result.Children = holon.Result.Children;
+
+            result.Result.AllChildIdListCache = holon.Result.AllChildIdListCache;
+            result.Result.ChildIdListCache = holon.Result.ChildIdListCache;
 
             //result.Result.Nodes = holon.Result.Nodes;
 
@@ -620,7 +650,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             return result;
         }
 
-        public static Holon ConvertOASISHolonToMongoEntity(IHolon holon)
+        public static Holon ConvertOASISHolonToMongoEntity(IHolon holon, bool mapChildren = true)
         {
             if (holon == null)
                 return null;
@@ -680,7 +710,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.ParentPlanet = holon.ParentPlanet;
             mongoHolon.ParentMoonId = holon.ParentMoonId;
             mongoHolon.ParentMoon = holon.ParentMoon;
-            //mongoHolon.Children = holon.Children;
+
+            if (mapChildren)
+                mongoHolon.Children = holon.Children;
+
+            mongoHolon.AllChildIdListCache = holon.AllChildIdListCache;
+            mongoHolon.ChildIdListCache = holon.ChildIdListCache;
+
             mongoHolon.CustomKey = holon.CustomKey;
             //mongoHolon.Nodes = holon.Nodes;
 

@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 
 namespace NextGenSoftware.OASIS.STAR.Holons
@@ -38,9 +36,9 @@ namespace NextGenSoftware.OASIS.STAR.Holons
         public float EclipticLatitute { get; set; }
         public float EclipticLongitute { get; set; }
         public Color Colour { get; set; }
-        public int Size { get; set; }
+        public long Size { get; set; }
         public int Radius { get; set; }
-        public int Age { get; set; }
+        public long Age { get; set; }
         public int Temperature { get; set; }
 
         public CelestialHolon(Guid id, HolonType holonType) : base(id)

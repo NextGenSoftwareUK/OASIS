@@ -26,6 +26,7 @@ using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.Enums;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -68,6 +69,9 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         public static bool IsStarIgnited { get; private set; }
+        public static bool IsDetailedCOSMICOutputsEnabled { get; set; } = false;
+        public static bool IsDetailedStatusUpdatesEnabled { get; set; }
+
         //public static GreatGrandSuperStar InnerStar { get; set; } //Only ONE of these can ever exist and is at the centre of the Omniverse (also only ONE).
 
         //Will default to the GreatGrandSuperStar at the centre of our Omniverse.
@@ -75,15 +79,25 @@ namespace NextGenSoftware.OASIS.STAR
         {
             get
             {
-                return _defaultGreatGrandSuperStar;
-            }
-            set
-            {
+                //return _defaultGreatGrandSuperStar;
+
                 if (_defaultGreatGrandSuperStar == null)
                 {
                     if (STARDNA != null && !string.IsNullOrEmpty(STARDNA.DefaultGreatGrandSuperStarId) && Guid.TryParse(STARDNA.DefaultGreatGrandSuperStarId, out _))
                         _defaultGreatGrandSuperStar = new GreatGrandSuperStar(new Guid(STARDNA.DefaultGreatGrandSuperStarId));
                 }
+
+                return _defaultGreatGrandSuperStar;
+            }
+            set
+            {
+                _defaultGreatGrandSuperStar = value;
+
+                //if (_defaultGreatGrandSuperStar == null)
+                //{
+                //    if (STARDNA != null && !string.IsNullOrEmpty(STARDNA.DefaultGreatGrandSuperStarId) && Guid.TryParse(STARDNA.DefaultGreatGrandSuperStarId, out _))
+                //        _defaultGreatGrandSuperStar = new GreatGrandSuperStar(new Guid(STARDNA.DefaultGreatGrandSuperStarId));
+                //}
             }
         }
 
@@ -162,8 +176,8 @@ namespace NextGenSoftware.OASIS.STAR
         //    }
         //}
 
-        public static IAvatar LoggedInAvatar { get; set; }
-        public static IAvatarDetail LoggedInAvatarDetail { get; set; }
+        public static IAvatar BeamedInAvatar { get; set; }
+        public static IAvatarDetail BeamedInAvatarDetail { get; set; }
 
         public static OASISAPI OASISAPI
         {
@@ -217,6 +231,9 @@ namespace NextGenSoftware.OASIS.STAR
         public static event HolonsLoaded OnHolonsLoaded;
         public static event HolonsSaved OnHolonsSaved;
         public static event HolonsError OnHolonsError;
+
+        public delegate void DefaultCeletialBodyInit(object sender, DefaultCelestialBodyInitEventArgs e);
+        public static event DefaultCeletialBodyInit OnDefaultCeletialBodyInit;
 
         public delegate void StarIgnited(object sender, StarIgnitedEventArgs e);
         public static event StarIgnited OnStarIgnited;
@@ -309,7 +326,7 @@ namespace NextGenSoftware.OASIS.STAR
                 Status = StarStatus.Error;
             else
             {
-                Status = StarStatus.Ingited;
+                Status = StarStatus.Ignited;
                 OnStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
                 IsStarIgnited = true;
             }
@@ -383,7 +400,7 @@ namespace NextGenSoftware.OASIS.STAR
                 Status = StarStatus.Error;
             else
             {
-                Status = StarStatus.Ingited;
+                Status = StarStatus.Ignited;
                 OnStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
                 IsStarIgnited = true;
             }
@@ -466,13 +483,13 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (!result.IsError)
             {
-                LoggedInAvatar = (Avatar)result.Result;
+                BeamedInAvatar = (Avatar)result.Result;
                 OASISAPI.LogAvatarIntoOASISManagers(); //TODO: Is there a better way of doing this?
 
-                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = await OASISAPI.Avatar.LoadAvatarDetailAsync(LoggedInAvatar.Id);
+                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = await OASISAPI.Avatar.LoadAvatarDetailAsync(BeamedInAvatar.Id);
 
                 if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
-                    LoggedInAvatarDetail = loggedInAvatarDetailResult.Result;
+                    BeamedInAvatarDetail = loggedInAvatarDetailResult.Result;
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error Occured In BeamInAsync Calling LoadAvatarDetailAsync. Reason: {loggedInAvatarDetailResult.Message}");
             }
@@ -496,64 +513,94 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (!result.IsError)
             {
-                LoggedInAvatar = (Avatar)result.Result;
+                BeamedInAvatar = (Avatar)result.Result;
 
-                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = OASISAPI.Avatar.LoadAvatarDetail(LoggedInAvatar.Id);
+                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = OASISAPI.Avatar.LoadAvatarDetail(BeamedInAvatar.Id);
 
                 if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
-                    LoggedInAvatarDetail = loggedInAvatarDetailResult.Result;
+                    BeamedInAvatarDetail = loggedInAvatarDetailResult.Result;
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error Occured In BeamIn Calling LoadAvatarDetail. Reason: {loggedInAvatarDetailResult.Message}");
             }
             return result;
         }
 
-        public static OASISResult<CoronalEjection> Light(OAPPType OAPPType, GenesisType genesisType, string name, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
+        public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
         {
-            return Light(OAPPType, genesisType, name, (ICelestialBody)null, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
+            return Light(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null);
         }
 
-        public static OASISResult<CoronalEjection> Light(OAPPType OAPPType, GenesisType genesisType, string name, IStar starToAddPlanetTo = null, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
+        public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IStar starToAddPlanetTo = null)
         {
-            return Light(OAPPType, genesisType, name, (ICelestialBody)starToAddPlanetTo, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
+            return Light(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)starToAddPlanetTo);
         }
 
-        public static OASISResult<CoronalEjection> Light(OAPPType OAPPType, GenesisType genesisType, string name, IPlanet planetToAddMoonTo = null, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
+        //public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid starIdToAddPlanetTo = Guid.Empty)
+        //{
+        //    return LightInternalAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, starIdToAddPlanetTo).Result;
+        //}
+
+        public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IPlanet planetToAddMoonTo = null)
         {
-            return Light(OAPPType, genesisType, name, (ICelestialBody)planetToAddMoonTo, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
+            return Light(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)planetToAddMoonTo);
         }
 
-        //TODO: Create non async version of Light();
-        public static OASISResult<CoronalEjection> Light(OAPPType OAPPType, GenesisType genesisType, string name, ICelestialBody celestialBodyParent = null, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
+        //public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid planetIdToAddMoonTo = Guid.Empty)
+        //{
+        //    return LightInternalAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, planetIdToAddMoonTo).Result;
+        //}
+
+        public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null)
         {
-            //TODO: Implement Light version ASAP (I just don't know about duplicating every method again and again?!)
-            return LightAsync(OAPPType, genesisType, name, celestialBodyParent, celestialBodyDNAFolder, genesisFolder, genesisNameSpace).Result;
+            return LightAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent).Result;
         }
 
-        //public static async Task<OASISResult<CoronalEjection>> LightAsync(OAPPType OAPPType, GenesisType genesisType, string name, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(OAPPType OAPPType, GenesisType genesisType, string name, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
+        public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid())
         {
-            return await LightAsync(OAPPType, genesisType, name, (ICelestialBody)null, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
+            return LightInternalAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId).Result;
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(OAPPType OAPPType, GenesisType genesisType, string name, IStar starToAddPlanetTo = null, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
         {
-            return await LightAsync(OAPPType, genesisType, name, (ICelestialBody)starToAddPlanetTo, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
+            return await LightAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null);
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(OAPPType OAPPType, GenesisType genesisType, string name, IPlanet planetToAddMoonTo = null, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IStar starToAddPlanetTo = null)
         {
-            return await LightAsync(OAPPType, genesisType, name, (ICelestialBody)planetToAddMoonTo, celestialBodyDNAFolder, genesisFolder, genesisNameSpace);
+            return await LightAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)starToAddPlanetTo);
         }
 
-        //public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        //public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid starIdToAddPlanetTo = Guid.Empty)
+        //{
+        //    return await LightAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, starIdToAddPlanetTo);
+        //}
+
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType,  string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IPlanet planetToAddMoonTo = null)
+        {
+            return await LightAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)planetToAddMoonTo);
+        }
+
+        //public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid planetIdToAddMoonTo = Guid.Empty)
+        //{
+        //    return await LightAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, planetIdToAddMoonTo);
+        //}
+
         public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
         {
-            return await LightAsync(OAPPType, GenesisType.ZomesAndHolonsOnly, oAPPName, zomeAndHolonDNAFolder, genesisFolder, genesisNameSpace);
+            return await LightAsync(oAPPName, OAPPType, GenesisType.ZomesAndHolonsOnly, zomeAndHolonDNAFolder, genesisFolder, genesisNameSpace);
         }
 
-        //TODO: Create non async version of Light();
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(OAPPType OAPPType, GenesisType genesisType, string name, ICelestialBody celestialBodyParent = null, string celestialBodyDNAFolder = "", string genesisFolder = "",  string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid())
+        {
+            return await LightInternalAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId);
+        }
+
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null)
+        {
+            return await LightInternalAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent);
+        }
+
+        private static async Task<OASISResult<CoronalEjection>> LightInternalAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "",  string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, Guid celestialBodyParentId = new Guid())
         {
             //OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>();
             ICelestialBody newBody = null;
@@ -577,13 +624,13 @@ namespace NextGenSoftware.OASIS.STAR
             List<string> holonNames = new List<string>();
             string firstStringProperty = "";
 
-            if (LoggedInAvatarDetail == null)
+            if (BeamedInAvatarDetail == null)
                 return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar is not logged in. Please log in before calling this command." };
 
-            if (LoggedInAvatarDetail.Level < 77 && genesisType == GenesisType.Star)
+            if (BeamedInAvatarDetail.Level < 77 && genesisType == GenesisType.Star)
                 return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar must have reached level 77 before they can create stars. Please create a planet or moon instead..." };
 
-            if (LoggedInAvatarDetail.Level < 33 && genesisType == GenesisType.Planet)
+            if (BeamedInAvatarDetail.Level < 33 && genesisType == GenesisType.Planet)
                 return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar must have reached level 33 before they can create planets. Please create a moon instead..." };
 
             //if (celestialBodyParent == null && type == GenesisType.Moon)
@@ -663,12 +710,12 @@ namespace NextGenSoftware.OASIS.STAR
                 genesisNameSpace = $"{STARDNA.BasePath}\\{STARDNA.GenesisNamespace}";
 
             if (string.IsNullOrEmpty(genesisNameSpace))
-                genesisNameSpace = string.Concat(name, "OApp");
+                genesisNameSpace = string.Concat(oAPPName, "OAPP");
 
             //Setup the OApp files from the relevant template.
             if (OAPPType != OAPPType.GeneratedCodeOnly)
             {
-                OAPPFolder = string.Concat(genesisFolder, "\\", name, " OApp");
+                OAPPFolder = string.Concat(genesisFolder, "\\", oAPPName, " OAPP");
 
                 if (Directory.Exists(OAPPFolder))
                     Directory.Delete(OAPPFolder, true);
@@ -725,6 +772,9 @@ namespace NextGenSoftware.OASIS.STAR
             DirectoryInfo dirInfo = new DirectoryInfo(celestialBodyDNAFolder);
             FileInfo[] files = dirInfo.GetFiles();
 
+            if (celestialBodyParent != null)
+                celestialBodyParentId = celestialBodyParent.Id;
+
             switch (genesisType)
             {
                 case GenesisType.Moon:
@@ -736,11 +786,11 @@ namespace NextGenSoftware.OASIS.STAR
 
                         Mapper<IPlanet, Moon>.MapParentCelestialBodyProperties((IPlanet)celestialBodyParent, (Moon)newBody);
                         newBody.ParentHolon = celestialBodyParent;
-                        newBody.ParentHolonId = celestialBodyParent.Id;
+                        newBody.ParentHolonId = celestialBodyParentId;
                         newBody.ParentCelestialBody = celestialBodyParent;
-                        newBody.ParentCelestialBodyId = celestialBodyParent.Id;
+                        newBody.ParentCelestialBodyId = celestialBodyParentId;
                         newBody.ParentPlanet = (IPlanet)celestialBodyParent;
-                        newBody.ParentPlanetId = celestialBodyParent.Id;
+                        newBody.ParentPlanetId = celestialBodyParentId;
                     }
                     break;
 
@@ -754,11 +804,11 @@ namespace NextGenSoftware.OASIS.STAR
 
                         Mapper<IStar, Planet>.MapParentCelestialBodyProperties((IStar)celestialBodyParent, (Planet)newBody);
                         newBody.ParentHolon = celestialBodyParent;
-                        newBody.ParentHolonId = celestialBodyParent.Id;
+                        newBody.ParentHolonId = celestialBodyParentId;
                         newBody.ParentCelestialBody = celestialBodyParent;
-                        newBody.ParentCelestialBodyId = celestialBodyParent.Id;
+                        newBody.ParentCelestialBodyId = celestialBodyParentId;
                         newBody.ParentStar = (IStar)celestialBodyParent;
-                        newBody.ParentStarId = celestialBodyParent.Id;
+                        newBody.ParentStarId = celestialBodyParentId;
                     }
                 break;
 
@@ -771,11 +821,11 @@ namespace NextGenSoftware.OASIS.STAR
 
                         Mapper<ISuperStar, Star>.MapParentCelestialBodyProperties((ISuperStar)celestialBodyParent, (Star)newBody);
                         newBody.ParentHolon = celestialBodyParent;
-                        newBody.ParentHolonId = celestialBodyParent.Id;
+                        newBody.ParentHolonId = celestialBodyParentId;
                         newBody.ParentCelestialBody = celestialBodyParent;
-                        newBody.ParentCelestialBodyId = celestialBodyParent.Id;
+                        newBody.ParentCelestialBodyId = celestialBodyParentId;
                         newBody.ParentSuperStar = (ISuperStar)celestialBodyParent;
-                        newBody.ParentSuperStarId = celestialBodyParent.Id;
+                        newBody.ParentSuperStarId = celestialBodyParentId;
                     }
                 break;
 
@@ -788,11 +838,11 @@ namespace NextGenSoftware.OASIS.STAR
 
                         Mapper<IGrandSuperStar, SuperStar>.MapParentCelestialBodyProperties((IGrandSuperStar)celestialBodyParent, (SuperStar)newBody);
                         newBody.ParentHolon = celestialBodyParent;
-                        newBody.ParentHolonId = celestialBodyParent.Id;
+                        newBody.ParentHolonId = celestialBodyParentId;
                         newBody.ParentCelestialBody = celestialBodyParent;
-                        newBody.ParentCelestialBodyId = celestialBodyParent.Id;
+                        newBody.ParentCelestialBodyId = celestialBodyParentId;
                         newBody.ParentGrandSuperStar = (IGrandSuperStar)celestialBodyParent;
-                        newBody.ParentGrandSuperStarId = celestialBodyParent.Id;
+                        newBody.ParentGrandSuperStarId = celestialBodyParentId;
                     }
                     break;
 
@@ -805,11 +855,11 @@ namespace NextGenSoftware.OASIS.STAR
 
                         Mapper<IGreatGrandSuperStar, GrandSuperStar>.MapParentCelestialBodyProperties((IGreatGrandSuperStar)celestialBodyParent, (GrandSuperStar)newBody);
                         newBody.ParentHolon = celestialBodyParent;
-                        newBody.ParentHolonId = celestialBodyParent.Id;
+                        newBody.ParentHolonId = celestialBodyParentId;
                         newBody.ParentCelestialBody = celestialBodyParent;
-                        newBody.ParentCelestialBodyId = celestialBodyParent.Id;
+                        newBody.ParentCelestialBodyId = celestialBodyParentId;
                         newBody.ParentGreatGrandSuperStar = (IGreatGrandSuperStar)celestialBodyParent;
-                        newBody.ParentGreatGrandSuperStarId = celestialBodyParent.Id;
+                        newBody.ParentGreatGrandSuperStarId = celestialBodyParentId;
                     }
                     break;
             }
@@ -818,7 +868,7 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 newBody.Id = Guid.NewGuid();
                 newBody.IsNewHolon = true; //This was commented out, not sure why?
-                newBody.Name = name;
+                newBody.Name = oAPPName;
                 newBody.OnCelestialBodySaved += NewBody_OnCelestialBodySaved;
                 newBody.OnCelestialBodyError += NewBody_OnCelestialBodyError;
                 newBody.OnZomeSaved += NewBody_OnZomeSaved;
@@ -892,7 +942,8 @@ namespace NextGenSoftware.OASIS.STAR
                             if (newBody != null)
                             {
                                 Mapper.MapParentCelestialBodyProperties(newBody, currentZome);
-                                await newBody.CelestialBodyCore.AddZomeAsync(currentZome); //TODO: May need to save this once holons and nodes/fields have been added?
+                                //await newBody.CelestialBodyCore.AddZomeAsync(currentZome);
+                                await newBody.CelestialBodyCore.AddZomeAsync(currentZome, false); //Ideally wanted to save the zomes/holons all in one go when the celestialbody is saved (and it would have if we called .save() on the newBody below... but for some reason we implemented it differently! ;-) lol
                             }
                             else
                                 zomes.Add(currentZome); //used only for Zomes & Holons Only Genesis Type.
@@ -1012,7 +1063,7 @@ namespace NextGenSoftware.OASIS.STAR
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("NAMESPACE", genesisNameSpace);
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("ID", newBody.Id.ToString());
-                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBodyDNATemplate", name.ToPascalCase());
+                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBodyDNATemplate", oAPPName.ToPascalCase());
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CELESTIALBODY", Enum.GetName(typeof(GenesisType), genesisType));
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Insert(celestialBodyBufferCsharp.Length - 7, string.Concat(loadHolonTemplateCsharp, "\n"));
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Insert(celestialBodyBufferCsharp.Length - 7, string.Concat(saveHolonTemplateCsharp, "\n"));
@@ -1063,11 +1114,14 @@ namespace NextGenSoftware.OASIS.STAR
 
             // Remove any white space from the name.
             if (genesisType != GenesisType.ZomesAndHolonsOnly)
-                File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), genesisType), ".cs"), celestialBodyBufferCsharp);
+                File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\CelestialBodies\\", Regex.Replace(oAPPName, @"\s+", ""), Enum.GetName(typeof(GenesisType), genesisType), ".cs"), celestialBodyBufferCsharp);
 
             // Currently the OApp Name is the same as the CelestialBody name (each CelestialBody is a seperate OApp), but in future a OApp may be able to contain more than one celestialBody...
             // TODO: Currently the OApp templates only contain sample load/save for one holon... this may change in future... likely will... ;-) Want to show for every zome/holon inside the celestialbody...
-            ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, name, name, holonNames[0], firstStringProperty);
+            if (holonNames.Count > 0)
+                ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, oAPPName, oAPPName, holonNames[0], firstStringProperty);
+            else
+                ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, oAPPName, oAPPName, "", firstStringProperty);
 
             //Generate any native code for the current provider.
             //TODO: Add option to pass into STAR which providers to generate native code for (can be more than one provider).
@@ -1079,7 +1133,25 @@ namespace NextGenSoftware.OASIS.STAR
             switch (genesisType)
             {
                 case GenesisType.ZomesAndHolonsOnly:
-                    return new OASISResult<CoronalEjection>() { IsError = false, Message = "Zomes And Holons Successfully Created.", Result = new CoronalEjection() { Zomes = zomes } };
+                    {
+                        OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>(new CoronalEjection());
+
+                        foreach (IZome zome in zomes)
+                        {
+                            OASISResult<IZome> saveZomeResult = await zome.SaveAsync();
+
+                            if (!(saveZomeResult != null && saveZomeResult.Result != null && !saveZomeResult.IsError))
+                                OASISErrorHandling.HandleError(ref result, $"Error occured saving zome {LoggingHelper.GetHolonInfoForLogging(zome, "zome")}. Reason: {saveZomeResult.Message}.", true);
+                        }
+
+                        if (!result.IsError)
+                            result.Message = "Zomes And Holons Successfully Created.";
+                        else
+                            result.Message = $"Some errors occured saving zomes and holons: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+
+                        result.Result.Zomes = new List<IZome>(zomes);
+                        return result;
+                    }
 
                 case GenesisType.Moon:
                     {
@@ -1209,10 +1281,10 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static void NewBody_OnCelestialBodySaved(object sender, CelestialBodySavedEventArgs e)
         {
-            if (e.Result != null && e.Result.Result != null)
+            if (IsDetailedStatusUpdatesEnabled && e.Result != null && e.Result.Result != null)
             {
                 if (!e.Result.IsError)
-                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = $"{e.Result.Result.Name} Created." });
+                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = $"{e.Result.Result.Name} Saved." });
                 else
                     OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating {e.Result.Result.Name}. Reason: {e.Result.Message}" });
             }
@@ -1770,7 +1842,10 @@ namespace NextGenSoftware.OASIS.STAR
                         HandleCelesitalBodyInitError(result, name, id, celestialBodyResult);
                     }
                     else
+                    {
                         ShowStatusMessage(StarStatusMessageType.Success, $"{longName} Initialized.");
+                        OnDefaultCeletialBodyInit?.Invoke(null, new DefaultCelestialBodyInitEventArgs() { Result = OASISResultHelper.CopyResultToICelestialBody(celestialBodyResult) });
+                    }
                 }
                 else
                     HandleCelesitalBodyInitError<T>(result, name, id, $"The {name}Id value in STARDNA.json is not a valid Guid.");
@@ -1804,7 +1879,10 @@ namespace NextGenSoftware.OASIS.STAR
                         HandleCelesitalBodyInitError(result, name, id, celestialBodyResult);
                     }
                     else
+                    {
                         ShowStatusMessage(StarStatusMessageType.Success, $"{longName} Initialized.");
+                        OnDefaultCeletialBodyInit?.Invoke(null, new DefaultCelestialBodyInitEventArgs() { Result = OASISResultHelper.CopyResultToICelestialBody(celestialBodyResult) });
+                    }
                 }
                 else
                     HandleCelesitalBodyInitError<T>(result, name, id, $"The {name}Id value in STARDNA.json is not a valid Guid.");
@@ -2383,30 +2461,49 @@ namespace NextGenSoftware.OASIS.STAR
                     using (TextReader tr = File.OpenText(file.FullName))
                     using (TextWriter tw = File.CreateText(string.Concat(file.FullName, ".temp")))
                     {
+                        bool celestialBodyBlock = false;
+
                         while ((line = tr.ReadLine()) != null)
                         {
                             celestialBodyName = celestialBodyName.Replace(" ", "");
                             line = line.Replace("{OAPPNAMESPACE}", oAppNameSpace);
                             line = line.Replace("{OAPPNAME}", oAppName);
 
-                            if (genesisType == GenesisType.ZomesAndHolonsOnly)
+                            if (line.Contains("CelestialBodyOnly:BEGIN"))
                             {
-                                line = line.Replace("//ZomesAndHolonsOnly:", "");
+                                celestialBodyBlock = true;
+                                continue;
 
-                                if (line.Contains("CelestialBodyOnly"))
-                                    continue;
                             }
+                            else if (line.Contains("CelestialBodyOnly:END"))
+                            {
+                                celestialBodyBlock = false;
+                                continue;
+                            }
+                            else if (celestialBodyBlock && genesisType == GenesisType.ZomesAndHolonsOnly)
+                                continue;
+
                             else
                             {
-                                line = line.Replace("{CELESTIALBODY}", celestialBodyName.ToPascalCase()).Replace("//CelestialBodyOnly:", "");
-                                line = line.Replace("{CELESTIALBODYVAR}", celestialBodyName.ToCamelCase()).Replace("//CelestialBodyOnly:", "");
+                                if (genesisType == GenesisType.ZomesAndHolonsOnly)
+                                {
+                                    line = line.Replace("//ZomesAndHolonsOnly:", "");
 
-                                if (line.Contains("ZomesAndHolonsOnly"))
-                                    continue;
+                                    if (line.Contains("CelestialBodyOnly"))
+                                        continue;
+                                }
+                                else
+                                {
+                                    line = line.Replace("{CELESTIALBODY}", celestialBodyName.ToPascalCase()).Replace("//CelestialBodyOnly:", "");
+                                    line = line.Replace("{CELESTIALBODYVAR}", celestialBodyName.ToCamelCase()).Replace("//CelestialBodyOnly:", "");
+
+                                    if (line.Contains("ZomesAndHolonsOnly"))
+                                        continue;
+                                }
+
+                                line = line.Replace("{HOLON}", holonName.ToPascalCase());
+                                line = line.Replace("{STRINGPROPERTY}", firstStringProperty.ToPascalCase());
                             }
-
-                            line = line.Replace("{HOLON}", holonName.ToPascalCase());
-                            line = line.Replace("{STRINGPROPERTY}", firstStringProperty.ToPascalCase());
 
                             tw.WriteLine(line);
                             lineNumber++;

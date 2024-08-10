@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -820,7 +821,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList(listName, providerList);
 
             if (!listResult.IsError && listResult.Result != null)
-                result = EnumHelper.ConvertToEnumValueList(listResult.Result);
+                result.Result = EnumHelper.ConvertToEnumValueList(listResult.Result);
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in GetProvidersFromListAsEnumList method in ProviderManager. Reason: {listResult.Message}", listResult.DetailedMessage);
 
@@ -954,7 +955,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public string GetProviderListAsString(List<ProviderType> providerList)
         {
-            return GetProviderListAsString(EnumHelper.ConvertToEnumValueList(providerList).Result.ToList());
+            return GetProviderListAsString(EnumHelper.ConvertToEnumValueList(providerList).ToList());
         }
 
         public string GetProviderListAsString(List<EnumValue<ProviderType>> providerList)

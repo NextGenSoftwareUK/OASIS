@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
@@ -101,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
         public string CustomKey { get; set; } //A custom key that can be used to load the holon by (other than Id or ProviderKey).
-        public bool IsNewHolon { get; set; }
+        public bool IsNewHolon { get; set; } //TODO: Want to remove this ASAP!
         public bool IsChanged { get; set; }
         public bool IsSaving { get; set; }
         public HolonType HolonType { get; set; }
@@ -124,13 +125,24 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public EnumValue<OASISType> CreatedOASISType { get; set; }
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
-        //public IEnumerable<IHolon> Children { get; set; }
-        public virtual IList<IHolon> Children { get; set; } = new List<IHolon>();
+        public string ChildIdListCache { get; set; } //This will store the list of id's for the direct childen of this holon.
+        public string AllChildIdListCache { get; set; } //This will store the list of id's for the ALL the childen of this holon (including all sub-childen).
+
+        public IList<IHolon> Children { get; set; } = new List<IHolon>();
+
+        public virtual IReadOnlyCollection<IHolon> AllChildren 
+        { 
+            get
+            {
+                return Children.AsReadOnly();
+            }
+        } 
+
         //public ObservableCollection<IHolon> Children { get; set; }
 
-        /// <summary>
-        /// Fired when a property in this class changes.
-        /// </summary>
+            /// <summary>
+            /// Fired when a property in this class changes.
+            /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
         /*
        public Holon()
@@ -264,17 +276,17 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             try
             {
                 if (this.HolonType == HolonType.GreatGrandSuperStar)
-                    GetGreatGrandSuperStar(ref result, await HolonManager.Instance.LoadAllHolonsAsync(HolonType.GreatGrandSuperStar, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
+                    GetGreatGrandSuperStar(ref result, await HolonManager.Instance.LoadAllHolonsAsync(HolonType.GreatGrandSuperStar, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType));
 
                 else if (this.Id != Guid.Empty)
-                    result = await HolonManager.Instance.LoadHolonAsync(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
+                    result = await HolonManager.Instance.LoadHolonAsync(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType);
 
                 else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
                 {
                     OASISResult<string> providerKeyResult = GetCurrentProviderKey(providerType);
 
                     if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
-                        result = await HolonManager.Instance.LoadHolonAsync(providerKeyResult.Result, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
+                        result = await HolonManager.Instance.LoadHolonAsync(providerKeyResult.Result, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType);
                     else
                         OASISErrorHandling.HandleError(ref result, $"Error occured in HolonBase.LoadAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
                 }
@@ -312,17 +324,17 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             try
             {
                 if (this.HolonType == HolonType.GreatGrandSuperStar)
-                    GetGreatGrandSuperStar(ref result, await HolonManager.Instance.LoadAllHolonsAsync(HolonType.GreatGrandSuperStar, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
+                    GetGreatGrandSuperStar(ref result, await HolonManager.Instance.LoadAllHolonsAsync(HolonType.GreatGrandSuperStar, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType));
 
                 else if (this.Id != Guid.Empty)
-                    result = await HolonManager.Instance.LoadHolonAsync<T>(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
+                    result = await HolonManager.Instance.LoadHolonAsync<T>(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType);
 
                 else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
                 {
                     OASISResult<string> providerKeyResult = GetCurrentProviderKey(providerType);
 
                     if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
-                        result = await HolonManager.Instance.LoadHolonAsync<T>(providerKeyResult.Result, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
+                        result = await HolonManager.Instance.LoadHolonAsync<T>(providerKeyResult.Result, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType);
                     else
                         OASISErrorHandling.HandleError(ref result, $"Error occured in HolonBase.LoadAsync<T>. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
                 }
@@ -335,7 +347,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (result != null && !result.IsError && result.Result != null)
                 {
                     SetProperties(result.Result);
-                    MapMetaData<T>();
+                    //MapMetaData<T>(); //TODO: Don't think we need to do this? Because HolonManager does this for us...
                     OnLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
                 }
                 else
@@ -360,17 +372,17 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             try
             {
                 if (this.HolonType == HolonType.GreatGrandSuperStar)
-                    GetGreatGrandSuperStar(ref result, HolonManager.Instance.LoadAllHolons(HolonType.GreatGrandSuperStar, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
+                    GetGreatGrandSuperStar(ref result, HolonManager.Instance.LoadAllHolons(HolonType.GreatGrandSuperStar, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType));
 
                 else if (this.Id != Guid.Empty)
-                    result = HolonManager.Instance.LoadHolon(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
+                    result = HolonManager.Instance.LoadHolon(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType);
 
                 else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
                 {
                     OASISResult<string> providerKeyResult = GetCurrentProviderKey(providerType);
 
                     if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
-                        result = HolonManager.Instance.LoadHolon(providerKeyResult.Result, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
+                        result = HolonManager.Instance.LoadHolon(providerKeyResult.Result, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType);
                     else
                         OASISErrorHandling.HandleError(ref result, $"Error occured in HolonBase.Load. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
                 }
@@ -408,17 +420,17 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             try
             {
                 if (this.HolonType == HolonType.GreatGrandSuperStar)
-                    GetGreatGrandSuperStar(ref result, HolonManager.Instance.LoadAllHolons(HolonType.GreatGrandSuperStar, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType));
+                    GetGreatGrandSuperStar(ref result, HolonManager.Instance.LoadAllHolons(HolonType.GreatGrandSuperStar, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType));
 
                 else if (this.Id != Guid.Empty)
-                    result = HolonManager.Instance.LoadHolon<T>(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
+                    result = HolonManager.Instance.LoadHolon<T>(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType);
 
                 else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
                 {
                     OASISResult<string> providerKeyResult = GetCurrentProviderKey(providerType);
 
                     if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
-                        result = HolonManager.Instance.LoadHolon<T>(providerKeyResult.Result, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
+                        result = HolonManager.Instance.LoadHolon<T>(providerKeyResult.Result, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType);
                     else
                         OASISErrorHandling.HandleError(ref result, $"Error occured in HolonBase.Load<T>. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
                 }
@@ -431,7 +443,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (result != null && !result.IsError && result.Result != null)
                 {
                     SetProperties(result.Result);
-                    MapMetaData<T>();
+                    //MapMetaData<T>(); //TODO: Don't think we need to do this? Because HolonManager does this for us...
                     OnLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = OASISResultHelper.CopyResult(result) });
                 }
                 else
@@ -456,14 +468,14 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             try
             {
                 if (this.Id != Guid.Empty)
-                    result = await HolonManager.Instance.LoadHolonsForParentAsync(this.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, 0, providerType);
+                    result = await HolonManager.Instance.LoadHolonsForParentAsync(this.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
 
                 else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
                 {
                     OASISResult<string> providerKeyResult = GetCurrentProviderKey(providerType);
 
                     if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
-                        result = await HolonManager.Instance.LoadHolonsForParentAsync(providerKeyResult.Result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, 0, providerType);
+                        result = await HolonManager.Instance.LoadHolonsForParentAsync(providerKeyResult.Result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
                     else
                         OASISErrorHandling.HandleError(ref result, $"Error occured in HolonBase.LoadChildHolonsAsync. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
                 }
@@ -502,14 +514,14 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             try
             {
                 if (this.Id != Guid.Empty)
-                    result = HolonManager.Instance.LoadHolonsForParent(this.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, 0, providerType);
+                    result = HolonManager.Instance.LoadHolonsForParent(this.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
 
                 else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
                 {
                     OASISResult<string> providerKeyResult = GetCurrentProviderKey(providerType);
 
                     if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
-                        result = HolonManager.Instance.LoadHolonsForParent(providerKeyResult.Result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, 0, providerType);
+                        result = HolonManager.Instance.LoadHolonsForParent(providerKeyResult.Result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
                     else
                         OASISErrorHandling.HandleError(ref result, $"Error occured in HolonBase.LoadChildHolons. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
                 }
@@ -548,14 +560,14 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             try
             {
                 if (this.Id != Guid.Empty)
-                    result = await HolonManager.Instance.LoadHolonsForParentAsync<T>(this.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, 0, providerType);
+                    result = await HolonManager.Instance.LoadHolonsForParentAsync<T>(this.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
 
                 else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
                 {
                     OASISResult<string> providerKeyResult = GetCurrentProviderKey(providerType);
 
                     if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
-                        result = await HolonManager.Instance.LoadHolonsForParentAsync<T>(providerKeyResult.Result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, 0, providerType);
+                        result = await HolonManager.Instance.LoadHolonsForParentAsync<T>(providerKeyResult.Result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
                     else
                         OASISErrorHandling.HandleError(ref result, $"Error occured in HolonBase.LoadChildHolonsAsync<T>. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
                 }
@@ -594,14 +606,14 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             try
             {
                 if (this.Id != Guid.Empty)
-                    result = HolonManager.Instance.LoadHolonsForParent<T>(this.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, 0, providerType);
+                    result = HolonManager.Instance.LoadHolonsForParent<T>(this.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
 
                 else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
                 {
                     OASISResult<string> providerKeyResult = GetCurrentProviderKey(providerType);
 
                     if (!providerKeyResult.IsError && !string.IsNullOrEmpty(providerKeyResult.Result))
-                        result = HolonManager.Instance.LoadHolonsForParent<T>(providerKeyResult.Result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, 0, providerType);
+                        result = HolonManager.Instance.LoadHolonsForParent<T>(providerKeyResult.Result, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
                     else
                         OASISErrorHandling.HandleError(ref result, $"Error occured in HolonBase.LoadChildHolons<T>. Reason: {providerKeyResult.Message}", providerKeyResult.DetailedMessage);
                 }
@@ -1856,8 +1868,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             this.Id = holon.Id;
             this.InstanceSavedOnProviderType = holon.InstanceSavedOnProviderType;
             this.IsActive = holon.IsActive;
-            this.IsChanged = holon.IsChanged;
-            this.IsNewHolon = holon.IsNewHolon;
+            this.IsChanged = holon.IsChanged; //these appear to be the only properties that need updating, the rest are done automatically due to the objects being byref! ;-)
+            this.IsNewHolon = holon.IsNewHolon; //these appear to be the only properties that need updating, the rest are done automatically due to the objects being byref! ;-)
             this.IsSaving = holon.IsSaving;
             this.MetaData = holon.MetaData;
             this.ModifiedByAvatar = holon.ModifiedByAvatar;

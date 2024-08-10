@@ -2,20 +2,18 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IHolonBase
     {
-        //IEnumerable<IHolon> Children { get; set; }
-        //IEnumerable<IHolon> Children { get; set; }
-        IList<IHolon> Children { get; set; }
-        //ObservableCollection<IHolon> ChildrenTest { get; set; }
+        IList<IHolon> Children { get; set; } //Allows any holon to add any number of custom child holons to it.
+        IReadOnlyCollection<IHolon> AllChildren { get; } //Readonly collection of all the total children including all the zomes, celestialbodies, celestialspaces, moons, holons, planets, stars etc belong to the holon.
         Avatar CreatedByAvatar { get; set; }
         Guid CreatedByAvatarId { get; set; }
         DateTime CreatedDate { get; set; }
@@ -48,6 +46,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; }
         int Version { get; set; }
         Guid VersionId { get; set; }
+        string ChildIdListCache { get; set; } //This will store the list of id's for the direct childen of this holon.
+        string AllChildIdListCache { get; set; } //This will store the list of id's for the ALL the childen of this holon (including all sub-childen).
 
         event EventDelegates.HolonsLoaded OnChildrenLoaded;
         event EventDelegates.HolonsError OnChildrenLoadError;

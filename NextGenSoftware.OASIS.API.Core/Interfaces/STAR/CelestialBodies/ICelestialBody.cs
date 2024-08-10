@@ -12,20 +12,20 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
     {
         ICelestialBodyCore CelestialBodyCore { get; set; }
         int CurrentOrbitAngleOfParentStar { get; set; }
-        int Density { get; set; }
-        int DistanceFromParentStarInMetres { get; set; }
-        int GravitaionalPull { get; set; }
+        long Density { get; set; }
+        long DistanceFromParentStarInMetres { get; set; }
+        long GravitaionalPull { get; set; }
         Guid Id { get; set; }
-        int Mass { get; set; }
+        long Mass { get; set; }
         int NumberActiveAvatars { get; set; }
         int NumberRegisteredAvatars { get; set; }
-        int OrbitPeriod { get; set; }
+        long OrbitPeriod { get; set; }
         int OrbitPositionFromParentStar { get; set; }
         Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; }
-        int RotationPeriod { get; set; }
-        int RotationSpeed { get; set; }
+        long RotationPeriod { get; set; }
+        long RotationSpeed { get; set; }
         int TiltAngle { get; set; }
-        int Weight { get; set; }
+        long Weight { get; set; }
 
         event EventDelegates.CelestialBodyError OnCelestialBodyError;
         event EventDelegates.CelestialBodyLoaded OnCelestialBodyLoaded;
@@ -53,9 +53,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         IZome GetZomeById(Guid id);
         IZome GetZomeByName(string name);
         IZome GetZomeThatHolonBelongsTo(IHolon holon);
-        OASISResult<API.Core.Interfaces.STAR.ICelestialBody> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default);
+        //OASISResult<API.Core.Interfaces.STAR.ICelestialBody> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default);
         OASISResult<T> Load<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new();
-        Task<OASISResult<API.Core.Interfaces.STAR.ICelestialBody>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default);
+        //Task<OASISResult<API.Core.Interfaces.STAR.ICelestialBody>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new();
         OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default);
         OASISResult<IEnumerable<T>> LoadZomes<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IZome, new();

@@ -10,7 +10,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         public TemporalRift(Guid id, bool autoLoad = true) : base(id, HolonType.TemporalRift, autoLoad) { }
 
-        //public TemporalRift(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.TemporalRift) { }
         public TemporalRift(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.TemporalRift, autoLoad) { }
     }
 }
