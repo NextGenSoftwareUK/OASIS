@@ -22,6 +22,8 @@ using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
+using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
+using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.Utilities;
 //using System.Reflection;
@@ -838,8 +840,30 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                     OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ChainId,
                                     OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ContractAddress,
                                     OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.Abi);
-                                ArbitrumOASIS.OnStorageProviderError += EthereumOASIS_StorageProviderError;
+                                ArbitrumOASIS.OnStorageProviderError += ArbitrumOASIS_StorageProviderError;
                                 result.Result = ArbitrumOASIS;
+                            }
+                            break;
+                        case ProviderType.RootstockOASIS:
+                            {
+                                RootstockOASIS RootstockOASIS = new(
+                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ChainPrivateKey,
+                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ContractAddress,
+                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.Abi);
+                                RootstockOASIS.OnStorageProviderError += RootstockOASIS_StorageProviderError;
+                                result.Result = RootstockOASIS;
+                            }
+                            break;
+                        case ProviderType.PolygonOASIS:
+                            {
+                                PolygonOASIS PolygonOASIS = new(
+                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS.ChainPrivateKey,
+                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS.ContractAddress,
+                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS.Abi);
+                                PolygonOASIS.OnStorageProviderError += PolygonOASIS_StorageProviderError;
+                                result.Result = PolygonOASIS;
                             }
                             break;
 
@@ -1080,6 +1104,21 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         private static void EthereumOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("EthereumOASIS", e);
+        }
+
+        private static void ArbitrumOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("ArbitrumOASIS", e);
+        }
+
+        private static void PolygonOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("PolygonOASIS", e);
+        }
+
+        private static void RootstockOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("RootstockOASIS", e);
         }
 
         private static void TelosOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)

@@ -65,6 +65,8 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.TRONOASIS\NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.RootstockOASIS\NextGenSoftware.OASIS.API.Providers.RootstockOASIS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
