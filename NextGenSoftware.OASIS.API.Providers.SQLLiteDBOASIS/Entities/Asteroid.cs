@@ -2,19 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.STAR.Holons;
+//using NextGenSoftware.OASIS.STAR.Holons;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
 {
 
     //public class Asteroid : Holon, IAsteroid
-    public class Asteroid : CelestialHolon//, IAsteroid
+    public class Asteroid //: CelestialHolon//, IAsteroid
     {
         //public SpaceQuadrantType SpaceQuadrant { get; set; }
         //public int SpaceSector { get; set; }
@@ -35,13 +34,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         //public GenesisType GenesisType { get; set; }
         //public bool IsInitialized { get; }
 
-        public int Mass { get; set; }
-        public int Weight { get; set; }
-        public int GravitaionalPull { get; set; }
+        public long Mass { get; set; }
+        public long Weight { get; set; }
+        public long GravitaionalPull { get; set; }
         public int OrbitPositionFromParentStar { get; set; }
         public int CurrentOrbitAngleOfParentStar { get; set; } //Angle between 0 and 360 degrees of how far around the orbit it it of its parent star.
-        public int DistanceFromParentStarInMetres { get; set; }
-        public int RotationSpeed { get; set; }
+        public long DistanceFromParentStarInMetres { get; set; }
+        public long RotationSpeed { get; set; }
         public int TiltAngle { get; set; }
         public int NumberRegisteredAvatars { get; set; }
         public int NunmerActiveAvatars { get; set; }
@@ -50,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public List<IMoon> Moons { get; set; } = new List<IMoon>();
         public int NumberActiveAvatars { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public Asteroid() : base(HolonType.Asteroid) { } 
+        //public Asteroid() : base(HolonType.Asteroid) { } 
 
         public event HolonLoaded OnHolonLoaded;
         public event HolonSaved OnHolonSaved;

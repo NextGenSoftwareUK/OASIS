@@ -391,8 +391,11 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 
             if (copyInnerResult)
             {
+                //Mapper<T, IZome>.MapBaseHolonProperties(fromResult.Result, zomes);
+
                 foreach (T holon in fromResult.Result)
                     zomes.Add((IZome)holon);
+                    //zomes.Add(Mapper.MapBaseHolonProperties(holon, new Zome());
             }
 
             toResult.Result = zomes;

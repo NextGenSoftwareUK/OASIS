@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 {
@@ -1261,7 +1262,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 if (Avatar.AvatarId == Guid.Empty)
                     Avatar.AvatarId = Guid.NewGuid();
 
-                Avatar.CreatedProviderType = new Core.Helpers.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
+                Avatar.CreatedProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
                 var avatarList = await session.ReadTransactionAsync(async transaction =>
                 {
                     var cursor = await transaction.RunAsync(@"
@@ -1440,7 +1441,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 if (AvatarDetail.Id == Guid.Empty)
                     AvatarDetail.Id = Guid.NewGuid();
 
-                AvatarDetail.CreatedProviderType = new Core.Helpers.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
+                AvatarDetail.CreatedProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
                 var avatarList = await session.ReadTransactionAsync(async transaction =>
                 {
                     var cursor = await transaction.RunAsync(@"

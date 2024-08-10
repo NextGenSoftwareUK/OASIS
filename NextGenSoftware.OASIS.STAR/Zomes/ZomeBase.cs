@@ -130,7 +130,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual async Task<OASISResult<IZome>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IZome> result = new OASISResult<IZome>();
+            OASISResult<IZome> result = new OASISResult<IZome>(new Zome());
             string errorMessage = "Error occured in ZomeBase.LoadAsync. Reason: ";
 
             OASISResult<IHolon> holonResult = await base.LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);

@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
@@ -382,10 +383,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 //result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).Result.ToListAsync();
-                var documents = _dbContext.Holon.Find(Builders<Holon>.Filter.Empty).ToList();
+                var documents = _dbContext.Holon.FindAsync(Builders<Holon>.Filter.Empty).Result.ToListAsync();
+                //var documents = await _dbContext.Holon.FindAsync(_ => true).ToList();
+
+                //var documents2 = _dbContext.Holon.AsQueryable().ToList();
+
                 List<Holon> matchedHolons = new List<Holon>();
 
-                foreach (Holon holon in documents)
+                foreach (Holon holon in documents.Result)
                 {
                     if (holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey] != null && holon.MetaData[metaKey].ToString() == metaValue)
                         matchedHolons.Add(holon);

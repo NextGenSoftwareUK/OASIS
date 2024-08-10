@@ -22,9 +22,10 @@ using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
-using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
+using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.Utilities;
 //using System.Reflection;
 
 namespace NextGenSoftware.OASIS.OASISBootLoader
@@ -38,7 +39,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public delegate void OASISBootLoaderError(object sender, OASISErrorEventArgs e);
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
-        public static string OASISVersion { get; set; } = "v3.1.1";
+        public static string OASISVersion { get; set; } = "v3.2.2";
+        public static string COSMICVersion { get; set; } = "v2.0.1";
+        public static string STARODKVersion { get; set; } = "v2.1.0";
 
         //public static string OASISVersion
         //{
@@ -225,16 +228,28 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                     if (result.Result && !result.IsError)
                     {
-                        if (!string.IsNullOrEmpty(OASISDNA.OASIS.OASISSystemAccountId))
-                            LoggingManager.Log($"OASISSystemAccountId Found In OASISDNA: {OASISDNA.OASIS.OASISSystemAccountId}.", LogType.Info);
+                        LoggingManager.BeginLogAction($"Looking For OASIS System Account For Email {OASISDNA.OASIS.Email.SmtpUser}...", LogType.Info);
+                        OASISResult<IAvatar> oasisSystemAccountResult = await AvatarManager.Instance.LoadAvatarByEmailAsync(OASISDNA.OASIS.Email.SmtpUser);
+
+                        //if (!string.IsNullOrEmpty(OASISDNA.OASIS.OASISSystemAccountId))
+                        if (oasisSystemAccountResult != null && oasisSystemAccountResult.Result != null && !oasisSystemAccountResult.IsError)
+                        {
+                            LoggingManager.EndLogAction($"DONE", LogType.Info);
+                            LoggingManager.Log($"OASIS System Account Found: Id: {oasisSystemAccountResult.Result.Id}, Name: {oasisSystemAccountResult.Result.Name}, Email: {oasisSystemAccountResult.Result.Email}, Username: {oasisSystemAccountResult.Result.Username}, Type: {oasisSystemAccountResult.Result.AvatarType.Name}.", LogType.Info);
+                            
+                            if (oasisSystemAccountResult.Result.AvatarType.Value != AvatarType.System || oasisSystemAccountResult.Result.Name != "OASIS SYSTEM" || oasisSystemAccountResult.Result.Username != "root")
+                                LoggingManager.Log($"OASIS System Account Invalid! Please change the SmtpUser to a different email in the Email section in the OASISDNA and then boot the OASIS again so a new OASIS System Account can be generated using the new email.", LogType.Error);
+                            else
+                            {
+                                //Make sure the OASISDNA is updated with the right id.
+                                OASISDNA.OASIS.OASISSystemAccountId = oasisSystemAccountResult.Result.Id.ToString();
+                                await OASISDNAManager.SaveDNAAsync(OASISDNAPath, OASISDNA);
+                            }
+                        }
                         else
                         {
-                            //LoggingManager.Log($"OASISSystemAccountId Not Found In OASISDNA So Generating Now...", LogType.Info, true, false, false, 1, true);
-                            LoggingManager.BeginLogAction($"OASISSystemAccountId Not Found In OASISDNA So Generating Now...", LogType.Info);
-
-                            //TODO: Later may need to actually create a avatar for this Id? So we can see which ids belong to OASIS SYSTEM Accounts outside of each ONODE (each ONODE has its own OASISDNA with its own system id's)
-                            //OASISDNA.OASIS.OASISSystemAccountId = Guid.NewGuid().ToString();
-                            //await OASISDNAManager.SaveDNAAsync(OASISDNAPath, OASISDNA);
+                            LoggingManager.EndLogAction($"DONE", LogType.Info);
+                            LoggingManager.BeginLogAction($"OASIS System Account Not Found So Generating For Email {OASISDNA.OASIS.Email.SmtpUser} Now...", LogType.Info);
 
                             //TODO: Need to make this more secure in future to prevent others creating similar accounts (but none will ever have AvatarType of System, this is the only place that can be created but we need to make sure a normal user accout is not hacked or changed to a system one. But currently it cannot do any harm because this system account is currently not used for anything, it simply creates the default OASIS Omniverse when STAR CLI first boots up on a running ONODE (before a avatar is created or logged in).
                             CLIEngine.SupressConsoleLogging = true;
@@ -247,7 +262,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 await OASISDNAManager.SaveDNAAsync(OASISDNAPath, OASISDNA);
 
                                 LoggingManager.EndLogAction($"DONE", LogType.Info);
-                                LoggingManager.Log($"OASISSystemAccountId Generated: {OASISDNA.OASIS.OASISSystemAccountId}.", LogType.Info);
+                                LoggingManager.Log($"OASIS System Account Generated: Id: {avatarResult.Result.Id}, Name: {avatarResult.Result.Name}, Email: {avatarResult.Result.Email}, Username: {avatarResult.Result.Username}, Type: {avatarResult.Result.AvatarType.Name}.", LogType.Info);
                             }
                             else
                                 OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISBootLoader.BootOASISAsync Calling AvatarManager.Instance.RegisterAsync Attempting To Create The OASISSystem Account. Reason: {avatarResult.Message}");
@@ -256,11 +271,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         IsOASISBooted = true;
                         LoggingManager.Log($"OASIS HYPERDRIVE ONLINE.", LogType.Info);
                         LoggingManager.Log($"OASIS BOOTED.", LogType.Info);
-
-                        if (!string.IsNullOrEmpty(result.Message))
-                            LoggingManager.Log($"{result.Message}", LogType.Info);
-
+                        
+                        //if (!string.IsNullOrEmpty(result.Message))
+                        //    LoggingManager.Log($"{result.Message}", LogType.Info);
+                        
                         LoggingManager.Log($"OASIS RUNTIME VERSION: {OASISVersion}.", LogType.Info);
+                        LoggingManager.Log($"COSMIC ORM RUNTIME VERSION: {COSMICVersion}.", LogType.Info);
+                        LoggingManager.Log($"STAR ODK VERSION: {STARODKVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (LIVE): {OASISDNA.OASIS.CurrentLiveVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (STAGING): {OASISDNA.OASIS.CurrentStagingVersion}.", LogType.Info);
                     }

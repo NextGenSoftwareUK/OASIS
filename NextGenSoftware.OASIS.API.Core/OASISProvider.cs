@@ -1,10 +1,10 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 namespace NextGenSoftware.OASIS.API.Core
 {
     public abstract class OASISProvider : IOASISProvider

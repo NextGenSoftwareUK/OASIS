@@ -1,4 +1,5 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using System.Drawing;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
@@ -23,9 +24,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public float EquatorialLongitute { get; set; }
         public float EclipticLatitute { get; set; }
         public float EclipticLongitute { get; set; }
-        public int Size { get; set; }
+        public Color Colour { get; set; }
+        public long Size { get; set; }
         public int Radius { get; set; }
-        public int Age { get; set; }
+        public long Age { get; set; }
         public int Temperature { get; set; }
         GenesisType GenesisType { get; set; }
         bool IsInitialized { get; }

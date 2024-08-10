@@ -3,26 +3,29 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
-namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
+namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
+{
 
     [Table("Asteroid")]
     public class AsteroidModel : CelestialBodyAbstract//, IAsteroid
     {
         [Required, Key]
-        public String AsteroidId{ set; get; }
+        public String AsteroidId { set; get; }
 
-        public String SolarSystemId{ set; get; }
-        public String GalaxyId{ set; get; }
-        public String GalaxyClusterId{ set; get; }
-        public String UniverseId{ set; get; }
+        public String SolarSystemId { set; get; }
+        public String GalaxyId { set; get; }
+        public String GalaxyClusterId { set; get; }
+        public String UniverseId { set; get; }
 
-        public AsteroidModel():base(){}
-        public AsteroidModel(IAsteroid source):base(){
+        public AsteroidModel() : base() { }
+        public AsteroidModel(IAsteroid source) : base()
+        {
 
-            if(source.Id == Guid.Empty){
+            if (source.Id == Guid.Empty)
+            {
                 source.Id = Guid.NewGuid();
             }
-        
+
             this.AsteroidId = source.Id.ToString();
             this.HolonId = source.ParentHolonId.ToString();
 
@@ -54,48 +57,48 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             this.NumberActiveAvatars = source.NumberActiveAvatars;
 
             this.GenesisType = source.GenesisType;
-            
+
         }
 
         //public IAsteroid GetAsteroid(){
         public Asteroid GetAsteroid()
         {
 
-            Asteroid item=new Asteroid();
+            Asteroid item = new Asteroid();
 
-            item.Id = Guid.Parse(this.AsteroidId);
-            item.ParentHolonId = Guid.Parse(this.HolonId);
+            //item.Id = Guid.Parse(this.AsteroidId);
+            //item.ParentHolonId = Guid.Parse(this.HolonId);
 
-            item.SpaceQuadrant = this.SpaceQuadrant;
-            item.SpaceSector = this.SpaceSector;
-            item.SuperGalacticLatitute = this.SuperGalacticLatitute;
-            item.SuperGalacticLongitute = this.SuperGalacticLongitute;
-            item.GalacticLatitute = this.GalacticLatitute;
-            item.GalacticLongitute = this.GalacticLongitute;
-            item.HorizontalLatitute = this.HorizontalLatitute;
-            item.HorizontalLongitute = this.HorizontalLongitute;
-            item.EquatorialLatitute = this.EquatorialLatitute;
-            item.EquatorialLongitute = this.EquatorialLongitute;
-            item.EclipticLatitute = this.EclipticLatitute;
-            item.EclipticLongitute = this.EclipticLongitute;
-            item.Size = this.Size;
-            item.Radius = this.Radius;
-            item.Age = this.Age;
-            item.Mass = this.Mass;
-            item.Temperature = this.Temperature;
-            item.Weight = this.Weight;
-            item.GravitaionalPull = this.GravitaionalPull;
-            item.OrbitPositionFromParentStar = this.OrbitPositionFromParentStar;
-            item.CurrentOrbitAngleOfParentStar = this.CurrentOrbitAngleOfParentStar;
-            item.DistanceFromParentStarInMetres = this.DistanceFromParentStarInMetres;
-            item.RotationSpeed = this.RotationSpeed;
-            item.TiltAngle = this.TiltAngle;
-            item.NumberRegisteredAvatars = this.NumberRegisteredAvatars;
-            item.NumberActiveAvatars = this.NumberActiveAvatars;
+            //item.SpaceQuadrant = this.SpaceQuadrant;
+            //item.SpaceSector = this.SpaceSector;
+            //item.SuperGalacticLatitute = this.SuperGalacticLatitute;
+            //item.SuperGalacticLongitute = this.SuperGalacticLongitute;
+            //item.GalacticLatitute = this.GalacticLatitute;
+            //item.GalacticLongitute = this.GalacticLongitute;
+            //item.HorizontalLatitute = this.HorizontalLatitute;
+            //item.HorizontalLongitute = this.HorizontalLongitute;
+            //item.EquatorialLatitute = this.EquatorialLatitute;
+            //item.EquatorialLongitute = this.EquatorialLongitute;
+            //item.EclipticLatitute = this.EclipticLatitute;
+            //item.EclipticLongitute = this.EclipticLongitute;
+            ////item.Size = this.Size;
+            //item.Radius = this.Radius;
+            ////item.Age = this.Age;
+            //item.Mass = this.Mass;
+            //item.Temperature = this.Temperature;
+            //item.Weight = this.Weight;
+            //item.GravitaionalPull = this.GravitaionalPull;
+            //item.OrbitPositionFromParentStar = this.OrbitPositionFromParentStar;
+            //item.CurrentOrbitAngleOfParentStar = this.CurrentOrbitAngleOfParentStar;
+            //item.DistanceFromParentStarInMetres = this.DistanceFromParentStarInMetres;
+            //item.RotationSpeed = this.RotationSpeed;
+            //item.TiltAngle = this.TiltAngle;
+            //item.NumberRegisteredAvatars = this.NumberRegisteredAvatars;
+            //item.NumberActiveAvatars = this.NumberActiveAvatars;
 
-            item.GenesisType = this.GenesisType;
+            //item.GenesisType = this.GenesisType;
 
-            return(item);
+            return (item);
         }
     }
 }

@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
@@ -49,7 +50,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void Init(IOmiverse omniverse = null)
         {
-            this.Id = Guid.NewGuid();
             this.Name = "Multiverse";
             this.Description = "A Multiverse that contains dimensions 1-7, each of which contain it's own Universe.";
             this.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
@@ -78,8 +78,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             ParentGrandSuperStarId = GrandSuperStar.Id;
             ParentCelestialBody = GrandSuperStar;
             ParentCelestialBodyId = GrandSuperStar.Id;
-            ParentHolon = GrandSuperStar;
-            ParentHolonId = GrandSuperStar.Id;
+            //ParentHolon = GrandSuperStar;
+            //ParentHolonId = GrandSuperStar.Id;
+            ParentHolon = omniverse;
+            ParentHolonId = omniverse.Id;
 
             if (omniverse != null)
             {

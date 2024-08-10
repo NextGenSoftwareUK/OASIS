@@ -7,7 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Filters;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Middleware;
@@ -19,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI
 {
     public class Startup
     {
-        private const string VERSION = "WEB 4 OASIS API v3.1.0";
+        private const string VERSION = "WEB 4 OASIS API v3.2.0";
         //readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
         public Startup(IConfiguration configuration)

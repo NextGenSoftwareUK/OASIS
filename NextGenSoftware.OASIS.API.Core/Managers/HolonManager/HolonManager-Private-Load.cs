@@ -74,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         if (holoResult.IsError || holoResult.Result == null)
                         {
                             if (string.IsNullOrEmpty(holoResult.Message))
-                                result.Message = "No Holon Found.";
+                                holoResult.Message = "No Holon Found.";
 
                             OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "Error returned from provider calling LoadHolon: ", holoResult.Message), result.DetailedMessage);
                         }

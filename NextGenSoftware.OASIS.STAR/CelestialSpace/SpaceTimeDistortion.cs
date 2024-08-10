@@ -10,7 +10,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         public SpaceTimeDistortion(Guid id, bool autoLoad = true) : base(id, HolonType.SpaceTimeDistortion, autoLoad) { }
 
-        //public SpaceTimeDistortion(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.SpaceTimeDistortion) { }
         public SpaceTimeDistortion(string providerKey, ProviderType providerType, bool autoLoad = true) : base(providerKey, providerType, HolonType.SpaceTimeDistortion, autoLoad) { }
     }
 }

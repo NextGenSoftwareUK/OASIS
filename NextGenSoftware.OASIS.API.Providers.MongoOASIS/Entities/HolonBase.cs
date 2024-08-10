@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -8,10 +7,10 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
@@ -70,7 +69,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
        // [BsonRepresentation(BsonType.ObjectId)]
         public string DeletedByAvatarId { get; set; }
         public IList<IHolon> Children { get; set; }
-        public ObservableCollection<IHolon> ChildrenTest { get; set; }
+
+        public virtual IReadOnlyCollection<IHolon> AllChildren
+        {
+            get
+            {
+                return Children.AsReadOnly();
+            }
+        }
+
+        public string ChildIdListCache { get; set; } //This will store the list of id's for the direct childen of this holon.
+        public string AllChildIdListCache { get; set; } //This will store the list of id's for the ALL the childen of this holon (including all sub-childen).
+
+        //public ObservableCollection<IHolon> ChildrenTest { get; set; }
         public Core.Holons.Avatar CreatedByAvatar { get; set; }
         public Core.Holons.Avatar DeletedByAvatar { get; set; }
         public EnumValue<ProviderType> InstanceSavedOnProviderType { get; set; }

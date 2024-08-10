@@ -1,5 +1,6 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.Utilities;
 using System;
 using System.Collections.Generic;
 

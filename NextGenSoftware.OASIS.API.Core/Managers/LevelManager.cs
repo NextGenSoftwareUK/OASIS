@@ -55,14 +55,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return 1;
         }
 
-        private static void GenerateLevelLookup()
+        public static void GenerateLevelLookup(bool showKarmaThreshholds = false)
         {
             _levelLookup = new Dictionary<int, long>();
 
             if (LevelThresholdWeighting < 1)
                 LevelThresholdWeighting = 1;
 
-            Console.WriteLine("Karma Level Thresholds:\n");
+            if (showKarmaThreshholds)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("\n Karma Level Thresholds:\n");
+            }
 
             long currentKarma = 1;
             for (int i = 2; i < (MaxLevel + 1); i++)
@@ -70,10 +74,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 currentKarma = Math.Abs(currentKarma + 100 + currentKarma / LevelThresholdWeighting);
                 _levelLookup[i] = currentKarma;
 
-                Console.WriteLine($"Level {i} = {currentKarma} karma.");
+                if (showKarmaThreshholds)
+                    Console.WriteLine($" Level {i} = {currentKarma} karma.");
             }
 
-            Console.WriteLine("");
+            if (showKarmaThreshholds)
+                Console.WriteLine("");
         }
     }
 }

@@ -738,12 +738,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             currentChildDepth++;
 
-            if ((recursive && currentChildDepth >= maxChildDepth) || (!recursive && currentChildDepth > 1))
+            if ((recursive && currentChildDepth >= maxChildDepth && maxChildDepth > 0) || (!recursive && currentChildDepth > 1))
                 return result;
 
             foreach (IHolon childHolon in result.Result)
             {
-                OASISResult<IEnumerable<T>> holonsResult = LoadHolonsForParent<T>(childHolon.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, currentChildDepth, providerType);
+                OASISResult<IEnumerable<T>> holonsResult = LoadHolonsForParent<T>(childHolon.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
 
                 if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                     childHolon.Children = [.. holonsResult.Result];
@@ -766,12 +766,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             currentChildDepth++;
 
-            if ((recursive && currentChildDepth >= maxChildDepth) || (!recursive && currentChildDepth > 1))
+            if ((recursive && currentChildDepth >= maxChildDepth && maxChildDepth > 0) || (!recursive && currentChildDepth > 1))
                 return result;
 
             foreach (IHolon childHolon in result.Result)
             {
-                OASISResult<IEnumerable<T>> holonsResult = await LoadHolonsForParentAsync<T>(childHolon.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, currentChildDepth, providerType);
+                OASISResult<IEnumerable<T>> holonsResult = await LoadHolonsForParentAsync<T>(childHolon.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
 
                 if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                     childHolon.Children = [.. holonsResult.Result];
@@ -794,12 +794,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             currentChildDepth++;
 
-            if ((recursive && currentChildDepth >= maxChildDepth) || (!recursive && currentChildDepth > 1))
+            if ((recursive && currentChildDepth >= maxChildDepth && maxChildDepth > 0) || (!recursive && currentChildDepth > 1))
                 return result;
 
             foreach (IHolon childHolon in result.Result)
             {
-                OASISResult<IEnumerable<IHolon>> holonsResult = LoadHolonsForParent(childHolon.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, currentChildDepth, providerType);
+                OASISResult<IEnumerable<IHolon>> holonsResult = LoadHolonsForParent(childHolon.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
 
                 if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                     childHolon.Children = [.. holonsResult.Result];
@@ -822,12 +822,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             currentChildDepth++;
 
-            if ((recursive && currentChildDepth >= maxChildDepth) || (!recursive && currentChildDepth > 1))
+            if ((recursive && currentChildDepth >= maxChildDepth && maxChildDepth > 0) || (!recursive && currentChildDepth > 1))
                 return result;
 
             foreach (IHolon childHolon in result.Result)
             {
-                OASISResult<IEnumerable<IHolon>> holonsResult = await LoadHolonsForParentAsync(childHolon.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, currentChildDepth, providerType);
+                OASISResult<IEnumerable<IHolon>> holonsResult = await LoadHolonsForParentAsync(childHolon.Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
 
                 if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                     childHolon.Children = [.. holonsResult.Result];

@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
@@ -17,8 +18,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             this.ProviderName = "ScuttlebuttOASIS";
             this.ProviderDescription = "Scuttlebutt Provider";
-            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.ScuttlebuttOASIS);
-            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ScuttlebuttOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
         #region IOASISStorageProvider Implementation
