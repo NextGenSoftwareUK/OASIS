@@ -37,6 +37,7 @@
         TRONOASIS,
         Neo4jOASIS,
         CosmosBlockChainOASIS,
-        LocalFileOASIS
+        LocalFileOASIS,
+        RootstockOASIS
     }
 }
