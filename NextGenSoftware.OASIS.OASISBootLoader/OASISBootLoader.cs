@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
         public static string OASISVersion { get; set; } = "v3.2.2";
         public static string COSMICVersion { get; set; } = "v2.0.1";
-        public static string STARODKVersion { get; set; } = "v2.1.0";
+        public static string STARODKVersion { get; set; } = "v2.2.0";
 
         //public static string OASISVersion
         //{
@@ -838,7 +838,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                     OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ChainId,
                                     OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ContractAddress,
                                     OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.Abi);
-                                ArbitrumOASIS.OnStorageProviderError += EthereumOASIS_StorageProviderError;
+                                ArbitrumOASIS.OnStorageProviderError += ArbitrumOASIS_OnStorageProviderError;
                                 result.Result = ArbitrumOASIS;
                             }
                             break;
@@ -1085,6 +1085,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         private static void TelosOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("TelosOASIS", e);
+        }
+
+        private static void ArbitrumOASIS_OnStorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("ArbitrumOASIS", e);
         }
 
         private static void HandleProviderError(string providerName, OASISErrorEventArgs error)

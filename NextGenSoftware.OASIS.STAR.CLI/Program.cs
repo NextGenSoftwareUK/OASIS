@@ -521,7 +521,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             case "listoapps":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
-                                }break;
+                                } break;
 
                             case "listhapps":
                                 {
@@ -692,8 +692,48 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 await STARCLI.ListNFTsAsync();
                                 break;
 
+                            case "shownft":
+                                {
+                                    if (inputArgs.Length > 1)
+                                    {
+                                        Guid id = Guid.Empty;
+
+                                        if (Guid.TryParse(inputArgs[1], out id))
+                                            await STARCLI.ShowNFTAsync(id);
+                                        else
+                                            CLIEngine.ShowErrorMessage($"The id ({inputArgs[1]}) passed in is not a valid GUID!");
+                                    }
+                                    else
+                                    {
+                                        //TODO: Add in future ability to seach by title.
+                                        Guid id = CLIEngine.GetValidInputForGuid("Enter the id you wish to search for?");
+                                        await STARCLI.ShowNFTAsync(id);
+                                    }
+                                }
+                                break;
+
                             case "showgeonfts":
                                 await STARCLI.ListGeoNFTsAsync();
+                                break;
+
+                            case "showgeonft":
+                                {
+                                    if (inputArgs.Length > 1)
+                                    {
+                                        Guid id = Guid.Empty;
+
+                                        if (Guid.TryParse(inputArgs[1], out id))
+                                            await STARCLI.ShowGeoNFTAsync(id);
+                                        else
+                                            CLIEngine.ShowErrorMessage($"The id ({inputArgs[1]}) passed in is not a valid GUID!");
+                                    }
+                                    else
+                                    {
+                                        //TODO: Add in future ability to seach by title.
+                                        Guid id = CLIEngine.GetValidInputForGuid("Enter the id you wish to search for?");
+                                        await STARCLI.ShowGeoNFTAsync(id);
+                                    }
+                                }
                                 break;
 
                             case "sendnft":
@@ -2433,8 +2473,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star mintnft = Mints a OASIS NFT for the current beamed in avatar.");
             Console.WriteLine("   star mintgeonft = Mints a OASIS Geo-NFT and places in Our World/AR World for the current beamed in avatar.");
             Console.WriteLine("   star placegeonft = Places an existing OASIS NFT in Our World/AR World for the current beamed in avatar.");
-            Console.WriteLine("   star shownfts = Shows the NFT's that belong to current beamed in avatar.");
-            Console.WriteLine("   star showgeonfts = Shows the Geo-NFT's that belong to current beamed in avatar.");
+            Console.WriteLine("   star shownfts = Shows the NFT's that belong to the current beamed in avatar.");
+            Console.WriteLine("   star shownft {id} = Shows the NFT for the given id.");
+            Console.WriteLine("   star showgeonfts = Shows the Geo-NFT's that belong to the current beamed in avatar.");
+            Console.WriteLine("   star showgeonft {id} = Shows the Geo-NFT for the given id.");
             Console.WriteLine("   star sendnft = Send a NFT to another wallet cross-chain.");
             Console.WriteLine("   star enablecosmicdetailedoutput = Enables COSMIC Detailed Output.");
             Console.WriteLine("   star disablecosmicdetailedoutput = Disables COSMIC Detailed Output.");

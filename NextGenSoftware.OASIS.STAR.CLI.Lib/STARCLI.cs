@@ -421,53 +421,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 
             if (nfts != null && !nfts.IsError && nfts.Result != null)
             {
+                CLIEngine.ShowDivider();
+
                 foreach (IOASISGeoSpatialNFT nft in nfts.Result)
-                {
-                    string image = nft.Image != null ? "Yes" : "No";
-                    string thumbnail = nft.Thumbnail != null ? "Yes" : "No";
-
-                    CLIEngine.ShowMessage($"Title: {nft.Title}");
-                    CLIEngine.ShowMessage($"Description: {nft.Description}");
-                    CLIEngine.ShowMessage($"Price: {nft.Price}");
-                    CLIEngine.ShowMessage($"Discount: {nft.Discount}");
-                    CLIEngine.ShowMessage($"MemoText: {nft.MemoText}");
-                    CLIEngine.ShowMessage($"Id: {nft.Id}");
-                    CLIEngine.ShowMessage($"OriginalOASISNFTId: {nft.OriginalOASISNFTId}");
-                    CLIEngine.ShowMessage($"Hash: {nft.Hash}");
-                    CLIEngine.ShowMessage($"MintedByAvatarId: {nft.MintedByAvatarId}");
-                    CLIEngine.ShowMessage($"MintedByAddress: {nft.MintedByAddress}");
-                    CLIEngine.ShowMessage($"MintedOn: {nft.MintedOn}");
-                    CLIEngine.ShowMessage($"OnChainProvider: {nft.OnChainProvider.Name}");
-                    CLIEngine.ShowMessage($"OffChainProvider: {nft.OffChainProvider.Name}");
-                    CLIEngine.ShowMessage($"URL: {nft.URL}" );
-                    CLIEngine.ShowMessage($"ImageUrl: {nft.ImageUrl}");
-                    CLIEngine.ShowMessage($"Image: {image}");
-                    CLIEngine.ShowMessage($"ThumbnailUrl: {nft.ThumbnailUrl}");
-                    CLIEngine.ShowMessage($"Thumbnail: {thumbnail}");
-                    CLIEngine.ShowMessage($"Thumbnail: {nft.Lat}");
-                    CLIEngine.ShowMessage($"Thumbnail: {nft.Long}");
-                    CLIEngine.ShowMessage($"Thumbnail: {nft.PlacedByAvatarId}");
-                    CLIEngine.ShowMessage($"Thumbnail: {nft.PlacedOn}");
-                    CLIEngine.ShowMessage($"Thumbnail: {nft.GeoNFTMetaDataOffChainProvider}");
-                    CLIEngine.ShowMessage($"Thumbnail: {nft.PermSpawn}");
-                    CLIEngine.ShowMessage($"Thumbnail: {nft.AllowOtherPlayersToAlsoCollect}");
-                    CLIEngine.ShowMessage($"Thumbnail: {nft.GlobalSpawnQuantity}");
-                    CLIEngine.ShowMessage($"Thumbnail: {nft.PlayerSpawnQuantity}");
-                    CLIEngine.ShowMessage($"Thumbnail: {nft.RepawnDurationInSeconds}");
-
-                    if (nft.MetaData.Count > 0)
-                    {
-                        CLIEngine.ShowMessage($"MetaData:");
-
-                        foreach (string key in nft.MetaData.Keys)
-                            CLIEngine.ShowMessage($"          {key} = {nft.MetaData[key]}");
-                    }
-                    else
-                        CLIEngine.ShowMessage($"MetaData: None");
-
-                    CLIEngine.ShowDivider();
-                }
+                    ShowGeoNFT(nft);
             }
+            else
+                CLIEngine.ShowErrorMessage("No Geo-NFT's Found.");
         }
 
         public static async Task ListNFTsAsync()
@@ -477,41 +437,110 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (nfts != null && !nfts.IsError && nfts.Result != null)
             {
+                CLIEngine.ShowDivider();
+
                 foreach (IOASISNFT nft in nfts.Result)
                     ShowNFT(nft);
             }
+            else
+                CLIEngine.ShowErrorMessage("No NFT's Found.");
         }
 
-        public static async Task ShowNFT(Guid id)
+        public static async Task ShowNFTAsync(Guid id)
         {
+            CLIEngine.ShowWorkingMessage("Loading NFT...");
             OASISResult<IOASISNFT> nft = await STAR.OASISAPI.NFTs.LoadNftAsync(id);
 
             if (nft != null && !nft.IsError && nft.Result != null)
+            {
+                CLIEngine.ShowDivider();
                 ShowNFT(nft.Result);
+            }
+            else
+                CLIEngine.ShowErrorMessage("No NFT Found.");
         }
 
         public static void ShowNFT(IOASISNFT nft)
         {
             string image = nft.Image != null ? "Yes" : "No";
-            string thumbnail = nft.Thumbnail != null ? "Yes" : "No";
 
-            CLIEngine.ShowMessage($"Title: {nft.Title}");
-            CLIEngine.ShowMessage($"Description: {nft.Description}");
+            CLIEngine.ShowMessage(string.Concat($"Title: ", !string.IsNullOrEmpty(nft.Title) ? nft.Title : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Description: ", !string.IsNullOrEmpty(nft.Description) ? nft.Description : "None"));
             CLIEngine.ShowMessage($"Price: {nft.Price}");
             CLIEngine.ShowMessage($"Discount: {nft.Discount}");
-            CLIEngine.ShowMessage($"MemoText: {nft.MemoText}");
+            CLIEngine.ShowMessage(string.Concat($"MemoText: ", !string.IsNullOrEmpty(nft.MemoText) ? nft.MemoText : "None"));
             CLIEngine.ShowMessage($"Id: {nft.Id}");
-            CLIEngine.ShowMessage($"Hash: {nft.Hash}");
+            CLIEngine.ShowMessage(string.Concat($"Hash: ", !string.IsNullOrEmpty(nft.Hash) ? nft.Hash : "None"));
             CLIEngine.ShowMessage($"MintedByAvatarId: {nft.MintedByAvatarId}");
-            CLIEngine.ShowMessage($"MintedByAddress: {nft.MintedByAddress}");
+            CLIEngine.ShowMessage(string.Concat($"MintedByAddress: ", !string.IsNullOrEmpty(nft.MintedByAddress) ? nft.MintedByAddress : "None"));
             CLIEngine.ShowMessage($"MintedOn: {nft.MintedOn}");
             CLIEngine.ShowMessage($"OnChainProvider: {nft.OnChainProvider.Name}");
             CLIEngine.ShowMessage($"OffChainProvider: {nft.OffChainProvider.Name}");
-            CLIEngine.ShowMessage($"URL: {nft.URL}");
-            CLIEngine.ShowMessage($"ImageUrl: {nft.ImageUrl}");
-            CLIEngine.ShowMessage($"Image: {image}");
-            CLIEngine.ShowMessage($"ThumbnailUrl: {nft.ThumbnailUrl}");
-            CLIEngine.ShowMessage($"Thumbnail: {thumbnail}");
+            CLIEngine.ShowMessage(string.Concat($"URL: ", !string.IsNullOrEmpty(nft.URL) ? nft.URL : "None"));
+            CLIEngine.ShowMessage(string.Concat($"ImageUrl: ", !string.IsNullOrEmpty(nft.ImageUrl) ? nft.ImageUrl : "None"));
+            CLIEngine.ShowMessage(string.Concat("Image: ", nft.Image != null ? "Yes" : "No"));
+            CLIEngine.ShowMessage(string.Concat($"ThumbnailUrl: ", !string.IsNullOrEmpty(nft.ThumbnailUrl) ? nft.ThumbnailUrl : "None"));
+            CLIEngine.ShowMessage(string.Concat("Thumbnail: ", nft.Thumbnail != null ? "Yes" : "No"));
+
+            if (nft.MetaData.Count > 0)
+            {
+                CLIEngine.ShowMessage($"MetaData:");
+
+                foreach (string key in nft.MetaData.Keys)
+                    CLIEngine.ShowMessage($"          {key} = {nft.MetaData[key]}");
+            }
+            else
+                CLIEngine.ShowMessage($"MetaData: None");
+
+            CLIEngine.ShowDivider();
+        }
+
+        public static async Task ShowGeoNFTAsync(Guid id)
+        {
+            CLIEngine.ShowWorkingMessage("Loading Geo-NFT...");
+            OASISResult<IOASISGeoSpatialNFT> nft = await STAR.OASISAPI.NFTs.LoadGeoNftAsync(id);
+
+            if (nft != null && !nft.IsError && nft.Result != null)
+            {
+                CLIEngine.ShowDivider();
+                ShowGeoNFT(nft.Result);
+            }
+            else
+                CLIEngine.ShowErrorMessage("No Geo-NFT Found.");
+        }
+
+        public static void ShowGeoNFT(IOASISGeoSpatialNFT nft)
+        {
+            string image = nft.Image != null ? "Yes" : "No";
+            string thumbnail = nft.Thumbnail != null ? "Yes" : "No";
+
+            CLIEngine.ShowMessage(string.Concat($"Title: ", !string.IsNullOrEmpty(nft.Title) ? nft.Title : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Description: ", !string.IsNullOrEmpty(nft.Description) ? nft.Description : "None"));
+            CLIEngine.ShowMessage($"Price: {nft.Price}");
+            CLIEngine.ShowMessage($"Discount: {nft.Discount}");
+            CLIEngine.ShowMessage(string.Concat($"MemoText: ", !string.IsNullOrEmpty(nft.MemoText) ? nft.MemoText : "None"));
+            CLIEngine.ShowMessage($"Id: {nft.Id}");
+            CLIEngine.ShowMessage(string.Concat($"Hash: ", !string.IsNullOrEmpty(nft.Hash) ? nft.Hash : "None"));
+            CLIEngine.ShowMessage($"MintedByAvatarId: {nft.MintedByAvatarId}");
+            CLIEngine.ShowMessage(string.Concat($"MintedByAddress: ", !string.IsNullOrEmpty(nft.MintedByAddress) ? nft.MintedByAddress : "None"));
+            CLIEngine.ShowMessage($"MintedOn: {nft.MintedOn}");
+            CLIEngine.ShowMessage($"OnChainProvider: {nft.OnChainProvider.Name}");
+            CLIEngine.ShowMessage($"OffChainProvider: {nft.OffChainProvider.Name}");
+            CLIEngine.ShowMessage(string.Concat($"URL: ", !string.IsNullOrEmpty(nft.URL) ? nft.URL : "None"));
+            CLIEngine.ShowMessage(string.Concat($"ImageUrl: ", !string.IsNullOrEmpty(nft.ImageUrl) ? nft.ImageUrl : "None"));
+            CLIEngine.ShowMessage(string.Concat("Image: ", nft.Image != null ? "Yes" : "No"));
+            CLIEngine.ShowMessage(string.Concat($"ThumbnailUrl: ", !string.IsNullOrEmpty(nft.ThumbnailUrl) ? nft.ThumbnailUrl : "None"));
+            CLIEngine.ShowMessage(string.Concat("Thumbnail: ", nft.Thumbnail != null ? "Yes" : "No"));
+            CLIEngine.ShowMessage($"Lat: {nft.Lat}");
+            CLIEngine.ShowMessage($"Long: {nft.Long}");
+            CLIEngine.ShowMessage($"PlacedByAvatarId: {nft.PlacedByAvatarId}");
+            CLIEngine.ShowMessage($"PlacedOn: {nft.PlacedOn}");
+            CLIEngine.ShowMessage($"GeoNFTMetaDataOffChainProvider: {nft.GeoNFTMetaDataOffChainProvider}");
+            CLIEngine.ShowMessage($"PermSpawn: {nft.PermSpawn}");
+            CLIEngine.ShowMessage($"AllowOtherPlayersToAlsoCollect: {nft.AllowOtherPlayersToAlsoCollect}");
+            CLIEngine.ShowMessage($"GlobalSpawnQuantity: {nft.GlobalSpawnQuantity}");
+            CLIEngine.ShowMessage($"PlayerSpawnQuantity: {nft.PlayerSpawnQuantity}");
+            CLIEngine.ShowMessage($"RepawnDurationInSeconds: {nft.RepawnDurationInSeconds}");
 
             if (nft.MetaData.Count > 0)
             {
