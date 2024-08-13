@@ -149,39 +149,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                //if (!string.IsNullOrEmpty(avatarJwtToken))
-                //{
-                //    OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarByJwtTokenAsync(avatarJwtToken);
-
-                //    if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                //    {
-                //        if (request.MintedByAvatarId != Guid.Empty && request.MintedByAvatarId != avatarResult.Result.Id)
-                //        {
-                //            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar that matches the JWT Token passed in {avatarJwtToken} does not match the MintedByAvatarId passed in {avatarResult.Result.Id}");
-                //            return result;
-                //        }
-
-                //        else if (request.MintedByAvatarId == Guid.Empty)
-                //            request.MintedByAvatarId = avatarResult.Result.Id;
-
-                //        currentAvatar = avatarResult.Result;
-                //    }
-                //    else
-                //    {
-                //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured attempting to load the avatar details for the JWT Token {avatarJwtToken}. Reason: {avatarResult.Message}");
-                //        return result;
-                //    }
-                //}
-
                 if (string.IsNullOrEmpty(request.MintWalletAddress) && request.MintedByAvatarId == Guid.Empty)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Both MintWalletAddress and MintedByAvatarId are empty, please specify at least one, thank you!");
                     return result;
                 }
-
-                //TODO: Test if this will not work for multiple users ASAP! Don't think it will?
-                //if (request.MintedByAvatarId == Guid.Empty)
-                //    request.MintedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
                 //If the wallet Address hasn't been set then set it now by looking up the relevant wallet address for this avatar and provider type.
                 if (string.IsNullOrEmpty(request.MintWalletAddress) && request.MintedByAvatarId != Guid.Empty)
@@ -202,12 +174,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     break;
                                 }
                             }
-
-                            //if (string.IsNullOrEmpty(request.MintWalletAddress))
-                            //{
-                            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} No wallet could be found for the OnChainProvider {request.OnChainProvider.Name}. Please make sure a wallet is added for this provider using the Wallet API or a key using the Key API.");
-                            //    return result;
-                            //}
                         }
                         else
                         {
@@ -292,10 +258,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Both MintWalletAddress and MintedByAvatarId are empty, please specify at least one, thank you!");
                     return result;
                 }
-
-                //TODO: Test if this will not work for multiple users ASAP! Don't think it will?
-                //if (request.MintedByAvatarId == Guid.Empty)
-                //    request.MintedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
                 //If the wallet Address hasn't been set then set it now by looking up the relevant wallet address for this avatar and provider type.
                 if (string.IsNullOrEmpty(request.MintWalletAddress) && request.MintedByAvatarId != Guid.Empty)
@@ -478,6 +440,74 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             try
             {
                 result = DecodeNFTMetaData(Data.LoadHolonByCustomKey(onChainNftHash, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISGeoSpatialNFT>> LoadGeoNftAsync(Guid id, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            string errorMessage = "Error occured in LoadGeoNftAsync in NFTManager. Reason:";
+
+            try
+            {
+                result = DecodeGeoNFTMetaData(await Data.LoadHolonAsync(id, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public OASISResult<IOASISGeoSpatialNFT> LoadGeoNft(Guid id, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            string errorMessage = "Error occured in LoadGeoNft in NFTManager. Reason:";
+
+            try
+            {
+                result = DecodeGeoNFTMetaData(Data.LoadHolon(id, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISGeoSpatialNFT>> LoadGeoNftAsync(string onChainNftHash, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            string errorMessage = "Error occured in LoadGeoNftAsync in NFTManager. Reason:";
+
+            try
+            {
+                result = DecodeGeoNFTMetaData(await Data.LoadHolonByCustomKeyAsync(onChainNftHash, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public OASISResult<IOASISGeoSpatialNFT> LoadGeoNft(string onChainNftHash, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            string errorMessage = "Error occured in LoadGeoNft in NFTManager. Reason:";
+
+            try
+            {
+                result = DecodeGeoNFTMetaData(Data.LoadHolonByCustomKey(onChainNftHash, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
             }
             catch (Exception e)
             {
