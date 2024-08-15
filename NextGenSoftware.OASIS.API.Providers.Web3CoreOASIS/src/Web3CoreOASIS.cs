@@ -2,6 +2,8 @@ using Nethereum.Web3;
 using Nethereum.Contracts;
 using Nethereum.Web3.Accounts;
 using Nethereum.RPC.Eth.DTOs;
+using System.Threading.Tasks;
+using System;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 

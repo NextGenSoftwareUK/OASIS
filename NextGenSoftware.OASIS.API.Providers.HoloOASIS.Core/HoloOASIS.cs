@@ -18,6 +18,7 @@ using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.Holochain.HoloNET.Client.Interfaces;
 using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.Holochain.HoloNET.ORM.Entries;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
@@ -587,7 +588,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return await LoadAsync<IHolon>(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_LOAD_HOLON_FUNCTION_BY_ID, version, new Dictionary<string, string>()
+            {
+                ["loadChildren"] = loadChildren.ToString(),
+                ["recursive"] = recursive.ToString(),
+                ["maxChildDepth"] = maxChildDepth.ToString(),
+                ["continueOnError"] = continueOnError.ToString(),
+            });
+
             //return await LoadCollectionAsync("holons", "holons_anchor", ZOME_LOAD_HOLONS_FOR_PARENT_BY_ID_FUNCTION, version, new { id = id, type = type, loadChildren = loadChildren, recursive = recursive, maxChildDepth = maxChildDepth, continueOnError = continueOnError });
         }
 
@@ -623,32 +631,32 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+ 
         }
 
         public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+          
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+        
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+         
         }
 
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+    
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+           
         }
 
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
@@ -1014,6 +1022,24 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return avatar;
         }
 
+        private dynamic ConvertAvatarToParamsObject(IAvatar avatar)
+        {
+            return new
+            {
+                id = avatar.Id.ToString(),
+                username = avatar.Username,
+                password = avatar.Password,
+                email = avatar.Email,
+                title = avatar.Title,
+                first_name = avatar.FirstName,
+                last_name = avatar.LastName,
+                provider_unique_storage_key = avatar.ProviderUniqueStorageKey,
+                holon_type = avatar.HolonType
+
+                //TODDO: Finish mapping rest of the properties.
+            };
+        }
+
         private IHcAvatarDetail ConvertAvatarDetailToHoloOASISAvatarDetail(IAvatarDetail avatarDetail, IHcAvatarDetail hcAvatarDetail)
         {
             hcAvatarDetail.Id = avatarDetail.Id;
@@ -1056,24 +1082,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return avatarDetail;
         }
 
-        private dynamic ConvertAvatarToParamsObject(IAvatar avatar)
-        {
-            return new
-            {
-                id = avatar.Id.ToString(),
-                username = avatar.Username,
-                password = avatar.Password,
-                email = avatar.Email,
-                title = avatar.Title,
-                first_name = avatar.FirstName,
-                last_name = avatar.LastName,
-                provider_unique_storage_key = avatar.ProviderUniqueStorageKey,
-                holon_type = avatar.HolonType
-
-                //TODDO: Finish mapping rest of the properties.
-            };
-        }
-
         private dynamic ConvertAvatarDetailToParamsObject(IAvatarDetail avatar)
         {
             return new
@@ -1086,6 +1094,54 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
                 //TODDO: Finish mapping rest of the properties.
             };
+        }
+
+        private IHcAvatar ConvertHolonToHoloOASISHolon(IHolon holon, IHcHolon hcHolon)
+        {
+            hcHolon.Id = holon.Id;
+            hcHolon.
+            hcHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey == null ? string.Empty : holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.HoloOASIS];
+            hcHolon.HolonType = holon.HolonType;
+
+            //TODO: Finish mapping
+
+            return hcAvatar;
+        }
+
+        private IHolon ConvertHcHolonToHolon(IHcHolon hcHolon)
+        {
+            Holon holon = new Holon
+            {
+                Id = hcHolon.Id,
+                AllChildIdListCache = hcHolon.AllChildIdListCache,
+                AllChildren = hcHolon.AllChildren,
+                ChildIdListCache = hcHolon.ChildIdListCache,
+                Children = hcHolon.Children,
+                CreatedByAvatarId = new Guid(hcHolon.CreatedBy),
+                CreatedDate = hcHolon.CreatedDate,
+                CreatedOASISType = hcHolon.CreatedOASISType,
+                CreatedProviderType = hcHolon.CreatedProviderType,
+                CustomKey = hcHolon.CustomKey,
+                DeletedByAvatarId = new Guid(hcHolon.DeletedBy),
+                DeletedDate = hcHolon.DeletedDate,
+                Description = hcHolon.Description,
+                DimensionLevel = hcHolon.DimensionLevel,
+                HolonType = hcHolon.HolonType,
+                InstanceSavedOnProviderType = hcHolon.InstanceSavedOnProviderType,
+                IsActive = hcHolon.IsActive,
+                MetaData = hcHolon.MetaData,
+                ModifiedByAvatarId = new Guid(hcHolon.ModifiedBy),
+                ModifiedDate = hcHolon.ModifiedDate,
+                Name = hcHolon.Name,
+                Nodes = hcHolon.Nodes,
+                ParentCelestialBody = hcHolon.ParentCelestialBody,
+
+
+                //TODO: Finish mapping
+            };
+
+            avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.HoloOASIS] = hcAvatar.ProviderUniqueStorageKey;
+            return avatar;
         }
 
         /*
@@ -1225,61 +1281,70 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         }*/
 
 
-        //private async Task<OASISResult<IEnumerable<T>>> LoadCollectionAsync<T>(string collectionName, string collectionAnchor, string zomeFunctionName = "", int version = 0, dynamic additionalParams = null) where T : IHolonBase
-        //{
-        //    OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+        private async Task<OASISResult<IEnumerable<T>>> LoadCollectionAsync<T>(string collectionName, string collectionAnchor = "", int version = 0, dynamic additionalParams = null) where T : IHolonBase
+        {
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
 
-        //    //TODO: Need to implement loading collections in HoloNET ASAP! :)
+            try
+            {
+                HcAvatarCollection hcAvatars = new HcAvatarCollection();
+                ZomeFunctionCallBackEventArgs response = null;
 
-        //    try
-        //    {
-        //        HcAvatar hcAvatar = new HcAvatar(HoloNETClientAppAgent);
-        //        ZomeFunctionCallBackEventArgs response = null;
+                if (hcAvatars != null)
+                {
 
-        //        if (hcAvatar != null)
-        //        {
-        //            //If it is not null then override the zome function, otherwise it will use the defaults passed in via the constructors for HcAvatar.
-        //            if (!string.IsNullOrEmpty(zomeFunctionName))
-        //                hcAvatar.ZomeLoadCollectionFunction = zomeFunctionName;
+                    HoloNETCollectionLoadedResult<HcAvatar> loadResult = await hcAvatars.LoadCollectionAsync(collectionAnchor);
 
-        //            result = HandleLoadCollectionResponse(await hcAvatar.LoadCollectionAsync(collectionAnchor, version, additionalParams), collectionName, collectionAnchor, result);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: {ex}.");
-        //    }
+                    if (loadResult != null && !loadResult.IsError)
+                    {
+                        List<IHolonBase> holons = new List<IHolonBase>();
+                        //result.Result = loadResult.EntriesLoaded as IEnumerable<T>;
 
-        //    return result;
-        //}
+                        foreach (HcAvatar avatar in loadResult.EntriesLoaded)
+                        {
+                            
+                        }
+                    }
 
-        //private OASISResult<IEnumerable<T>> LoadCollection<T>(string collectionName, string collectionAnchor, string zomeFunctionName = "", int version = 0, dynamic additionalParams = null) where T : IHolonBase
-        //{
-        //    OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
 
-        //    //TODO: Need to implement loading collections in HoloNET ASAP! :)
+                    //result = HandleLoadCollectionResponse(await hcAvatars.LoadCollectionAsync(collectionAnchor), collectionName, collectionAnchor, result);
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: {ex}.");
+            }
 
-        //    try
-        //    {
-        //        HcAvatar hcAvatar = new HcAvatar(HoloNETClientAppAgent);
-        //        ZomeFunctionCallBackEventArgs response = null;
+            return result;
+        }
 
-        //        if (hcAvatar != null)
-        //        {
-        //            //If it is not null then override the zome function, otherwise it will use the defaults passed in via the constructors for HcAvatar.
-        //            if (!string.IsNullOrEmpty(zomeFunctionName))
-        //                hcAvatar.ZomeLoadCollectionFunction = zomeFunctionName;
+        private OASISResult<IEnumerable<T>> LoadCollection<T>(string collectionName, string collectionAnchor, string zomeFunctionName = "", int version = 0, dynamic additionalParams = null) where T : IHolonBase
+        {
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
 
-        //            result = HandleLoadCollectionResponse(hcAvatar.LoadCollection(collectionAnchor, version, additionalParams), collectionName, collectionAnchor, result);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: {ex}.");
-        //    }
+            //TODO: Need to implement loading collections in HoloNET ASAP! :)
 
-        //    return result;
-        //}
+            try
+            {
+                HcAvatar hcAvatar = new HcAvatar(HoloNETClientAppAgent);
+                ZomeFunctionCallBackEventArgs response = null;
+
+                if (hcAvatar != null)
+                {
+                    //If it is not null then override the zome function, otherwise it will use the defaults passed in via the constructors for HcAvatar.
+                    if (!string.IsNullOrEmpty(zomeFunctionName))
+                        hcAvatar.ZomeLoadCollectionFunction = zomeFunctionName;
+
+                    result = HandleLoadCollectionResponse(hcAvatar.LoadCollection(collectionAnchor, version, additionalParams), collectionName, collectionAnchor, result);
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: {ex}.");
+            }
+
+            return result;
+        }
 
         //private async Task<OASISResult<IEnumerable<T>>> ExecuteOperationAsync<T>(CollectionOperationEnum operation, string collectionName, string collectionAnchor, string zomeFunctionName = "", int version = 0) where T : IHolonBase
         //{
@@ -1788,14 +1853,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return result;
         }
 
-        private OASISResult<T> HandleLoadCollectionResponse<T>(ZomeFunctionCallBackEventArgs response, string collectionName, string collectionAnchor, OASISResult<T> result) where T : IHolonBase
+        private OASISResult<T2> HandleLoadCollectionResponse<T1, T2>(HoloNETCollectionLoadedResult<T1> response, string collectionName, string collectionAnchor, OASISResult<T2> result) where T1 : IHoloNETEntryBase where T2 : IHolonBase
         {
             if (response != null)
             {
                 if (!response.IsError)
-                    result.Result = response.Records[0].EntryDataObject;
+                    result.Result = response.EntriesLoaded;
                 else
-                    OASISErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: { response.Message }");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: {response.Message}");
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error loading collection {collectionName} with anchor {collectionAnchor} in the LoadCollectionAsync method in the HoloOASIS Provider. Reason: Unknown.");
