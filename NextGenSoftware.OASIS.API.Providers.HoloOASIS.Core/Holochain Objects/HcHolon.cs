@@ -10,7 +10,7 @@ using NextGenSoftware.Holochain.HoloNET.ORM.Entries;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
-    public class HcHolon : HoloNETAuditEntryBase//, IHcAvatar
+    public class HcHolon : HoloNETAuditEntryBase, IHcHolon
     {
         public HcHolon() : base("oasis", "get_entry_holon", "create_entry_holon", "update_entry_holon", "delete_entry_holon") { }
         public HcHolon(IHoloNETClientAppAgent holoNETClient) : base("oasis", "get_entry_holon", "create_entry_holon", "update_entry_holon", "delete_entry_holon", holoNETClient) { }
