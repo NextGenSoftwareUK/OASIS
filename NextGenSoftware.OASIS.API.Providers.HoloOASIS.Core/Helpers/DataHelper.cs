@@ -210,17 +210,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             return avatarDetail;
         }
 
-        public static dynamic ConvertHolonToParamsObject(IAvatarDetail avatar)
+        public static dynamic ConvertHolonToParamsObject(IHolon holon, Dictionary<string, string> customDataKeyValuePairs = null)
         {
             return new
             {
-                id = avatar.Id.ToString(),
-                username = avatar.Username,
-                email = avatar.Email,
-                provider_unique_storage_key = avatar.ProviderUniqueStorageKey,
-                holon_type = avatar.HolonType
-
-                //TODDO: Finish mapping rest of the properties.
+                id = holon.Id.ToString(),
+                provider_unique_storage_key = holon.ProviderUniqueStorageKey,
+                holon_type = holon.HolonType,
+                saveChildren = customDataKeyValuePairs["saveChildren"],
+                recursive = customDataKeyValuePairs["recursive"],
+                maxChildDepth = customDataKeyValuePairs["maxChildDepth"],
+                continueOnError = customDataKeyValuePairs["continueOnError"],
+                saveChildrenOnProvider = customDataKeyValuePairs["saveChildrenOnProvider"]
+            //TODDO: Finish mapping rest of the properties.
             };
         }
 

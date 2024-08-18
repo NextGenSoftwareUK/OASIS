@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
 {
     public class AvatarDetailRepository
     {
-        public async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAvatarDetailsAsync<T>(string collectionName, string collectionAnchor = "", string zomeLoadCollectionFunctionName = "", int version = 0, dynamic additionalParams = null) where T : IHolonBase
+        public async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAvatarDetailsAsync(string collectionName, string collectionAnchor = "", string zomeLoadCollectionFunctionName = "", int version = 0, dynamic additionalParams = null)
         {
             OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
 
@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             return result;
         }
 
-        public OASISResult<IEnumerable<IAvatarDetail>> LoadAvatarDetails<T>(string collectionName, string collectionAnchor = "", string zomeLoadCollectionFunctionName = "", int version = 0, dynamic additionalParams = null) where T : IHolonBase
+        public OASISResult<IEnumerable<IAvatarDetail>> LoadAvatarDetails(string collectionName, string collectionAnchor = "", string zomeLoadCollectionFunctionName = "", int version = 0, dynamic additionalParams = null)
         {
             OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
 
