@@ -1,15 +1,13 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
-using NextGenSoftware.Holochain.HoloNET.Client;
-using NextGenSoftware.Holochain.HoloNET.Client.Interfaces;
-using NextGenSoftware.Holochain.HoloNET.ORM.Entries;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.Utilities;
+using NextGenSoftware.Holochain.HoloNET.Client;
+using NextGenSoftware.Holochain.HoloNET.Client.Interfaces;
+using NextGenSoftware.Holochain.HoloNET.ORM.Entries;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {

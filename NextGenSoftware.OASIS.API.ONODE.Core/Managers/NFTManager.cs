@@ -209,12 +209,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     }
 
                     //TODO: TEMP! Remove once MintNFTAsync above is working (with Solaba for example!)
-                    result.Result = new NFTTransactionRespone(); //TODO: COMMENT!
-                    result.Result.TransactionResult = "19GSYRYNoWTcKeqHsoBVjiDXCvtWpbj7wUE6zKnFhmpot1aL3CatMyLuyfvcRzhQvScRMCfpAWsQtWhgHsGC7pf"; //TODO:TEMP!
-                    result.IsError = false;
+                    //result.Result = new NFTTransactionRespone(); //TODO: COMMENT!
+                    //result.Result.TransactionResult = "19GSYRYNoWTcKeqHsoBVjiDXCvtWpbj7wUE6zKnFhmpot1aL3CatMyLuyfvcRzhQvScRMCfpAWsQtWhgHsGC7pf"; //TODO:TEMP!
+                    //result.IsError = false;
 
-                    //TODO UNCOMMENT! if (result != null && !result.IsError && result.Result != null)
-                    if (result != null) //Temp!
+                    //TODO UNCOMMENT!
+                    //if (result != null) //Temp!
+                    if (result != null && !result.IsError && result.Result != null)
                     {
                         result.Result.OASISNFT = CreateOASISNFT(request, result.Result);
                         OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(CreateNFTMetaDataHolon(result.Result.OASISNFT, request), request.MintedByAvatarId, true, true, 0, true, false, NFTMetaDataProviderType);
