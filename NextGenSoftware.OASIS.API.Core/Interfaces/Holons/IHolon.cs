@@ -43,8 +43,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public Guid ParentZomeId { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         
-        public Guid ParentHolonId { get; set; }
-        public IHolon ParentHolon { get; set; }
+        //Moved to IHolonBase.
+        //public Guid ParentHolonId { get; set; }
+        //public IHolon ParentHolon { get; set; }
         
         //IEnumerable<IHolon> Children { get; set; }
         //ObservableCollection<IHolon> ChildrenTest { get; set; }

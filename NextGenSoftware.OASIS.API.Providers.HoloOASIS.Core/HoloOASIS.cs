@@ -1,17 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.Common;
+using System.Collections.Generic;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.Holochain.HoloNET.Client;
-using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
 using NextGenSoftware.Holochain.HoloNET.Client.Interfaces;
+using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
@@ -26,19 +26,31 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         private const string OASIS_HAPP_ID = "oasis";
         private const string OASIS_HAPP_PATH = "OASIS_hAPP\\oasis.happ";
         private const string OASIS_HAPP_ROLE_NAME = "oasis";
-        private const string ZOME_LOAD_AVATAR_BY_ID_FUNCTION = "get_entry_avatar_by_id";
-        private const string ZOME_LOAD_AVATAR_BY_USERNAME_FUNCTION = "get_entry_avatar_by_username";
-        private const string ZOME_LOAD_AVATAR_BY_EMAIL_FUNCTION = "get_entry_avatar_by_email";
+        private const string ZOME_LOAD_AVATAR_BY_ID_FUNCTION = "get_avatar_by_id";
+        private const string ZOME_LOAD_AVATAR_BY_USERNAME_FUNCTION = "get_avatar_by_username";
+        private const string ZOME_LOAD_AVATAR_BY_EMAIL_FUNCTION = "get_avatar_by_email";
+        private const string ZOME_LOAD_AVATAR_DETAIL_BY_ID_FUNCTION = "get_avatar_detail_by_id";
+        private const string ZOME_LOAD_AVATAR_DETAIL_BY_USERNAME_FUNCTION = "get_avatar_detail_by_username";
+        private const string ZOME_LOAD_AVATAR_DETAIL_BY_EMAIL_FUNCTION = "get_avatar_detail_by_email";
         private const string ZOME_LOAD_ALL_AVATARS_FUNCTION = "get_all_avatars";
         private const string ZOME_LOAD_ALL_AVATARS_DETAILS_FUNCTION = "get_all_avatar_details";
-        private const string ZOME_DELETE_AVATAR_BY_ID_FUNCTION = "delete_entry_avatar_by_id";
-        private const string ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION = "delete_entry_avatar_by_username";
-        private const string ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION = "delete_entry_avatar_by_email";
-        private const string ZOME_LOAD_AVATAR_DETAIL_BY_ID_FUNCTION = "get_entry_avatar_detail_by_id";
-        private const string ZOME_LOAD_AVATAR_DETAIL_BY_USERNAME_FUNCTION = "get_entry_avatar_detail_by_username";
-        private const string ZOME_LOAD_AVATAR_DETAIL_BY_EMAIL_FUNCTION = "get_entry_avatar_detail_by_email";
-        private const string ZOME_LOAD_HOLON_FUNCTION_BY_ID = "get_entry_holon_by_id";
+        private const string ZOME_DELETE_AVATAR_BY_ID_FUNCTION = "delete_avatar_by_id";
+        private const string ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION = "delete_avatar_by_username";
+        private const string ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION = "delete_avatar_by_email";
+        private const string ZOME_LOAD_HOLON_BY_ID_FUNCTION = "get_holon_by_id";
+        private const string ZOME_LOAD_HOLON_BY_PROVIDER_KEY_FUNCTION = "get_holon_by_provider_key";
+        private const string ZOME_LOAD_HOLON_BY_CUSTOM_KEY_FUNCTION = "get_holon_by_custom_key";
+        private const string ZOME_LOAD_HOLON_BY_META_DATA_FUNCTION = "get_holon_by_meta_data";
         private const string ZOME_LOAD_HOLONS_FOR_PARENT_BY_ID_FUNCTION = "get_holons_for_parent_by_id";
+        private const string ZOME_LOAD_HOLONS_FOR_PARENT_BY_PROVIDER_KEY_FUNCTION = "get_holons_for_parent_by_provider_key";
+        private const string ZOME_LOAD_HOLONS_FOR_PARENT_BY_CUSTOM_KEY_FUNCTION = "get_holons_for_parent_by_custom_key";
+        private const string ZOME_LOAD_HOLONS_FOR_PARENT_BY_META_DATA_FUNCTION = "get_holons_for_parent_by_meta_data";
+        private const string ZOME_LOAD_ALL_HOLONS_FUNCTION = "get_all_holons";
+        private const string ZOME_SAVE_ALL_HOLONS_FUNCTION = "save_all_holons";
+        private const string ZOME_DELETE_HOLON_BY_ID_FUNCTION = "delete_holon_by_id";
+        private const string ZOME_DELETE_HOLON_BY_PROVIDER_KEY_FUNCTION = "delete_holon_by_provider_key";
+        private const string ZOME_DELETE_HOLON_BY_CUSTOM_KEY_FUNCTION = "delete_holon_by_custom_key";
+        private const string ZOME_DELETE_HOLON_BY_META_DATA_FUNCTION = "delete_holon_by_meta_data";
 
         private AvatarRepository _avatarRepository = null;
         private AvatarDetailRepository _avatarDetailRepository = null;
@@ -439,47 +451,134 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            return await DeleteAsync(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_DELETE_AVATAR_BY_ID_FUNCTION);
+            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> response = await DeleteAsync(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_DELETE_AVATAR_BY_ID_FUNCTION);
+
+            if (response != null && !response.IsError && response.IsDeleted)
+                result.Result = true;
+            else
+                result.Result = false;
+
+            return result;
+            
+            //return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(await DeleteAsync(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_DELETE_AVATAR_BY_ID_FUNCTION), new OASISResult<bool>());
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            return Delete(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_DELETE_AVATAR_BY_ID_FUNCTION);
+            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> response = Delete(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_DELETE_AVATAR_BY_ID_FUNCTION);
+
+            if (response != null && !response.IsError && response.IsDeleted)
+                result.Result = true;
+            else
+                result.Result = false;
+
+            return result;
+
+            //return Delete(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_DELETE_AVATAR_BY_ID_FUNCTION);
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            return await DeleteAsync(HcObjectTypeEnum.Avatar, "providerKey (entryHash)", providerKey, "");
+            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> response = await DeleteAsync(HcObjectTypeEnum.Avatar, "providerKey (entryHash)", providerKey, "");
+
+            if (response != null && !response.IsError && response.IsDeleted)
+                result.Result = true;
+            else
+                result.Result = false;
+
+            return result;
+
+            //return await DeleteAsync(HcObjectTypeEnum.Avatar, "providerKey (entryHash)", providerKey, "");
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            return Delete(HcObjectTypeEnum.Avatar, "providerKey (entryHash)", providerKey, "");
+            //return Delete(HcObjectTypeEnum.Avatar, "providerKey (entryHash)", providerKey, "");
+
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> response = Delete(HcObjectTypeEnum.Avatar, "providerKey (entryHash)", providerKey, "");
+
+            if (response != null && !response.IsError && response.IsDeleted)
+                result.Result = true;
+            else
+                result.Result = false;
+
+            return result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            return await DeleteAsync(HcObjectTypeEnum.Avatar, "email", avatarEmail, ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION);
+            //return await DeleteAsync(HcObjectTypeEnum.Avatar, "email", avatarEmail, ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION);
+
+            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> response = await DeleteAsync(HcObjectTypeEnum.Avatar, "email", avatarEmail, ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION);
+
+            if (response != null && !response.IsError && response.IsDeleted)
+                result.Result = true;
+            else
+                result.Result = false;
+
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            return Delete(HcObjectTypeEnum.Avatar, "email", avatarEmail, ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION);
+            // return Delete(HcObjectTypeEnum.Avatar, "email", avatarEmail, ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION);
+
+            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> response = Delete(HcObjectTypeEnum.Avatar, "email", avatarEmail, ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION);
+
+            if (response != null && !response.IsError && response.IsDeleted)
+                result.Result = true;
+            else
+                result.Result = false;
+
+            return result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            return await DeleteAsync(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION);
+            //return await DeleteAsync(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION);
+
+            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> response = await DeleteAsync(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION);
+
+            if (response != null && !response.IsError && response.IsDeleted)
+                result.Result = true;
+            else
+                result.Result = false;
+
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            return Delete(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION);
+            //return Delete(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION);
+
+            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IHolon> response = Delete(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION);
+
+            if (response != null && !response.IsError && response.IsDeleted)
+                result.Result = true;
+            else
+                result.Result = false;
+
+            return result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return await LoadAsync<IHolon>(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_LOAD_HOLON_FUNCTION_BY_ID, version, new Dictionary<string, string>()
+            return await LoadAsync<IHolon>(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_LOAD_HOLON_BY_ID_FUNCTION, version, new Dictionary<string, string>()
             {
                 ["loadChildren"] = loadChildren.ToString(),
                 ["recursive"] = recursive.ToString(),
@@ -491,7 +590,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return Load<IHolon>(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_LOAD_HOLON_FUNCTION_BY_ID, version, new Dictionary<string, string>()
+            return Load<IHolon>(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_LOAD_HOLON_BY_ID_FUNCTION, version, new Dictionary<string, string>()
             {
                 ["loadChildren"] = loadChildren.ToString(),
                 ["recursive"] = recursive.ToString(),
@@ -503,7 +602,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return await LoadAsync<IHolon>(HcObjectTypeEnum.Holon, "providerKey (entryHash)", providerKey, ZOME_LOAD_HOLON_FUNCTION_BY_ID, version, new Dictionary<string, string>()
+            return await LoadAsync<IHolon>(HcObjectTypeEnum.Holon, "providerKey (entryHash)", providerKey, ZOME_LOAD_HOLON_BY_ID_FUNCTION, version, new Dictionary<string, string>()
             {
                 ["loadChildren"] = loadChildren.ToString(),
                 ["recursive"] = recursive.ToString(),
@@ -515,7 +614,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return Load<IHolon>(HcObjectTypeEnum.Holon, "providerKey (entryHash)", providerKey, ZOME_LOAD_HOLON_FUNCTION_BY_ID, version, new Dictionary<string, string>()
+            return Load<IHolon>(HcObjectTypeEnum.Holon, "providerKey (entryHash)", providerKey, ZOME_LOAD_HOLON_BY_ID_FUNCTION, version, new Dictionary<string, string>()
             {
                 ["loadChildren"] = loadChildren.ToString(),
                 ["recursive"] = recursive.ToString(),
@@ -527,7 +626,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return await LoadAsync<IHolon>(HcObjectTypeEnum.Holon, "customKey", customKey, ZOME_LOAD_HOLON_FUNCTION_BY_CUSTOM_KEY, version, new Dictionary<string, string>()
+            return await LoadAsync<IHolon>(HcObjectTypeEnum.Holon, "customKey", customKey, ZOME_LOAD_HOLON_BY_CUSTOM_KEY_FUNCTION, version, new Dictionary<string, string>()
             {
                 ["loadChildren"] = loadChildren.ToString(),
                 ["recursive"] = recursive.ToString(),
@@ -539,7 +638,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return Load<IHolon>(HcObjectTypeEnum.Holon, "customKey", customKey, ZOME_LOAD_HOLON_FUNCTION_BY_CUSTOM_KEY, version, new Dictionary<string, string>()
+            return Load<IHolon>(HcObjectTypeEnum.Holon, "customKey", customKey, ZOME_LOAD_HOLON_BY_CUSTOM_KEY_FUNCTION, version, new Dictionary<string, string>()
             {
                 ["loadChildren"] = loadChildren.ToString(),
                 ["recursive"] = recursive.ToString(),
@@ -551,7 +650,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return await LoadAsync<IHolon>(HcObjectTypeEnum.Holon, metaKey, metaValue, ZOME_LOAD_HOLON_FUNCTION_BY_META_DATA, version, new Dictionary<string, string>()
+            return await LoadAsync<IHolon>(HcObjectTypeEnum.Holon, metaKey, metaValue, ZOME_LOAD_HOLON_BY_META_DATA_FUNCTION, version, new Dictionary<string, string>()
             {
                 ["loadChildren"] = loadChildren.ToString(),
                 ["recursive"] = recursive.ToString(),
@@ -563,7 +662,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return Load<IHolon>(HcObjectTypeEnum.Holon, metaKey, metaValue, ZOME_LOAD_HOLON_FUNCTION_BY_META_DATA, version, new Dictionary<string, string>()
+            return Load<IHolon>(HcObjectTypeEnum.Holon, metaKey, metaValue, ZOME_LOAD_HOLON_BY_META_DATA_FUNCTION, version, new Dictionary<string, string>()
             {
                 ["loadChildren"] = loadChildren.ToString(),
                 ["recursive"] = recursive.ToString(),
@@ -724,10 +823,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             });
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             //_holonRepository.SaveHolonsAsync(holons, "holons", "holons_anchor", ZOME_SAVE_ALL_HOLONS_FUNCTION, new { saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider });
-            _holonRepository.SaveHolonsAsync(holons, "holons", "holons_anchor", ZOME_SAVE_ALL_HOLONS_FUNCTION, new Dictionary<string, string>()
+            return await _holonRepository.SaveHolonsAsync(holons, "holons", "holons_anchor", ZOME_SAVE_ALL_HOLONS_FUNCTION, new Dictionary<string, string>()
             {
                 ["saveChildren"] = saveChildren.ToString(),
                 ["recursive"] = recursive.ToString(),
@@ -740,7 +839,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             //_holonRepository.SaveHolons(holons, "holons", "holons_anchor", ZOME_SAVE_ALL_HOLONS_FUNCTION, new { saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider });
-            _holonRepository.SaveHolons(holons, "holons", "holons_anchor", ZOME_SAVE_ALL_HOLONS_FUNCTION, new Dictionary<string, string>()
+            return _holonRepository.SaveHolons(holons, "holons", "holons_anchor", ZOME_SAVE_ALL_HOLONS_FUNCTION, new Dictionary<string, string>()
             {
                 ["saveChildren"] = saveChildren.ToString(),
                 ["recursive"] = recursive.ToString(),
@@ -1181,7 +1280,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                             break;
 
                         case HcObjectTypeEnum.AvatarDetail:
-                            response = await hcObject.SaveAsync(DataHelper.ConvertAvatarToParamsObject((IAvatar)holon));
+                            response = await hcObject.SaveAsync(DataHelper.ConvertAvatarDetailToParamsObject((IAvatarDetail)holon));
                             break;
 
                         case HcObjectTypeEnum.Holon:
@@ -1298,9 +1397,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return result;
         }
 
-        private async Task<OASISResult<bool>> DeleteAsync(HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, string zomeDeleteFunctionName = "", Dictionary<string, string> customDataKeyValuePairs = null)
+        private async Task<OASISResult<IHolon>> DeleteAsync(HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, string zomeDeleteFunctionName = "", Dictionary<string, string> customDataKeyValuePairs = null)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+            string errorMessage = $"An unknwon error has occured deleting the {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the DeleteAsync method in HoloOASIS Provider. Reason:";
 
             try
             {
@@ -1324,19 +1424,39 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 if (!string.IsNullOrEmpty(zomeDeleteFunctionName))
                     hcObject.ZomeDeleteEntryFunction = zomeDeleteFunctionName;
 
-                hcObject.DeleteByCustomField(fieldValue, fieldName, customDataKeyValuePairs);
+                ZomeFunctionCallBackEventArgs response = hcObject.DeleteByCustomField(fieldValue, fieldName, customDataKeyValuePairs);
+
+                if (response != null && response.Records != null && response.Records.Count > 0 && response.Records[0] != null && response.Records[0].EntryDataObject != null)
+                {
+                    switch (hcObjectType)
+                    {
+                        case HcObjectTypeEnum.Avatar:
+                            result.Result = DataHelper.ConvertHcAvatarToAvatar(response.Records[0].EntryDataObject);
+                            break;
+
+                        case HcObjectTypeEnum.AvatarDetail:
+                            result.Result = DataHelper.ConvertHcAvatarDetailToAvatarDetail(response.Records[0].EntryDataObject);
+                            break;
+
+                        case HcObjectTypeEnum.Holon:
+                            result.Result = DataHelper.ConvertHcHolonToHolon(response.Records[0].EntryDataObject);
+                            break;
+                    }
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} EntryDataObject was not found in response from HoloNET.");
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the DeleteAsync method in HoloOASIS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
             }
 
             return result;
         }
 
-        private OASISResult<bool> Delete(HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, string zomeDeleteFunctionName = "", Dictionary<string, string> customDataKeyValuePairs = null)
+        private OASISResult<IHolon> Delete(HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, string zomeDeleteFunctionName = "", Dictionary<string, string> customDataKeyValuePairs = null)
         {
-            OASISResult<bool> result = new OASISResult<bool>(false);
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
@@ -1360,8 +1480,25 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 if (!string.IsNullOrEmpty(zomeDeleteFunctionName))
                     hcObject.ZomeDeleteEntryFunction = zomeDeleteFunctionName;
 
-                hcObject.DeleteByCustomField(fieldValue, fieldName, customDataKeyValuePairs);
-  
+                ZomeFunctionCallBackEventArgs response = hcObject.DeleteByCustomField(fieldValue, fieldName, customDataKeyValuePairs);
+
+                if (response != null && response.Records != null && response.Records.Count > 0 && response.Records[0] != null && response.Records[0].EntryDataObject != null)
+                {
+                    switch (hcObjectType)
+                    {
+                        case HcObjectTypeEnum.Avatar:
+                            result.Result = DataHelper.ConvertHcAvatarToAvatar(response.Records[0].EntryDataObject);
+                            break;
+
+                        case HcObjectTypeEnum.AvatarDetail:
+                            result.Result = DataHelper.ConvertHcAvatarDetailToAvatarDetail(response.Records[0].EntryDataObject);
+                            break;
+
+                        case HcObjectTypeEnum.Holon:
+                            result.Result = DataHelper.ConvertHcHolonToHolon(response.Records[0].EntryDataObject);
+                            break;
+                    }
+                }
             }
             catch (Exception ex)
             {
