@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -84,16 +83,16 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public IOmiverse Omniverse { get; set; } //We have all of creation inside of us... ;-)
         public List<AvatarGift> Gifts { get; set; } = new List<AvatarGift>();
         //public List<Chakra> Chakras { get; set; }
-        public Dictionary<DimensionLevel, Guid> DimensionLevelIds { get; set; }
-        public Dictionary<DimensionLevel, IHolon> DimensionLevels { get; set; }
-        public AvatarChakras Chakras { get; set; } = new AvatarChakras();
-        public AvatarAura Aura { get; set; } = new AvatarAura();
-        public AvatarStats Stats { get; set; } = new AvatarStats();
+        public Dictionary<DimensionLevel, Guid> DimensionLevelIds { get; set; } = new Dictionary<DimensionLevel, Guid>();
+        public Dictionary<DimensionLevel, IHolon> DimensionLevels { get; set; } = new Dictionary<DimensionLevel, IHolon>();
+        public IAvatarChakras Chakras { get; set; } = new AvatarChakras();
+        public IAvatarAura Aura { get; set; } = new AvatarAura();
+        public IAvatarStats Stats { get; set; } = new AvatarStats();
         public List<GeneKey> GeneKeys { get; set; } = new List<GeneKey>();
-        public HumanDesign HumanDesign { get; set; } = new HumanDesign();
-        public AvatarSkills Skills { get; set; } = new AvatarSkills();
-        public AvatarAttributes Attributes { get; set; } = new AvatarAttributes();
-        public AvatarSuperPowers SuperPowers { get; set; } = new AvatarSuperPowers();
+        public IHumanDesign HumanDesign { get; set; } = new HumanDesign();
+        public IAvatarSkills Skills { get; set; } = new AvatarSkills();
+        public IAvatarAttributes Attributes { get; set; } = new AvatarAttributes();
+        public IAvatarSuperPowers SuperPowers { get; set; } = new AvatarSuperPowers();
         public List<Spell> Spells { get; set; } = new List<Spell>();
         public List<Achievement> Achievements { get; set; } = new List<Achievement>();
         public List<InventoryItem> Inventory { get; set; } = new List<InventoryItem>();
