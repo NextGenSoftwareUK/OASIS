@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
@@ -42,25 +42,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public ICelestialBody ParentCelestialBody { get; set; } // The CelestialBody  this holon belongs to (this could be a moon, planet, star, etc). 
         public Guid ParentZomeId { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
-        
-        //Moved to IHolonBase.
-        //public Guid ParentHolonId { get; set; }
-        //public IHolon ParentHolon { get; set; }
-        
-        //IEnumerable<IHolon> Children { get; set; }
-        //ObservableCollection<IHolon> ChildrenTest { get; set; }
-        //Guid CreatedByAvatarId { get; set; }
-        //Avatar CreatedByAvatar { get; set; }
-        //DateTime CreatedDate { get; set; }
-        //Guid ModifiedByAvatarId { get; set; }
-        //Avatar ModifiedByAvatar { get; set; }
-        //DateTime ModifiedDate { get; set; }
-        //Guid DeletedByAvatarId { get; set; }
-        //Avatar DeletedByAvatar { get; set; }
-        //DateTime DeletedDate { get; set; }
-        //bool IsActive { get; set; }
-        //int Version { get; set; }
-        //EnumValue<ProviderType> CreatedProviderType { get; set; }
-        ObservableCollection<INode> Nodes { get; set; }
+
+        //ObservableCollection<INode> Nodes { get; set; }
+        IList<INode> Nodes { get; set; }
     }
 }

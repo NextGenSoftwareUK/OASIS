@@ -35,20 +35,20 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         IAvatarAura Aura { get; set; }
         IAvatarChakras Chakras { get; set; }
         IDictionary<DimensionLevel, Guid> DimensionLevelIds { get; set; }
-        public IDictionary<DimensionLevel, IHolon> DimensionLevels { get; set; }
-        public ConsoleColor FavouriteColour { get; set; }
-        public IList<IGeneKey> GeneKeys { get; set; }
-        public IList<IAvatarGift> Gifts { get; set; }
-        public IList<HeartRateEntry> HeartRateData { get; set; }
-        public IHumanDesign HumanDesign { get; set; }
-        public IList<IInventoryItem> Inventory { get; set; }
-        public IList<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
-        public IOmiverse Omniverse { get; set; }
-        public IAvatarSkills Skills { get; set; }
-        public IList<ISpell> Spells { get; set; }
-        public ConsoleColor STARCLIColour { get; set; }
-        public IAvatarStats Stats { get; set; }
-        public IAvatarSuperPowers SuperPowers { get; set; }
+        IDictionary<DimensionLevel, IHolon> DimensionLevels { get; set; }
+        ConsoleColor FavouriteColour { get; set; }
+        IList<IGeneKey> GeneKeys { get; set; }
+        IList<IAvatarGift> Gifts { get; set; }
+        IList<HeartRateEntry> HeartRateData { get; set; }
+        IHumanDesign HumanDesign { get; set; }
+        IList<IInventoryItem> Inventory { get; set; }
+        IList<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
+        IOmiverse Omniverse { get; set; }
+        IAvatarSkills Skills { get; set; }
+        IList<ISpell> Spells { get; set; }
+        ConsoleColor STARCLIColour { get; set; }
+        IAvatarStats Stats { get; set; }
+        IAvatarSuperPowers SuperPowers { get; set; }
 
         #endregion
 

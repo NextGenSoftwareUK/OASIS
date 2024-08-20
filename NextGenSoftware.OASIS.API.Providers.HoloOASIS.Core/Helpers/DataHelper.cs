@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Text.Json;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
-using System.Text.Json;
-using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
 {
@@ -22,6 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcAvatar.Password = avatar.Password;
             hcAvatar.Email = avatar.Email;
             hcAvatar.Title = avatar.Title;
+            hcAvatar.Name = avatar.Name;
             hcAvatar.Description = avatar.Description;
             hcAvatar.FirstName = avatar.FirstName;
             hcAvatar.LastName = avatar.LastName;
@@ -134,6 +136,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 Password = keyValuePair["password"],
                 Email = keyValuePair["email"],
                 Title = keyValuePair["title"],
+                //Name = keyValuePair["name"],
                 Description = keyValuePair["description"],
                 FirstName = keyValuePair["first_name"],
                 LastName = keyValuePair["last_name"],
@@ -189,8 +192,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 username = avatar.Username,
                 password = avatar.Password,
                 email = avatar.Email,
-                title = avatar.Title,
+                name = avatar.Name,
                 description = avatar.Description,
+                title = avatar.Title,
                 first_name = avatar.FirstName,
                 last_name = avatar.LastName,
                 created_by = avatar.CreatedByAvatarId.ToString(),
@@ -230,7 +234,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 verification_token = avatar.VerificationToken,
                 verified = avatar.Verified,
                 version = avatar.Version,
-                versionId = avatar.VersionId
+                version_id = avatar.VersionId
             };
         }
 
@@ -311,28 +315,138 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 Id = hcAvatarDetail.Id,
                 Email = hcAvatarDetail.Email,
                 Username = hcAvatarDetail.Username,
+                Achievements = (List<Achievement>)hcAvatarDetail.Achievements,
+                Address = hcAvatarDetail.Address,
+                AllChildIdListCache = hcAvatarDetail.AllChildIdListCache,
+                //AllChildren = hcAvatarDetail.AllChildren,
+                Attributes = hcAvatarDetail.Attributes,
+                Aura = hcAvatarDetail.Aura,
+                Chakras = hcAvatarDetail.Chakras,
+                ChildIdListCache = hcAvatarDetail.ChildIdListCache,
+                Children = hcAvatarDetail.Children,
+                Country = hcAvatarDetail.Country,
+                County = hcAvatarDetail.County,
+                CreatedByAvatarId = new Guid(hcAvatarDetail.CreatedBy),
+                CreatedDate = hcAvatarDetail.CreatedDate,
+                CreatedOASISType = hcAvatarDetail.CreatedOASISType,
+                CreatedProviderType = hcAvatarDetail.CreatedProviderType,
+                CustomKey = hcAvatarDetail.CustomKey,
+                DeletedByAvatarId = new Guid(hcAvatarDetail.DeletedBy),
+                DeletedDate = hcAvatarDetail.DeletedDate,
+                Description = hcAvatarDetail.Description,
+                DimensionLevelIds = (Dictionary<DimensionLevel, Guid>)hcAvatarDetail.DimensionLevelIds,
+                DimensionLevels = (Dictionary<DimensionLevel, IHolon>)hcAvatarDetail.DimensionLevels,
+                DOB = Convert.ToDateTime(hcAvatarDetail.DOB),
+                FavouriteColour = hcAvatarDetail.FavouriteColour,
+                GeneKeys = (List<GeneKey>)hcAvatarDetail.GeneKeys,
+                Gifts = (List<AvatarGift>)hcAvatarDetail.Gifts,
+                HeartRateData = (List<HeartRateEntry>)hcAvatarDetail.HeartRateData,
                 HolonType = hcAvatarDetail.HolonType,
-
-                //TODO: Finish mapping
+                HumanDesign = hcAvatarDetail.HumanDesign,
+                InstanceSavedOnProviderType = hcAvatarDetail.InstanceSavedOnProviderType,
+                Inventory = (List<InventoryItem>)hcAvatarDetail.Inventory,
+                IsActive = hcAvatarDetail.IsActive,
+                Karma = hcAvatarDetail.Karma,
+                KarmaAkashicRecords = (List<KarmaAkashicRecord>)hcAvatarDetail.KarmaAkashicRecords,
+                Landline = hcAvatarDetail.Landline,
+                //Level = hcAvatarDetail.Level;
+                MetaData = hcAvatarDetail.MetaData,
+                Mobile = hcAvatarDetail.Mobile,
+                Model3D = hcAvatarDetail.Model3D,
+                ModifiedByAvatarId = new Guid(hcAvatarDetail.ModifiedBy),
+                ModifiedDate = hcAvatarDetail.ModifiedDate,
+                Name = hcAvatarDetail.Name,
+                Omniverse = hcAvatarDetail.Omniverse,
+                Original = hcAvatarDetail.Original,
+                ParentHolonId = hcAvatarDetail.ParentHolonId,
+                Portrait = hcAvatarDetail.Portrait,
+                Postcode = hcAvatarDetail.Postcode,
+                PreviousVersionId = hcAvatarDetail.PreviousVersionId,
+                PreviousVersionProviderUniqueStorageKey = hcAvatarDetail.PreviousVersionProviderUniqueStorageKey,
+                ProviderMetaData = hcAvatarDetail.ProviderMetaData,
+                ProviderUniqueStorageKey = hcAvatarDetail.ProviderUniqueStorageKey,
+                Skills = hcAvatarDetail.Skills,
+                Spells = (List<Spell>)hcAvatarDetail.Spells,
+                STARCLIColour = hcAvatarDetail.STARCLIColour,
+                Stats = hcAvatarDetail.Stats,
+                SuperPowers = hcAvatarDetail.SuperPowers,
+                Town = hcAvatarDetail.Town,
+                UmaJson = hcAvatarDetail.UmaJson,
+                Version = hcAvatarDetail.Version,
+                VersionId = hcAvatarDetail.VersionId,
+                XP = hcAvatarDetail.XP
             };
 
-            avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.HoloOASIS] = hcAvatarDetail.ProviderUniqueStorageKey;
+            avatarDetail.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcAvatarDetail.EntryHash;
             return avatarDetail;
         }
 
-        public IAvatarDetail ConvertKeyValuePairToAvatarDetail(Dictionary<string, string> keyValuePair)
+        public static IAvatarDetail ConvertKeyValuePairToAvatarDetail(Dictionary<string, string> keyValuePair)
         {
             AvatarDetail avatarDetail = new AvatarDetail
             {
                 Id = new Guid(keyValuePair["id"]),
                 Email = keyValuePair["email"],
                 Username = keyValuePair["username"],
-                HolonType = (HolonType)Enum.Parse(typeof(HolonType), keyValuePair["holon_type"])
-
-                //TODO: Finish mapping
+                HolonType = (HolonType)Enum.Parse(typeof(HolonType), keyValuePair["holon_type"]),
+                Name = keyValuePair["name"],
+                Description = keyValuePair["description"],
+                AllChildIdListCache = keyValuePair["all_child_id_list_cache"],
+                ChildIdListCache = keyValuePair["child_id_list_cache"],
+                Children = (IList<IHolon>)JsonSerializer.Deserialize(keyValuePair["children"], typeof(IList<IHolon>)),
+                CreatedOASISType = new Utilities.EnumValue<OASISType>((OASISType)Enum.Parse(typeof(OASISType), keyValuePair["created_oasis_type"])),
+                CreatedProviderType = new Utilities.EnumValue<ProviderType>((ProviderType)Enum.Parse(typeof(ProviderType), keyValuePair["created_provider_type"])),
+                CustomKey = keyValuePair["custom_key"],
+                IsActive = Convert.ToBoolean(keyValuePair["is_active"]),
+                CreatedByAvatarId = new Guid(keyValuePair["created_by"]),
+                CreatedDate = Convert.ToDateTime(keyValuePair["created_date"]),
+                ModifiedByAvatarId = new Guid(keyValuePair["modified_by"]),
+                ModifiedDate = Convert.ToDateTime(keyValuePair["modified_date"]),
+                DeletedByAvatarId = new Guid(keyValuePair["deleted_by"]),
+                DeletedDate = Convert.ToDateTime(keyValuePair["deleted_date"]),
+                MetaData = (Dictionary<string, object>)JsonSerializer.Deserialize(keyValuePair["meta_data"], typeof(Dictionary<string, object>)),
+                ParentHolonId = new Guid(keyValuePair["parent_holon_id"]),
+                PreviousVersionId = new Guid(keyValuePair["previous_version_id"]),
+                PreviousVersionProviderUniqueStorageKey = (Dictionary<ProviderType, string>)JsonSerializer.Deserialize(keyValuePair["previous_version_provider_unique_storage_key"], typeof(Dictionary<ProviderType, string>)),
+                ProviderMetaData = (Dictionary<ProviderType, Dictionary<string, string>>)JsonSerializer.Deserialize(keyValuePair["provider_meta_data"], typeof(Dictionary<ProviderType, Dictionary<string, string>>)),
+                ProviderUniqueStorageKey = (Dictionary<ProviderType, string>)JsonSerializer.Deserialize(keyValuePair["provider_unique_storage_key"], typeof(Dictionary<ProviderType, string>)),
+                Version = Convert.ToInt32(keyValuePair["version"]),
+                VersionId = new Guid(keyValuePair["version_id"]),
+                Achievements = (List<Achievement>)JsonSerializer.Deserialize(keyValuePair["achievements"], typeof(List<Achievement>)),
+                Address = keyValuePair["address"],
+                Attributes = (IAvatarAttributes)JsonSerializer.Deserialize(keyValuePair["attributes"], typeof(IAvatarAttributes)),
+                Aura = (IAvatarAura)JsonSerializer.Deserialize(keyValuePair["aura"], typeof(IAvatarAura)),
+                Chakras = (IAvatarChakras)JsonSerializer.Deserialize(keyValuePair["chakras"], typeof(IAvatarChakras)),
+                Country = keyValuePair["country"],
+                County = keyValuePair["county"],
+                DimensionLevelIds = (Dictionary<DimensionLevel, Guid>)JsonSerializer.Deserialize(keyValuePair["dimension_level_ids"], typeof(Dictionary<DimensionLevel, Guid>)),
+                DimensionLevels = (Dictionary<DimensionLevel, IHolon>)JsonSerializer.Deserialize(keyValuePair["dimension_levels"], typeof(Dictionary<DimensionLevel, IHolon>)),
+                DOB = Convert.ToDateTime(keyValuePair["dob"]),
+                FavouriteColour = (ConsoleColor)JsonSerializer.Deserialize(keyValuePair["favourite_colour"], typeof(ConsoleColor)),
+                GeneKeys = (List<GeneKey>)JsonSerializer.Deserialize(keyValuePair["gene_keys"], typeof(List<GeneKey>)),
+                Gifts = (List<AvatarGift>)JsonSerializer.Deserialize(keyValuePair["gifts"], typeof(List<AvatarGift>)),
+                HeartRateData = (List<HeartRateEntry>)JsonSerializer.Deserialize(keyValuePair["heart_rate_data"], typeof(List<HeartRateEntry>)),
+                HumanDesign = (IHumanDesign)JsonSerializer.Deserialize(keyValuePair["human_design"], typeof(IHumanDesign)),
+                Inventory = (List<InventoryItem>)JsonSerializer.Deserialize(keyValuePair["inventory"], typeof(List<InventoryItem>)),
+                Karma = Convert.ToInt64(keyValuePair["karma"]),
+                KarmaAkashicRecords = (List<KarmaAkashicRecord>)JsonSerializer.Deserialize(keyValuePair["karma_akashic_records"], typeof(List<KarmaAkashicRecord>)),
+                Landline = keyValuePair["land_line"],
+                Mobile = keyValuePair["mobile"],
+                Model3D = keyValuePair["model_3d"],
+                Omniverse = (IOmiverse)JsonSerializer.Deserialize(keyValuePair["omniverse"], typeof(IOmiverse)),
+                Portrait = keyValuePair["portrait"],
+                Postcode = keyValuePair["postcode"],
+                Skills = (IAvatarSkills)JsonSerializer.Deserialize(keyValuePair["skills"], typeof(IAvatarSkills)),
+                Spells = (List<Spell>)JsonSerializer.Deserialize(keyValuePair["spells"], typeof(List<Spell>)),
+                STARCLIColour = (ConsoleColor)JsonSerializer.Deserialize(keyValuePair["star_cli_colour"], typeof(ConsoleColor)),
+                Stats = (IAvatarStats)JsonSerializer.Deserialize(keyValuePair["stats"], typeof(IAvatarStats)),
+                SuperPowers = (IAvatarSuperPowers)JsonSerializer.Deserialize(keyValuePair["super_powers"], typeof(IAvatarSuperPowers)),
+                Town = keyValuePair["town"],
+                UmaJson = keyValuePair["uma_json"],
+                XP = Convert.ToInt32(keyValuePair["xp"])
             };
 
-            avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.HoloOASIS] = keyValuePair["provider_unique_storage_key"];
+            //avatarDetail.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = keyValuePair["entry_hash"]; //TODO: Dont think this is needed?
             return avatarDetail;
         }
 
@@ -343,23 +457,116 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 id = avatar.Id.ToString(),
                 username = avatar.Username,
                 email = avatar.Email,
+                name = avatar.Name,
+                description = avatar.Description,
+                created_by = avatar.CreatedByAvatarId.ToString(),
+                created_date = avatar.CreatedDate.ToString(),
+                modified_by = avatar.ModifiedByAvatarId.ToString(),
+                modified_date = avatar.ModifiedDate.ToString(),
+                deleted_by = avatar.DeletedByAvatarId.ToString(),
+                deleted_date = avatar.DeletedDate,
+                holon_type = avatar.HolonType,
+                all_child_id_list_cache = avatar.AllChildIdListCache,
+                child_id_list_cache = avatar.ChildIdListCache,
+                children = avatar.Children, //JsonSerializer.Serialize(avatar.Children), //TODO: We may need to serialize a few of these props if they are not supported...
+                created_oasis_type = avatar.CreatedOASISType,
+                created_provider_type = avatar.CreatedProviderType,
+                custom_key = avatar.CustomKey,
+                is_active = avatar.IsActive,
+                meta_data = avatar.MetaData,
+                parent_holon_id = avatar.ParentHolonId,
+                previous_version_id = avatar.PreviousVersionId,
+                previous_version_provider_unique_storage_key = avatar.PreviousVersionProviderUniqueStorageKey,
+                provider_meta_data = avatar.ProviderMetaData,
                 provider_unique_storage_key = avatar.ProviderUniqueStorageKey,
-                holon_type = avatar.HolonType
-
-                //TODDO: Finish mapping rest of the properties.
+                version = avatar.Version,
+                version_id = avatar.VersionId,
+                achievements = avatar.Achievements,
+                address = avatar.Address,
+                attributes = avatar.Attributes,
+                aura = avatar.Aura,
+                chakras = avatar.Chakras,
+                country = avatar.Country,
+                county = avatar.County,
+                dimensionLevelIds = avatar.DimensionLevelIds,
+                dimensionLevels = avatar.DimensionLevel,
+                dob = avatar.DOB,
+                favourite_colour = avatar.FavouriteColour,
+                geneKeys = avatar.GeneKeys,
+                gifts = avatar.Gifts,
+                heart_rate_data = avatar.HeartRateData,
+                humanDesign = avatar.HumanDesign,
+                inventory = avatar.Inventory,
+                karma = avatar.Karma,
+                karma_akashic_records = avatar.KarmaAkashicRecords,
+                landline = avatar.Landline,
+                mobile = avatar.Mobile,
+                model3D = avatar.Model3D,
+                omniverse = avatar.Omniverse,
+                portrait = avatar.Portrait,
+                postcode = avatar.Postcode,
+                skills = avatar.Skills,
+                spells = avatar.Spells,
+                star_cli_colour = avatar.STARCLIColour,
+                stats = avatar.Stats,
+                super_powers = avatar.SuperPowers,
+                town = avatar.Town,
+                uma_json = avatar.UmaJson,
+                xp = avatar.XP
             };
         }
 
-        public static IHcAvatar ConvertHolonToHoloOASISHolon(IHolon holon, IHcHolon hcHolon)
+        public static IHcHolon ConvertHolonToHoloOASISHolon(IHolon holon, IHcHolon hcHolon)
         {
             hcHolon.Id = holon.Id;
-            hcHolon.
-            hcHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey == null ? string.Empty : holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.HoloOASIS];
+            hcHolon.Name = holon.Name;
+            hcHolon.Description = holon.Description;
+            hcHolon.CreatedBy = holon.CreatedByAvatarId.ToString();
+            hcHolon.CreatedDate = holon.CreatedDate;
+            hcHolon.ModifiedBy = holon.ModifiedByAvatarId.ToString();
+            hcHolon.ModifiedDate = holon.ModifiedDate;
+            hcHolon.DeletedBy = holon.DeletedByAvatarId.ToString();
+            hcHolon.DeletedDate = holon.DeletedDate;
             hcHolon.HolonType = holon.HolonType;
+            hcHolon.AllChildIdListCache = holon.AllChildIdListCache;
+            hcHolon.AllChildren = holon.AllChildren;
+            hcHolon.HolonType = holon.HolonType;
+            hcHolon.ChildIdListCache = holon.ChildIdListCache;
+            hcHolon.Children = holon.Children;
+            hcHolon.CreatedOASISType = holon.CreatedOASISType;
+            hcHolon.CreatedProviderType = holon.CreatedProviderType;
+            hcHolon.CustomKey = holon.CustomKey;
+            hcHolon.IsActive = holon.IsActive;
+            hcHolon.MetaData = holon.MetaData;
+            hcHolon.ParentHolonId = holon.ParentHolonId;
+            hcHolon.PreviousVersionId = holon.PreviousVersionId;
+            hcHolon.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey;
+            hcHolon.ProviderMetaData = holon.ProviderMetaData;
+            hcHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
+            hcHolon.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcHolon.EntryHash;
+            hcHolon.Version = holon.Version;
+            hcHolon.VersionId = holon.VersionId;
+            hcHolon.DimensionLevel = holon.DimensionLevel;
+            hcHolon.Nodes = holon.Nodes;
+            hcHolon.ParentCelestialBodyId = holon.ParentCelestialBodyId;
+            hcHolon.ParentCelestialSpaceId = holon.ParentCelestialSpaceId;
+            hcHolon.ParentDimensionId = holon.ParentDimensionId;
+            hcHolon.ParentGalaxyClusterId = holon.ParentGalaxyClusterId;
+            hcHolon.ParentGalaxyId = holon.ParentGalaxyId;
+            hcHolon.ParentGrandSuperStarId = holon.ParentGrandSuperStarId;
+            hcHolon.ParentGreatGrandSuperStarId = holon.ParentGreatGrandSuperStarId;
+            hcHolon.ParentMoonId = holon.ParentMoonId;  
+            hcHolon.ParentMultiverseId = holon.ParentMultiverseId;
+            hcHolon.ParentOmniverseId = holon.ParentOmniverseId;
+            hcHolon.ParentPlanetId = holon.ParentPlanetId;
+            hcHolon.ParentSolarSystemId = holon.ParentSolarSystemId;
+            hcHolon.ParentStarId = holon.ParentStarId;
+            hcHolon.ParentSuperStarId = holon.ParentSuperStarId;
+            hcHolon.ParentUniverseId = holon.ParentUniverseId;
+            hcHolon.ParentZomeId = holon.ParentZomeId;
+            hcHolon.SubDimensionLevel = holon.SubDimensionLevel;
 
-            //TODO: Finish mapping
-
-            return hcAvatar;
+            return hcHolon;
         }
 
         public static IHolon ConvertHcHolonToHolon(IHcHolon hcHolon)
@@ -367,52 +574,106 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             Holon holon = new Holon
             {
                 Id = hcHolon.Id,
-                AllChildIdListCache = hcHolon.AllChildIdListCache,
-                AllChildren = hcHolon.AllChildren,
-                ChildIdListCache = hcHolon.ChildIdListCache,
-                Children = hcHolon.Children,
+                Description = hcHolon.Description,
                 CreatedByAvatarId = new Guid(hcHolon.CreatedBy),
                 CreatedDate = hcHolon.CreatedDate,
+                ModifiedByAvatarId = new Guid(hcHolon.ModifiedBy),
+                ModifiedDate = hcHolon.ModifiedDate,
+                DeletedByAvatarId = new Guid(hcHolon.DeletedBy),
+                DeletedDate = hcHolon.DeletedDate,
+                HolonType = hcHolon.HolonType,
+                AllChildIdListCache = hcHolon.AllChildIdListCache,
+                ChildIdListCache = hcHolon.ChildIdListCache,
+                Children = hcHolon.Children,
                 CreatedOASISType = hcHolon.CreatedOASISType,
                 CreatedProviderType = hcHolon.CreatedProviderType,
                 CustomKey = hcHolon.CustomKey,
-                DeletedByAvatarId = new Guid(hcHolon.DeletedBy),
-                DeletedDate = hcHolon.DeletedDate,
-                Description = hcHolon.Description,
-                DimensionLevel = hcHolon.DimensionLevel,
-                HolonType = hcHolon.HolonType,
-                InstanceSavedOnProviderType = hcHolon.InstanceSavedOnProviderType,
                 IsActive = hcHolon.IsActive,
                 MetaData = hcHolon.MetaData,
-                ModifiedByAvatarId = new Guid(hcHolon.ModifiedBy),
-                ModifiedDate = hcHolon.ModifiedDate,
-                Name = hcHolon.Name,
+                ParentHolonId = hcHolon.ParentHolonId,
+                PreviousVersionId = hcHolon.PreviousVersionId,
+                PreviousVersionProviderUniqueStorageKey = hcHolon.PreviousVersionProviderUniqueStorageKey,
+                ProviderMetaData = hcHolon.ProviderMetaData,
+                ProviderUniqueStorageKey = hcHolon.ProviderUniqueStorageKey,
+                Version = hcHolon.Version,
+                VersionId = hcHolon.VersionId,
+                DimensionLevel = hcHolon.DimensionLevel,
                 Nodes = hcHolon.Nodes,
-                ParentCelestialBody = hcHolon.ParentCelestialBody,
-
-
-                //TODO: Finish mapping
+                ParentCelestialBodyId = hcHolon.ParentCelestialBodyId,
+                ParentCelestialSpaceId = hcHolon.ParentCelestialSpaceId,
+                ParentDimensionId = hcHolon.ParentDimensionId,
+                ParentGalaxyClusterId = hcHolon.ParentGalaxyClusterId,
+                ParentGalaxyId = hcHolon.ParentGalaxyId,
+                ParentGrandSuperStarId = hcHolon.ParentGrandSuperStarId,
+                ParentGreatGrandSuperStarId = hcHolon.ParentGreatGrandSuperStarId,
+                ParentMoonId = hcHolon.ParentMoonId,
+                ParentMultiverseId = hcHolon.ParentMultiverseId,
+                ParentOmniverseId = hcHolon.ParentOmniverseId,
+                ParentPlanetId = hcHolon.ParentPlanetId,
+                ParentSolarSystemId = hcHolon.ParentSolarSystemId,
+                ParentStarId = hcHolon.ParentStarId,
+                ParentSuperStarId = hcHolon.ParentSuperStarId,
+                ParentUniverseId = hcHolon.ParentUniverseId,
+                ParentZomeId = hcHolon.ParentZomeId,
+                SubDimensionLevel = hcHolon.SubDimensionLevel
             };
 
-            avatar.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcAvatar.ProviderUniqueStorageKey;
-            return avatar;
+            holon.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcHolon.EntryHash;
+            return holon;
         }
 
-        public IHolon ConvertKeyValuePairToHolon(Dictionary<string, string> keyValuePair)
+        public static IHolon ConvertKeyValuePairToHolon(Dictionary<string, string> keyValuePair)
         {
             Holon holon = new Holon
             {
                 Id = new Guid(keyValuePair["id"]),
-                Email = keyValuePair["email"],
-                Username = keyValuePair["username"],
                 HolonType = (HolonType)Enum.Parse(typeof(HolonType), keyValuePair["holon_type"]),
-                //ProviderUniqueStorageKey[ProviderType.HoloOASIS] = keyValuePair["provider_unique_storage_key"]
+                Name = keyValuePair["name"],
+                Description = keyValuePair["description"],
+                AllChildIdListCache = keyValuePair["all_child_id_list_cache"],
+                ChildIdListCache = keyValuePair["child_id_list_cache"],
+                Children = (IList<IHolon>)JsonSerializer.Deserialize(keyValuePair["children"], typeof(IList<IHolon>)),
+                CreatedOASISType = new Utilities.EnumValue<OASISType>((OASISType)Enum.Parse(typeof(OASISType), keyValuePair["created_oasis_type"])),
+                CreatedProviderType = new Utilities.EnumValue<ProviderType>((ProviderType)Enum.Parse(typeof(ProviderType), keyValuePair["created_provider_type"])),
+                CustomKey = keyValuePair["custom_key"],
+                IsActive = Convert.ToBoolean(keyValuePair["is_active"]),
+                CreatedByAvatarId = new Guid(keyValuePair["created_by"]),
+                CreatedDate = Convert.ToDateTime(keyValuePair["created_date"]),
+                ModifiedByAvatarId = new Guid(keyValuePair["modified_by"]),
+                ModifiedDate = Convert.ToDateTime(keyValuePair["modified_date"]),
+                DeletedByAvatarId = new Guid(keyValuePair["deleted_by"]),
+                DeletedDate = Convert.ToDateTime(keyValuePair["deleted_date"]),
+                MetaData = (Dictionary<string, object>)JsonSerializer.Deserialize(keyValuePair["meta_data"], typeof(Dictionary<string, object>)),
+                ParentHolonId = new Guid(keyValuePair["parent_holon_id"]),
+                PreviousVersionId = new Guid(keyValuePair["previous_version_id"]),
+                PreviousVersionProviderUniqueStorageKey = (Dictionary<ProviderType, string>)JsonSerializer.Deserialize(keyValuePair["previous_version_provider_unique_storage_key"], typeof(Dictionary<ProviderType, string>)),
+                ProviderMetaData = (Dictionary<ProviderType, Dictionary<string, string>>)JsonSerializer.Deserialize(keyValuePair["provider_meta_data"], typeof(Dictionary<ProviderType, Dictionary<string, string>>)),
+                ProviderUniqueStorageKey = (Dictionary<ProviderType, string>)JsonSerializer.Deserialize(keyValuePair["provider_unique_storage_key"], typeof(Dictionary<ProviderType, string>)),
+                Version = Convert.ToInt32(keyValuePair["version"]),
+                VersionId = new Guid(keyValuePair["version_id"]),
+                DimensionLevel = (DimensionLevel)JsonSerializer.Deserialize(keyValuePair["dimension_level"], typeof(DimensionLevel)),
+                Nodes = (IList<INode>)JsonSerializer.Deserialize(keyValuePair["nodes"], typeof(IList<INode>)),
+                ParentCelestialBodyId = new Guid(keyValuePair["parent_celestial_body_id"]),
+                ParentCelestialSpaceId = new Guid(keyValuePair["parent_celestial_space_id"]),
+                ParentDimensionId = new Guid(keyValuePair["parent_dimension_id"]),
+                ParentGalaxyClusterId = new Guid(keyValuePair["parent_galaxy_cluster_id"]),
+                ParentGalaxyId = new Guid(keyValuePair["parent_galaxy_id"]),
+                ParentGrandSuperStarId = new Guid(keyValuePair["parent_grand_super_star_id"]),
+                ParentGreatGrandSuperStarId = new Guid(keyValuePair["parent_great_grand_super_star_id"]),
+                ParentMoonId = new Guid(keyValuePair["parent_moon_id"]),
+                ParentMultiverseId = new Guid(keyValuePair["parent_multiverse_id"]),
+                ParentOmniverseId = new Guid(keyValuePair["parent_omniverse_id"]),
+                ParentPlanetId = new Guid(keyValuePair["parent_planet_id"]),
+                ParentSolarSystemId = new Guid(keyValuePair["parent_solar_system_id"]),
+                ParentStarId = new Guid(keyValuePair["parent_star_id"]),
+                ParentSuperStarId = new Guid(keyValuePair["parent_super_star_id"]),
+                ParentUniverseId = new Guid(keyValuePair["parent_universe_id"]),
+                ParentZomeId = new Guid(keyValuePair["parent_zome_id"]),
+                SubDimensionLevel = (SubDimensionLevel)JsonSerializer.Deserialize(keyValuePair["sub_dimension_level"], typeof(SubDimensionLevel))
+            };
 
-            //TODO: Finish mapping
-        };
-
-            holon.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = keyValuePair["provider_unique_storage_key"];
-            return avatarDetail;
+            holon.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = keyValuePair["entry_hash"];
+            return holon;
         }
 
         public static dynamic ConvertHolonToParamsObject(IHolon holon, Dictionary<string, string> customDataKeyValuePairs = null)
@@ -420,19 +681,78 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             return new
             {
                 id = holon.Id.ToString(),
-                provider_unique_storage_key = holon.ProviderUniqueStorageKey,
+                name = holon.Name,
+                description = holon.Description,
+                created_by = holon.CreatedByAvatarId.ToString(),
+                created_date = holon.CreatedDate.ToString(),
+                modified_by = holon.ModifiedByAvatarId.ToString(),
+                modified_date = holon.ModifiedDate.ToString(),
+                deleted_by = holon.DeletedByAvatarId.ToString(),
+                deleted_date = holon.DeletedDate,
                 holon_type = holon.HolonType,
-                saveChildren = customDataKeyValuePairs["saveChildren"],
+                all_child_id_list_cache = holon.AllChildIdListCache,
+                child_id_list_cache = holon.ChildIdListCache,
+                children = holon.Children, //JsonSerializer.Serialize(holon.Children), //TODO: We may need to serialize a few of these props if they are not supported...
+                created_oasis_type = holon.CreatedOASISType,
+                created_provider_type = holon.CreatedProviderType,
+                custom_key = holon.CustomKey,
+                is_active = holon.IsActive,
+                meta_data = holon.MetaData,
+                parent_holon_id = holon.ParentHolonId,
+                previous_version_id = holon.PreviousVersionId,
+                previous_version_provider_unique_storage_key = holon.PreviousVersionProviderUniqueStorageKey,
+                provider_meta_data = holon.ProviderMetaData,
+                provider_unique_storage_key = holon.ProviderUniqueStorageKey,
+                version = holon.Version,
+                version_id = holon.VersionId,
+                dimension_level = holon.DimensionLevel,
+                nodes = holon.Nodes,
+                parentCelestialBodyId = holon.ParentCelestialBodyId,
+                parentCelestialSpaceId = holon.ParentCelestialSpaceId,
+                parentDimensionId = holon.ParentDimensionId,
+                parentGalaxyClusterId = holon.ParentGalaxyClusterId,
+                parentGalaxyId = holon.ParentGalaxyId,
+                parentGrandSuperStarId = holon.ParentGreatGrandSuperStarId,
+                parentGreatGrandSuperStarId = holon.ParentGreatGrandSuperStarId,
+                parentMoonId = holon.ParentMoonId,
+                parentMultiverseId = holon.ParentMultiverseId,
+                parentOmniverseId = holon.ParentOmniverseId,
+                parentPlanetId = holon.ParentPlanetId,
+                parentSolarSystemId = holon.ParentSolarSystemId,
+                parentStarId = holon.ParentStarId,
+                parentSuperStarId = holon.ParentSuperStarId,
+                parentUniverseId = holon.ParentUniverseId,
+                parentZomeId = holon.ParentZomeId,
+                sub_dimension_level = holon.SubDimensionLevel,
+                save_children = customDataKeyValuePairs["saveChildren"],
                 recursive = customDataKeyValuePairs["recursive"],
                 maxChildDepth = customDataKeyValuePairs["maxChildDepth"],
                 continueOnError = customDataKeyValuePairs["continueOnError"],
                 saveChildrenOnProvider = customDataKeyValuePairs["saveChildrenOnProvider"]
-            //TODDO: Finish mapping rest of the properties.
             };
         }
 
         public static OASISResult<T> ConvertHCResponseToOASISResult<T>(ZomeFunctionCallBackEventArgs response, HcObjectTypeEnum hcObjectType, IHoloNETAuditEntryBase hcObject, OASISResult<T> result) where T : IHolonBase
         {
+            //We can also get the result from the EntryDataObject if we wanted.
+            //if (response != null && response.Records != null && response.Records.Count > 0 && response.Records[0] != null && response.Records[0].EntryDataObject != null)
+            //{
+            //    switch (hcObjectType)
+            //    {
+            //        case HcObjectTypeEnum.Avatar:
+            //            result.Result = DataHelper.ConvertHcAvatarToAvatar(response.Records[0].EntryDataObject);
+            //            break;
+
+            //        case HcObjectTypeEnum.AvatarDetail:
+            //            result.Result = DataHelper.ConvertHcAvatarDetailToAvatarDetail(response.Records[0].EntryDataObject);
+            //            break;
+
+            //        case HcObjectTypeEnum.Holon:
+            //            result.Result = DataHelper.ConvertHcHolonToHolon(response.Records[0].EntryDataObject);
+            //            break;
+            //    }
+            //}
+
             if (UseReflection)
             {
                 switch (hcObjectType)

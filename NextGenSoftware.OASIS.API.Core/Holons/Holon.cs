@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -112,8 +111,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public EnumValue<ProviderType> CreatedProviderType { get; set; } // The primary provider that this holon was originally saved with (it can then be auto-replicated to other providers to give maximum redundancy/speed via auto-load balancing etc).
         */
 
-        //public List<INode> Nodes { get; set; } // List of nodes/fields (int, string, bool, etc) that belong to this Holon (STAR ODK auto-generates these when generating dynamic code from DNA Templates passed in).
-        public ObservableCollection<INode> Nodes { get; set; }
+        public IList<INode> Nodes { get; set; } // List of nodes/fields (int, string, bool, etc) that belong to this Holon (STAR ODK auto-generates these when generating dynamic code from DNA Templates passed in).
+        //public ObservableCollection<INode> Nodes { get; set; } //TODO: Not sure why we was using this one before?
 
         /// <summary>
         /// Fired when a property in this class changes.
@@ -126,8 +125,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             //if (ChildrenTest != null)
             //    ChildrenTest.CollectionChanged += Children_CollectionChanged;
 
-            if (Nodes != null)
-                Nodes.CollectionChanged += Nodes_CollectionChanged;
+            //if (Nodes != null)
+            //    Nodes.CollectionChanged += Nodes_CollectionChanged;
         }
 
         private void Nodes_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

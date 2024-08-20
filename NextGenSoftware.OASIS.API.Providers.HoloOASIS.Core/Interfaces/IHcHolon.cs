@@ -83,7 +83,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         ICelestialBody ParentCelestialBody { get; set; } // The CelestialBody  this holon belongs to (this could be a moon, planet, star, etc). 
         Guid ParentZomeId { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
-        ObservableCollection<INode> Nodes { get; set; }
+        //ObservableCollection<INode> Nodes { get; set; }
+        public IList<INode> Nodes { get; set; }
 
         #endregion
     }
