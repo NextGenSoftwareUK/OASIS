@@ -1216,7 +1216,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!appendChildObjects)
                     avatarDetailOriginal.Achievements.Clear();
 
-                avatarDetailOriginal.Achievements.AddRange(avatarDetailToUpdate.Achievements);
+                ((List<IAchievement>)avatarDetailOriginal.Achievements).AddRange(avatarDetailToUpdate.Achievements);
             }
 
             if (avatarDetailOriginal.Attributes.Magic != avatarDetailToUpdate.Attributes.Magic && avatarDetailToUpdate.Attributes.Magic > 0)

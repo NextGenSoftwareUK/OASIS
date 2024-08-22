@@ -1,11 +1,12 @@
 ﻿
 using System;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {
-    public class KarmaAkashicRecord
+    public class KarmaAkashicRecord : IKarmaAkashicRecord
     {
         public Guid AvatarId { get; set; }
         public DateTime Date { get; set; }
@@ -18,6 +19,6 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public EnumValue<KarmaEarntOrLost> KarmaEarntOrLost { get; set; }
         public EnumValue<KarmaTypePositive> KarmaTypePositive { get; set; }
         public EnumValue<KarmaTypeNegative> KarmaTypeNegative { get; set; }
-        public EnumValue<ProviderType> Provider { get; set; } 
+        public EnumValue<ProviderType> Provider { get; set; }
     }
 }

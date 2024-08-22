@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
@@ -11,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public string AvatarId{ set; get; }
 
         public AvatarAuraModel(){}
-        public AvatarAuraModel(AvatarAura source){
+        public AvatarAuraModel(IAvatarAura source){
 
             this.Level=source.Level;
             this.Value=source.Value;

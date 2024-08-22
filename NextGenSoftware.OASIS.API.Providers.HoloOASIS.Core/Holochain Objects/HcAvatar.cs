@@ -1,14 +1,12 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
+using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.Holochain.HoloNET.Client.Interfaces;
 using NextGenSoftware.Holochain.HoloNET.ORM.Entries;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
@@ -41,33 +39,63 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         [HolochainRustFieldName("last_name")]
         public string LastName { get; set; }
 
+        [HolochainRustFieldName("avatar_type")]
         public EnumValue<AvatarType> AvatarType { get; set; }
+
+        [HolochainRustFieldName("accept_terms")]
         public bool AcceptTerms { get; set; }
+
+        [HolochainRustFieldName("is_verified")]
         public bool IsVerified { get; }
+
+        [HolochainRustFieldName("jwt_token")]
         public string JwtToken { get; set; }
+
+        [HolochainRustFieldName("passowrd_reset")]
         public DateTime? PasswordReset { get; set; }
+
+        [HolochainRustFieldName("refresh_token")]
         public string RefreshToken { get; set; }
+
+        [HolochainRustFieldName("refresh_tokens")]
         public List<RefreshToken> RefreshTokens { get; set; }
+
+        [HolochainRustFieldName("reset_token")]
         public string ResetToken { get; set; }
+
+        [HolochainRustFieldName("reset_token_expires")]
         public DateTime? ResetTokenExpires { get; set; }
+
+        [HolochainRustFieldName("verification_token")]
         public string VerificationToken { get; set; }
+
+        [HolochainRustFieldName("verified")]
         public DateTime? Verified { get; set; }
+
+        [HolochainRustFieldName("last_beamed_in")]
         public DateTime? LastBeamedIn { get; set; }
+
+        [HolochainRustFieldName("last_beamed_out")]
         public DateTime? LastBeamedOut { get; set; }
+
+        [HolochainRustFieldName("is_beamed_in")]
         public bool IsBeamedIn { get; set; }
 
         #endregion
 
         #region IHolonBase Properties
 
+        [HolochainRustFieldName("name")]
         public string Name { get; set; }
+
+        [HolochainRustFieldName("description")]
         public string Description { get; set; }
 
         [HolochainRustFieldName("holon_type")]
         public HolonType HolonType { get; set; }
 
-        [HolochainRustFieldName("provider_key")]
-        public string ProviderUniqueStorageKey { get; set; }
+        [HolochainRustFieldName("provider_unique_storage_key")]
+        public Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; }
 
         [HolochainRustFieldName("previous_version_provider_unique_storage_key")]
         public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get; set; }
@@ -82,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; }
 
         [HolochainRustFieldName("meta_data")]
-        public Dictionary<string, string> MetaData { get; set; }
+        public Dictionary<string, object> MetaData { get; set; }
 
         [HolochainRustFieldName("version")]
         public int Version { get; set; }
@@ -96,20 +124,29 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         [HolochainRustFieldName("is_active")]
         public bool IsActive { get; set; }
 
-
-        //Part of HoloNETAuditEntryBaseClass so no need to re-define here.
-        //Guid CreatedByAvatarId { get; set; }
-        //DateTime CreatedDate { get; set; }
-        //Guid ModifiedByAvatarId { get; set; }
-        //DateTime ModifiedDate { get; set; }
-        //Guid DeletedByAvatarId { get; set; }
-        //DateTime DeletedDate { get; set; }
-
         [HolochainRustFieldName("created_provider_type")]
         public EnumValue<ProviderType> CreatedProviderType { get; set; }
 
         [HolochainRustFieldName("created_oasis_type")]
         public EnumValue<OASISType> CreatedOASISType { get; set; }
+
+        [HolochainRustFieldName("children")]
+        public IList<IHolon> Children { get; set; }
+
+        [HolochainRustFieldName("custom_key")]
+        public string CustomKey { get; set; }
+
+        [HolochainRustFieldName("instance_saved_on_provider_type")]
+        public EnumValue<ProviderType> InstanceSavedOnProviderType { get; set; }
+
+        [HolochainRustFieldName("parent_holon_id")]
+        public Guid ParentHolonId { get; set; }
+
+        [HolochainRustFieldName("child_id_list_cache")]
+        public string ChildIdListCache { get; set; }
+
+        [HolochainRustFieldName("all_child_id_list_cache")]
+        public string AllChildIdListCache { get; set; }
 
         #endregion
     }

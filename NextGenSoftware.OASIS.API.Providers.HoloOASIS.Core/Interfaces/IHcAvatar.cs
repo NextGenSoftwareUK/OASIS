@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         #region IHolonBase Properties
 
         IList<IHolon> Children { get; set; } //Allows any holon to add any number of custom child holons to it.
-        IReadOnlyCollection<IHolon> AllChildren { get; set; } //Readonly collection of all the total children including all the zomes, celestialbodies, celestialspaces, moons, holons, planets, stars etc belong to the holon.
+        //IReadOnlyCollection<IHolon> AllChildren { get; set; } //Readonly collection of all the total children including all the zomes, celestialbodies, celestialspaces, moons, holons, planets, stars etc belong to the holon.
         //Guid CreatedByAvatarId { get; set; }
         //DateTime CreatedDate { get; set; }
         EnumValue<OASISType> CreatedOASISType { get; set; }
@@ -53,14 +53,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         HolonType HolonType { get; set; }
         EnumValue<ProviderType> InstanceSavedOnProviderType { get; set; }
         bool IsActive { get; set; }
-        bool IsChanged { get; set; }
-        bool IsNewHolon { get; set; }
-        bool IsSaving { get; set; }
+        //bool IsChanged { get; set; }
+        //bool IsNewHolon { get; set; }
+        //bool IsSaving { get; set; }
         Dictionary<string, object> MetaData { get; set; }
         //Guid ModifiedByAvatarId { get; set; }
         //DateTime ModifiedDate { get; set; }
         string Name { get; set; }
-        IHolon Original { get; set; }
+        //IHolon Original { get; set; }
         //IHolon ParentHolon { get; set; }
         Guid ParentHolonId { get; set; }
         Guid PreviousVersionId { get; set; }

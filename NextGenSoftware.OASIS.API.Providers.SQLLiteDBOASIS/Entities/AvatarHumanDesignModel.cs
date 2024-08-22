@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
@@ -17,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public string Type { get; set; }
 
         public AvatarHumanDesignModel(){}
-        public AvatarHumanDesignModel(HumanDesign source){
+        public AvatarHumanDesignModel(IHumanDesign source){
 
             this.Type=source.Type;
         }
