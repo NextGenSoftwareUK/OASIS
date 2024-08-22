@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
@@ -13,13 +14,13 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         new Guid Id { get; set; }
         string Username { get; set; }
         string Email { get; set; }
-        int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
-        int Level { get; set; }
+        long Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
+        int Level { get; }
         int XP { get; set; }
         string Model3D { get; set; }
         string UmaJson { get; set; }
         string Portrait { get; set; }
-        string DOB { get; set; }
+        DateTime DOB { get; set; }
         string Address { get; set; }
         string Town { get; set; }
         string County { get; set; }
@@ -36,10 +37,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         ConsoleColor FavouriteColour { get; set; }
         IList<IGeneKey> GeneKeys { get; set; }
         IList<IAvatarGift> Gifts { get; set; }
-        IList<HeartRateEntry> HeartRateData { get; set; }
+        IList<IHeartRateEntry> HeartRateData { get; set; }
         IHumanDesign HumanDesign { get; set; }
         IList<IInventoryItem> Inventory { get; set; }
-        IList<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
+        IList<IKarmaAkashicRecord> KarmaAkashicRecords { get; set; }
         IOmiverse Omniverse { get; set; }
         IAvatarSkills Skills { get; set; }
         IList<ISpell> Spells { get; set; }

@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 
-namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
+namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
+{
 
     [Table("HeartRateEntry")]
     public class HeartRateEntryModel : HeartRateEntry

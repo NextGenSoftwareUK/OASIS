@@ -107,13 +107,13 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public bool IsSaving { get; set; }
         public HolonType HolonType { get; set; }
         public Guid CreatedByAvatarId { get; set; }
-        public Avatar CreatedByAvatar { get; set; }
+        public IAvatar CreatedByAvatar { get; set; }
         public DateTime CreatedDate { get; set; }
         public Guid ModifiedByAvatarId { get; set; }
-        public Avatar ModifiedByAvatar { get; set; }
+        public IAvatar ModifiedByAvatar { get; set; }
         public DateTime ModifiedDate { get; set; }
         public Guid DeletedByAvatarId { get; set; }
-        public Avatar DeletedByAvatar { get; set; }
+        public IAvatar DeletedByAvatar { get; set; }
         public DateTime DeletedDate { get; set; }
         public int Version { get; set; }
         public Guid VersionId { get; set; }

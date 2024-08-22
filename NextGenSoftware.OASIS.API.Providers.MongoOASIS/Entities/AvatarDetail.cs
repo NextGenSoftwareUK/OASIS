@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
@@ -48,19 +49,34 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public ConsoleColor FavouriteColour { get; set; }
         public ConsoleColor STARCLIColour { get; set; }
         public int XP { get; set; }
-        public List<AvatarGift> Gifts { get; set; } = new List<AvatarGift>();
-        public AvatarChakras Chakras { get; set; } = new AvatarChakras();
-        public AvatarAura Aura { get; set; } = new AvatarAura();
-        public AvatarStats Stats { get; set; } = new AvatarStats();
-        public List<GeneKey> GeneKeys { get; set; } = new List<GeneKey>();
-        public HumanDesign HumanDesign { get; set; } = new HumanDesign();
-        public AvatarSkills Skills { get; set; } = new AvatarSkills();
-        public AvatarAttributes Attributes { get; set; } = new AvatarAttributes();
-        public AvatarSuperPowers SuperPowers { get; set; } = new AvatarSuperPowers();
-        public List<Spell> Spells { get; set; } = new List<Spell>();
-        public List<Achievement> Achievements { get; set; } = new List<Achievement>();
-        public List<InventoryItem> Inventory { get; set; } = new List<InventoryItem>();
-        public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
+        //public List<AvatarGift> Gifts { get; set; } = new List<AvatarGift>();
+        //public AvatarChakras Chakras { get; set; } = new AvatarChakras();
+        //public AvatarAura Aura { get; set; } = new AvatarAura();
+        //public AvatarStats Stats { get; set; } = new AvatarStats();
+        //public List<GeneKey> GeneKeys { get; set; } = new List<GeneKey>();
+        //public HumanDesign HumanDesign { get; set; } = new HumanDesign();
+        //public AvatarSkills Skills { get; set; } = new AvatarSkills();
+        //public AvatarAttributes Attributes { get; set; } = new AvatarAttributes();
+        //public AvatarSuperPowers SuperPowers { get; set; } = new AvatarSuperPowers();
+        //public List<Spell> Spells { get; set; } = new List<Spell>();
+        //public List<Achievement> Achievements { get; set; } = new List<Achievement>();
+        //public List<InventoryItem> Inventory { get; set; } = new List<InventoryItem>();
+        //public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
+
+        public IList<IAvatarGift> Gifts { get; set; } = new List<IAvatarGift>();
+        public IAvatarChakras Chakras { get; set; } = new AvatarChakras();
+        public IAvatarAura Aura { get; set; } = new AvatarAura();
+        public IAvatarStats Stats { get; set; } = new AvatarStats();
+        public IList<IGeneKey> GeneKeys { get; set; } = new List<IGeneKey>();
+        public IHumanDesign HumanDesign { get; set; } = new HumanDesign();
+        public IAvatarSkills Skills { get; set; } = new AvatarSkills();
+        public IAvatarAttributes Attributes { get; set; } = new AvatarAttributes();
+        public IAvatarSuperPowers SuperPowers { get; set; } = new AvatarSuperPowers();
+        public IList<ISpell> Spells { get; set; } = new List<ISpell>();
+        public IList<IAchievement> Achievements { get; set; } = new List<IAchievement>();
+        public IList<IInventoryItem> Inventory { get; set; } = new List<IInventoryItem>();
+        public IList<IKarmaAkashicRecord> KarmaAkashicRecords { get; set; }
+
         public int Level { get; set; }
         //public bool AcceptTerms { get; set; }
         //public string VerificationToken { get; set; }

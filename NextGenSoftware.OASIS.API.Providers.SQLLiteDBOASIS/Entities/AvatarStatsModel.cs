@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
@@ -27,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public int Staminia_Max{ set; get; }
 
         public AvatarStatsModel(){}
-        public AvatarStatsModel(AvatarStats source){
+        public AvatarStatsModel(IAvatarStats source){
 
             this.HP_Current=source.HP.Current;
             this.HP_Max=source.HP.Max;

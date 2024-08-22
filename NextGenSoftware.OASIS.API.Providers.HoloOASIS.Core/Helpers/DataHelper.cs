@@ -9,6 +9,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
 {
@@ -36,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcAvatar.HolonType = avatar.HolonType;
             hcAvatar.AcceptTerms = avatar.AcceptTerms;
             hcAvatar.AllChildIdListCache = avatar.AllChildIdListCache;
-            hcAvatar.AllChildren = avatar.AllChildren;
+            //hcAvatar.AllChildren = avatar.AllChildren;
             hcAvatar.AvatarType = avatar.AvatarType;
             hcAvatar.ChildIdListCache = avatar.ChildIdListCache;
             hcAvatar.Children = avatar.Children;
@@ -246,7 +248,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcAvatarDetail.Achievements = avatarDetail.Achievements;
             hcAvatarDetail.Address = avatarDetail.Address;
             hcAvatarDetail.AllChildIdListCache = avatarDetail.AllChildIdListCache;
-            hcAvatarDetail.AllChildren = avatarDetail.AllChildren;
+            //hcAvatarDetail.AllChildren = avatarDetail.AllChildren;
             hcAvatarDetail.Attributes = avatarDetail.Attributes;
             hcAvatarDetail.Aura = avatarDetail.Aura;
             hcAvatarDetail.Chakras = avatarDetail.Chakras;
@@ -264,7 +266,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcAvatarDetail.Description = avatarDetail.Description;
             hcAvatarDetail.DimensionLevelIds = avatarDetail.DimensionLevelIds;
             hcAvatarDetail.DimensionLevels = avatarDetail.DimensionLevels;
-            hcAvatarDetail.DOB = avatarDetail.DOB;
+            hcAvatarDetail.DOB = avatarDetail.DOB.ToString();
             hcAvatarDetail.FavouriteColour = avatarDetail.FavouriteColour;
             hcAvatarDetail.GeneKeys = avatarDetail.GeneKeys;
             hcAvatarDetail.Gifts = avatarDetail.Gifts;
@@ -277,7 +279,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcAvatarDetail.Karma = avatarDetail.Karma;
             hcAvatarDetail.KarmaAkashicRecords = avatarDetail.KarmaAkashicRecords;
             hcAvatarDetail.Landline = avatarDetail.Landline;
-            hcAvatarDetail.Level = avatarDetail.Level;
+            //hcAvatarDetail.Level = avatarDetail.Level;
             hcAvatarDetail.MetaData = avatarDetail.MetaData;
             hcAvatarDetail.Mobile = avatarDetail.Mobile;
             hcAvatarDetail.Model3D = avatarDetail.Model3D;
@@ -285,7 +287,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcAvatarDetail.ModifiedDate = avatarDetail.ModifiedDate;
             hcAvatarDetail.Name = avatarDetail.Name;
             hcAvatarDetail.Omniverse = avatarDetail.Omniverse;
-            hcAvatarDetail.Original = avatarDetail.Original;
+            //hcAvatarDetail.Original = avatarDetail.Original;
             hcAvatarDetail.ParentHolonId = avatarDetail.ParentHolonId;
             hcAvatarDetail.Portrait = avatarDetail.Portrait;
             hcAvatarDetail.Postcode = avatarDetail.Postcode;
@@ -315,7 +317,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 Id = hcAvatarDetail.Id,
                 Email = hcAvatarDetail.Email,
                 Username = hcAvatarDetail.Username,
-                Achievements = (List<Achievement>)hcAvatarDetail.Achievements,
+                Achievements = (List<IAchievement>)hcAvatarDetail.Achievements,
                 Address = hcAvatarDetail.Address,
                 AllChildIdListCache = hcAvatarDetail.AllChildIdListCache,
                 //AllChildren = hcAvatarDetail.AllChildren,
@@ -338,16 +340,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 DimensionLevels = (Dictionary<DimensionLevel, IHolon>)hcAvatarDetail.DimensionLevels,
                 DOB = Convert.ToDateTime(hcAvatarDetail.DOB),
                 FavouriteColour = hcAvatarDetail.FavouriteColour,
-                GeneKeys = (List<GeneKey>)hcAvatarDetail.GeneKeys,
-                Gifts = (List<AvatarGift>)hcAvatarDetail.Gifts,
-                HeartRateData = (List<HeartRateEntry>)hcAvatarDetail.HeartRateData,
+                GeneKeys = hcAvatarDetail.GeneKeys,
+                Gifts = hcAvatarDetail.Gifts,
+                HeartRateData = hcAvatarDetail.HeartRateData,
                 HolonType = hcAvatarDetail.HolonType,
                 HumanDesign = hcAvatarDetail.HumanDesign,
                 InstanceSavedOnProviderType = hcAvatarDetail.InstanceSavedOnProviderType,
-                Inventory = (List<InventoryItem>)hcAvatarDetail.Inventory,
+                Inventory = hcAvatarDetail.Inventory,
                 IsActive = hcAvatarDetail.IsActive,
                 Karma = hcAvatarDetail.Karma,
-                KarmaAkashicRecords = (List<KarmaAkashicRecord>)hcAvatarDetail.KarmaAkashicRecords,
+                KarmaAkashicRecords = hcAvatarDetail.KarmaAkashicRecords,
                 Landline = hcAvatarDetail.Landline,
                 //Level = hcAvatarDetail.Level;
                 MetaData = hcAvatarDetail.MetaData,
@@ -357,7 +359,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 ModifiedDate = hcAvatarDetail.ModifiedDate,
                 Name = hcAvatarDetail.Name,
                 Omniverse = hcAvatarDetail.Omniverse,
-                Original = hcAvatarDetail.Original,
+                //Original = hcAvatarDetail.Original,
                 ParentHolonId = hcAvatarDetail.ParentHolonId,
                 Portrait = hcAvatarDetail.Portrait,
                 Postcode = hcAvatarDetail.Postcode,
@@ -366,7 +368,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 ProviderMetaData = hcAvatarDetail.ProviderMetaData,
                 ProviderUniqueStorageKey = hcAvatarDetail.ProviderUniqueStorageKey,
                 Skills = hcAvatarDetail.Skills,
-                Spells = (List<Spell>)hcAvatarDetail.Spells,
+                Spells = hcAvatarDetail.Spells,
                 STARCLIColour = hcAvatarDetail.STARCLIColour,
                 Stats = hcAvatarDetail.Stats,
                 SuperPowers = hcAvatarDetail.SuperPowers,
@@ -412,7 +414,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 ProviderUniqueStorageKey = (Dictionary<ProviderType, string>)JsonSerializer.Deserialize(keyValuePair["provider_unique_storage_key"], typeof(Dictionary<ProviderType, string>)),
                 Version = Convert.ToInt32(keyValuePair["version"]),
                 VersionId = new Guid(keyValuePair["version_id"]),
-                Achievements = (List<Achievement>)JsonSerializer.Deserialize(keyValuePair["achievements"], typeof(List<Achievement>)),
+                Achievements = (IList<IAchievement>)JsonSerializer.Deserialize(keyValuePair["achievements"], typeof(IList<IAchievement>)),
                 Address = keyValuePair["address"],
                 Attributes = (IAvatarAttributes)JsonSerializer.Deserialize(keyValuePair["attributes"], typeof(IAvatarAttributes)),
                 Aura = (IAvatarAura)JsonSerializer.Deserialize(keyValuePair["aura"], typeof(IAvatarAura)),
@@ -423,13 +425,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 DimensionLevels = (Dictionary<DimensionLevel, IHolon>)JsonSerializer.Deserialize(keyValuePair["dimension_levels"], typeof(Dictionary<DimensionLevel, IHolon>)),
                 DOB = Convert.ToDateTime(keyValuePair["dob"]),
                 FavouriteColour = (ConsoleColor)JsonSerializer.Deserialize(keyValuePair["favourite_colour"], typeof(ConsoleColor)),
-                GeneKeys = (List<GeneKey>)JsonSerializer.Deserialize(keyValuePair["gene_keys"], typeof(List<GeneKey>)),
-                Gifts = (List<AvatarGift>)JsonSerializer.Deserialize(keyValuePair["gifts"], typeof(List<AvatarGift>)),
-                HeartRateData = (List<HeartRateEntry>)JsonSerializer.Deserialize(keyValuePair["heart_rate_data"], typeof(List<HeartRateEntry>)),
+                GeneKeys = (IList<IGeneKey>)JsonSerializer.Deserialize(keyValuePair["gene_keys"], typeof(IList<IGeneKey>)),
+                Gifts = (IList<IAvatarGift>)JsonSerializer.Deserialize(keyValuePair["gifts"], typeof(IList<IAvatarGift>)),
+                HeartRateData = (IList<IHeartRateEntry>)JsonSerializer.Deserialize(keyValuePair["heart_rate_data"], typeof(IList<IHeartRateEntry>)),
                 HumanDesign = (IHumanDesign)JsonSerializer.Deserialize(keyValuePair["human_design"], typeof(IHumanDesign)),
-                Inventory = (List<InventoryItem>)JsonSerializer.Deserialize(keyValuePair["inventory"], typeof(List<InventoryItem>)),
+                Inventory = (IList<IInventoryItem>)JsonSerializer.Deserialize(keyValuePair["inventory"], typeof(IList<IInventoryItem>)),
                 Karma = Convert.ToInt64(keyValuePair["karma"]),
-                KarmaAkashicRecords = (List<KarmaAkashicRecord>)JsonSerializer.Deserialize(keyValuePair["karma_akashic_records"], typeof(List<KarmaAkashicRecord>)),
+                KarmaAkashicRecords = (IList<IKarmaAkashicRecord>)JsonSerializer.Deserialize(keyValuePair["karma_akashic_records"], typeof(IList<IKarmaAkashicRecord>)),
                 Landline = keyValuePair["land_line"],
                 Mobile = keyValuePair["mobile"],
                 Model3D = keyValuePair["model_3d"],
@@ -437,7 +439,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 Portrait = keyValuePair["portrait"],
                 Postcode = keyValuePair["postcode"],
                 Skills = (IAvatarSkills)JsonSerializer.Deserialize(keyValuePair["skills"], typeof(IAvatarSkills)),
-                Spells = (List<Spell>)JsonSerializer.Deserialize(keyValuePair["spells"], typeof(List<Spell>)),
+                Spells = (IList<ISpell>)JsonSerializer.Deserialize(keyValuePair["spells"], typeof(IList<ISpell>)),
                 STARCLIColour = (ConsoleColor)JsonSerializer.Deserialize(keyValuePair["star_cli_colour"], typeof(ConsoleColor)),
                 Stats = (IAvatarStats)JsonSerializer.Deserialize(keyValuePair["stats"], typeof(IAvatarStats)),
                 SuperPowers = (IAvatarSuperPowers)JsonSerializer.Deserialize(keyValuePair["super_powers"], typeof(IAvatarSuperPowers)),
@@ -529,7 +531,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcHolon.DeletedDate = holon.DeletedDate;
             hcHolon.HolonType = holon.HolonType;
             hcHolon.AllChildIdListCache = holon.AllChildIdListCache;
-            hcHolon.AllChildren = holon.AllChildren;
+            //hcHolon.AllChildren = holon.AllChildren;
             hcHolon.HolonType = holon.HolonType;
             hcHolon.ChildIdListCache = holon.ChildIdListCache;
             hcHolon.Children = holon.Children;

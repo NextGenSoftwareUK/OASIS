@@ -82,12 +82,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public string AllChildIdListCache { get; set; } //This will store the list of id's for the ALL the childen of this holon (including all sub-childen).
 
         //public ObservableCollection<IHolon> ChildrenTest { get; set; }
-        public Core.Holons.Avatar CreatedByAvatar { get; set; }
-        public Core.Holons.Avatar DeletedByAvatar { get; set; }
+        public IAvatar CreatedByAvatar { get; set; }
+        public IAvatar DeletedByAvatar { get; set; }
         public EnumValue<ProviderType> InstanceSavedOnProviderType { get; set; }
         public bool IsNewHolon { get; set; }
         public bool IsSaving { get; set; }
-        public Core.Holons.Avatar ModifiedByAvatar { get; set; }
+        public IAvatar ModifiedByAvatar { get; set; }
         public IHolon Original { get; set; }
         public IHolon ParentHolon { get; set; }
         public Guid ParentHolonId { get; set; }

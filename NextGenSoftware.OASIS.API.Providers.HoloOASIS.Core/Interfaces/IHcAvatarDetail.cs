@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
@@ -16,8 +16,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         Guid Id { get; set; }
         string Username { get; set; }
         string Email { get; set; }
-        int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
-        int Level { get; set; }
+        long Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
+        //int Level { get; set; }
         int XP { get; set; }
         string Model3D { get; set; }
         string UmaJson { get; set; }
@@ -39,10 +39,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         ConsoleColor FavouriteColour { get; set; }
         IList<IGeneKey> GeneKeys { get; set; }
         IList<IAvatarGift> Gifts { get; set; }
-        IList<HeartRateEntry> HeartRateData { get; set; }
+        IList<IHeartRateEntry> HeartRateData { get; set; }
         IHumanDesign HumanDesign { get; set; }
         IList<IInventoryItem> Inventory { get; set; }
-        IList<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
+        IList<IKarmaAkashicRecord> KarmaAkashicRecords { get; set; }
         IOmiverse Omniverse { get; set; }
         IAvatarSkills Skills { get; set; }
         IList<ISpell> Spells { get; set; }
@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         #region IHolonBase Properties
 
         IList<IHolon> Children { get; set; } //Allows any holon to add any number of custom child holons to it.
-        IReadOnlyCollection<IHolon> AllChildren { get; set; } //Readonly collection of all the total children including all the zomes, celestialbodies, celestialspaces, moons, holons, planets, stars etc belong to the holon.
+        //IReadOnlyCollection<IHolon> AllChildren { get; set; } //Readonly collection of all the total children including all the zomes, celestialbodies, celestialspaces, moons, holons, planets, stars etc belong to the holon.
         //Guid CreatedByAvatarId { get; set; }
         //DateTime CreatedDate { get; set; }
         EnumValue<OASISType> CreatedOASISType { get; set; }
@@ -67,14 +67,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         HolonType HolonType { get; set; }
         EnumValue<ProviderType> InstanceSavedOnProviderType { get; set; }
         bool IsActive { get; set; }
-        bool IsChanged { get; set; }
-        bool IsNewHolon { get; set; }
-        bool IsSaving { get; set; }
+        //bool IsChanged { get; set; }
+        //bool IsNewHolon { get; set; }
+        //bool IsSaving { get; set; }
         Dictionary<string, object> MetaData { get; set; }
         //Guid ModifiedByAvatarId { get; set; }
         //DateTime ModifiedDate { get; set; }
         string Name { get; set; }
-        IHolon Original { get; set; }
+        //IHolon Original { get; set; }
         //IHolon ParentHolon { get; set; }
         Guid ParentHolonId { get; set; }
         Guid PreviousVersionId { get; set; }

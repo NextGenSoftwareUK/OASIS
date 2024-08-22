@@ -9,8 +9,10 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 
-namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
+namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels
+{
 
     [Table("AvatarDetail")]
     public class AvatarDetailModel {
