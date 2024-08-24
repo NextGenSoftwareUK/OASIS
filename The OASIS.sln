@@ -1,4 +1,5 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -275,14 +276,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Utilities", "..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj", "{DBBCDB6A-17D0-4F0B-A779-90BCF7B8A93C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS", "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj", "{8A99F2F7-47C3-46AA-9C9C-6CBAEDF2349C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS", "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj", "{8A99F2F7-47C3-46AA-9C9C-6CBAEDF2349C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness.csproj", "{F1762DDD-98E4-4DA5-9812-3BD565DEC60A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness.csproj", "{F1762DDD-98E4-4DA5-9812-3BD565DEC60A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.PolygonOASIS", "NextGenSoftware.OASIS.API.Providers.PolygonOASIS\NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj", "{4CC098A6-5937-4E04-8B4A-5AC23F88DA42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.PolygonOASIS", "NextGenSoftware.OASIS.API.Providers.PolygonOASIS\NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj", "{4CC098A6-5937-4E04-8B4A-5AC23F88DA42}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.RootstockOASIS", "NextGenSoftware.OASIS.API.Providers.RootstockOASIS\NextGenSoftware.OASIS.API.Providers.RootstockOASIS.csproj", "{94B4CF11-76DD-40FB-8238-43E551B1DB5E}"
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.STAR.CLI.Lib", "NextGenSoftware.OASIS.STAR.CLI.Lib\NextGenSoftware.OASIS.STAR.CLI.Lib.csproj", "{8DEA903A-4D2D-4B60-87D2-8F5FF768CB51}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.RootstockOASIS", "NextGenSoftware.OASIS.API.Providers.RootstockOASIS\NextGenSoftware.OASIS.API.Providers.RootstockOASIS.csproj", "{94B4CF11-76DD-40FB-8238-43E551B1DB5E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.CLI.Lib", "NextGenSoftware.OASIS.STAR.CLI.Lib\NextGenSoftware.OASIS.STAR.CLI.Lib.csproj", "{8DEA903A-4D2D-4B60-87D2-8F5FF768CB51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -2155,6 +2157,10 @@ Global
 		{443709F2-4574-456B-98C5-42BB600046FD} = {B302F84B-2A07-453B-B148-DC9649BF335E}
 		{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4} = {B302F84B-2A07-453B-B148-DC9649BF335E}
 		{DBBCDB6A-17D0-4F0B-A779-90BCF7B8A93C} = {775BCCA2-C058-465A-88A3-665AE490CE97}
+		{8A99F2F7-47C3-46AA-9C9C-6CBAEDF2349C} = {B302F84B-2A07-453B-B148-DC9649BF335E}
+		{F1762DDD-98E4-4DA5-9812-3BD565DEC60A} = {B302F84B-2A07-453B-B148-DC9649BF335E}
+		{4CC098A6-5937-4E04-8B4A-5AC23F88DA42} = {B302F84B-2A07-453B-B148-DC9649BF335E}
+		{94B4CF11-76DD-40FB-8238-43E551B1DB5E} = {B302F84B-2A07-453B-B148-DC9649BF335E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5D3FB15A-71BF-4A92-B497-C6A29E6A486C}
