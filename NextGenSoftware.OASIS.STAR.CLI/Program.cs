@@ -167,34 +167,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     {
                         switch (inputArgs[0].ToLower())
                         {
-                            case "exit":
-                                exit = CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
-                                break;
-
-                            case "version":
-                                {
-                                    Console.WriteLine("");
-                                    CLIEngine.ShowMessage($"STAR ODK Version: {OASISBootLoader.OASISBootLoader.STARODKVersion}", ConsoleColor.Green, false);
-                                    CLIEngine.ShowMessage($"COSMIC ORM Version: {OASISBootLoader.OASISBootLoader.COSMICVersion}", ConsoleColor.Green, false);
-                                    CLIEngine.ShowMessage($"OASIS Runtime Version: {OASISBootLoader.OASISBootLoader.OASISVersion}", ConsoleColor.Green, false);
-                                    CLIEngine.ShowMessage($"OASIS Provider Versions: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
-                                }
-                                break;
-
-                            case "status":
-                                {
-                                    Console.WriteLine("");
-                                    CLIEngine.ShowMessage($"STAR ODK Status: {Enum.GetName(typeof(StarStatus), STAR.Status)}", ConsoleColor.Green, false);
-                                    CLIEngine.ShowMessage($"COSMIC ORM Status: Online", ConsoleColor.Green, false);
-                                    CLIEngine.ShowMessage($"OASIS Runtime Status: Online", ConsoleColor.Green, false);
-                                    CLIEngine.ShowMessage($"OASIS Provider Status: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
-                                }
-                                break;
-
-                            case "help":
-                                ShowCommands();
-                                break;
-
                             case "ignite":
                                 {
                                     if (!STAR.IsStarIgnited)
@@ -242,31 +214,32 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
-                            case "whoisbeamedin":
+                            case "help":
+                                ShowCommands();
+                                break;
+
+                            case "version":
                                 {
-                                    if (STAR.BeamedInAvatar != null)
-                                        CLIEngine.ShowMessage($"Avatar {STAR.BeamedInAvatar.Username} Beamed In On {STAR.BeamedInAvatar.LastBeamedIn} And Last Beamed Out On {STAR.BeamedInAvatar.LastBeamedOut}. They Are Level {STAR.BeamedInAvatarDetail.Level} With {STAR.BeamedInAvatarDetail.Karma} Karma.", ConsoleColor.Green);
-                                    else
-                                        CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                                    Console.WriteLine("");
+                                    CLIEngine.ShowMessage($"STAR ODK Version: {OASISBootLoader.OASISBootLoader.STARODKVersion}", ConsoleColor.Green, false);
+                                    CLIEngine.ShowMessage($"COSMIC ORM Version: {OASISBootLoader.OASISBootLoader.COSMICVersion}", ConsoleColor.Green, false);
+                                    CLIEngine.ShowMessage($"OASIS Runtime Version: {OASISBootLoader.OASISBootLoader.OASISVersion}", ConsoleColor.Green, false);
+                                    CLIEngine.ShowMessage($"OASIS Provider Versions: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
                                 }
                                 break;
 
-                            case "showavatar":
+                            case "status":
                                 {
-                                    if (STAR.BeamedInAvatar != null)
-                                        STARCLI.ShowAvatarStats();
-                                    else
-                                        CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                                    Console.WriteLine("");
+                                    CLIEngine.ShowMessage($"STAR ODK Status: {Enum.GetName(typeof(StarStatus), STAR.Status)}", ConsoleColor.Green, false);
+                                    CLIEngine.ShowMessage($"COSMIC ORM Status: Online", ConsoleColor.Green, false);
+                                    CLIEngine.ShowMessage($"OASIS Runtime Status: Online", ConsoleColor.Green, false);
+                                    CLIEngine.ShowMessage($"OASIS Provider Status: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
                                 }
                                 break;
 
-                            case "showkarmalevels":
-                                {
-                                    if (STAR.IsStarIgnited)
-                                        STAR.OASISAPI.Avatar.ShowKarmaThresholds();
-                                    else
-                                        CLIEngine.ShowErrorMessage("STAR Is Not Ignited! You Need To Ignite STAR Before Calling This Command!");
-                                }
+                            case "exit":
+                                exit = CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
                                 break;
 
                             case "light":
@@ -504,19 +477,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
                                 }
-                                break;
-
-                            case "updatezome":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "updateholon":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
+                                break; 
 
                             case "listoapps":
                                 {
@@ -524,6 +485,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 } break;
 
                             case "listhapps":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case " listcelestialspaces":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "listcelestialbodies":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
                                 }
@@ -541,7 +514,37 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
-                            case "loadholon":
+                            case "showoapp":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "showhapp":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case " showcelestialspace":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "showcelestialbody":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "showzome":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "showholon":
                                 {
                                     if (inputArgs.Length > 1)
                                     {
@@ -561,6 +564,42 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     }
                                     else
                                         CLIEngine.ShowErrorMessage("No HolonID Specified.");
+                                }
+                                break;
+
+                            case "searchoapps":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "searchhapps":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "searchcelestialspaces":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "searchcelestialbodies":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "searchzomes":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "searchholons":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
                                 }
                                 break;
 
@@ -616,7 +655,61 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
-                            case "loadavatar":
+                            case "updateoapp":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "updatehapp":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "updatecelestialspace":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "updatecelestialbody":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "updatezome":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "updateholon":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "whoisbeamedin":
+                                {
+                                    if (STAR.BeamedInAvatar != null)
+                                        CLIEngine.ShowMessage($"Avatar {STAR.BeamedInAvatar.Username} Beamed In On {STAR.BeamedInAvatar.LastBeamedIn} And Last Beamed Out On {STAR.BeamedInAvatar.LastBeamedOut}. They Are Level {STAR.BeamedInAvatarDetail.Level} With {STAR.BeamedInAvatarDetail.Karma} Karma.", ConsoleColor.Green);
+                                    else
+                                        CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                                }
+                                break;
+
+                            case "showmyavatar":
+                                {
+                                    if (STAR.BeamedInAvatar != null)
+                                        STARCLI.ShowAvatarStats();
+                                    else
+                                        CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                                }
+                                break;
+
+                            case "showavatar":
                                 {
                                     if (inputArgs.Length > 1)
                                     {
@@ -646,9 +739,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
-                            case "loadallavatars":
+                            case "editmyavatar":
+                                {
+                                    if (STAR.BeamedInAvatar != null)
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    else
+                                        CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                                }
+                                break;
+
+                            case "listallavatars":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "searchavatars":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            case "listkarmalevels":
+                                {
+                                    if (STAR.IsStarIgnited)
+                                        STAR.OASISAPI.Avatar.ShowKarmaThresholds();
+                                    else
+                                        CLIEngine.ShowErrorMessage("STAR Is Not Ignited! You Need To Ignite STAR Before Calling This Command!");
                                 }
                                 break;
 
@@ -658,13 +775,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
-                            case "showkeys":
+                            case "listkeys":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
                                 }
                                 break;
 
-                            case "showwallets":
+                            case "listwallets":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
                                 }
@@ -688,7 +805,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 await STARCLI.PlaceGeoNFTAsync();
                                 break;
 
-                            case "shownfts":
+                            case "listmynfts":
+                                await STARCLI.ListNFTsAsync();
+                                break;
+
+                            case "listnfts":
+                                await STARCLI.ListNFTsAsync();
+                                break;
+
+                            case "searchnfts":
                                 await STARCLI.ListNFTsAsync();
                                 break;
 
@@ -712,7 +837,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
-                            case "showgeonfts":
+                            case "listmygeonfts":
+                                await STARCLI.ListGeoNFTsAsync();
+                                break;
+
+                            case "listgeonfts":
                                 await STARCLI.ListGeoNFTsAsync();
                                 break;
 
@@ -734,6 +863,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         await STARCLI.ShowGeoNFTAsync(id);
                                     }
                                 }
+                                break;
+
+                            case "searchgeonft":
+                                CLIEngine.ShowMessage("Coming soon...");
                                 break;
 
                             case "sendnft":
@@ -2426,9 +2559,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star extinguish = Extinguish SuperStar & Shutdown The OASIS");
             Console.WriteLine("   star beamin = Log in");
             Console.WriteLine("   star beamout = Log out");
-            Console.WriteLine("   star whoisbeamedin = Display who is currently beamed in (if any) and the last time they beamed in and out.");
-            Console.WriteLine("   star showavatar = Display the currently beamed in avatar details (if any).");
-            Console.WriteLine("   star showkarmalevels = Display the karma thresholds.");
             Console.WriteLine("   star help = Show this help page.");
             Console.WriteLine("   star version = Show the versions of STAR ODK, COSMIC ORM, OASIS Runtime & the OASIS Providers..");
             Console.WriteLine("   star status = Show the status of STAR ODK.");
@@ -2437,7 +2567,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star light = Displays more detail on how to use this command and optionally launches the Light Wizard.");
             Console.WriteLine("   star light wiz = Start the Light Wizard.");
             Console.WriteLine("   star light transmute {hAppDNA} {geneisFolder}  = Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
-            Console.WriteLine("   star bang = Generate a metaverse (such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc).");
+            Console.WriteLine("   star bang = Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
             Console.WriteLine("   star wiz = Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
             Console.WriteLine("   star flare {OAPPName} = Build a OAPP.");
             Console.WriteLine("   star shine {OAPPName} = Launch & activate a OAPP by shining the star's light upon it...");
@@ -2452,31 +2582,57 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star mutate {OAPPName} = Import/Export hApp, dApp & others.");
             Console.WriteLine("   star love {OAPPName} = Send/Receive Love.");
             Console.WriteLine("   star burst = View network stats/management/settings.");
-            Console.WriteLine("   star updatezome - Update an existing zome (can upload a zome.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
-            Console.WriteLine("   star updateholon - Update an existing holon (can upload a holon.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
             Console.WriteLine("   star super - Reserved For Future Use...");
-            Console.WriteLine("   star listoapps - Show all OAPPs (contains zomes and holons) that have been generated.");
-            Console.WriteLine("   star listhapps - Show all hApps (contains zomes) that have been generated.");
-            Console.WriteLine("   star listzomes - Show all zomes (modules that contain holons) that have been generated.");
-            Console.WriteLine("   star listholons - Show all holons (OASIS Data Objects) that have been generated.");
-            Console.WriteLine("   star loadholon {holonID} = Loads a holon for the given {holonId}.");
+            Console.WriteLine("   star listoapps {searchAll} - Show all OAPPs (contains zomes and holons) that have been generated. If {searchAll} is omitted it will list only your OAPP's otherwise it will list all public/shared OAPP's.");
+            Console.WriteLine("   star listhapps {searchAll} - Show all hApps (contains zomes) that have been generated. If {searchAll} is omitted it will list only your hApp's otherwise it will list all public/shared hApp's.");
+            Console.WriteLine("   star listzomes {searchAll} - Show all zomes (modules that contain holons) that have been generated. If {searchAll} is omitted it will list only your hApp's otherwise it will list all public/shared hApp's.");
+            Console.WriteLine("   star listholons {searchAll} - Show all holons (OASIS Data Objects) that have been generated. If {searchAll} is omitted it will list only your holons otherwise it will list all public/shared holons.");
+            Console.WriteLine("   star listcelestialbodies {searchAll} - Show all celestial bodies that have been generated. If {searchAll} is omitted it will list only your celestial bodies otherwise it will list all public/shared celestial bodies.");
+            Console.WriteLine("   star listcelestialspaces {searchAll} - Show all celestial spaces that have been generated. If {searchAll} is omitted it will list only your celestial spaces otherwise it will list all public/shared celestial spaces.");
+            Console.WriteLine("   star showoapp {oappId/title} = Shows a OAPP for the given {oappId} or {title}.");
+            Console.WriteLine("   star showhapp {hAppId/title} = Shows a hApp for the given {hAppId} or {title}.");
+            Console.WriteLine("   star showcelestialspace {celestialSpaceId/title} = Shows a celestial space for the given {celestialSpaceId} or {title}.");
+            Console.WriteLine("   star showcelestialbody {celestialBodyId/title} = Shows a celestial body for the given {celestialBodyId} or {title}.");
+            Console.WriteLine("   star showzome {zomeID/title} = Shows a zome for the given {zomeID} or {title}.");
+            Console.WriteLine("   star showholon {holonID/title} = Shows a holon for the given {holonId} or {title}.");
+            Console.WriteLine("   star searchoapps {searchAll} = Searches the OAPP's for the given search critera. If {searchAll} is omitted it will search only your OAPP's otherwise it will search all public/shared OAPP's.");
+            Console.WriteLine("   star searchhapps {searchAll} = Searches the hApp's for the given search critera. If {searchAll} is omitted it will search only your hApp's otherwise it will search all public/shared hApp's.");
+            Console.WriteLine("   star searchcelestialspaces {searchAll} = Searches the celestial spaces for the given search critera. If {searchAll} is omitted it will search only your celestial spaces otherwise it will search all public/shared celestial spaces.");
+            Console.WriteLine("   star searchcelestialbodies {searchAll} = Searches the celestial bodies for the given search critera. If {searchAll} is omitted it will search only your celestial bodies otherwise it will search all public/shared celestial bodies.");
+            Console.WriteLine("   star searchzomes {searchAll} = Searches the zomes (modules) for the given search critera. If {searchAll} is omitted it will search only your zomes otherwise it will search all public/shared zomes.");
+            Console.WriteLine("   star searchholons {searchAll} = Searches the holons for the given search critera. If {searchAll} is omitted it will search only your holons otherwise it will search all public/shared holons.");
             Console.WriteLine("   star saveholon json={holonJSONFile} = Creates/Saves a holon from the given {holonJSONFile}.");
             Console.WriteLine("   star saveholon wiz = Starts the Save Holon Wizard.");
             Console.WriteLine("   star saveholon = Shows more info on how to use this command and optionally lauches the Save Holon Wizard.");
             Console.WriteLine("   star deleteHolon {holonID} = Deletes a holon for the given {holonId}.");
-            Console.WriteLine("   star loadavatar {avatarID} = Loads the avatar for the given {avatarID}.");
-            Console.WriteLine("   star loadallavatars = Loads all avatars (Wizard/Admin Only)");
+            Console.WriteLine("   star updateoapp {oappId/title} - Update an existing OAPP for the given {oappId} or {title}.");
+            Console.WriteLine("   star updatehapp {hAppId/title} - Update an existing hApp for the given {hAppId} or {title}.");
+            Console.WriteLine("   star updatecelestialspace {celestialSpaceId/title} - Update an existing celestial space.");
+            Console.WriteLine("   star updatecelestialbody {celestialBodyId/title} - Update an existing celestial body.");
+            Console.WriteLine("   star updatezome {hAppId/title} - Update an existing zome (can upload a zome.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
+            Console.WriteLine("   star updateholon {zomeID/title} - Update an existing holon (can upload a holon.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
+            Console.WriteLine("   star whoisbeamedin = Display who is currently beamed in (if any) and the last time they beamed in and out.");
+            Console.WriteLine("   star showmyavatar = Display the currently beamed in avatar details (if any).");
+            Console.WriteLine("   star showavatar {avatarID/username} = Shows the details for the avatar for the given {avatarID} or {username}.");
+            Console.WriteLine("   star editmyavatar = Edit the currently beamed in avatar.");
+            Console.WriteLine("   star listallavatars = Loads all avatars (Wizard/Admin Only)");
+            Console.WriteLine("   star searchavatars = Seach avatars that match the given seach parameters (public fields only such as level, karma, username & any fields the player has set to public).");
+            Console.WriteLine("   star listkarmalevels = Display the karma thresholds.");
             Console.WriteLine("   star linkkey = Links a OASIS Provider Key to the current beamed in avatar.");
-            Console.WriteLine("   star showkeys = Shows the keys for the current beamed in avatar.");
-            Console.WriteLine("   star showwallets = Shows the wallets for the current beamed in avatar.");
+            Console.WriteLine("   star listkeys = Shows the keys for the current beamed in avatar.");
+            Console.WriteLine("   star listwallets = Shows the wallets for the current beamed in avatar.");
             Console.WriteLine("   star search = Seaches The OASIS for the given seach parameters.");
             Console.WriteLine("   star mintnft = Mints a OASIS NFT for the current beamed in avatar.");
             Console.WriteLine("   star mintgeonft = Mints a OASIS Geo-NFT and places in Our World/AR World for the current beamed in avatar.");
             Console.WriteLine("   star placegeonft = Places an existing OASIS NFT in Our World/AR World for the current beamed in avatar.");
-            Console.WriteLine("   star shownfts = Shows the NFT's that belong to the current beamed in avatar.");
-            Console.WriteLine("   star shownft {id} = Shows the NFT for the given id.");
-            Console.WriteLine("   star showgeonfts = Shows the Geo-NFT's that belong to the current beamed in avatar.");
-            Console.WriteLine("   star showgeonft {id} = Shows the Geo-NFT for the given id.");
+            Console.WriteLine("   star listmynfts = Shows the NFT's that belong to the current beamed in avatar.");
+            Console.WriteLine("   star listfts = Shows the NFT's that belong to the current beamed in avatar or are shared public nfts.");
+            Console.WriteLine("   star searchnfts = Search for NFT's that match certain criteria and either belong to the current beamed in avatar or are shared public nfts.");
+            Console.WriteLine("   star shownft {id/title} = Shows the NFT for the given id or title.");
+            Console.WriteLine("   star listmygeonfts = Shows the Geo-NFT's that belong to the current beamed in avatar.");
+            Console.WriteLine("   star listgeonfts = Shows the Geo-NFT's that belong to the current beamed in avatar or are shared public nfts.");
+            Console.WriteLine("   star showgeonft {id/title} = Shows the Geo-NFT for the given id/title");
+            Console.WriteLine("   star searchgeonfts = Search for Geo-NFT's that match certain criteria and either belong to the current beamed in avatar or are shared public nfts.");
             Console.WriteLine("   star sendnft = Send a NFT to another wallet cross-chain.");
             Console.WriteLine("   star enablecosmicdetailedoutput = Enables COSMIC Detailed Output.");
             Console.WriteLine("   star disablecosmicdetailedoutput = Disables COSMIC Detailed Output.");

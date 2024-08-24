@@ -40,7 +40,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         public string LastName { get; set; }
 
         [HolochainRustFieldName("avatar_type")]
-        public EnumValue<AvatarType> AvatarType { get; set; }
+        //public int AvatarType { get; set; }
+        public EnumValue<AvatarType> AvatarType { get; set; } //TODO: Will attempt to do mappings like this in HoloNET ORM itself (such as converting Enums to ints and DateTimes to strings etc).
 
         [HolochainRustFieldName("accept_terms")]
         public bool AcceptTerms { get; set; }
@@ -51,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         [HolochainRustFieldName("jwt_token")]
         public string JwtToken { get; set; }
 
-        [HolochainRustFieldName("passowrd_reset")]
+        [HolochainRustFieldName("password_reset")]
         public DateTime? PasswordReset { get; set; }
 
         [HolochainRustFieldName("refresh_token")]
@@ -112,8 +113,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         [HolochainRustFieldName("meta_data")]
         public Dictionary<string, object> MetaData { get; set; }
 
-        [HolochainRustFieldName("version")]
-        public int Version { get; set; }
+        //Already on HoloNETAuditEntryBase
+        //[HolochainRustFieldName("version")]
+        //public int Version { get; set; }
 
         [HolochainRustFieldName("version_id")]
         public Guid VersionId { get; set; }
@@ -121,8 +123,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         [HolochainRustFieldName("previous_version_id")]
         public Guid PreviousVersionId { get; set; }
 
-        [HolochainRustFieldName("is_active")]
-        public bool IsActive { get; set; }
+        //Already on HoloNETAuditEntryBase
+        //[HolochainRustFieldName("is_active")]
+        //public bool IsActive { get; set; }
 
         [HolochainRustFieldName("created_provider_type")]
         public EnumValue<ProviderType> CreatedProviderType { get; set; }
