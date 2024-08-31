@@ -768,7 +768,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowErrorMessage("Error Beaming In. Username/Password may be incorrect.");
             }
 
-            CLIEngine.ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", STAR.BeamedInAvatar.Username, ". Have a nice day! :) You Are Level ", STAR.BeamedInAvatarDetail.Level, " And Have ", STAR.BeamedInAvatarDetail.Karma, " Karma."));
+            //CLIEngine.ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", STAR.BeamedInAvatar.Username, ". Have a nice day! :) You Are Level ", STAR.BeamedInAvatarDetail.Level, " And Have ", STAR.BeamedInAvatarDetail.Karma, " Karma."));
             //ShowAvatarStats();
             //await ReadyPlayerOne();
         }
