@@ -486,12 +486,13 @@ namespace NextGenSoftware.OASIS.STAR
                 BeamedInAvatar = (Avatar)result.Result;
                 OASISAPI.LogAvatarIntoOASISManagers(); //TODO: Is there a better way of doing this?
 
-                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = await OASISAPI.Avatar.LoadAvatarDetailAsync(BeamedInAvatar.Id);
+                //TODO: Fix later! Gifts property de-serialiazed issue in MongoDBOASIS
+                //OASISResult<IAvatarDetail> loggedInAvatarDetailResult = await OASISAPI.Avatar.LoadAvatarDetailAsync(BeamedInAvatar.Id);
 
-                if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
-                    BeamedInAvatarDetail = loggedInAvatarDetailResult.Result;
-                else
-                    OASISErrorHandling.HandleError(ref result, $"Error Occured In BeamInAsync Calling LoadAvatarDetailAsync. Reason: {loggedInAvatarDetailResult.Message}");
+                //if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
+                //    BeamedInAvatarDetail = loggedInAvatarDetailResult.Result;
+                //else
+                //    OASISErrorHandling.HandleError(ref result, $"Error Occured In BeamInAsync Calling LoadAvatarDetailAsync. Reason: {loggedInAvatarDetailResult.Message}");
             }
 
             return result;
