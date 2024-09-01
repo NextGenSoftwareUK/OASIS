@@ -1,6 +1,10 @@
 ﻿using System.Numerics;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 using Avatar = NextGenSoftware.OASIS.API.Core.Holons.Avatar;
 using AvatarDetail = NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail;
 using Holon = NextGenSoftware.OASIS.API.Core.Holons.Holon;
@@ -9,18 +13,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
 {
     internal static class Program
     {
-        private static readonly string _chainUrl = "https://sepolia-rollup.arbitrum.io/rpc";
-        private static readonly string _chainPrivateKey = "d3c80ec102d5fe42beadcb7346f74df529a0a10a1906f6ecc5fe3770eb65fb1a";
         private static readonly BigInteger _chainId = 421614;
-        private static string _contractAddress = "0x06a2dabf7fec27d27f9283cb2de1cd328685510c";
-        private static string _abi = "";
+        private const string _chainUrl = "https://sepolia-rollup.arbitrum.io/rpc";
+        private const string _chainPrivateKey = "d3c80ec102d5fe42beadcb7346f74df529a0a10a1906f6ecc5fe3770eb65fb1a";
+        private const string _contractAddress = "0x730bc1E3e064178F9BB1ABe20ad15af25D811B6f";
+        private const string _accountAddress = "0x604b88BECeD9d6a02113fE1A0129f67fbD565D38";
 
         /// <summary>
         /// Execute that example to see, how does Avatar CRUD works via arbitrum provider
         /// </summary>
         private static async Task ExecuteAvatarProviderExample(string contractAddress)
         {
-            ArbitrumOASIS arbitrumOASIS = new(_chainUrl, _chainPrivateKey, _chainId, contractAddress, _abi);
+            ArbitrumOASIS arbitrumOASIS = new(_chainUrl, _chainPrivateKey, _chainId, contractAddress);
 
             #region Create Avatar
 
@@ -87,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
         /// </summary>
         private static async Task ExecuteAvatarDetailProviderExample(string contractAddress)
         {
-            ArbitrumOASIS arbitrumOASIS = new(_chainUrl, _chainPrivateKey, _chainId, contractAddress, _abi);
+            ArbitrumOASIS arbitrumOASIS = new(_chainUrl, _chainPrivateKey, _chainId, contractAddress);
 
             #region Create Avatar Detail
 
@@ -136,7 +140,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
         /// </summary>
         private static async Task ExecuteHolonProviderExample(string contractAddress)
         {
-            ArbitrumOASIS arbitrumOASIS = new(_chainUrl, _chainPrivateKey, _chainId, contractAddress, _abi);
+            ArbitrumOASIS arbitrumOASIS = new(_chainUrl, _chainPrivateKey, _chainId, contractAddress);
+            arbitrumOASIS.ActivateProvider();
 
             #region Create Holon
 
@@ -153,7 +158,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
 
             if (saveHolonResult.IsError && !saveHolonResult.IsSaved)
             {
-                Console.WriteLine($"Saving holon failed! Error message: {saveHolonResult}");
+                Console.WriteLine($"Saving holon failed! Error message: {saveHolonResult.Message}");
                 return;
             }
             else
@@ -197,6 +202,68 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
             #endregion
         }
 
+        private static async Task ExecuteSendNFTExample()
+        {
+            ArbitrumOASIS arbitrumOASIS = new(_chainUrl, _chainPrivateKey, _chainId, _contractAddress);
+            arbitrumOASIS.ActivateProvider();
+
+            OASISResult<INFTTransactionRespone> result = await arbitrumOASIS.SendNFTAsync(new NFTWalletTransactionRequest()
+            {
+                MintWalletAddress = _contractAddress,
+                FromWalletAddress = _contractAddress,
+                ToWalletAddress = _contractAddress,
+                FromProviderType = ProviderType.IPFSOASIS, // Example provider type
+                ToProviderType = ProviderType.EthereumOASIS, // Example provider type
+                Amount = 1m, // Example amount
+                MemoText = "Sending NFT to a new owner.",
+                TokenId = 10
+            });
+
+            Console.WriteLine($"Is NFT Sent: {result.IsSaved}, {result.Message}");
+            Console.WriteLine($"NFT Sending Transaction Hash: {result.Result?.TransactionResult}");
+        }
+
+        private static async Task ExecuteMintNftExample()
+        {
+            ArbitrumOASIS arbitrumOASIS = new(_chainUrl, _chainPrivateKey, _chainId, _contractAddress);
+            arbitrumOASIS.ActivateProvider();
+
+            OASISResult<INFTTransactionRespone> result = await arbitrumOASIS.MintNFTAsync(
+                new MintNFTTransactionRequest()
+                {
+                    MintWalletAddress = _accountAddress,
+                    MintedByAvatarId = Guid.NewGuid(),
+                    Title = "Sample NFT Title",
+                    Description = "This is a description of the sample NFT. It includes all the unique attributes and features.",
+                    Image = [0x01, 0x02, 0x03, 0x04], // Mock byte array for the image
+                    ImageUrl = "https://example.com/images/sample-nft.jpg",
+                    Thumbnail = [0x05, 0x06, 0x07, 0x08], // Mock byte array for the thumbnail
+                    ThumbnailUrl = "https://example.com/thumbnails/sample-nft-thumb.jpg",
+                    Price = 1m, // Price in whatever currency the system uses, e.g., Ether
+                    Discount = 1m, // 5% discount
+                    MemoText = "Thank you for purchasing this NFT!",
+                    NumberToMint = 100,
+                    StoreNFTMetaDataOnChain = true,
+                    MetaData = new Dictionary<string, object>
+                    {
+                        { "Creator", "John Doe" },
+                        { "Attributes", new Dictionary<string, string>
+                            {
+                                { "BackgroundColor", "Blue" },
+                                { "Rarity", "Rare" }
+                            }
+                        },
+                        { "Edition", "First Edition" }
+                    },
+                    OffChainProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS),
+                    OnChainProvider = new EnumValue<ProviderType>(ProviderType.EthereumOASIS)
+                }
+            );
+
+            Console.WriteLine($"Is NFT Minted: {result.IsSaved}, {result.Message}");
+            Console.WriteLine($"NFT Minting Transaction Hash: {result.Result?.TransactionResult}");
+        }
+
         private static async Task Main(string[] args)
         {
             Console.WriteLine("NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS - TEST HARNESS");
@@ -204,7 +271,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
             // TODO: Uncomment one of example method to start testing ethereum provider CRUD
             await ExecuteAvatarProviderExample(_contractAddress);
             // await ExecuteAvatarProviderExample(_contractAddress);
-            //await ExecuteHolonProviderExample(_contractAddress);
+            await ExecuteMintNftExample();
+            await ExecuteSendNFTExample();
         }
     }
 }

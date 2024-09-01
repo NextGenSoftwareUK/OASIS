@@ -236,7 +236,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         {
                             LoggingManager.EndLogAction($"DONE", LogType.Info);
                             LoggingManager.Log($"OASIS System Account Found: Id: {oasisSystemAccountResult.Result.Id}, Name: {oasisSystemAccountResult.Result.Name}, Email: {oasisSystemAccountResult.Result.Email}, Username: {oasisSystemAccountResult.Result.Username}, Type: {oasisSystemAccountResult.Result.AvatarType.Name}.", LogType.Info);
-                            
+
                             if (oasisSystemAccountResult.Result.AvatarType.Value != AvatarType.System || oasisSystemAccountResult.Result.Name != "OASIS SYSTEM" || oasisSystemAccountResult.Result.Username != "root")
                                 LoggingManager.Log($"OASIS System Account Invalid! Please change the SmtpUser to a different email in the Email section in the OASISDNA and then boot the OASIS again so a new OASIS System Account can be generated using the new email.", LogType.Error);
                             else
@@ -271,10 +271,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         IsOASISBooted = true;
                         LoggingManager.Log($"OASIS HYPERDRIVE ONLINE.", LogType.Info);
                         LoggingManager.Log($"OASIS BOOTED.", LogType.Info);
-                        
+
                         //if (!string.IsNullOrEmpty(result.Message))
                         //    LoggingManager.Log($"{result.Message}", LogType.Info);
-                        
+
                         LoggingManager.Log($"OASIS RUNTIME VERSION: {OASISVersion}.", LogType.Info);
                         LoggingManager.Log($"COSMIC ORM RUNTIME VERSION: {COSMICVersion}.", LogType.Info);
                         LoggingManager.Log($"STAR ODK VERSION: {STARODKVersion}.", LogType.Info);
@@ -822,7 +822,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.EthereumOASIS:
                             {
-                                EthereumOASIS EthereumOASIS = new EthereumOASIS(
+                                EthereumOASIS EthereumOASIS = new(
                                     OASISDNA.OASIS.StorageProviders.EthereumOASIS.ConnectionString,
                                     OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainPrivateKey,
                                     OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainId,
@@ -838,8 +838,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                     OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ConnectionString,
                                     OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ChainPrivateKey,
                                     OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ChainId,
-                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ContractAddress,
-                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.Abi);
+                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ContractAddress);
                                 ArbitrumOASIS.OnStorageProviderError += ArbitrumOASIS_StorageProviderError;
                                 result.Result = ArbitrumOASIS;
                             }
