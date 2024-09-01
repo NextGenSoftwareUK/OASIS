@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 // compiler version must be greater than or equal to 0.8.3 and less than 0.9.0
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.20;
+
+import "./@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "./@openzeppelin/contracts/access/Ownable.sol";
 
 import "./AvatarDetail.sol";
 import "./Avatar.sol";
 import "./Holon.sol";
 
-contract ArbitrumOASIS {
+contract ArbitrumOASIS is ERC721, Ownable {
     
     Avatar[] private avatars;
     AvatarDetail[] private avatarDetails;
@@ -15,8 +18,37 @@ contract ArbitrumOASIS {
     uint256 private totalAvatarsCount;
     uint256 private totalAvatarDetailsCount;
     uint256 private totalHolonsCount;
-    
-    constructor() {
+
+    struct NFTMetadata {
+        string title;
+        string description;
+        string imageUrl;
+        string thumbnailUrl;
+        uint256 price;
+        uint256 discount;
+        string memoText;
+        uint256 mintedByAvatarId;
+        string offChainProvider;
+        string onChainProvider;
+    }
+
+    struct NFTTransfer {
+        address fromWalletAddress;
+        address toWalletAddress;
+        string fromProviderType;
+        string toProviderType;
+        uint256 amount;
+        string memoText;
+    }
+
+    mapping(uint256 => NFTMetadata) public nftMetadata;
+    mapping(uint256 => NFTTransfer[]) public nftTransfers;
+
+    uint256 public nextTokenId;
+    address public admin;
+
+    constructor() ERC721('ArbitrumOASIS', 'MNFT') Ownable(msg.sender) {
+        admin = msg.sender;
         totalAvatarsCount = 0;
         totalAvatarDetailsCount = 0;
         totalHolonsCount = 0;
@@ -193,5 +225,64 @@ contract ArbitrumOASIS {
 
     function GetHolonsCount() public view returns (uint256 count) {
         return holons.length;
+    }
+
+    function mint(
+        address to,
+        string memory title,
+        string memory description,
+        string memory imageUrl,
+        string memory thumbnailUrl,
+        uint256 price,
+        uint256 discount,
+        string memory memoText,
+        uint256 mintedByAvatarId,
+        string memory offChainProvider,
+        string memory onChainProvider
+    ) external onlyOwner {
+        nftMetadata[nextTokenId] = NFTMetadata(
+            title,
+            description,
+            imageUrl,
+            thumbnailUrl,
+            price,
+            discount,
+            memoText,
+            mintedByAvatarId,
+            offChainProvider,
+            onChainProvider
+        );
+        _safeMint(to, nextTokenId);
+        nextTokenId++;
+    }
+
+    function sendNFT(
+        address fromWalletAddress,
+        address toWalletAddress,
+        uint256 tokenId,
+        string memory fromProviderType,
+        string memory toProviderType,
+        uint256 amount,
+        string memory memoText
+    ) external {
+        require(ownerOf(tokenId) == fromWalletAddress, "You are not the owner of this token");
+        require(fromWalletAddress == msg.sender, "You are not authorized to send this token");
+
+        _transfer(fromWalletAddress, toWalletAddress, tokenId);
+
+        NFTTransfer memory transfer = NFTTransfer({
+            fromWalletAddress: fromWalletAddress,
+            toWalletAddress: toWalletAddress,
+            fromProviderType: fromProviderType,
+            toProviderType: toProviderType,
+            amount: amount,
+            memoText: memoText
+        });
+
+        nftTransfers[tokenId].push(transfer);
+    }
+
+    function getTransferHistory(uint256 tokenId) external view returns (NFTTransfer[] memory) {
+        return nftTransfers[tokenId];
     }
 }
