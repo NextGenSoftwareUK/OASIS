@@ -32,8 +32,8 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nethereum.RPC" Version="4.4.1" />
-    <PackageReference Include="Nethereum.Web3" Version="4.4.1" />
+    <PackageReference Include="Nethereum.RPC" Version="4.21.4" />
+    <PackageReference Include="Nethereum.Web3" Version="4.21.4" />
   </ItemGroup>
 
   <ItemGroup>
