@@ -115,8 +115,8 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 
             LogAvatarIntoOASISManagers();
 
-            if (startApolloServer)
-                ApolloServer.StartServer();
+            //if (startApolloServer)
+            //    ApolloServer.StartServer();
 
             IsOASISBooted = true;
 
