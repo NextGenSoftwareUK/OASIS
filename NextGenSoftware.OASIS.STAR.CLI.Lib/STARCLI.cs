@@ -535,7 +535,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage($"Long: {nft.Long}");
             CLIEngine.ShowMessage($"PlacedByAvatarId: {nft.PlacedByAvatarId}");
             CLIEngine.ShowMessage($"PlacedOn: {nft.PlacedOn}");
-            CLIEngine.ShowMessage($"GeoNFTMetaDataOffChainProvider: {nft.GeoNFTMetaDataOffChainProvider}");
+            CLIEngine.ShowMessage($"GeoNFTMetaDataOffChainProvider: {nft.GeoNFTMetaDataOffChainProvider.Name}");
             CLIEngine.ShowMessage($"PermSpawn: {nft.PermSpawn}");
             CLIEngine.ShowMessage($"AllowOtherPlayersToAlsoCollect: {nft.AllowOtherPlayersToAlsoCollect}");
             CLIEngine.ShowMessage($"GlobalSpawnQuantity: {nft.GlobalSpawnQuantity}");

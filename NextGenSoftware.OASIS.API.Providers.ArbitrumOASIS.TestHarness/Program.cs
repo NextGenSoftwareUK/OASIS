@@ -269,10 +269,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
             Console.WriteLine("NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS - TEST HARNESS");
 
             // TODO: Uncomment one of example method to start testing ethereum provider CRUD
-            await ExecuteAvatarProviderExample(_contractAddress);
+            //await ExecuteAvatarProviderExample(_contractAddress);
             // await ExecuteAvatarProviderExample(_contractAddress);
             await ExecuteMintNftExample();
-            await ExecuteSendNFTExample();
+            //await ExecuteSendNFTExample();
         }
     }
 }
