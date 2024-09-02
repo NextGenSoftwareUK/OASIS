@@ -20,16 +20,7 @@ contract ArbitrumOASIS is ERC721, Ownable {
     uint256 private totalHolonsCount;
 
     struct NFTMetadata {
-        string title;
-        string description;
-        string imageUrl;
-        string thumbnailUrl;
-        uint256 price;
-        uint256 discount;
-        string memoText;
-        uint256 mintedByAvatarId;
-        string offChainProvider;
-        string onChainProvider;
+        string metadataJson;
     }
 
     struct NFTTransfer {
@@ -229,29 +220,12 @@ contract ArbitrumOASIS is ERC721, Ownable {
 
     function mint(
         address to,
-        string memory title,
-        string memory description,
-        string memory imageUrl,
-        string memory thumbnailUrl,
-        uint256 price,
-        uint256 discount,
-        string memory memoText,
-        uint256 mintedByAvatarId,
-        string memory offChainProvider,
-        string memory onChainProvider
+        string memory metadataJson
     ) external onlyOwner {
         nftMetadata[nextTokenId] = NFTMetadata(
-            title,
-            description,
-            imageUrl,
-            thumbnailUrl,
-            price,
-            discount,
-            memoText,
-            mintedByAvatarId,
-            offChainProvider,
-            onChainProvider
+            metadataJson
         );
+
         _safeMint(to, nextTokenId);
         nextTokenId++;
     }
