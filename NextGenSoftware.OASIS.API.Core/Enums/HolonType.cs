@@ -48,6 +48,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         CosmicRay,
         GravitationalWave,
         NFT,
-        GEONFT
+        GEONFT,
+        OAPP
     }
 }

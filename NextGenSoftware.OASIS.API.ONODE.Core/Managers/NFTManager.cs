@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Text.Json;
+using System.Linq;
+using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -13,15 +15,11 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.ONode.Core.Objects;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers;
-using Nethereum.Contracts.Standards.ERC721;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using System.Linq;
-using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -615,7 +613,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                result = DecodeNFTMetaData(Data.LoadHolonsForParentByMetaData("GEONFT.MintedByAvatarId", mintWalletAddress, HolonType.NFT, true, true, 0, true, false, 0, HolonType.All, 0, providerType), result, errorMessage);
+                result = DecodeNFTMetaData(Data.LoadHolonsForParentByMetaData("NFT.MintedByAvatarId", mintWalletAddress, HolonType.NFT, true, true, 0, true, false, 0, HolonType.All, 0, providerType), result, errorMessage);
             }
             catch (Exception e)
             {
@@ -685,6 +683,153 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 result = DecodeGeoNFTMetaData(Data.LoadHolonsForParentByMetaData("GEONFT.OriginalOASISNFT.MintWalletAddress", mintWalletAddress, HolonType.GEONFT, true, true, 0, true, false, 0, HolonType.All, 0, providerType), result, errorMessage);
             }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarLocationAsync(long latLocation, long longLocation, int radius, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOASISGeoSpatialNFT>> result = new OASISResult<IEnumerable<IOASISGeoSpatialNFT>>();
+            string errorMessage = "Error occured in LoadAllGeoNFTsForAvatarLocationAsync in NFTManager. Reason:";
+
+            try
+            {
+                if (radius > 0)
+                {
+                    //Create a bounding box.
+                    long topLeftLat = latLocation - radius;
+                    long topLeftLong = longLocation - radius;
+                    long topRightLat = latLocation - radius;
+                    long topRightLong = longLocation + radius;
+                    long bottomRightLat = latLocation - radius;
+                    long bottomRightLong = longLocation + radius;
+                    long bottomLeftLat = latLocation - radius;
+                    long bottomLeftLong = longLocation - radius;
+
+                    if (topLeftLat < 0)
+                        topLeftLat = 0;
+
+                    if (topLeftLong < 0)
+                        topLeftLong = 0;
+
+                    if (topRightLat < 0)
+                        topRightLat = 0;
+
+                    if (topRightLong < 0)
+                        topRightLong = 0;
+
+                    if (bottomRightLat < 0)
+                        bottomRightLat = 0;
+
+                    if (bottomRightLong < 0)
+                        bottomRightLong = 0;
+
+                    if (bottomLeftLat < 0)
+                        bottomLeftLat = 0;
+
+                    if (bottomLeftLong < 0)
+                        bottomLeftLong = 0;
+
+                    //TODO: Eventually we want to be able to load only the NFTs we need rather than having to load them all into memory! We need to run the geo-spatial query on the provider itself! ;-)
+                    OASISResult<IEnumerable<IOASISGeoSpatialNFT>> geoNfts = await LoadAllGeoNFTsAsync(providerType);
+
+                    if (geoNfts != null && !geoNfts.IsError && geoNfts.Result != null)
+                    {
+                        List<IOASISGeoSpatialNFT> matchedGeoNFTs = new List<IOASISGeoSpatialNFT>();
+
+                        foreach (IOASISGeoSpatialNFT geoSpatialNFT in geoNfts.Result) 
+                        { 
+                            if (geoSpatialNFT.Lat >= bottomLeftLat && geoSpatialNFT.Long >= bottomLeftLong 
+                                && geoSpatialNFT.Lat <= topLeftLat && geoSpatialNFT.Long >= topLeftLong
+                                && geoSpatialNFT.Lat <= topRightLat && geoSpatialNFT.Long <= topRightLong
+                                && geoSpatialNFT.Lat >= bottomRightLat && geoSpatialNFT.Long <= bottomRightLong)
+                                    matchedGeoNFTs.Add(geoSpatialNFT);
+                        }
+
+                        result.Result = matchedGeoNFTs;
+                    }
+                }
+                else
+                    result = DecodeGeoNFTMetaData(await Data.LoadHolonsForParentByMetaDataAsync("GEONFT.LatLong", string.Concat(latLocation.ToString(), ":", longLocation.ToString()), HolonType.GEONFT, true, true, 0, true, false, 0, HolonType.All, 0, providerType), result, errorMessage);
+
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForAvatarLocation(long latLocation, long longLocation, int radius, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOASISGeoSpatialNFT>> result = new OASISResult<IEnumerable<IOASISGeoSpatialNFT>>();
+            string errorMessage = "Error occured in LoadAllGeoNFTsForAvatarLocation in NFTManager. Reason:";
+
+            try
+            {
+                if (radius > 0)
+                {
+                    //Create a bounding box.
+                    long topLeftLat = latLocation - radius;
+                    long topLeftLong = longLocation - radius;
+                    long topRightLat = latLocation - radius;
+                    long topRightLong = longLocation + radius;
+                    long bottomRightLat = latLocation - radius;
+                    long bottomRightLong = longLocation + radius;
+                    long bottomLeftLat = latLocation - radius;
+                    long bottomLeftLong = longLocation - radius;
+
+                    if (topLeftLat < 0)
+                        topLeftLat = 0;
+
+                    if (topLeftLong < 0)
+                        topLeftLong = 0;
+
+                    if (topRightLat < 0)
+                        topRightLat = 0;
+
+                    if (topRightLong < 0)
+                        topRightLong = 0;
+
+                    if (bottomRightLat < 0)
+                        bottomRightLat = 0;
+
+                    if (bottomRightLong < 0)
+                        bottomRightLong = 0;
+
+                    if (bottomLeftLat < 0)
+                        bottomLeftLat = 0;
+
+                    if (bottomLeftLong < 0)
+                        bottomLeftLong = 0;
+
+                    //TODO: Eventually we want to be able to load only the NFTs we need rather than having to load them all into memory! We need to run the geo-spatial query on the provider itself! ;-)
+                    OASISResult<IEnumerable<IOASISGeoSpatialNFT>> geoNfts = LoadAllGeoNFTs(providerType);
+
+                    if (geoNfts != null && !geoNfts.IsError && geoNfts.Result != null)
+                    {
+                        List<IOASISGeoSpatialNFT> matchedGeoNFTs = new List<IOASISGeoSpatialNFT>();
+
+                        foreach (IOASISGeoSpatialNFT geoSpatialNFT in geoNfts.Result)
+                        {
+                            if (geoSpatialNFT.Lat >= bottomLeftLat && geoSpatialNFT.Long >= bottomLeftLong
+                                && geoSpatialNFT.Lat <= topLeftLat && geoSpatialNFT.Long >= topLeftLong
+                                && geoSpatialNFT.Lat <= topRightLat && geoSpatialNFT.Long <= topRightLong
+                                && geoSpatialNFT.Lat >= bottomRightLat && geoSpatialNFT.Long <= bottomRightLong)
+                                matchedGeoNFTs.Add(geoSpatialNFT);
+                        }
+
+                        result.Result = matchedGeoNFTs;
+                    }
+                }
+                else
+                    result = DecodeGeoNFTMetaData(Data.LoadHolonsForParentByMetaData("GEONFT.LatLong", string.Concat(latLocation.ToString(), ":", longLocation.ToString()), HolonType.GEONFT, true, true, 0, true, false, 0, HolonType.All, 0, providerType), result, errorMessage);
+            
             catch (Exception e)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
