@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
         private static readonly BigInteger _chainId = 421614;
         private const string _chainUrl = "https://sepolia-rollup.arbitrum.io/rpc";
         private const string _chainPrivateKey = "d3c80ec102d5fe42beadcb7346f74df529a0a10a1906f6ecc5fe3770eb65fb1a";
-        private const string _contractAddress = "0x730bc1E3e064178F9BB1ABe20ad15af25D811B6f";
+        private const string _contractAddress = "0x97214331FE9741cB82bc8D47D9b1A7F21B148612";
         private const string _accountAddress = "0x604b88BECeD9d6a02113fE1A0129f67fbD565D38";
 
         /// <summary>
