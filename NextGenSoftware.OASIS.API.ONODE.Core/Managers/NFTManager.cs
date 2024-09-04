@@ -17,7 +17,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.ONode.Core.Objects;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers;
 
@@ -25,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
     public class NFTManager : OASISManager, INFTManager
     {
-        private static NFTManager _instance = null;
+        //private static NFTManager _instance = null;
 
        // public Guid AvatarId { get; set; }
 
@@ -313,11 +312,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     }
 
                     //TODO: TEMP! Remove once MintNFTAsync above is working (with Solaba for example!)
-                    result.Result = new NFTTransactionRespone(); //TODO: COMMENT!
-                    result.Result.TransactionResult = "19GSYRYNoWTcKeqHsoBVjiDXCvtWpbj7wUE6zKnFhmpot1aL3CatMyLuyfvcRzhQvScRMCfpAWsQtWhgHsGC7pf"; //TODO:TEMP!
+                    //result.Result = new NFTTransactionRespone(); //TODO: COMMENT!
+                    //result.Result.TransactionResult = "19GSYRYNoWTcKeqHsoBVjiDXCvtWpbj7wUE6zKnFhmpot1aL3CatMyLuyfvcRzhQvScRMCfpAWsQtWhgHsGC7pf"; //TODO:TEMP!
 
-                    //TODO UNCOMMENT! if (result != null && !result.IsError && result.Result != null)
-                    if (result != null) //Temp!
+                    //if (result != null) //Temp!
+                    if (result != null && !result.IsError && result.Result != null)
                     {
                         result.Result.OASISNFT = CreateOASISNFT(request, result.Result);
                         OASISResult<IHolon> saveHolonResult = Data.SaveHolon(CreateNFTMetaDataHolon(result.Result.OASISNFT, request), request.MintedByAvatarId, true, true, 0, true, false, NFTMetaDataProviderType);
@@ -1258,7 +1257,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             holonNFT.CustomKey = nftMetaData.Hash;
             holonNFT.Name = $"{nftMetaData.OnChainProvider.Name} NFT Minted On The OASIS with title {nftMetaData.Title}";
             holonNFT.Description = nftMetaData.MemoText;
-            holonNFT.MetaData["NFT.OASISNFT"] = JsonSerializer.Serialize(nftMetaData);
+            holonNFT.MetaData["NFT.OASISNFT"] = JsonSerializer.Serialize(nftMetaData); //TODO: May remove this because its duplicated data. BUT we may need this for other purposes later such as exporting it to a file etc (but then we could just serialaize it there and then).
             holonNFT.MetaData["NFT.Hash"] = nftMetaData.Hash;
             holonNFT.MetaData["NFT.Id"] = nftMetaData.Id;
             holonNFT.MetaData["NFT.MintedByAvatarId"] = nftMetaData.MintedByAvatarId.ToString();
@@ -1267,6 +1266,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             holonNFT.MetaData["NFT.Title"] = nftMetaData.Title;
             holonNFT.MetaData["NFT.Description"] = nftMetaData.Description;
             holonNFT.MetaData["NFT.Price"] = nftMetaData.Price.ToString();
+            holonNFT.MetaData["NFT.Discount"] = nftMetaData.Discount.ToString();
             holonNFT.MetaData["NFT.NumberToMint"] = request.NumberToMint.ToString();
             holonNFT.MetaData["NFT.OnChainProvider"] = nftMetaData.OnChainProvider.Name;
             holonNFT.MetaData["NFT.OffChainProvider"] = nftMetaData.OffChainProvider.Name;
@@ -1275,6 +1275,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             holonNFT.MetaData["NFT.Thumbnail"] = nftMetaData.Thumbnail;
             holonNFT.MetaData["NFT.ThumbnailUrl"] = nftMetaData.ThumbnailUrl;
             holonNFT.MetaData["NFT.MintedOn"] = nftMetaData.MintedOn.ToShortDateString();
+            holonNFT.MetaData["NFT.MetaData"] = JsonSerializer.Serialize(nftMetaData.MetaData);
             holonNFT.ParentHolonId = nftMetaData.MintedByAvatarId;
 
             return holonNFT;
@@ -1287,13 +1288,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             holonNFT.Id = geoNFTMetaData.Id;
             holonNFT.Name = "OASIS GEO NFT"; // $"{Enum.GetName(typeof(ProviderType), request.OnChainProvider)} NFT Minted On The OASIS with title {request.Title}";
             holonNFT.Description = "OASIS GEO NFT";
-            holonNFT.MetaData["GEONFT.OASISGEONFT"] = JsonSerializer.Serialize(geoNFTMetaData);
+            holonNFT.MetaData["GEONFT.OASISGEONFT"] = JsonSerializer.Serialize(geoNFTMetaData); //TODO: May remove this because its duplicated data.
             holonNFT.MetaData["GEONFT.Id"] = geoNFTMetaData.Id;
             holonNFT.MetaData["GEONFT.GeoNFTMetaDataOffChainProvider"] = geoNFTMetaData.GeoNFTMetaDataOffChainProvider.Name;
             holonNFT.MetaData["GEONFT.PlacedByAvatarId"] = geoNFTMetaData.PlacedByAvatarId.ToString();
             holonNFT.MetaData["GEONFT.PlacedOn"] = geoNFTMetaData.PlacedOn.ToShortDateString();
             holonNFT.MetaData["GEONFT.Lat"] = geoNFTMetaData.Lat;
             holonNFT.MetaData["GEONFT.Long"] = geoNFTMetaData.Long;
+            holonNFT.MetaData["GEONFT.LatLong"] = string.Concat(geoNFTMetaData.Lat, ":", geoNFTMetaData.Long);
             holonNFT.MetaData["GEONFT.PermSpawn"] = geoNFTMetaData.PermSpawn;
             holonNFT.MetaData["GEONFT.PlayerSpawnQuantity"] = geoNFTMetaData.PlayerSpawnQuantity;
             holonNFT.MetaData["GEONFT.AllowOtherPlayersToAlsoCollect"] = geoNFTMetaData.AllowOtherPlayersToAlsoCollect;
@@ -1347,6 +1349,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         {
             if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
             {
+                //TODO: Finish removing NFT.OASISNFT...
+                //result.Result.Discount = Convert.ToDecimal(holonResult.Result.MetaData["NFT.Discount"]);
+                //result.Result.Description = holonResult.Result.MetaData["NFT.Description"].ToString();
+                //result.Result.Hash = holonResult.Result.MetaData["Hash"].ToString();
+                //result.Result.Id = new Guid(holonResult.Result.MetaData["Id"].ToString());
+                //result.Result.Image = (byte[])holonResult.Result.MetaData["Image"];
+                //result.Result.ImageUrl = holonResult.Result.MetaData["ImageURL"].ToString();
+                //result.Result.MemoText = holonResult.Result.MetaData["MemoText"].ToString();
+                //result.Result.MetaData = JsonSerializer.Deserialize(holonResult.Result.MetaData["MetaData"], typeof(Dictionary<string, object>));
+
                 result.Result = (IOASISNFT)JsonSerializer.Deserialize(holonResult.Result.MetaData["NFT.OASISNFT"].ToString(), typeof(OASISNFT));
             }
             else
