@@ -3,11 +3,11 @@ const { ethers } = require("hardhat");
 
 describe("Web3CoreOASIS Tests", function () {
     let contract;
-    let owner;
+    let owner, addr1, addr2;
 
     before(async () => {
         const Web3CoreOASIS = await ethers.getContractFactory("Web3CoreOASIS");
-        [owner] = await ethers.getSigners();
+        [owner, addr1, addr2] = await ethers.getSigners();
         contract = await Web3CoreOASIS.deploy();
     });
 
@@ -102,5 +102,40 @@ describe("Web3CoreOASIS Tests", function () {
     it("should get the correct holons count", async function () {
         const count = await contract.getHolonsCount();
         expect(count).to.equal(0);
+    });
+
+    it("should mint an NFT", async function () {
+        const metadataJson = JSON.stringify({ name: "NFT1", description: "My first NFT" });
+        await contract.mint(addr1.address, metadataJson);
+
+        const tokenId = 0;
+        const ownerOfToken = await contract.ownerOf(tokenId);
+
+        expect(ownerOfToken).to.equal(addr1.address);
+    });
+
+    it("should transfer an NFT between two addresses", async function () {
+        const metadataJson = JSON.stringify({ name: "NFT2", description: "My second NFT" });
+        await contract.mint(addr1.address, metadataJson);
+
+        const tokenId = 1;
+
+        const fromProviderType = "provider1";
+        const toProviderType = "provider2";
+        const amount = 1;
+        const memoText = "Transfer memo";
+
+        await contract.connect(addr1).sendNFT(
+            addr1.address,
+            addr2.address,
+            tokenId,
+            fromProviderType,
+            toProviderType,
+            amount,
+            memoText
+        );
+
+        const newOwner = await contract.ownerOf(tokenId);
+        expect(newOwner).to.equal(addr2.address);
     });
 });
