@@ -848,8 +848,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 RootstockOASIS RootstockOASIS = new(
                                     OASISDNA.OASIS.StorageProviders.RootstockOASIS.ConnectionString,
                                     OASISDNA.OASIS.StorageProviders.RootstockOASIS.ChainPrivateKey,
-                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ContractAddress,
-                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.Abi);
+                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ContractAddress);
                                 RootstockOASIS.OnStorageProviderError += RootstockOASIS_StorageProviderError;
                                 result.Result = RootstockOASIS;
                             }
@@ -859,8 +858,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 PolygonOASIS PolygonOASIS = new(
                                     OASISDNA.OASIS.StorageProviders.PolygonOASIS.ConnectionString,
                                     OASISDNA.OASIS.StorageProviders.PolygonOASIS.ChainPrivateKey,
-                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS.ContractAddress,
-                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS.Abi);
+                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS.ContractAddress);
                                 PolygonOASIS.OnStorageProviderError += PolygonOASIS_StorageProviderError;
                                 result.Result = PolygonOASIS;
                             }

@@ -2,8 +2,10 @@ using Nethereum.Web3;
 using Nethereum.Contracts;
 using Nethereum.Web3.Accounts;
 using Nethereum.RPC.Eth.DTOs;
+using Nethereum.Hex.HexTypes;
 using System.Threading.Tasks;
 using System;
+using System.Numerics;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
@@ -28,21 +30,39 @@ public sealed class Web3CoreOASIS
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function createAvatarFunction = contract.GetFunction(Web3CoreOASISHelper.CreateAvatarFuncName);
-        return createAvatarFunction.SendTransactionAsync(_web3.TransactionManager.Account.Address, entityId, avatarId, info);
+        return createAvatarFunction.SendTransactionAsync(
+            _web3.TransactionManager.Account.Address,
+            gas: new HexBigInteger(value: 300000),
+            value: null,
+            entityId,
+            avatarId,
+            info);
     }
 
     public Task<string> CreateHolonAsync(uint entityId, byte[] holonId, byte[] info)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function createHolonFunction = contract.GetFunction(Web3CoreOASISHelper.CreateHolonFuncName);
-        return createHolonFunction.SendTransactionAsync(_web3.TransactionManager.Account.Address, entityId, holonId, info);
+        return createHolonFunction.SendTransactionAsync(
+            _web3.TransactionManager.Account.Address,
+            gas: new HexBigInteger(value: 300000),
+            value: null,
+            entityId,
+            holonId,
+            info);
     }
 
     public Task<string> CreateAvatarDetailAsync(uint entityId, byte[] avatarId, byte[] info)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function createAvatarDetailFunction = contract.GetFunction(Web3CoreOASISHelper.CreateAvatarDetailFuncName);
-        return createAvatarDetailFunction.SendTransactionAsync(_web3.TransactionManager.Account.Address, entityId, avatarId, info);
+        return createAvatarDetailFunction.SendTransactionAsync(
+            _web3.TransactionManager.Account.Address,
+            gas: new HexBigInteger(value: 300000),
+            value: null,
+            entityId,
+            avatarId,
+            info);
     }
 
     public Task<bool> UpdateAvatarAsync(uint entityId, byte[] info)
@@ -131,6 +151,44 @@ public sealed class Web3CoreOASIS
 
     public Task<TransactionReceipt> SendTransactionAsync(string receiverAddress, decimal etherAmount) =>
         _web3.Eth.GetEtherTransferService().TransferEtherAndWaitForReceiptAsync(receiverAddress, etherAmount);
+    
+
+    public Task<string> MintAsync(string toAddress, string metadataJson)
+    {
+        Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
+        Function mintFunction = contract.GetFunction(Web3CoreOASISHelper.MintFuncName);
+        return mintFunction.SendTransactionAsync(
+            _web3.TransactionManager.Account.Address,
+            gas: new HexBigInteger(value: 300000),
+            value: null,
+            toAddress,
+            metadataJson);
+    }
+
+    public Task<string> SendNFTAsync(
+        string fromAddress, 
+        string toAddress, 
+        BigInteger tokenId, 
+        string fromProviderType, 
+        string toProviderType, 
+        BigInteger amount, 
+        string memoText)
+    {
+        Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
+        Function sendNFTFunction = contract.GetFunction(Web3CoreOASISHelper.SendNFTFuncName);
+        return sendNFTFunction.SendTransactionAsync(
+            _web3.TransactionManager.Account.Address,
+            gas: new HexBigInteger(value: 300000),
+            value: null,
+            fromAddress,
+            toAddress,
+            tokenId,
+            fromProviderType,
+            toProviderType,
+            amount,
+            memoText
+        );
+    }
 }
 
 file static class Web3CoreOASISHelper
@@ -150,4 +208,6 @@ file static class Web3CoreOASISHelper
     public const string GetAvatarsCountFuncName = "getAvatarsCount";
     public const string GetAvatarDetailsCountFuncName = "getAvatarDetailsCount";
     public const string GetHolonsCountFuncName = "getHolonsCount";
+    public const string MintFuncName = "mint";
+    public const string SendNFTFuncName = "sendNFT";
 }
