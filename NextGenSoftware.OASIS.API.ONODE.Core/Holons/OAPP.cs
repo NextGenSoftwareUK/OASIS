@@ -33,6 +33,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         public DateTime PublishedOn { get; set; }
 
         [CustomOASISProperty]
+        public Guid PublishedByAvatarId { get; set; }
+
+        [CustomOASISProperty]
         public byte[] PublishedOAPP { get; set; }
 
         //TODO:More to come! ;-)
