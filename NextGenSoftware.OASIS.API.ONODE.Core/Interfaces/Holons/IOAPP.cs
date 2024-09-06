@@ -12,6 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons
         GenesisType GenesisType { get; set; }
         Guid CelestialBodyId { get; set; }
         ICelestialBody CelestialBody { get; set; }
-        bool IsPublished { get; set; }
+        DateTime PublishedOn { get; set; }
+        byte[] PublishedOAPP { get; set; }
     }
 }

@@ -30,7 +30,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         public ICelestialBody CelestialBody { get; set; } //The base CelestialBody that represents this OAPP (planet, moon, star, super star, grand super star, etc).
 
         [CustomOASISProperty]
-        public bool IsPublished { get; set; }
+        public DateTime PublishedOn { get; set; }
+
+        [CustomOASISProperty]
+        public byte[] PublishedOAPP { get; set; }
 
         //TODO:More to come! ;-)
     }
