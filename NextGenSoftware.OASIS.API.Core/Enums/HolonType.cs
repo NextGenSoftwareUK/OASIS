@@ -49,6 +49,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         GravitationalWave,
         NFT,
         GEONFT,
-        OAPP
+        OAPP,
+        InstalledOAPP
     }
 }
