@@ -3,10 +3,10 @@ using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
 
-public sealed class RootstockOASIS : Web3CoreOASISBaseProvider, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider
+public sealed class RootstockOASIS : Web3CoreOASISBaseProvider, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
 {
-    public RootstockOASIS(string hostUri, string chainPrivateKey, string contractAddress, string abi)
-        : base(hostUri, chainPrivateKey, contractAddress, abi)
+    public RootstockOASIS(string hostUri, string chainPrivateKey, string contractAddress)
+        : base(hostUri, chainPrivateKey, contractAddress)
     {
         this.ProviderName = "RootstockOASIS";
         this.ProviderDescription = "Rootstock Provider";

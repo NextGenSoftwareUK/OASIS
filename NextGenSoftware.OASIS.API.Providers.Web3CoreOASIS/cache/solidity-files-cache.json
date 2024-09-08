@@ -1,13 +1,54 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "/Users/abdurrahmanberdiev/Documents/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/contracts/EntityOASIS.sol": {
-      "lastModificationDate": 1718498254614,
-      "contentHash": "15e14141345bba2d17c8978e92b3d692",
-      "sourceName": "contracts/EntityOASIS.sol",
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/AccessControl.sol": {
+      "lastModificationDate": 1725494176825,
+      "contentHash": "4c80b7fdf559a9a348e832a57d072a0b",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/AccessControl.sol",
       "solcConfig": {
-        "version": "0.8.17",
+        "version": "0.8.20",
         "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IAccessControl.sol",
+        "../utils/Context.sol",
+        "../utils/introspection/ERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AccessControl"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/Context.sol": {
+      "lastModificationDate": 1725494177043,
+      "contentHash": "67bfbc07588eb8683b3fd8f6f909563e",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/Context.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -30,17 +71,20 @@
       },
       "imports": [],
       "versionPragmas": [
-        "^0.8.9"
+        "^0.8.20"
       ],
-      "artifacts": []
+      "artifacts": [
+        "Context"
+      ]
     },
-    "/Users/abdurrahmanberdiev/Documents/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/contracts/Web3CoreOASIS.sol": {
-      "lastModificationDate": 1718588757131,
-      "contentHash": "0dc8cd9b872eb17f3fb3c7a593afe927",
-      "sourceName": "contracts/Web3CoreOASIS.sol",
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/introspection/ERC165.sol": {
+      "lastModificationDate": 1725494177062,
+      "contentHash": "6a55c353946e471d9792965d06208295",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/introspection/ERC165.sol",
       "solcConfig": {
-        "version": "0.8.17",
+        "version": "0.8.20",
         "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -62,23 +106,1432 @@
         }
       },
       "imports": [
-        "./IWeb3CoreOASIS.sol",
-        "./EntityOASIS.sol"
+        "./IERC165.sol"
       ],
       "versionPragmas": [
-        "^0.8.9"
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC165"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/IAccessControl.sol": {
+      "lastModificationDate": 1725494176826,
+      "contentHash": "e3a14b0714caaaa82d58fa0bc3756079",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/IAccessControl.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IAccessControl"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/introspection/IERC165.sol": {
+      "lastModificationDate": 1725494177063,
+      "contentHash": "de0163561b417b800d01749cbbe2147e",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/introspection/IERC165.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC165"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/TimelockController.sol": {
+      "lastModificationDate": 1725494176969,
+      "contentHash": "2fc80187893d7c844638037fb8ae9465",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/TimelockController.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../access/AccessControl.sol",
+        "../token/ERC721/utils/ERC721Holder.sol",
+        "../token/ERC1155/utils/ERC1155Holder.sol",
+        "../utils/Address.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "TimelockController"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol": {
+      "lastModificationDate": 1725494177037,
+      "contentHash": "8cd14f03f1cc06f0a638da5209d716d4",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../IERC721Receiver.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC721Holder"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol": {
+      "lastModificationDate": 1725494177019,
+      "contentHash": "2724592045c1a732e5ac949356112fb9",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../../../utils/introspection/ERC165.sol",
+        "../IERC1155Receiver.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC1155Holder"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/Address.sol": {
+      "lastModificationDate": 1725494177040,
+      "contentHash": "79c699f80eb8a9b168cb34e37816f894",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/Address.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Address"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol": {
+      "lastModificationDate": 1725494177031,
+      "contentHash": "fc8a9841f4bdd6329c26a00d5e75f4b3",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC721Receiver"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol": {
+      "lastModificationDate": 1725494177014,
+      "contentHash": "d14616defa6d417fafa47e416e3cec73",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../../utils/introspection/IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC1155Receiver"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol": {
+      "lastModificationDate": 1725494176974,
+      "contentHash": "c24ca7b8ac9803560d960758146c0707",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Governor.sol",
+        "../TimelockController.sol",
+        "../../interfaces/IERC165.sol",
+        "../../utils/math/SafeCast.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "GovernorTimelockControl"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/Governor.sol": {
+      "lastModificationDate": 1725494176965,
+      "contentHash": "1dcd286683a0ec64597abe7541197688",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/Governor.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC721/IERC721Receiver.sol",
+        "../token/ERC1155/IERC1155Receiver.sol",
+        "../utils/cryptography/EIP712.sol",
+        "../utils/cryptography/SignatureChecker.sol",
+        "../utils/introspection/ERC165.sol",
+        "../utils/math/SafeCast.sol",
+        "../utils/structs/DoubleEndedQueue.sol",
+        "../utils/Address.sol",
+        "../utils/Context.sol",
+        "../utils/Nonces.sol",
+        "./IGovernor.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Governor"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC165.sol": {
+      "lastModificationDate": 1725494176983,
+      "contentHash": "f808b485ee0cdc6768ee8385ae5f9a2a",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC165.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/introspection/IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/math/SafeCast.sol": {
+      "lastModificationDate": 1725494177067,
+      "contentHash": "d72cdfaacd4b1b8e090b57f4b7200ddc",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/math/SafeCast.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "SafeCast"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/cryptography/EIP712.sol": {
+      "lastModificationDate": 1725494177052,
+      "contentHash": "33f2efa11c674f59f4b8365be7a58da9",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/cryptography/EIP712.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./MessageHashUtils.sol",
+        "../ShortStrings.sol",
+        "../../interfaces/IERC5267.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "EIP712"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol": {
+      "lastModificationDate": 1725494177061,
+      "contentHash": "67e1b232791e1ea1cf6475bd4aaed191",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./ECDSA.sol",
+        "../../interfaces/IERC1271.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "SignatureChecker"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/structs/DoubleEndedQueue.sol": {
+      "lastModificationDate": 1725494177069,
+      "contentHash": "4988631ce14d39628bfdded2662ef0e2",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/structs/DoubleEndedQueue.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "DoubleEndedQueue"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/Nonces.sol": {
+      "lastModificationDate": 1725494177046,
+      "contentHash": "c32d108058718efb9061b88e83a83f79",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/Nonces.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Nonces"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/IGovernor.sol": {
+      "lastModificationDate": 1725494176968,
+      "contentHash": "3b0e6475e9ed9d26512a70b6295971b2",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/IGovernor.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../interfaces/IERC165.sol",
+        "../interfaces/IERC6372.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IGovernor"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/ShortStrings.sol": {
+      "lastModificationDate": 1725494177048,
+      "contentHash": "1b71929454f558e486d1f4f2471f29d4",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/ShortStrings.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./StorageSlot.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ShortStrings"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC5267.sol": {
+      "lastModificationDate": 1725494176991,
+      "contentHash": "94364524cb1a39dcbc3d3afff6d8e53e",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC5267.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC5267"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol": {
+      "lastModificationDate": 1725494177060,
+      "contentHash": "9e5eec59eaffa554d6cca561dcb914eb",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Strings.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "MessageHashUtils"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/StorageSlot.sol": {
+      "lastModificationDate": 1725494177049,
+      "contentHash": "08cbccfefa284405c12b4bfa8c8c9c2b",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/StorageSlot.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "StorageSlot"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/Strings.sol": {
+      "lastModificationDate": 1725494177050,
+      "contentHash": "ba57ff4ddf1d9cae9d2009792795b7f6",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/Strings.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./math/Math.sol",
+        "./math/SignedMath.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Strings"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/math/Math.sol": {
+      "lastModificationDate": 1725494177065,
+      "contentHash": "718fa8ba0ff269c92e364c1429d9de57",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/math/Math.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Math"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/math/SignedMath.sol": {
+      "lastModificationDate": 1725494177067,
+      "contentHash": "b6c6bdc7aaca4fe5b680760a72e09d3e",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/math/SignedMath.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "SignedMath"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC1271.sol": {
+      "lastModificationDate": 1725494176981,
+      "contentHash": "12a8c0358597a0dc191410b1259e61ee",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC1271.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC1271"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/cryptography/ECDSA.sol": {
+      "lastModificationDate": 1725494177051,
+      "contentHash": "b96e0d7a3c2b185342c7d083d765b61f",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ECDSA"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC6372.sol": {
+      "lastModificationDate": 1725494176992,
+      "contentHash": "414cd6acf090e4009cf016ff62ecbd88",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC6372.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC6372"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/types/Time.sol": {
+      "lastModificationDate": 1725494177072,
+      "contentHash": "5fde3731fd2a69cf64d4e17da56cf462",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/types/Time.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../math/Math.sol",
+        "../math/SafeCast.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Time"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/structs/Checkpoints.sol": {
+      "lastModificationDate": 1725494177069,
+      "contentHash": "7c2f98cb04ef6c4a9c039ce7bb638b98",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/structs/Checkpoints.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../math/Math.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Checkpoints"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Consecutive.sol": {
+      "lastModificationDate": 1725494177032,
+      "contentHash": "f37470a229b5e1681bbf444d9f548296",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Consecutive.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC721.sol",
+        "../../../interfaces/IERC2309.sol",
+        "../../../utils/structs/BitMaps.sol",
+        "../../../utils/structs/Checkpoints.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC721Consecutive"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/ERC721.sol": {
+      "lastModificationDate": 1725494177030,
+      "contentHash": "1e64e2ad597dc5b2dae11346502baad4",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/ERC721.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IERC721.sol",
+        "./IERC721Receiver.sol",
+        "./extensions/IERC721Metadata.sol",
+        "../../utils/Context.sol",
+        "../../utils/Strings.sol",
+        "../../utils/introspection/ERC165.sol",
+        "../../interfaces/draft-IERC6093.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC721"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC2309.sol": {
+      "lastModificationDate": 1725494176987,
+      "contentHash": "b46665edcd4617fbbeb33844b02adf23",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC2309.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC2309"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/structs/BitMaps.sol": {
+      "lastModificationDate": 1725494177068,
+      "contentHash": "08db537a4d967259b9c44f2ebf865357",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/structs/BitMaps.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "BitMaps"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/draft-IERC6093.sol": {
+      "lastModificationDate": 1725494176996,
+      "contentHash": "4aefc698f77ecbace7f401257dfe182d",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/draft-IERC6093.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC1155Errors",
+        "IERC20Errors",
+        "IERC721Errors"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol": {
+      "lastModificationDate": 1725494177036,
+      "contentHash": "12c206f185cb951213799561fdcaa40d",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../IERC721.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC721Metadata"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/IERC721.sol": {
+      "lastModificationDate": 1725494177030,
+      "contentHash": "5df8fdb527e563085847cad29e3c5f2e",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/IERC721.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../../utils/introspection/IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC721"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/Web3CoreOASIS.sol": {
+      "lastModificationDate": 1725496751864,
+      "contentHash": "14c95993bfe62915d218cc1453d0e46c",
+      "sourceName": "Contracts/Web3CoreOASIS.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "./@openzeppelin/contracts/access/Ownable.sol",
+        "./IWeb3CoreOASIS.sol",
+        "./EntityOASIS.sol",
+        "./NFTMetadata.sol",
+        "./NFTTransfer.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
       ],
       "artifacts": [
         "Web3CoreOASIS"
       ]
     },
-    "/Users/abdurrahmanberdiev/Documents/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/contracts/IWeb3CoreOASIS.sol": {
-      "lastModificationDate": 1718580846908,
-      "contentHash": "72bb9dbf066754946032351b4e4d86c8",
-      "sourceName": "contracts/IWeb3CoreOASIS.sol",
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/IWeb3CoreOASIS.sol": {
+      "lastModificationDate": 1725495069662,
+      "contentHash": "994bd067d4da0b8162a9f5e33184dadc",
+      "sourceName": "Contracts/IWeb3CoreOASIS.sol",
       "solcConfig": {
-        "version": "0.8.17",
+        "version": "0.8.20",
         "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -100,13 +1553,4101 @@
         }
       },
       "imports": [
-        "./EntityOASIS.sol"
+        "./EntityOASIS.sol",
+        "./NFTTransfer.sol"
       ],
       "versionPragmas": [
-        "^0.8.9"
+        "^0.8.20"
       ],
       "artifacts": [
         "IWeb3CoreOASIS"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/NFTTransfer.sol": {
+      "lastModificationDate": 1725495021503,
+      "contentHash": "81ebaa9668085a18e2ae8e3890f96cb5",
+      "sourceName": "Contracts/NFTTransfer.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/EntityOASIS.sol": {
+      "lastModificationDate": 1725494998066,
+      "contentHash": "a4051c54dc33f4567b802898a105fcfd",
+      "sourceName": "Contracts/EntityOASIS.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/NFTMetadata.sol": {
+      "lastModificationDate": 1725495023987,
+      "contentHash": "d2a88a34c587cc9f4dffe99ae9a29cd1",
+      "sourceName": "Contracts/NFTMetadata.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/Ownable.sol": {
+      "lastModificationDate": 1725494176830,
+      "contentHash": "d3c790edc9ccf808a17c5a6cd13614fd",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/Ownable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Ownable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol": {
+      "lastModificationDate": 1725494177006,
+      "contentHash": "bbd45bfcd6202c35718661cc5d051226",
+      "sourceName": "Contracts/@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./TransparentUpgradeableProxy.sol",
+        "../../access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ProxyAdmin"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol": {
+      "lastModificationDate": 1725494177007,
+      "contentHash": "1837abdda8dba1ca489539d966a22bdc",
+      "sourceName": "Contracts/@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC1967/ERC1967Utils.sol",
+        "../ERC1967/ERC1967Proxy.sol",
+        "../../interfaces/IERC1967.sol",
+        "./ProxyAdmin.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ITransparentUpgradeableProxy",
+        "TransparentUpgradeableProxy"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol": {
+      "lastModificationDate": 1725494177002,
+      "contentHash": "838bc3ef3bcf0376af7d9b2041989b6a",
+      "sourceName": "Contracts/@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../beacon/IBeacon.sol",
+        "../../utils/Address.sol",
+        "../../utils/StorageSlot.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC1967Utils"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol": {
+      "lastModificationDate": 1725494177001,
+      "contentHash": "48a23123892520179a95b4461c1d752a",
+      "sourceName": "Contracts/@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Proxy.sol",
+        "./ERC1967Utils.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC1967Proxy"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC1967.sol": {
+      "lastModificationDate": 1725494176985,
+      "contentHash": "4e17c826a54a8ee1a185449d4695d07d",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC1967.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC1967"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/proxy/beacon/IBeacon.sol": {
+      "lastModificationDate": 1725494177004,
+      "contentHash": "0a5c323fd908535580597848b8e550fb",
+      "sourceName": "Contracts/@openzeppelin/contracts/proxy/beacon/IBeacon.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IBeacon"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/proxy/Proxy.sol": {
+      "lastModificationDate": 1725494177002,
+      "contentHash": "35308c2fa7be99a959494c37e8257c16",
+      "sourceName": "Contracts/@openzeppelin/contracts/proxy/Proxy.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Proxy"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol": {
+      "lastModificationDate": 1725494177009,
+      "contentHash": "c6d3b3ab4be412d410950f5dfd36cb32",
+      "sourceName": "Contracts/@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../../interfaces/draft-IERC1822.sol",
+        "../ERC1967/ERC1967Utils.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "UUPSUpgradeable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/draft-IERC1822.sol": {
+      "lastModificationDate": 1725494176996,
+      "contentHash": "5a6f0412127636d802db818a7d6ac404",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/draft-IERC1822.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC1822Proxiable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol": {
+      "lastModificationDate": 1725494177003,
+      "contentHash": "bbdd1a173308017ae952a32e056d0fac",
+      "sourceName": "Contracts/@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IBeacon.sol",
+        "../Proxy.sol",
+        "../ERC1967/ERC1967Utils.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "BeaconProxy"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol": {
+      "lastModificationDate": 1725494177005,
+      "contentHash": "199aceb57a6d0b08264d822f36b20494",
+      "sourceName": "Contracts/@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IBeacon.sol",
+        "../../access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "UpgradeableBeacon"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol": {
+      "lastModificationDate": 1725494177034,
+      "contentHash": "50d770b698931f015309e77a750f54f6",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC721.sol",
+        "../../../utils/Strings.sol",
+        "../../../interfaces/IERC4906.sol",
+        "../../../interfaces/IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC721URIStorage"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC4906.sol": {
+      "lastModificationDate": 1725494176991,
+      "contentHash": "7f130e0d70179d683e9b9df0dda38a51",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC4906.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IERC165.sol",
+        "./IERC721.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC4906"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC721.sol": {
+      "lastModificationDate": 1725494176993,
+      "contentHash": "d8d23fc2f55ed934d1a1b91c9afd8526",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC721.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC721/IERC721.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC721Metadata.sol": {
+      "lastModificationDate": 1725494176994,
+      "contentHash": "708974791831d5bf3b7e716e71328c12",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC721Metadata.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC721/extensions/IERC721Metadata.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol": {
+      "lastModificationDate": 1725494177035,
+      "contentHash": "3fdc14aab706458ae99314f6f7f529a2",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../IERC721.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC721Enumerable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol": {
+      "lastModificationDate": 1725494177032,
+      "contentHash": "6f49fe93ad40dc0bd4cac0cc124d0415",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC721.sol",
+        "./IERC721Enumerable.sol",
+        "../../../utils/introspection/ERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC721Enumerable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/introspection/ERC165Checker.sol": {
+      "lastModificationDate": 1725494177063,
+      "contentHash": "39cb7ad93657f9f444653cf94d6fc392",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/introspection/ERC165Checker.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC165Checker"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC1155/ERC1155.sol": {
+      "lastModificationDate": 1725494177011,
+      "contentHash": "917e6b867a0e67cd81ca4eb34336ca35",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC1155/ERC1155.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IERC1155.sol",
+        "./IERC1155Receiver.sol",
+        "./extensions/IERC1155MetadataURI.sol",
+        "../../utils/Context.sol",
+        "../../utils/introspection/ERC165.sol",
+        "../../utils/Arrays.sol",
+        "../../interfaces/draft-IERC6093.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC1155"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/Arrays.sol": {
+      "lastModificationDate": 1725494177042,
+      "contentHash": "fabe6fe8d403b4f72dec1dc585ab1c7a",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/Arrays.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./StorageSlot.sol",
+        "./math/Math.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Arrays"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC1155/IERC1155.sol": {
+      "lastModificationDate": 1725494177012,
+      "contentHash": "d70aa5aeb17749b65a9bde4cce2bd72c",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC1155/IERC1155.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../../utils/introspection/IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC1155"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol": {
+      "lastModificationDate": 1725494177018,
+      "contentHash": "96903941ac1966aa14e08bd4ab3c264e",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../IERC1155.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC1155MetadataURI"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC1155/extensions/ERC1155URIStorage.sol": {
+      "lastModificationDate": 1725494177018,
+      "contentHash": "a1ea90d94ca61dad25654a8e6bb55c9c",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC1155/extensions/ERC1155URIStorage.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../../../utils/Strings.sol",
+        "../ERC1155.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC1155URIStorage"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol": {
+      "lastModificationDate": 1725494177017,
+      "contentHash": "cd3939898b5ce8fba2c0e737c9408ea0",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC1155.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC1155Supply"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Pausable.sol": {
+      "lastModificationDate": 1725494177016,
+      "contentHash": "65a0d1937089d4a75c0b07814fc18d08",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Pausable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC1155.sol",
+        "../../../utils/Pausable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC1155Pausable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/Pausable.sol": {
+      "lastModificationDate": 1725494177047,
+      "contentHash": "24e52f6ef3868e6fca664a423140bee9",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/Pausable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Pausable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/Multicall.sol": {
+      "lastModificationDate": 1725494177045,
+      "contentHash": "6266d548afd3239d3367bb354e16d8fb",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/Multicall.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./Address.sol",
+        "./Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Multicall"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol": {
+      "lastModificationDate": 1725494177028,
+      "contentHash": "697fd27924863e77c17dace2179018b2",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../IERC20.sol",
+        "../extensions/IERC20Permit.sol",
+        "../../../utils/Address.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "SafeERC20"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
+      "lastModificationDate": 1725494177021,
+      "contentHash": "5517c8678c18eb1a8ba58810e7ca39ca",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC20/IERC20.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC20"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol": {
+      "lastModificationDate": 1725494177027,
+      "contentHash": "da291753fa4641f2c5837bfc4aa4c01b",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC20Permit"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol": {
+      "lastModificationDate": 1725494177024,
+      "contentHash": "d3f7511a1805398723f36799db2af4e1",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IERC20Permit.sol",
+        "../ERC20.sol",
+        "../../../utils/cryptography/ECDSA.sol",
+        "../../../utils/cryptography/EIP712.sol",
+        "../../../utils/Nonces.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC20Permit"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC20/ERC20.sol": {
+      "lastModificationDate": 1725494177020,
+      "contentHash": "c6375ef25e84c90b3d15f9ec4eef218f",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC20/ERC20.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IERC20.sol",
+        "./extensions/IERC20Metadata.sol",
+        "../../utils/Context.sol",
+        "../../interfaces/draft-IERC6093.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC20"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
+      "lastModificationDate": 1725494177027,
+      "contentHash": "4c02fa6f7ae7b6c289cef80424f0c875",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC20Metadata"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/metatx/ERC2771Forwarder.sol": {
+      "lastModificationDate": 1725494176998,
+      "contentHash": "ec2fb05cb331a976d2045d3da2339a7e",
+      "sourceName": "Contracts/@openzeppelin/contracts/metatx/ERC2771Forwarder.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./ERC2771Context.sol",
+        "../utils/cryptography/ECDSA.sol",
+        "../utils/cryptography/EIP712.sol",
+        "../utils/Nonces.sol",
+        "../utils/Address.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC2771Forwarder"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/metatx/ERC2771Context.sol": {
+      "lastModificationDate": 1725494176997,
+      "contentHash": "4355081df80fc85d1a1e8baf6c2f7eeb",
+      "sourceName": "Contracts/@openzeppelin/contracts/metatx/ERC2771Context.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC2771Context"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/extensions/GovernorVotes.sol": {
+      "lastModificationDate": 1725494176975,
+      "contentHash": "d072e6f9bedf5f954d9d79f18430e16b",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/extensions/GovernorVotes.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Governor.sol",
+        "../utils/IVotes.sol",
+        "../../interfaces/IERC5805.sol",
+        "../../utils/math/SafeCast.sol",
+        "../../utils/types/Time.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "GovernorVotes"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/utils/IVotes.sol": {
+      "lastModificationDate": 1725494176977,
+      "contentHash": "905ffceb29869fee4b5a649abe7e2927",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/utils/IVotes.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IVotes"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC5805.sol": {
+      "lastModificationDate": 1725494176992,
+      "contentHash": "65ba9f89b1057e2192e341b286d4e261",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC5805.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../governance/utils/IVotes.sol",
+        "./IERC6372.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC5805"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol": {
+      "lastModificationDate": 1725494176976,
+      "contentHash": "ba87d2cefbc58d280de206ed8ceb1067",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./GovernorVotes.sol",
+        "../../utils/math/SafeCast.sol",
+        "../../utils/structs/Checkpoints.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "GovernorVotesQuorumFraction"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/utils/Votes.sol": {
+      "lastModificationDate": 1725494176978,
+      "contentHash": "4e568f7f6f52177f72d1fd7a4dc60928",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/utils/Votes.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../../interfaces/IERC5805.sol",
+        "../../utils/Context.sol",
+        "../../utils/Nonces.sol",
+        "../../utils/cryptography/EIP712.sol",
+        "../../utils/structs/Checkpoints.sol",
+        "../../utils/math/SafeCast.sol",
+        "../../utils/cryptography/ECDSA.sol",
+        "../../utils/types/Time.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Votes"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Votes.sol": {
+      "lastModificationDate": 1725494177034,
+      "contentHash": "687454ef6b1ea6c8e0623a60f40d71a2",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Votes.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC721.sol",
+        "../../../governance/utils/Votes.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC721Votes"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol": {
+      "lastModificationDate": 1725494177025,
+      "contentHash": "fb3d36ea29687f5bba57d9e22a2a1613",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC20.sol",
+        "../../../governance/utils/Votes.sol",
+        "../../../utils/structs/Checkpoints.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC20Votes"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol": {
+      "lastModificationDate": 1725494177026,
+      "contentHash": "f8be70d571d64ace7a0c6abe2f24b6df",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC20.sol",
+        "../utils/SafeERC20.sol",
+        "../../../interfaces/IERC4626.sol",
+        "../../../utils/math/Math.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC4626"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC4626.sol": {
+      "lastModificationDate": 1725494176990,
+      "contentHash": "0183b03ab187ed5ebaca38e930e72d8f",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC4626.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC20/IERC20.sol",
+        "../token/ERC20/extensions/IERC20Metadata.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC4626"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC20.sol": {
+      "lastModificationDate": 1725494176986,
+      "contentHash": "79af12d64eacc7d77b9ee2ac4b4d51ee",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC20.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC20/IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC1363.sol": {
+      "lastModificationDate": 1725494176981,
+      "contentHash": "47503c83d033cb36c489c173f1cd7e4e",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC1363.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IERC20.sol",
+        "./IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC1363"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/finance/VestingWallet.sol": {
+      "lastModificationDate": 1725494176963,
+      "contentHash": "a88acfbacec322a70e898bdd5462d33b",
+      "sourceName": "Contracts/@openzeppelin/contracts/finance/VestingWallet.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC20/IERC20.sol",
+        "../token/ERC20/utils/SafeERC20.sol",
+        "../utils/Address.sol",
+        "../utils/Context.sol",
+        "../access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "VestingWallet"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC20Metadata.sol": {
+      "lastModificationDate": 1725494176987,
+      "contentHash": "3815218125d205c2b6a9e25d9084ace0",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC20Metadata.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC20/extensions/IERC20Metadata.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20Wrapper.sol": {
+      "lastModificationDate": 1725494177025,
+      "contentHash": "9c5295ef85122fce6d302864b3c27a10",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20Wrapper.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC20.sol",
+        "../utils/SafeERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC20Wrapper"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol": {
+      "lastModificationDate": 1725494177023,
+      "contentHash": "64b7606ccba31af7e49e3b2d8af1b948",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC20.sol",
+        "../../../utils/Pausable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC20Pausable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20FlashMint.sol": {
+      "lastModificationDate": 1725494177023,
+      "contentHash": "8192e62fa7bc2d5a5ff1e50cb2c6a35b",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20FlashMint.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../../../interfaces/IERC3156FlashBorrower.sol",
+        "../../../interfaces/IERC3156FlashLender.sol",
+        "../ERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC20FlashMint"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol": {
+      "lastModificationDate": 1725494176989,
+      "contentHash": "9b904b6774216ee04c28d7869f6654cb",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC3156FlashBorrower"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC3156FlashLender.sol": {
+      "lastModificationDate": 1725494176989,
+      "contentHash": "25ac887070a1ec97078365e550d17a62",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC3156FlashLender.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IERC3156FlashBorrower.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC3156FlashLender"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC3156.sol": {
+      "lastModificationDate": 1725494176989,
+      "contentHash": "c7ab21b6614616fd24e80c484f2ce106",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC3156.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IERC3156FlashBorrower.sol",
+        "./IERC3156FlashLender.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol": {
+      "lastModificationDate": 1725494177022,
+      "contentHash": "599b6100008da0cc7875f57044251679",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC20Capped"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol": {
+      "lastModificationDate": 1725494177022,
+      "contentHash": "273d8d24b06f67207dd5f35c3a0c1086",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC20.sol",
+        "../../../utils/Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC20Burnable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/extensions/GovernorTimelockCompound.sol": {
+      "lastModificationDate": 1725494176974,
+      "contentHash": "b0635369d38723565f215c1a28d4a4db",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/extensions/GovernorTimelockCompound.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Governor.sol",
+        "../../vendor/compound/ICompoundTimelock.sol",
+        "../../utils/Address.sol",
+        "../../utils/math/SafeCast.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "GovernorTimelockCompound"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/vendor/compound/ICompoundTimelock.sol": {
+      "lastModificationDate": 1725494177073,
+      "contentHash": "ada467e5452e02c4e091de7093d51d4d",
+      "sourceName": "Contracts/@openzeppelin/contracts/vendor/compound/ICompoundTimelock.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ICompoundTimelock"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/extensions/GovernorTimelockAccess.sol": {
+      "lastModificationDate": 1725494176973,
+      "contentHash": "b9911a6d2a3e1940c463e9df17812e8d",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/extensions/GovernorTimelockAccess.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Governor.sol",
+        "../../access/manager/AuthorityUtils.sol",
+        "../../access/manager/IAccessManager.sol",
+        "../../utils/Address.sol",
+        "../../utils/math/Math.sol",
+        "../../utils/math/SafeCast.sol",
+        "../../utils/types/Time.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "GovernorTimelockAccess"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/manager/AuthorityUtils.sol": {
+      "lastModificationDate": 1725494176864,
+      "contentHash": "e96b8b2cce8bd8dd292b03bf9310e64a",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/manager/AuthorityUtils.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IAuthority.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AuthorityUtils"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/manager/IAccessManager.sol": {
+      "lastModificationDate": 1725494176865,
+      "contentHash": "eac9385eab329e39a4fd006c13d6670c",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/manager/IAccessManager.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IAccessManaged.sol",
+        "../../utils/types/Time.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IAccessManager"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/manager/IAuthority.sol": {
+      "lastModificationDate": 1725494176866,
+      "contentHash": "c32de6180bb4898b96ebbcc4cc3a322d",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/manager/IAuthority.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IAuthority"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/manager/IAccessManaged.sol": {
+      "lastModificationDate": 1725494176864,
+      "contentHash": "c1b6a9715af4a5093443761a8ac58963",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/manager/IAccessManaged.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IAccessManaged"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/manager/AccessManager.sol": {
+      "lastModificationDate": 1725494176863,
+      "contentHash": "56292c48a4028eae262948dcd946763e",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/manager/AccessManager.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IAccessManager.sol",
+        "./IAccessManaged.sol",
+        "../../utils/Address.sol",
+        "../../utils/Context.sol",
+        "../../utils/Multicall.sol",
+        "../../utils/math/Math.sol",
+        "../../utils/types/Time.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AccessManager"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/manager/AccessManaged.sol": {
+      "lastModificationDate": 1725494176861,
+      "contentHash": "493c79926bf9d033e1133a9218858eed",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/manager/AccessManaged.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IAuthority.sol",
+        "./AuthorityUtils.sol",
+        "./IAccessManager.sol",
+        "./IAccessManaged.sol",
+        "../../utils/Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AccessManaged"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/extensions/GovernorStorage.sol": {
+      "lastModificationDate": 1725494176972,
+      "contentHash": "d3234eb1eb0ec4fb133f47b8523938cb",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/extensions/GovernorStorage.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Governor.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "GovernorStorage"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/extensions/GovernorSettings.sol": {
+      "lastModificationDate": 1725494176972,
+      "contentHash": "80b3bbc71b44392e967e1b2f7704c692",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/extensions/GovernorSettings.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Governor.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "GovernorSettings"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/extensions/GovernorPreventLateQuorum.sol": {
+      "lastModificationDate": 1725494176971,
+      "contentHash": "7b8f0752f6fbde0ed8ddcae0b65292ae",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/extensions/GovernorPreventLateQuorum.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Governor.sol",
+        "../../utils/math/Math.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "GovernorPreventLateQuorum"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol": {
+      "lastModificationDate": 1725494176971,
+      "contentHash": "dddc910430b6d9baa44bce4b1b4c22c6",
+      "sourceName": "Contracts/@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Governor.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "GovernorCountingSimple"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Wrapper.sol": {
+      "lastModificationDate": 1725494177035,
+      "contentHash": "07cdf9fe8275e10fac15bd87315669c8",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Wrapper.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC721.sol",
+        "../IERC721Receiver.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC721Wrapper"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC721Receiver.sol": {
+      "lastModificationDate": 1725494176994,
+      "contentHash": "46de37ac3429d6d22ffd1fc55f90b59a",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC721Receiver.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC721/IERC721Receiver.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC2612.sol": {
+      "lastModificationDate": 1725494176988,
+      "contentHash": "71cf69736448a82eecbe054a13b64fc1",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC2612.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC20/extensions/IERC20Permit.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC2612"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol": {
+      "lastModificationDate": 1725494177031,
+      "contentHash": "4c81010564fe4bcfa8a3ba8fe66d4773",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC721.sol",
+        "../../../utils/Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC721Burnable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol": {
+      "lastModificationDate": 1725494177033,
+      "contentHash": "82673f10743c1bce4d9254772c9f4a81",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC721.sol",
+        "../../../utils/Pausable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC721Pausable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol": {
+      "lastModificationDate": 1725494177016,
+      "contentHash": "b0e85a62dd2562811ca4c7aa2d36f95c",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC1155.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC1155Burnable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC1155.sol": {
+      "lastModificationDate": 1725494176979,
+      "contentHash": "9073ad0d8f70749583dff4c93336fb1a",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC1155.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC1155/IERC1155.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC1155MetadataURI.sol": {
+      "lastModificationDate": 1725494176979,
+      "contentHash": "2019bc7b16a2b928a62030be1c737a57",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC1155MetadataURI.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC1155/extensions/IERC1155MetadataURI.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC1155Receiver.sol": {
+      "lastModificationDate": 1725494176980,
+      "contentHash": "c48072790ee1c4479c12ea9a224ef2a7",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC1155Receiver.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC1155/IERC1155Receiver.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC2981.sol": {
+      "lastModificationDate": 1725494176988,
+      "contentHash": "a121ffbe9ad90f8eb00e40e96adc5a42",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC2981.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/introspection/IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC2981"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/common/ERC2981.sol": {
+      "lastModificationDate": 1725494177038,
+      "contentHash": "3c04b86a06ae097ae7001eb03ab78e2d",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/common/ERC2981.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../../interfaces/IERC2981.sol",
+        "../../utils/introspection/ERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC2981"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol": {
+      "lastModificationDate": 1725494177033,
+      "contentHash": "2e11a891bdfd79c8fe71d8b08a01712b",
+      "sourceName": "Contracts/@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC721.sol",
+        "../../common/ERC2981.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC721Royalty"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC721Enumerable.sol": {
+      "lastModificationDate": 1725494176993,
+      "contentHash": "a1abd50107cd93bc498669b5c2cbe748",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC721Enumerable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC721/extensions/IERC721Enumerable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": []
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/Ownable2Step.sol": {
+      "lastModificationDate": 1725494176831,
+      "contentHash": "788848210033a6e4379cfef67e5bcb0d",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/Ownable2Step.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Ownable2Step"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol": {
+      "lastModificationDate": 1725494176834,
+      "contentHash": "d765bf467430909a9687b336bb946d78",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IAccessControlDefaultAdminRules.sol",
+        "../AccessControl.sol",
+        "../../utils/math/SafeCast.sol",
+        "../../utils/math/Math.sol",
+        "../../interfaces/IERC5313.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AccessControlDefaultAdminRules"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC5313.sol": {
+      "lastModificationDate": 1725494176991,
+      "contentHash": "102f441e8bc28c4fc48b349151273d01",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC5313.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC5313"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/extensions/IAccessControlDefaultAdminRules.sol": {
+      "lastModificationDate": 1725494176841,
+      "contentHash": "a99615d9875393acb1c5f5385d663d39",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/extensions/IAccessControlDefaultAdminRules.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../IAccessControl.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IAccessControlDefaultAdminRules"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/extensions/IAccessControlEnumerable.sol": {
+      "lastModificationDate": 1725494176842,
+      "contentHash": "dee593036d921a6c80dde00be56a8e69",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/extensions/IAccessControlEnumerable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../IAccessControl.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IAccessControlEnumerable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol": {
+      "lastModificationDate": 1725494176840,
+      "contentHash": "2e7f67add6ecddc7e65b052401fdb9eb",
+      "sourceName": "Contracts/@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IAccessControlEnumerable.sol",
+        "../AccessControl.sol",
+        "../../utils/structs/EnumerableSet.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AccessControlEnumerable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/structs/EnumerableSet.sol": {
+      "lastModificationDate": 1725494177071,
+      "contentHash": "99b208f3f285702e96243d329411c5de",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "EnumerableSet"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/structs/EnumerableMap.sol": {
+      "lastModificationDate": 1725494177071,
+      "contentHash": "d225c874145ae2b313718221802a127e",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/structs/EnumerableMap.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./EnumerableSet.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "EnumerableMap"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC1363Receiver.sol": {
+      "lastModificationDate": 1725494176982,
+      "contentHash": "371cb7d63d7f35375f1d0bc44cec25f0",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC1363Receiver.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC1363Receiver"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC1363Spender.sol": {
+      "lastModificationDate": 1725494176983,
+      "contentHash": "003cf2717f7cedfa6858975d0350f018",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC1363Spender.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC1363Spender"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC1820Implementer.sol": {
+      "lastModificationDate": 1725494176984,
+      "contentHash": "49509f3e477207e8997627b401fbcbe9",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC1820Implementer.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC1820Implementer"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC1820Registry.sol": {
+      "lastModificationDate": 1725494176985,
+      "contentHash": "e101cc92e5956e29d5dddd25db4ad919",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC1820Registry.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC1820Registry"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC777.sol": {
+      "lastModificationDate": 1725494176995,
+      "contentHash": "80a075b8b83740628e0170b3ddebf5de",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC777.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC777"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC777Recipient.sol": {
+      "lastModificationDate": 1725494176995,
+      "contentHash": "a6022f8405493168b689ed0d88ea46e0",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC777Recipient.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC777Recipient"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/interfaces/IERC777Sender.sol": {
+      "lastModificationDate": 1725494176996,
+      "contentHash": "71ec87a947753da66a859e69e77f32c8",
+      "sourceName": "Contracts/@openzeppelin/contracts/interfaces/IERC777Sender.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC777Sender"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/proxy/Clones.sol": {
+      "lastModificationDate": 1725494177000,
+      "contentHash": "3f126cc3806f04f2c7530211ada54b1e",
+      "sourceName": "Contracts/@openzeppelin/contracts/proxy/Clones.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Clones"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/proxy/utils/Initializable.sol": {
+      "lastModificationDate": 1725494177008,
+      "contentHash": "f0cedd674b4863ee90d1521a92ab82df",
+      "sourceName": "Contracts/@openzeppelin/contracts/proxy/utils/Initializable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Initializable"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/Base64.sol": {
+      "lastModificationDate": 1725494177042,
+      "contentHash": "89b9633fa53a8d960ba4763727f27421",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/Base64.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Base64"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/Create2.sol": {
+      "lastModificationDate": 1725494177044,
+      "contentHash": "30964d662b27a7894b1cf10058dc8d6b",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/Create2.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Create2"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/ReentrancyGuard.sol": {
+      "lastModificationDate": 1725494177047,
+      "contentHash": "a92331adac11b453a4de0323fc948119",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/ReentrancyGuard.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ReentrancyGuard"
+      ]
+    },
+    "/Users/faridunberdiev/Documents/OASIS/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/@openzeppelin/contracts/utils/cryptography/MerkleProof.sol": {
+      "lastModificationDate": 1725494177053,
+      "contentHash": "aa87c17aff0d584703d5d046b9979f1d",
+      "sourceName": "Contracts/@openzeppelin/contracts/utils/cryptography/MerkleProof.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "MerkleProof"
       ]
     }
   }
