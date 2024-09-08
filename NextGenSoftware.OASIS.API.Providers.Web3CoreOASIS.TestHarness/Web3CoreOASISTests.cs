@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness;
 
 public sealed class Web3CoreOASISTests(Web3CoreOASISFixture fixture) : IClassFixture<Web3CoreOASISFixture>
@@ -143,5 +145,54 @@ public sealed class Web3CoreOASISTests(Web3CoreOASISFixture fixture) : IClassFix
     {
         uint count = await _fixture.Web3CoreOASIS.GetHolonsCountAsync();
         Assert.True(count >= 0);
+    }
+
+    /// <summary>
+    /// Test for minting an NFT using the MintAsync method.
+    /// Verifies that the transaction hash is not empty, indicating the transaction was sent successfully.
+    /// </summary>
+    [Theory]
+    [InlineData("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", "{\"name\":\"NFT1\",\"description\":\"My first NFT\"}")]
+    [InlineData("0x70997970C51812dc3A010C7d01b50e0d17dc79C8", "{\"name\":\"NFT2\",\"description\":\"My second NFT\"}")]
+    public async Task Web3CoreOASIS_MintAsync_ShouldMintNFT_Scenario(string toAddress, string metadataJson)
+    {
+        // Ensure that the test environment is running, the contract is deployed, and the required accounts exist.
+        // Verify that the address provided in the test has sufficient funds to mint the NFT.
+        // When running multiple mint operations, be aware that tokens may be moved or consumed, which can affect subsequent tests.
+
+        string transactionHash = await _fixture.Web3CoreOASIS.MintAsync(toAddress, metadataJson);
+        Assert.False(string.IsNullOrEmpty(transactionHash));
+    }
+
+    /// <summary>
+    /// Test for sending an NFT using the SendNFTAsync method.
+    /// Verifies that the transaction hash is not empty, indicating the transaction was sent successfully.
+    /// </summary>
+    [Theory]
+    [InlineData("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", 2, "provider1", "provider2", 100, "Test memo")]
+    [InlineData("0x70997970C51812dc3A010C7d01b50e0d17dc79C8", "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", 3, "provider2", "provider1", 200, "Another memo")]
+    public async Task Web3CoreOASIS_SendNFTAsync_ShouldSendNFT_Scenario(
+        string fromAddress, 
+        string toAddress, 
+        BigInteger tokenId, 
+        string fromProviderType, 
+        string toProviderType, 
+        BigInteger amount, 
+        string memoText)
+    {
+        // Ensure that the test environment is running, the contract is deployed, and the required accounts exist.
+        // Verify that the 'fromAddress' has the token with the specified tokenId and sufficient balance for sending.
+        // Be aware that sending NFTs may affect the availability of tokens, potentially causing tests to fail if the tokens are no longer available.
+
+        string transactionHash = await _fixture.Web3CoreOASIS.SendNFTAsync(
+            fromAddress, 
+            toAddress, 
+            tokenId, 
+            fromProviderType, 
+            toProviderType, 
+            amount, 
+            memoText
+        );
+        Assert.False(string.IsNullOrEmpty(transactionHash));
     }
 }

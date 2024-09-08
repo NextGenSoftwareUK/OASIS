@@ -3,10 +3,10 @@ using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 
-public sealed class PolygonOASIS : Web3CoreOASISBaseProvider, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider
+public sealed class PolygonOASIS : Web3CoreOASISBaseProvider, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
 {
-    public PolygonOASIS(string hostUri, string chainPrivateKey, string contractAddress, string abi)
-        : base(hostUri, chainPrivateKey, contractAddress, abi)
+    public PolygonOASIS(string hostUri, string chainPrivateKey, string contractAddress)
+        : base(hostUri, chainPrivateKey, contractAddress)
     {
         this.ProviderName = "PolygonOASIS";
         this.ProviderDescription = "Polygon Provider";

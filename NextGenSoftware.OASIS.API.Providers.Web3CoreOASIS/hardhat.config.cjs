@@ -1,7 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
 
 module.exports = {
-    solidity: "0.8.17",
+    solidity: "0.8.20",
     networks: {
         hardhat: {
             chainId: 1337,
@@ -16,6 +16,11 @@ module.exports = {
         },
         polygon: {
             url: "https://rpc-amoy.polygon.technology/",
+            accounts: [process.env.PRIVATE_KEY],
+        },
+        arbitrum: {
+            url: "https://sepolia-rollup.arbitrum.io/rpc",
+            chainId: 421614,
             accounts: [process.env.PRIVATE_KEY],
         },
     },

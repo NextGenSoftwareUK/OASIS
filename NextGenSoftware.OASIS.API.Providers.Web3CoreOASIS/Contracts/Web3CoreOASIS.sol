@@ -1,33 +1,37 @@
 // SPDX-License-Identifier: UNLICENSED
 // compiler version must be greater than or equal to 0.8.3 and less than 0.9.0
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.20;
+
+import "./@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "./@openzeppelin/contracts/access/Ownable.sol";
 
 import "./IWeb3CoreOASIS.sol";
 import "./EntityOASIS.sol";
+import "./NFTMetadata.sol";
+import "./NFTTransfer.sol";
 
-contract Web3CoreOASIS is IWeb3CoreOASIS {
+contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
 
     string constant ENTITY_NOT_EXIST = "Entity not exist";
     string constant ENTITY_ALREADY_EXIST = "Entity already exist";
     string constant OWNER_NOT_AUTHORIZED = "Not authorized";
+    string constant OWNER_NOT_TOKEN = "You are not the owner of this token";
 
     mapping(uint256 => EntityOASIS) private avatars;
     mapping(uint256 => EntityOASIS) private avatarDetails;
     mapping(uint256 => EntityOASIS) private holons;
+    mapping(uint256 => NFTMetadata) public nftMetadata;
+    mapping(uint256 => NFTTransfer[]) public nftTransfers;
 
     uint256 private totalAvatarsCount;
     uint256 private totalAvatarDetailsCount;
     uint256 private totalHolonsCount;
+    uint256 public nextTokenId;
 
-    address private owner;
+    address private admin;
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, OWNER_NOT_AUTHORIZED);
-        _;
-    }
-
-    constructor() {
-        owner = msg.sender;
+    constructor() ERC721('Web3CoreOASIS', 'MNFT') Ownable(msg.sender) {
+        admin = msg.sender;
         totalAvatarsCount = 0;
         totalAvatarDetailsCount = 0;
         totalHolonsCount = 0;
@@ -139,5 +143,47 @@ contract Web3CoreOASIS is IWeb3CoreOASIS {
 
     function getHolonsCount() public view returns (uint256 count) {
         return totalHolonsCount;
+    }
+
+    function mint(
+        address to,
+        string memory metadataJson
+    ) external onlyOwner {
+        nftMetadata[nextTokenId] = NFTMetadata(
+            metadataJson
+        );
+
+        _safeMint(to, nextTokenId);
+        nextTokenId++;
+    }
+
+    function sendNFT(
+        address fromWalletAddress,
+        address toWalletAddress,
+        uint256 tokenId,
+        string memory fromProviderType,
+        string memory toProviderType,
+        uint256 amount,
+        string memory memoText
+    ) external {
+        require(ownerOf(tokenId) == fromWalletAddress, OWNER_NOT_TOKEN);
+        require(fromWalletAddress == msg.sender, OWNER_NOT_AUTHORIZED);
+
+        _transfer(fromWalletAddress, toWalletAddress, tokenId);
+
+        NFTTransfer memory transfer = NFTTransfer({
+            fromWalletAddress: fromWalletAddress,
+            toWalletAddress: toWalletAddress,
+            fromProviderType: fromProviderType,
+            toProviderType: toProviderType,
+            amount: amount,
+            memoText: memoText
+        });
+
+        nftTransfers[tokenId].push(transfer);
+    }
+
+    function getTransferHistory(uint256 tokenId) external view returns (NFTTransfer[] memory) {
+        return nftTransfers[tokenId];
     }
 }

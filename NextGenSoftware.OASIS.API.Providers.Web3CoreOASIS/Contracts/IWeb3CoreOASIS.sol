@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 // compiler version must be greater than or equal to 0.8.3 and less than 0.9.0
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.20;
 
 import "./EntityOASIS.sol";
+import "./NFTTransfer.sol";
 
 interface IWeb3CoreOASIS {
 
@@ -25,4 +26,9 @@ interface IWeb3CoreOASIS {
     function getAvatarsCount() external view returns (uint256);
     function getAvatarDetailsCount() external view returns (uint256);
     function getHolonsCount() external view returns (uint256);
+
+    function mint(address to, string memory metadataJson) external;
+    function getTransferHistory(uint256 tokenId) external view returns (NFTTransfer[] memory);
+    function sendNFT(address fromWalletAddress, address toWalletAddress,
+        uint256 tokenId, string memory fromProviderType, string memory toProviderType, uint256 amount, string memory memoText) external;
 }
