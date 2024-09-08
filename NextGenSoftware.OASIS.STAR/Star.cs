@@ -831,39 +831,39 @@ namespace NextGenSoftware.OASIS.STAR
                     }
                 break;
 
-                case GenesisType.Galaxy:
-                    {
-                        newBody = new SuperStar();
+                //case GenesisType.Galaxy:
+                //    {
+                //        newBody = new SuperStar();
 
-                        if (celestialBodyParent == null)
-                            celestialBodyParent = DefaultGrandSuperStar;
+                //        if (celestialBodyParent == null)
+                //            celestialBodyParent = DefaultGrandSuperStar;
 
-                        Mapper<IGrandSuperStar, SuperStar>.MapParentCelestialBodyProperties((IGrandSuperStar)celestialBodyParent, (SuperStar)newBody);
-                        newBody.ParentHolon = celestialBodyParent;
-                        newBody.ParentHolonId = celestialBodyParentId;
-                        newBody.ParentCelestialBody = celestialBodyParent;
-                        newBody.ParentCelestialBodyId = celestialBodyParentId;
-                        newBody.ParentGrandSuperStar = (IGrandSuperStar)celestialBodyParent;
-                        newBody.ParentGrandSuperStarId = celestialBodyParentId;
-                    }
-                    break;
+                //        Mapper<IGrandSuperStar, SuperStar>.MapParentCelestialBodyProperties((IGrandSuperStar)celestialBodyParent, (SuperStar)newBody);
+                //        newBody.ParentHolon = celestialBodyParent;
+                //        newBody.ParentHolonId = celestialBodyParentId;
+                //        newBody.ParentCelestialBody = celestialBodyParent;
+                //        newBody.ParentCelestialBodyId = celestialBodyParentId;
+                //        newBody.ParentGrandSuperStar = (IGrandSuperStar)celestialBodyParent;
+                //        newBody.ParentGrandSuperStarId = celestialBodyParentId;
+                //    }
+                //    break;
 
-                case GenesisType.Universe:
-                    {
-                        newBody = new GrandSuperStar();
+                //case GenesisType.Universe:
+                //    {
+                //        newBody = new GrandSuperStar();
 
-                        if (celestialBodyParent == null)
-                            celestialBodyParent = DefaultGreatGrandSuperStar;
+                //        if (celestialBodyParent == null)
+                //            celestialBodyParent = DefaultGreatGrandSuperStar;
 
-                        Mapper<IGreatGrandSuperStar, GrandSuperStar>.MapParentCelestialBodyProperties((IGreatGrandSuperStar)celestialBodyParent, (GrandSuperStar)newBody);
-                        newBody.ParentHolon = celestialBodyParent;
-                        newBody.ParentHolonId = celestialBodyParentId;
-                        newBody.ParentCelestialBody = celestialBodyParent;
-                        newBody.ParentCelestialBodyId = celestialBodyParentId;
-                        newBody.ParentGreatGrandSuperStar = (IGreatGrandSuperStar)celestialBodyParent;
-                        newBody.ParentGreatGrandSuperStarId = celestialBodyParentId;
-                    }
-                    break;
+                //        Mapper<IGreatGrandSuperStar, GrandSuperStar>.MapParentCelestialBodyProperties((IGreatGrandSuperStar)celestialBodyParent, (GrandSuperStar)newBody);
+                //        newBody.ParentHolon = celestialBodyParent;
+                //        newBody.ParentHolonId = celestialBodyParentId;
+                //        newBody.ParentCelestialBody = celestialBodyParent;
+                //        newBody.ParentCelestialBodyId = celestialBodyParentId;
+                //        newBody.ParentGreatGrandSuperStar = (IGreatGrandSuperStar)celestialBodyParent;
+                //        newBody.ParentGreatGrandSuperStarId = celestialBodyParentId;
+                //    }
+                //    break;
             }
 
             if (genesisType != GenesisType.ZomesAndHolonsOnly)
@@ -1205,20 +1205,20 @@ namespace NextGenSoftware.OASIS.STAR
                             return new OASISResult<CoronalEjection>() { IsError = true, Message = "Unknown Error Occured Creating Star." };
                     }
 
-                case GenesisType.SoloarSystem:
-                    {
-                        OASISResult<ISolarSystem> result = await ((StarCore)celestialBodyParent.CelestialBodyCore).AddSolarSystemAsync(new SolarSystem() { Star = (IStar)newBody });
+                //case GenesisType.SoloarSystem:
+                //    {
+                //        OASISResult<ISolarSystem> result = await ((StarCore)celestialBodyParent.CelestialBodyCore).AddSolarSystemAsync(new SolarSystem() { Star = (IStar)newBody });
 
-                        if (result != null)
-                        {
-                            if (result.IsError)
-                                return new OASISResult<CoronalEjection>() { IsError = true, Message = result.Message, Result = new CoronalEjection() { CelestialSpace = result.Result, CelestialBody = result.Result.Star } };
-                            else
-                                return new OASISResult<CoronalEjection>() { IsError = false, Message = "Star/SoloarSystem Successfully Created.", Result = new CoronalEjection() { CelestialSpace = result.Result, CelestialBody = result.Result.Star } };
-                        }
-                        else
-                            return new OASISResult<CoronalEjection>() { IsError = true, Message = "Unknown Error Occured Creating Star/SoloarSystem." };
-                    }
+                //        if (result != null)
+                //        {
+                //            if (result.IsError)
+                //                return new OASISResult<CoronalEjection>() { IsError = true, Message = result.Message, Result = new CoronalEjection() { CelestialSpace = result.Result, CelestialBody = result.Result.Star } };
+                //            else
+                //                return new OASISResult<CoronalEjection>() { IsError = false, Message = "Star/SoloarSystem Successfully Created.", Result = new CoronalEjection() { CelestialSpace = result.Result, CelestialBody = result.Result.Star } };
+                //        }
+                //        else
+                //            return new OASISResult<CoronalEjection>() { IsError = true, Message = "Unknown Error Occured Creating Star/SoloarSystem." };
+                //    }
 
                 //TODO: Come back to this! ;-)
 
