@@ -1,26 +1,25 @@
 ﻿using System;
+using System.IO;
+using System.Text;
+using System.Linq;
+using System.Text.Json;
+using System.IO.Compression;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using System.IO.Compression;
-using System.IO;
-using System.Text;
-using System.Linq;
-using System.Collections;
-using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.ONode.Core.Enums;
+using NextGenSoftware.OASIS.API.ONode.Core.Holons;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
-    public class OAPPManager : OASISManager//, INFTManager
+    public class OAPPManager : OASISManager
     {
        //private static OAPPManager _instance = null;
 
@@ -82,36 +81,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
 
             return result;
-        }
-
-        public async Task<OASISResult<IEnumerable<IOAPP>>> ListOAPPsInstalledByAvatarAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IOAPP>> result = new OASISResult<IEnumerable<IOAPP>>();
-            string errorMessage = "Error occured in OAPPManager.ListOAPPsInstalledByAvatarAsync, Reason:";
-
-            //try
-            //{
-            //    OASISResult<IEnumerable<OAPP>> oapps = await Data.LoadHolonsForParentAsync<OAPP>(avatarId, HolonType.OAPP, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
-
-            //    if (oapps != null && oapps.Result != null && !oapps.IsError)
-            //    {
-            //        result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<OAPP>, IEnumerable<IOAPP>>(oapps);
-            //        result.Result = [.. oapps.Result];
-            //    }
-            //    else
-            //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling Data.LoadHolonsForParentAsync, reason: {oapps.Message}");
-            //}
-            //catch (Exception e)
-            //{
-            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
-            //}
-
-            return result;
-        }
-
-        public OASISResult<IEnumerable<IOAPP>> ListOAPPsInstalledByAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            return new OASISResult<IEnumerable<IOAPP>>();
         }
 
         public async Task<OASISResult<IEnumerable<IOAPP>>> ListAllOAPPsAsync(ProviderType providerType = ProviderType.Default)
@@ -381,7 +350,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                await File.WriteAllTextAsync(Path.Combine(fullPathToOAPP, "OASISDNA.json"), JsonSerializer.Serialize<OAPPDNA>((OAPPDNA)OAPPDNA));
+                await File.WriteAllTextAsync(Path.Combine(fullPathToOAPP, "OASISDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA));
                 string publishedOAPPPath = string.Concat(fullPathToOAPP, "\\Published\\", OAPPDNA.OAPPName, ".oapp");
                 //Directory.CreateDirectory(publichedOAPPPath);
                 ZipFile.CreateFromDirectory(fullPathToOAPP, publishedOAPPPath);
@@ -410,22 +379,33 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IOAPP> PublishOAPP(IOAPP OAPP, string fullPathToOAPP, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> PublishOAPP(IOAPPDNA OAPPDNA, string fullPathToOAPP, Guid avatarId, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
-            string errorMessage = "Error occured in OAPPManager.PublishOAPPAsync. Reason: ";
+            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
+            string errorMessage = "Error occured in OAPPManager.PublishOAPP. Reason: ";
 
             try
             {
-                string publichedOAPPPath = string.Concat(fullPathToOAPP, "\\Published\\", OAPP.Name, ".oapp");
+                File.WriteAllText(Path.Combine(fullPathToOAPP, "OASISDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA));
+                string publishedOAPPPath = string.Concat(fullPathToOAPP, "\\Published\\", OAPPDNA.OAPPName, ".oapp");
                 //Directory.CreateDirectory(publichedOAPPPath);
-                ZipFile.CreateFromDirectory(fullPathToOAPP, publichedOAPPPath);
+                ZipFile.CreateFromDirectory(fullPathToOAPP, publishedOAPPPath);
 
-                if (registerOnSTARNET)
-                    OAPP.PublishedOAPP = File.ReadAllBytes(publichedOAPPPath);
+                OASISResult<IOAPP> OAPPResult = LoadOAPP(OAPPDNA.OAPPId);
 
-                OAPP.PublishedOn = DateTime.Now;
-                result = SaveOAPP(OAPP, providerType);
+                if (OAPPResult != null && OAPPResult.Result != null && !OAPPResult.IsError)
+                {
+                    if (registerOnSTARNET)
+                        OAPPResult.Result.PublishedOAPP = File.ReadAllBytes(publishedOAPPPath);
+
+                    OAPPResult.Result.PublishedOn = DateTime.Now;
+                    OAPPResult.Result.PublishedByAvatarId = avatarId;
+                    OAPPDNA.PublishedDate = OAPPResult.Result.PublishedOn;
+                    OAPPDNA.PublishedByAvatarId = avatarId;
+
+                    OASISResult<IOAPP> OAPPSaveResult = SaveOAPP(OAPPResult.Result, providerType);
+                    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IOAPP, IOAPPDNA>(OAPPSaveResult);
+                }
             }
             catch (Exception ex)
             {
@@ -435,55 +415,133 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPP>> PublishOAPPAsync(Guid OAPPId, string fullPathToOAPP, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(Guid OAPPId, string fullPathToOAPP, Guid avatarId, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             OASISResult<IOAPP> loadResult = await LoadOAPPAsync(OAPPId, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
-                result = await PublishOAPPAsync(loadResult.Result, fullPathToOAPP, registerOnSTARNET, providerType);
+                result = await PublishOAPPAsync(ConvertOAPPToOAPPDNA(loadResult.Result), fullPathToOAPP, avatarId, registerOnSTARNET, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in PublishOAPPAsync loading the OAPP with the LoadOAPPAsync method, reason: {loadResult.Message}");
 
             return result;
         }
 
-        public OASISResult<IOAPP> PublishOAPP(Guid OAPPId, string fullPathToOAPP, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> PublishOAPP(Guid OAPPId, string fullPathToOAPP, Guid avatarId, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             OASISResult<IOAPP> loadResult = LoadOAPP(OAPPId, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
-                result = PublishOAPP(loadResult.Result, fullPathToOAPP, registerOnSTARNET, providerType);
+                result = PublishOAPP(ConvertOAPPToOAPPDNA(loadResult.Result), fullPathToOAPP, avatarId, registerOnSTARNET, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in PublishOAPP loading the OAPP with the LoadOAPP method, reason: {loadResult.Message}");
 
             return result;
         }
 
-        public async Task<OASISResult<IOAPP>> UnPublishOAPPAsync(IOAPP OAPP, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPDNA>> UnPublishOAPPAsync(IOAPPDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>(OAPPDNA);
+            OASISResult<IOAPP> oappResult = await LoadOAPPAsync(OAPPDNA.OAPPId, providerType);
+            string errorMessage = "Error occured in UnPublishOAPPAsync. Reason: ";
 
-            OAPP.PublishedOn = DateTime.MinValue;
-            result = await SaveOAPPAsync(OAPP, providerType);
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+            {
+                oappResult.Result.PublishedOn = DateTime.MinValue;
+                oappResult.Result.PublishedByAvatarId = Guid.Empty;
+
+                oappResult = await SaveOAPPAsync(oappResult.Result, providerType);
+
+                if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                {
+                    OAPPDNA.PublishedDate = DateTime.MinValue;
+                    OAPPDNA.PublishedByAvatarId = Guid.Empty;
+                    result.Message = "OAPP Unpublised";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP with the SaveOAPPAsync method, reason: {oappResult.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP with the LoadOAPPAsync method, reason: {oappResult.Message}");
 
             return result;
         }
 
-        public OASISResult<IOAPP> UnPublishOAPP(IOAPP OAPP, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> UnPublishOAPP(IOAPPDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>(OAPPDNA);
+            OASISResult<IOAPP> oappResult = LoadOAPP(OAPPDNA.OAPPId, providerType);
+            string errorMessage = "Error occured in UnPublishOAPP. Reason: ";
 
-            OAPP.PublishedOn = DateTime.MinValue;
-            result = SaveOAPP(OAPP, providerType);
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+            {
+                oappResult.Result.PublishedOn = DateTime.MinValue;
+                oappResult.Result.PublishedByAvatarId = Guid.Empty;
+
+                oappResult = SaveOAPP(oappResult.Result, providerType);
+
+                if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                {
+                    OAPPDNA.PublishedDate = DateTime.MinValue;
+                    OAPPDNA.PublishedByAvatarId = Guid.Empty;
+                    result.Message = "OAPP Unpublised";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP with the SaveOAPP method, reason: {oappResult.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP with the LoadOAPP method, reason: {oappResult.Message}");
 
             return result;
         }
 
-        public async Task<OASISResult<IOAPP>> UnPublishOAPPAsync(Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPDNA>> UnPublishOAPPAsync(IOAPP OAPP, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
+            string errorMessage = "Error occured in UnPublishOAPPAsync. Reason: ";
+
+            OAPP.PublishedOn = DateTime.MinValue;
+            OAPP.PublishedByAvatarId = Guid.Empty;
+
+            OASISResult<IOAPP> oappResult = await SaveOAPPAsync(OAPP, providerType);
+
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+            {
+                result.Result = ConvertOAPPToOAPPDNA(OAPP);
+                result.Message = "OAPP Unpublised";
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP with the SaveOAPPAsync method, reason: {oappResult.Message}");
+            
+            return result;
+        }
+
+        public OASISResult<IOAPPDNA> UnPublishOAPP(IOAPP OAPP, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
+            string errorMessage = "Error occured in UnPublishOAPP. Reason: ";
+
+            OAPP.PublishedOn = DateTime.MinValue;
+            OAPP.PublishedByAvatarId = Guid.Empty;
+
+            OASISResult<IOAPP> oappResult = SaveOAPP(OAPP, providerType);
+
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+            {
+                result.Result = ConvertOAPPToOAPPDNA(OAPP);
+                result.Message = "OAPP Unpublised";
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP with the SaveOAPP method, reason: {oappResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPDNA>> UnPublishOAPPAsync(Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             OASISResult<IOAPP> loadResult = await LoadOAPPAsync(OAPPId, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
@@ -494,9 +552,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IOAPP> UnPublishOAPP(Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> UnPublishOAPP(Guid OAPPId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             OASISResult<IOAPP> loadResult = LoadOAPP(OAPPId, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
@@ -721,19 +779,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPP>> UnInstallOAPPAsync(IOAPP OAPP, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPDNA>> UnInstallOAPPAsync(IOAPPDNA OAPP, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            return await UnInstallOAPPAsync(OAPP.Id, avatarId, providerType);
+            return await UnInstallOAPPAsync(OAPP.OAPPId, avatarId, providerType);
         }
 
-        public OASISResult<IOAPP> UnInstallOAPP(IOAPP OAPP, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> UnInstallOAPP(IOAPPDNA OAPP, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            return UnInstallOAPP(OAPP.Id, avatarId, providerType);
+            return UnInstallOAPP(OAPP.OAPPId, avatarId, providerType);
         }
 
-        public async Task<OASISResult<IOAPP>> UnInstallOAPPAsync(Guid OAPPId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPDNA>> UnInstallOAPPAsync(Guid OAPPId, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             OASISResult<IEnumerable<InstalledOAPP>> intalledOAPPResult = await Data.LoadHolonsForParentAsync<InstalledOAPP>(avatarId, HolonType.InstalledOAPP, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
             string errorMessage = "Error occured in OAPPManager.UnInstallOAPPAsync. Reason: ";
 
@@ -746,7 +804,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     OASISResult<IHolon> holonResult = await installedOAPP.DeleteAsync(false, providerType);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                    {
                         result.Message = "OAPP Uninstalled";
+                        result.Result = installedOAPP.OAPPDNA;
+                    }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling DeleteAsync. Reason: {holonResult.Message}");
                 }
@@ -759,9 +820,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IOAPP> UnInstallOAPP(Guid OAPPId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> UnInstallOAPP(Guid OAPPId, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             OASISResult<IEnumerable<InstalledOAPP>> intalledOAPPResult = Data.LoadHolonsForParent<InstalledOAPP>(avatarId, HolonType.InstalledOAPP, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
             string errorMessage = "Error occured in OAPPManager.UnInstallOAPP. Reason: ";
 
@@ -774,7 +835,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     OASISResult<IHolon> holonResult = installedOAPP.Delete(false, providerType);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                    {
                         result.Message = "OAPP Uninstalled";
+                        result.Result = installedOAPP.OAPPDNA;
+                    }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling Delete. Reason: {holonResult.Message}");
                 }
@@ -876,5 +940,24 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             return result;
         }
+
+        private IOAPPDNA ConvertOAPPToOAPPDNA(IOAPP OAPP)
+        {
+            return new OAPPDNA()
+            {
+                CelestialBodyId = OAPP.CelestialBodyId,
+                CreatedByAvtarId = OAPP.CreatedByAvatarId,
+                CreatedDate = OAPP.CreatedDate,
+                Description = OAPP.Description,
+                GenesisType = OAPP.GenesisType,
+                OAPPId = OAPP.Id,
+                OAPPName = OAPP.Name,
+                OAPPType = OAPP.OAPPType,
+                PublishedByAvatarId = OAPP.PublishedByAvatarId,
+                PublishedDate = OAPP.PublishedOn,
+                Version = OAPP.Version.ToString()
+            };
+        }
+
     }
 }

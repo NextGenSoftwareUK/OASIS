@@ -1,10 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Apollo.Server;
 using NextGenSoftware.OASIS.API.ONode.Core.Managers;
-using NextGenSoftware.OASIS.Common;
-using System;
 
 namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 {
@@ -25,6 +24,7 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         public QuestManager Quests { get; set; }
         public ParkManager Parks { get; set; }
         public OLandManager OLAND { get; set; }
+        public OAPPManager OAPPs { get; set; }
 
         public OASISResult<bool> BootOASIS(OASISDNA OASISDNA, bool startApolloServer = true)
         {
@@ -99,6 +99,7 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
                 Quests = new QuestManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                 Parks = new ParkManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                 OLAND = new OLandManager(NFTs, ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                OAPPs = new OAPPManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
             }
         }
 

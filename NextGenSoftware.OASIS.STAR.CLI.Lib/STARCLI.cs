@@ -1,29 +1,30 @@
 ﻿using System.Drawing;
+using System.Diagnostics;
 using Ipfs;
 using Neo4j.Driver;
 using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.STAR.Zomes;
-using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using System.Diagnostics;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
-using NextGenSoftware.Utilities;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -305,6 +306,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             return lightResult;
+        }
+
+        public static async Task ListAllOAPPsAsync()
+        {
+            OASISResult<IEnumerable<IOAPP>> oapps = await STAR.OASISAPI.OAPPs.ListAllOAPPsAsync();
+
+            if (oapps != null && oapps.Result != null && !oapps.IsError)
+            {
+                foreach (IOAPP oapp in oapps.Result)
+                {
+
+                }
+            }
         }
 
         public static async Task LoadCelestialBodyAsync<T>(T celestialBody, string name) where T : ICelestialBody, new()

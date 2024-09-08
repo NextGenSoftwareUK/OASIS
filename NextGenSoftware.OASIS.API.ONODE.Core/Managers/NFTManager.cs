@@ -767,7 +767,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IEnumerable<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForAvatarLocation(long latLocation, long longLocation, int radius, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOASISGeoSpatialNFT>> result = new OASISResult<IEnumerable<IOASISGeoSpatialNFT>>();
-            string errorMessage = "Error occured in LoadAllGeoNFTsForAvatarLocation in NFTManager. Reason:";
+            string errorMessage = "Error occured in LoadAllGeoNFTsForAvatarLocationAsync in NFTManager. Reason:";
 
             try
             {
@@ -828,7 +828,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 }
                 else
                     result = DecodeGeoNFTMetaData(Data.LoadHolonsForParentByMetaData("GEONFT.LatLong", string.Concat(latLocation.ToString(), ":", longLocation.ToString()), HolonType.GEONFT, true, true, 0, true, false, 0, HolonType.All, 0, providerType), result, errorMessage);
-            
+
+            }
             catch (Exception e)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);

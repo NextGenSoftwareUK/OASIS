@@ -19,6 +19,7 @@ using NextGenSoftware.OASIS.STAR.CLI.Lib;
 using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using Console = System.Console;
+using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 {
@@ -481,7 +482,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                             case "listoapps":
                                 {
-                                    CLIEngine.ShowMessage("Coming soon...");
+                                    await STARCLI.ListAllOAPPsAsync();
                                 } break;
 
                             case "listhapps":
