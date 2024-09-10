@@ -314,11 +314,53 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (oapps != null && oapps.Result != null && !oapps.IsError)
             {
-                foreach (IOAPP oapp in oapps.Result)
-                {
+                CLIEngine.ShowDivider();
 
-                }
+                foreach (IOAPP oapp in oapps.Result)
+                    ShowOAPP(oapp);
             }
+            else
+                CLIEngine.ShowErrorMessage("No OAPP's Found.");
+        }
+
+        public static async Task ListOAPPsCreatedByBeamedInAvatar()
+        {
+            if (STAR.BeamedInAvatar != null)
+            {
+                OASISResult<IEnumerable<IOAPP>> oapps = await STAR.OASISAPI.OAPPs.ListOAPPsCreatedByAvatarAsync(STAR.BeamedInAvatar.AvatarId);
+
+                if (oapps != null && oapps.Result != null && !oapps.IsError)
+                {
+                    CLIEngine.ShowDivider();
+
+                    foreach (IOAPP oapp in oapps.Result)
+                        ShowOAPP(oapp);
+                }
+                else
+                    CLIEngine.ShowErrorMessage("No OAPP's Found.");
+            }
+            else
+                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
+        }
+
+        public static async Task ListOAPPsInstalledForBeamedInAvatar()
+        {
+            if (STAR.BeamedInAvatar != null)
+            {
+                OASISResult<IEnumerable<IInstalledOAPP>> oapps = await STAR.OASISAPI.OAPPs.ListInstalledOAPPsAsync(STAR.BeamedInAvatar.AvatarId);
+
+                if (oapps != null && oapps.Result != null && !oapps.IsError)
+                {
+                    CLIEngine.ShowDivider();
+
+                    foreach (IInstalledOAPP oapp in oapps.Result)
+                        ShowInstalledOAPP(oapp);
+                }
+                else
+                    CLIEngine.ShowErrorMessage("No OAPP's Found.");
+            }
+            else
+                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
         }
 
         public static async Task LoadCelestialBodyAsync<T>(T celestialBody, string name) where T : ICelestialBody, new()
@@ -565,6 +607,68 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
                 CLIEngine.ShowMessage($"MetaData: None");
+
+            CLIEngine.ShowDivider();
+        }
+
+        public static void ShowOAPP(IOAPP oapp)
+        {
+            CLIEngine.ShowMessage(string.Concat($"Title: ", !string.IsNullOrEmpty(oapp.Name) ? oapp.Name : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Description: ", !string.IsNullOrEmpty(oapp.Description) ? oapp.Description : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Type: ", Enum.GetName(typeof(OAPPType), oapp.OAPPType)));
+            CLIEngine.ShowMessage(string.Concat($"Genesis Type: ", Enum.GetName(typeof(GenesisType), oapp.GenesisType)));
+            CLIEngine.ShowMessage(string.Concat($"Celestial Body Id: ", oapp.CelestialBodyId != Guid.Empty ? oapp.CelestialBodyId : "None"));
+
+            if (oapp.CelestialBody != null)
+            {
+                CLIEngine.ShowMessage(string.Concat($"Celestial Body Name: ", oapp.CelestialBody != null ? oapp.CelestialBody.Name : "None"));
+                CLIEngine.ShowMessage(string.Concat($"Celestial Body Type: ", Enum.GetName(typeof(HolonType), oapp.CelestialBody.HolonType)));
+            }
+
+            CLIEngine.ShowMessage(string.Concat($"Created On: ", oapp.CreatedDate != DateTime.MinValue ? oapp.CreatedDate.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Created By: ", oapp.CreatedByAvatarId != Guid.Empty ? oapp.CreatedByAvatarId.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published On: ", oapp.PublishedOn != DateTime.MinValue ? oapp.PublishedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published By: ", oapp.PublishedByAvatarId != Guid.Empty ? oapp.PublishedByAvatarId.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published On STARNET: ", oapp.PublishedOAPP != null ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"Version: ", oapp.Version));
+
+            CLIEngine.ShowMessage($"Zomes: ");
+
+            if (oapp.CelestialBody != null)
+                ShowZomesAndHolons(oapp.CelestialBody.CelestialBodyCore.Zomes);
+            else
+                ShowHolons(oapp.Children);
+
+            CLIEngine.ShowDivider();
+        }
+
+        public static void ShowInstalledOAPP(IInstalledOAPP oapp)
+        {
+            CLIEngine.ShowMessage(string.Concat($"Title: ", !string.IsNullOrEmpty(oapp.OAPPDNA.OAPPName) ? oapp.Name : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Description: ", !string.IsNullOrEmpty(oapp.OAPPDNA.Description) ? oapp.Description : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Type: ", Enum.GetName(typeof(OAPPType), oapp.OAPPDNA.OAPPType)));
+            CLIEngine.ShowMessage(string.Concat($"Genesis Type: ", Enum.GetName(typeof(GenesisType), oapp.OAPPDNA.GenesisType)));
+            CLIEngine.ShowMessage(string.Concat($"Celestial Body Id: ", oapp.OAPPDNA.CelestialBodyId != Guid.Empty ? oapp.OAPPDNA.CelestialBodyId : "None"));
+
+            if (oapp.OAPPDNA.CelestialBodyId != Guid.Empty)
+            {
+                CLIEngine.ShowMessage(string.Concat($"Celestial Body Name: ", oapp.OAPPDNA.CelestialBodyName != null ? oapp.OAPPDNA.CelestialBodyName : "None"));
+                CLIEngine.ShowMessage(string.Concat($"Celestial Body Type: ", Enum.GetName(typeof(HolonType), oapp.OAPPDNA.CelestialBodyType)));
+            }
+
+            CLIEngine.ShowMessage(string.Concat($"Created On: ", oapp.OAPPDNA.CreatedOn != DateTime.MinValue ? oapp.OAPPDNA.CreatedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Created By: ", oapp.OAPPDNA.CreatedByAvatarId != Guid.Empty ? oapp.OAPPDNA.CreatedByAvatarId.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published On: ", oapp.OAPPDNA.PublishedOn != DateTime.MinValue ? oapp.OAPPDNA.PublishedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published By: ", oapp.OAPPDNA.PublishedByAvatarId != Guid.Empty ? oapp.OAPPDNA.PublishedByAvatarId.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published On STARNET: ", oapp.OAPPDNA.PublishedOnSTARNET ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"Version: ", !string.IsNullOrEmpty(oapp.OAPPDNA.Version) ? oapp.OAPPDNA.Version : "None"));
+
+            //CLIEngine.ShowMessage($"Zomes: ");
+
+            //if (oapp.CelestialBody != null)
+            //    ShowZomesAndHolons(oapp.CelestialBody.CelestialBodyCore.Zomes);
+            //else
+            //    ShowHolons(oapp.Children);
 
             CLIEngine.ShowDivider();
         }

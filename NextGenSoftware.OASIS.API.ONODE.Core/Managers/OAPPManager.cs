@@ -196,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPDNA>> CreateOAPPAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, Guid avatarId, ICelestialBody celestialBody = null, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPDNA>> CreateOAPPAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, Guid avatarId, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.CreateOAPPAsync, Reason:";
@@ -209,19 +209,26 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 CelestialBody = celestialBody, //The CelestialBody that represents the OAPP (if any).
                 CelestialBodyId = celestialBody != null ? celestialBody.Id : Guid.Empty,
                 OAPPType = OAPPType,
-                GenesisType = genesisType
+                GenesisType = genesisType,
             };
+
+            foreach (IZome zome in zomes)
+                OAPP.Children.Add(zome);
 
             OAPPDNA OAPPDNA = new OAPPDNA()
             {
                 OAPPId = OAPP.Id,
                 OAPPName = OAPPName,
                 Description = OAPPDescription,
+                CelestialBody = celestialBody,
                 CelestialBodyId = celestialBody != null ? celestialBody.Id : Guid.Empty,
+                CelestialBodyName = celestialBody != null ? celestialBody.Name : "",
+                CelestialBodyType = celestialBody != null ? celestialBody.HolonType : HolonType.None,
+                Zomes = zomes, //Can be either zomes of CelestialBody but not both (zomes are contained in CelestialBody) but if no CelestialBody is generated then this prop is used instead.
                 OAPPType = OAPPType,
                 GenesisType = genesisType,
-                CreatedByAvtarId = avatarId,
-                CreatedDate = DateTime.Now,
+                CreatedByAvatarId = avatarId,
+                CreatedOn = DateTime.Now,
                 Version = "1.0.0"
             };
 
@@ -253,7 +260,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IOAPPDNA> CreateOAPP(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, Guid avatarId, ICelestialBody celestialBody = null, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> CreateOAPP(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, Guid avatarId, ICelestialBody celestialBody = null, , IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.CreateOAPP, Reason:";
@@ -269,16 +276,23 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 GenesisType = genesisType
             };
 
+            foreach (IZome zome in zomes)
+                OAPP.Children.Add(zome);
+
             OAPPDNA OAPPDNA = new OAPPDNA()
             {
                 OAPPId = OAPP.Id,
                 OAPPName = OAPPName,
                 Description = OAPPDescription,
                 CelestialBodyId = celestialBody != null ? celestialBody.Id : Guid.Empty,
+                CelestialBody = celestialBody,
+                CelestialBodyName = celestialBody != null ? celestialBody.Name : "",
+                CelestialBodyType = celestialBody != null ? celestialBody.HolonType : HolonType.None,
+                Zomes = zomes, //Can be either zomes of CelestialBody but not both (zomes are contained in CelestialBody) but if no CelestialBody is generated then this prop is used instead.
                 OAPPType = OAPPType,
                 GenesisType = genesisType,
-                CreatedByAvtarId = avatarId,
-                CreatedDate = DateTime.Now,
+                CreatedByAvatarId = avatarId,
+                CreatedOn = DateTime.Now,
                 Version = "1.0.0"
             };
 
@@ -364,7 +378,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     OAPPResult.Result.PublishedOn = DateTime.Now;
                     OAPPResult.Result.PublishedByAvatarId = avatarId;
-                    OAPPDNA.PublishedDate = OAPPResult.Result.PublishedOn;
+                    OAPPDNA.PublishedOn = OAPPResult.Result.PublishedOn;
                     OAPPDNA.PublishedByAvatarId = avatarId;
 
                     OASISResult<IOAPP> OAPPSaveResult = await SaveOAPPAsync(OAPPResult.Result, providerType);
@@ -400,7 +414,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     OAPPResult.Result.PublishedOn = DateTime.Now;
                     OAPPResult.Result.PublishedByAvatarId = avatarId;
-                    OAPPDNA.PublishedDate = OAPPResult.Result.PublishedOn;
+                    OAPPDNA.PublishedOn = OAPPResult.Result.PublishedOn;
                     OAPPDNA.PublishedByAvatarId = avatarId;
 
                     OASISResult<IOAPP> OAPPSaveResult = SaveOAPP(OAPPResult.Result, providerType);
@@ -456,7 +470,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
                 {
-                    OAPPDNA.PublishedDate = DateTime.MinValue;
+                    OAPPDNA.PublishedOn = DateTime.MinValue;
                     OAPPDNA.PublishedByAvatarId = Guid.Empty;
                     result.Message = "OAPP Unpublised";
                 }
@@ -484,7 +498,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
                 {
-                    OAPPDNA.PublishedDate = DateTime.MinValue;
+                    OAPPDNA.PublishedOn = DateTime.MinValue;
                     OAPPDNA.PublishedByAvatarId = Guid.Empty;
                     result.Message = "OAPP Unpublised";
                 }
@@ -943,21 +957,31 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
         private IOAPPDNA ConvertOAPPToOAPPDNA(IOAPP OAPP)
         {
-            return new OAPPDNA()
+            OAPPDNA OAPPDNA = new OAPPDNA()
             {
                 CelestialBodyId = OAPP.CelestialBodyId,
-                CreatedByAvtarId = OAPP.CreatedByAvatarId,
-                CreatedDate = OAPP.CreatedDate,
+                CelestialBody = OAPP.CelestialBody,
+                CelestialBodyName = OAPP.CelestialBody != null ? OAPP.CelestialBody.Name : "",
+                CelestialBodyType = OAPP.CelestialBody != null ? OAPP.CelestialBody.HolonType : HolonType.None,
+                CreatedByAvatarId = OAPP.CreatedByAvatarId,
+                CreatedOn = OAPP.CreatedDate,
                 Description = OAPP.Description,
                 GenesisType = OAPP.GenesisType,
                 OAPPId = OAPP.Id,
                 OAPPName = OAPP.Name,
                 OAPPType = OAPP.OAPPType,
                 PublishedByAvatarId = OAPP.PublishedByAvatarId,
-                PublishedDate = OAPP.PublishedOn,
+                PublishedOn = OAPP.PublishedOn,
+                PublishedOnSTARNET = OAPP.PublishedOAPP != null,
                 Version = OAPP.Version.ToString()
             };
-        }
 
+            List<IZome> zomes = new List<IZome>();
+            foreach (IHolon holon in OAPP.Children)
+                zomes.Add((IZome)holon);
+
+            OAPPDNA.Zomes = zomes;
+            return OAPPDNA;
+        }
     }
 }

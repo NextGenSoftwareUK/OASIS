@@ -50,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         NFT,
         GEONFT,
         OAPP,
-        InstalledOAPP
+        InstalledOAPP,
+        None
     }
 }

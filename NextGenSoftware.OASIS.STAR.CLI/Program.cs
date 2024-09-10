@@ -482,10 +482,38 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                             case "listoapps":
                                 {
-                                    await STARCLI.ListAllOAPPsAsync();
+                                    if (CLIEngine.GetConfirmation("Do you want to list all OAPPs? Press 'Y' to list all OAPPs or 'N' to list only the OAPPs you have created."))
+                                        await STARCLI.ListAllOAPPsAsync();
+                                    else
+                                        await STARCLI.ListOAPPsCreatedByBeamedInAvatar();
+
                                 } break;
 
+                            //case "listmyoapps":
+                            //    {
+                            //        await STARCLI.ListOAPPsCreatedByBeamedInAvatar();
+                            //    }
+                            //    break;
+
+                            case "listinstalledoapps":
+                                {
+                                    await STARCLI.ListOAPPsInstalledForBeamedInAvatar();
+                                }
+                                break;
+
                             case "listhapps":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                }
+                                break;
+
+                            //case "listmyhapps":
+                            //    {
+                            //        CLIEngine.ShowMessage("Coming soon...");
+                            //    }
+                            //    break;
+
+                            case "listinstalledhapps":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
                                 }
@@ -497,11 +525,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
+                            //case " listmycelestialspaces":
+                            //    {
+                            //        CLIEngine.ShowMessage("Coming soon...");
+                            //    }
+                            //    break;
+
                             case "listcelestialbodies":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
                                 }
                                 break;
+
+                            //case "listmycelestialbodies":
+                            //    {
+                            //        CLIEngine.ShowMessage("Coming soon...");
+                            //    }
+                            //    break;
 
                             case "listzomes":
                                 {
@@ -509,11 +549,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
+                            //case "listmyzomes":
+                            //    {
+                            //        CLIEngine.ShowMessage("Coming soon...");
+                            //    }
+                            //    break;
+
                             case "listholons":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
                                 }
                                 break;
+
+                            //case "listmyholons":
+                            //    {
+                            //        CLIEngine.ShowMessage("Coming soon...");
+                            //    }
+                            //    break;
 
                             case "showoapp":
                                 {
@@ -2475,9 +2527,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void ShowHeader()
         {
-            Assembly assembly = typeof(Program).Assembly;
-            System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-            string versionString = fvi.FileVersion;
+            //Assembly assembly = typeof(Program).Assembly;
+            //System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+            //string versionString = fvi.FileVersion;
 
             // Console.SetWindowSize(300, Console.WindowHeight);
             Console.WriteLine("");
@@ -2487,7 +2539,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write(" STAR");
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write($" (Synergiser Transformer Aggregator Resolver) HDK/ODK TEST HARNESS v{versionString} ");
+            //Console.Write($" (Synergiser Transformer Aggregator Resolver) HDK/ODK TEST HARNESS v{versionString} ");
+            Console.Write($" (Synergiser Transformer Aggregator Resolver) HDK/ODK TEST HARNESS {OASISBootLoader.OASISBootLoader.STARODKVersion} ");
             Console.WriteLine("");
             Console.WriteLine("*************************************************************************************************");
             Console.WriteLine("");
@@ -2584,12 +2637,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star love {OAPPName} = Send/Receive Love.");
             Console.WriteLine("   star burst = View network stats/management/settings.");
             Console.WriteLine("   star super - Reserved For Future Use...");
-            Console.WriteLine("   star listoapps {searchAll} - Show all OAPPs (contains zomes and holons) that have been generated. If {searchAll} is omitted it will list only your OAPP's otherwise it will list all public/shared OAPP's.");
-            Console.WriteLine("   star listhapps {searchAll} - Show all hApps (contains zomes) that have been generated. If {searchAll} is omitted it will list only your hApp's otherwise it will list all public/shared hApp's.");
-            Console.WriteLine("   star listzomes {searchAll} - Show all zomes (modules that contain holons) that have been generated. If {searchAll} is omitted it will list only your hApp's otherwise it will list all public/shared hApp's.");
-            Console.WriteLine("   star listholons {searchAll} - Show all holons (OASIS Data Objects) that have been generated. If {searchAll} is omitted it will list only your holons otherwise it will list all public/shared holons.");
-            Console.WriteLine("   star listcelestialbodies {searchAll} - Show all celestial bodies that have been generated. If {searchAll} is omitted it will list only your celestial bodies otherwise it will list all public/shared celestial bodies.");
-            Console.WriteLine("   star listcelestialspaces {searchAll} - Show all celestial spaces that have been generated. If {searchAll} is omitted it will list only your celestial spaces otherwise it will list all public/shared celestial spaces.");
+            Console.WriteLine("   star listoapps {searchAll} - List all OAPPs (contains zomes and holons) that have been generated. If {searchAll} is omitted it will list only your OAPP's otherwise it will list all public/shared OAPP's.");
+            Console.WriteLine("   star listinstalledoapps - List all OAPP's installed for the current beamed in avatar.");
+            Console.WriteLine("   star listhapps {searchAll} - List all hApps (contains zomes) that have been generated. If {searchAll} is omitted it will list only your hApp's otherwise it will list all public/shared hApp's.");
+            Console.WriteLine("   star listinstalledhapps - List all hApp's installed for the current beamed in avatar.");
+            Console.WriteLine("   star listzomes {searchAll} - List all zomes (modules that contain holons) that have been generated. If {searchAll} is omitted it will list only your hApp's otherwise it will list all public/shared hApp's.");
+            Console.WriteLine("   star listholons {searchAll} - List all holons (OASIS Data Objects) that have been generated. If {searchAll} is omitted it will list only your holons otherwise it will list all public/shared holons.");
+            Console.WriteLine("   star listcelestialbodies {searchAll} - List all celestial bodies that have been generated. If {searchAll} is omitted it will list only your celestial bodies otherwise it will list all public/shared celestial bodies.");
+            Console.WriteLine("   star listcelestialspaces {searchAll} - List all celestial spaces that have been generated. If {searchAll} is omitted it will list only your celestial spaces otherwise it will list all public/shared celestial spaces.");
             Console.WriteLine("   star showoapp {oappId/title} = Shows a OAPP for the given {oappId} or {title}.");
             Console.WriteLine("   star showhapp {hAppId/title} = Shows a hApp for the given {hAppId} or {title}.");
             Console.WriteLine("   star showcelestialspace {celestialSpaceId/title} = Shows a celestial space for the given {celestialSpaceId} or {title}.");

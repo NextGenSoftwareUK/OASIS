@@ -38,6 +38,12 @@
 		</None>
 	</ItemGroup>
 
+	<!--<ItemGroup>
+	  <Reference Include="NextGenSoftware.OASIS.STAR">
+	    <HintPath>..\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\Runtimes\STAR ODK Runtime v2.0.2\NextGenSoftware.OASIS.STAR.dll</HintPath>
+	  </Reference>
+	</ItemGroup>-->
+
 	<ItemGroup>
     <None Update="README.md">
       <PackagePath>\</PackagePath>
