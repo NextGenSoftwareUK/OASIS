@@ -27,7 +27,6 @@ using NextGenSoftware.OASIS.STAR.Enums;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
-using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -261,7 +260,7 @@ namespace NextGenSoftware.OASIS.STAR
         //public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         //public static event DataReceived OnDataReceived;
 
-        public static async Task<OASISResult<IOmiverse>> IgniteStarAsync(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
+        public static async Task<OASISResult<IOmiverse>> IgniteStarAsync(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
             Status = StarStatus.Igniting;
@@ -335,7 +334,7 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public static OASISResult<IOmiverse> IgniteStar(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
+        public static OASISResult<IOmiverse> IgniteStar(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
             Status = StarStatus.Igniting;
@@ -456,7 +455,7 @@ namespace NextGenSoftware.OASIS.STAR
             OnHolonsLoaded?.Invoke(sender, e);
         }
 
-        public static OASISResult<IAvatar> CreateAvatar(string title, string firstName, string lastName, string email, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        public static OASISResult<IAvatar> CreateAvatar(string title, string firstName, string lastName, string email, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green, ProviderType providerType = ProviderType.Default)
         {
             if (!IsStarIgnited)
                 IgniteStar();
@@ -464,7 +463,7 @@ namespace NextGenSoftware.OASIS.STAR
             return OASISAPI.Avatar.Register(title, firstName, lastName, email, password, username, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
         }
 
-        public static async Task<OASISResult<IAvatar>> CreateAvatarAsync(string title, string firstName, string lastName, string email, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        public static async Task<OASISResult<IAvatar>> CreateAvatarAsync(string title, string firstName, string lastName, string email, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green, ProviderType providerType = ProviderType.Default)
         {
             if (!IsStarIgnited)
                 await IgniteStarAsync();
@@ -472,7 +471,7 @@ namespace NextGenSoftware.OASIS.STAR
             return await OASISAPI.Avatar.RegisterAsync(title, firstName, lastName, email, password, username, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
         }
 
-        public static async Task<OASISResult<IAvatar>> BeamInAsync(string username, string password)
+        public static async Task<OASISResult<IAvatar>> BeamInAsync(string username, string password, ProviderType providerType = ProviderType.Default)
         {
             string hostName = Dns.GetHostName();
             string IPAddress = Dns.GetHostEntry(hostName).AddressList[0].ToString();
@@ -499,7 +498,7 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public static OASISResult<IAvatar> BeamIn(string username, string password)
+        public static OASISResult<IAvatar> BeamIn(string username, string password, ProviderType providerType = ProviderType.Default)
         {
             string IPAddress = "";
             string hostName = Dns.GetHostName();
@@ -527,84 +526,64 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
+        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
-            return Light(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null);
+            return Light(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null, providerType);
         }
 
-        public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IStar starToAddPlanetTo = null)
-        {
-            return Light(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)starToAddPlanetTo);
-        }
-
-        //public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid starIdToAddPlanetTo = Guid.Empty)
+        //public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IStar starToAddPlanetTo = null, ProviderType providerType = ProviderType.Default)
         //{
-        //    return LightInternalAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, starIdToAddPlanetTo).Result;
+        //    return Light(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)starToAddPlanetTo, providerType);
         //}
 
-        public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IPlanet planetToAddMoonTo = null)
-        {
-            return Light(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)planetToAddMoonTo);
-        }
-
-        //public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid planetIdToAddMoonTo = Guid.Empty)
+        //public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IPlanet planetToAddMoonTo = null, ProviderType providerType = ProviderType.Default)
         //{
-        //    return LightInternalAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, planetIdToAddMoonTo).Result;
+        //    return Light(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)planetToAddMoonTo, providerType);
         //}
 
-        public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null)
+        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
         {
-            return LightAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent).Result;
+            return LightAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent, providerType).Result;
         }
 
-        public static OASISResult<CoronalEjection> Light(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid())
+        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
-            return LightInternalAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId).Result;
+            return LightInternalAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId, providerType).Result;
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
-            return await LightAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null);
+            return await LightAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null, providerType);
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IStar starToAddPlanetTo = null)
-        {
-            return await LightAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)starToAddPlanetTo);
-        }
-
-        //public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid starIdToAddPlanetTo = Guid.Empty)
+        //public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IStar starToAddPlanetTo = null, ProviderType providerType = ProviderType.Default)
         //{
-        //    return await LightAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, starIdToAddPlanetTo);
+        //    return await LightAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)starToAddPlanetTo, providerType);
         //}
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType,  string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IPlanet planetToAddMoonTo = null)
-        {
-            return await LightAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)planetToAddMoonTo);
-        }
-
-        //public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid planetIdToAddMoonTo = Guid.Empty)
+        //public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType,  string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IPlanet planetToAddMoonTo = null, ProviderType providerType = ProviderType.Default)
         //{
-        //    return await LightAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, planetIdToAddMoonTo);
+        //    return await LightAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)planetToAddMoonTo, providerType);
         //}
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
-            return await LightAsync(oAPPName, OAPPType, GenesisType.ZomesAndHolonsOnly, zomeAndHolonDNAFolder, genesisFolder, genesisNameSpace);
+            return await LightAsync(OAPPName, OAPPDescription, OAPPType, GenesisType.ZomesAndHolonsOnly, zomeAndHolonDNAFolder, genesisFolder, genesisNameSpace, providerType);
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid())
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
-            return await LightInternalAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId);
+            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId, providerType);
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null)
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
         {
-            return await LightInternalAsync(oAPPName, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent);
+            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent, Guid.Empty, providerType);
         }
 
-        private static async Task<OASISResult<CoronalEjection>> LightInternalAsync(string oAPPName, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "",  string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, Guid celestialBodyParentId = new Guid())
+        private static async Task<OASISResult<CoronalEjection>> LightInternalAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "",  string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
-            //OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>();
+            OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>(new CoronalEjection());
             ICelestialBody newBody = null;
             bool holonReached = false;
             string zomeBufferCsharp = "";
@@ -625,18 +604,25 @@ namespace NextGenSoftware.OASIS.STAR
             string OAPPFolder = "";
             List<string> holonNames = new List<string>();
             string firstStringProperty = "";
+            string errorMessage = "Error Occured In STAR.LightInternalAsync. Reason: ";
 
             if (BeamedInAvatarDetail == null)
-                return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar is not logged in. Please log in before calling this command." };
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Avatar is not logged in. Please log in before calling this command.");
+                return result;
+            }
 
             if (BeamedInAvatarDetail.Level < 77 && genesisType == GenesisType.Star)
-                return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar must have reached level 77 before they can create stars. Please create a planet or moon instead..." };
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Avatar must have reached level 77 before they can create stars. Please create a planet or moon instead...");
+                return result;
+            }
 
             if (BeamedInAvatarDetail.Level < 33 && genesisType == GenesisType.Planet)
-                return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar must have reached level 33 before they can create planets. Please create a moon instead..." };
-
-            //if (celestialBodyParent == null && type == GenesisType.Moon)
-            //    return new OASISResult<CoronalEjection>() { IsError = true, Message = "You must specify the planet to add the moon to." };
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Avatar must have reached level 33 before they can create planets. Please create a moon instead...");
+                return result;
+            }
 
             if (!IsStarIgnited)
                 await IgniteStarAsync();
@@ -652,8 +638,8 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (DefaultStar == null)
             {
-                OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
-                result = await IgniteInnerStarAsync(result);
+                OASISResult<IOmiverse> igniteResult = new OASISResult<IOmiverse>();
+                igniteResult = await IgniteInnerStarAsync(igniteResult);
 
                 if (result.IsError)
                     return new OASISResult<CoronalEjection>() { IsError = true, Message = string.Concat("Error Igniting Inner Star. Reason: ", result.Message) };
@@ -712,12 +698,12 @@ namespace NextGenSoftware.OASIS.STAR
                 genesisNameSpace = $"{STARDNA.BasePath}\\{STARDNA.GenesisNamespace}";
 
             if (string.IsNullOrEmpty(genesisNameSpace))
-                genesisNameSpace = string.Concat(oAPPName, "OAPP");
+                genesisNameSpace = string.Concat(OAPPName, "OAPP");
 
             //Setup the OApp files from the relevant template.
             if (OAPPType != OAPPType.GeneratedCodeOnly)
             {
-                OAPPFolder = string.Concat(genesisFolder, "\\", oAPPName, " OAPP");
+                OAPPFolder = string.Concat(genesisFolder, "\\", OAPPName, " OAPP");
 
                 if (Directory.Exists(OAPPFolder))
                     Directory.Delete(OAPPFolder, true);
@@ -870,7 +856,8 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 newBody.Id = Guid.NewGuid();
                 newBody.IsNewHolon = true; //This was commented out, not sure why?
-                newBody.Name = oAPPName;
+                newBody.Name = OAPPName;
+                newBody.Description = OAPPDescription;
                 newBody.OnCelestialBodySaved += NewBody_OnCelestialBodySaved;
                 newBody.OnCelestialBodyError += NewBody_OnCelestialBodyError;
                 newBody.OnZomeSaved += NewBody_OnZomeSaved;
@@ -1065,7 +1052,7 @@ namespace NextGenSoftware.OASIS.STAR
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("NAMESPACE", genesisNameSpace);
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("ID", newBody.Id.ToString());
-                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBodyDNATemplate", oAPPName.ToPascalCase());
+                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBodyDNATemplate", OAPPName.ToPascalCase());
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CELESTIALBODY", Enum.GetName(typeof(GenesisType), genesisType));
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Insert(celestialBodyBufferCsharp.Length - 7, string.Concat(loadHolonTemplateCsharp, "\n"));
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Insert(celestialBodyBufferCsharp.Length - 7, string.Concat(saveHolonTemplateCsharp, "\n"));
@@ -1116,34 +1103,29 @@ namespace NextGenSoftware.OASIS.STAR
 
             // Remove any white space from the name.
             if (genesisType != GenesisType.ZomesAndHolonsOnly)
-                File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\CelestialBodies\\", Regex.Replace(oAPPName, @"\s+", ""), Enum.GetName(typeof(GenesisType), genesisType), ".cs"), celestialBodyBufferCsharp);
+                File.WriteAllText(string.Concat(genesisFolder, "\\CSharp\\CelestialBodies\\", Regex.Replace(OAPPName, @"\s+", ""), Enum.GetName(typeof(GenesisType), genesisType), ".cs"), celestialBodyBufferCsharp);
 
             // Currently the OApp Name is the same as the CelestialBody name (each CelestialBody is a seperate OApp), but in future a OApp may be able to contain more than one celestialBody...
             // TODO: Currently the OApp templates only contain sample load/save for one holon... this may change in future... likely will... ;-) Want to show for every zome/holon inside the celestialbody...
             if (holonNames.Count > 0)
-                ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, oAPPName, oAPPName, holonNames[0], firstStringProperty);
+                ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, OAPPName, OAPPName, holonNames[0], firstStringProperty);
             else
-                ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, oAPPName, oAPPName, "", firstStringProperty);
+                ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, OAPPName, OAPPName, "", firstStringProperty);
 
             //Generate any native code for the current provider.
             //TODO: Add option to pass into STAR which providers to generate native code for (can be more than one provider).
             ((IOASISSuperStar)ProviderManager.Instance.CurrentStorageProvider).NativeCodeGenesis(newBody);
 
-            //TODO: Need to save this to the StarNET store (still to be made!) (Will of course be written on top of the HDK/ODK...
-            //This will be private on the store until the user publishes via the Star.Seed() command.
-
             switch (genesisType)
             {
                 case GenesisType.ZomesAndHolonsOnly:
                     {
-                        OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>(new CoronalEjection());
-
                         foreach (IZome zome in zomes)
                         {
                             OASISResult<IZome> saveZomeResult = await zome.SaveAsync();
 
                             if (!(saveZomeResult != null && saveZomeResult.Result != null && !saveZomeResult.IsError))
-                                OASISErrorHandling.HandleError(ref result, $"Error occured saving zome {LoggingHelper.GetHolonInfoForLogging(zome, "zome")}. Reason: {saveZomeResult.Message}.", true);
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving zome {LoggingHelper.GetHolonInfoForLogging(zome, "zome")}. Reason: {saveZomeResult.Message}.", true);
                         }
 
                         if (!result.IsError)
@@ -1152,8 +1134,7 @@ namespace NextGenSoftware.OASIS.STAR
                             result.Message = $"Some errors occured saving zomes and holons: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
 
                         result.Result.Zomes = new List<IZome>(zomes);
-                        return result;
-                    }
+                    }break;
 
                 case GenesisType.Moon:
                     {
@@ -1162,48 +1143,57 @@ namespace NextGenSoftware.OASIS.STAR
                         if (celestialBodyParent.ParentStar == null)
                             celestialBodyParent.ParentStar = new Star(celestialBodyParent.ParentStarId);
 
-                        OASISResult<IMoon> result =  await ((StarCore)celestialBodyParent.ParentStar.CelestialBodyCore).AddMoonAsync(newBody.ParentPlanet, (IMoon)newBody);
+                        OASISResult<IMoon> addMoonresult =  await ((StarCore)celestialBodyParent.ParentStar.CelestialBodyCore).AddMoonAsync(newBody.ParentPlanet, (IMoon)newBody);
 
-                        if (result != null)
+                        if (addMoonresult != null)
                         {
-                            if (result.IsError)
-                                return new OASISResult<CoronalEjection>() { IsError = true, Message = result.Message, Result = new CoronalEjection() { CelestialBody = result.Result } };
+                            if (addMoonresult.IsError)
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error Occured Calling AddMoonAsync. Reason: {addMoonresult.Message}");
                             else
-                                return new OASISResult<CoronalEjection>() { IsError = false, Message = "Moon Successfully Created.", Result = new CoronalEjection() { CelestialBody = result.Result } };
+                            {
+                                result.Result.CelestialBody = addMoonresult.Result;
+                                result.Message = "Moon Successfully Created.";
+                            }
                         }
                         else
-                            return new OASISResult<CoronalEjection>() { IsError = true, Message = "Unknown Error Occured Creating Moon." };
-                    }
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown Error Occured Creating Moon.");
+                    }break;
 
                 case GenesisType.Planet:
                     {                      
-                        OASISResult<IPlanet> result = await ((StarCore)celestialBodyParent.CelestialBodyCore).AddPlanetAsync((IPlanet)newBody);
+                        OASISResult<IPlanet> addPlanetResult = await ((StarCore)celestialBodyParent.CelestialBodyCore).AddPlanetAsync((IPlanet)newBody);
 
-                        if (result != null)
+                        if (addPlanetResult != null)
                         {
-                            if (result.IsError)
-                                return new OASISResult<CoronalEjection>() { IsError = true, Message = result.Message, Result = new CoronalEjection() { CelestialBody = result.Result } };
+                            if (addPlanetResult.IsError)
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error Occured Calling AddPlanetAsync. Reason: {addPlanetResult.Message}");
                             else
-                                return new OASISResult<CoronalEjection>() { IsError = false, Message = "Planet Successfully Created.", Result = new CoronalEjection() { CelestialBody = result.Result } };
+                            {
+                                result.Result.CelestialBody = addPlanetResult.Result;
+                                result.Message = "Planet Successfully Created.";
+                            }
                         }
                         else
-                            return new OASISResult<CoronalEjection>() { IsError = true, Message = "Unknown Error Occured Creating Planet." };
-                    }
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown Error Occured Creating Planet.");
+                    }break;
 
                 case GenesisType.Star:
                     {
-                        OASISResult<IStar> result = await ((ISuperStarCore)celestialBodyParent.CelestialBodyCore).AddStarAsync((IStar)newBody);
+                        OASISResult<IStar> starResult = await ((ISuperStarCore)celestialBodyParent.CelestialBodyCore).AddStarAsync((IStar)newBody);
 
-                        if (result != null)
+                        if (starResult != null)
                         {
-                            if (result.IsError)
-                                return new OASISResult<CoronalEjection>() { IsError = true, Message = result.Message, Result = new CoronalEjection() { CelestialBody = result.Result } };
+                            if (starResult.IsError)
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error Occured Calling AddStarAsync. Reason: {starResult.Message}");
                             else
-                                return new OASISResult<CoronalEjection>() { IsError = false, Message = "Star Successfully Created.", Result = new CoronalEjection() { CelestialBody = result.Result } };
+                            {
+                                result.Result.CelestialBody = starResult.Result;
+                                result.Message = "Star Successfully Created.";
+                            }
                         }
                         else
-                            return new OASISResult<CoronalEjection>() { IsError = true, Message = "Unknown Error Occured Creating Star." };
-                    }
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown Error Occured Creating Star.");
+                    }break;
 
                 //case GenesisType.SoloarSystem:
                 //    {
@@ -1256,8 +1246,20 @@ namespace NextGenSoftware.OASIS.STAR
                 //    }
 
                 default:
-                    return new OASISResult<CoronalEjection>() { IsError = true, Message = "Unknown Error Occured.", Result = new CoronalEjection() { CelestialBody = newBody } };
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown Error Occured, GenesisType {Enum.GetName(typeof(GenesisType), genesisType)} Not Recognised!");
+                    break;
             }
+
+
+            //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
+            OASISResult<IOAPPDNA> OAPPResult = await OASISAPI.OAPPs.CreateOAPPAsync(OAPPName, OAPPDescription, OAPPType, genesisType, BeamedInAvatar.AvatarId, newBody, zomes);
+
+            if (OAPPResult != null && !OAPPResult.IsError && OAPPResult.Result != null)
+                result.Result.OAPPDNA = OAPPResult.Result;
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An Error Occured Calling OASISAPI.OAPPs.CreateOAPPAsync. Reason: {OAPPResult.Message}");
+
+            return result;
         }
 
         public static void ShowStatusMessage(StarStatusMessageType messageType, string message)
@@ -1399,15 +1401,25 @@ namespace NextGenSoftware.OASIS.STAR
 
         }
 
-        //Deploy
-        public static void Seed(ICelestialBody body)
+        //Publish
+        public static async Task<OASISResult<IOAPPDNA>> SeedAsync(Guid OAPPId, string fullPathToOAPP, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
-
+            return await OASISAPI.OAPPs.PublishOAPPAsync(OAPPId, fullPathToOAPP, BeamedInAvatar.AvatarId, registerOnSTARNET, providerType);
         }
 
-        public static void Seed(string bodyName)
+        public static OASISResult<IOAPPDNA> Seed(Guid OAPPId, string fullPathToOAPP, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
+            return OASISAPI.OAPPs.PublishOAPP(OAPPId, fullPathToOAPP, BeamedInAvatar.AvatarId, registerOnSTARNET, providerType);
+        }
 
+        public static async Task<OASISResult<IOAPPDNA>> UnSeedAsync(Guid OAPPId, string fullPathToOAPP, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        {
+            return await OASISAPI.OAPPs.UnPublishOAPPAsync(OAPPId, providerType);
+        }
+
+        public static OASISResult<IOAPPDNA> UnSeed(Guid OAPPId, string fullPathToOAPP, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        {
+            return OASISAPI.OAPPs.UnPublishOAPP(OAPPId, providerType);
         }
 
         // Run Tests

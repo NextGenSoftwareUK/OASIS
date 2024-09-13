@@ -12,10 +12,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -260,7 +258,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IOAPPDNA> CreateOAPP(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, Guid avatarId, ICelestialBody celestialBody = null, , IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> CreateOAPP(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, Guid avatarId, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.CreateOAPP, Reason:";

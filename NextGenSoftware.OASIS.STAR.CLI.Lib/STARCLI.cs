@@ -19,7 +19,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
-using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.STAR.Zomes;
@@ -35,7 +34,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         private static Moon _jlaMoon;
         private static string _privateKey = "";
 
-        public static async Task LightWizard()
+        public static async Task LightWizard(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<CoronalEjection> lightResult = null;
 
@@ -56,6 +55,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowDivider();
 
             string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
+            string OAPPDesc = CLIEngine.GetValidInput("What is the description of the OAPP?");
             object value = CLIEngine.GetValidInputForEnum("What type of OAPP do you wish to create?", typeof(OAPPType));
             long ourWorldLat = 0;
             long ourWorldLong = 0;
@@ -201,7 +201,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
 
                                 CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                                lightResult = await STAR.LightAsync(OAPPName, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, parentId);
+                                lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, parentId, providerType);
                             }
                             else
                             {
@@ -209,14 +209,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 CLIEngine.ShowErrorMessage($"You are only level {STAR.BeamedInAvatarDetail.Level}. You need to be at least level 33 to be able to change the parent celestialbody. Using the default of Our World.");
                                 Console.WriteLine("");
                                 CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                                lightResult = await STAR.LightAsync(OAPPName, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace);
+                                lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, providerType);
                             }
                         }
                         else
                         {
                             Console.WriteLine("");
                             CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                            lightResult = await STAR.LightAsync(OAPPName, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace);
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, providerType);
                         }
 
                         if (lightResult != null)
@@ -245,10 +245,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task<OASISResult<CoronalEjection>> GenerateCelestialBody(string name, ICelestialBody parentCelestialBody, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> GenerateCelestialBody(string OAPPName, string OAPPDesc, ICelestialBody parentCelestialBody, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
             // Create (OApp) by generating dynamic template/scaffolding code.
-            string message = $"Generating {Enum.GetName(typeof(GenesisType), genesisType)} '{name}' (OApp)";
+            string message = $"Generating {Enum.GetName(typeof(GenesisType), genesisType)} '{OAPPName}' (OApp)";
 
             if (genesisType == GenesisType.Moon && parentCelestialBody != null)
                 message = $"{message} For Planet '{parentCelestialBody.Name}'";
@@ -258,7 +258,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowWorkingMessage(message);
 
             //Allows the celestialBodyDNAFolder, genesisFolder & genesisNameSpace params to be passed in overridng what is in the STARDNA.json file.
-            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(name, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, parentCelestialBody).Result;
+            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, parentCelestialBody, providerType).Result;
 
             //Will use settings in the STARDNA.json file.
             //OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPType, genesisType, name, parentCelestialBody).Result;
@@ -280,13 +280,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return lightResult;
         }
 
-        public static async Task<OASISResult<CoronalEjection>> GenerateZomesAndHolons(string oAPPName, OAPPType OAPPType, string zomesAndHolonsyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> GenerateZomesAndHolons(string OAPPName, string OAPPDesc, OAPPType OAPPType, string zomesAndHolonsyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
             // Create (OApp) by generating dynamic template/scaffolding code.
             CLIEngine.ShowWorkingMessage($"Generating Zomes & Holons...");
 
             //OASISResult<CoronalEjection> lightResult = STAR.LightAsync(oAPPName, OAPPType, zomesAndHolonsyDNAFolder, genesisFolder, genesisNameSpace).Result;
-            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(oAPPName, OAPPType, zomesAndHolonsyDNAFolder, genesisFolder, genesisNameSpace).Result;
+            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, zomesAndHolonsyDNAFolder, genesisFolder, genesisNameSpace).Result;
 
             //Will use settings in the STARDNA.json file.
             //OASISResult<CoronalEjection> lightResult = STAR.LightAsync(oAPPName, OAPPType).Result;
@@ -299,7 +299,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 foreach (IZome zome in lightResult.Result.Zomes)
                     iNoHolons += zome.Children.Count();
 
-                CLIEngine.ShowSuccessMessage($"{lightResult.Result.Zomes.Count} Zomes & {iNoHolons} Holons Generated.");
+                CLIEngine.ShowSuccessMessage($"{lightResult.Result.Zomes.Count()} Zomes & {iNoHolons} Holons Generated.");
 
                 Console.WriteLine("");
                 ShowZomesAndHolons(lightResult.Result.Zomes);
@@ -323,7 +323,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage("No OAPP's Found.");
         }
 
-        public static async Task ListOAPPsCreatedByBeamedInAvatar()
+        public static async Task ListOAPPsCreatedByBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             if (STAR.BeamedInAvatar != null)
             {
@@ -343,7 +343,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
         }
 
-        public static async Task ListOAPPsInstalledForBeamedInAvatar()
+        public static async Task ListOAPPsInstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             if (STAR.BeamedInAvatar != null)
             {
@@ -363,7 +363,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
         }
 
-        public static async Task LoadCelestialBodyAsync<T>(T celestialBody, string name) where T : ICelestialBody, new()
+        public static async Task LoadCelestialBodyAsync<T>(T celestialBody, string name, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
         {
             CLIEngine.ShowWorkingMessage($"Loading {name}...");
             OASISResult<T> celestialBodyResult = await celestialBody.LoadAsync<T>();
@@ -377,7 +377,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task LoadHolonAsync(Guid id, string name)
+        public static async Task LoadHolonAsync(Guid id, string name, ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage($"Loading Holon {name}...");
             OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.LoadHolonAsync(id);
@@ -470,7 +470,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task ListGeoNFTsAsync()
+        public static async Task ListGeoNFTsAsync(ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading Geo-NFTs...");
             OASISResult<IEnumerable<IOASISGeoSpatialNFT>> nfts = await STAR.OASISAPI.NFTs.LoadAllGeoNFTsForAvatarAsync(STAR.BeamedInAvatar.Id);
@@ -486,7 +486,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage("No Geo-NFT's Found.");
         }
 
-        public static async Task ListNFTsAsync()
+        public static async Task ListNFTsAsync(ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading NFTs...");
             OASISResult<IEnumerable<IOASISNFT>> nfts = await STAR.OASISAPI.NFTs.LoadAllNFTsForAvatarAsync(STAR.BeamedInAvatar.Id);
@@ -502,7 +502,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage("No NFT's Found.");
         }
 
-        public static async Task ShowNFTAsync(Guid id)
+        public static async Task ShowNFTAsync(Guid id, ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading NFT...");
             OASISResult<IOASISNFT> nft = await STAR.OASISAPI.NFTs.LoadNftAsync(id);
@@ -551,7 +551,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowDivider();
         }
 
-        public static async Task ShowGeoNFTAsync(Guid id)
+        public static async Task ShowGeoNFTAsync(Guid id, ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading Geo-NFT...");
             OASISResult<IOASISGeoSpatialNFT> nft = await STAR.OASISAPI.NFTs.LoadGeoNftAsync(id);
@@ -701,7 +701,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static string GetValidEmail(string message, bool checkIfEmailAlreadyInUse)
+        public static string GetValidEmail(string message, bool checkIfEmailAlreadyInUse, ProviderType providerType = ProviderType.Default)
         {
             bool emailValid = false;
             string email = "";
@@ -746,7 +746,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return email;
         }
 
-        public static string GetValidUsername(string message, bool checkIfUsernameAlreadyInUse = true)
+        public static string GetValidUsername(string message, bool checkIfUsernameAlreadyInUse = true, ProviderType providerType = ProviderType.Default)
         {
             bool usernameValid = false;
             string username = "";
@@ -788,7 +788,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return username;
         }
 
-        public static bool CreateAvatar()
+        public static bool CreateAvatar(ProviderType providerType = ProviderType.Default)
         {
             ConsoleColor favColour = ConsoleColor.Green;
             ConsoleColor cliColour = ConsoleColor.Green;
@@ -824,7 +824,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task BeamInAvatar()
+        public static async Task BeamInAvatar(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IAvatar> beamInResult = null;
 
@@ -1403,10 +1403,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             CLIEngine.ShowWorkingMessage("BEGINNING STAR ODK/COSMIC TEST'S...");
 
-            OASISResult<CoronalEjection> result = await GenerateZomesAndHolons("Zomes And Holons Only", OAPPType, celestialBodyDNAFolder, Path.Combine(geneisFolder, "ZomesAndHolons"), "NextGenSoftware.OASIS.OAPPS.ZomesAndHolonsOnly");
+            OASISResult<CoronalEjection> result = await GenerateZomesAndHolons("Zomes And Holons Only", "Zomes And Holons Only Desc", OAPPType, celestialBodyDNAFolder, Path.Combine(geneisFolder, "ZomesAndHolons"), "NextGenSoftware.OASIS.OAPPS.ZomesAndHolonsOnly");
 
             //Passing in null for the ParentCelestialBody will default it to the default planet (Our World).
-            result = await GenerateCelestialBody("The Justice League Academy", null, OAPPType, GenesisType.Moon, celestialBodyDNAFolder, Path.Combine(geneisFolder, "JLA"), "NextGenSoftware.OASIS.OAPPS.JLA");
+            result = await GenerateCelestialBody("The Justice League Academy", "Test Moon", null, OAPPType, GenesisType.Moon, celestialBodyDNAFolder, Path.Combine(geneisFolder, "JLA"), "NextGenSoftware.OASIS.OAPPS.JLA");
 
             // Currenly the JLA Moon and Our World Planet share the same Zome/Holon DNA (celestialBodyDNAFolder) but they can also have their own zomes/holons if they wish...
             // TODO: In future you will also be able to define the full CelestialBody DNA seperatley (cs/json) for each planet, moon, star etc where they can also define additional meta data for the moon/planet/star as well as their own zomes/holons like we have now, plus they can also refer to existing holons/zomes either in a folder (like we have now) or in STARNET Library using the GUID.
@@ -1420,7 +1420,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             //Passing in null for the ParentCelestialBody will default it to the default Star (Our Sun Sol).
-            result = await GenerateCelestialBody("Our World", null, OAPPType, GenesisType.Planet, celestialBodyDNAFolder, Path.Combine(geneisFolder, "Our World"), "NextGenSoftware.OASIS.OAPPS.OurWorld");
+            result = await GenerateCelestialBody("Our World", "Test Planet", null, OAPPType, GenesisType.Planet, celestialBodyDNAFolder, Path.Combine(geneisFolder, "Our World"), "NextGenSoftware.OASIS.OAPPS.OurWorld");
 
             if (result != null && !result.IsError && result.Result != null && result.Result.CelestialBody != null)
             {
@@ -1662,7 +1662,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
 
                 // Build
-                CoronalEjection ejection = result.Result.CelestialBody.Flare();
+                ICoronalEjection ejection = result.Result.CelestialBody.Flare();
                 //OR
                 //CoronalEjection ejection = Star.Flare(ourWorld);
 
@@ -1674,7 +1674,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 STAR.Dim(result.Result.CelestialBody);
 
                 // Deploy the planet (OApp)
-                STAR.Seed(result.Result.CelestialBody);
+                STAR.Seed(result.Result.CelestialBody.Id, ""); //TODO: Need to create test path for this.
 
                 // Run Tests
                 STAR.Twinkle(result.Result.CelestialBody);

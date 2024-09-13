@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
-using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
@@ -48,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         void Dim();
         void Emit();
         void Evolve();
-        CoronalEjection Flare();
+        ICoronalEjection Flare();
         List<IHolon> GetHolonsThatBelongToZome(IZome zome);
         IZome GetZomeById(Guid id);
         IZome GetZomeByName(string name);
@@ -65,8 +64,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         void Mutate();
         void Radiate();
         void Reflect();
-        OASISResult<API.Core.Interfaces.STAR.ICelestialBody> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<API.Core.Interfaces.STAR.ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default);
+        OASISResult<ICelestialBody> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default);
         OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default);
         void Seed();

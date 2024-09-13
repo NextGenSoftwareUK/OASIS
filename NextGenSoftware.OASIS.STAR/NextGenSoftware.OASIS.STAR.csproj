@@ -81,10 +81,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="DNATemplates\CSharpDNATemplates\HolonDNATemplate.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\Interfaces\ILoadHolonDNATemplate.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\Interfaces\ISaveHolonDNATemplate.cs" />

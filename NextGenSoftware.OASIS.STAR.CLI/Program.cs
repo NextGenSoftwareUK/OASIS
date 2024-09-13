@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
-using System.Drawing;
-using System.Reflection;
+using System.Drawing
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using MongoDB.Driver;
@@ -19,7 +18,6 @@ using NextGenSoftware.OASIS.STAR.CLI.Lib;
 using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using Console = System.Console;
-using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 {
@@ -275,21 +273,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                             Guid parentId = Guid.Empty;
 
                                                             if (Guid.TryParse(inputArgs[7], out parentId))
-                                                                lightResult = await STAR.LightAsync(inputArgs[1], oappType, genesisType, inputArgs[3], inputArgs[4], inputArgs[5], parentId);
+                                                                lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, genesisType, inputArgs[4], inputArgs[5], inputArgs[6], parentId);
                                                             else
-                                                                CLIEngine.ShowErrorMessage($"The ParentCelestialBodyId Passed In ({inputArgs[5]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                                CLIEngine.ShowErrorMessage($"The ParentCelestialBodyId Passed In ({inputArgs[6]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
                                                         }
                                                         else
-                                                            lightResult = await STAR.LightAsync(inputArgs[1], oappType, genesisType, inputArgs[3], inputArgs[4], inputArgs[5]);
+                                                            lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, genesisType, inputArgs[4], inputArgs[5], inputArgs[6], ProviderType.Default);
                                                     }
                                                     else
-                                                        CLIEngine.ShowErrorMessage($"The GenesisType Passed In ({inputArgs[6]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                        CLIEngine.ShowErrorMessage($"The GenesisType Passed In ({inputArgs[7]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
                                                 }
                                                 else
-                                                    lightResult = await STAR.LightAsync(inputArgs[1], oappType, inputArgs[3], inputArgs[4], inputArgs[5]);
+                                                    lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, inputArgs[4], inputArgs[5], inputArgs[6]);
                                             }
                                             else
-                                                CLIEngine.ShowErrorMessage($"The OAPPType Passed In ({inputArgs[2]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                CLIEngine.ShowErrorMessage($"The OAPPType Passed In ({inputArgs[3]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.");
 
                                             if (lightResult != null)
                                             {
@@ -417,6 +415,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             case "seed":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
+                                    //await STAR.SeedAsync();
+                                }
+                                break;
+
+                            case "unseed":
+                                {
+                                    CLIEngine.ShowMessage("Coming soon...");
+                                    //await STAR.UnSeedAsync();
                                 }
                                 break;
 
@@ -485,7 +491,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     if (CLIEngine.GetConfirmation("Do you want to list all OAPPs? Press 'Y' to list all OAPPs or 'N' to list only the OAPPs you have created."))
                                         await STARCLI.ListAllOAPPsAsync();
                                     else
-                                        await STARCLI.ListOAPPsCreatedByBeamedInAvatar();
+                                        await STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync();
 
                                 } break;
 
@@ -497,7 +503,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                             case "listinstalledoapps":
                                 {
-                                    await STARCLI.ListOAPPsInstalledForBeamedInAvatar();
+                                    await STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync();
                                 }
                                 break;
 
@@ -2617,24 +2623,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star version = Show the versions of STAR ODK, COSMIC ORM, OASIS Runtime & the OASIS Providers..");
             Console.WriteLine("   star status = Show the status of STAR ODK.");
             Console.WriteLine("   star exit = Exit the STAR CLI.");
-            Console.WriteLine("   star light {OAPPName} {OAPPType} {dnaFolder} {geneisFolder} {genesisNameSpace} {genesisTyp} {parentCelestialBodyId} (optional) = Creates a new OAPP (Zomes/Holons/Star/Planet/Moon) at the given genesis folder location, from the given OAPP DNA.");
+            Console.WriteLine("   star light {OAPPName} {OAPPDesc} {OAPPType} {dnaFolder} {geneisFolder} {genesisNameSpace} {genesisTyp} {parentCelestialBodyId} (optional) = Creates a new OAPP (Zomes/Holons/Star/Planet/Moon) at the given genesis folder location, from the given OAPP DNA.");
             Console.WriteLine("   star light = Displays more detail on how to use this command and optionally launches the Light Wizard.");
             Console.WriteLine("   star light wiz = Start the Light Wizard.");
             Console.WriteLine("   star light transmute {hAppDNA} {geneisFolder}  = Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
             Console.WriteLine("   star bang = Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
             Console.WriteLine("   star wiz = Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
-            Console.WriteLine("   star flare {OAPPName} = Build a OAPP.");
-            Console.WriteLine("   star shine {OAPPName} = Launch & activate a OAPP by shining the star's light upon it...");
-            Console.WriteLine("   star dim {OAPPName} = Deactivate a OAPP.");
-            Console.WriteLine("   star seed {OAPPName} = Deploy a OAPP.");
-            Console.WriteLine("   star twinkle {OAPPName} = Deactivate a OAPP.");
-            Console.WriteLine("   star dust {OAPPName} = Delete a OAPP.");
-            Console.WriteLine("   star radiate {OAPPName} = Highlight the OAPP in the OAPP Store (StarNET). *Admin Only*");
-            Console.WriteLine("   star emit {OAPPName} = Show how much light the OAPP is emitting into the solar system (StarNET/HoloNET)");
-            Console.WriteLine("   star reflect {OAPPName} = Show stats of the OAPP.");
-            Console.WriteLine("   star evolve {OAPPName} = Upgrade/update a OAPP).");
-            Console.WriteLine("   star mutate {OAPPName} = Import/Export hApp, dApp & others.");
-            Console.WriteLine("   star love {OAPPName} = Send/Receive Love.");
+            Console.WriteLine("   star flare {OAPPName/OAPPId} = Build a OAPP.");
+            Console.WriteLine("   star shine {OAPPName/OAPPId} = Launch & activate a OAPP by shining the star's light upon it...");
+            Console.WriteLine("   star dim {OAPPName/OAPPId} = Deactivate a OAPP.");
+            Console.WriteLine("   star seed {OAPPName/OAPPId} = Deploy/Publish a OAPP.");
+            Console.WriteLine("   star unseed {OAPPName/OAPPId} = UnDeploy/UnPublish a OAPP.");
+            Console.WriteLine("   star twinkle {OAPPName/OAPPId} = Deactivate a OAPP.");
+            Console.WriteLine("   star dust {OAPPName/OAPPId} = Delete a OAPP.");
+            Console.WriteLine("   star radiate {OAPPName/OAPPId} = Highlight the OAPP in the OAPP Store (StarNET). *Admin Only*");
+            Console.WriteLine("   star emit {OAPPName/OAPPId} = Show how much light the OAPP is emitting into the solar system (StarNET/HoloNET)");
+            Console.WriteLine("   star reflect {OAPPName/OAPPId} = Show stats of the OAPP.");
+            Console.WriteLine("   star evolve {OAPPName/OAPPId} = Upgrade/update a OAPP).");
+            Console.WriteLine("   star mutate {OAPPName/OAPPId} = Import/Export hApp, dApp & others.");
+            Console.WriteLine("   star love {OAPPName/OAPPId} = Send/Receive Love.");
             Console.WriteLine("   star burst = View network stats/management/settings.");
             Console.WriteLine("   star super - Reserved For Future Use...");
             Console.WriteLine("   star listoapps {searchAll} - List all OAPPs (contains zomes and holons) that have been generated. If {searchAll} is omitted it will list only your OAPP's otherwise it will list all public/shared OAPP's.");

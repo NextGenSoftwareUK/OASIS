@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONode.Core.Enums;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {

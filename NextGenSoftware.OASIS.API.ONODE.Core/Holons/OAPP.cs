@@ -1,7 +1,6 @@
 ﻿using System;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
