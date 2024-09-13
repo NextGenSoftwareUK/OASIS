@@ -413,7 +413,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //}
 
         // Build
-        public CoronalEjection Flare()
+        public ICoronalEjection Flare()
         {
             return new CoronalEjection();
             // return Star.Flare(this);
