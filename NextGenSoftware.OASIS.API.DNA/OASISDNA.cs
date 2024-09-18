@@ -21,6 +21,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public EmailSettings Email { get; set; }
         public StorageProviderSettings StorageProviders { get; set; }
         public string OASISSystemAccountId { get; set; }
+        public string OASISAPIURL { get; set; }
     }
 
     public class SecuritySettings
@@ -237,6 +238,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public SolanaOASISSettings SolanaOASIS { get; set; }
         public CargoOASISSettings CargoOASIS { get; set; }
         public LocalFileOASISSettings LocalFileOASIS { get; set; }
+        public PinataOASISSettings PinataOASIS { get; set; }
     }
 
     public class EmailSettings
@@ -252,6 +254,11 @@ namespace NextGenSoftware.OASIS.API.DNA
     }
 
     public class ProviderSettingsBase
+    {
+        public string ConnectionString { get; set; }
+    }
+
+    public class PinataOASISSettings : ProviderSettingsBase
     {
         public string ConnectionString { get; set; }
     }

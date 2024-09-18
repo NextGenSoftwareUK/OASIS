@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -12,6 +12,132 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class HolonManager : OASISManager
     {
+        public OASISResult<Guid> SaveFile(byte[] data, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<Guid> result = new OASISResult<Guid>();
+            string errorMessage = "An error occured in HolonManager.SaveFile. Reason: ";
+
+            OASISResult<IHolon> holonResult = SaveHolon(new Holon() 
+            { 
+                MetaData = new Dictionary<string, object>()
+                {
+                    { "data",  data }
+                }
+            }, avatarId, true, true, 0, true, false, providerType);
+            
+            if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
+            {
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(holonResult, result);
+                result.Result = holonResult.Result.Id;
+                result.Message = "File Saved";
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error saving the holon contianing the file. Reason: {holonResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<Guid>> SaveFileAsync(byte[] data, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<Guid> result = new OASISResult<Guid>();
+            string errorMessage = "An error occured in HolonManager.SaveFileAsync. Reason: ";
+
+            OASISResult<IHolon> holonResult = await SaveHolonAsync(new Holon()
+            {
+                MetaData = new Dictionary<string, object>()
+                {
+                    { "data",  data }
+                }
+            }, avatarId, true, true, 0, true, false, providerType);
+
+            if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
+            {
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(holonResult, result);
+                result.Result = holonResult.Result.Id;
+                result.Message = "File Saved";
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error saving the holon contianing the file. Reason: {holonResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<byte[]> LoadFile(Guid id, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<byte[]> result = new OASISResult<byte[]>();
+            string errorMessage = "An error occured in HolonManager.LoadFile. Reason: ";
+
+            //OASISResult<IHolon> holonResult = LoadHolon(id, avatarId, true, true, 0, true, false, providerType);
+            OASISResult<IHolon> holonResult = LoadHolon(id, true, true, 0, true, false, HolonType.All, 0, providerType);
+
+            if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
+            {
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(holonResult, result);
+                
+                if (holonResult.Result.MetaData != null && holonResult.MetaData.ContainsKey("data") && holonResult.MetaData["data"] != null)
+                {
+                    result.Result = holonResult.Result.MetaData["data"] as byte[];
+                    result.Message = "File Loaded";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error loading the metadata containing the file (metadata or metadata key not found).");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error loading the holon contianing the file. Reason: {holonResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<byte[]>> LoadFileAsync(Guid id, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<byte[]> result = new OASISResult<byte[]>();
+            string errorMessage = "An error occured in HolonManager.LoadFileAsync. Reason: ";
+
+            //OASISResult<IHolon> holonResult = LoadHolon(id, avatarId, true, true, 0, true, false, providerType);
+            OASISResult<IHolon> holonResult = await LoadHolonAsync(id, true, true, 0, true, false, HolonType.All, 0, providerType);
+
+            if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
+            {
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(holonResult, result);
+
+                if (holonResult.Result.MetaData != null && holonResult.MetaData.ContainsKey("data") && holonResult.MetaData["data"] != null)
+                {
+                    result.Result = holonResult.Result.MetaData["data"] as byte[];
+                    result.Message = "File Loaded";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error loading the metadata containing the file (metadata or metadata key not found).");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error loading the holon contianing the file. Reason: {holonResult.Message}");
+
+            return result;
+        }
+
+        //public OASISResult<Guid> SaveIPFSFile(byte[] data, Guid avatarId)
+        //{
+        //    OASISResult<Guid> result = new OASISResult<Guid>();
+        //    string errorMessage = "An error occured in HolonManager.SaveIPFSFile. Reason: ";
+
+        //    IPFSProvider OASISProvider = ProviderManager.Instance.GetProvider(ProviderType.IPFSOASIS);
+
+        //    if (OASISProvider != null)
+        //    {
+
+        //    }
+
+        //    if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
+        //    {
+        //        result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(holonResult, result);
+        //        result.Result = holonResult.Result.Id;
+        //        result.Message = "File Saved";
+        //    }
+        //    else
+        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error saving the holon contianing the file. Reason: {holonResult.Message}");
+
+        //    return result;
+        //}
+
         public OASISResult<IHolon> SaveHolon(IHolon holon, Guid avatarId, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;

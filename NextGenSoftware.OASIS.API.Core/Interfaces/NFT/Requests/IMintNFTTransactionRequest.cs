@@ -1,8 +1,7 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
 {
@@ -25,5 +24,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
         public Dictionary<string, object> MetaData { get; set; }
         public EnumValue<ProviderType> OffChainProvider { get; set; }
         public EnumValue<ProviderType> OnChainProvider { get; set; }
+        public NFTStandardType NFTStandardType { get; set; }
+        public NFTImageType NFTImageType { get; set; }
+        //public bool SaveIPFSImageOnTheOASIS { get; set; }
     }
 }
