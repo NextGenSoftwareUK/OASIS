@@ -1,16 +1,18 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Data;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
-using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
@@ -65,17 +67,20 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("load-holon")]
         public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(LoadHolonRequest request)
         {
-            OASISResult<Holon> response = new OASISResult<Holon>();
+            //OASISResult<Holon> response = new OASISResult<Holon>();
+            OASISHttpResponseMessage<Holon> response;
+            (response, HolonType childHolonType) = ValidateHolonType<Holon>(request.ChildHolonType);
+
             OASISConfigResult<Holon> configResult = await ConfigureOASISEngineAsync<Holon>(request);
 
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
 
-            OASISResult<IHolon> result = await HolonManager.LoadHolonAsync(request.Id, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.Version);
+            OASISResult<IHolon> result = await HolonManager.LoadHolonAsync(request.Id, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
             ResetOASISSettings(request, configResult);
 
-            OASISResultHelper<IHolon, Holon>.CopyResult(result, response);
-            response.Result = (Holon)result.Result;
+            OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
+            response.Result.Result = (Holon)result.Result;
 
             return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
         }
@@ -240,6 +245,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         {
             OASISHttpResponseMessage<IEnumerable<Holon>> response;
             (response, HolonType holonType) = ValidateHolonType<IEnumerable<Holon>>(request.HolonType);
+            (response, HolonType childHolonType) = ValidateHolonType<IEnumerable<Holon>>(request.ChildHolonType);
 
             if (response.Result.IsError)
                 return response;
@@ -249,10 +255,10 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
 
-            OASISResult<IEnumerable<IHolon>> result = await HolonManager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.Version);
+            OASISResult<IEnumerable<IHolon>> result = await HolonManager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
 
-            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<Holon>>.CopyResult(result, response.Result);
-            response.Result.Result = Mapper.Convert(result.Result);
+            OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
+            response.Result.Result = Mapper.Convert<IHolon, Holon>(result.Result);
             ResetOASISSettings(request, configResult);
 
             return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
@@ -426,19 +432,29 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
       {
           OASISHttpResponseMessage<IEnumerable<Holon>> response;
           (response, HolonType holonType) = ValidateHolonType<IEnumerable<Holon>>(request.HolonType);
+          (response, HolonType childHolonType) = ValidateHolonType<IEnumerable<Holon>>(request.ChildHolonType);
 
           if (response.Result.IsError)
-              return response;
+            return response;
 
           OASISConfigResult<IEnumerable<Holon>> configResult = ConfigureOASISEngine<IEnumerable<Holon>>(request);
 
           if (configResult.IsError && configResult.Response != null)
               return configResult.Response;
 
-          OASISResult<IEnumerable<IHolon>> result = await HolonManager.LoadHolonsForParentAsync(request.Id, holonType, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.Version);
+            //HolonType holonType = HolonType.All;
+            //Object holonTypeObject = null;
 
-          OASISResultHelper<IEnumerable<IHolon>, IEnumerable<Holon>>.CopyResult(result, response.Result);
-          response.Result.Result = Mapper.Convert(result.Result);
+            //if (Enum.TryParse(typeof(HolonType), request.ChildHolonType, out holonTypeObject))
+            //    holonType = (HolonType)holonTypeObject;
+            //else
+            //    return new OASISResult<IEnumerable<Holon>>() { IsError = true, Message = $"The FromProviderType is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+
+          OASISResult<IEnumerable<IHolon>> result = await HolonManager.LoadHolonsForParentAsync(request.Id, holonType, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, 0, childHolonType, request.Version);
+
+          OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
+          response.Result.Result = Mapper.Convert<IHolon, Holon>(result.Result);
           ResetOASISSettings(request, configResult);
 
           return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
@@ -821,14 +837,14 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("delete-holon")]
-        public async Task<OASISHttpResponseMessage<bool>> DeleteHolon(DeleteHolonRequest request)
+        public async Task<OASISHttpResponseMessage<IHolon>> DeleteHolon(DeleteHolonRequest request)
         {
-            OASISConfigResult<bool> configResult = ConfigureOASISEngine<bool>(request);
+            OASISConfigResult<IHolon> configResult = ConfigureOASISEngine<IHolon>(request);
 
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
 
-            OASISResult<bool> response = await HolonManager.DeleteHolonAsync(request.Id, request.SoftDelete);
+            OASISResult<IHolon> response = await HolonManager.DeleteHolonAsync(request.Id, request.SoftDelete);
             ResetOASISSettings(request, configResult);
 
             return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
@@ -841,7 +857,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("delete-holon/{id}")]
-        public async Task<OASISHttpResponseMessage<bool>> DeleteHolon(Guid id)
+        public async Task<OASISHttpResponseMessage<IHolon>> DeleteHolon(Guid id)
         {
             return await DeleteHolon(new DeleteHolonRequest() { Id = id });
         }
@@ -854,7 +870,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("delete-holon/{id}/{softDelete}")]
-        public async Task<OASISHttpResponseMessage<bool>> DeleteHolon(Guid id, bool softDelete = true)
+        public async Task<OASISHttpResponseMessage<IHolon>> DeleteHolon(Guid id, bool softDelete = true)
         {
             return await DeleteHolon(new DeleteHolonRequest() { Id = id, SoftDelete = softDelete });
         }
@@ -871,7 +887,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("delete-holon/{id}/{softDelete}/{providerType}/{setGlobally}")]
-        public async Task<OASISHttpResponseMessage<bool>> DeleteHolon(Guid id, bool softDelete = true, string providerType = "", bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IHolon>> DeleteHolon(Guid id, bool softDelete = true, string providerType = "", bool setGlobally = false)
         {
             return await DeleteHolon(new DeleteHolonRequest()
             {
@@ -907,7 +923,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("delete-holon/{id}/{softDelete}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}")]
-        public async Task<OASISHttpResponseMessage<bool>> DeleteHolon(Guid id, bool softDelete = true, string providerType = "", bool setGlobally = false, string autoReplicationMode = "DEFAULT", string autoFailOverMode = "DEFAULT", string autoLoadBalanceMode = "DEFAULT", string autoReplicationProviders = "DEFAULT", string autoFailOverProviders = "DEFAULT", string autoLoadBalanceProviders = "DEFAULT", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
+        public async Task<OASISHttpResponseMessage<IHolon>> DeleteHolon(Guid id, bool softDelete = true, string providerType = "", bool setGlobally = false, string autoReplicationMode = "DEFAULT", string autoFailOverMode = "DEFAULT", string autoLoadBalanceMode = "DEFAULT", string autoReplicationProviders = "DEFAULT", string autoFailOverProviders = "DEFAULT", string autoLoadBalanceProviders = "DEFAULT", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
         {
             return await DeleteHolon(new DeleteHolonRequest()
             {
@@ -924,6 +940,46 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
                 WaitForAutoReplicationResult = waitForAutoReplicationResult,
                 ShowDetailedSettings = showDetailedSettings
             });
+        }
+
+        /// <summary>
+        /// Saves a file and returns the id linked to the holon that it is stored in.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("save-file")]
+        public async Task<OASISHttpResponseMessage<Guid>> SaveFile(SaveFileRequest request)
+        {
+            OASISConfigResult<Guid> configResult = ConfigureOASISEngine<Guid>(request);
+
+            if (configResult.IsError && configResult.Response != null)
+                return configResult.Response;
+
+            OASISResult<Guid> response = await HolonManager.SaveFileAsync(request.Data, AvatarId);
+            ResetOASISSettings(request, configResult);
+
+            return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+        }
+
+        /// <summary>
+        /// Loads a file with the given id.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("load-file")]
+        public async Task<OASISHttpResponseMessage<byte[]>> LoadFile(LoadFileRequest request)
+        {
+            OASISConfigResult<byte[]> configResult = ConfigureOASISEngine<byte[]>(request);
+
+            if (configResult.IsError && configResult.Response != null)
+                return configResult.Response;
+
+            OASISResult<byte[]> response = await HolonManager.LoadFileAsync(request.Id, AvatarId);
+            ResetOASISSettings(request, configResult);
+
+            return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
         }
 
         private (OASISHttpResponseMessage<T>, HolonType) ValidateHolonType<T>(string holonType)

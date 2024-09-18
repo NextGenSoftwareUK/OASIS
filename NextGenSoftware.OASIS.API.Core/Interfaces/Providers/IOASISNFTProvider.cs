@@ -13,6 +13,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 
         public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation);
         public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation);
+        //public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequestForProvider transation);
+        //public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequestForProvider transation);
+
 
         //These load methods below will apply ONLY to the specefic provider/blockchain that they are implemented on. So will not load for ALL providers across the OASIS, but the versions implemented on NFTManger DOES...
         //public OASISResult<IOASISNFT> LoadNFT(Guid id);

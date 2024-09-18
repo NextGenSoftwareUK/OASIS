@@ -3,16 +3,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONode.Core.Objects;
@@ -25,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
     {
         private const int OlandUnitPrice = 17;
         private INFTManager _nftManager;
-        private static OLandManager _instance = null;
+        //private static OLandManager _instance = null;
 
         //public static OLandManager Instance
         //{

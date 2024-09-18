@@ -8,6 +8,8 @@ using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
 using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 
 namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
 {
@@ -104,14 +106,14 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// <param name="avatarId"></param>
         /// <returns></returns>
         [HttpGet("get-karma-akashic-records-for-avatar/{avatarId}")]
-        public OASISResult<IEnumerable<KarmaAkashicRecord>> GetKarmaAkashicRecordsForAvatar(Guid avatarId)
+        public OASISResult<IEnumerable<IKarmaAkashicRecord>> GetKarmaAkashicRecordsForAvatar(Guid avatarId)
         {
             OASISResult<IAvatarDetail> avatarResult = Program.AvatarManager.LoadAvatarDetail(avatarId);
 
             if (!avatarResult.IsError && avatarResult.Result != null)
-                return new OASISResult<IEnumerable<KarmaAkashicRecord>>(avatarResult.Result.KarmaAkashicRecords);
+                return new OASISResult<IEnumerable<IKarmaAkashicRecord>>(avatarResult.Result.KarmaAkashicRecords);
             else
-                return new OASISResult<IEnumerable<KarmaAkashicRecord>>() { IsError = true, Message = $"Error loading avatar detail. Reason: {avatarResult.Message}" };
+                return new OASISResult<IEnumerable<IKarmaAkashicRecord>>() { IsError = true, Message = $"Error loading avatar detail. Reason: {avatarResult.Message}" };
         }
 
         /// <summary>
@@ -122,7 +124,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>+
         [HttpGet("get-karma-akashic-records-for-avatar/{avatarId}/{providerType}/{setGlobally}")]
-        public OASISResult<IEnumerable<KarmaAkashicRecord>> GetKarmaAkashicRecordsForAvatar(Guid avatarId, ProviderType providerType, bool setGlobally = false)
+        public OASISResult<IEnumerable<IKarmaAkashicRecord>> GetKarmaAkashicRecordsForAvatar(Guid avatarId, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return GetKarmaAkashicRecordsForAvatar(avatarId);
