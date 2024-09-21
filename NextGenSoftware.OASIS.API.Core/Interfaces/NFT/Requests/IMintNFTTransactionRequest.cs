@@ -27,5 +27,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
         public NFTStandardType NFTStandardType { get; set; }
         public NFTImageType NFTImageType { get; set; }
         //public bool SaveIPFSImageOnTheOASIS { get; set; }
+        public string JsonUrl { get; set; }
     }
 }

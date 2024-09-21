@@ -20,7 +20,7 @@ contract ArbitrumOASIS is ERC721, Ownable {
     uint256 private totalHolonsCount;
 
     struct NFTMetadata {
-        string metadataJson;
+        string metadataUri;
     }
 
     struct NFTTransfer {
@@ -220,10 +220,10 @@ contract ArbitrumOASIS is ERC721, Ownable {
 
     function mint(
         address to,
-        string memory metadataJson
+        string memory metadataUri
     ) external onlyOwner {
         nftMetadata[nextTokenId] = NFTMetadata(
-            metadataJson
+            metadataUri
         );
 
         _safeMint(to, nextTokenId);
@@ -258,5 +258,15 @@ contract ArbitrumOASIS is ERC721, Ownable {
 
     function getTransferHistory(uint256 tokenId) external view returns (NFTTransfer[] memory) {
         return nftTransfers[tokenId];
+    }
+
+    function tokenExists(uint256 tokenId) public view returns (bool) {
+        return bytes(nftMetadata[tokenId].metadataUri).length > 0;
+    }
+
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        require(tokenExists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+
+        return nftMetadata[tokenId].metadataUri;
     }
 }
