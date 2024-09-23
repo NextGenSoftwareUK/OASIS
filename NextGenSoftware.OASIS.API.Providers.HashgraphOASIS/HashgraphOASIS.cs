@@ -510,12 +510,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             throw new NotImplementedException();
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequestForProvider transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequestForProvider transation)
         {
             throw new NotImplementedException();
         }

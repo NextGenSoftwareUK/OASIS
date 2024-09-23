@@ -34,5 +34,16 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             // TODO: Finish implementing.
             return new();
         }
+
+        /// <summary>
+        /// Returns the current OASIS API Version.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("version")]
+        public string GetVersion()
+        {
+            // TODO: Finish implementing.
+            return OASISBootLoader.OASISBootLoader.OASISVersion;
+        }
     }
 }
