@@ -1172,7 +1172,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 gas: null,
                 value: null,
                 transaction.MintWalletAddress,
-                transaction.JsonUrl
+                transaction.JSONUrl
             );
             HexBigInteger gasPrice = await _web3Client.Eth.GasPrice.SendRequestAsync();
 
@@ -1182,7 +1182,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 value: gasPrice,
                 receiptRequestCancellationToken: null,
                 transaction.MintWalletAddress,
-                transaction.JsonUrl
+                transaction.JSONUrl
             );
 
             if (txReceipt.HasErrors() is true && txReceipt.Logs.Count > 0)
