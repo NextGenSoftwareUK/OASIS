@@ -1,17 +1,4 @@
 {
-  "$schema": "http://json.schemastore.org/launchsettings.json",
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iis": {
-      "applicationUrl": "http://localhost/NextGenSoftware.OASIS.API.ONode.WebAPI",
-      "sslPort": 0
-    },
-    "iisExpress": {
-      "applicationUrl": "http://localhost:58110",
-      "sslPort": 44371
-    }
-  },
   "profiles": {
     "IIS Express": {
       "commandName": "IIS",
@@ -33,7 +20,7 @@
     "The OASIS": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/values",
+      "launchUrl": "api/settings/version",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
@@ -61,6 +48,23 @@
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/api/values",
       "publishAllPorts": true,
       "useSSL": true
+    },
+    "IIS": {
+      "commandName": "IIS",
+      "launchBrowser": true
+    }
+  },
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iis": {
+      "applicationUrl": "http://localhost/NextGenSoftware.OASIS.API.ONode.WebAPI",
+      "sslPort": 0
+    },
+    "iisExpress": {
+      "applicationUrl": "http://localhost:58110",
+      "sslPort": 44371
     }
   }
 }

@@ -17,11 +17,13 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories;
 using DataHelper = NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers.DataHelper;
+using static System.Net.WebRequestMethods;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
     public class HoloOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar, IOASISLocalStorageProvider
     {
+        private const string HOLO_NETWORK_URI = "https://holo.host";
         private const string OASIS_HAPP_ID = "oasis";
         private const string OASIS_HAPP_PATH = "OASIS_hAPP\\oasis.happ";
         private const string OASIS_HAPP_ROLE_NAME = "oasis";
@@ -57,7 +59,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         private GenericRepository _genericRepository = null;
         private string _holochainConductorAppAgentURI = "";
 
-        private bool _useReflection = false;
         public delegate void Initialized(object sender, EventArgs e);
         public event Initialized OnInitialized;
 
@@ -70,26 +71,39 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public IHoloNETClientAdmin HoloNETClientAdmin { get; private set; }
         public IHoloNETClientAppAgent HoloNETClientAppAgent { get; private set; }
+        public bool UseLocalNode { get; private set; }
+        public bool UseHoloNetwork { get; private set; }
+        public string HoloNetworkURI { get; private set; }
+        public bool UseHoloNETORMReflection { get; private set; }
 
-        public HoloOASIS(HoloNETClientAdmin holoNETClientAdmin, HoloNETClientAppAgent holoNETClientAppAgent, bool useReflection = true)
+        public HoloOASIS(HoloNETClientAdmin holoNETClientAdmin, HoloNETClientAppAgent holoNETClientAppAgent, string holoNetworkURI = HOLO_NETWORK_URI, bool useLocalNode = true, bool useHoloNetwork = true, bool useHoloNETORMReflection = true)
         {
-            _useReflection = useReflection;
             this.HoloNETClientAdmin = holoNETClientAdmin;
             this.HoloNETClientAppAgent = holoNETClientAppAgent;
+            this.HoloNetworkURI = holoNetworkURI;
+            this.UseLocalNode = useLocalNode;
+            this.UseHoloNetwork = useHoloNetwork;
+            this.UseHoloNETORMReflection = useHoloNETORMReflection;
             Initialize();
         }
 
-        public HoloOASIS(string holochainConductorAdminURI, bool useReflection = true)
+        public HoloOASIS(string holochainConductorAdminURI, string holoNetworkURI = HOLO_NETWORK_URI, bool useLocalNode = true, bool useHoloNetwork = true, bool useHoloNETORMReflection = true)
         {
-            _useReflection = useReflection;
+            this.HoloNetworkURI = holoNetworkURI;
+            this.UseLocalNode = useLocalNode;
+            this.UseHoloNetwork = useHoloNetwork;
+            this.UseHoloNETORMReflection = useHoloNETORMReflection;
             HoloNETClientAdmin = new HoloNETClientAdmin(new HoloNETDNA() { HolochainConductorAdminURI = holochainConductorAdminURI });
             Initialize();
         }
 
-        public HoloOASIS(string holochainConductorAdminURI, string holochainConductorAppAgentURI, bool useReflection = true)
+        public HoloOASIS(string holochainConductorAdminURI, string holochainConductorAppAgentURI, string holoNetworkURI = HOLO_NETWORK_URI, bool useLocalNode = true, bool useHoloNetwork = true, bool useHoloNETORMReflection = true)
         {
-            _useReflection = useReflection;
             _holochainConductorAppAgentURI = holochainConductorAppAgentURI;
+            this.HoloNetworkURI = holoNetworkURI;
+            this.UseLocalNode = useLocalNode;
+            this.UseHoloNetwork = useHoloNetwork;
+            this.UseHoloNETORMReflection = useHoloNETORMReflection;
             HoloNETClientAdmin = new HoloNETClientAdmin(new HoloNETDNA() { HolochainConductorAdminURI = holochainConductorAdminURI});
             Initialize();
         }
@@ -101,11 +115,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HoloOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
-            DataHelper.UseReflection = _useReflection;
+            DataHelper.UseReflection = this.UseHoloNETORMReflection;
             _avatarRepository = new AvatarRepository();
             _avatarDetailRepository = new AvatarDetailRepository();
             _holonRepository = new HolonRepository();
-            _genericRepository = new GenericRepository(HoloNETClientAppAgent, _useReflection);
+            _genericRepository = new GenericRepository(HoloNETClientAppAgent, this.UseHoloNETORMReflection);
         }
 
         private void HoloNETClientAdmin_OnError(object sender, HoloNETErrorEventArgs e)
@@ -128,52 +142,60 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             try
             {
-                HoloNETClientAdmin.OnError += HoloNETClientAdmin_OnError;
-
-                if (HoloNETClientAdmin.State == System.Net.WebSockets.WebSocketState.Open)
-                    adminConnected = true;
-
-                else if (!HoloNETClientAdmin.IsConnecting)
+                if (UseLocalNode)
                 {
-                    HoloNETConnectedEventArgs adminConnectResult = await HoloNETClientAdmin.ConnectAsync();
+                    HoloNETClientAdmin.OnError += HoloNETClientAdmin_OnError;
 
-                    if (adminConnectResult != null && adminConnectResult.IsConnected)
+                    if (HoloNETClientAdmin.State == System.Net.WebSockets.WebSocketState.Open)
                         adminConnected = true;
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error Occured Connecting To HoloNETClientAdmin EndPoint {HoloNETClientAdmin.EndPoint.AbsoluteUri}. Reason: {adminConnectResult.Message}");
+
+                    else if (!HoloNETClientAdmin.IsConnecting)
+                    {
+                        HoloNETConnectedEventArgs adminConnectResult = await HoloNETClientAdmin.ConnectAsync();
+
+                        if (adminConnectResult != null && adminConnectResult.IsConnected)
+                            adminConnected = true;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error Occured Connecting To HoloNETClientAdmin EndPoint {HoloNETClientAdmin.EndPoint.AbsoluteUri}. Reason: {adminConnectResult.Message}");
+                    }
+
+                    if (adminConnected)
+                    {
+                        if (HoloNETClientAppAgent == null)
+                        {
+                            InstallEnableSignAttachAndConnectToHappEventArgs installedAppResult = await HoloNETClientAdmin.InstallEnableSignAttachAndConnectToHappAsync(OASIS_HAPP_ID, OASIS_HAPP_PATH, OASIS_HAPP_ROLE_NAME);
+
+                            if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
+                            {
+                                HoloNETClientAppAgent = installedAppResult.HoloNETClientAppAgent;
+                                IsProviderActivated = true;
+                                result.Result = true;
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error Occured Calling InstallEnableSignAttachAndConnectToHappAsync On HoloNETClientAppAgent EndPoint {HoloNETClientAdmin.EndPoint.AbsoluteUri}. Reason: {installedAppResult.Message}");
+                        }
+                        else if (HoloNETClientAppAgent.State != System.Net.WebSockets.WebSocketState.Open)
+                        {
+                            HoloNETConnectedEventArgs connectedResult = await HoloNETClientAppAgent.ConnectAsync();
+
+                            if (connectedResult != null && !connectedResult.IsError && connectedResult.IsConnected)
+                            {
+                                IsProviderActivated = true;
+                                result.Result = true;
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error Occured Connecting To HoloNETClientAppAgent EndPoint {HoloNETClientAppAgent.EndPoint.AbsoluteUri}. Reason: {connectedResult.Message}");
+                        }
+                    }
+
+                    if (HoloNETClientAppAgent != null)
+                        HoloNETClientAppAgent.OnError += HoloNETClientAppAgent_OnError;
                 }
                 
-                if (adminConnected)
+                if (UseHoloNetwork)
                 {
-                    if (HoloNETClientAppAgent == null)
-                    {
-                        InstallEnableSignAttachAndConnectToHappEventArgs installedAppResult = await HoloNETClientAdmin.InstallEnableSignAttachAndConnectToHappAsync(OASIS_HAPP_ID, OASIS_HAPP_PATH, OASIS_HAPP_ROLE_NAME);
-
-                        if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
-                        {
-                            HoloNETClientAppAgent = installedAppResult.HoloNETClientAppAgent;
-                            IsProviderActivated = true;
-                            result.Result = true;
-                        }
-                        else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error Occured Calling InstallEnableSignAttachAndConnectToHappAsync On HoloNETClientAppAgent EndPoint {HoloNETClientAdmin.EndPoint.AbsoluteUri}. Reason: {installedAppResult.Message}");
-                    }
-                    else if (HoloNETClientAppAgent.State != System.Net.WebSockets.WebSocketState.Open)
-                    {
-                        HoloNETConnectedEventArgs connectedResult = await HoloNETClientAppAgent.ConnectAsync();
-
-                        if (connectedResult != null && !connectedResult.IsError && connectedResult.IsConnected)
-                        {
-                            IsProviderActivated = true;
-                            result.Result = true;
-                        }
-                        else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error Occured Connecting To HoloNETClientAppAgent EndPoint {HoloNETClientAppAgent.EndPoint.AbsoluteUri}. Reason: {connectedResult.Message}");
-                    }
+                    //TODO: Add HoloNetwork Connection here...
                 }
-
-                if (HoloNETClientAppAgent != null)
-                    HoloNETClientAppAgent.OnError += HoloNETClientAppAgent_OnError;
             }
             catch (Exception e) 
             {

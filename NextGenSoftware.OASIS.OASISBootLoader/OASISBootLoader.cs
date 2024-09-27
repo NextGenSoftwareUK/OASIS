@@ -717,8 +717,12 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             {
                                 HoloOASIS holoOASIS = new HoloOASIS(
                                             overrideConnectionString == null
-                                                ? OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString
-                                                : overrideConnectionString);
+                                                ? OASISDNA.OASIS.StorageProviders.HoloOASIS.LocalNodeURI
+                                                : overrideConnectionString, 
+                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.HoloNetworkURI, 
+                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.UseLocalNode, 
+                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.UseHoloNetwork, 
+                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.HoloNETORMUseReflection);
 
                                 holoOASIS.OnStorageProviderError += HoloOASIS_StorageProviderError;
                                 result.Result = holoOASIS;

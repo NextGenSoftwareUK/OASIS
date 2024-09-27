@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <!--<GeneratePackageOnBuild>True</GeneratePackageOnBuild>-->
 	  <PackageId>NextGenSoftware.OASIS.API.Native.Integrated.EndPoint</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Native Integrated EndPoint</Product>

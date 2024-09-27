@@ -275,10 +275,16 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string WalletMnemonicWords { get; set; }
     }
 
-    public class HoloOASISProviderSettings : ProviderSettingsBase
+    //public class HoloOASISProviderSettings : ProviderSettingsBase
+    public class HoloOASISProviderSettings
     {
         //public HolochainVersion HolochainVersion { get; set; }
-        public string HolochainVersion { get; set; }
+        //public string HolochainVersion { get; set; }
+        public bool UseLocalNode { get; set; }
+        public bool UseHoloNetwork { get; set; }
+        public string HoloNetworkURI { get; set; }
+        public string LocalNodeURI {  get; set; }
+        public bool HoloNETORMUseReflection { get; set; }
     }
 
     public class MongoDBOASISProviderSettings : ProviderSettingsBase
