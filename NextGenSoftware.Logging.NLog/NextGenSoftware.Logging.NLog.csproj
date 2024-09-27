@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	  <PackageId>NextGenSoftware.Logging.NLog</PackageId>
+	  <Company>NextGen Software Ltd</Company>
+	  <Product>NextGen Software Logging NLog Extention</Product>
+	  <Title>NextGen Software Logging NLog Extention</Title>
+	  <Summary>NLog implemention/extention of ILogProvider interface for NextGenSoftware.Logging package.</Summary>
+	  <Description>NLog implemention/extention of ILogProvider interface for NextGenSoftware.Logging package.</Description>
+	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/holochain-client-csharp</PackageProjectUrl>
+	  <PackageIcon>STARJPG.JPG</PackageIcon>
+	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
+	  <PackageTags>logging;net;unity</PackageTags>
+	  <PackageReleaseNotes>
+		  - Upgraded to .NET 8.
+		  - Upgraded to work with the latest changes/improvements to the NextGenSoftware.Logging lib (v2.0+).
+	  </PackageReleaseNotes>
+	  <RepositoryType>git</RepositoryType>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/holochain-client-csharp</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2022 - 2024</Copyright>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <Version>2.0.0</Version>
+	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="NLog.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+	<ItemGroup>
+		<None Include="STARJPG.JPG">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="5.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.Logging\NextGenSoftware.Logging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+</Project>

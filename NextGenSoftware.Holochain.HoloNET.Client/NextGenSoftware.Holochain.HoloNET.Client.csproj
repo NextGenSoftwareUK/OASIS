@@ -1,0 +1,141 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFramework>net8.0</TargetFramework>
+	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <!--<PackageId>NextGenSoftware.Holochain.HoloNET.Client.Embedded</PackageId>-->
+	  <PackageId>NextGenSoftware.Holochain.HoloNET.Client</PackageId>
+	  <Company>NextGen Software Ltd</Company>
+	  <Product>HoloNET Holochain Client</Product>
+	  <Title>HoloNET Holochain Client</Title>
+	  <Summary>The world's first .NET &amp; Unity client for Holochain.</Summary>
+	  <Description>The world's first .NET &amp; Unity client for Holochain.</Description>
+	  <!--<Summary>The world's first .NET &amp; Unity client for Holochain. This version comes with the Holochain binaries built in.</Summary>
+	  <Description>The world's first .NET &amp; Unity client for Holochain. This version comes with the Holochain binaries built in.</Description>-->
+	  <PackageProjectUrl>https://github.com/holochain-open-dev/holochain-client-csharp</PackageProjectUrl>
+	  <PackageIcon>hc logo.png</PackageIcon>
+	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
+	  <PackageTags>holochain;net;unity;client</PackageTags>
+	  <PackageReleaseNotes>
+		  - This release has multiple bug fixes.
+		  - Bug fixes for Get DNA Definition Conductor API function.
+		  - Bug fixes for Disconnect and Re-Connect issues.
+		  - Dependencies updated such as the NextGen Libs it uses.
+
+		  [HoloNET Manager v3.1.0](https://www.oasisweb4.com/downloads/HoloNET_Manager_v3.1.0.msi)
+
+		  **This is the UI to HoloNET and is also used to demo and test all functionality of HoloNET Client and HoloNET ORM. Read more about this above.**
+
+		  **Please leave feedback in our [Telegram group](https://t.me/holonetchat). We are aware of a few bugs we are still working on, we originally wanted to wait till we got these fixed but if we are being honest we couldn't wait any longer to get this out there to get early feedback and see where the demands were for further features, enhancements and what part of the HoloNET Family we should focus more on etc...**
+
+		  **We also REALLY need funding to keep this vital project alive, we are now out of runway so we would really appreciate your support:
+
+		  https://www.gofundme.com/f/help-david-get-over-the-line-with-holonet-oasis-and-star**
+
+		  **We also wanted help squishing these last few bugs because they have been quite tricky little buggers to track down! Please find them in our [GitHub Issues](https://github.com/holochain-open-dev/holochain-client-csharp/issues)... :)**
+
+		  **Any other help would also be greatly appreciated, we are always looking for devs (and non devs) to join us on this exciting journey to the stars... We would love to hear from you! Thank you! :)**
+
+		  **UPDATE: We have now opened our HoloNET Alpha Testers Programme, please get in touch on our [Telegram group](https://t.me/holonetchat) if you want to join and become one of our esteem amazing testers! You can also get early access to many exciting upcoming releases for HoloNET, STAR, OASIS &amp; AR World/Our World before anyone else! Other perks and bonuses also available! So sign up now! Thanks!**
+
+		  **NOTE: The documentation is still for the previous version, please bare with us while we update this soon... thank you!**
+
+		  *Full Changelog:* https://github.com/holochain-open-dev/holochain-client-csharp/compare/v3.0.3...v3.0.5
+
+		  NuGet Packages:
+
+		  [NextGenSoftware.Holochain.HoloNET.Client](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.Client)
+		  Lightweight version that does not come with the holochain binaries (hc.exe and holochain.exe).
+
+		  [NextGenSoftware.Holochain.HoloNET.Client.Embedded](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.Client.Embedded)
+		  This version comes with the holochain binaries (hc.exe and holochain.exe) integrated.
+
+		  [NextGenSoftware.Holochain.HoloNET.Client.TestHarness](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.Client.TestHarness)
+		  A console test harness for HoloNET Client.
+
+		  [NextGenSoftware.Holochain.HoloNET.ORM](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.ORM)
+		  The new HoloNET ORM (Object Relational Mapping) allowing very easy &amp; rapid development of hApps. This consists of the HoloNETEntryBase, HoloNETAuditEntryBase, HoloNETCollection and HoloNETObservsableCollection classes. The first two can be extended to create your HoloNET Entry models that map directly onto your data structs in your rust hApp zome code. The second two are collections of these entries. You can then simply call basic CRUD methods on your classes such as Load, Save, Delete, etc making it very quick and easy to build hApps without having to worry about the lower complexities of Holochain or configure and use the Holochain Conductor or API's. You also get change tracking, version control &amp; rollback functionality for free. HoloNET ORM allows any existing .net app/website/game/service to be rapidly and quickly converted to a Holochain hApp with very little code changes (you can simply add a new attribute to the properties in your models) and it will now map to your rust hApp structs (which WEB5 [NextGenSoftware.OASIS.STAR](https://www.nuget.org/packages/NextGenSoftware.OASIS.STAR)) can also dynamically generate (it generates rust and c# code). More documentation will be coming soon for this...
+
+		  [NextGenSoftware.Holochain.HoloNET.ORM.Embedded](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.ORM.Embedded)
+		  This is exactly the same as above except it is using the embedded version of the HoloNET Client so it is integrated with the Holochain Conductor binaries.
+
+		  [NextGenSoftware.Holochain.HoloNET.Manager](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.Manager)
+		  The new UI to HoloNET Client &amp; HoloNET ORM show casing all of their advanced features.  This has many generic backend and UI components that can be used to allow other .net devs to rapidly construct their own .net hApps using HoloNET HDK (HoloNET Client, HoloNET ORM, HoloNET Manager, WEB5 STAR ODK/HDK &amp; HoloNET HyperNET). The HoloNET Manager is currently implemented in WPF but we have plans to port this to Uno, MAUI &amp; OpenSilver meaning it can run natively on Windows, Mac, Linux, TV's, IPads, tablets, android, IOS &amp; web. The work for this has already begun so expect future releases soon...
+
+		  [NextGenSoftware.Holochain.HoloNET.Manager.Embedded](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.Manager.Embedded)
+		  This is exactly the same as above except it is using the embedded version of the HoloNET Client so it is integrated with the Holochain Conductor binaries.
+
+		  [NextGenSoftware.Holochain.HoloNET.HDK](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.HDK)
+		  The new HoloNET HDK consisting of HoloNET Client, HoloNET ORM, HoloNET Manager, WEB5 STAR ODK/HDK &amp; HoloNET HyperNET. This package contains a plugin to the generic WEB5 STAR ODK No/Low Code Generator extending it so it can generate hApps from metadata built on top of the HoloNET Client/ORM. Release Coming Soon...
+
+		  [NextGenSoftware.Holochain.HoloNET.HDK.Embedded](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.HDK.Embedded)
+		  This is exactly the same as above except it is using the embedded version of the HoloNET Client so it is integrated with the Holochain Conductor binaries.
+
+		  [NextGenSoftware.OASIS.STAR](https://www.nuget.org/packages/NextGenSoftware.OASIS.STAR)
+		  The new No/Low Code Generator allowing you to generate code for any supported OASIS Provider (web2 and web3) and currently supports Holochain, IPFS, Solana, EOS, Ethereum, Telos, SEEDS, MongoDB, SQLLite, Neo4j &amp; Azure. The generated code runs on top of OASIS/STAR COSMIC ORM making it a very easy and powerful way to share data between any web2 or web3 provider. Release Coming Soon...
+
+		  [NextGenSoftware.Holochain.HoloNET.HyperNET](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.HyperNET)
+		  This is built on top of the HoloNET Client &amp; HoloNET ORM and allows Unity and Unreal games to implement lag free P2P networking allowing near unlimited number of players to play online smashing previous limitations on classic cloud/server hosting. Release Coming Soon...
+
+		  [NextGenSoftware.Holochain.HoloNET.HyperNET.Embedded](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.HyperNET.Embedded)
+		  This is exactly the same as above except it is using the embedded version of the HoloNET Client so it is integrated with the Holochain Conductor binaries.
+		  
+	  </PackageReleaseNotes>
+	  <RepositoryType>git</RepositoryType>
+	  <RepositoryUrl>https://github.com/holochain-open-dev/holochain-client-csharp</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2024</Copyright>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <Version>3.0.5</Version>
+	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
+
+	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+
+	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\Logos\hc logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MessagePack" Version="2.4.59" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Nito.AsyncEx.Context" Version="5.1.2" />
+    <PackageReference Include="SauceControl.Blake2Fast" Version="2.0.0" />
+    <PackageReference Include="Sodium.Core" Version="1.3.4" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageReference Include="YamlDotNet" Version="13.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="holochain_serialisation_wrapper.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="HolochainBinaries\hc.exe">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="HolochainBinaries\holochain.exe">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="External Libs\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.WebSocket\NextGenSoftware.WebSocket.csproj" />
+  </ItemGroup>
+
+</Project>
