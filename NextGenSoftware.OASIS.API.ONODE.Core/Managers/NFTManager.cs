@@ -326,7 +326,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 {
                     if (currentAvatar == null)
                     {
-                        OASISResult<IAvatar> avatarResult =  AvatarManager.Instance.LoadAvatar(request.MintedByAvatarId);
+                        OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(request.MintedByAvatarId);
 
                         if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
                         {
@@ -869,13 +869,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     {
                         List<IOASISGeoSpatialNFT> matchedGeoNFTs = new List<IOASISGeoSpatialNFT>();
 
-                        foreach (IOASISGeoSpatialNFT geoSpatialNFT in geoNfts.Result) 
-                        { 
-                            if (geoSpatialNFT.Lat >= bottomLeftLat && geoSpatialNFT.Long >= bottomLeftLong 
+                        foreach (IOASISGeoSpatialNFT geoSpatialNFT in geoNfts.Result)
+                        {
+                            if (geoSpatialNFT.Lat >= bottomLeftLat && geoSpatialNFT.Long >= bottomLeftLong
                                 && geoSpatialNFT.Lat <= topLeftLat && geoSpatialNFT.Long >= topLeftLong
                                 && geoSpatialNFT.Lat <= topRightLat && geoSpatialNFT.Long <= topRightLong
                                 && geoSpatialNFT.Lat >= bottomRightLat && geoSpatialNFT.Long <= bottomRightLong)
-                                    matchedGeoNFTs.Add(geoSpatialNFT);
+                                matchedGeoNFTs.Add(geoSpatialNFT);
                         }
 
                         result.Result = matchedGeoNFTs;
@@ -1044,7 +1044,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 OASISResult<IOASISNFT> loadNftResult = await LoadNftAsync(request.OriginalOASISNFTId, request.OriginalOASISNFTOffChainProviderType);
 
-                if (loadNftResult != null && !loadNftResult.IsError && loadNftResult.Result != null) 
+                if (loadNftResult != null && !loadNftResult.IsError && loadNftResult.Result != null)
                 {
                     result.Result = CreateGeoSpatialNFT(request, loadNftResult.Result);
                     OASISResult<IHolon> saveHolonResult = Data.SaveHolon(CreateGeoSpatialNFTMetaDataHolon(result.Result), request.PlacedByAvatarId, true, true, 0, true, false, request.ProviderType);
@@ -1292,39 +1292,62 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
         private string CreateERC721Json(IMintNFTTransactionRequest request)
         {
-            //TODO: Convert request to JSON
-            return "";
+            var metadata = new
+            {
+                title = request.Title,
+                description = request.Description,
+                image = request.ImageUrl,
+                thumbnail = request.ThumbnailUrl,
+                attributes = request.MetaData != null ? request.MetaData : new Dictionary<string, object>(),
+                price = request.Price,
+                discount = request.Discount,
+                memo = request.MemoText
+            };
+
+            return JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true });
         }
 
         private string CreateERC1155Json(IMintNFTTransactionRequest request)
         {
-            //TODO: Convert request to JSON
-            return "";
+            var metadata = new
+            {
+                title = request.Title,
+                description = request.Description,
+                image = request.ImageUrl,
+                thumbnail = request.ThumbnailUrl,
+                copies = request.NumberToMint,
+                attributes = request.MetaData != null ? request.MetaData : new Dictionary<string, object>(),
+                price = request.Price,
+                discount = request.Discount,
+                memo = request.MemoText
+            };
+
+            return JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true });
         }
 
         private IMintNFTTransactionRequestForProvider CreateNFTTransactionRequestForProvider(IMintNFTTransactionRequest request, string jsonUrl)
         {
             MintNFTTransactionRequestForProvider providerRequest = new MintNFTTransactionRequestForProvider()
             {
-                 Description = request.Description,
-                 Image = request.Image,
-                 Discount = request.Discount,
-                 ImageUrl = request.ImageUrl,
-                 MemoText = request.MemoText,
-                 MetaData = request.MetaData,
-                 MintedByAvatarId = request.MintedByAvatarId,
-                 MintWalletAddress = request.MintWalletAddress,
-                 NFTImageType = request.NFTImageType,
-                 NFTStandardType = request.NFTStandardType,
-                 NumberToMint = request.NumberToMint,
-                 OffChainProvider = request.OffChainProvider,
-                 OnChainProvider = request.OnChainProvider,
-                 Price = request.Price,
-                 StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
-                 Thumbnail = request.Thumbnail,
-                 ThumbnailUrl = request.ThumbnailUrl,
-                 Title = request.Title,
-                 JSONUrl = jsonUrl
+                Description = request.Description,
+                Image = request.Image,
+                Discount = request.Discount,
+                ImageUrl = request.ImageUrl,
+                MemoText = request.MemoText,
+                MetaData = request.MetaData,
+                MintedByAvatarId = request.MintedByAvatarId,
+                MintWalletAddress = request.MintWalletAddress,
+                NFTImageType = request.NFTImageType,
+                NFTStandardType = request.NFTStandardType,
+                NumberToMint = request.NumberToMint,
+                OffChainProvider = request.OffChainProvider,
+                OnChainProvider = request.OnChainProvider,
+                Price = request.Price,
+                StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
+                Thumbnail = request.Thumbnail,
+                ThumbnailUrl = request.ThumbnailUrl,
+                Title = request.Title,
+                JSONUrl = jsonUrl
             };
 
             return providerRequest;
