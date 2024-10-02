@@ -28,6 +28,6 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         public EnumValue<ProviderType> OffChainProvider { get; set; }
         public EnumValue<ProviderType> OnChainProvider { get; set; }
         public NFTStandardType NFTStandardType { get; set; }
-        public NFTImageType NFTImageType { get; set; }
+        public NFTOffChainMetaType NFTOffChainMetaType { get; set; }
     }
 }

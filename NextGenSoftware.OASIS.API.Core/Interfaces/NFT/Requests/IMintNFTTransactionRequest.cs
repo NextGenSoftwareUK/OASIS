@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
         public EnumValue<ProviderType> OffChainProvider { get; set; }
         public EnumValue<ProviderType> OnChainProvider { get; set; }
         public NFTStandardType NFTStandardType { get; set; }
-        public NFTImageType NFTImageType { get; set; }
+        public NFTOffChainMetaType NFTOffChainMetaType { get; set; }
         //public bool SaveIPFSImageOnTheOASIS { get; set; }
         //public string JsonUrl { get; set; }
     }

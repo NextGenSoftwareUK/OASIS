@@ -1,7 +1,7 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.Core.Enums
 {
-    public enum NFTImageType
+    public enum NFTOffChainMetaType
     {
         OASIS,
         IPFS,
