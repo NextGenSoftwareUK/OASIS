@@ -2277,6 +2277,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             string desc = CLIEngine.GetValidInput("What is the NFT's description?");
             string memotext = CLIEngine.GetValidInput("What is the NFT's memotext? (optional)");
             ProviderType offChainProvider = ProviderType.None;
+            NFTOffChainMetaType NFTOffchainMetaType = NFTOffChainMetaType.OASIS;
+            NFTStandardType NFTStandardType = NFTStandardType.Both;
             Dictionary<string, object> metaData = new Dictionary<string, object>();
 
             if (CLIEngine.GetConfirmation("Do you want to upload a local image on your device to represent the NFT or input a URI to an online image? (Press Y for local or N for online)"))
@@ -2316,9 +2318,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (!storeMetaDataOnChain)
             {
-                object offChainProviderObj = CLIEngine.GetValidInputForEnum("What off-chain provider do you wish to store the metadata on? (NOTE: It will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive)", typeof(ProviderType));
-                offChainProvider = (ProviderType)offChainProviderObj;
+                object offChainMetaDataTypeObj = CLIEngine.GetValidInputForEnum("How do you wish to store the offchain meta data/image? IPFS, OASIS or Pinata? If you choose OASIS, it will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive. If you choose OASIS and then IPFSOASIS for the next question for the OASIS Provider it will store it on IPFS via The OASIS and then benefit from the OASIS HyperDrive feature to provide more reliable service and up-time etc. If you choose IPFS or Pinata for this question then it will store it directly on IPFS/Pinata without any additional benefits of The OASIS.", typeof(NFTOffChainMetaType));
+                NFTOffchainMetaType = (NFTOffChainMetaType)offChainMetaDataTypeObj;
+
+                if (NFTOffchainMetaType == NFTOffChainMetaType.OASIS)
+                {
+                    object offChainProviderObj = CLIEngine.GetValidInputForEnum("What OASIS off-chain provider do you wish to store the metadata on? (NOTE: It will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive)", typeof(ProviderType));
+                    offChainProvider = (ProviderType)offChainProviderObj;
+                }
             }
+
+            object nftStandardObj = CLIEngine.GetValidInputForEnum("What NFT ERC standard do you wish to support? ERC721, ERC1155 or both?", typeof(NFTStandardType));
+            NFTStandardType = (NFTStandardType)nftStandardObj;
 
             if (CLIEngine.GetConfirmation("Do you wish to add any metadata to this NFT?"))
             {

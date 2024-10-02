@@ -191,106 +191,28 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     request.MemoText = $"{request.OnChainProvider.Name} {geoNFTMemoText}NFT minted on The OASIS with title '{request.Title}' by avatar with id {request.MintedByAvatarId} for the price of {request.Price}. {request.MemoText}";
 
-                    ProviderType NFTMetaDataProviderType = ProviderType.None;
-                    string NFTMetaDataProviderTypeType = "";
+                    EnumValue<ProviderType> NFTMetaDataProviderType;
 
                     if (request.StoreNFTMetaDataOnChain)
-                    {
-                        NFTMetaDataProviderType = request.OnChainProvider.Value;
-                        NFTMetaDataProviderTypeType = "OnChainProvider";
-                    }
+                        NFTMetaDataProviderType = request.OnChainProvider;
                     else
+                        NFTMetaDataProviderType = request.OffChainProvider;
+
+                    switch (request.NFTStandardType)
                     {
-                        NFTMetaDataProviderType = request.OffChainProvider.Value;
-                        NFTMetaDataProviderTypeType = "OffChainProvider";
+                        case NFTStandardType.ERC721:
+                            result = await MintNFTInternalAsync(request, NFTStandardType.ERC721, NFTMetaDataProviderType, nftProviderResult, result, errorMessage);
+                            break;
+
+                        case NFTStandardType.ERC1155:
+                            result = await MintNFTInternalAsync(request, NFTStandardType.ERC1155, NFTMetaDataProviderType, nftProviderResult, result, errorMessage);
+                            break;
+
+                        case NFTStandardType.Both:
+                            result = await MintNFTInternalAsync(request, NFTStandardType.ERC721, NFTMetaDataProviderType, nftProviderResult, result, errorMessage);
+                            result = await MintNFTInternalAsync(request, NFTStandardType.ERC1155, NFTMetaDataProviderType, nftProviderResult, result, errorMessage);
+                            break;
                     }
-
-                    //Need to save the image to the off-chain provider first to get the URL to pass into the onchain provider.
-                    if (request.Image != null)
-                    {
-                        if (request.NFTImageType == NFTImageType.Pinata)
-                        {
-                            //TODO: Save to Pinata here...
-                            string pinataURL = "";
-                            request.ImageUrl = pinataURL;
-                        }
-                        else
-                        {
-                            //OASISResult<Guid> imageSaveResult = await Data.SaveFileAsync(request.Image, request.MintedByAvatarId, NFTMetaDataProviderType);
-                            OASISResult<IHolon> imageSaveResult = await Data.SaveHolonAsync(new Holon()
-                            {
-                                MetaData = new Dictionary<string, object>()
-                                {
-                                    { "data",  request.Image }
-                                }
-                            }, request.MintedByAvatarId, true, true, 0, true, false, NFTMetaDataProviderType);
-
-                            if (imageSaveResult != null && imageSaveResult.Result != null && !imageSaveResult.IsError)
-                            {
-                                switch (request.NFTImageType)
-                                {
-                                    case NFTImageType.IPFS:
-                                        request.ImageUrl = string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, imageSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
-                                        break;
-
-                                    case NFTImageType.OASIS:
-                                        request.ImageUrl = string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/getImage/", imageSaveResult.Result.Id);
-                                        break;
-                                }
-                            }
-                            else
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the image to the offchain provider {request.OffChainProvider.Name}. Reason: {imageSaveResult.Message}");
-                        }
-                    }
-
-                    if (!string.IsNullOrEmpty(request.ImageUrl))
-                    {
-                        OASISResult<IHolon> jsonSaveResult = await Data.SaveHolonAsync(new Holon()
-                        {
-                            MetaData = new Dictionary<string, object>()
-                                {
-                                    { "data",  CreateERCJson(request) }
-                                }
-                        }, request.MintedByAvatarId, true, true, 0, true, false, NFTMetaDataProviderType);
-
-                        if (jsonSaveResult != null && jsonSaveResult.Result != null && !jsonSaveResult.IsError)
-                        {
-                            IMintNFTTransactionRequestForProvider providerRequest = null;
-
-                            switch (request.NFTImageType)
-                            {
-                                case NFTImageType.IPFS:
-                                    providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, jsonSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]));
-                                    break;
-
-                                case NFTImageType.OASIS:
-                                    providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/getImage/", jsonSaveResult.Result.Id));
-                                    break;
-                            }
-
-                            result = await nftProviderResult.Result.MintNFTAsync(providerRequest);
-
-                            if (result != null && !result.IsError && result.Result != null)
-                            {
-                                result.Result.OASISNFT = CreateOASISNFT(request, result.Result);
-                                OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(CreateNFTMetaDataHolon(result.Result.OASISNFT, request), request.MintedByAvatarId, true, true, 0, true, false, NFTMetaDataProviderType);
-
-                                if ((saveHolonResult != null && (saveHolonResult.IsError || saveHolonResult.Result == null)) || saveHolonResult == null)
-                                {
-                                    result.Result = null;
-                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {NFTMetaDataProviderTypeType} {Enum.GetName(typeof(ProviderType), NFTMetaDataProviderType)}. Reason: {saveHolonResult.Message}");
-                                }
-                                else
-                                    result.Message = $"Successfully minted the NFT on the {request.OnChainProvider.Name} provider with hash {result.Result.TransactionResult} and title '{request.Title}' by AvatarId {request.MintedByAvatarId} for price {request.Price}. The OASIS metadata is stored on the {Enum.GetName(typeof(ProviderType), NFTMetaDataProviderType)} provider with the id {result.Result.OASISNFT.Id}.";
-                            }
-                            else
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured minting the OASISNFT: Reason: {result.Message}");
-                        }
-                        else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the JSON metadata to the offchain provider {request.OffChainProvider.Name}. Reason: {jsonSaveResult.Message}");
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The ImageUrl is null!");
                 }
                 else
                 {
@@ -360,106 +282,28 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     request.MemoText = $"{request.OnChainProvider.Name} {geoNFTMemoText}NFT minted on The OASIS with title '{request.Title}' by avatar with id {request.MintedByAvatarId} for the price of {request.Price}. {request.MemoText}";
 
-                    ProviderType NFTMetaDataProviderType = ProviderType.None;
-                    string NFTMetaDataProviderTypeType = "";
+                    EnumValue<ProviderType> NFTMetaDataProviderType;
 
                     if (request.StoreNFTMetaDataOnChain)
-                    {
-                        NFTMetaDataProviderType = request.OnChainProvider.Value;
-                        NFTMetaDataProviderTypeType = "OnChainProvider";
-                    }
+                        NFTMetaDataProviderType = request.OnChainProvider;
                     else
+                        NFTMetaDataProviderType = request.OffChainProvider;
+
+                    switch (request.NFTStandardType)
                     {
-                        NFTMetaDataProviderType = request.OffChainProvider.Value;
-                        NFTMetaDataProviderTypeType = "OffChainProvider";
+                        case NFTStandardType.ERC721:
+                            result = MintNFTInternal(request, NFTStandardType.ERC721, NFTMetaDataProviderType, nftProviderResult, result, errorMessage);
+                            break;
+
+                        case NFTStandardType.ERC1155:
+                            result = MintNFTInternal(request, NFTStandardType.ERC1155, NFTMetaDataProviderType, nftProviderResult, result, errorMessage);
+                            break;
+
+                        case NFTStandardType.Both:
+                            result = MintNFTInternal(request, NFTStandardType.ERC721, NFTMetaDataProviderType, nftProviderResult, result, errorMessage);
+                            result = MintNFTInternal(request, NFTStandardType.ERC1155, NFTMetaDataProviderType, nftProviderResult, result, errorMessage);
+                            break;
                     }
-
-                    //Need to save the image to the off-chain provider first to get the URL to pass into the onchain provider.
-                    if (request.Image != null)
-                    {
-                        if (request.NFTImageType == NFTImageType.Pinata)
-                        {
-                            //TODO: Save to Pinata here...
-                            string pinataURL = "";
-                            request.ImageUrl = pinataURL;
-                        }
-                        else
-                        {
-                            //OASISResult<Guid> imageSaveResult = await Data.SaveFileAsync(request.Image, request.MintedByAvatarId, NFTMetaDataProviderType);
-                            OASISResult<IHolon> imageSaveResult = Data.SaveHolon(new Holon()
-                            {
-                                MetaData = new Dictionary<string, object>()
-                                {
-                                    { "data",  request.Image }
-                                }
-                            }, request.MintedByAvatarId, true, true, 0, true, false, NFTMetaDataProviderType);
-
-                            if (imageSaveResult != null && imageSaveResult.Result != null && !imageSaveResult.IsError)
-                            {
-                                switch (request.NFTImageType)
-                                {
-                                    case NFTImageType.IPFS:
-                                        request.ImageUrl = string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, imageSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
-                                        break;
-
-                                    case NFTImageType.OASIS:
-                                        request.ImageUrl = string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/getImage/", imageSaveResult.Result.Id);
-                                        break;
-                                }
-                            }
-                            else
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the image to the offchain provider {request.OffChainProvider.Name}. Reason: {imageSaveResult.Message}");
-                        }
-                    }
-
-                    if (!string.IsNullOrEmpty(request.ImageUrl))
-                    {
-                        OASISResult<IHolon> jsonSaveResult = Data.SaveHolon(new Holon()
-                        {
-                            MetaData = new Dictionary<string, object>()
-                                {
-                                    { "data",  CreateERCJson(request) }
-                                }
-                        }, request.MintedByAvatarId, true, true, 0, true, false, NFTMetaDataProviderType);
-
-                        if (jsonSaveResult != null && jsonSaveResult.Result != null && !jsonSaveResult.IsError)
-                        {
-                            IMintNFTTransactionRequestForProvider providerRequest = null;
-
-                            switch (request.NFTImageType)
-                            {
-                                case NFTImageType.IPFS:
-                                    providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, jsonSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]));
-                                    break;
-
-                                case NFTImageType.OASIS:
-                                    providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/getImage/", jsonSaveResult.Result.Id));
-                                    break;
-                            }
-
-                            result = nftProviderResult.Result.MintNFT(providerRequest);
-
-                            if (result != null && !result.IsError && result.Result != null)
-                            {
-                                result.Result.OASISNFT = CreateOASISNFT(request, result.Result);
-                                OASISResult<IHolon> saveHolonResult = Data.SaveHolon(CreateNFTMetaDataHolon(result.Result.OASISNFT, request), request.MintedByAvatarId, true, true, 0, true, false, NFTMetaDataProviderType);
-
-                                if ((saveHolonResult != null && (saveHolonResult.IsError || saveHolonResult.Result == null)) || saveHolonResult == null)
-                                {
-                                    result.Result = null;
-                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {NFTMetaDataProviderTypeType} {Enum.GetName(typeof(ProviderType), NFTMetaDataProviderType)}. Reason: {saveHolonResult.Message}");
-                                }
-                                else
-                                    result.Message = $"Successfully minted the NFT on the {request.OnChainProvider.Name} provider with hash {result.Result.TransactionResult} and title '{request.Title}' by AvatarId {request.MintedByAvatarId} for price {request.Price}. The OASIS metadata is stored on the {Enum.GetName(typeof(ProviderType), NFTMetaDataProviderType)} provider with the id {result.Result.OASISNFT.Id}.";
-                            }
-                            else
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured minting the OASISNFT: Reason: {result.Message}");
-                        }
-                        else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the JSON metadata to the offchain provider {request.OffChainProvider.Name}. Reason: {jsonSaveResult.Message}");
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The ImageUrl is null!");
                 }
                 else
                 {
@@ -1278,13 +1122,204 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public string CreateERCJson(IMintNFTTransactionRequest request)
+        private async Task<OASISResult<INFTTransactionRespone>> MintNFTInternalAsync(IMintNFTTransactionRequest request, NFTStandardType NFTStandardType, EnumValue<ProviderType> metaDataProviderType, OASISResult<IOASISNFTProvider> nftProviderResult, OASISResult<INFTTransactionRespone> result, string errorMessage)
         {
-            //TODO: Convert request to JSON
-            if (request.NFTStandardType == NFTStandardType.ERC721)
+            //Need to save the image to the off-chain provider first to get the URL to pass into the onchain provider.
+            if (request.Image != null)
+            {
+                if (request.NFTOffChainMetaType == NFTOffChainMetaType.Pinata)
+                {
+                    //TODO: Save to Pinata here...
+                    result.Message = "Pinata Support Coming Soon...";
+                    result.IsError = true;
+                    return result;
+
+                    string pinataURL = "";
+                    request.ImageUrl = pinataURL;
+                }
+                else
+                {
+                    //OASISResult<Guid> imageSaveResult = await Data.SaveFileAsync(request.Image, request.MintedByAvatarId, NFTMetaDataProviderType);
+                    OASISResult<IHolon> imageSaveResult = await Data.SaveHolonAsync(new Holon()
+                    {
+                        MetaData = new Dictionary<string, object>()
+                                {
+                                    { "data",  request.Image }
+                                }
+                    }, request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
+
+                    if (imageSaveResult != null && imageSaveResult.Result != null && !imageSaveResult.IsError)
+                    {
+                        switch (request.NFTOffChainMetaType)
+                        {
+                            case NFTOffChainMetaType.IPFS:
+                                request.ImageUrl = string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, imageSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
+                                break;
+
+                            case NFTOffChainMetaType.OASIS:
+                                request.ImageUrl = string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/getdata/", imageSaveResult.Result.Id);
+                                break;
+                        }
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the image to the offchain provider {request.OffChainProvider.Name}. Reason: {imageSaveResult.Message}");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(request.ImageUrl))
+            {
+                OASISResult<IHolon> jsonSaveResult = await Data.SaveHolonAsync(new Holon()
+                {
+                    MetaData = new Dictionary<string, object>()
+                                {
+                                    { "data",  CreateERCJson(request, NFTStandardType) }
+                                }
+                }, request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
+
+                if (jsonSaveResult != null && jsonSaveResult.Result != null && !jsonSaveResult.IsError)
+                {
+                    IMintNFTTransactionRequestForProvider providerRequest = null;
+
+                    switch (request.NFTOffChainMetaType)
+                    {
+                        case NFTOffChainMetaType.IPFS:
+                            providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, jsonSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]));
+                            break;
+
+                        case NFTOffChainMetaType.OASIS:
+                            providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/getdata/", jsonSaveResult.Result.Id));
+                            break;
+                    }
+
+                    result = await nftProviderResult.Result.MintNFTAsync(providerRequest);
+
+                    if (result != null && !result.IsError && result.Result != null)
+                    {
+                        result.Result.OASISNFT = CreateOASISNFT(request, result.Result);
+                        OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(CreateNFTMetaDataHolon(result.Result.OASISNFT, request), request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
+
+                        if ((saveHolonResult != null && (saveHolonResult.IsError || saveHolonResult.Result == null)) || saveHolonResult == null)
+                        {
+                            result.Result = null;
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
+                        }
+                        else
+                            result.Message = $"Successfully minted the NFT on the {request.OnChainProvider.Name} provider with hash {result.Result.TransactionResult} and title '{request.Title}' by AvatarId {request.MintedByAvatarId} for price {request.Price}. The OASIS metadata is stored on the {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)} provider with the id {result.Result.OASISNFT.Id}.";
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured minting the OASISNFT: Reason: {result.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the JSON metadata to the offchain provider {request.OffChainProvider.Name}. Reason: {jsonSaveResult.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The ImageUrl is null!");
+
+            return result;
+        }
+
+        private OASISResult<INFTTransactionRespone> MintNFTInternal(IMintNFTTransactionRequest request, NFTStandardType NFTStandardType, EnumValue<ProviderType> metaDataProviderType, OASISResult<IOASISNFTProvider> nftProviderResult, OASISResult<INFTTransactionRespone> result, string errorMessage)
+        {
+            //Need to save the image to the off-chain provider first to get the URL to pass into the onchain provider.
+            if (request.Image != null)
+            {
+                if (request.NFTOffChainMetaType == NFTOffChainMetaType.Pinata)
+                {
+                    //TODO: Save to Pinata here...
+                    result.Message = "Pinata Support Coming Soon...";
+                    result.IsError = true;
+                    return result;
+
+                    string pinataURL = "";
+                    request.ImageUrl = pinataURL;
+                }
+                else
+                {
+                    //OASISResult<Guid> imageSaveResult = await Data.SaveFileAsync(request.Image, request.MintedByAvatarId, NFTMetaDataProviderType);
+                    OASISResult<IHolon> imageSaveResult = Data.SaveHolon(new Holon()
+                    {
+                        MetaData = new Dictionary<string, object>()
+                                {
+                                    { "data",  request.Image }
+                                }
+                    }, request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
+
+                    if (imageSaveResult != null && imageSaveResult.Result != null && !imageSaveResult.IsError)
+                    {
+                        switch (request.NFTOffChainMetaType)
+                        {
+                            case NFTOffChainMetaType.IPFS:
+                                request.ImageUrl = string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, imageSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
+                                break;
+
+                            case NFTOffChainMetaType.OASIS:
+                                request.ImageUrl = string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/getdata/", imageSaveResult.Result.Id);
+                                break;
+                        }
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the image to the offchain provider {request.OffChainProvider.Name}. Reason: {imageSaveResult.Message}");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(request.ImageUrl))
+            {
+                OASISResult<IHolon> jsonSaveResult = Data.SaveHolon(new Holon()
+                {
+                    MetaData = new Dictionary<string, object>()
+                                {
+                                    { "data",  CreateERCJson(request, NFTStandardType) }
+                                }
+                }, request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
+
+                if (jsonSaveResult != null && jsonSaveResult.Result != null && !jsonSaveResult.IsError)
+                {
+                    IMintNFTTransactionRequestForProvider providerRequest = null;
+
+                    switch (request.NFTOffChainMetaType)
+                    {
+                        case NFTOffChainMetaType.IPFS:
+                            providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, jsonSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]));
+                            break;
+
+                        case NFTOffChainMetaType.OASIS:
+                            providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/getdata/", jsonSaveResult.Result.Id));
+                            break;
+                    }
+
+                    result = nftProviderResult.Result.MintNFT(providerRequest);
+
+                    if (result != null && !result.IsError && result.Result != null)
+                    {
+                        result.Result.OASISNFT = CreateOASISNFT(request, result.Result);
+                        OASISResult<IHolon> saveHolonResult = Data.SaveHolon(CreateNFTMetaDataHolon(result.Result.OASISNFT, request), request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
+
+                        if ((saveHolonResult != null && (saveHolonResult.IsError || saveHolonResult.Result == null)) || saveHolonResult == null)
+                        {
+                            result.Result = null;
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
+                        }
+                        else
+                            result.Message = $"Successfully minted the NFT on the {request.OnChainProvider.Name} provider with hash {result.Result.TransactionResult} and title '{request.Title}' by AvatarId {request.MintedByAvatarId} for price {request.Price}. The OASIS metadata is stored on the {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)} provider with the id {result.Result.OASISNFT.Id}.";
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured minting the OASISNFT: Reason: {result.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the JSON metadata to the offchain provider {request.OffChainProvider.Name}. Reason: {jsonSaveResult.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The ImageUrl is null!");
+
+            return result;
+        }
+
+        public string CreateERCJson(IMintNFTTransactionRequest request, NFTStandardType NFTStandardType)
+        {
+            if (NFTStandardType == NFTStandardType.ERC721)
                 return CreateERC721Json(request);
 
-            else if (request.NFTStandardType == NFTStandardType.ERC1155)
+            else if (NFTStandardType == NFTStandardType.ERC1155)
                 return CreateERC1155Json(request);
 
             return "";
@@ -1337,7 +1372,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 MetaData = request.MetaData,
                 MintedByAvatarId = request.MintedByAvatarId,
                 MintWalletAddress = request.MintWalletAddress,
-                NFTImageType = request.NFTImageType,
+                NFTOffChainMetaType = request.NFTOffChainMetaType,
                 NFTStandardType = request.NFTStandardType,
                 NumberToMint = request.NumberToMint,
                 OffChainProvider = request.OffChainProvider,

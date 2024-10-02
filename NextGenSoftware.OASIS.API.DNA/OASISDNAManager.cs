@@ -102,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.DNA
                 if (string.IsNullOrEmpty(OASISDNAPath))
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNAPath cannot be null.");
 
-                else if (File.Exists(OASISDNAPath))
+                else if (!File.Exists(OASISDNAPath))
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage}The OASISDNAPath ({OASISDNAPath}) is not valid. Please make sure the OASISDNAPath is valid and that it points to the OASISDNA.json file.");
 
                 else
