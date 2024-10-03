@@ -1157,7 +1157,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 break;
 
                             case NFTOffChainMetaType.OASIS:
-                                request.ImageUrl = string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/getdata/", imageSaveResult.Result.Id);
+                                request.ImageUrl = string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/load-file/", imageSaveResult.Result.Id);
                                 break;
                         }
                     }
@@ -1187,7 +1187,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             break;
 
                         case NFTOffChainMetaType.OASIS:
-                            providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/getdata/", jsonSaveResult.Result.Id));
+                            providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/load-file/", jsonSaveResult.Result.Id));
                             break;
                     }
 
