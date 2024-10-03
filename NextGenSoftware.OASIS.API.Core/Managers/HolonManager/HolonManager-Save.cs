@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = "File Saved";
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error saving the holon contianing the file. Reason: {holonResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error saving the holon containing the file. Reason: {holonResult.Message}");
 
             return result;
         }
@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = "File Saved";
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error saving the holon contianing the file. Reason: {holonResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error saving the holon containing the file. Reason: {holonResult.Message}");
 
             return result;
         }
@@ -74,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(holonResult, result);
                 
-                if (holonResult.Result.MetaData != null && holonResult.MetaData.ContainsKey("data") && holonResult.MetaData["data"] != null)
+                if (holonResult.Result.MetaData != null && holonResult.Result.MetaData.ContainsKey("data") && holonResult.Result.MetaData["data"] != null)
                 {
                     result.Result = holonResult.Result.MetaData["data"] as byte[];
                     result.Message = "File Loaded";
@@ -83,7 +83,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error loading the metadata containing the file (metadata or metadata key not found).");
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error loading the holon contianing the file. Reason: {holonResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error loading the holon containing the file. Reason: {holonResult.Message}");
 
             return result;
         }
@@ -100,7 +100,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(holonResult, result);
 
-                if (holonResult.Result.MetaData != null && holonResult.MetaData.ContainsKey("data") && holonResult.MetaData["data"] != null)
+                if (holonResult.Result.MetaData != null && holonResult.Result.MetaData.ContainsKey("data") && holonResult.Result.MetaData["data"] != null)
                 {
                     result.Result = holonResult.Result.MetaData["data"] as byte[];
                     result.Message = "File Loaded";

@@ -17,6 +17,7 @@ using NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
+using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.Common;
 
@@ -1439,6 +1440,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             return await GetLoggedInAvatar();
         }
 
+        
 
         ///// <summary>
         /////     Link's a given Avatar to a Providers Public Key (private/public key pairs or username, accountname, unique id, agentId, hash, etc).
