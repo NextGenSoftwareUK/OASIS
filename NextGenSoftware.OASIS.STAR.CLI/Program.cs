@@ -484,7 +484,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
                                 }
-                                break; 
+                                break;
+
+                            case "net":
+                                await STARCLI.LaunchSTARNETAsync();
+                                break;
+
+                            case "installoapp":
+                                await STARCLI.InstallOAPPAsync();
+                                break;
 
                             case "listoapps":
                                 {
@@ -2644,6 +2652,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star love {OAPPName/OAPPId} = Send/Receive Love.");
             Console.WriteLine("   star burst = View network stats/management/settings.");
             Console.WriteLine("   star super - Reserved For Future Use...");
+            Console.WriteLine("   star net - Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's, zomes, holons, celestial spaces & celestial bodies.");
+            Console.WriteLine("   star installoapp");
             Console.WriteLine("   star listoapps {searchAll} - List all OAPPs (contains zomes and holons) that have been generated. If {searchAll} is omitted it will list only your OAPP's otherwise it will list all public/shared OAPP's.");
             Console.WriteLine("   star listinstalledoapps - List all OAPP's installed for the current beamed in avatar.");
             Console.WriteLine("   star listhapps {searchAll} - List all hApps (contains zomes) that have been generated. If {searchAll} is omitted it will list only your hApp's otherwise it will list all public/shared hApp's.");

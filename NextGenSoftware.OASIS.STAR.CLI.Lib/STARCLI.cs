@@ -24,6 +24,7 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -308,37 +309,118 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return lightResult;
         }
 
-        public static async Task ListAllOAPPsAsync()
+        public static async Task InstallOAPPAsync(Guid OAPPId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<IOAPP>> oapps = await STAR.OASISAPI.OAPPs.ListAllOAPPsAsync();
+            OASISResult<IInstalledOAPP> installResult = null;
+            string oappInstallPath = CLIEngine.GetValidFile("What is the full path to where you wish to install the OAPP?");
 
-            if (oapps != null && oapps.Result != null && !oapps.IsError)
+            if (OAPPId != Guid.Empty)
+                installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, OAPPId, oappInstallPath, providerType);
+            else
             {
-                CLIEngine.ShowDivider();
+                if (CLIEngine.GetConfirmation("Do you wish to install the OAPP from a local .oapp file or from STARNET? Press 'Y' for local .oapp or 'N' for STARNET."))
+                {
+                    string oappPath = CLIEngine.GetValidFile("What is the full path to the .oapp file?");
+                    installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, oappPath, oappInstallPath, providerType);
+                }
+                else
+                    await LaunchSTARNETAsync(true);
+            }
 
-                foreach (IOAPP oapp in oapps.Result)
-                    ShowOAPP(oapp);
+            if (installResult != null)
+            {
+                if (!installResult.IsError && installResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("OAPP Successfully Installed.");
+                    ShowInstalledOAPP(installResult.Result);
+
+                    if (CLIEngine.GetConfirmation("Do you wish to launch the OAPP now?"))
+                        Process.Start("explorer.exe", Path.Combine(oappInstallPath, installResult.Result.OAPPDNA.LaunchTarget));
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error installing OAPP. Reason: {installResult.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage("No OAPP's Found.");
+                CLIEngine.ShowErrorMessage($"Error installing OAPP. Reason: Unknown error occured!");
+        }
+
+        public static void InstallOAPP(Guid OAPPId = new Guid(), ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPP> installResult = null;
+            string oappInstallPath = CLIEngine.GetValidFile("What is the full path to where you wish to install the OAPP?");
+
+            if (OAPPId != Guid.Empty)
+                installResult = STAR.OASISAPI.OAPPs.InstallOAPP(STAR.BeamedInAvatar.Id, OAPPId, oappInstallPath, providerType);
+            else
+            {
+                if (CLIEngine.GetConfirmation("Do you wish to install the OAPP from a local .oapp file or from STARNET? Press 'Y' for local .oapp or 'N' for STARNET."))
+                {
+                    string oappPath = CLIEngine.GetValidFile("What is the full path to the .oapp file?");
+                    installResult = STAR.OASISAPI.OAPPs.InstallOAPP(STAR.BeamedInAvatar.Id, oappPath, oappInstallPath, providerType);
+                }
+                else
+                    LaunchSTARNET(true);
+            }
+
+            if (installResult != null)
+            {
+                if (!installResult.IsError && installResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("OAPP Successfully Installed.");
+                    ShowInstalledOAPP(installResult.Result);
+
+                    if (CLIEngine.GetConfirmation("Do you wish to launch the OAPP now?"))
+                        Process.Start("explorer.exe", Path.Combine(oappInstallPath, installResult.Result.OAPPDNA.LaunchTarget));
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error installing OAPP. Reason: {installResult.Message}");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error installing OAPP. Reason: Unknown error occured!");
+        }
+
+        public static async Task LaunchSTARNETAsync(bool installOAPP = true)
+        {
+            CLIEngine.ShowMessage("Welcome to STARNET!");
+            await ListAllOAPPsAsync();
+
+            if (installOAPP)
+            {
+                Guid OAPPID = CLIEngine.GetValidInputForGuid("What is the GUID/ID of the OAPP you wish to install?");
+                await InstallOAPPAsync(OAPPID);
+            }
+
+            //TODO: Soon this will be like a sub-menu listing the STARNET commands (install, uninstall, list, publish, unpublish etc) and change the cursor to STARNET: rather than STAR:. They can then type exit to go back to the main STAR menu.
+        }
+
+        public static void LaunchSTARNET(bool installOAPP = true)
+        {
+            CLIEngine.ShowMessage("Welcome to STARNET!");
+            ListAllOAPPs();
+
+            if (installOAPP)
+            {
+                Guid OAPPID = CLIEngine.GetValidInputForGuid("What is the GUID/ID of the OAPP you wish to install?");
+                InstallOAPP(OAPPID);
+            }
+
+            //TODO: Soon this will be like a sub-menu listing the STARNET commands (install, uninstall, list, publish, unpublish etc) and change the cursor to STARNET: rather than STAR:. They can then type exit to go back to the main STAR menu.
+        }
+
+        public static async Task ListAllOAPPsAsync()
+        {
+            ListOAPPs(await STAR.OASISAPI.OAPPs.ListAllOAPPsAsync());
+        }
+
+        public static void ListAllOAPPs()
+        {
+            ListOAPPs(STAR.OASISAPI.OAPPs.ListAllOAPPs());
         }
 
         public static async Task ListOAPPsCreatedByBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             if (STAR.BeamedInAvatar != null)
-            {
-                OASISResult<IEnumerable<IOAPP>> oapps = await STAR.OASISAPI.OAPPs.ListOAPPsCreatedByAvatarAsync(STAR.BeamedInAvatar.AvatarId);
-
-                if (oapps != null && oapps.Result != null && !oapps.IsError)
-                {
-                    CLIEngine.ShowDivider();
-
-                    foreach (IOAPP oapp in oapps.Result)
-                        ShowOAPP(oapp);
-                }
-                else
-                    CLIEngine.ShowErrorMessage("No OAPP's Found.");
-            }
+                ListOAPPs(await STAR.OASISAPI.OAPPs.ListOAPPsCreatedByAvatarAsync(STAR.BeamedInAvatar.AvatarId));
             else
                 CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
         }
@@ -660,6 +742,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Created By: ", oapp.OAPPDNA.CreatedByAvatarId != Guid.Empty ? oapp.OAPPDNA.CreatedByAvatarId.ToString() : "None"));
             CLIEngine.ShowMessage(string.Concat($"Published On: ", oapp.OAPPDNA.PublishedOn != DateTime.MinValue ? oapp.OAPPDNA.PublishedOn.ToString() : "None"));
             CLIEngine.ShowMessage(string.Concat($"Published By: ", oapp.OAPPDNA.PublishedByAvatarId != Guid.Empty ? oapp.OAPPDNA.PublishedByAvatarId.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Installed On: ", oapp.InstalledOn != DateTime.MinValue ? oapp.InstalledOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Installed By: ", oapp.InstalledBy != Guid.Empty ? oapp.InstalledBy.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Installed Path: ", oapp.InstalledPath));
             CLIEngine.ShowMessage(string.Concat($"Published On STARNET: ", oapp.OAPPDNA.PublishedOnSTARNET ? "True" : "False"));
             CLIEngine.ShowMessage(string.Concat($"Version: ", !string.IsNullOrEmpty(oapp.OAPPDNA.Version) ? oapp.OAPPDNA.Version : "None"));
 
@@ -2465,43 +2550,30 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             };
         }
 
-            //private static dsdsd()
-            //{
-            //    if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your NFT within Our World/AR World? Press Y for 3D or N for 2D."))
-            //    {
-            //        Console.WriteLine("");
+        private static void ListOAPPs(OASISResult<IEnumerable<IOAPP>> oapps)
+        {
+            if (oapps != null && oapps.Result != null && !oapps.IsError)
+            {
+                if (oapps.Result.Count() > 0)
+                {
+                    if (oapps.Result.Count() == 1)
+                        CLIEngine.ShowErrorMessage($"{oapps.Result.Count()} OAPP Found.");
+                    else
+                        CLIEngine.ShowErrorMessage($"{oapps.Result.Count()} OAPP's Found.");
 
-            //        if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
-            //        {
-            //            Console.WriteLine("");
-            //            nft3dObjectPath = CLIEngine.GetValidFile("What is the full path to the local 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
-            //            nft3dObject = File.ReadAllBytes(nft3dObjectPath);
-            //        }
-            //        else
-            //        {
-            //            Console.WriteLine("");
-            //            nft3dObjectURI = await CLIEngine.GetValidURIAsync("What is the URI to the 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
-            //        }
-            //    }
-            //    else
-            //    {
-            //        Console.WriteLine("");
+                    CLIEngine.ShowDivider();
 
-            //        if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
-            //        {
-            //            Console.WriteLine("");
-            //            nft2dSpritePath = CLIEngine.GetValidFile("What is the full path to the local 2d sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
-            //            nft2dSprite = File.ReadAllBytes(nft2dSpritePath);
-            //        }
-            //        else
-            //        {
-            //            Console.WriteLine("");
-            //            nft2dSpriteURI = await CLIEngine.GetValidURIAsync("What is the URI to the 2D sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
-            //        }
-            //    }
-            //}
+                    foreach (IOAPP oapp in oapps.Result)
+                        ShowOAPP(oapp);
+                }
+                else
+                    CLIEngine.ShowWarningMessage("No OAPP's Found.");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error occured loading OAPP's. Reason: {oapps.Message}");
+        }
 
-            private static void CelestialBody_OnZomeError(object sender, ZomeErrorEventArgs e)
+        private static void CelestialBody_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
             CLIEngine.ShowErrorMessage($"Celestial Body Zome Error: {e.Result.Message}");
         }

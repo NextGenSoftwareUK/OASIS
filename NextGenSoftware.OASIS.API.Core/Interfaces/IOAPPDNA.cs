@@ -22,6 +22,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Guid PublishedByAvatarId { get; set; }
         DateTime PublishedOn { get; set; }
         bool PublishedOnSTARNET { get; set; }
+        public string LaunchTarget { get; set; }
         string Version { get; set; }
     }
 }
