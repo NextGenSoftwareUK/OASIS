@@ -26,6 +26,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         [CustomOASISProperty]
         public Guid InstalledBy { get; set; }
 
+        [CustomOASISProperty]
+        public string InstalledByAvatarUsername { get; set; }
+
         //[CustomOASISProperty]
         //public IOAPP OAPP { get; set; }
 

@@ -12,10 +12,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         public string OAPPName { get; set; }
         public string Description { get; set; }
         public Guid CreatedByAvatarId { get; set; }
+        //public string CreatedByAvatarName { get; set; }
+        public string CreatedByAvatarUsername { get; set; }
         public DateTime CreatedOn { get; set; }
         public Guid PublishedByAvatarId { get; set; }
+        //public string PublishedByAvatarName { get; set; }
+        public string PublishedByAvatarUsername { get; set; }
         public DateTime PublishedOn { get; set; }
+        public string PublishedPath { get; set; }
         public bool PublishedOnSTARNET { get; set; }
+        public bool IsActive { get; set; }
         public OAPPType OAPPType { get; set; }
         public GenesisType GenesisType { get; set; }
         public ICelestialBody CelestialBody { get; set; } //optional
@@ -23,7 +29,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         public string CelestialBodyName { get; set; }
         public HolonType CelestialBodyType { get; set; }
         public IEnumerable<IZome> Zomes { get; set; }
+        public string LaunchTarget { get; set; }
         public string Version { get; set; }
+        
 
 
         //public DateTime CreatedDate { get; set; }

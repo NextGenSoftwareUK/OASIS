@@ -413,17 +413,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 break;
 
                             case "seed":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                    //await STAR.SeedAsync();
-                                }
+                                await STARCLI.PublishOAPPAsync();
                                 break;
 
                             case "unseed":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                    //await STAR.UnSeedAsync();
-                                }
+                                await STARCLI.UnPublishOAPPAsync();
                                 break;
 
                             case "twinkle":
@@ -494,6 +488,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 await STARCLI.InstallOAPPAsync();
                                 break;
 
+                            case "uninstalloapp":
+                                await STARCLI.UnPublishOAPPAsync();
+                                break;
+
                             case "listoapps":
                                 {
                                     if (CLIEngine.GetConfirmation("Do you want to list all OAPPs? Press 'Y' to list all OAPPs or 'N' to list only the OAPPs you have created."))
@@ -502,12 +500,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         await STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync();
 
                                 } break;
-
-                            //case "listmyoapps":
-                            //    {
-                            //        await STARCLI.ListOAPPsCreatedByBeamedInAvatar();
-                            //    }
-                            //    break;
 
                             case "listinstalledoapps":
                                 {
@@ -521,12 +513,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
-                            //case "listmyhapps":
-                            //    {
-                            //        CLIEngine.ShowMessage("Coming soon...");
-                            //    }
-                            //    break;
-
                             case "listinstalledhapps":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
@@ -539,23 +525,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
-                            //case " listmycelestialspaces":
-                            //    {
-                            //        CLIEngine.ShowMessage("Coming soon...");
-                            //    }
-                            //    break;
-
                             case "listcelestialbodies":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
                                 }
                                 break;
-
-                            //case "listmycelestialbodies":
-                            //    {
-                            //        CLIEngine.ShowMessage("Coming soon...");
-                            //    }
-                            //    break;
 
                             case "listzomes":
                                 {
@@ -563,23 +537,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
-                            //case "listmyzomes":
-                            //    {
-                            //        CLIEngine.ShowMessage("Coming soon...");
-                            //    }
-                            //    break;
-
                             case "listholons":
                                 {
                                     CLIEngine.ShowMessage("Coming soon...");
                                 }
                                 break;
-
-                            //case "listmyholons":
-                            //    {
-                            //        CLIEngine.ShowMessage("Coming soon...");
-                            //    }
-                            //    break;
 
                             case "showoapp":
                                 {
@@ -2638,16 +2600,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("   star bang = Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
             Console.WriteLine("   star wiz = Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
             Console.WriteLine("   star flare {OAPPName/OAPPId} = Build a OAPP.");
-            Console.WriteLine("   star shine {OAPPName/OAPPId} = Launch & activate a OAPP by shining the star's light upon it...");
-            Console.WriteLine("   star dim {OAPPName/OAPPId} = Deactivate a OAPP.");
+            Console.WriteLine("   star shine {OAPPName/OAPPId} = Launch & activate a OAPP by shining the star's light upon it..."); //TODO: Dev next.
+            Console.WriteLine("   star twinkle {OAPPName/OAPPId} = Activate a published OAPP within the STARNET store."); //TODO: Dev next.
+            Console.WriteLine("   star dim {OAPPName/OAPPId} = Deactivate a published OAPP within the STARNET store."); //TODO: Dev next.
             Console.WriteLine("   star seed {OAPPName/OAPPId} = Deploy/Publish a OAPP.");
-            Console.WriteLine("   star unseed {OAPPName/OAPPId} = UnDeploy/UnPublish a OAPP.");
-            Console.WriteLine("   star twinkle {OAPPName/OAPPId} = Deactivate a OAPP.");
-            Console.WriteLine("   star dust {OAPPName/OAPPId} = Delete a OAPP.");
-            Console.WriteLine("   star radiate {OAPPName/OAPPId} = Highlight the OAPP in the OAPP Store (StarNET). *Admin Only*");
-            Console.WriteLine("   star emit {OAPPName/OAPPId} = Show how much light the OAPP is emitting into the solar system (StarNET/HoloNET)");
+            Console.WriteLine("   star unseed {OAPPName/OAPPId} = Undeploy/Unpublish a OAPP.");
+            Console.WriteLine("   star dust {OAPPName/OAPPId} = Delete a OAPP (this will also remove it from STARNET if it has already been published)."); //TODO: Dev next.
+            Console.WriteLine("   star radiate {OAPPName/OAPPId} = Highlight the OAPP in the OAPP Store (StarNET). *Admin/Wizards Only*");
+            Console.WriteLine("   star emit {OAPPName/OAPPId} = Show how much light the OAPP is emitting into the solar system (this is determined by the collective karma score of all users of that OAPP).");
             Console.WriteLine("   star reflect {OAPPName/OAPPId} = Show stats of the OAPP.");
-            Console.WriteLine("   star evolve {OAPPName/OAPPId} = Upgrade/update a OAPP).");
+            Console.WriteLine("   star evolve {OAPPName/OAPPId} = Upgrade/update a OAPP)."); //TODO: Dev next.
             Console.WriteLine("   star mutate {OAPPName/OAPPId} = Import/Export hApp, dApp & others.");
             Console.WriteLine("   star love {OAPPName/OAPPId} = Send/Receive Love.");
             Console.WriteLine("   star burst = View network stats/management/settings.");

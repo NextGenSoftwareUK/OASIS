@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -31,6 +32,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
         }
 
+        //TODO: Think will return IOAPPDNA instead of IOAPP (get from metadata)
         public async Task<OASISResult<IEnumerable<IOAPP>>> ListOAPPsCreatedByAvatarAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOAPP>> result = new OASISResult<IEnumerable<IOAPP>>();
@@ -56,6 +58,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        //TODO: Think will return IOAPPDNA instead of IOAPP (get from metadata)
         public OASISResult<IEnumerable<IOAPP>> ListOAPPsCreatedByAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOAPP>> result = new OASISResult<IEnumerable<IOAPP>>();
@@ -81,6 +84,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        //TODO: Think will return IOAPPDNA instead of IOAPP (get from metadata)
         public async Task<OASISResult<IEnumerable<IOAPP>>> ListAllOAPPsAsync(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOAPP>> result = new OASISResult<IEnumerable<IOAPP>>();
@@ -119,6 +123,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        //TODO: Think will return IOAPPDNA instead of IOAPP (get from metadata)
         public OASISResult<IEnumerable<IOAPP>> ListAllOAPPs(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOAPP>> result = new OASISResult<IEnumerable<IOAPP>>();
@@ -144,6 +149,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        //TODO: Think will return IOAPPDNA instead of IOAPP (get from metadata)
         public async Task<OASISResult<IOAPP>> LoadOAPPAsync(Guid OAPPId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
@@ -169,6 +175,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        //TODO: Think will return IOAPPDNA instead of IOAPP (get from metadata)
         public OASISResult<IOAPP> LoadOAPP(Guid OAPPId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
@@ -194,135 +201,174 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPDNA>> CreateOAPPAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, Guid avatarId, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPDNA>> CreateOAPPAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, Guid avatarId, string avatarUsername, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.CreateOAPPAsync, Reason:";
 
-            OAPP OAPP = new OAPP()
+            try
             {
-                Id = Guid.NewGuid(),
-                Name = OAPPName,
-                Description = OAPPDescription,
-                CelestialBody = celestialBody, //The CelestialBody that represents the OAPP (if any).
-                CelestialBodyId = celestialBody != null ? celestialBody.Id : Guid.Empty,
-                OAPPType = OAPPType,
-                GenesisType = genesisType,
-            };
-
-            foreach (IZome zome in zomes)
-                OAPP.Children.Add(zome);
-
-            OAPPDNA OAPPDNA = new OAPPDNA()
-            {
-                OAPPId = OAPP.Id,
-                OAPPName = OAPPName,
-                Description = OAPPDescription,
-                CelestialBody = celestialBody,
-                CelestialBodyId = celestialBody != null ? celestialBody.Id : Guid.Empty,
-                CelestialBodyName = celestialBody != null ? celestialBody.Name : "",
-                CelestialBodyType = celestialBody != null ? celestialBody.HolonType : HolonType.None,
-                Zomes = zomes, //Can be either zomes of CelestialBody but not both (zomes are contained in CelestialBody) but if no CelestialBody is generated then this prop is used instead.
-                OAPPType = OAPPType,
-                GenesisType = genesisType,
-                CreatedByAvatarId = avatarId,
-                CreatedOn = DateTime.Now,
-                Version = "1.0.0"
-            };
-
-            OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(OAPP, avatarId, true, true, 0, true, false, providerType);
-
-            if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-            {
-                if (celestialBody != null)
+                OAPP OAPP = new OAPP()
                 {
-                    celestialBody.MetaData["OAPPID"] = saveHolonResult.Result.Id;
-                    //celestialBody.MetaData["OAPP"] = JsonSerializer.Serialize(saveHolonResult.Result); //TODO: Don't think we need to store the whole OAPP here (especially since it extends Holon so has a LOT of props) and is duplicated when the OAPP can be easily loaded from the ID.
+                    Id = Guid.NewGuid(),
+                    Name = OAPPName,
+                    Description = OAPPDescription,
+                    CelestialBody = celestialBody, //The CelestialBody that represents the OAPP (if any).
+                    CelestialBodyId = celestialBody != null ? celestialBody.Id : Guid.Empty,
+                    OAPPType = OAPPType,
+                    GenesisType = genesisType,
+                };
 
-                    OASISResult<ICelestialBody> celestialBodyResult = await celestialBody.SaveAsync(true, true, 0, true, false, providerType);
+                if (zomes != null)
+                {
+                    foreach (IZome zome in zomes)
+                        OAPP.Children.Add(zome);
+                }
 
-                    if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
+                //ICelestialBodyCore core = null;
+
+                //if (celestialBody != null)
+                //{
+                //    zomes = celestialBody.CelestialBodyCore.Zomes;
+                //    //core = celestialBody.CelestialBodyCore;
+                //    //celestialBody.CelestialBodyCore = null;
+                //}
+
+                OAPPDNA OAPPDNA = new OAPPDNA()
+                {
+                    OAPPId = OAPP.Id,
+                    OAPPName = OAPPName,
+                    Description = OAPPDescription,
+                    //CelestialBody = celestialBody, //TODO: Temp
+                    CelestialBodyId = celestialBody != null ? celestialBody.Id : Guid.Empty,
+                    CelestialBodyName = celestialBody != null ? celestialBody.Name : "",
+                    CelestialBodyType = celestialBody != null ? celestialBody.HolonType : HolonType.None,
+                    //Zomes = zomes, //Can be either zomes of CelestialBody but not both (zomes are contained in CelestialBody) but if no CelestialBody is generated then this prop is used instead.
+                    OAPPType = OAPPType,
+                    GenesisType = genesisType,
+                    CreatedByAvatarId = avatarId,
+                    CreatedByAvatarUsername = avatarUsername,
+                    CreatedOn = DateTime.Now,
+                    Version = "1.0.0"
+                };
+
+                await WriteOAPPDNAAsync(OAPPDNA, fullPathToOAPP);
+                //celestialBody.CelestialBodyCore = core;
+                OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(OAPP, avatarId, true, true, 0, true, false, providerType);
+
+                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                {
+                    if (celestialBody != null)
                     {
-                        result.Result = OAPPDNA;
-                        result.Message = $"Successfully created the OAPP on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPType {Enum.GetName(typeof(OAPPType), OAPPType)} and GenesisType {Enum.GetName(typeof(GenesisType), genesisType)}.";
+                        celestialBody.MetaData["OAPPID"] = saveHolonResult.Result.Id;
+                        //celestialBody.MetaData["OAPP"] = JsonSerializer.Serialize(saveHolonResult.Result); //TODO: Don't think we need to store the whole OAPP here (especially since it extends Holon so has a LOT of props) and is duplicated when the OAPP can be easily loaded from the ID.
+
+                        OASISResult<ICelestialBody> celestialBodyResult = await celestialBody.SaveAsync(true, true, 0, true, false, providerType);
+
+                        if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
+                        {
+                            result.Result = OAPPDNA;
+                            result.Message = $"Successfully created the OAPP on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPType {Enum.GetName(typeof(OAPPType), OAPPType)} and GenesisType {Enum.GetName(typeof(GenesisType), genesisType)}.";
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving OAPP to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving OAPP to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
+                        result.Message = $"Successfully created the OAPP on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPType {Enum.GetName(typeof(OAPPType), OAPPType)} and GenesisType {Enum.GetName(typeof(GenesisType), genesisType)}.";
                 }
                 else
-                    result.Message = $"Successfully created the OAPP on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPType {Enum.GetName(typeof(OAPPType), OAPPType)} and GenesisType {Enum.GetName(typeof(GenesisType), genesisType)}.";
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving OAPP to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
             }
-            else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving OAPP to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving OAPP to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {ex}");
+            }
 
             return result;
         }
-
-        public OASISResult<IOAPPDNA> CreateOAPP(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, Guid avatarId, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> CreateOAPP(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, Guid avatarId, string avatarUsername, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.CreateOAPP, Reason:";
 
-            OAPP OAPP = new OAPP()
+            try
             {
-                Id = Guid.NewGuid(),
-                Name = OAPPName,
-                Description = OAPPDescription,
-                CelestialBody = celestialBody, //The CelestialBody that represents the OAPP (if any).
-                CelestialBodyId = celestialBody != null ? celestialBody.Id : Guid.Empty,
-                OAPPType = OAPPType,
-                GenesisType = genesisType
-            };
+                OAPP OAPP = new OAPP()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = OAPPName,
+                    Description = OAPPDescription,
+                    CelestialBody = celestialBody, //The CelestialBody that represents the OAPP (if any).
+                    CelestialBodyId = celestialBody != null ? celestialBody.Id : Guid.Empty,
+                    OAPPType = OAPPType,
+                    GenesisType = genesisType
+                };
 
-            foreach (IZome zome in zomes)
-                OAPP.Children.Add(zome);
-
-            OAPPDNA OAPPDNA = new OAPPDNA()
-            {
-                OAPPId = OAPP.Id,
-                OAPPName = OAPPName,
-                Description = OAPPDescription,
-                CelestialBodyId = celestialBody != null ? celestialBody.Id : Guid.Empty,
-                CelestialBody = celestialBody,
-                CelestialBodyName = celestialBody != null ? celestialBody.Name : "",
-                CelestialBodyType = celestialBody != null ? celestialBody.HolonType : HolonType.None,
-                Zomes = zomes, //Can be either zomes of CelestialBody but not both (zomes are contained in CelestialBody) but if no CelestialBody is generated then this prop is used instead.
-                OAPPType = OAPPType,
-                GenesisType = genesisType,
-                CreatedByAvatarId = avatarId,
-                CreatedOn = DateTime.Now,
-                Version = "1.0.0"
-            };
-
-            OASISResult<IHolon> saveHolonResult = Data.SaveHolon(OAPP, avatarId, true, true, 0, true, false, providerType);
-
-            if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-            {
                 if (celestialBody != null)
                 {
-                    celestialBody.MetaData["OAPPID"] = saveHolonResult.Result.Id;
-                    //celestialBody.MetaData["OAPP"] = JsonSerializer.Serialize(saveHolonResult.Result); //TODO: Don't think we need to store the whole OAPP here (especially since it extends Holon so has a LOT of props) and is duplicated when the OAPP can be easily loaded from the ID.
+                    zomes = celestialBody.CelestialBodyCore.Zomes;
+                    celestialBody.CelestialBodyCore = null;
+                }
 
-                    OASISResult<ICelestialBody> celestialBodyResult = celestialBody.Save(true, true, 0, true, false, providerType);
+                if (zomes != null)
+                {
+                    foreach (IZome zome in zomes)
+                        OAPP.Children.Add(zome);
+                }
 
-                    if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
+                OAPPDNA OAPPDNA = new OAPPDNA()
+                {
+                    OAPPId = OAPP.Id,
+                    OAPPName = OAPPName,
+                    Description = OAPPDescription,
+                    CelestialBodyId = celestialBody != null ? celestialBody.Id : Guid.Empty,
+                    //CelestialBody = celestialBody, //TODO: Temp
+                    CelestialBodyName = celestialBody != null ? celestialBody.Name : "",
+                    CelestialBodyType = celestialBody != null ? celestialBody.HolonType : HolonType.None,
+                    //Zomes = zomes, //Can be either zomes of CelestialBody but not both (zomes are contained in CelestialBody) but if no CelestialBody is generated then this prop is used instead.
+                    OAPPType = OAPPType,
+                    GenesisType = genesisType,
+                    CreatedByAvatarId = avatarId,
+                    CreatedByAvatarUsername = avatarUsername,
+                    CreatedOn = DateTime.Now,
+                    Version = "1.0.0"
+                };
+
+                WriteOAPPDNA(OAPPDNA, fullPathToOAPP);
+                OASISResult<IHolon> saveHolonResult = Data.SaveHolon(OAPP, avatarId, true, true, 0, true, false, providerType);
+
+                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                {
+                    if (celestialBody != null)
                     {
-                        result.Result = OAPPDNA;
-                        result.Message = $"Successfully created the OAPP on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPType {Enum.GetName(typeof(OAPPType), OAPPType)} and GenesisType {Enum.GetName(typeof(GenesisType), genesisType)}.";
+                        celestialBody.MetaData["OAPPID"] = saveHolonResult.Result.Id;
+                        //celestialBody.MetaData["OAPP"] = JsonSerializer.Serialize(saveHolonResult.Result); //TODO: Don't think we need to store the whole OAPP here (especially since it extends Holon so has a LOT of props) and is duplicated when the OAPP can be easily loaded from the ID.
+
+                        OASISResult<ICelestialBody> celestialBodyResult = celestialBody.Save(true, true, 0, true, false, providerType);
+
+                        if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
+                        {
+                            result.Result = OAPPDNA;
+                            result.Message = $"Successfully created the OAPP on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPType {Enum.GetName(typeof(OAPPType), OAPPType)} and GenesisType {Enum.GetName(typeof(GenesisType), genesisType)}.";
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving OAPP to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving OAPP to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
+                        result.Message = $"Successfully created the OAPP on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPType {Enum.GetName(typeof(OAPPType), OAPPType)} and GenesisType {Enum.GetName(typeof(GenesisType), genesisType)}.";
                 }
                 else
-                    result.Message = $"Successfully created the OAPP on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPType {Enum.GetName(typeof(OAPPType), OAPPType)} and GenesisType {Enum.GetName(typeof(GenesisType), genesisType)}.";
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving OAPP to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
             }
-            else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving OAPP to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving OAPP to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {ex}");
+            }
 
             return result;
         }
 
-
+        //TODO: Think will return IOAPPDNA instead of IOAPP (get from metadata)
         public async Task<OASISResult<IOAPP>> SaveOAPPAsync(IOAPP OAPP, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
@@ -339,6 +385,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        //TODO: Think will return IOAPPDNA instead of IOAPP (get from metadata)
         public OASISResult<IOAPP> SaveOAPP(IOAPP OAPP, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
@@ -355,29 +402,32 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(IOAPPDNA OAPPDNA, string fullPathToOAPP, Guid avatarId, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, string publishedByAvatarUsername, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.PublishOAPPAsync. Reason: ";
 
             try
             {
-                await File.WriteAllTextAsync(Path.Combine(fullPathToOAPP, "OASISDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA));
-                string publishedOAPPPath = string.Concat(fullPathToOAPP, "\\Published\\", OAPPDNA.OAPPName, ".oapp");
-                //Directory.CreateDirectory(publichedOAPPPath);
-                ZipFile.CreateFromDirectory(fullPathToOAPP, publishedOAPPPath);
+                IOAPPDNA OAPPDNA = await ReadOAPPDNAAsync(fullPathToOAPP);
 
-                OASISResult<IOAPP> OAPPResult = await LoadOAPPAsync(OAPPDNA.OAPPId);
+                OAPPDNA.PublishedOn = DateTime.Now;
+                OAPPDNA.PublishedByAvatarId = avatarId;
+                OAPPDNA.PublishedByAvatarUsername = publishedByAvatarUsername;
+                OAPPDNA.LaunchTarget = launchTarget;
+                OAPPDNA.PublishedPath = Path.Combine(fullPathToOAPP, "Published", string.Concat(OAPPDNA.OAPPName, ".oapp"));
+
+                await WriteOAPPDNAAsync(OAPPDNA, fullPathToOAPP);
+                ZipFile.CreateFromDirectory(fullPathToOAPP, OAPPDNA.PublishedPath);
+                OASISResult<IOAPP> OAPPResult = LoadOAPP(OAPPDNA.OAPPId);
 
                 if (OAPPResult != null && OAPPResult.Result != null && !OAPPResult.IsError)
                 {
                     if (registerOnSTARNET)
-                        OAPPResult.Result.PublishedOAPP = await File.ReadAllBytesAsync(publishedOAPPPath);
+                        OAPPResult.Result.PublishedOAPP = await File.ReadAllBytesAsync(OAPPDNA.PublishedPath);
 
-                    OAPPResult.Result.PublishedOn = DateTime.Now;
+                    OAPPResult.Result.PublishedOn = OAPPDNA.PublishedOn;
                     OAPPResult.Result.PublishedByAvatarId = avatarId;
-                    OAPPDNA.PublishedOn = OAPPResult.Result.PublishedOn;
-                    OAPPDNA.PublishedByAvatarId = avatarId;
 
                     OASISResult<IOAPP> OAPPSaveResult = await SaveOAPPAsync(OAPPResult.Result, providerType);
                     result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IOAPP, IOAPPDNA>(OAPPSaveResult);
@@ -391,24 +441,29 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IOAPPDNA> PublishOAPP(IOAPPDNA OAPPDNA, string fullPathToOAPP, Guid avatarId, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> PublishOAPP(string fullPathToOAPP, string launchTarget, Guid avatarId, string publishedByAvatarUsername, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.PublishOAPP. Reason: ";
 
             try
             {
-                File.WriteAllText(Path.Combine(fullPathToOAPP, "OASISDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA));
-                string publishedOAPPPath = string.Concat(fullPathToOAPP, "\\Published\\", OAPPDNA.OAPPName, ".oapp");
-                //Directory.CreateDirectory(publichedOAPPPath);
-                ZipFile.CreateFromDirectory(fullPathToOAPP, publishedOAPPPath);
+                IOAPPDNA OAPPDNA = ReadOAPPDNA(fullPathToOAPP);
 
+                OAPPDNA.PublishedOn = DateTime.Now;
+                OAPPDNA.PublishedByAvatarId = avatarId;
+                OAPPDNA.PublishedByAvatarUsername = publishedByAvatarUsername;
+                OAPPDNA.LaunchTarget = launchTarget;
+                OAPPDNA.PublishedPath = Path.Combine(fullPathToOAPP, "Published", string.Concat(OAPPDNA.OAPPName, ".oapp"));
+
+                WriteOAPPDNA(OAPPDNA, fullPathToOAPP);
+                ZipFile.CreateFromDirectory(fullPathToOAPP, OAPPDNA.PublishedPath);
                 OASISResult<IOAPP> OAPPResult = LoadOAPP(OAPPDNA.OAPPId);
 
                 if (OAPPResult != null && OAPPResult.Result != null && !OAPPResult.IsError)
                 {
                     if (registerOnSTARNET)
-                        OAPPResult.Result.PublishedOAPP = File.ReadAllBytes(publishedOAPPPath);
+                        OAPPResult.Result.PublishedOAPP = File.ReadAllBytes(OAPPDNA.PublishedPath);
 
                     OAPPResult.Result.PublishedOn = DateTime.Now;
                     OAPPResult.Result.PublishedByAvatarId = avatarId;
@@ -427,31 +482,31 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(Guid OAPPId, string fullPathToOAPP, Guid avatarId, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
-            OASISResult<IOAPP> loadResult = await LoadOAPPAsync(OAPPId, providerType);
+        //public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(Guid OAPPId, string fullPathToOAPP, string launchTarget, Guid avatarId, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
+        //    OASISResult<IOAPP> loadResult = await LoadOAPPAsync(OAPPId, providerType);
 
-            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
-                result = await PublishOAPPAsync(ConvertOAPPToOAPPDNA(loadResult.Result), fullPathToOAPP, avatarId, registerOnSTARNET, providerType);
-            else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in PublishOAPPAsync loading the OAPP with the LoadOAPPAsync method, reason: {loadResult.Message}");
+        //    if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+        //        result = await PublishOAPPAsync(ConvertOAPPToOAPPDNA(loadResult.Result), fullPathToOAPP, launchTarget, avatarId, registerOnSTARNET, providerType);
+        //    else
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in PublishOAPPAsync loading the OAPP with the LoadOAPPAsync method, reason: {loadResult.Message}");
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        public OASISResult<IOAPPDNA> PublishOAPP(Guid OAPPId, string fullPathToOAPP, Guid avatarId, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
-            OASISResult<IOAPP> loadResult = LoadOAPP(OAPPId, providerType);
+        //public OASISResult<IOAPPDNA> PublishOAPP(Guid OAPPId, string fullPathToOAPP, string launchTarget, Guid avatarId, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
+        //    OASISResult<IOAPP> loadResult = LoadOAPP(OAPPId, providerType);
 
-            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
-                result = PublishOAPP(ConvertOAPPToOAPPDNA(loadResult.Result), fullPathToOAPP, avatarId, registerOnSTARNET, providerType);
-            else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in PublishOAPP loading the OAPP with the LoadOAPP method, reason: {loadResult.Message}");
+        //    if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+        //        result = PublishOAPP(ConvertOAPPToOAPPDNA(loadResult.Result), fullPathToOAPP, launchTarget, avatarId, registerOnSTARNET, providerType);
+        //    else
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in PublishOAPP loading the OAPP with the LoadOAPP method, reason: {loadResult.Message}");
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public async Task<OASISResult<IOAPPDNA>> UnPublishOAPPAsync(IOAPPDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
@@ -463,6 +518,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 oappResult.Result.PublishedOn = DateTime.MinValue;
                 oappResult.Result.PublishedByAvatarId = Guid.Empty;
+                oappResult.Result.PublishedByAvatarUsername = "";
 
                 oappResult = await SaveOAPPAsync(oappResult.Result, providerType);
 
@@ -491,6 +547,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 oappResult.Result.PublishedOn = DateTime.MinValue;
                 oappResult.Result.PublishedByAvatarId = Guid.Empty;
+                oappResult.Result.PublishedByAvatarUsername = "";
 
                 oappResult = SaveOAPP(oappResult.Result, providerType);
 
@@ -516,6 +573,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             OAPP.PublishedOn = DateTime.MinValue;
             OAPP.PublishedByAvatarId = Guid.Empty;
+            OAPP.PublishedByAvatarUsername = "";
 
             OASISResult<IOAPP> oappResult = await SaveOAPPAsync(OAPP, providerType);
 
@@ -537,6 +595,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             OAPP.PublishedOn = DateTime.MinValue;
             OAPP.PublishedByAvatarId = Guid.Empty;
+            OAPP.PublishedByAvatarUsername = "";
 
             OASISResult<IOAPP> oappResult = SaveOAPP(OAPP, providerType);
 
@@ -661,7 +720,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         //    return result;
         //}
 
-        public async Task<OASISResult<IInstalledOAPP>> InstallOAPPAsync(Guid avatarId, string fullPathToPublishedOAPPFile, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPP>> InstallOAPPAsync(Guid avatarId, string avatarUsername, string fullPathToPublishedOAPPFile, string fullInstallPath, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
             string errorMessage = "Error occured in OAPPManager.InstallOAPPAsync. Reason: ";
@@ -669,8 +728,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             try
             {
                 ZipFile.ExtractToDirectory(fullPathToPublishedOAPPFile, fullInstallPath, Encoding.Default, true);
-                string OAPPDNAJson = await File.ReadAllTextAsync(Path.Combine(fullPathToPublishedOAPPFile, "OAPPDNA.json"));
-                OAPPDNA OAPPDNA = JsonSerializer.Deserialize<OAPPDNA>(OAPPDNAJson);
+                IOAPPDNA OAPPDNA = await ReadOAPPDNAAsync(fullPathToPublishedOAPPFile);
 
                 if (OAPPDNA != null)
                 {
@@ -678,6 +736,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     { 
                         OAPPDNA = OAPPDNA,
                         InstalledBy = avatarId,
+                        InstalledByAvatarUsername = avatarUsername,
                         InstalledOn = DateTime.Now,
                         InstalledPath = fullInstallPath
                     };
@@ -701,7 +760,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPP> InstallOAPP(Guid avatarId, string fullPathToPublishedOAPPFile, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPP> InstallOAPP(Guid avatarId, string avatarUsername, string fullPathToPublishedOAPPFile, string fullInstallPath, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
             string errorMessage = "Error occured in OAPPManager.InstallOAPP. Reason: ";
@@ -709,8 +768,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             try
             {
                 ZipFile.ExtractToDirectory(fullPathToPublishedOAPPFile, fullInstallPath, Encoding.Default, true);
-                string OAPPDNAJson = File.ReadAllText(Path.Combine(fullPathToPublishedOAPPFile, "OAPPDNA.json"));
-                OAPPDNA OAPPDNA = JsonSerializer.Deserialize<OAPPDNA>(OAPPDNAJson);
+                IOAPPDNA OAPPDNA = ReadOAPPDNA(fullPathToPublishedOAPPFile);
 
                 if (OAPPDNA != null)
                 {
@@ -718,6 +776,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     {
                         OAPPDNA = OAPPDNA,
                         InstalledBy = avatarId,
+                        InstalledByAvatarUsername = avatarUsername,
                         InstalledOn = DateTime.Now,
                         InstalledPath = fullInstallPath
                     };
@@ -741,7 +800,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPP>> InstallOAPPAsync(Guid avatarId, IOAPP OAPP, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPP>> InstallOAPPAsync(Guid avatarId, string avatarUsername, IOAPP OAPP, string fullInstallPath, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
             string errorMessage = "Error occured in OAPPManager.InstallOAPPAsync. Reason: ";
@@ -750,7 +809,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 string OAPPPath = Path.Combine("temp", OAPP.Name, ".oapp");
                 await File.WriteAllBytesAsync(OAPPPath, OAPP.PublishedOAPP);
-                result = await InstallOAPPAsync(avatarId, OAPPPath, fullInstallPath, providerType);
+                result = await InstallOAPPAsync(avatarId, avatarUsername, OAPPPath, fullInstallPath, providerType);
             }
             catch (Exception ex)
             {
@@ -760,7 +819,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPP> InstallOAPP(Guid avatarId, IOAPP OAPP, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPP> InstallOAPP(Guid avatarId, string avatarUsername, IOAPP OAPP, string fullInstallPath, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
             string errorMessage = "Error occured in OAPPManager.InstallOAPP. Reason: ";
@@ -769,7 +828,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 string OAPPPath = Path.Combine("temp", OAPP.Name, ".oapp");
                 File.WriteAllBytes(OAPPPath, OAPP.PublishedOAPP);
-                result = InstallOAPP(avatarId, OAPPPath, fullInstallPath, providerType);
+                result = InstallOAPP(avatarId, avatarUsername, OAPPPath, fullInstallPath, providerType);
             }
             catch (Exception ex)
             {
@@ -779,26 +838,26 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPP>> InstallOAPPAsync(Guid avatarId, Guid OAPPId, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPP>> InstallOAPPAsync(Guid avatarId, string avatarUsername, Guid OAPPId, string fullInstallPath, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
             OASISResult<IOAPP> OAPPResult = await LoadOAPPAsync(OAPPId, providerType);
 
             if (OAPPResult != null && !OAPPResult.IsError && OAPPResult.Result != null)
-                result = await InstallOAPPAsync(avatarId, OAPPResult.Result, fullInstallPath, providerType);
+                result = await InstallOAPPAsync(avatarId, avatarUsername, OAPPResult.Result, fullInstallPath, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPManager.InstallOAPPAsync loading the OAPP with the LoadOAPPAsync method, reason: {result.Message}");
 
             return result;
         }
 
-        public OASISResult<IInstalledOAPP> InstallOAPP(Guid avatarId, Guid OAPPId, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPP> InstallOAPP(Guid avatarId, string avatarUsername, Guid OAPPId, string fullInstallPath, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
             OASISResult<IOAPP> OAPPResult = LoadOAPP(OAPPId, providerType);
 
             if (OAPPResult != null && !OAPPResult.IsError && OAPPResult.Result != null)
-                result = InstallOAPP(avatarId, OAPPResult.Result, fullInstallPath, providerType);
+                result = InstallOAPP(avatarId, avatarUsername, OAPPResult.Result, fullInstallPath, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPManager.InstallOAPP loading the OAPP with the LoadOAPP method, reason: {result.Message}");
 
@@ -972,10 +1031,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OAPPDNA OAPPDNA = new OAPPDNA()
             {
                 CelestialBodyId = OAPP.CelestialBodyId,
-                CelestialBody = OAPP.CelestialBody,
+                //CelestialBody = OAPP.CelestialBody,
                 CelestialBodyName = OAPP.CelestialBody != null ? OAPP.CelestialBody.Name : "",
                 CelestialBodyType = OAPP.CelestialBody != null ? OAPP.CelestialBody.HolonType : HolonType.None,
                 CreatedByAvatarId = OAPP.CreatedByAvatarId,
+                CreatedByAvatarUsername = OAPP.CreatedByAvatarUsername,
                 CreatedOn = OAPP.CreatedDate,
                 Description = OAPP.Description,
                 GenesisType = OAPP.GenesisType,
@@ -983,6 +1043,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 OAPPName = OAPP.Name,
                 OAPPType = OAPP.OAPPType,
                 PublishedByAvatarId = OAPP.PublishedByAvatarId,
+                PublishedByAvatarUsername = OAPP.PublishedByAvatarUsername,
                 PublishedOn = OAPP.PublishedOn,
                 PublishedOnSTARNET = OAPP.PublishedOAPP != null,
                 Version = OAPP.Version.ToString()
@@ -992,8 +1053,35 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             foreach (IHolon holon in OAPP.Children)
                 zomes.Add((IZome)holon);
 
-            OAPPDNA.Zomes = zomes;
+           //OAPPDNA.Zomes = zomes;
             return OAPPDNA;
+        }
+
+        public async Task WriteOAPPDNAAsync(IOAPPDNA OAPPDNA, string fullPathToOAPP)
+        {
+            JsonSerializerOptions options = new()
+            {
+                ReferenceHandler = ReferenceHandler.Preserve,
+                WriteIndented = true
+            };
+
+            await File.WriteAllTextAsync(Path.Combine(fullPathToOAPP, "OAPPDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA, options));
+            //await File.WriteAllTextAsync(Path.Combine(fullPathToOAPP, "OASISDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA));
+        }
+
+        public void WriteOAPPDNA(IOAPPDNA OAPPDNA, string fullPathToOAPP)
+        {
+            File.WriteAllText(Path.Combine(fullPathToOAPP, "OAPPDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA));
+        }
+
+        public async Task<IOAPPDNA> ReadOAPPDNAAsync(string fullPathToOAPP)
+        {
+            return JsonSerializer.Deserialize<IOAPPDNA>(await File.ReadAllTextAsync(Path.Combine(fullPathToOAPP, "OAPPDNA.json")));
+        }
+
+        public IOAPPDNA ReadOAPPDNA(string fullPathToOAPP)
+        {
+            return JsonSerializer.Deserialize<IOAPPDNA>(File.ReadAllText(Path.Combine(fullPathToOAPP, "OAPPDNA.json")));
         }
     }
 }

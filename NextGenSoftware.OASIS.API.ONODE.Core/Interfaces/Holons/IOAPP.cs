@@ -13,6 +13,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons
         ICelestialBody CelestialBody { get; set; }
         DateTime PublishedOn { get; set; }
         Guid PublishedByAvatarId { get; set; }
+        string CreatedByAvatarUsername { get; set; }
+        string PublishedByAvatarUsername { get; set; }
         byte[] PublishedOAPP { get; set; }
     }
 }
