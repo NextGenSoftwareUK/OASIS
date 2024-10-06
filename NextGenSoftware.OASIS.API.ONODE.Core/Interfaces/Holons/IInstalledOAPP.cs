@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons
         public string InstalledPath { get; set; }
         public DateTime InstalledOn { get; set; }
         public Guid InstalledBy { get; set; }
+        public string InstalledByAvatarUsername { get; set; }
 
         //IOAPP OAPP { get; set; }
         //Guid OAPPId { get; set; }

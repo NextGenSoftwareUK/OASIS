@@ -21,10 +21,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -127,6 +126,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
 
+                Console.WriteLine("");
+
                 if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the Open World MMORPG One World game/platform? (recommeneded)"))
                 {
                     Console.WriteLine("");
@@ -167,6 +168,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
 
+                Console.WriteLine("");
                 value = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create? (New avatars will only be able to create moons that orbit Our World until you reach karma level 33 where you will then be able to create planets, when you reach level 77 you can create stars & beyond 77 you can create Galaxies and even entire Universes in your jounrey to become fully God realised!.)", typeof(GenesisType));
 
                 if (value != null)
@@ -309,6 +311,40 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return lightResult;
         }
 
+        public static async Task PublishOAPPAsync(ProviderType providerType = ProviderType.Default)
+        {
+            string oappPath = CLIEngine.GetValidFolder("What is the full path to the OAPP you wish to publish?", false);
+            string launchTarget = CLIEngine.GetValidFolder("What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the OAPP? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)", false);
+            bool registerOnSTARNET = CLIEngine.GetConfirmation("Do you wish to publish to STARNET? If you select 'Y' to this question then your OAPP will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .OAPP install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.");
+
+            OASISResult<IOAPPDNA> publishResult = await STAR.OASISAPI.OAPPs.PublishOAPPAsync(oappPath, launchTarget, STAR.BeamedInAvatar.Id, registerOnSTARNET, providerType);
+
+            if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
+            {
+                CLIEngine.ShowSuccessMessage("OAPP Successfully Published.");
+                ShowOAPP(publishResult.Result);
+
+                if (CLIEngine.GetConfirmation("Do you wish to install the OAPP now?"))
+                    await InstallOAPPAsync();
+            }
+            else
+                CLIEngine.ShowErrorMessage($"An error occured publishing the OAPP. Reason: {publishResult.Message}");
+        }
+
+        public static async Task UnPublishOAPPAsync(ProviderType providerType = ProviderType.Default)
+        {
+            Guid OAPPId = CLIEngine.GetValidInputForGuid("What is the GUID/ID to the OAPP you wish to unpublish?");
+            OASISResult<IOAPPDNA> unpublishResult = await STAR.OASISAPI.OAPPs.UnPublishOAPPAsync(OAPPId, providerType);
+
+            if (unpublishResult != null && !unpublishResult.IsError && unpublishResult.Result != null)
+            {
+                CLIEngine.ShowSuccessMessage("OAPP Successfully Unpublished.");
+                ShowOAPP(unpublishResult.Result);
+            }
+            else
+                CLIEngine.ShowErrorMessage($"An error occured unpublishing the OAPP. Reason: {unpublishResult.Message}");
+        }
+
         public static async Task InstallOAPPAsync(Guid OAPPId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> installResult = null;
@@ -377,6 +413,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
                 CLIEngine.ShowErrorMessage($"Error installing OAPP. Reason: Unknown error occured!");
+        }
+
+        public static async Task UnInstallOAPPAsync(Guid OAPPId = new Guid(), ProviderType providerType = ProviderType.Default)
+        {
+            if (OAPPId == Guid.Empty)
+                OAPPId = CLIEngine.GetValidInputForGuid("What is the GUID/ID to the OAPP you wish to uninstall?");
+
+            OASISResult<IOAPPDNA> uninstallResult = await STAR.OASISAPI.OAPPs.UnInstallOAPPAsync(OAPPId, STAR.BeamedInAvatar.Id, providerType);
+
+            if (uninstallResult != null)
+            {
+                if (!uninstallResult.IsError && uninstallResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("OAPP Successfully Uninstalled.");
+                    ShowOAPP(uninstallResult.Result);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error installing OAPP. Reason: {uninstallResult.Message}");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error uninstalling OAPP. Reason: Unknown error occured!");
         }
 
         public static async Task LaunchSTARNETAsync(bool installOAPP = true)
@@ -693,6 +750,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowDivider();
         }
 
+        //TODO: Once OAPP has been changed to OAPPDNA in OAPPManager this method will be redundant so can just use the other ShowOAPP method below (removes redundant code and redundant storage).
         public static void ShowOAPP(IOAPP oapp)
         {
             CLIEngine.ShowMessage(string.Concat($"Title: ", !string.IsNullOrEmpty(oapp.Name) ? oapp.Name : "None"));
@@ -708,18 +766,49 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             CLIEngine.ShowMessage(string.Concat($"Created On: ", oapp.CreatedDate != DateTime.MinValue ? oapp.CreatedDate.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Created By: ", oapp.CreatedByAvatarId != Guid.Empty ? oapp.CreatedByAvatarId.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Created By: ", oapp.CreatedByAvatarId != Guid.Empty ? string.Concat(oapp.CreatedByAvatarUsername, " (", oapp.CreatedByAvatarId.ToString(), ")") : "None"));
             CLIEngine.ShowMessage(string.Concat($"Published On: ", oapp.PublishedOn != DateTime.MinValue ? oapp.PublishedOn.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Published By: ", oapp.PublishedByAvatarId != Guid.Empty ? oapp.PublishedByAvatarId.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published By: ", oapp.PublishedByAvatarId != Guid.Empty ? string.Concat(oapp.PublishedByAvatarUsername, " (", oapp.PublishedByAvatarId.ToString(), ")") : "None"));
             CLIEngine.ShowMessage(string.Concat($"Published On STARNET: ", oapp.PublishedOAPP != null ? "True" : "False"));
             CLIEngine.ShowMessage(string.Concat($"Version: ", oapp.Version));
 
             CLIEngine.ShowMessage($"Zomes: ");
+            Console.WriteLine("");
 
-            if (oapp.CelestialBody != null)
+            if (oapp.CelestialBody != null && oapp.CelestialBody.CelestialBodyCore != null && oapp.CelestialBody.CelestialBodyCore.Zomes != null)
                 ShowZomesAndHolons(oapp.CelestialBody.CelestialBodyCore.Zomes);
             else
                 ShowHolons(oapp.Children);
+
+            CLIEngine.ShowDivider();
+        }
+
+        public static void ShowOAPP(IOAPPDNA oapp)
+        {
+            CLIEngine.ShowMessage(string.Concat($"Title: ", !string.IsNullOrEmpty(oapp.OAPPName) ? oapp.OAPPName : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Description: ", !string.IsNullOrEmpty(oapp.Description) ? oapp.Description : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Type: ", Enum.GetName(typeof(OAPPType), oapp.OAPPType)));
+            CLIEngine.ShowMessage(string.Concat($"Genesis Type: ", Enum.GetName(typeof(GenesisType), oapp.GenesisType)));
+            CLIEngine.ShowMessage(string.Concat($"Celestial Body Id: ", oapp.CelestialBodyId != Guid.Empty ? oapp.CelestialBodyId : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Celestial Body Name: ", !string.IsNullOrEmpty(oapp.CelestialBodyName) ? oapp.CelestialBodyName : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Celestial Body Type: ", Enum.GetName(typeof(HolonType), oapp.CelestialBodyType)));
+            CLIEngine.ShowMessage(string.Concat($"Created On: ", oapp.CreatedOn != DateTime.MinValue ? oapp.CreatedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Created By: ", oapp.CreatedByAvatarId != Guid.Empty ? string.Concat(oapp.CreatedByAvatarUsername, " (", oapp.CreatedByAvatarId.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published On: ", oapp.PublishedOn != DateTime.MinValue ? oapp.PublishedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published By: ", oapp.PublishedByAvatarId != Guid.Empty ? string.Concat(oapp.PublishedByAvatarUsername, " (", oapp.PublishedByAvatarId.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published Path: ", !string.IsNullOrEmpty(oapp.PublishedPath) ? oapp.PublishedPath : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published On STARNET: ", oapp.PublishedOnSTARNET ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"Launch Target: ", !string.IsNullOrEmpty(oapp.LaunchTarget) ? oapp.LaunchTarget : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Version: ", oapp.Version));
+
+            CLIEngine.ShowMessage($"Zomes: ");
+
+            //TODO: Come back to this.
+            //if (oapp.CelestialBody != null && oapp.CelestialBody.CelestialBodyCore != null && oapp.CelestialBody.CelestialBodyCore.Zomes != null)
+            //    ShowZomesAndHolons(oapp.CelestialBody.CelestialBodyCore.Zomes);
+            
+            //else if (oapp.Zomes != null)
+            //    ShowZomesAndHolons(oapp.Zomes);
 
             CLIEngine.ShowDivider();
         }
@@ -739,13 +828,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             CLIEngine.ShowMessage(string.Concat($"Created On: ", oapp.OAPPDNA.CreatedOn != DateTime.MinValue ? oapp.OAPPDNA.CreatedOn.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Created By: ", oapp.OAPPDNA.CreatedByAvatarId != Guid.Empty ? oapp.OAPPDNA.CreatedByAvatarId.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Created By: ", oapp.CreatedByAvatarId != Guid.Empty ? string.Concat(oapp.OAPPDNA.CreatedByAvatarUsername, " (", oapp.CreatedByAvatarId.ToString(), ")") : "None"));
             CLIEngine.ShowMessage(string.Concat($"Published On: ", oapp.OAPPDNA.PublishedOn != DateTime.MinValue ? oapp.OAPPDNA.PublishedOn.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Published By: ", oapp.OAPPDNA.PublishedByAvatarId != Guid.Empty ? oapp.OAPPDNA.PublishedByAvatarId.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Installed On: ", oapp.InstalledOn != DateTime.MinValue ? oapp.InstalledOn.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Installed By: ", oapp.InstalledBy != Guid.Empty ? oapp.InstalledBy.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Installed Path: ", oapp.InstalledPath));
+            CLIEngine.ShowMessage(string.Concat($"Published By: ", oapp.OAPPDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(oapp.OAPPDNA.PublishedByAvatarUsername, " (", oapp.OAPPDNA.PublishedByAvatarId.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published Path: ", !string.IsNullOrEmpty(oapp.OAPPDNA.PublishedPath) ? oapp.OAPPDNA.PublishedPath : "None"));
             CLIEngine.ShowMessage(string.Concat($"Published On STARNET: ", oapp.OAPPDNA.PublishedOnSTARNET ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"Launch Target: ", !string.IsNullOrEmpty(oapp.OAPPDNA.LaunchTarget) ? oapp.OAPPDNA.LaunchTarget : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Installed On: ", oapp.InstalledOn != DateTime.MinValue ? oapp.InstalledOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published By: ", oapp.InstalledBy != Guid.Empty ? string.Concat(oapp.InstalledByAvatarUsername, " (", oapp.InstalledBy.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Installed Path: ", oapp.InstalledPath));
             CLIEngine.ShowMessage(string.Concat($"Version: ", !string.IsNullOrEmpty(oapp.OAPPDNA.Version) ? oapp.OAPPDNA.Version : "None"));
 
             //CLIEngine.ShowMessage($"Zomes: ");
@@ -971,7 +1062,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowErrorMessage("Error Beaming In. Username/Password may be incorrect.");
             }
 
-            //CLIEngine.ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", STAR.BeamedInAvatar.Username, ". Have a nice day! :) You Are Level ", STAR.BeamedInAvatarDetail.Level, " And Have ", STAR.BeamedInAvatarDetail.Karma, " Karma."));
+            CLIEngine.ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", STAR.BeamedInAvatar.Username, ". Have a nice day! :) You Are Level ", STAR.BeamedInAvatarDetail.Level, " And Have ", STAR.BeamedInAvatarDetail.Karma, " Karma."));
+            //CLIEngine.ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back dellams. Have a nice day! :) You Are Level 77 And Have 777 Karma."));
             //ShowAvatarStats();
             //await ReadyPlayerOne();
         }
@@ -1759,7 +1851,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 STAR.Dim(result.Result.CelestialBody);
 
                 // Deploy the planet (OApp)
-                STAR.Seed(result.Result.CelestialBody.Id, ""); //TODO: Need to create test path for this.
+                //STAR.Seed(result.Result.CelestialBody.Id, ""); //TODO: Need to create test path for this.
 
                 // Run Tests
                 STAR.Twinkle(result.Result.CelestialBody);
@@ -2556,10 +2648,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (oapps.Result.Count() > 0)
                 {
+                    Console.WriteLine();
+
                     if (oapps.Result.Count() == 1)
-                        CLIEngine.ShowErrorMessage($"{oapps.Result.Count()} OAPP Found.");
+                        CLIEngine.ShowMessage($"{oapps.Result.Count()} OAPP Found:");
                     else
-                        CLIEngine.ShowErrorMessage($"{oapps.Result.Count()} OAPP's Found.");
+                        CLIEngine.ShowMessage($"{oapps.Result.Count()} OAPP's Found:");
 
                     CLIEngine.ShowDivider();
 

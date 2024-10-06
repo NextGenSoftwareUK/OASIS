@@ -486,6 +486,11 @@ namespace NextGenSoftware.OASIS.STAR
                 BeamedInAvatar = (Avatar)result.Result;
                 OASISAPI.LogAvatarIntoOASISManagers(); //TODO: Is there a better way of doing this?
 
+                BeamedInAvatarDetail = new AvatarDetail()
+                {
+                    Karma = 777
+                };
+
                 //TODO: Fix later! Gifts property de-serialiazed issue in MongoDBOASIS
                 //OASISResult<IAvatarDetail> loggedInAvatarDetailResult = await OASISAPI.Avatar.LoadAvatarDetailAsync(BeamedInAvatar.Id);
 
@@ -703,7 +708,8 @@ namespace NextGenSoftware.OASIS.STAR
             //Setup the OApp files from the relevant template.
             if (OAPPType != OAPPType.GeneratedCodeOnly)
             {
-                OAPPFolder = string.Concat(genesisFolder, "\\", OAPPName, " OAPP");
+                //OAPPFolder = string.Concat(genesisFolder, "\\", OAPPName, " OAPP");
+                OAPPFolder = Path.Combine(genesisFolder, string.Concat(OAPPName, " OAPP"));
 
                 if (Directory.Exists(OAPPFolder))
                     Directory.Delete(OAPPFolder, true);
@@ -1252,7 +1258,7 @@ namespace NextGenSoftware.OASIS.STAR
 
 
             //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
-            OASISResult<IOAPPDNA> OAPPResult = await OASISAPI.OAPPs.CreateOAPPAsync(OAPPName, OAPPDescription, OAPPType, genesisType, BeamedInAvatar.AvatarId, newBody, zomes);
+            OASISResult<IOAPPDNA> OAPPResult = await OASISAPI.OAPPs.CreateOAPPAsync(OAPPName, OAPPDescription, OAPPType, genesisType, BeamedInAvatar.AvatarId, OAPPFolder, newBody, zomes);
 
             if (OAPPResult != null && !OAPPResult.IsError && OAPPResult.Result != null)
                 result.Result.OAPPDNA = OAPPResult.Result;
@@ -1402,22 +1408,22 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         //Publish
-        public static async Task<OASISResult<IOAPPDNA>> SeedAsync(Guid OAPPId, string fullPathToOAPP, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IOAPPDNA>> SeedAsync(string fullPathToOAPP, string launchTarget, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
-            return await OASISAPI.OAPPs.PublishOAPPAsync(OAPPId, fullPathToOAPP, BeamedInAvatar.AvatarId, registerOnSTARNET, providerType);
+            return await OASISAPI.OAPPs.PublishOAPPAsync(fullPathToOAPP, launchTarget, BeamedInAvatar.AvatarId, registerOnSTARNET, providerType);
         }
 
-        public static OASISResult<IOAPPDNA> Seed(Guid OAPPId, string fullPathToOAPP, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public static OASISResult<IOAPPDNA> Seed(string fullPathToOAPP, string launchTarget, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
-            return OASISAPI.OAPPs.PublishOAPP(OAPPId, fullPathToOAPP, BeamedInAvatar.AvatarId, registerOnSTARNET, providerType);
+            return OASISAPI.OAPPs.PublishOAPP(fullPathToOAPP, launchTarget, BeamedInAvatar.AvatarId, registerOnSTARNET, providerType);
         }
 
-        public static async Task<OASISResult<IOAPPDNA>> UnSeedAsync(Guid OAPPId, string fullPathToOAPP, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IOAPPDNA>> UnSeedAsync(Guid OAPPId, ProviderType providerType = ProviderType.Default)
         {
             return await OASISAPI.OAPPs.UnPublishOAPPAsync(OAPPId, providerType);
         }
 
-        public static OASISResult<IOAPPDNA> UnSeed(Guid OAPPId, string fullPathToOAPP, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public static OASISResult<IOAPPDNA> UnSeed(Guid OAPPId, ProviderType providerType = ProviderType.Default)
         {
             return OASISAPI.OAPPs.UnPublishOAPP(OAPPId, providerType);
         }
