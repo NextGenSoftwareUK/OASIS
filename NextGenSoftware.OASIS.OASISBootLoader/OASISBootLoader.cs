@@ -755,7 +755,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.SolanaOASIS:
                             {
-                                SolanaOASIS solanaOasis = new SolanaOASIS(OASISDNA.OASIS.StorageProviders.SolanaOASIS.WalletMnemonicWords);
+                                SolanaOASIS solanaOasis = new(
+                                    OASISDNA.OASIS.StorageProviders.SolanaOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.SolanaOASIS.PrivateKey,
+                                    OASISDNA.OASIS.StorageProviders.SolanaOASIS.PublicKey);
                                 solanaOasis.OnStorageProviderError += SolanaOASIS_StorageProviderError;
                                 result.Result = solanaOasis;
                             }

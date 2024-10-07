@@ -1315,14 +1315,31 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         }
 
         public string CreateERCJson(IMintNFTTransactionRequest request, NFTStandardType NFTStandardType)
+            => NFTStandardType switch
+            {
+                NFTStandardType.ERC721 => CreateERC721Json(request),
+                NFTStandardType.ERC1155 => CreateERC1155Json(request),
+                NFTStandardType.Metaplex => CreateMetaplexJson(request),
+                _ => "",
+            };
+
+        private string CreateMetaplexJson(IMintNFTTransactionRequest request)
         {
-            if (NFTStandardType == NFTStandardType.ERC721)
-                return CreateERC721Json(request);
+            var metadata = new
+            {
+                name = request.Title,
+                symbol = request.Symbol,
+                description = request.Description,
+                seller_fee_basis_points = 500,
+                image = request.ImageUrl,
+                thumbnail = request.ThumbnailUrl,
+                attributes = request.MetaData != null ? request.MetaData : new Dictionary<string, object>(),
+                price = request.Price,
+                discount = request.Discount,
+                memo = request.MemoText
+            };
 
-            else if (NFTStandardType == NFTStandardType.ERC1155)
-                return CreateERC1155Json(request);
-
-            return "";
+            return JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true });
         }
 
         private string CreateERC721Json(IMintNFTTransactionRequest request)
