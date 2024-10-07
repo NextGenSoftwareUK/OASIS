@@ -6,7 +6,7 @@
         public BaseAccountRequest ToAccount { get; set; }
         public string MemoText { get; set; }
         public ulong Amount { get; set; }
-        
+
         public (bool, string) IsRequestValid()
         {
             if (string.IsNullOrEmpty(FromAccount?.PublicKey))
