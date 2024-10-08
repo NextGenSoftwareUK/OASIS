@@ -1,9 +1,7 @@
 {
-  "Logging": {
-    "LogLevel": {
-      "Default": "Debug",
-      "System": "Information",
-      "Microsoft": "Information"
-    }
+  "SolanaOASIS": {
+    "ConnectionString": "https://api.devnet.solana.com",
+    "PrivateKey": "5VCRWersYAwwhzGoFB7ye82AXrjnY2Jn9v4FTr1wC2eGSfhSPRygBW6FLCAnQzXxZZBgDeb1roQ2uV74772eRV8R",
+    "PublicKey": "8pBKg1JCoa2cFAB9Bu5nLStaHzRADJujLVyjKEfDgbKT"
   }
 }
