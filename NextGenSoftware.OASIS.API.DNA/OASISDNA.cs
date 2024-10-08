@@ -273,6 +273,8 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class SolanaOASISSettings : ProviderSettingsBase
     {
         public string WalletMnemonicWords { get; set; }
+        public string PrivateKey { get; set; }
+        public string PublicKey { get; set; }
     }
 
     //public class HoloOASISProviderSettings : ProviderSettingsBase

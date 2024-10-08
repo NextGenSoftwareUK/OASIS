@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/The OASIS.sln",
+                "${workspaceFolder}/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/The OASIS.sln",
+                "${workspaceFolder}/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/The OASIS.sln"
+                "${workspaceFolder}/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness.csproj"
             ],
             "problemMatcher": "$msCompile"
         }
