@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Solnet.Metaplex;
+using Solnet.Metaplex.NFT.Library;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses
 {
@@ -18,16 +18,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Response
 
         public GetNftMetadataResult(MetadataAccount metadataAccount)
         {
-            if(metadataAccount == null)
-                throw new ArgumentNullException();
+            ArgumentNullException.ThrowIfNull(metadataAccount);
+
             Owner = metadataAccount.owner.Key;
             UpdateAuthority = metadataAccount.updateAuthority.Key;
             Mint = metadataAccount.mint;
-            Name = metadataAccount.data.name;
-            Symbol = metadataAccount.data.symbol;
-            Url = metadataAccount.data.uri;
-            SellerFeeBasisPoints = metadataAccount.data.sellerFeeBasisPoints;
-            Creators = metadataAccount.data.creators.Select(x => new NftCreatorMedataResult(x));
+            Name = metadataAccount.metadata.name;
+            Symbol = metadataAccount.metadata.symbol;
+            Url = metadataAccount.metadata.uri;
+            SellerFeeBasisPoints = metadataAccount.metadata.sellerFeeBasisPoints;
+            Creators = metadataAccount.metadata.creators.Select(creator => new NftCreatorMedataResult(creator));
         }
     }
 }

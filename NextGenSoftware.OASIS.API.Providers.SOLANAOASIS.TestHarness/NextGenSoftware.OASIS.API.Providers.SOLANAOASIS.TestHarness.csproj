@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Solnet.Programs" Version="0.4.6" />
+      <PackageReference Include="Solnet.Programs" Version="6.1.0" />
     </ItemGroup>
 
     <ItemGroup>

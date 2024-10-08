@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
@@ -17,7 +16,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
@@ -26,6 +27,8 @@ using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositorie
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using Solnet.Rpc;
+using Solnet.Wallet;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 {
@@ -35,47 +38,47 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         private ISolanaService _solanaService;
         private KeyManager _keyManager;
         private WalletManager _walletManager;
-        private string _mnemonicWords = "";
+        private readonly Account _oasisSolanaAccount;
+        private readonly IRpcClient _rpcClient;
 
         private KeyManager KeyManager
         {
             get
             {
-                if (_keyManager == null)
-                    _keyManager = new KeyManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.SolanaOASIS));
+                _keyManager ??= new KeyManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.SolanaOASIS));
 
                 return _keyManager;
             }
         }
-        
+
         private WalletManager WalletManager
         {
             get
             {
-                if (_walletManager == null)
-                    _walletManager = new WalletManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.SolanaOASIS));
+                _walletManager ??= new WalletManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.SolanaOASIS));
 
                 return _walletManager;
             }
         }
-        
-        public SolanaOASIS(string mnemonicWords)
+
+        public SolanaOASIS(string hostUri, string privateKey, string publicKey)
         {
-            _mnemonicWords = mnemonicWords;
             this.ProviderName = nameof(SolanaOASIS);
             this.ProviderDescription = "Solana Blockchain Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SolanaOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this._rpcClient = ClientFactory.GetClient(hostUri);
+            this._oasisSolanaAccount = new(privateKey, publicKey);
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<bool> result = new();
 
             try
             {
-                _solanaRepository = new SolanaRepository(_mnemonicWords);
-                _solanaService = new SolanaService();
+                _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient);
+                _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
 
                 result.Result = true;
                 IsProviderActivated = true;
@@ -90,12 +93,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public override OASISResult<bool> ActivateProvider()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<bool> result = new();
 
             try
             {
-                _solanaRepository = new SolanaRepository(_mnemonicWords);
-                _solanaService = new SolanaService();
+                _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient);
+                _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
 
                 result.Result = true;
                 IsProviderActivated = true;
@@ -244,7 +247,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 {
                     var solanaAvatarDto = await _solanaRepository.GetAsync<SolanaAvatarDto>(avatarSolanaHash);
                     transactionHash = await _solanaRepository.UpdateAsync(solanaAvatarDto);
-                    
+
                 }
                 // Create avatar if transaction hash not exist
                 else
@@ -253,7 +256,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                     transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDto);
                 }
 
-                if (string.IsNullOrEmpty(transactionHash))
+                if (!string.IsNullOrEmpty(transactionHash))
                 {
                     avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
 
@@ -343,7 +346,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         {
             throw new NotImplementedException();
         }
-        
+
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
             return DeleteAvatarAsync(providerKey, softDelete).Result;
@@ -355,7 +358,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             try
             {
                 var deleteResult = await _solanaRepository.DeleteAsync(providerKey);
-                
+
                 result.IsError = !deleteResult;
                 result.IsSaved = deleteResult;
                 result.Result = deleteResult;
@@ -429,7 +432,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         {
             throw new NotImplementedException();
         }
-        
+
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError).Result;
@@ -494,7 +497,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         {
             var errorMessage = "Error occured in SaveHolonsAsync method in SolanaOASIS Provider";
             var result = new OASISResult<IEnumerable<IHolon>>();
-            
+
             try
             {
                 foreach (var holon in holons)
@@ -516,7 +519,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
                     holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
 
-                    if(string.IsNullOrEmpty(transactionHash))
+                    if (string.IsNullOrEmpty(transactionHash))
                     {
                         OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} saving {LoggingHelper.GetHolonInfoForLogging(holon)}. Reason: transaction processing failed!");
                         if (!continueOnError)
@@ -554,7 +557,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         {
             return DeleteHolonAsync(providerKey, softDelete).Result;
         }
-        
+
         public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
@@ -619,7 +622,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             {
                 var solanaTransactionResult = await _solanaService.SendTransaction(new SendTransactionRequest()
                 {
-                    Amount = (ulong) transaction.Amount,
+                    Amount = (ulong)transaction.Amount,
                     FromAccount = new BaseAccountRequest()
                     {
                         PublicKey = transaction.FromWalletAddress
@@ -677,11 +680,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
             var senderAvatarPublicKey = senderAvatarPublicKeyResult.Result[0];
             var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result[0];
-            result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
-            
-            if(result.IsError)
+            result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount);
+
+            if (result.IsError)
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
-            
+
             return result;
         }
 
@@ -711,11 +714,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             var senderAvatarPublicKey = senderAvatarPublicKeyResult.Result[0];
             var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result[0];
 
-            result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
+            result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount);
 
-            if(result.IsError)
+            if (result.IsError)
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
-            
+
             return result;
         }
 
@@ -749,11 +752,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             var senderAvatarPublicKey = senderAvatarPublicKeysResult.Result[0];
             var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result[0];
 
-            result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
+            result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount);
 
-            if(result.IsError)
+            if (result.IsError)
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
-            
+
             return result;
         }
 
@@ -791,11 +794,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
             var senderAvatarPublicKey = senderAvatarPublicKeysResult.Result.PublicKey;
             var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result.PublicKey;
-            result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount); 
+            result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount);
 
-            if(result.IsError)
+            if (result.IsError)
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message), result.Exception);
-            
+
             return result;
         }
 
@@ -803,7 +806,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         {
             var result = new OASISResult<ITransactionRespone>();
             var errorMessageTemplate = "Error was occured in SendSolanaTransaction method in SolanaOASIS while sending transaction. Reason: ";
-            
+
             try
             {
                 var solanaTransactionResult = await _solanaService.SendTransaction(new SendTransactionRequest()
@@ -844,30 +847,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
         {
-            if (transation == null)
-                throw new ArgumentNullException(nameof(transation));
+            ArgumentNullException.ThrowIfNull(transation);
 
-            var result = new OASISResult<INFTTransactionRespone>();
-            var errorMessageTemplate = "Error was occured in SendNFTAsync in SolanaOASIS sending nft. Reason: ";
-            
+            OASISResult<INFTTransactionRespone> result = new();
+            string errorMessageTemplate = "Error was occured in SendNFTAsync in SolanaOASIS sending nft. Reason: ";
+
             try
             {
-                var solanaNftTransactionResult = await _solanaService.MintNftAsync(new MintNftRequest()
-                {
-                    Amount = (ulong) transation.Amount,
-                    MintAccount = new BaseAccountRequest()
-                    {
-                        PublicKey = transation.MintWalletAddress
-                    },
-                    FromAccount = new BaseAccountRequest()
-                    {
-                        PublicKey = transation.FromWalletAddress
-                    },
-                    ToAccount = new BaseAccountRequest()
-                    {
-                        PublicKey = transation.ToWalletAddress
-                    }
-                });
+                OASISResult<Entities.DTOs.Responses.SendTransactionResult> solanaNftTransactionResult =
+                    await _solanaService.SendNftAsync(transation as NFTWalletTransactionRequest);
 
                 if (solanaNftTransactionResult.IsError ||
                     string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
@@ -876,7 +864,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                     return result;
                 }
 
-                result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
+                result.IsError = false;
+                result.IsSaved = true;
+                result.Result = new NFTTransactionRespone()
+                {
+                    TransactionResult = solanaNftTransactionResult.Result.TransactionHash
+                };
+
                 TransactionHelper.CheckForTransactionErrors(ref result);
             }
             catch (Exception e)
@@ -1007,57 +1001,33 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             return MintNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequestForProvider transation)
+        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequestForProvider transaction)
         {
-            if (transation == null)
-                throw new ArgumentNullException(nameof(transation));
+            ArgumentNullException.ThrowIfNull(transaction);
 
-            var result = new OASISResult<INFTTransactionRespone>();
-            var errorMessageTemplate = "Error occured in MintNFTAsync in SolanaOASIS minting NFT. Reason: ";
+            OASISResult<INFTTransactionRespone> result = new();
+            string errorMessageTemplate = "Error occured in MintNFTAsync in SolanaOASIS minting NFT. Reason: ";
 
             try
             {
-                MintNftRequest mintRequest = new MintNftRequest()
-                {
-                    Amount = (ulong)transation.Price,
-                    MintAccount = new BaseAccountRequest()
-                    {
-                        PublicKey = transation.MintWalletAddress
-                    },
-                    FromAccount = new BaseAccountRequest()
-                    {
-                        PublicKey = transation.MintWalletAddress
-                    },
-                    ToAccount = new BaseAccountRequest()
-                    {
-                        PublicKey = transation.MintWalletAddress
-                    },
-
-                    MemoText = $"Solana NFT minted on The OASIS with title {transation.Title} by AvatarId {transation.MintedByAvatarId} for price {transation.Price}. {transation.MemoText}"
-                };
-
-                var solanaNftTransactionResult = await _solanaService.MintNftAsync(mintRequest);
+                OASISResult<Entities.DTOs.Responses.MintNftResult> solanaNftTransactionResult
+                    = await _solanaService.MintNftAsync(transaction as MintNFTTransactionRequestForProvider);
 
                 if (solanaNftTransactionResult.IsError ||
                     string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
                 {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, solanaNftTransactionResult.Message), solanaNftTransactionResult.Exception);
+                    OASISErrorHandling.HandleError(ref result, string.Concat(
+                        errorMessageTemplate, solanaNftTransactionResult.Message), solanaNftTransactionResult.Exception);
                     return result;
                 }
                 else
                 {
-                    result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
-                    
-                    if (!TransactionHelper.CheckForTransactionErrors(ref result))
+                    result.IsError = false;
+                    result.IsSaved = true;
+                    result.Result = new NFTTransactionRespone()
                     {
-                        //The meta data is normally stored on another provider and it is up to NFTManager which offchain provider is used,..
-                        //Holon holonNFT = new Holon(HolonType.NFT);
-                        //holonNFT.Name = $"Solana NFT Minted On The OASIS with title {transation.Title}";
-                        //holonNFT.Description = mintRequest.MemoText;
-                        //holonNFT.MetaData["NFT.Hash"] = result.Result.TransactionResult;
-
-                        //OASISResult<IHolon> saveHolonResult =  await SaveHolonAsync(holonNFT);
-                    }
+                        TransactionResult = solanaNftTransactionResult.Result.TransactionHash
+                    };
                 }
             }
             catch (Exception e)
@@ -1085,11 +1055,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 result.IsError = false;
                 IHolon holon = solanaHolonDto.GetHolon();
 
-                if (holon != null) 
+                if (holon != null)
                 {
                     result.Result = new OASISNFT()
                     {
-                         //TODO: Come back to this! ;-)
+                        //TODO: Come back to this! ;-)
                     };
                 }
             }

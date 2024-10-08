@@ -1,4 +1,4 @@
-﻿using Solnet.Metaplex;
+﻿using Solnet.Metaplex.NFT.Library;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses
 {
@@ -10,10 +10,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Response
 
         public NftCreatorMedataResult(Creator creator)
         {
-            if(creator == null)
+            if (creator == null)
                 return;
 
-            PublicKey = creator.key.Key;
+            PublicKey = creator.key;
             Verified = creator.verified;
             Share = creator.share;
         }
