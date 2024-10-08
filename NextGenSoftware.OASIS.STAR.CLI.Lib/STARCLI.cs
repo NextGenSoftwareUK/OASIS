@@ -314,9 +314,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public static async Task PublishOAPPAsync(ProviderType providerType = ProviderType.Default)
         {
             string oappPath = CLIEngine.GetValidFolder("What is the full path to the OAPP you wish to publish?", false);
-            string launchTarget = CLIEngine.GetValidFolder("What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the OAPP? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)", false);
+            string launchTarget = CLIEngine.GetValidFile("What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the OAPP? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)", oappPath);
             bool registerOnSTARNET = CLIEngine.GetConfirmation("Do you wish to publish to STARNET? If you select 'Y' to this question then your OAPP will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .OAPP install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.");
 
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage("Publishing OAPP...");
             OASISResult<IOAPPDNA> publishResult = await STAR.OASISAPI.OAPPs.PublishOAPPAsync(oappPath, launchTarget, STAR.BeamedInAvatar.Id, registerOnSTARNET, providerType);
 
             if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
@@ -325,7 +327,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 ShowOAPP(publishResult.Result);
 
                 if (CLIEngine.GetConfirmation("Do you wish to install the OAPP now?"))
+                {
+                    Console.WriteLine("");
                     await InstallOAPPAsync();
+                }
             }
             else
                 CLIEngine.ShowErrorMessage($"An error occured publishing the OAPP. Reason: {publishResult.Message}");
@@ -348,7 +353,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public static async Task InstallOAPPAsync(Guid OAPPId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> installResult = null;
-            string oappInstallPath = CLIEngine.GetValidFile("What is the full path to where you wish to install the OAPP?");
+            string oappInstallPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the OAPP?");
 
             if (OAPPId != Guid.Empty)
                 installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, OAPPId, oappInstallPath, providerType);
@@ -438,6 +443,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task LaunchSTARNETAsync(bool installOAPP = true)
         {
+            Console.WriteLine("");
             CLIEngine.ShowMessage("Welcome to STARNET!");
             await ListAllOAPPsAsync();
 
@@ -753,6 +759,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //TODO: Once OAPP has been changed to OAPPDNA in OAPPManager this method will be redundant so can just use the other ShowOAPP method below (removes redundant code and redundant storage).
         public static void ShowOAPP(IOAPP oapp)
         {
+            CLIEngine.ShowMessage(string.Concat($"Id: ", oapp.Id != Guid.Empty ? oapp.Id : "None"));
             CLIEngine.ShowMessage(string.Concat($"Title: ", !string.IsNullOrEmpty(oapp.Name) ? oapp.Name : "None"));
             CLIEngine.ShowMessage(string.Concat($"Description: ", !string.IsNullOrEmpty(oapp.Description) ? oapp.Description : "None"));
             CLIEngine.ShowMessage(string.Concat($"OAPP Type: ", Enum.GetName(typeof(OAPPType), oapp.OAPPType)));
@@ -785,6 +792,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static void ShowOAPP(IOAPPDNA oapp)
         {
+            CLIEngine.ShowMessage(string.Concat($"Id: ", oapp.OAPPId != Guid.Empty ? oapp.OAPPId : "None"));
             CLIEngine.ShowMessage(string.Concat($"Title: ", !string.IsNullOrEmpty(oapp.OAPPName) ? oapp.OAPPName : "None"));
             CLIEngine.ShowMessage(string.Concat($"Description: ", !string.IsNullOrEmpty(oapp.Description) ? oapp.Description : "None"));
             CLIEngine.ShowMessage(string.Concat($"OAPP Type: ", Enum.GetName(typeof(OAPPType), oapp.OAPPType)));
@@ -815,6 +823,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static void ShowInstalledOAPP(IInstalledOAPP oapp)
         {
+            CLIEngine.ShowMessage(string.Concat($"Id: ", oapp.OAPPDNA.OAPPId != Guid.Empty ? oapp.OAPPDNA.OAPPId : "None"));
             CLIEngine.ShowMessage(string.Concat($"Title: ", !string.IsNullOrEmpty(oapp.OAPPDNA.OAPPName) ? oapp.Name : "None"));
             CLIEngine.ShowMessage(string.Concat($"Description: ", !string.IsNullOrEmpty(oapp.OAPPDNA.Description) ? oapp.Description : "None"));
             CLIEngine.ShowMessage(string.Concat($"OAPP Type: ", Enum.GetName(typeof(OAPPType), oapp.OAPPDNA.OAPPType)));

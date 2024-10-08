@@ -37,6 +37,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         [CustomOASISProperty]
         public byte[] PublishedOAPP { get; set; }
 
+        [CustomOASISProperty]
+        public string CreatedByAvatarUsername { get; set; }
+
+        [CustomOASISProperty]
+        public string PublishedByAvatarUsername { get; set; }
+
         //TODO:More to come! ;-)
     }
 }
