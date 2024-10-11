@@ -11,6 +11,8 @@ namespace NextGenSoftware.OASIS.API.Core.CustomAttrbiutes
            
         }
 
+        public bool StoreAsJsonString { get; set; }
+
         //private string propertyName;
         //public double version;
 

@@ -289,7 +289,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                             if (allChildHolons.Count > 0)
                             {
-                                OASISResult<IEnumerable<T>> saveChildHolonsResult = await SaveHolonsAsync<T>((IEnumerable<T>)allChildHolons, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, true, providerType);
+                                List<T> genericHolons = new List<T>();
+
+                                foreach (IHolon child in allChildHolons)
+                                    genericHolons.Add((T)child);
+
+                                //OASISResult<IEnumerable<T>> saveChildHolonsResult = await SaveHolonsAsync<T>((IEnumerable<T>)allChildHolons, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, true, providerType);
+                                OASISResult<IEnumerable<T>> saveChildHolonsResult = await SaveHolonsAsync(genericHolons, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, true, providerType);
 
                                 if (saveChildHolonsResult != null && saveChildHolonsResult.Result != null && !saveChildHolonsResult.IsError)
                                 {

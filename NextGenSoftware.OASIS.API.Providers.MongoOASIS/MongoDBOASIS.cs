@@ -64,6 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("NextGenSoftware") || type.FullName.StartsWith("System")); 
             BsonSerializer.RegisterSerializer(objectSerializer);
+            //BsonClassMap.RegisterClassMap<OAPPDNA>();
 
             /*
             ConventionRegistry.Register(
