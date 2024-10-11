@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public delegate void OASISBootLoaderError(object sender, OASISErrorEventArgs e);
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
-        public static string OASISVersion { get; set; } = "v3.2.2";
+        public static string OASISVersion { get; set; } = "v3.3.1";
         public static string COSMICVersion { get; set; } = "v2.0.1";
         public static string STARODKVersion { get; set; } = "v2.2.0";
 

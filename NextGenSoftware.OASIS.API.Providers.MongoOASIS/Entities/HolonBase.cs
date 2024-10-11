@@ -14,6 +14,7 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
+    [BsonDiscriminator("OAPPDNA")]
     public class HolonBase : IHolonBase// Equvilant to the HolonBase object in OASIS.API.Core.
     {
         [BsonId]  

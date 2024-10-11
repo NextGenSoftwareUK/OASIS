@@ -1314,14 +1314,33 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        //public string CreateERCJson(IMintNFTTransactionRequest request, NFTStandardType NFTStandardType)
+        //    => NFTStandardType switch
+        //    {
+        //        NFTStandardType.ERC721 => CreateERC721Json(request),
+        //        NFTStandardType.ERC1155 => CreateERC1155Json(request),
+        //        NFTStandardType.Metaplex => CreateMetaplexJson(request),
+        //        _ => "",
+        //    };
+
         public string CreateERCJson(IMintNFTTransactionRequest request, NFTStandardType NFTStandardType)
-            => NFTStandardType switch
+        {
+            if (request.OnChainProvider.Value == ProviderType.SolanaOASIS)
+                return CreateMetaplexJson(request);
+            else
             {
-                NFTStandardType.ERC721 => CreateERC721Json(request),
-                NFTStandardType.ERC1155 => CreateERC1155Json(request),
-                NFTStandardType.Metaplex => CreateMetaplexJson(request),
-                _ => "",
-            };
+                switch (NFTStandardType)
+                {
+                    case NFTStandardType.ERC721:
+                        return CreateERC721Json(request);
+
+                    case NFTStandardType.ERC1155:
+                        return CreateERC721Json(request);
+                }
+            }
+
+            return "";
+        }
 
         private string CreateMetaplexJson(IMintNFTTransactionRequest request)
         {

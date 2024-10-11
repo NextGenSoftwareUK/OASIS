@@ -5,7 +5,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
     {
         ERC721,
         ERC1155,
-        Both,
-        Metaplex
+        Both
+        //Metaplex
     }
 }

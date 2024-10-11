@@ -13,6 +13,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using System.Collections.Immutable;
 using System.Drawing;
+using System.Reflection.Metadata;
+using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -96,10 +98,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             // TODO: Would ideally like to find a better way to do this so we can avoid reflection if possible because of the potential overhead!
             // Need to do some perfomrnace tests with reflection turned on/off (so with this code enabled/disabled) to see what the overhead is exactly...
 
+            bool storeAsJsonString = false;
+
             // We only want to extract the meta data for sub-classes of Holon that are calling the Generic overloads.
             if (holon.GetType() != typeof(Holon) && extractMetaData)
             {
                 PropertyInfo[] props = holon.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                var classAttributes = holon.GetType().GetCustomAttributes();
+
+                foreach (CustomOASISProperty attribute in classAttributes)
+                {
+                    Console.WriteLine($"StoreAsJsonString: {attribute.StoreAsJsonString}");
+
+                    storeAsJsonString = attribute.StoreAsJsonString;
+
+
+                }
 
                 foreach (PropertyInfo propertyInfo in props)
                 {
@@ -107,7 +121,27 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         if (data.AttributeType == (typeof(CustomOASISProperty)))
                         {
-                            holon.MetaData[propertyInfo.Name] = propertyInfo.GetValue(holon).ToString();
+                            //if (data.NamedArguments)
+
+                            for (int i = 0; i < data.NamedArguments.Count() ; i++)
+                            {
+                                if (data.NamedArguments[i].MemberName == propertyInfo.Name)
+                                {
+                                    if (Convert.ToBoolean(data.NamedArguments[i].TypedValue.Value))
+                                    {
+
+                                    }
+                                }
+                            }
+
+                           //ustomOASISProperty oasisProperty = data as CustomOASISProperty;
+
+                            //holon.MetaData[propertyInfo.Name] = propertyInfo.GetValue(holon).ToString();
+                            if (storeAsJsonString)
+                                holon.MetaData[propertyInfo.Name] = JsonSerializer.Serialize(propertyInfo.GetValue(holon)) ;
+                            else
+                                holon.MetaData[propertyInfo.Name] = propertyInfo.GetValue(holon);
+
                             break;
                         }
                     }
@@ -585,8 +619,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             propInfo.SetValue(holon, ColorTranslator.FromHtml(holon.MetaData[key].ToString()));
                             //propInfo.SetValue(holon, (Color)(holon.MetaData[key]));
 
-                        else
-                            propInfo.SetValue(holon, holon.MetaData[key]);
+                        //else if (propInfo.Attributes.)
+                        //    propInfo.SetValue(holon, holon.MetaData[key]);
                     }
                 }
                 catch (Exception ex)
