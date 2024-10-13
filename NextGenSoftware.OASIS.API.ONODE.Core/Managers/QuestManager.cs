@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -19,12 +20,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
         }
 
-        public bool CreateQuest(Quest quest)
+        public bool CreateQuest(IQuest quest)
         {
             return true;
         }
 
-        public bool UpdateQuest(Quest quest)
+        public bool UpdateQuest(IQuest quest)
         {
             return true;
         }
@@ -44,14 +45,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return true;
         }
 
-        public Quest FindNearestQuestOnMap()
+        public IQuest FindNearestQuestOnMap()
         {
             return new Quest();
         }
 
-        public List<Quest> GetAllCurrentQuestsForAvatar(Guid avatarId)
+        public List<IQuest> GetAllCurrentQuestsForAvatar(Guid avatarId)
         {
-            return new List<Quest>();
+            return new List<IQuest>();
         }
     }
 }

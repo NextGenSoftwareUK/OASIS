@@ -191,7 +191,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (Directory.Exists(dnaFolder) && Directory.GetFiles(dnaFolder).Length > 0)
                     {
                         string genesisFolder = CLIEngine.GetValidFolder("What is the path to the GenesisFolder (where the OAPP will be generated)?");
-                        string genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace (the OAPP namespace)?");
+                        string genesisNamespace = OAPPName; 
+
+                        if (!CLIEngine.GetConfirmation("Do you wish to use the OAPP Name for the Genesis Namespace (the OAPP namespace)? (Recommended)"))
+                            genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace (the OAPP namespace)?");
+
                         Guid parentId = Guid.Empty;
 
                         //bool multipleHolonInstances = CLIEngine.GetConfirmation("Do you want holons to create multiple instances of themselves?");
@@ -316,12 +320,46 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public static async Task PublishOAPPAsync(ProviderType providerType = ProviderType.Default)
         {
             string oappPath = CLIEngine.GetValidFolder("What is the full path to the OAPP you wish to publish?", false);
-            string launchTarget = CLIEngine.GetValidFile("What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the OAPP? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)", oappPath);
+            string launchTarget = "";
+            string publishPath = "";
+
+            OASISResult<IOAPPDNA> OAPPDNAResult = await STAR.OASISAPI.OAPPs.ReadOAPPDNAAsync(oappPath);
+
+            if (OAPPDNAResult != null && OAPPDNAResult.Result != null && !OAPPDNAResult.IsError)
+            {
+                switch (OAPPDNAResult.Result.OAPPType)
+                {
+                    case OAPPType.Console:
+                    case OAPPType.WPF:
+                    case OAPPType.WinForms:
+                        launchTarget = $"bin\\Release\\net8.0\\{OAPPDNAResult.Result.OAPPName}.exe"; //TODO: For this line to work need to remove the namespace question so it just uses the OAPPName as the namespace. //TODO: Eventually this will be set in the OAPPTemplate and/or can also be set when I add the command line dotnet publish integration.
+                        break;
+                }
+            }
+
+            if (!CLIEngine.GetConfirmation($"What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the OAPP? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc) Do you wish to use the following launch target: {launchTarget}?"))
+                launchTarget = CLIEngine.GetValidFile("What launch target do you wish to use? ", oappPath);
+            else
+                launchTarget = Path.Combine(oappPath, launchTarget);
+
             bool registerOnSTARNET = CLIEngine.GetConfirmation("Do you wish to publish to STARNET? If you select 'Y' to this question then your OAPP will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .OAPP install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.");
+
+            if (Path.IsPathRooted(STAR.STARDNA.DefaultPublishedOAPPsPath))
+                publishPath = STAR.STARDNA.DefaultPublishedOAPPsPath;
+            else
+                publishPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultPublishedOAPPsPath);
+
+            if (!CLIEngine.GetConfirmation($"Do you wish to publish the OAPP to the default publish folder defined in the STARDNA as DefaultPublishedOAPPsPath : {publishPath}?"))
+            {
+                if (CLIEngine.GetConfirmation($"Do you wish to publish the OAPP to: {Path.Combine(oappPath, "Published")}?"))
+                    publishPath = Path.Combine(oappPath, "Published");
+                else
+                    publishPath = CLIEngine.GetValidFolder("Where do you wish to publish the OAPP?", true);
+            }
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage("Publishing OAPP...");
-            OASISResult<IOAPPDNA> publishResult = await STAR.OASISAPI.OAPPs.PublishOAPPAsync(oappPath, launchTarget, STAR.BeamedInAvatar.Id, registerOnSTARNET, providerType);
+            OASISResult<IOAPPDNA> publishResult = await STAR.OASISAPI.OAPPs.PublishOAPPAsync(oappPath, launchTarget, STAR.BeamedInAvatar.Id, publishPath, registerOnSTARNET, providerType);
 
             if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
             {
@@ -355,10 +393,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public static async Task InstallOAPPAsync(Guid OAPPId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> installResult = null;
-            string oappInstallPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the OAPP?");
+            string installPath = "";
+
+            if (Path.IsPathRooted(STAR.STARDNA.DefaultInstalledOAPPsPath))
+                installPath = STAR.STARDNA.DefaultInstalledOAPPsPath;
+            else
+                installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultInstalledOAPPsPath);
+
+            if (!CLIEngine.GetConfirmation($"Do you wish to install the OAPP to the default install folder defined in the STARDNA as DefaultInstalledOAPPsPath : {installPath}?"))
+                installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the OAPP?", true);
 
             if (OAPPId != Guid.Empty)
-                installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, OAPPId, oappInstallPath, providerType);
+                installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, OAPPId, installPath, providerType);
             else
             {
                 if (CLIEngine.GetConfirmation("Do you wish to install the OAPP from a local .oapp file or from STARNET? Press 'Y' for local .oapp or 'N' for STARNET."))
@@ -367,7 +413,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     string oappPath = CLIEngine.GetValidFile("What is the full path to the .oapp file?");
 
                     CLIEngine.ShowWorkingMessage("Installing OAPP...");
-                    installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, oappPath, oappInstallPath, providerType);
+                    installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, oappPath, installPath, providerType);
                 }
                 else
                     await LaunchSTARNETAsync(true);
@@ -382,8 +428,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (CLIEngine.GetConfirmation("Do you wish to launch the OAPP now?"))
                     {
-                        string oappTarget = Path.Combine(oappInstallPath, installResult.Result.OAPPDNA.LaunchTarget);
-                        Process.Start("explorer.exe", Path.Combine(oappInstallPath, installResult.Result.OAPPDNA.LaunchTarget));
+                        string oappTarget = Path.Combine(installPath, installResult.Result.OAPPDNA.LaunchTarget);
+                        Process.Start("explorer.exe", Path.Combine(installPath, installResult.Result.OAPPDNA.LaunchTarget));
                     }
                 }
                 else

@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.ONode.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces
 {
     public interface IQuestManager : IOASISManager
     {
         bool CompleteQuest(Guid questId);
-        bool CreateQuest(Quest quest);
+        bool CreateQuest(IQuest quest);
         bool DeleteQuest(Guid questId);
-        Quest FindNearestQuestOnMap();
-        List<Quest> GetAllCurrentQuestsForAvatar(Guid avatarId);
+        IQuest FindNearestQuestOnMap();
+        List<IQuest> GetAllCurrentQuestsForAvatar(Guid avatarId);
         bool HighlightQuestOnMap(Guid questId);
-        bool UpdateQuest(Quest quest);
+        bool UpdateQuest(IQuest quest);
     }
 }

@@ -1,5 +1,5 @@
 {
-  "BasePath": "C:\\Users\\user\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK",
+  "BasePath": "C:\\Users\\user\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK", //TODO: Need to get this from code rather than hard coding! Need to fix the whole pathing to templates etc ASAP!
   "RustDNARSMTemplateFolder": "NextGenSoftware.OASIS.STAR\\DNATemplates\\RustDNATemplates\\RSM",
   "CSharpDNATemplateFolder": "NextGenSoftware.OASIS.STAR\\DNATemplates\\CSharpDNATemplates",
   "CelestialBodyDNA": "NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA",
@@ -48,5 +48,7 @@
   "DefaultGrandSuperStarId": "",
   "DefaultSuperStarId": "",
   "DefaultStarId": "",
-  "DefaultPlanetId": ""
+  "DefaultPlanetId": "",
+  "DefaultPublishedOAPPsPath": "PublishedOAPPs", //Can be releative to BasePath above or absolute.
+  "DefaultInstalledOAPPsPath": "InstalledOAPPs" //Can be releative to BasePath above or absolute.
 }
