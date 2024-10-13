@@ -212,6 +212,50 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        public async Task<OASISResult<IOAPP>> LoadOAPPAsync(string fullPathToOAPP, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            string errorMessage = "Error occured in OAPPManager.LoadOAPPAsync, Reason:";
+
+            try
+            {
+                OASISResult<IOAPPDNA> readOAPPDNAResult = await ReadOAPPDNAAsync(fullPathToOAPP);
+
+                if (readOAPPDNAResult != null && readOAPPDNAResult.Result != null && !readOAPPDNAResult.IsError)
+                    result = await LoadOAPPAsync(readOAPPDNAResult.Result.OAPPId, providerType);
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reading the OAPPDNA with ReadOAPPDNAAsync. Reason: {readOAPPDNAResult.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public OASISResult<IOAPP> LoadOAPP(string fullPathToOAPP, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            string errorMessage = "Error occured in OAPPManager.LoadOAPP, Reason:";
+
+            try
+            {
+                OASISResult<IOAPPDNA> readOAPPDNAResult = ReadOAPPDNA(fullPathToOAPP);
+
+                if (readOAPPDNAResult != null && readOAPPDNAResult.Result != null && !readOAPPDNAResult.IsError)
+                    result = LoadOAPP(readOAPPDNAResult.Result.OAPPId, providerType);
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reading the OAPPDNA with ReadOAPPDNA. Reason: {readOAPPDNAResult.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
         public async Task<OASISResult<IOAPPDNA>> CreateOAPPAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, Guid avatarId, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
@@ -424,63 +468,73 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.PublishOAPPAsync. Reason: ";
 
             try
             {
-                IOAPPDNA OAPPDNA = await ReadOAPPDNAAsync(fullPathToOAPP);
-                
-                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
+                OASISResult<IOAPPDNA> readOAPPDNAResult = await ReadOAPPDNAAsync(fullPathToOAPP);
 
-                if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+                if (readOAPPDNAResult != null && !readOAPPDNAResult.IsError && readOAPPDNAResult.Result != null)
                 {
-                    string publishedOAPPFileName = string.Concat(OAPPDNA.OAPPName, ".oapp");
-                    string tempPath = Path.Combine(Path.GetTempPath(), publishedOAPPFileName);
+                    OASISResult<IAvatar> loadAvatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
-                    OAPPDNA.PublishedOn = DateTime.Now;
-                    OAPPDNA.PublishedByAvatarId = avatarId;
-                    OAPPDNA.PublishedByAvatarUsername = avatarResult.Result.Username;
-                    OAPPDNA.LaunchTarget = launchTarget;
-                    OAPPDNA.PublishedPath = Path.Combine(fullPathToOAPP, "Published", publishedOAPPFileName);
-                    OAPPDNA.PublishedOnSTARNET = registerOnSTARNET;
-
-                    await WriteOAPPDNAAsync(OAPPDNA, fullPathToOAPP);
-
-                    if (File.Exists(tempPath))
-                        File.Delete(tempPath);
-
-                    ZipFile.CreateFromDirectory(fullPathToOAPP, tempPath);
-
-                    Directory.CreateDirectory(Path.Combine(fullPathToOAPP, "Published"));
-                    File.Move(tempPath, OAPPDNA.PublishedPath);
-
-                    if (File.Exists(tempPath))
-                        File.Delete(tempPath);
-
-                    OASISResult<IOAPP> OAPPResult = LoadOAPP(OAPPDNA.OAPPId);
-
-                    if (OAPPResult != null && OAPPResult.Result != null && !OAPPResult.IsError)
+                    if (loadAvatarResult != null && loadAvatarResult.Result != null && !loadAvatarResult.IsError)
                     {
-                        if (registerOnSTARNET)
-                            OAPPResult.Result.PublishedOAPP = await File.ReadAllBytesAsync(OAPPDNA.PublishedPath);
+                        string publishedOAPPFileName = string.Concat(readOAPPDNAResult.Result.OAPPName, ".oapp");
+                        string tempPath = Path.Combine(Path.GetTempPath(), publishedOAPPFileName);
 
-                        OAPPResult.Result.OAPPDNA = OAPPDNA;
-                        OASISResult<IOAPP> OAPPSaveResult = await SaveOAPPAsync(OAPPResult.Result, providerType);
+                        if (string.IsNullOrEmpty(fullPathToPublishTo))
+                            fullPathToPublishTo = Path.Combine(fullPathToOAPP, "Published", publishedOAPPFileName);
 
-                        if (OAPPSaveResult != null && !OAPPSaveResult.IsError && OAPPSaveResult.Result != null)
+                        readOAPPDNAResult.Result.PublishedOn = DateTime.Now;
+                        readOAPPDNAResult.Result.PublishedByAvatarId = avatarId;
+                        readOAPPDNAResult.Result.PublishedByAvatarUsername = loadAvatarResult.Result.Username;
+                        readOAPPDNAResult.Result.LaunchTarget = launchTarget;
+                        readOAPPDNAResult.Result.PublishedPath = fullPathToPublishTo;
+                        readOAPPDNAResult.Result.PublishedOnSTARNET = registerOnSTARNET;
+
+                        WriteOAPPDNA(readOAPPDNAResult.Result, fullPathToOAPP);
+
+                        if (File.Exists(tempPath))
+                            File.Delete(tempPath);
+
+                        ZipFile.CreateFromDirectory(fullPathToOAPP, tempPath);
+
+                        Directory.CreateDirectory(Path.Combine(fullPathToOAPP, "Published"));
+                        File.Move(tempPath, readOAPPDNAResult.Result.PublishedPath);
+
+                        if (File.Exists(tempPath))
+                            File.Delete(tempPath);
+
+                        OASISResult<IOAPP> loadOAPPResult = await LoadOAPPAsync(readOAPPDNAResult.Result.OAPPId);
+
+                        if (loadOAPPResult != null && loadOAPPResult.Result != null && !loadOAPPResult.IsError)
                         {
-                            result.Result = OAPPDNA;
-                            result.IsSaved = true;
+                            if (registerOnSTARNET)
+                                loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(readOAPPDNAResult.Result.PublishedPath);
+
+                            loadOAPPResult.Result.OAPPDNA = readOAPPDNAResult.Result;
+                            OASISResult<IOAPP> saveOAPPResult = await SaveOAPPAsync(loadOAPPResult.Result, providerType);
+
+                            if (saveOAPPResult != null && !saveOAPPResult.IsError && saveOAPPResult.Result != null)
+                            {
+                                result.Result = readOAPPDNAResult.Result;
+                                result.IsSaved = true;
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPResult.Message}");
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {OAPPSaveResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadOAPPResult.Message}");
                     }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadAvatarResult.Message}");
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling ReadOAPPDNAAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {readOAPPDNAResult.Message}");
             }
             catch (Exception ex) 
             {
@@ -518,63 +572,73 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         //    }
         //}
 
-        public OASISResult<IOAPPDNA> PublishOAPP(string fullPathToOAPP, string launchTarget, Guid avatarId, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> PublishOAPP(string fullPathToOAPP, string launchTarget, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.PublishOAPP. Reason: ";
 
             try
             {
-                IOAPPDNA OAPPDNA = ReadOAPPDNA(fullPathToOAPP);
+                OASISResult<IOAPPDNA> readOAPPDNAResult = ReadOAPPDNA(fullPathToOAPP);
 
-                OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(avatarId, false, true, providerType);
-
-                if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+                if (readOAPPDNAResult != null && !readOAPPDNAResult.IsError && readOAPPDNAResult.Result != null)
                 {
-                    string publishedOAPPFileName = string.Concat(OAPPDNA.OAPPName, ".oapp");
-                    string tempPath = Path.Combine(Path.GetTempPath(), publishedOAPPFileName);
+                    OASISResult<IAvatar> loadAvatarResult = AvatarManager.Instance.LoadAvatar(avatarId, false, true, providerType);
 
-                    OAPPDNA.PublishedOn = DateTime.Now;
-                    OAPPDNA.PublishedByAvatarId = avatarId;
-                    OAPPDNA.PublishedByAvatarUsername = avatarResult.Result.Username;
-                    OAPPDNA.LaunchTarget = launchTarget;
-                    OAPPDNA.PublishedPath = Path.Combine(fullPathToOAPP, "Published", publishedOAPPFileName);
-                    OAPPDNA.PublishedOnSTARNET = registerOnSTARNET;
-
-                    WriteOAPPDNA(OAPPDNA, fullPathToOAPP);
-
-                    if (File.Exists(tempPath))
-                        File.Delete(tempPath);
-
-                    ZipFile.CreateFromDirectory(fullPathToOAPP, tempPath);
-
-                    Directory.CreateDirectory(Path.Combine(fullPathToOAPP, "Published"));
-                    File.Move(tempPath, OAPPDNA.PublishedPath);
-
-                    if (File.Exists(tempPath))
-                        File.Delete(tempPath);
-
-                    OASISResult<IOAPP> OAPPResult = LoadOAPP(OAPPDNA.OAPPId);
-
-                    if (OAPPResult != null && OAPPResult.Result != null && !OAPPResult.IsError)
+                    if (loadAvatarResult != null && loadAvatarResult.Result != null && !loadAvatarResult.IsError)
                     {
-                        if (registerOnSTARNET)
-                            OAPPResult.Result.PublishedOAPP = File.ReadAllBytes(OAPPDNA.PublishedPath);
+                        string publishedOAPPFileName = string.Concat(readOAPPDNAResult.Result.OAPPName, ".oapp");
+                        string tempPath = Path.Combine(Path.GetTempPath(), publishedOAPPFileName);
 
-                        OAPPResult.Result.OAPPDNA = OAPPDNA;
-                        OASISResult<IOAPP> OAPPSaveResult = SaveOAPP(OAPPResult.Result, providerType);
+                        if (string.IsNullOrEmpty(fullPathToPublishTo))
+                            fullPathToPublishTo = Path.Combine(fullPathToOAPP, "Published", publishedOAPPFileName);
 
-                        if (OAPPSaveResult != null && !OAPPSaveResult.IsError && OAPPSaveResult.Result != null)
+                        readOAPPDNAResult.Result.PublishedOn = DateTime.Now;
+                        readOAPPDNAResult.Result.PublishedByAvatarId = avatarId;
+                        readOAPPDNAResult.Result.PublishedByAvatarUsername = loadAvatarResult.Result.Username;
+                        readOAPPDNAResult.Result.LaunchTarget = launchTarget;
+                        readOAPPDNAResult.Result.PublishedPath = fullPathToPublishTo;
+                        readOAPPDNAResult.Result.PublishedOnSTARNET = registerOnSTARNET;
+
+                        WriteOAPPDNA(readOAPPDNAResult.Result, fullPathToOAPP);
+
+                        if (File.Exists(tempPath))
+                            File.Delete(tempPath);
+
+                        ZipFile.CreateFromDirectory(fullPathToOAPP, tempPath);
+
+                        Directory.CreateDirectory(Path.Combine(fullPathToOAPP, "Published"));
+                        File.Move(tempPath, readOAPPDNAResult.Result.PublishedPath);
+
+                        if (File.Exists(tempPath))
+                            File.Delete(tempPath);
+
+                        OASISResult<IOAPP> loadOAPPResult = LoadOAPP(readOAPPDNAResult.Result.OAPPId);
+
+                        if (loadOAPPResult != null && loadOAPPResult.Result != null && !loadOAPPResult.IsError)
                         {
-                            result.Result = OAPPDNA;
-                            result.IsSaved = true;
+                            if (registerOnSTARNET)
+                                loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(readOAPPDNAResult.Result.PublishedPath);
+
+                            loadOAPPResult.Result.OAPPDNA = readOAPPDNAResult.Result;
+                            OASISResult<IOAPP> saveOAPPResult = SaveOAPP(loadOAPPResult.Result, providerType);
+
+                            if (saveOAPPResult != null && !saveOAPPResult.IsError && saveOAPPResult.Result != null)
+                            {
+                                result.Result = readOAPPDNAResult.Result;
+                                result.IsSaved = true;
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPResult.Message}");
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {OAPPSaveResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadOAPPResult.Message}");
                     }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadAvatarResult.Message}");
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling ReadOAPPDNAAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {readOAPPDNAResult.Message}");
             }
             catch (Exception ex)
             {
@@ -720,9 +784,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             try
             {
                 ZipFile.ExtractToDirectory(fullPathToPublishedOAPPFile, fullInstallPath, Encoding.Default, true);
-                IOAPPDNA OAPPDNA = await ReadOAPPDNAAsync(fullInstallPath);
+                OASISResult<IOAPPDNA> OAPPDNAResult = await ReadOAPPDNAAsync(fullInstallPath);
 
-                if (OAPPDNA != null)
+                if (OAPPDNAResult != null && OAPPDNAResult.Result != null && !OAPPDNAResult.IsError)
                 {
                     OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
@@ -730,7 +794,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     {
                         InstalledOAPP installedOAPP = new InstalledOAPP()
                         {
-                            OAPPDNA = OAPPDNA,
+                            OAPPDNA = OAPPDNAResult.Result,
                             InstalledBy = avatarId,
                             InstalledByAvatarUsername = avatarResult.Result.Username,
                             InstalledOn = DateTime.Now,
@@ -767,9 +831,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             try
             {
                 ZipFile.ExtractToDirectory(fullPathToPublishedOAPPFile, fullInstallPath, Encoding.Default, true);
-                IOAPPDNA OAPPDNA = ReadOAPPDNA(fullInstallPath);
+                OASISResult<IOAPPDNA> OAPPDNAResult = ReadOAPPDNA(fullInstallPath);
 
-                if (OAPPDNA != null)
+                if (OAPPDNAResult != null && OAPPDNAResult.Result != null && !OAPPDNAResult.IsError)
                 {
                     OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(avatarId, false, true, providerType);
 
@@ -777,7 +841,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     {
                         InstalledOAPP installedOAPP = new InstalledOAPP()
                         {
-                            OAPPDNA = OAPPDNA,
+                            OAPPDNA = OAPPDNAResult.Result,
                             InstalledBy = avatarId,
                             InstalledByAvatarUsername = avatarResult.Result.Username,
                             InstalledOn = DateTime.Now,
@@ -1063,31 +1127,76 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         //    return OAPPDNA;
         //}
 
-        public async Task WriteOAPPDNAAsync(IOAPPDNA OAPPDNA, string fullPathToOAPP)
+        public async Task<OASISResult<bool>> WriteOAPPDNAAsync(IOAPPDNA OAPPDNA, string fullPathToOAPP)
         {
-            JsonSerializerOptions options = new()
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
             {
-                ReferenceHandler = ReferenceHandler.Preserve,
-                WriteIndented = true
-            };
+                JsonSerializerOptions options = new()
+                {
+                    ReferenceHandler = ReferenceHandler.Preserve,
+                    WriteIndented = true
+                };
 
-            await File.WriteAllTextAsync(Path.Combine(fullPathToOAPP, "OAPPDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA, options));
-            //await File.WriteAllTextAsync(Path.Combine(fullPathToOAPP, "OASISDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA));
+                await File.WriteAllTextAsync(Path.Combine(fullPathToOAPP, "OAPPDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA, options));
+                result.Result = true;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"An error occured writing the OAPPDNA in WriteOAPPDNAAsync: Reason: {ex.Message}");
+            }
+
+            return result;
         }
 
-        public void WriteOAPPDNA(IOAPPDNA OAPPDNA, string fullPathToOAPP)
+        public OASISResult<bool> WriteOAPPDNA(IOAPPDNA OAPPDNA, string fullPathToOAPP)
         {
-            File.WriteAllText(Path.Combine(fullPathToOAPP, "OAPPDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA));
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                File.WriteAllText(Path.Combine(fullPathToOAPP, "OAPPDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA));
+                result.Result = true;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"An error occured writing the OAPPDNA in WriteOAPPDNA: Reason: {ex.Message}");
+            }
+
+            return result;
         }
 
-        public async Task<IOAPPDNA> ReadOAPPDNAAsync(string fullPathToOAPP)
+        public async Task<OASISResult<IOAPPDNA>> ReadOAPPDNAAsync(string fullPathToOAPP)
         {
-            return JsonSerializer.Deserialize<OAPPDNA>(await File.ReadAllTextAsync(Path.Combine(fullPathToOAPP, "OAPPDNA.json")));
+            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
+
+            try
+            {
+                result.Result = JsonSerializer.Deserialize<OAPPDNA>(await File.ReadAllTextAsync(Path.Combine(fullPathToOAPP, "OAPPDNA.json")));
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"An error occured reading the OAPPDNA in ReadOAPPDNAAsync: Reason: {ex.Message}");
+            }
+
+            return result;
         }
 
-        public IOAPPDNA ReadOAPPDNA(string fullPathToOAPP)
+        public OASISResult<IOAPPDNA> ReadOAPPDNA(string fullPathToOAPP)
         {
-            return JsonSerializer.Deserialize<OAPPDNA>(File.ReadAllText(Path.Combine(fullPathToOAPP, "OAPPDNA.json")));
+            OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
+
+            try
+            {
+                result.Result = JsonSerializer.Deserialize<OAPPDNA>(File.ReadAllText(Path.Combine(fullPathToOAPP, "OAPPDNA.json")));
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"An error occured reading the OAPPDNA in ReadOAPPDNA: Reason: {ex.Message}");
+            }
+
+            return result;
         }
     }
 }
