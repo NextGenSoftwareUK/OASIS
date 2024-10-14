@@ -185,6 +185,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
             return result;
-        } 
+        }
     }
 } 

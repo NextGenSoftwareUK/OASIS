@@ -15,6 +15,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         }
 
         [CustomOASISProperty]
+        public Guid OAPPId { get; set; }
+
+        [CustomOASISProperty]
         public IOAPPDNA OAPPDNA { get; set; }
 
         [CustomOASISProperty]
