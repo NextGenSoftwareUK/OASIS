@@ -429,7 +429,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (CLIEngine.GetConfirmation("Do you wish to launch the OAPP now?"))
                     {
                         string oappTarget = Path.Combine(installPath, installResult.Result.OAPPDNA.LaunchTarget);
-                        Process.Start("explorer.exe", Path.Combine(installPath, installResult.Result.OAPPDNA.LaunchTarget));
+                        //Process.Start("explorer.exe", Path.Combine(installPath, installResult.Result.OAPPDNA.LaunchTarget));
+                        Process.Start("dotnet.exe", Path.Combine(installPath, installResult.Result.OAPPDNA.LaunchTarget));
                     }
                 }
                 else

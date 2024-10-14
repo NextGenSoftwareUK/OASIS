@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using System.Diagnostics;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -794,6 +795,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     {
                         InstalledOAPP installedOAPP = new InstalledOAPP()
                         {
+                            OAPPId = OAPPDNAResult.Result.OAPPId,
                             OAPPDNA = OAPPDNAResult.Result,
                             InstalledBy = avatarId,
                             InstalledByAvatarUsername = avatarResult.Result.Username,
@@ -841,6 +843,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     {
                         InstalledOAPP installedOAPP = new InstalledOAPP()
                         {
+                            OAPPId = OAPPDNAResult.Result.OAPPId,
                             OAPPDNA = OAPPDNAResult.Result,
                             InstalledBy = avatarId,
                             InstalledByAvatarUsername = avatarResult.Result.Username,
@@ -1085,9 +1088,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<bool> IsOAPPInstalled(Guid avatarId, string OAPPName, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            OASISResult<IEnumerable<InstalledOAPP>> installedOAPPsResult = Data.LoadHolonsForParent<InstalledOAPP>(avatarId, HolonType.InstalledOAPP, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
             string errorMessage = "Error occured in OAPPManager.IsOAPPInstalled. Reason: ";
-
+            OASISResult<IEnumerable<InstalledOAPP>> installedOAPPsResult = Data.LoadHolonsForParent<InstalledOAPP>(avatarId, HolonType.InstalledOAPP, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+            
             if (installedOAPPsResult != null && !installedOAPPsResult.IsError && installedOAPPsResult.Result != null)
                 result.Result = installedOAPPsResult.Result.Any(x => x.OAPPDNA.OAPPName == OAPPName);
             else
@@ -1095,6 +1098,95 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             return result;
         }
+
+        public async Task<OASISResult<IInstalledOAPP>> LoadInstalledOAPPAsync(Guid avatarId, Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
+            string errorMessage = "Error occured in OAPPManager.LoadInstalledOAPPAsync. Reason: ";
+            OASISResult<IEnumerable<InstalledOAPP>> installedOAPPsResult = await Data.LoadHolonsForParentAsync<InstalledOAPP>(avatarId, HolonType.InstalledOAPP, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+
+            if (installedOAPPsResult != null && !installedOAPPsResult.IsError && installedOAPPsResult.Result != null)
+                result.Result = installedOAPPsResult.Result.FirstOrDefault(x => x.OAPPDNA.OAPPId == OAPPId);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParentAsync. Reason: {installedOAPPsResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IInstalledOAPP> LoadInstalledOAPP(Guid avatarId, Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
+            string errorMessage = "Error occured in OAPPManager.LoadInstalledOAPP. Reason: ";
+            OASISResult<IEnumerable<InstalledOAPP>> installedOAPPsResult = Data.LoadHolonsForParent<InstalledOAPP>(avatarId, HolonType.InstalledOAPP, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+
+            if (installedOAPPsResult != null && !installedOAPPsResult.IsError && installedOAPPsResult.Result != null)
+                result.Result = installedOAPPsResult.Result.FirstOrDefault(x => x.OAPPDNA.OAPPId == OAPPId);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParent. Reason: {installedOAPPsResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IInstalledOAPP>> LoadInstalledOAPPAsync(Guid avatarId, string OAPPName, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
+            string errorMessage = "Error occured in OAPPManager.LoadInstalledOAPPAsync. Reason: ";
+            OASISResult<IEnumerable<InstalledOAPP>> installedOAPPsResult = await Data.LoadHolonsForParentAsync<InstalledOAPP>(avatarId, HolonType.InstalledOAPP, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+
+            if (installedOAPPsResult != null && !installedOAPPsResult.IsError && installedOAPPsResult.Result != null)
+                result.Result = installedOAPPsResult.Result.FirstOrDefault(x => x.OAPPDNA.OAPPName == OAPPName);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParentAsync. Reason: {installedOAPPsResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IInstalledOAPP> LoadInstalledOAPP(Guid avatarId, string OAPPName, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
+            string errorMessage = "Error occured in OAPPManager.LoadInstalledOAPP. Reason: ";
+            OASISResult<IEnumerable<InstalledOAPP>> installedOAPPsResult = Data.LoadHolonsForParent<InstalledOAPP>(avatarId, HolonType.InstalledOAPP, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+
+            if (installedOAPPsResult != null && !installedOAPPsResult.IsError && installedOAPPsResult.Result != null)
+                result.Result = installedOAPPsResult.Result.FirstOrDefault(x => x.OAPPDNA.OAPPName == OAPPName);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParent. Reason: {installedOAPPsResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IInstalledOAPP>> LaunchOAPPAsync(Guid avatarId, Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
+            result = await LoadInstalledOAPPAsync(avatarId, OAPPId);
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                //Process.Start("explorer.exe", Path.Combine(result.Result.InstalledPath, result.Result.OAPPDNA.LaunchTarget));
+                Process.Start("dotnet.exe", Path.Combine(result.Result.InstalledPath, result.Result.OAPPDNA.LaunchTarget));
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPManager.LaunchOAPPAsync loading the OAPP with the LoadInstalledOAPPAsync method, reason: {result.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IInstalledOAPP> LaunchOAPP(Guid avatarId, Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
+            result = LoadInstalledOAPP(avatarId, OAPPId);
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                //Process.Start("explorer.exe", Path.Combine(result.Result.InstalledPath, result.Result.OAPPDNA.LaunchTarget));
+                Process.Start("dotnet.exe", Path.Combine(result.Result.InstalledPath, result.Result.OAPPDNA.LaunchTarget));
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPManager.LaunchOAPP loading the OAPP with the LoadInstalledOAPP method, reason: {result.Message}");
+
+            return result;
+        }
+
 
         //private IOAPPDNA ConvertOAPPToOAPPDNA(IOAPP OAPP)
         //{
