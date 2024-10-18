@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Linq;
 using System.Text.Json;
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -16,7 +17,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
-using System.Diagnostics;
+
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -469,7 +471,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.PublishOAPPAsync. Reason: ";
@@ -486,6 +488,20 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     {
                         string publishedOAPPFileName = string.Concat(readOAPPDNAResult.Result.OAPPName, ".oapp");
                         string tempPath = Path.Combine(Path.GetTempPath(), publishedOAPPFileName);
+
+                        if (dotnetPublish)
+                        {
+                            //TODO: Finish implementing this.
+                            //Process.Start("dotnet publish -c Release -r <RID> --self-contained");
+                            //Process.Start("dotnet publish -c Release -r win-x64 --self-contained");
+                            //string command = 
+
+                            string dotnetPublishPath = Path.Combine(fullPathToOAPP, "dotnetPublished");
+                            Process.Start($"dotnet publish PROJECT {fullPathToOAPP} -c Release --self-contained -output {dotnetPublishPath}");
+                            fullPathToOAPP = dotnetPublishPath;
+
+                            //"bin\\Release\\net8.0\\";
+                        }
 
                         if (string.IsNullOrEmpty(fullPathToPublishTo))
                             fullPathToPublishTo = Path.Combine(fullPathToOAPP, "Published", publishedOAPPFileName);
@@ -1287,6 +1303,152 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 OASISErrorHandling.HandleError(ref result, $"An error occured reading the OAPPDNA in ReadOAPPDNA: Reason: {ex.Message}");
             }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPP>> AddMissionToOAPPAsync(Guid OAPPId, IMission mission)
+        {
+            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPP> loadResult = await LoadOAPPAsync(OAPPId);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+            {
+                loadResult.Result.Missions.Add(mission);
+                result = await SaveOAPPAsync(loadResult.Result);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.AddMissionToOAPPAsync calling LoadOAPPAsync. Reason: {loadResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPP> AddMissionToOAPP(Guid OAPPId, IMission mission)
+        {
+            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPP> loadResult = LoadOAPP(OAPPId);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+            {
+                loadResult.Result.Missions.Add(mission);
+                result = SaveOAPP(loadResult.Result);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.AddMissionToOAPP calling LoadOAPP. Reason: {loadResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPP>> RemoveMissionFromOAPPAsync(Guid OAPPId, IMission mission)
+        {
+            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPP> loadResult = await LoadOAPPAsync(OAPPId);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+            {
+                loadResult.Result.Missions.Remove(mission);
+                result = await SaveOAPPAsync(loadResult.Result);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.RemoveMissionFromOAPPAsync calling LoadOAPPAsync. Reason: {loadResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPP> RemoveMissionFromOAPP(Guid OAPPId, IMission mission)
+        {
+            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPP> loadResult = LoadOAPP(OAPPId);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+            {
+                loadResult.Result.Missions.Remove(mission);
+                result = SaveOAPP(loadResult.Result);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.RemoveMissionFromOAPP calling LoadOAPP. Reason: {loadResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPP>> RemoveMissionFromOAPPAsync(Guid OAPPId, Guid missionId)
+        {
+            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPP> loadResult = await LoadOAPPAsync(OAPPId);
+            string errorMessage = "An error occured in OAPPManager.RemoveMissionFromOAPPAsync. Reason:";
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+            {
+                IMission mission = loadResult.Result.Missions.FirstOrDefault(x => x.Id == missionId);
+
+                if (mission != null)
+                {
+                    loadResult.Result.Missions.Remove(mission);
+                    result = await SaveOAPPAsync(loadResult.Result);
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error calling LoadOAPPAsync. Reason: {loadResult.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} No mission could be found for the missionId {missionId}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPP> RemoveMissionFromOAPP(Guid OAPPId, Guid missionId)
+        {
+            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IOAPP> loadResult = LoadOAPP(OAPPId);
+            string errorMessage = "An error occured in OAPPManager.RemoveMissionFromOAPP. Reason:";
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+            {
+                IMission mission = loadResult.Result.Missions.FirstOrDefault(x => x.Id == missionId);
+
+                if (mission != null)
+                {
+                    loadResult.Result.Missions.Remove(mission);
+                    result = SaveOAPP(loadResult.Result);
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error calling LoadOAPP. Reason: {loadResult.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} No mission could be found for the missionId {missionId}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IList<IMission>>> GetOAPPMissionsAsync(Guid OAPPId)
+        {
+            OASISResult<IList<IMission>> result = new OASISResult<IList<IMission>>();
+            OASISResult<IOAPP> loadResult = await LoadOAPPAsync(OAPPId);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+            {
+                result.Result = loadResult.Result.Missions;
+                result.IsLoaded = true;
+                result.Message = "Missions Loaded Successfully";
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.GetOAPPMissions calling LoadOAPPAsync. Reason: {loadResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IList<IMission>> GetOAPPMissions(Guid OAPPId)
+        {
+            OASISResult<IList<IMission>> result = new OASISResult<IList<IMission>>();
+            OASISResult<IOAPP> loadResult = LoadOAPP(OAPPId);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+            {
+                result.Result = loadResult.Result.Missions;
+                result.IsLoaded = true;
+                result.Message = "Missions Loaded Successfully";
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.GetOAPPMissions calling LoadOAPP. Reason: {loadResult.Message}");
 
             return result;
         }

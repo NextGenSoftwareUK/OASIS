@@ -1,16 +1,16 @@
-﻿using NextGenSoftware.OASIS.API.Core.Holons;
+﻿using System.Text.Json;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using Google.Protobuf.WellKnownTypes;
-using System.Text.Json;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
     public class OAPP : Holon, IOAPP
-    //public class OAPP : HolonBase, IOAPP
+    //public class OAPP : HolonBase, IOAPP //TODO: Eventually want to change HolonManager to work with IHolonBase instead of IHolon.
     {
         public OAPP()
         {
@@ -65,6 +65,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 
         [CustomOASISProperty()]
         public byte[] PublishedOAPP { get; set; }
+
+        [CustomOASISProperty()]
+        public IList<IMission> Missions { get; set; }
 
         //[CustomOASISProperty]
         //public string CreatedByAvatarUsername { get; set; }

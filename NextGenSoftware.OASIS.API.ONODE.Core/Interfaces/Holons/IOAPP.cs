@@ -1,7 +1,5 @@
-﻿using System;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons
 {
@@ -20,5 +18,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons
         string OAPPDNAJSON { get; set; }
         IOAPPDNA OAPPDNA { get; set; }
         byte[] PublishedOAPP { get; set; }
+        IList<IMission> Missions { get; set; }
     }
 }

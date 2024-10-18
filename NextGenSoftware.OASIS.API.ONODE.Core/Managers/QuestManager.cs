@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -26,77 +27,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
         public async Task<OASISResult<IQuest>> CreateQuestAsync(string name, string description, QuestType questType, Guid avatarId, Guid missionId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.CreateQuestAsync. Reason:";
-
-            try
-            {
-                IQuest quest = new Quest()
-                {
-                    MissionId = missionId,
-                    Name = name,
-                    Description = description,
-                    QuestType = questType,
-                    StartedBy = avatarId,
-                    StartedOn = DateTime.Now,
-                    CreatedByAvatarId = avatarId,
-                    CreatedDate = DateTime.Now
-                };
-
-                OASISResult<Quest> saveHolonResult = await Data.SaveHolonAsync<Quest>(quest, true, true, 0, true, false, providerType);
-
-                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                {
-                    result.Result = saveHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with Data.SaveHolonAsync. Reason: {saveHolonResult.Message}");
-            }
-            catch (Exception ex) 
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
+            return await CreateQuestInternalAsync(name, description, questType, avatarId, missionId, default, providerType);
         }
 
         public OASISResult<IQuest> CreateQuest(string name, string description, QuestType questType, Guid avatarId, Guid missionId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.CreateQuest. Reason:";
-
-            try
-            {
-                IQuest quest = new Quest()
-                {
-                    //ParentHolonId = missionId, //If this is not set then this will normally default to the avatarId.
-                    MissionId = missionId,
-                    Name = name,
-                    Description = description,
-                    QuestType = questType,
-                    StartedBy = avatarId,
-                    StartedOn = DateTime.Now,
-                    CreatedByAvatarId = avatarId,
-                    CreatedDate = DateTime.Now
-                };
-
-                OASISResult<Quest> saveHolonResult = Data.SaveHolon<Quest>(quest, true, true, 0, true, false, providerType);
-
-                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                {
-                    result.Result = saveHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with Data.SaveHolon. Reason: {saveHolonResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
+            return CreateQuestInternal(name, description, questType, avatarId, missionId, default, providerType);
         }
 
         public async Task<OASISResult<IQuest>> UpdateQuestAsync(IQuest quest, Guid avatarId, ProviderType providerType = ProviderType.Default)
@@ -314,7 +250,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                OASISResult<IEnumerable<Quest>> loadHolonsResult = await Data.LoadHolonsForParentByMetaDataAsync<Quest>("MissionId", missionId.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+                OASISResult<IEnumerable<Quest>> loadHolonsResult = await Data.LoadHolonsForParentByMetaDataAsync<Quest>("ParentMissionId", missionId.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
 
                 if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
                 {
@@ -339,7 +275,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                OASISResult<IEnumerable<Quest>> loadHolonsResult = Data.LoadHolonsForParentByMetaData<Quest>("MissionId", missionId.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+                OASISResult<IEnumerable<Quest>> loadHolonsResult = Data.LoadHolonsForParentByMetaData<Quest>("ParentMissionId", missionId.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
 
                 if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
                 {
@@ -382,22 +318,244 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IQuest>> CompleteQuestAsync(Guid questId)
+        public async Task<OASISResult<IQuest>> CompleteQuestAsync(Guid questId, Guid avatarId, ProviderType providerType)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.UpdateQuestAsync. Reason:";
+            string errorMessage = "Error occured in QuestManager.CompleteQuestAsync. Reason:";
 
             try
             {
-                //TODO: Double check this is done automatically (it is in the PreparetoSaveHolon method in HolonManager but because this Manager can also be used in the REST API we need to pass the avatarId in to every method call to make sure the avatarId is correct).
-                quest.ModifiedByAvatarId = avatarId;
-                quest.ModifiedDate = DateTime.Now;
+                OASISResult<IQuest> loadResult = await LoadQuestAsync(questId, providerType);
 
-                OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(quest, true, true, 0, true, false, providerType);
+                if (loadResult != null && !loadResult.IsError && loadResult.Result != null)
+                {
+                    loadResult.Result.CompletedOn = DateTime.Now;
+                    loadResult.Result.CompletedBy = avatarId;
+
+                    result = await UpdateQuestAsync(loadResult.Result, avatarId, providerType);
+
+                    if (!(result != null && result.Result != null && !result.IsError))
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with QuestManager.UpdateQuestAsync. Reason: {result.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<IQuest> CompleteQuest(Guid questId, Guid avatarId, ProviderType providerType)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.CompleteQuest. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> loadResult = LoadQuest(questId, providerType);
+
+                if (loadResult != null && !loadResult.IsError && loadResult.Result != null)
+                {
+                    loadResult.Result.CompletedOn = DateTime.Now;
+                    loadResult.Result.CompletedBy = avatarId;
+
+                    result = UpdateQuest(loadResult.Result, avatarId, providerType);
+
+                    if (!(result != null && result.Result != null && !result.IsError))
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with QuestManager.UpdateQuest. Reason: {result.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IQuest>> AddSubQuestToQuestAsync(Guid parentQuestId, string name, string description, QuestType questType, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.AddSubQuestToQuestAsync. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
+
+                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                {
+                    OASISResult<IQuest> subQuestResult = await CreateQuestInternalAsync(name, description, questType, avatarId, default, parentQuestId, providerType);
+
+                    if (subQuestResult !=  null && subQuestResult.Result != null && !subQuestResult.IsError)
+                    {
+                        parentQuestResult.Result.SubQuests.Add(subQuestResult.Result);
+                         await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
+                    }
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuestAsync. Reason: {parentQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        
+
+        public async Task<OASISResult<IQuest>> DeleteQuestAsync(Guid questId, bool softDelete = true, bool deleteSubQuests = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.DeleteQuestAsync. Reason:";
+
+            try
+            {
+                OASISResult<IHolon> deleteResult = await Data.DeleteHolonAsync(questId, softDelete, providerType);
+                
+                //TODO:Delete sub-quests, hotspots and nfts etc
+
+                if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
+                {
+                    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(deleteResult, result);
+                    result.Result = (IQuest)deleteResult.Result;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured deleting the quest with Data.DeleteHolonAsync. Reason: {deleteResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<IQuest> DeleteQuest(Guid questId, bool softDelete = true, bool deleteSubQuests = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.DeleteQuest. Reason:";
+
+            try
+            {
+                //TODO:Delete sub-quests, hotspots and nfts etc
+                OASISResult<IHolon> deleteResult = Data.DeleteHolon(questId, softDelete, providerType);
+
+                if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
+                {
+                    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(deleteResult, result);
+                    result.Result = (IQuest)deleteResult.Result;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured deleting the quest with Data.DeleteHolon. Reason: {deleteResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IQuest>> GetCurentSubQuestForQuestAsync(Guid questId)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.GetCurentStageForQuestAsync. Reason:";
+
+            OASISResult<IQuest> loadResult = await LoadQuestAsync(questId);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+            {
+                if (loadResult.Result.CompletedOn != DateTime.MinValue)
+                {
+                    if (loadResult.Result.SubQuests != null && loadResult.Result.SubQuests.Count() > 0)
+                    {
+                        result.Result = loadResult.Result.SubQuests.OrderBy(x => x.Order).FirstOrDefault(x => x.CompletedOn == DateTime.MinValue);
+
+                        if (result.Result == null)
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} No sub-quest was found that is not completed!");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No sub-quests were found!");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The quest was already completed on {loadResult.Result.CompletedOn} by {loadResult.Result.CompletedBy}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuestAsync. Reason: {loadResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IQuest> GetCurentSubQuestForQuest(Guid questId)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.GetCurentSubQuestForQuest. Reason:";
+
+            OASISResult<IQuest> loadResult = LoadQuest(questId);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+            {
+                if (loadResult.Result.CompletedOn != DateTime.MinValue)
+                {
+                    if (loadResult.Result.SubQuests != null && loadResult.Result.SubQuests.Count() > 0)
+                    {
+                        result.Result = loadResult.Result.SubQuests.OrderBy(x => x.Order).FirstOrDefault(x => x.CompletedOn == DateTime.MinValue);
+
+                        if (result.Result == null)
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} No sub-quest was found that is not completed!");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No sub-quests were found!");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The quest was already completed on {loadResult.Result.CompletedOn} by {loadResult.Result.CompletedBy}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuest. Reason: {loadResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IQuest> HighlightCurentStageForQuestOnMap(Guid questId)
+        {
+            OASISResult<IQuest> questResult = new OASISResult<IQuest>();
+
+            return questResult;
+        }
+
+        public OASISResult<IQuest> FindNearestQuestOnMap()
+        {
+            return new OASISResult<IQuest>();
+        }
+
+        public async Task<OASISResult<IQuest>> CreateQuestInternalAsync(string name, string description, QuestType questType, Guid avatarId, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.CreateQuestInternalAsync. Reason:";
+
+            try
+            {
+                IQuest quest = new Quest()
+                {
+                    ParentMissionId = parentMissionId,
+                    ParentQuestId = parentQuestId,
+                    Name = name,
+                    Description = description,
+                    QuestType = questType,
+                    StartedBy = avatarId,
+                    StartedOn = DateTime.Now,
+                    CreatedByAvatarId = avatarId,
+                    CreatedDate = DateTime.Now
+                };
+
+                OASISResult<Quest> saveHolonResult = await Data.SaveHolonAsync<Quest>(quest, true, true, 0, true, false, providerType);
 
                 if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
                 {
-                    result.Result = (IQuest)saveHolonResult.Result;
+                    result.Result = saveHolonResult.Result;
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
                 }
                 else
@@ -411,28 +569,43 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IQuest> DeleteQuest(Guid questId)
+        public OASISResult<IQuest> CreateQuestInternal(string name, string description, QuestType questType, Guid avatarId, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IQuest> questResult = new OASISResult<IQuest>();
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.CreateQuestInternal. Reason:";
 
-            return questResult;
-        }
+            try
+            {
+                IQuest quest = new Quest()
+                {
+                    //ParentHolonId = missionId, //If this is not set then this will normally default to the avatarId.
+                    ParentMissionId = parentMissionId,
+                    ParentQuestId = parentQuestId,
+                    Name = name,
+                    Description = description,
+                    QuestType = questType,
+                    StartedBy = avatarId,
+                    StartedOn = DateTime.Now,
+                    CreatedByAvatarId = avatarId,
+                    CreatedDate = DateTime.Now
+                };
 
-        public OASISResult<IQuest> HighlightQuestOnMap(Guid questId)
-        {
-            OASISResult<IQuest> questResult = new OASISResult<IQuest>();
+                OASISResult<Quest> saveHolonResult = Data.SaveHolon<Quest>(quest, true, true, 0, true, false, providerType);
 
-            return questResult;
-        }
+                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                {
+                    result.Result = saveHolonResult.Result;
+                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with Data.SaveHolon. Reason: {saveHolonResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
 
-        public OASISResult<IQuest> FindNearestQuestOnMap()
-        {
-            return new OASISResult<IQuest>();
-        }
-
-        public OASISResult<IEnumerable<IQuest>> GetAllCurrentQuestsForAvatar(Guid avatarId)
-        {
-            return new OASISResult<IEnumerable<IQuest>>();
+            return result;
         }
     }
 }
