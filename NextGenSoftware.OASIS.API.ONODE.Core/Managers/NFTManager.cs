@@ -17,7 +17,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
-using NextGenSoftware.OASIS.API.ONode.Core.Objects;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
@@ -1039,59 +1038,59 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public ProviderType GetProviderTypeFromNFTProviderType(NFTProviderType nftProviderType)
-        {
-            ProviderType providerType = ProviderType.None;
+        //public ProviderType GetProviderTypeFromNFTProviderType(NFTProviderType nftProviderType)
+        //{
+        //    ProviderType providerType = ProviderType.None;
 
-            switch (nftProviderType)
-            {
-                case NFTProviderType.Solana:
-                    providerType = ProviderType.SolanaOASIS;
-                    break;
+        //    switch (nftProviderType)
+        //    {
+        //        case NFTProviderType.Solana:
+        //            providerType = ProviderType.SolanaOASIS;
+        //            break;
 
-                case NFTProviderType.EOS:
-                    providerType = ProviderType.EOSIOOASIS;
-                    break;
+        //        case NFTProviderType.EOS:
+        //            providerType = ProviderType.EOSIOOASIS;
+        //            break;
 
-                case NFTProviderType.Ethereum:
-                    providerType = ProviderType.EthereumOASIS;
-                    break;
-            }
+        //        case NFTProviderType.Ethereum:
+        //            providerType = ProviderType.EthereumOASIS;
+        //            break;
+        //    }
 
-            return providerType;
-        }
+        //    return providerType;
+        //}
 
-        public NFTProviderType GetNFTProviderTypeFromProviderType(ProviderType providerType)
-        {
-            NFTProviderType nftProviderType = NFTProviderType.None;
+        //public NFTProviderType GetNFTProviderTypeFromProviderType(ProviderType providerType)
+        //{
+        //    NFTProviderType nftProviderType = NFTProviderType.None;
 
-            switch (providerType)
-            {
-                case ProviderType.SolanaOASIS:
-                    nftProviderType = NFTProviderType.Solana;
-                    break;
+        //    switch (providerType)
+        //    {
+        //        case ProviderType.SolanaOASIS:
+        //            nftProviderType = NFTProviderType.Solana;
+        //            break;
 
-                case ProviderType.EOSIOOASIS:
-                    nftProviderType = NFTProviderType.EOS;
-                    break;
+        //        case ProviderType.EOSIOOASIS:
+        //            nftProviderType = NFTProviderType.EOS;
+        //            break;
 
-                case ProviderType.EthereumOASIS:
-                    nftProviderType = NFTProviderType.Ethereum;
-                    break;
-            }
+        //        case ProviderType.EthereumOASIS:
+        //            nftProviderType = NFTProviderType.Ethereum;
+        //            break;
+        //    }
 
-            return nftProviderType;
-        }
+        //    return nftProviderType;
+        //}
 
         //public IOASISNFTProvider GetNFTProvider<T>(NFTProviderType NFTProviderType, ref OASISResult<T> result, string errorMessage)
         //{
         //    return GetNFTProvider(GetProviderTypeFromNFTProviderType(NFTProviderType), ref result, errorMessage);
         //}
 
-        public OASISResult<IOASISNFTProvider> GetNFTProvider(NFTProviderType NFTProviderType, string errorMessage = "")
-        {
-            return GetNFTProvider(GetProviderTypeFromNFTProviderType(NFTProviderType), errorMessage);
-        }
+        //public OASISResult<IOASISNFTProvider> GetNFTProvider(NFTProviderType NFTProviderType, string errorMessage = "")
+        //{
+        //    return GetNFTProvider(GetProviderTypeFromNFTProviderType(NFTProviderType), errorMessage);
+        //}
 
         public OASISResult<IOASISNFTProvider> GetNFTProvider(ProviderType providerType, string errorMessage = "")
         {

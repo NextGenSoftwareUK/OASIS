@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
     {
         public GeoHotSpot()
         {
-            this.HolonType = HolonType.Quest;
+            this.HolonType = HolonType.GeoHotSpot;
         }
 
         public bool IsARHotSpot { get; set; } //If this is false then this will be triggered as soon as they reach the hotspot, otherwise it will only be triggered once they activate AR mode in that area unless they have to interact with a 3D object or enviroment (such as collecting a dino etc).

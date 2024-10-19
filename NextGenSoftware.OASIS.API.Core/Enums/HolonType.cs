@@ -1,10 +1,10 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.Core.Enums
 {
-    public enum HolonType
+    public enum HolonType //46 types and growing all the time! ;-)
     {
         All,
-        Player,
+        //Player,
         Avatar,
         AvatarDetail,
         Quest,
@@ -51,6 +51,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         GEONFT,
         OAPP,
         InstalledOAPP,
+        GeoHotSpot,
         None
     }
 }

@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
         IList<IQuest> SubQuests { get; set; }
         IList<string> GeoSpatialNFTIds { get; set; }
         IList<IOASISGeoSpatialNFT> GeoSpatialNFTs { get; set; }
-        IList<string> GetHotSpotIds { get; set; }
-        IList<IGeoHotSpot> GetHotSpots { get; set; }
+        IList<string> GeoHotSpotIds { get; set; }
+        IList<IGeoHotSpot> GeoHotSpots { get; set; }
     }
 }
