@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -39,6 +40,39 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         [CustomOASISProperty()]
         public Guid CompletedBy { get; set; }
 
+        public IQuest CurrentSubQuest
+        {
+            get
+            {
+                if (CompletedOn != DateTime.MinValue)
+                {
+                    if (SubQuests != null && SubQuests.Count > 0)
+                        return SubQuests.OrderBy(x => x.Order).FirstOrDefault(x => x.CompletedOn == DateTime.MinValue);
+                }
+
+                return null;
+            }
+        }
+
+        public int CurrentSubQuestNumber
+        {
+            get
+            {
+                if (CurrentSubQuest != null)
+                    return CurrentSubQuest.Order;
+                
+                else return 0;
+            }
+        }
+
+        public string Status
+        {
+            get
+            {
+                return $"Quest {CurrentSubQuestNumber}/{SubQuests.Count}";
+            }
+        }
+
         [CustomOASISProperty()]
         public IList<IOASISGeoSpatialNFT> GeoSpatialNFTs { get; set; }
 
@@ -46,10 +80,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         public IList<string> GeoSpatialNFTIds { get; set; }
 
         [CustomOASISProperty()]
-        public IList<IGeoHotSpot> GetHotSpots { get; set; }
+        public IList<string> GeoHotSpotIds { get; set; }
 
         [CustomOASISProperty()]
-        public IList<string> GetHotSpotIds { get; set; }
+        public IList<IGeoHotSpot> GeoHotSpots { get; set; }
 
         [CustomOASISProperty()]
         public IList<IQuest> SubQuests { get; set; }

@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
@@ -15,12 +17,25 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
     public class QuestManager : OASISManager, IQuestManager
     {
-        public QuestManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
+        NFTManager _nftManager = null;
+
+        private NFTManager NFTManager
+        {
+            get
+            {
+                if (_nftManager == null)
+                    _nftManager = new NFTManager(AvatarId, OASISDNA);
+
+                return _nftManager;
+            }
+        }
+
+        public QuestManager(Guid avatarId, NFTManager nftManager = null, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
         {
 
         }
 
-        public QuestManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
+        public QuestManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, NFTManager nftManager = null, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
         {
 
         }
@@ -390,8 +405,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     if (subQuestResult !=  null && subQuestResult.Result != null && !subQuestResult.IsError)
                     {
                         parentQuestResult.Result.SubQuests.Add(subQuestResult.Result);
-                         await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
+                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
                     }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured creating the sub-quest with QuestManager.CreateQuestInternalAsync. Reason: {subQuestResult.Message}");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuestAsync. Reason: {parentQuestResult.Message}");
@@ -404,7 +421,366 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        
+        public OASISResult<IQuest> AddSubQuestToQuest(Guid parentQuestId, string name, string description, QuestType questType, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.AddSubQuestToQuest. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
+
+                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                {
+                    OASISResult<IQuest> subQuestResult = CreateQuestInternal(name, description, questType, avatarId, default, parentQuestId, providerType);
+
+                    if (subQuestResult != null && subQuestResult.Result != null && !subQuestResult.IsError)
+                    {
+                        parentQuestResult.Result.SubQuests.Add(subQuestResult.Result);
+                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured creating the sub-quest with QuestManager.CreateQuestInternal. Reason: {subQuestResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuest. Reason: {parentQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IQuest>> RemoveSubQuestFromQuestAsync(Guid parentQuestId, Guid subQuestId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.RemoveSubQuestFromQuestAsync. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
+
+                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                {
+                    IQuest subQuest = parentQuestResult.Result.SubQuests.FirstOrDefault(x => x.Id == subQuestId);
+
+                    if (subQuest != null) 
+                    {
+                        parentQuestResult.Result.SubQuests.Remove(subQuest);
+                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No sub-quest could be found for the id {subQuestId}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuestAsync. Reason: {parentQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<IQuest> RemoveSubQuestFromQuest(Guid parentQuestId, Guid subQuestId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.RemoveSubQuestFromQuest. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
+
+                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                {
+                    IQuest subQuest = parentQuestResult.Result.SubQuests.FirstOrDefault(x => x.Id == subQuestId);
+
+                    if (subQuest != null)
+                    {
+                        parentQuestResult.Result.SubQuests.Remove(subQuest);
+                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No sub-quest could be found for the id {subQuestId}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuest. Reason: {parentQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IQuest>> AddGeoNFTToQuestAsync(Guid parentQuestId, Guid geoNFTId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.AddGeoNFTToQuestAsync. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
+
+                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                {
+                    OASISResult<IOASISGeoSpatialNFT> nftResult = await NFTManager.LoadGeoNftAsync(geoNFTId, providerType);
+
+                    if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
+                    {
+                        parentQuestResult.Result.GeoSpatialNFTs.Add(nftResult.Result);
+                        parentQuestResult.Result.GeoSpatialNFTIds.Add(nftResult.Result.Id.ToString());
+                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the geo-nft with NFTManager.LoadGeoNftAsync. Reason: {nftResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuestAsync. Reason: {parentQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<IQuest> AddGeoNFTToQuest(Guid parentQuestId, Guid geoNFTId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.AddGeoNFTToQuest. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
+
+                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                {
+                    //OASISResult<OASISGeoSpatialNFT> nftResult = Data.LoadHolon<OASISGeoSpatialNFT>(geoNFTId); //TODO: May one day make NFTs work like Quests, HotSpots, etc so they extend Holon.
+                    OASISResult<IOASISGeoSpatialNFT> nftResult = NFTManager.LoadGeoNft(geoNFTId, providerType);
+
+                    if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
+                    {
+                        parentQuestResult.Result.GeoSpatialNFTs.Add(nftResult.Result);
+                        parentQuestResult.Result.GeoSpatialNFTIds.Add(nftResult.Result.Id.ToString());
+                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the geo-nft with NFTManager.LoadGeoNft. Reason: {nftResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuest. Reason: {parentQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IQuest>> RemoveGeoNFTFromQuestAsync(Guid parentQuestId, Guid geoNFTId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.RemoveGeoNFTFromQuestAsync. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
+
+                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                {
+                    IOASISGeoSpatialNFT geoNFT = parentQuestResult.Result.GeoSpatialNFTs.FirstOrDefault(x => x.Id == geoNFTId);
+
+                    if (geoNFT != null)
+                    {
+                        parentQuestResult.Result.GeoSpatialNFTs.Remove(geoNFT);
+                        parentQuestResult.Result.GeoSpatialNFTIds.Remove(geoNFTId.ToString());
+                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No GeoNFT could be found for the id {geoNFTId}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuestAsync. Reason: {parentQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<IQuest> RemoveGeoNFTFromQuest(Guid parentQuestId, Guid geoNFTId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.RemoveGeoNFTFromQuest. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
+
+                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                {
+                    IOASISGeoSpatialNFT geoNFT = parentQuestResult.Result.GeoSpatialNFTs.FirstOrDefault(x => x.Id == geoNFTId);
+
+                    if (geoNFT != null)
+                    {
+                        parentQuestResult.Result.GeoSpatialNFTs.Remove(geoNFT);
+                        parentQuestResult.Result.GeoSpatialNFTIds.Remove(geoNFTId.ToString());
+                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No GeoNFT could be found for the id {geoNFTId}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuest. Reason: {parentQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IQuest>> AddGeoHotSpotToQuestAsync(Guid parentQuestId, Guid geoHotSpotId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.AddGeoHotSpotToQuestAsync. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
+
+                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                {
+                    OASISResult<GeoHotSpot> geoHotSpotResult = await Data.LoadHolonAsync<GeoHotSpot>(geoHotSpotId, true, true, 0, true, false, HolonType.All, 0, providerType);
+
+                    if (geoHotSpotResult != null && geoHotSpotResult.Result != null && !geoHotSpotResult.IsError)
+                    {
+                        parentQuestResult.Result.GeoHotSpots.Add(geoHotSpotResult.Result);
+                        parentQuestResult.Result.GeoHotSpotIds.Add(geoHotSpotResult.Result.Id.ToString());
+                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the geo-hotspot with Data.LoadHolonAsync. Reason: {geoHotSpotResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuestAsync. Reason: {parentQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<IQuest> AddGeoHotSpotToQuest(Guid parentQuestId, Guid geoHotSpotId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.AddGeoHotSpotToQuest. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
+
+                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                {
+                    OASISResult<GeoHotSpot> geoHotSpotResult = Data.LoadHolon<GeoHotSpot>(geoHotSpotId, true, true, 0, true, false, HolonType.All, 0, providerType);
+
+                    if (geoHotSpotResult != null && geoHotSpotResult.Result != null && !geoHotSpotResult.IsError)
+                    {
+                        parentQuestResult.Result.GeoHotSpots.Add(geoHotSpotResult.Result);
+                        parentQuestResult.Result.GeoHotSpotIds.Add(geoHotSpotResult.Result.Id.ToString());
+                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the geo-hotspot with Data.LoadHolon. Reason: {geoHotSpotResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuest. Reason: {parentQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IQuest>> RemoveGeoHotSpotFromQuestAsync(Guid parentQuestId, Guid geoHotSpotId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.RemoveGeoHotSpotFromQuestAsync. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
+
+                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                {
+                    IGeoHotSpot geoHotSpot = parentQuestResult.Result.GeoHotSpots.FirstOrDefault(x => x.Id == geoHotSpotId);
+
+                    if (geoHotSpot != null)
+                    {
+                        parentQuestResult.Result.GeoHotSpots.Remove(geoHotSpot);
+                        parentQuestResult.Result.GeoHotSpotIds.Remove(geoHotSpot.ToString());
+                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No GeoHotSpot could be found for the id {geoHotSpotId}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuestAsync. Reason: {parentQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<IQuest> RemoveGeoHotSpotFromQuest(Guid parentQuestId, Guid geoHotSpotId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.RemoveGeoHotSpotFromQuest. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
+
+                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                {
+                    IGeoHotSpot geoHotSpot = parentQuestResult.Result.GeoHotSpots.FirstOrDefault(x => x.Id == geoHotSpotId);
+
+                    if (geoHotSpot != null)
+                    {
+                        parentQuestResult.Result.GeoHotSpots.Remove(geoHotSpot);
+                        parentQuestResult.Result.GeoHotSpotIds.Remove(geoHotSpot.ToString());
+                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No GeoHotSpot could be found for the id {geoHotSpotId}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuest. Reason: {parentQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
 
         public async Task<OASISResult<IQuest>> DeleteQuestAsync(Guid questId, bool softDelete = true, bool deleteSubQuests = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
         {
@@ -518,6 +894,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             return result;
         }
+
+        //public async Task<OASISResult<int>> GetCurentSubQuestNumberForQuestAsync(Guid questId)
+        //{
+        //    OASISResult<IQuest> result = new OASISResult<IQuest>();
+        //    string errorMessage = "Error occured in QuestManager.GetCurentSubQuestNumberForQuestAsync. Reason:";
+
+        //    OASISResult<IQuest> GetCurentSubQuestForQuestAsync(questId);
+
+
+        //    return result;
+        //}
 
         public OASISResult<IQuest> HighlightCurentStageForQuestOnMap(Guid questId)
         {
