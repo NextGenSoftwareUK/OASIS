@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
             this.HolonType = HolonType.Mission; 
         }
 
-        public IEnumerable<IQuest> Quests = new List<IQuest>();
-        public IEnumerable<IChapter> Chapters = new List<IChapter>(); //optional (large collection of quests can be broken into chapters.)
+        public IList<IQuest> Quests { get; set; } = new List<IQuest>();
+        public IList<IChapter> Chapters { get; set; } = new List<IChapter>(); //optional (large collection of quests can be broken into chapters.)
     }
 }
