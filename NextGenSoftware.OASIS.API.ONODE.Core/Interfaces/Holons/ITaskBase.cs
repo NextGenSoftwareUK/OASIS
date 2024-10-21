@@ -9,6 +9,5 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces
         DateTime StartedOn { get; set; }
         Guid CompletedBy { get; set; }
         DateTime CompletedOn { get; set; }
-        //IList<IQuest> Quests { get; set; }
     }
 }

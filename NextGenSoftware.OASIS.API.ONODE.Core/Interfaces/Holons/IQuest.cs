@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
@@ -17,5 +18,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
         IList<IOASISGeoSpatialNFT> GeoSpatialNFTs { get; set; }
         IList<string> GeoHotSpotIds { get; set; }
         IList<IGeoHotSpot> GeoHotSpots { get; set; }
+        IQuest CurrentSubQuest { get; }
+        int CurrentSubQuestNumber { get; }
+        string Status { get; }
     }
 }
