@@ -17,7 +17,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         [CustomOASISProperty()]
         public Guid ParentQuestId { get; set; }
 
-
         [CustomOASISProperty()]
         public QuestType QuestType { get; set; }
 

@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
+    //TODO: Make a QuestBaseManager and TaskBaseManager to extend from so lots of the same generic code is re-used.
     public class ChapterManager : OASISManager//, IChapterManager
     {
         //QuestManager _questManager = null;

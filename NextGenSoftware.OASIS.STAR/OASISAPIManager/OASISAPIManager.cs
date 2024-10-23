@@ -17,10 +17,12 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         public KeyManager Keys { get; set; }
         public WalletManager Wallets { get; set; }
         public NFTManager NFTs { get; set; }
+        public GeoHotSpotManager GeoHotSpots { get; set; }
         public OASISProviders Providers { get; private set; }
         public SearchManager Search { get; set; }
         public MapManager Map { get; set; }
         public MissionManager Missions { get; set; }
+        public ChapterManager Chapters { get; set; }
         public QuestManager Quests { get; set; }
         public ParkManager Parks { get; set; }
         public OLandManager OLAND { get; set; }
@@ -93,10 +95,12 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
             //TODO: Is there a better way of doing this?
             if (AvatarManager.LoggedInAvatar != null)
             {
-                NFTs = new NFTManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar != null ? AvatarManager.LoggedInAvatar.AvatarId : Guid.Empty, OASISBootLoader.OASISBootLoader.OASISDNA);
+                NFTs = new NFTManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                GeoHotSpots = new GeoHotSpotManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                 Map = new MapManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                Chapters = new ChapterManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                 Missions = new MissionManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
-                Quests = new QuestManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                Quests = new QuestManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, NFTs, OASISBootLoader.OASISBootLoader.OASISDNA);
                 Parks = new ParkManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                 OLAND = new OLandManager(NFTs, ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                 OAPPs = new OAPPManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
