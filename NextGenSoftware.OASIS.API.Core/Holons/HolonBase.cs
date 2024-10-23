@@ -19,6 +19,10 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         private const string CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET = "Both Id and ProviderUniqueStorageKey are null, one of these need to be set before calling this method.";
         private string _name;
         private string _description;
+        private IAvatar _createdByAvatar = null;
+        private IAvatar _modifiedByAvatar = null;
+        private IAvatar _deletedByAvatar = null;
+
         public HolonBase(Guid id)
         {
             Id = id;
@@ -107,13 +111,61 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public bool IsSaving { get; set; }
         public HolonType HolonType { get; set; }
         public Guid CreatedByAvatarId { get; set; }
-        public IAvatar CreatedByAvatar { get; set; }
+        
+        public IAvatar CreatedByAvatar 
+        { 
+            get
+            {
+                if (_createdByAvatar == null && CreatedByAvatarId != Guid.Empty)
+                {
+                    OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(CreatedByAvatarId);
+
+                    if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+                        _createdByAvatar = avatarResult.Result;
+                }
+
+                return _createdByAvatar;
+            }
+        }
+        
         public DateTime CreatedDate { get; set; }
         public Guid ModifiedByAvatarId { get; set; }
-        public IAvatar ModifiedByAvatar { get; set; }
+
+        public IAvatar ModifiedByAvatar
+        {
+            get
+            {
+                if (_modifiedByAvatar == null && ModifiedByAvatarId != Guid.Empty)
+                {
+                    OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(ModifiedByAvatarId);
+
+                    if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+                        _modifiedByAvatar = avatarResult.Result;
+                }
+
+                return _modifiedByAvatar;
+            }
+        }
+
         public DateTime ModifiedDate { get; set; }
         public Guid DeletedByAvatarId { get; set; }
-        public IAvatar DeletedByAvatar { get; set; }
+
+        public IAvatar DeletedByAvatar
+        {
+            get
+            {
+                if (_deletedByAvatar == null && DeletedByAvatarId != Guid.Empty)
+                {
+                    OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(DeletedByAvatarId);
+
+                    if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+                        _deletedByAvatar = avatarResult.Result;
+                }
+
+                return _deletedByAvatar;
+            }
+        }
+
         public DateTime DeletedDate { get; set; }
         public int Version { get; set; }
         public Guid VersionId { get; set; }

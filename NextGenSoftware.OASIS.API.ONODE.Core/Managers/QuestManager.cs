@@ -6,15 +6,14 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
+    //TODO: Make a QuestBaseManager and TaskBaseManager to extend from so lots of the same generic code is re-used.
     public class QuestManager : OASISManager, IQuestManager
     {
         NFTManager _nftManager = null;
@@ -402,7 +401,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 {
                     OASISResult<IQuest> subQuestResult = await CreateQuestInternalAsync(name, description, questType, avatarId, default, parentQuestId, providerType);
 
-                    if (subQuestResult !=  null && subQuestResult.Result != null && !subQuestResult.IsError)
+                    if (subQuestResult != null && subQuestResult.Result != null && !subQuestResult.IsError)
                     {
                         parentQuestResult.Result.SubQuests.Add(subQuestResult.Result);
                         result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
@@ -466,7 +465,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 {
                     IQuest subQuest = parentQuestResult.Result.SubQuests.FirstOrDefault(x => x.Id == subQuestId);
 
-                    if (subQuest != null) 
+                    if (subQuest != null)
                     {
                         parentQuestResult.Result.SubQuests.Remove(subQuest);
                         result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
@@ -790,7 +789,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             try
             {
                 OASISResult<IHolon> deleteResult = await Data.DeleteHolonAsync(questId, softDelete, providerType);
-                
+
                 //TODO:Delete sub-quests, hotspots and nfts etc
 
                 if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)

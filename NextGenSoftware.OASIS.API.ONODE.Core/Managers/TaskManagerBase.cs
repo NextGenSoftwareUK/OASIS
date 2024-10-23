@@ -420,7 +420,7 @@
 //                {
 //                    OASISResult<IQuest> subQuestResult = await CreateQuestInternalAsync(name, description, questType, avatarId, default, parentQuestId, providerType);
 
-//                    if (subQuestResult !=  null && subQuestResult.Result != null && !subQuestResult.IsError)
+//                    if (subQuestResult != null && subQuestResult.Result != null && !subQuestResult.IsError)
 //                    {
 //                        parentQuestResult.Result.SubQuests.Add(subQuestResult.Result);
 //                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
@@ -484,7 +484,7 @@
 //                {
 //                    IQuest subQuest = parentQuestResult.Result.SubQuests.FirstOrDefault(x => x.Id == subQuestId);
 
-//                    if (subQuest != null) 
+//                    if (subQuest != null)
 //                    {
 //                        parentQuestResult.Result.SubQuests.Remove(subQuest);
 //                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
@@ -808,7 +808,7 @@
 //            try
 //            {
 //                OASISResult<IHolon> deleteResult = await Data.DeleteHolonAsync(questId, softDelete, providerType);
-                
+
 //                //TODO:Delete sub-quests, hotspots and nfts etc
 
 //                if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
