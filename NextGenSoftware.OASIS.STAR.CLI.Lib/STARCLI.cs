@@ -639,7 +639,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task MintGeoNFTAsync()
+        public static async Task<OASISResult<IOASISGeoSpatialNFT>> MintGeoNFTAsync()
         {
             IMintNFTTransactionRequest request = await GenerateNFTRequestAsync();
             IPlaceGeoSpatialNFTRequest geoRequest = await GenerateGeoNFTRequestAsync(false);
@@ -683,6 +683,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 string msg = nftResult != null ? nftResult.Message : "";
                 CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
             }
+
+            return nftResult;
         }
 
         public static async Task PlaceGeoNFTAsync()

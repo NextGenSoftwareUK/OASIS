@@ -332,6 +332,118 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        public async Task<OASISResult<IMission>> PublishMissionAsync(Guid missionId, Guid avatarId, ProviderType providerType)
+        {
+            OASISResult<IMission> result = new OASISResult<IMission>();
+            string errorMessage = "Error occured in MissionManager.PublishMissionAsync. Reason:";
+
+            try
+            {
+                OASISResult<IMission> loadResult = await LoadMissionAsync(missionId, providerType);
+
+                if (loadResult != null && !loadResult.IsError && loadResult.Result != null)
+                {
+                    loadResult.Result.PublishedOn = DateTime.Now;
+                    loadResult.Result.PublishedByAvatarId = avatarId;
+
+                    result = await UpdateMissionAsync(loadResult.Result, avatarId, providerType);
+
+                    if (!(result != null && result.Result != null && !result.IsError))
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the mission with MissionManager.UpdateMissionAsync. Reason: {result.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<IMission> PublishMission(Guid missionId, Guid avatarId, ProviderType providerType)
+        {
+            OASISResult<IMission> result = new OASISResult<IMission>();
+            string errorMessage = "Error occured in MissionManager.PublishMission. Reason:";
+
+            try
+            {
+                OASISResult<IMission> loadResult = LoadMission(missionId, providerType);
+
+                if (loadResult != null && !loadResult.IsError && loadResult.Result != null)
+                {
+                    loadResult.Result.PublishedOn = DateTime.Now;
+                    loadResult.Result.PublishedByAvatarId = avatarId;
+
+                    result = UpdateMission(loadResult.Result, avatarId, providerType);
+
+                    if (!(result != null && result.Result != null && !result.IsError))
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the mission with MissionManager.UpdateMission. Reason: {result.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IMission>> UnpublishMissionAsync(Guid missionId, Guid avatarId, ProviderType providerType)
+        {
+            OASISResult<IMission> result = new OASISResult<IMission>();
+            string errorMessage = "Error occured in MissionManager.UnpublishMissionAsync. Reason:";
+
+            try
+            {
+                OASISResult<IMission> loadResult = await LoadMissionAsync(missionId, providerType);
+
+                if (loadResult != null && !loadResult.IsError && loadResult.Result != null)
+                {
+                    loadResult.Result.PublishedOn = DateTime.MinValue;
+                    loadResult.Result.PublishedByAvatarId = Guid.Empty;
+
+                    result = await UpdateMissionAsync(loadResult.Result, avatarId, providerType);
+
+                    if (!(result != null && result.Result != null && !result.IsError))
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the mission with MissionManager.UpdateMissionAsync. Reason: {result.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<IMission> UnpublishMission(Guid missionId, Guid avatarId, ProviderType providerType)
+        {
+            OASISResult<IMission> result = new OASISResult<IMission>();
+            string errorMessage = "Error occured in MissionManager.UnpublishMission. Reason:";
+
+            try
+            {
+                OASISResult<IMission> loadResult = LoadMission(missionId, providerType);
+
+                if (loadResult != null && !loadResult.IsError && loadResult.Result != null)
+                {
+                    loadResult.Result.PublishedOn = DateTime.MinValue;
+                    loadResult.Result.PublishedByAvatarId = Guid.Empty;
+
+                    result = UpdateMission(loadResult.Result, avatarId, providerType);
+
+                    if (!(result != null && result.Result != null && !result.IsError))
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the mission with MissionManager.UpdateMission. Reason: {result.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
         public async Task<OASISResult<IMission>> CompleteMissionAsync(Guid missionId, Guid avatarId, ProviderType providerType)
         {
             OASISResult<IMission> result = new OASISResult<IMission>();
