@@ -286,6 +286,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS", "NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.csproj", "{11717B86-1C33-4F1C-A43E-4467A2F377E2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.RadixOASIS", "NextGenSoftware.OASIS.API.Providers.RadixOASIS\NextGenSoftware.OASIS.API.Providers.RadixOASIS.csproj", "{4BF506B8-6178-434F-A415-EF20BB3BA031}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -2044,6 +2046,24 @@ Global
 		{11717B86-1C33-4F1C-A43E-4467A2F377E2}.Release|x64.Build.0 = Release|Any CPU
 		{11717B86-1C33-4F1C-A43E-4467A2F377E2}.Release|x86.ActiveCfg = Release|Any CPU
 		{11717B86-1C33-4F1C-A43E-4467A2F377E2}.Release|x86.Build.0 = Release|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Debug|x64.Build.0 = Debug|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Debug|x86.Build.0 = Debug|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Linux|x64.Build.0 = Debug|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Linux|x86.Build.0 = Debug|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Release|x64.ActiveCfg = Release|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Release|x64.Build.0 = Release|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Release|x86.ActiveCfg = Release|Any CPU
+		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
