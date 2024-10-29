@@ -1,45 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
-    public class Mission : TaskBase, IMission
+    //public class Mission : TaskBase, IMission, ITaskBase, IPublishableHolon //TODO: SOOOOOO wish we could extend both PublishableHolon and TaskBase! :(
+    public class Mission : PublishableHolon, IMission, ITaskBase, IPublishableHolon
     {
-        private IAvatar _publishedByAvatar = null;
+        //private IAvatar _publishedByAvatar = null;
 
         public Mission()
         {
             this.HolonType = HolonType.Mission; 
         }
 
-        [CustomOASISProperty]
-        public DateTime PublishedOn { get; set; }
+        [CustomOASISProperty()]
+        public DateTime StartedOn { get; set; }
 
-        [CustomOASISProperty]
-        public Guid PublishedByAvatarId { get; set; }
+        [CustomOASISProperty()]
+        public Guid StartedBy { get; set; }
 
-        public IAvatar PublishedByAvatar
-        {
-            get
-            {
-                if (_publishedByAvatar == null && PublishedByAvatarId != Guid.Empty)
-                {
-                    OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(PublishedByAvatarId);
+        [CustomOASISProperty()]
+        public DateTime CompletedOn { get; set; }
 
-                    if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
-                        _publishedByAvatar = avatarResult.Result;
-                }
+        [CustomOASISProperty()]
+        public Guid CompletedBy { get; set; }
 
-                return _publishedByAvatar;
-            }
-        }
+        //[CustomOASISProperty]
+        //public DateTime PublishedOn { get; set; }
+
+        //[CustomOASISProperty]
+        //public Guid PublishedByAvatarId { get; set; }
+
+        //public IAvatar PublishedByAvatar
+        //{
+        //    get
+        //    {
+        //        if (_publishedByAvatar == null && PublishedByAvatarId != Guid.Empty)
+        //        {
+        //            OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(PublishedByAvatarId);
+
+        //            if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+        //                _publishedByAvatar = avatarResult.Result;
+        //        }
+
+        //        return _publishedByAvatar;
+        //    }
+        //}
 
         [CustomOASISProperty]
         public IList<IQuest> Quests { get; set; } = new List<IQuest>();

@@ -1,12 +1,13 @@
-﻿using NextGenSoftware.OASIS.API.Core.Holons;
+﻿using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
-    public class GeoHotSpot : Holon, IGeoHotSpot
+    public class GeoHotSpot : PublishableHolon, IGeoHotSpot
     {
         public GeoHotSpot()
         {
@@ -14,18 +15,33 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         }
 
         [CustomOASISProperty]
-        public bool IsARHotSpot { get; set; } //If this is false then this will be triggered as soon as they reach the hotspot, otherwise it will only be triggered once they activate AR mode in that area unless they have to interact with a 3D object or enviroment (such as collecting a dino etc).
+        public GeoHotSpotTriggeredType TriggerType { get; set; } = GeoHotSpotTriggeredType.WhenArrivedAtGeoLocation;
 
         [CustomOASISProperty]
-        public GeoHotSpotTriggeredType TriggerType { get; set; } = GeoHotSpotTriggeredType.WhenLookingAtObjectOrSprite;
+        public int TimeInSecondsNeedToBeAtLocationToTriggerHotSpot { get; set; } //Optional (only applicable if TriggerType is WhenAtGeoLocationForXSeconds).
 
         [CustomOASISProperty]
-        public string ThreeDObject { get; set; } //If IsARHotSpot is true then this will appear once they enter AR Mode otherwise it will appear on the map.
+        public double Lat { get; set; }
 
         [CustomOASISProperty]
-        public string TwoDSprite { get; set; } //If IsARHotSpot is true then this will appear once they enter AR Mode otherwise it will appear on the map.
+        public double Long { get; set; }
 
         [CustomOASISProperty]
-        public IInventoryItem Reward {get; set;} //The item that is rewarded once the hotspot has been triggered.
+        public int HotSpotRadiusInMetres { get; set; } = 10; //The user/avatar needs to be within this radius to trigger the hotspot.
+
+        [CustomOASISProperty]
+        public byte[] Object3D { get; set; } //If TriggerType is WhenLookingAtObjectOrImageInARMode or WhenObjectOrImageIsTouchedInARMode then this will appear once they enter AR Mode otherwise it will appear on the map.
+
+        [CustomOASISProperty]
+        public byte[] Image2D { get; set; } //If TriggerType is WhenLookingAtObjectOrImageInARMode or WhenObjectOrImageIsTouchedInARMode then this will appear once they enter AR Mode otherwise it will appear on the map.
+
+        [CustomOASISProperty]
+        public int TimeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot { get; set; } = 3;
+
+        [CustomOASISProperty]
+        public IList<IInventoryItem> Rewards {get; set;} //The item that is rewarded once the hotspot has been triggered.
+
+        [CustomOASISProperty()]
+        public IList<string> RewardIds { get; set; }
     }
 }

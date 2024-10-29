@@ -388,6 +388,66 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        public async Task<OASISResult<IQuest>> AddSubQuestToQuestAsync(Guid parentQuestId, IQuest quest, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.AddSubQuestToQuestAsync. Reason:";
+
+            try
+            {
+                if (quest != null)
+                {
+                    OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
+
+                    if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                    {
+                        parentQuestResult.Result.SubQuests.Add(quest);
+                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuestAsync. Reason: {parentQuestResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} quest param is null!");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<IQuest> AddSubQuestToQuest(Guid parentQuestId, IQuest quest, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.AddSubQuestToQuest. Reason:";
+
+            try
+            {
+                if (quest != null)
+                {
+                    OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
+
+                    if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
+                    {
+                        parentQuestResult.Result.SubQuests.Add(quest);
+                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuest. Reason: {parentQuestResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} quest param is null!");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
         public async Task<OASISResult<IQuest>> AddSubQuestToQuestAsync(Guid parentQuestId, string name, string description, QuestType questType, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
@@ -395,22 +455,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
+                OASISResult<IQuest> subQuestResult = await CreateQuestInternalAsync(name, description, questType, avatarId, default, parentQuestId, providerType);
 
-                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
-                {
-                    OASISResult<IQuest> subQuestResult = await CreateQuestInternalAsync(name, description, questType, avatarId, default, parentQuestId, providerType);
-
-                    if (subQuestResult != null && subQuestResult.Result != null && !subQuestResult.IsError)
-                    {
-                        parentQuestResult.Result.SubQuests.Add(subQuestResult.Result);
-                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured creating the sub-quest with QuestManager.CreateQuestInternalAsync. Reason: {subQuestResult.Message}");
-                }
+                if (subQuestResult != null && subQuestResult.Result != null && !subQuestResult.IsError)
+                    result = await AddSubQuestToQuestAsync(parentQuestId, subQuestResult.Result, avatarId, providerType);
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuestAsync. Reason: {parentQuestResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured creating the sub-quest with QuestManager.CreateQuestInternalAsync. Reason: {subQuestResult.Message}");
             }
             catch (Exception ex)
             {
@@ -427,22 +477,56 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
+                OASISResult<IQuest> subQuestResult = CreateQuestInternal(name, description, questType, avatarId, default, parentQuestId, providerType);
 
-                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
-                {
-                    OASISResult<IQuest> subQuestResult = CreateQuestInternal(name, description, questType, avatarId, default, parentQuestId, providerType);
-
-                    if (subQuestResult != null && subQuestResult.Result != null && !subQuestResult.IsError)
-                    {
-                        parentQuestResult.Result.SubQuests.Add(subQuestResult.Result);
-                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured creating the sub-quest with QuestManager.CreateQuestInternal. Reason: {subQuestResult.Message}");
-                }
+                if (subQuestResult != null && subQuestResult.Result != null && !subQuestResult.IsError)
+                    result = AddSubQuestToQuest(parentQuestId, subQuestResult.Result, avatarId, providerType);
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuest. Reason: {parentQuestResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured creating the sub-quest with QuestManager.CreateQuestInternal. Reason: {subQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IQuest>> AddSubQuestToQuestAsync(Guid parentQuestId, Guid subQuestId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.AddSubQuestToQuestAsync. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> subQuestResult = await LoadQuestAsync(subQuestId, providerType);
+
+                if (subQuestResult != null && subQuestResult.Result != null && !subQuestResult.IsError)
+                    result = await AddSubQuestToQuestAsync(parentQuestId, subQuestResult.Result, avatarId, providerType);
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the sub-quest with QuestManager.LoadQuestAsync. Reason: {subQuestResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<IQuest> AddSubQuestToQuest(Guid parentQuestId, Guid subQuestId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IQuest> result = new OASISResult<IQuest>();
+            string errorMessage = "Error occured in QuestManager.AddSubQuestToQuest. Reason:";
+
+            try
+            {
+                OASISResult<IQuest> subQuestResult = LoadQuest(subQuestId, providerType);
+
+                if (subQuestResult != null && subQuestResult.Result != null && !subQuestResult.IsError)
+                    result = AddSubQuestToQuest(parentQuestId, subQuestResult.Result, avatarId, providerType);
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the sub-quest with QuestManager.LoadQuest. Reason: {subQuestResult.Message}");
             }
             catch (Exception ex)
             {

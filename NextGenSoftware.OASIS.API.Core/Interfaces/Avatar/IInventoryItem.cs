@@ -1,12 +1,12 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
-    public interface IInventoryItem
+    public interface IInventoryItem : IPublishableHolon
     {
-        string Description { get; set; }
-        string Name { get; set; }
-        int Quantity { get; set; }
+        //int Quantity { get; set; }
         byte[] Image2D { get; set; }
-        byte[] Image3D { get; set; }
+        byte[] Object3D { get; set; }
+
+        //InventoryItemData InventoryItemData { get; set; }
     }
 }

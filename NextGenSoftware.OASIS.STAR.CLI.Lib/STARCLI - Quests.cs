@@ -195,29 +195,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         do
                         {
                             if (CLIEngine.GetConfirmation("Have you already created the sub-quest?"))
+                            {
                                 subQuestId = CLIEngine.GetValidInputForGuid("What is the sub-quest ID/GUID?");
+
+                                if (subQuestId != Guid.Empty)
+                                    questResult = await STAR.OASISAPI.Quests.AddSubQuestToQuestAsync(questResult.Result.Id, subQuestId, STAR.BeamedInAvatar.Id, providerType);
 
                             else if (CLIEngine.GetConfirmation("Would you like to create the sub-quest now?"))
                             {
                                 OASISResult<IQuest> subQuestResult = await CreateQuestAsync();
 
                                 if (subQuestResult != null && !subQuestResult.IsError && subQuestResult.Result != null)
-                                    subQuestId = subQuestResult.Result.Id;
+                                    questResult = await STAR.OASISAPI.Quests.AddSubQuestToQuestAsync(questResult.Result.Id, subQuestResult.Result, STAR.BeamedInAvatar.Id, providerType);
                             }
 
-                            if (subQuestId != Guid.Empty)
+                            if (questResult != null && !questResult.IsError && questResult.Result != null)
                             {
-                                questResult = await STAR.OASISAPI.Quests.AddSubQuestToQuestAsync(questResult.Result.Id, geoHotSpotId, STAR.BeamedInAvatar.Id, providerType);
+                                CLIEngine.ShowSuccessMessage("GeoHotSpot Successfully Added To Quest.");
 
-                                if (questResult != null && !questResult.IsError && questResult.Result != null)
-                                {
-                                    CLIEngine.ShowSuccessMessage("GeoHotSpot Successfully Added To Quest.");
-
-                                    if (!CLIEngine.GetConfirmation("Would you like to add another GeoHotSpot?"))
-                                        addMoreSubQuests = false;
-                                }
-                                else
-                                    CLIEngine.ShowErrorMessage($"Error occured adding the GeoHotSpot to the quest. Reason: {questResult.Message}");
+                                if (!CLIEngine.GetConfirmation("Would you like to add another GeoHotSpot?"))
+                                    addMoreSubQuests = false;
+                            }
+                            else
+                                CLIEngine.ShowErrorMessage($"Error occured adding the GeoHotSpot to the quest. Reason: {questResult.Message}");
                             }
                         } while (addMoreSubQuests);
                     }
