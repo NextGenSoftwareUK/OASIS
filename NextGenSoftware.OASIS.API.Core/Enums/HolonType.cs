@@ -10,6 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Mission,
         Chapter,
         Quest,
+        InventoryItem,
         Park,
         Building,
         Restaurant,

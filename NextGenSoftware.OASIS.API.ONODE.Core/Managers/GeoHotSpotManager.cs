@@ -2,16 +2,17 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
-    public class GeoHotSpotManager : OASISManager
+    public class GeoHotSpotManager : PublishManagerBase
     {
         public GeoHotSpotManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
         {
@@ -23,215 +24,171 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
         }
 
-       public async Task<OASISResult<IGeoHotSpot>> CreateGeoHotSpotAsync(bool isARHotSpot, GeoHotSpotTriggeredType triggerType, string threeDObject = null, string twoDSprite = null, ProviderType providerType = ProviderType.Default)
-       {
-            OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
-            string errorMessage = "Error occured in GeoHotSpotManager.CreateGeoHotSpotAsync. Reason:";
-
-            try
-            {
-                if (string.IsNullOrEmpty(threeDObject) && string.IsNullOrEmpty(twoDSprite))
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Both the threeDObject param and twoDSprite param are null, you need to specify at least one of these!");
-                else
-                {
-                    result.Result = new GeoHotSpot()
-                    {
-                        IsARHotSpot = isARHotSpot,
-                        TriggerType = triggerType,
-                        ThreeDObject = threeDObject,
-                        TwoDSprite = twoDSprite
-                    };
-
-                    OASISResult<GeoHotSpot> saveResult = await Data.SaveHolonAsync<GeoHotSpot>(result.Result, true, true, 0, true, false, providerType);
-                    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
-                    result.Result = saveResult.Result;
-
-                    //if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
-                    //{
-                    //    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
-                    //    result.Result = saveResult.Result;
-                    //}
-                }
-            }
-            catch (Exception ex) 
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured: {ex}");
-            }
-
-            return result;
-       }
-
-        public OASISResult<IGeoHotSpot> CreateGeoHotSpot(bool isARHotSpot, GeoHotSpotTriggeredType triggerType, string threeDObject = null, string twoDSprite = null, ProviderType providerType = ProviderType.Default)
+        //TODO: Make all other Managers follow this pattern/design (so use Save instead of Create and Update)
+        #region COSMICManagerBase
+        public async Task<OASISResult<IGeoHotSpot>> SaveGeoHotSpotAsync(IGeoHotSpot geoHotSpotItem, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
-            string errorMessage = "Error occured in GeoHotSpotManager.CreateGeoHotSpot. Reason:";
-
-            try
-            {
-                if (string.IsNullOrEmpty(threeDObject) && string.IsNullOrEmpty(twoDSprite))
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Both the threeDObject param and twoDSprite param are null, you need to specify at least one of these!");
-                else
-                {
-                    result.Result = new GeoHotSpot()
-                    {
-                        IsARHotSpot = isARHotSpot,
-                        TriggerType = triggerType,
-                        ThreeDObject = threeDObject,
-                        TwoDSprite = twoDSprite
-                    };
-
-                    OASISResult<GeoHotSpot> saveResult = Data.SaveHolon<GeoHotSpot>(result.Result, true, true, 0, true, false, providerType);
-                    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
-                    result.Result = saveResult.Result;
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured: {ex}");
-            }
-
+            OASISResult<GeoHotSpot> saveResult = await SaveHolonAsync<GeoHotSpot>(geoHotSpotItem, avatarId, providerType, "GeoHotSpotManager.SaveGeoHotSpotAsync");
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+            result.Result = saveResult.Result;
             return result;
         }
 
-        public async Task<OASISResult<IGeoHotSpot>> UpdateGeoHotSpotAsync(IGeoHotSpot geoHotSpot, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IGeoHotSpot> SaveGeoHotSpot(IGeoHotSpot geoHotSpotItem, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
-            string errorMessage = "Error occured in GeoHotSpotManager.UpdateGeoHotSpotAsync. Reason:";
-
-            try
-            {
-                //TODO: Double check this is done automatically (it is in the PreparetoSaveHolon method in HolonManager but because this Manager can also be used in the REST API we need to pass the avatarId in to every method call to make sure the avatarId is correct).
-                geoHotSpot.ModifiedByAvatarId = avatarId;
-                geoHotSpot.ModifiedDate = DateTime.Now;
-
-                OASISResult<GeoHotSpot> saveResult = await geoHotSpot.SaveAsync<GeoHotSpot>(true, true, 0, true, false, providerType);
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
-                result.Result = saveResult.Result;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured: {ex}");
-            }
-
+            OASISResult<GeoHotSpot> saveResult = SaveHolon<GeoHotSpot>(geoHotSpotItem, avatarId, providerType, "GeoHotSpotManager.SaveGeoHotSpot");
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+            result.Result = saveResult.Result;
             return result;
         }
 
-        public OASISResult<IGeoHotSpot> UpdateGeoHotSpot(IGeoHotSpot geoHotSpot, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IGeoHotSpot>> LoadGeoHotSpotAsync(Guid geoHotSpotItemId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
-            string errorMessage = "Error occured in GeoHotSpotManager.UpdateGeoHotSpot. Reason:";
-
-            try
-            {
-                //TODO: Double check this is done automatically (it is in the PreparetoSaveHolon method in HolonManager but because this Manager can also be used in the REST API we need to pass the avatarId in to every method call to make sure the avatarId is correct).
-                geoHotSpot.ModifiedByAvatarId = avatarId;
-                geoHotSpot.ModifiedDate = DateTime.Now;
-
-                OASISResult<GeoHotSpot> saveResult = geoHotSpot.Save<GeoHotSpot>(true, true, 0, true, false, providerType);
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
-                result.Result = saveResult.Result;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured: {ex}");
-            }
-
+            OASISResult<GeoHotSpot> loadResult = await LoadHolonAsync<GeoHotSpot>(geoHotSpotItemId, providerType, "GeoHotSpotManager.LoadGeoHotSpotAsync");
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
+            result.Result = loadResult.Result;
             return result;
         }
 
-        public async Task<OASISResult<IGeoHotSpot>> LoadGeoHotSpotAsync(Guid geoHotSpotId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IGeoHotSpot> LoadGeoHotSpot(Guid geoHotSpotItemId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
-            string errorMessage = "Error occured in GeoHotSpotManager.LoadGeoHotSpotAsync. Reason:";
-
-            try
-            {
-                OASISResult<GeoHotSpot> loadResult = await Data.LoadHolonAsync<GeoHotSpot>(geoHotSpotId, true, true, 0, true, false, HolonType.All, 0, providerType);
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
-                result.Result = loadResult.Result;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured: {ex}");
-            }
-
+            OASISResult<GeoHotSpot> loadResult = LoadHolon<GeoHotSpot>(geoHotSpotItemId, providerType, "GeoHotSpotManager.LoadGeoHotSpot");
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
+            result.Result = loadResult.Result;
             return result;
         }
 
-        public OASISResult<IGeoHotSpot> LoadGeoHotSpot(Guid geoHotSpotId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IGeoHotSpot>>> LoadAllGeoHotSpotsAsync(ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
-            string errorMessage = "Error occured in GeoHotSpotManager.LoadGeoHotSpotAsync. Reason:";
+            OASISResult<IEnumerable<IGeoHotSpot>> result = new OASISResult<IEnumerable<IGeoHotSpot>>();
+            OASISResult<IEnumerable<GeoHotSpot>> loadHolonsResult = await LoadAllHolonsAsync<GeoHotSpot>(providerType, "GeoHotSpotManager.LoadAllGeoHotSpotsAsync", HolonType.GeoHotSpot);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
 
-            try
-            {
-                OASISResult<GeoHotSpot> loadResult = Data.LoadHolon<GeoHotSpot>(geoHotSpotId, true, true, 0, true, false, HolonType.All, 0, providerType);
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
-                result.Result = loadResult.Result;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured: {ex}");
-            }
-
+        public OASISResult<IEnumerable<IGeoHotSpot>> LoadAllGeoHotSpots(ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IGeoHotSpot>> result = new OASISResult<IEnumerable<IGeoHotSpot>>();
+            OASISResult<IEnumerable<GeoHotSpot>> loadHolonsResult = LoadAllHolons<GeoHotSpot>(providerType, "GeoHotSpotManager.LoadAllGeoHotSpots", HolonType.GeoHotSpot);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
             return result;
         }
 
         public async Task<OASISResult<IEnumerable<IGeoHotSpot>>> LoadAllGeoHotSpotsForAvatarAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IGeoHotSpot>> result = new OASISResult<IEnumerable<IGeoHotSpot>>();
-            string errorMessage = "Error occured in GeoHotSpotManager.LoadAllGeoHotSpotsForAvatarAsync. Reason:";
-
-            try
-            {
-                OASISResult<IEnumerable<GeoHotSpot>> loadHolonsResult = await Data.LoadHolonsForParentAsync<GeoHotSpot>(avatarId, HolonType.GeoHotSpot, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-                result.Result = loadHolonsResult.Result;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured: {ex}");
-            }
-
+            OASISResult<IEnumerable<GeoHotSpot>> loadHolonsResult = await LoadAllHolonsForAvatarAsync<GeoHotSpot>(avatarId, providerType, "GeoHotSpotManager.LoadAllGeoHotSpotsForAvatarAsync", HolonType.GeoHotSpot);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
             return result;
         }
 
         public OASISResult<IEnumerable<IGeoHotSpot>> LoadAllGeoHotSpotsForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IGeoHotSpot>> result = new OASISResult<IEnumerable<IGeoHotSpot>>();
-            string errorMessage = "Error occured in GeoHotSpotManager.LoadAllGeoHotSpotsForAvatarAsync. Reason:";
-
-            try
-            {
-                OASISResult<IEnumerable<GeoHotSpot>> loadHolonsResult = Data.LoadHolonsForParent<GeoHotSpot>(avatarId, HolonType.GeoHotSpot, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-                result.Result = loadHolonsResult.Result;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured: {ex}");
-            }
-
+            OASISResult<IEnumerable<GeoHotSpot>> loadHolonsResult = LoadAllHolonsForAvatar<GeoHotSpot>(avatarId, providerType, "GeoHotSpotManager.LoadAllGeoHotSpotsForAvatarAsync", HolonType.GeoHotSpot);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
             return result;
         }
 
-        //public async Task<OASISResult<IEnumerable<IGeoHotSpot>>> LoadAllGeoHotSpotsForQuestAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
-        //{
-        //    OASISResult<IEnumerable<IGeoHotSpot>> result = new OASISResult<IEnumerable<IGeoHotSpot>>();
-        //    string errorMessage = "Error occured in GeoHotSpotManager.LoadAllGeoHotSpotsForAvatarAsync. Reason:";
+        public async Task<OASISResult<IGeoHotSpot>> DeleteGeoHotSpotAsync(Guid geoHotSpotId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
+            OASISResult<GeoHotSpot> loadHolonsResult = await DeleteHolonAsync<GeoHotSpot>(geoHotSpotId, softDelete, providerType, "GeoHotSpotManager.DeleteGeoHotSpotAsync");
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
 
-        //    try
-        //    {
-        //        OASISResult<IEnumerable<GeoHotSpot>> loadHolonsResult = await Data.LoadHolonsForParentAsync<GeoHotSpot>(avatarId, HolonType.GeoHotSpot, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
-        //        result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-        //        result.Result = loadHolonsResult.Result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured: {ex}");
-        //    }
+        public OASISResult<IGeoHotSpot> DeleteGeoHotSpot(Guid geoHotSpotId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
+            OASISResult<GeoHotSpot> loadHolonsResult = DeleteHolon<GeoHotSpot>(geoHotSpotId, softDelete, providerType, "GeoHotSpotManager.DeleteGeoHotSpot");
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+        #endregion
 
-        //    return result;
-        //}
+        #region PublishManagerBase
+        public async Task<OASISResult<IGeoHotSpot>> PublishGeoHotSpotAsync(Guid geoHotSpotId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
+            OASISResult<GeoHotSpot> saveResult = await PublishHolonAsync<GeoHotSpot>(geoHotSpotId, avatarId, "GeoHotSpotManager.PublishGeoHotSpotAsync", providerType);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+            result.Result = saveResult.Result;
+            return result;
+        }
+
+        public OASISResult<IGeoHotSpot> PublishGeoHotSpot(Guid geoHotSpotId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
+            OASISResult<GeoHotSpot> saveResult = PublishHolon<GeoHotSpot>(geoHotSpotId, avatarId, "GeoHotSpotManager.PublishGeoHotSpot", providerType);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+            result.Result = saveResult.Result;
+            return result;
+        }
+
+        public async Task<OASISResult<IGeoHotSpot>> PublishGeoHotSpotAsync(IGeoHotSpot geoHotSpot, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
+            OASISResult<GeoHotSpot> saveResult = await PublishHolonAsync<GeoHotSpot>(geoHotSpot, avatarId, "GeoHotSpotManager.PublishGeoHotSpotAsync", providerType);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+            result.Result = saveResult.Result;
+            return result;
+        }
+
+        public OASISResult<IGeoHotSpot> PublishGeoHotSpot(IGeoHotSpot geoHotSpot, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
+            OASISResult<GeoHotSpot> saveResult = PublishHolon<GeoHotSpot>(geoHotSpot, avatarId, "GeoHotSpotManager.PublishGeoHotSpot", providerType);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+            result.Result = saveResult.Result;
+            return result;
+        }
+
+        public async Task<OASISResult<IGeoHotSpot>> UnpublishGeoHotSpotAsync(Guid geoHotSpotId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
+            OASISResult<GeoHotSpot> saveResult = await UnpublishHolonAsync<GeoHotSpot>(geoHotSpotId, avatarId, "GeoHotSpotManager.UnpublishGeoHotSpotAsync", providerType);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+            result.Result = saveResult.Result;
+            return result;
+        }
+
+        public OASISResult<IGeoHotSpot> UnpublishGeoHotSpot(Guid geoHotSpotId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
+            OASISResult<GeoHotSpot> saveResult = UnpublishHolon<GeoHotSpot>(geoHotSpotId, avatarId, "GeoHotSpotManager.UnpublishGeoHotSpot", providerType);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+            result.Result = saveResult.Result;
+            return result;
+        }
+
+        public async Task<OASISResult<IGeoHotSpot>> UnpublishGeoHotSpotAsync(IGeoHotSpot geoHotSpot, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
+            OASISResult<GeoHotSpot> saveResult = await UnpublishHolonAsync<GeoHotSpot>(geoHotSpot, avatarId, "GeoHotSpotManager.UnpublishGeoHotSpotAsync", providerType);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+            result.Result = saveResult.Result;
+            return result;
+        }
+
+        public OASISResult<IGeoHotSpot> UnpublishGeoHotSpot(IGeoHotSpot geoHotSpot, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
+            OASISResult<GeoHotSpot> saveResult = UnpublishHolon<GeoHotSpot>(geoHotSpot, avatarId, "GeoHotSpotManager.UnpublishGeoHotSpot", providerType);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+            result.Result = saveResult.Result;
+            return result;
+        }
+        #endregion
     }
 }
