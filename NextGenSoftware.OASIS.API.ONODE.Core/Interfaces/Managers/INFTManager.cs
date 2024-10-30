@@ -23,9 +23,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers
         OASISResult<IOASISNFT> LoadNft(Guid id, ProviderType providerType);
         Task<OASISResult<IOASISNFT>> LoadNftAsync(string hash, ProviderType providerType);
         OASISResult<IOASISNFT> LoadNft(string hash, ProviderType providerType);
-        OASISResult<IOASISNFTProvider> GetNFTProvider(NFTProviderType NFTProviderType, string errorMessage = "");
-        OASISResult<IOASISNFTProvider> GetNFTProvider(ProviderType providerType, string errorMessage = "");
-        NFTProviderType GetNFTProviderTypeFromProviderType(ProviderType providerType);
-        ProviderType GetProviderTypeFromNFTProviderType(NFTProviderType nftProviderType);
+        //OASISResult<IOASISNFTProvider> GetNFTProvider(NFTProviderType NFTProviderType, string errorMessage = "");
+        //OASISResult<IOASISNFTProvider> GetNFTProvider(ProviderType providerType, string errorMessage = "");
+        //NFTProviderType GetNFTProviderTypeFromProviderType(ProviderType providerType);
+        //ProviderType GetProviderTypeFromNFTProviderType(NFTProviderType nftProviderType);
     }
 }

@@ -126,6 +126,16 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
                 return _createdByAvatar;
             }
+            set
+            {
+                if (value != _createdByAvatar)
+                {
+                    IsChanged = true;
+                    NotifyPropertyChanged("CreatedByAvatar");
+                }
+
+                _createdByAvatar = value;
+            }
         }
         
         public DateTime CreatedDate { get; set; }
@@ -145,6 +155,16 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
                 return _modifiedByAvatar;
             }
+            set
+            {
+                if (value != _modifiedByAvatar)
+                {
+                    IsChanged = true;
+                    NotifyPropertyChanged("ModifiedByAvatar");
+                }
+
+                _modifiedByAvatar = value;
+            }
         }
 
         public DateTime ModifiedDate { get; set; }
@@ -163,6 +183,16 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 }
 
                 return _deletedByAvatar;
+            }
+            set
+            {
+                if (value != _deletedByAvatar)
+                {
+                    IsChanged = true;
+                    NotifyPropertyChanged("DeletedByAvatar");
+                }
+
+                _deletedByAvatar = value;
             }
         }
 

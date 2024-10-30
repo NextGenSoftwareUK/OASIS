@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForAvatarAsync(Guid avatarId, ProviderType providerType = ProviderType.Default);
         OASISResult<IEnumerable<IQuest>> LoadAllQuestsForMission(Guid missionId, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForMissionAsync(Guid missionId, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForOAPPAsync(Guid OAPPId, ProviderType providerType = ProviderType.Default);
+        //Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForOAPPAsync(Guid OAPPId, ProviderType providerType = ProviderType.Default);
         OASISResult<IQuest> LoadQuest(Guid questId, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IQuest>> LoadQuestAsync(Guid questId, ProviderType providerType = ProviderType.Default);
         OASISResult<IQuest> RemoveGeoHotSpotFromQuest(Guid parentQuestId, Guid geoHotSpotId, Guid avatarId, ProviderType providerType = ProviderType.Default);

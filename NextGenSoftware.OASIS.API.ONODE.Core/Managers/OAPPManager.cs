@@ -589,7 +589,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         //    }
         //}
 
-        public OASISResult<IOAPPDNA> PublishOAPP(string fullPathToOAPP, string launchTarget, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> PublishOAPP(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.PublishOAPP. Reason: ";
@@ -606,6 +606,20 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     {
                         string publishedOAPPFileName = string.Concat(readOAPPDNAResult.Result.OAPPName, ".oapp");
                         string tempPath = Path.Combine(Path.GetTempPath(), publishedOAPPFileName);
+
+                        if (dotnetPublish)
+                        {
+                            //TODO: Finish implementing this.
+                            //Process.Start("dotnet publish -c Release -r <RID> --self-contained");
+                            //Process.Start("dotnet publish -c Release -r win-x64 --self-contained");
+                            //string command = 
+
+                            string dotnetPublishPath = Path.Combine(fullPathToOAPP, "dotnetPublished");
+                            Process.Start($"dotnet publish PROJECT {fullPathToOAPP} -c Release --self-contained -output {dotnetPublishPath}");
+                            fullPathToOAPP = dotnetPublishPath;
+
+                            //"bin\\Release\\net8.0\\";
+                        }
 
                         if (string.IsNullOrEmpty(fullPathToPublishTo))
                             fullPathToPublishTo = Path.Combine(fullPathToOAPP, "Published", publishedOAPPFileName);
@@ -646,16 +660,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 result.IsSaved = true;
                             }
                             else
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPResult.Message}");
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPP on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPResult.Message}");
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadOAPPResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadOAPP on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadOAPPResult.Message}");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadAvatarResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatar on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadAvatarResult.Message}");
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling ReadOAPPDNAAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {readOAPPDNAResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling ReadOAPPDNA on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {readOAPPDNAResult.Message}");
             }
             catch (Exception ex)
             {

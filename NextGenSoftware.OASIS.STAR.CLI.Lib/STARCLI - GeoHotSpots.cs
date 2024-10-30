@@ -2,9 +2,7 @@
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
@@ -181,4 +179,3 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
     }
 }
-
