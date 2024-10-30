@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -17,7 +18,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             string name = CLIEngine.GetValidInput("What is the name of the mission?");
             string description = CLIEngine.GetValidInput("What is the description of the mission?");
 
-            result = await STAR.OASISAPI.Missions.CreateMissionAsync(name, description, STAR.BeamedInAvatar.Id, providerType);
+            //result = await STAR.OASISAPI.Missions.CreateMissionAsync(name, description, STAR.BeamedInAvatar.Id, providerType); //TODO: Not sure which way is better?
+            result = await STAR.OASISAPI.Missions.SaveMissionAsync(new Mission()
+            {
+                Name = name,
+                Description = description,
+            }, STAR.BeamedInAvatar.Id, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
                 CLIEngine.ShowSuccessMessage("Mission Successfully Created.");
@@ -165,7 +171,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             else if (CLIEngine.GetConfirmation("Would you like to create the GeoHotSpot now?"))
                             {
-                                OASISResult<IGeoHotSpot> geoHotSpotResult = await CreateGeoHotSpot();
+                                OASISResult<IGeoHotSpot> geoHotSpotResult = await CreateGeoHotSpotAsync();
 
                                 if (geoHotSpotResult != null && !geoHotSpotResult.IsError && geoHotSpotResult.Result != null)
                                     geoHotSpotId = geoHotSpotResult.Result.Id;

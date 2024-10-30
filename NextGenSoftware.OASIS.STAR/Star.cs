@@ -1408,14 +1408,14 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         //Publish
-        public static async Task<OASISResult<IOAPPDNA>> SeedAsync(string fullPathToOAPP, string launchTarget, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IOAPPDNA>> SeedAsync(string fullPathToOAPP, string launchTarget, bool registerOnSTARNET = true, bool dotnetPublish = true, string fullPathToPublishTo = "",  ProviderType providerType = ProviderType.Default)
         {
-            return await OASISAPI.OAPPs.PublishOAPPAsync(fullPathToOAPP, launchTarget, BeamedInAvatar.AvatarId, registerOnSTARNET, providerType);
+            return await OASISAPI.OAPPs.PublishOAPPAsync(fullPathToOAPP, launchTarget, BeamedInAvatar.AvatarId, dotnetPublish, fullPathToPublishTo, registerOnSTARNET, providerType);
         }
 
-        public static OASISResult<IOAPPDNA> Seed(string fullPathToOAPP, string launchTarget, bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public static OASISResult<IOAPPDNA> Seed(string fullPathToOAPP, string launchTarget, bool registerOnSTARNET = true, bool dotnetPublish = true, string fullPathToPublishTo = "", ProviderType providerType = ProviderType.Default)
         {
-            return OASISAPI.OAPPs.PublishOAPP(fullPathToOAPP, launchTarget, BeamedInAvatar.AvatarId, registerOnSTARNET, providerType);
+            return OASISAPI.OAPPs.PublishOAPP(fullPathToOAPP, launchTarget, BeamedInAvatar.AvatarId, dotnetPublish, fullPathToPublishTo, registerOnSTARNET, providerType);
         }
 
         public static async Task<OASISResult<IOAPPDNA>> UnSeedAsync(Guid OAPPId, ProviderType providerType = ProviderType.Default)

@@ -14,14 +14,14 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
     {
         IList<IHolon> Children { get; set; } //Allows any holon to add any number of custom child holons to it.
         IReadOnlyCollection<IHolon> AllChildren { get; } //Readonly collection of all the total children including all the zomes, celestialbodies, celestialspaces, moons, holons, planets, stars etc belong to the holon.
-        IAvatar CreatedByAvatar { get; }
+        IAvatar CreatedByAvatar { get; set; }
         Guid CreatedByAvatarId { get; set; }
         //string CreatedByAvatarUsername { get; set; }
         DateTime CreatedDate { get; set; }
         EnumValue<OASISType> CreatedOASISType { get; set; }
         EnumValue<ProviderType> CreatedProviderType { get; set; }
         string CustomKey { get; set; }
-        IAvatar DeletedByAvatar { get; }
+        IAvatar DeletedByAvatar { get; set; }
         Guid DeletedByAvatarId { get; set; }
         //string DeletedByAvatarUsername { get; set; }
         DateTime DeletedDate { get; set; }
@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         bool IsNewHolon { get; set; }
         bool IsSaving { get; set; }
         Dictionary<string, object> MetaData { get; set; }
-        IAvatar ModifiedByAvatar { get; }
+        IAvatar ModifiedByAvatar { get; set; }
         Guid ModifiedByAvatarId { get; set; }
        // string ModifiedByAvatarUsername { get; set; }
         DateTime ModifiedDate { get; set; }

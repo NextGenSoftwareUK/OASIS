@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
             this.Name=source.Name;
             this.Description=source.Description;
-            this.Quantity=source.Quantity;
+            //this.Quantity=source.Quantity;
         }
 
         public InventoryItem GetInventoryItem(){
@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
             item.Name=this.Name;
             item.Description=this.Description;
-            item.Quantity=this.Quantity;
+           // item.Quantity=this.Quantity;
 
             return(item);
         }

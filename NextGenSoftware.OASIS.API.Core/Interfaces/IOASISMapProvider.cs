@@ -23,10 +23,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         bool PanMapUp(float value);
         bool SelectBuildingOnMap(IBuilding building);
         bool SelectHolonOnMap(IHolon holon);
-        bool SelectQuestOnMap(IQuest quest);
+       // bool SelectQuestOnMap(IQuest quest); //TODO: Fix later
         bool ZoomMapIn(float value);
         bool ZoomMapOut(float value);
         bool ZoomToHolonOnMap(IHolon holon);
-        bool ZoomToQuestOnMap(IQuest quest);
+        // bool ZoomToQuestOnMap(IQuest quest); //TODO: Fix later
     }
 }

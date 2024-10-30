@@ -307,30 +307,30 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForOAPPAsync(Guid OAPPId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IQuest>> result = new OASISResult<IEnumerable<IQuest>>();
-            string errorMessage = "Error occured in QuestManager.LoadAllQuestsForAvatarAsync. Reason:";
+        //public async Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForOAPPAsync(Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<IEnumerable<IQuest>> result = new OASISResult<IEnumerable<IQuest>>();
+        //    string errorMessage = "Error occured in QuestManager.LoadAllQuestsForAvatarAsync. Reason:";
 
-            try
-            {
-                OASISResult<IEnumerable<Quest>> loadHolonsResult = await Data.LoadHolonsForParentAsync<Quest>(avatarId, HolonType.Quest, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+        //    try
+        //    {
+        //        OASISResult<IEnumerable<Quest>> loadHolonsResult = await Data.LoadHolonsForParentAsync<Quest>(avatarId, HolonType.Quest, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
 
-                if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
-                {
-                    result.Result = loadHolonsResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with Data.LoadHolonsForParentAsync. Reason: {loadHolonsResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
+        //        if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
+        //        {
+        //            result.Result = loadHolonsResult.Result;
+        //            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+        //        }
+        //        else
+        //            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with Data.LoadHolonsForParentAsync. Reason: {loadHolonsResult.Message}");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public async Task<OASISResult<IQuest>> CompleteQuestAsync(Guid questId, Guid avatarId, ProviderType providerType)
         {
