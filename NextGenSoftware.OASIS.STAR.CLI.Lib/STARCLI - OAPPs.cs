@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         private static Moon _jlaMoon;
         private static string _privateKey = "";
 
-        public static async Task LightWizard(ProviderType providerType = ProviderType.Default)
+        public static async Task LightWizardAsync(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<CoronalEjection> lightResult = null;
 
@@ -238,7 +238,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task<OASISResult<CoronalEjection>> GenerateCelestialBody(string OAPPName, string OAPPDesc, ICelestialBody parentCelestialBody, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> GenerateCelestialBodyAsync(string OAPPName, string OAPPDesc, ICelestialBody parentCelestialBody, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
             // Create (OApp) by generating dynamic template/scaffolding code.
             string message = $"Generating {Enum.GetName(typeof(GenesisType), genesisType)} '{OAPPName}' (OApp)";
@@ -273,7 +273,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return lightResult;
         }
 
-        public static async Task<OASISResult<CoronalEjection>> GenerateZomesAndHolons(string OAPPName, string OAPPDesc, OAPPType OAPPType, string zomesAndHolonsyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> GenerateZomesAndHolonsAsync(string OAPPName, string OAPPDesc, OAPPType OAPPType, string zomesAndHolonsyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
             // Create (OApp) by generating dynamic template/scaffolding code.
             CLIEngine.ShowWorkingMessage($"Generating Zomes & Holons...");
@@ -401,6 +401,65 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
                 CLIEngine.ShowErrorMessage($"An error occured unpublishing the OAPP. Reason: {unpublishResult.Message}");
+        }
+
+        public static async Task EditOAPPAsync(ProviderType providerType = ProviderType.Default)
+        {
+            Guid OAPPId = CLIEngine.GetValidInputForGuid("What is the GUID/ID to the OAPP you wish to edit?");
+
+            CLIEngine.ShowWorkingMessage("Loading OAPP...");
+            OASISResult<IOAPP> result = await STAR.OASISAPI.OAPPs.LoadOAPPAsync(OAPPId, providerType);
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                ShowOAPP(result.Result);
+
+                //TODO: Comeback to this.
+                result.Result.Name = CLIEngine.GetValidInput("What is the name of the OAPP?");
+                result.Result.Description = CLIEngine.GetValidInput("What is the description of the OAPP?");
+
+                result = await STAR.OASISAPI.OAPPs.SaveOAPPAsync(result.Result, providerType);
+                CLIEngine.ShowWorkingMessage("Saving OAPP...");
+
+                if (result != null && !result.IsError && result.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("OAPP Successfully Updated.");
+                    ShowOAPP(result.Result);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"An error occured updating the OAPP. Reason: {result.Message}");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"An error occured loading the OAPP. Reason: {result.Message}");
+        }
+
+        public static async Task DeleteOAPPAsync(ProviderType providerType = ProviderType.Default)
+        {
+            Guid OAPPId = CLIEngine.GetValidInputForGuid("What is the GUID/ID to the OAPP you wish to delete?");
+
+            CLIEngine.ShowWorkingMessage("Loading OAPP...");
+            OASISResult<IOAPP> result = await STAR.OASISAPI.OAPPs.LoadOAPPAsync(OAPPId);
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                ShowOAPP(result.Result);
+
+                if (CLIEngine.GetConfirmation("Are you sure you wish to delete the OAPP?"))
+                {
+                    CLIEngine.ShowWorkingMessage("Deleting OAPP...");
+                    result = await STAR.OASISAPI.OAPPs.DeleteOAPPAsync(result.Result, providerType);
+
+                    if (result != null && !result.IsError && result.Result != null)
+                    {
+                        CLIEngine.ShowSuccessMessage("OAPP Successfully Deleted.");
+                        ShowOAPP(result.Result);
+                    }
+                    else
+                        CLIEngine.ShowErrorMessage($"An error occured deleting the OAPP. Reason: {result.Message}");
+                }
+            }
+            else
+                CLIEngine.ShowErrorMessage($"An error occured loading the OAPP. Reason: {result.Message}");
         }
 
         public static async Task InstallOAPPAsync(Guid OAPPId = new Guid(), ProviderType providerType = ProviderType.Default)
@@ -577,6 +636,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
         }
 
+        public static async Task SearchOAPPsAsync(ProviderType providerType = ProviderType.Default)
+        {
+            
+        }
+
         public static async Task LoadCelestialBodyAsync<T>(T celestialBody, string name, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
         {
             CLIEngine.ShowWorkingMessage($"Loading {name}...");
@@ -600,61 +664,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 CLIEngine.ShowSuccessMessage($"{name} Loaded Successfully.");
                 ShowHolonProperties(holonResult.Result);
-                //Console.WriteLine("");
-
-                //if (holonResult.Result.Children != null && holonResult.Result.Children.Count > 0)
-                //    ShowHolons(holonResult.Result.Children);
             }
+        }
+
+        public static async Task ShowOAPPAsync()
+        {
+            Guid OAPPId = CLIEngine.GetValidInputForGuid("What is the GUID/ID to the OAPP you wish to view?");
+            
+            if (OAPPId != Guid.Empty)
+                await ShowOAPPAsync(OAPPId);
+        }
+
+        public static async Task ShowOAPPAsync(Guid OAPPId)
+        {
+            OASISResult<IOAPP> result = await STAR.OASISAPI.OAPPs.LoadOAPPAsync(OAPPId);
+
+            if (result != null && !result.IsError && result.Result != null)
+                ShowOAPP(result.Result);
         }
 
         //TODO: Once OAPP has been changed to OAPPDNA in OAPPManager this method will be redundant so can just use the other ShowOAPP method below (removes redundant code and redundant storage).
         public static void ShowOAPP(IOAPP oapp)
         {
-            //List<IZome> zomes = new List<IZome>();
-
-            //if (oapp.Children != null && oapp.Children.Count() > 0)
-            //{
-            //    foreach (IHolon holon in oapp.Children)
-            //        zomes.Add((IZome)holon);
-            //}
-
             ShowOAPP(oapp.OAPPDNA, Mapper.Convert<IHolon, IZome>(oapp.Children).ToList());
-
-            //CLIEngine.ShowMessage(string.Concat($"Id: ", oapp.Id != Guid.Empty ? oapp.Id : "None"));
-            //CLIEngine.ShowMessage(string.Concat($"Title: ", !string.IsNullOrEmpty(oapp.Name) ? oapp.Name : "None"));
-            //CLIEngine.ShowMessage(string.Concat($"Description: ", !string.IsNullOrEmpty(oapp.Description) ? oapp.Description : "None"));
-            //CLIEngine.ShowMessage(string.Concat($"OAPP Type: ", Enum.GetName(typeof(OAPPType), oapp.OAPPDNA.OAPPType)));
-            //CLIEngine.ShowMessage(string.Concat($"Genesis Type: ", Enum.GetName(typeof(GenesisType), oapp.OAPPDNA.GenesisType)));
-            //CLIEngine.ShowMessage(string.Concat($"Celestial Body Id: ", oapp.OAPPDNA.CelestialBodyId != Guid.Empty ? oapp.OAPPDNA.CelestialBodyId : "None"));
-
-            ////if (oapp.CelestialBody != null)
-            ////{
-            ////    CLIEngine.ShowMessage(string.Concat($"Celestial Body Name: ", oapp.CelestialBody != null ? oapp.CelestialBody.Name : "None"));
-            ////    CLIEngine.ShowMessage(string.Concat($"Celestial Body Type: ", Enum.GetName(typeof(HolonType), oapp.CelestialBody.HolonType)));
-            ////}
-
-            //CLIEngine.ShowMessage(string.Concat($"Created On: ", oapp.CreatedDate != DateTime.MinValue ? oapp.CreatedDate.ToString() : "None"));
-            //CLIEngine.ShowMessage(string.Concat($"Created By: ", oapp.CreatedByAvatarId != Guid.Empty ? string.Concat(oapp.OAPPDNA.CreatedByAvatarUsername, " (", oapp.CreatedByAvatarId.ToString(), ")") : "None"));
-            //CLIEngine.ShowMessage(string.Concat($"Published On: ", oapp.OAPPDNA.PublishedOn != DateTime.MinValue ? oapp.OAPPDNA.PublishedOn.ToString() : "None"));
-            //CLIEngine.ShowMessage(string.Concat($"Published By: ", oapp.OAPPDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(oapp.OAPPDNA.PublishedByAvatarUsername, " (", oapp.OAPPDNA.PublishedByAvatarId.ToString(), ")") : "None"));
-            //CLIEngine.ShowMessage(string.Concat($"Published On STARNET: ", oapp.PublishedOAPP != null ? "True" : "False"));
-            //CLIEngine.ShowMessage(string.Concat($"Version: ", oapp.Version));
-
-            ////CLIEngine.ShowMessage($"Zomes: ");
-            ////Console.WriteLine("");
-
-            ////if (oapp.CelestialBody != null && oapp.CelestialBody.CelestialBodyCore != null && oapp.CelestialBody.CelestialBodyCore.Zomes != null)
-            ////{
-            ////    Console.WriteLine("");
-            ////    ShowZomesAndHolons(oapp.CelestialBody.CelestialBodyCore.Zomes);
-            ////}
-            ////else if (oapp.Children != null && oapp.Children.Count() > 0)
-            ////{
-            ////    Console.WriteLine("");
-            ////    ShowHolons(oapp.Children, true, string.Concat(oapp.Children.Count(), " Child Zome(s)/Holons(s) Found", oapp.Children.Count() > 0 ? ":" : ""));
-            ////}
-
-            //CLIEngine.ShowDivider();
         }
 
         public static void ShowOAPP(IOAPPDNA oapp, List<IZome> zomes = null)

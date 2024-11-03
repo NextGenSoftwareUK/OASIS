@@ -471,6 +471,62 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        public async Task<OASISResult<IOAPP>> DeleteOAPPAsync(Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPP> result = await LoadOAPPAsync(OAPPId, providerType);
+
+            if (result != null && !result.IsError && result.Result != null)
+                result = await DeleteOAPPAsync(result.Result);
+            else
+                OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.DeleteOAPPAsync loading the OAPP. Reason: {result.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPP>> DeleteOAPP(Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPP> result = LoadOAPP(OAPPId, providerType);
+
+            if (result != null && !result.IsError && result.Result != null)
+                result = DeleteOAPP(result.Result);
+            else
+                OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.DeleteOAPP loading the OAPP. Reason: {result.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPP>> DeleteOAPPAsync(IOAPP OAPP, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IHolon> deleteResult = await OAPP.DeleteAsync(true, providerType);
+
+            if (deleteResult != null && !deleteResult.IsError && deleteResult.Result != null)
+            {
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon, IOAPP>(deleteResult);
+                result.Result = (IOAPP)deleteResult.Result;
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.DeleteOAPPAsync deleting the OAPP. Reason: {deleteResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPP> DeleteOAPP(IOAPP OAPP, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPP> result = new OASISResult<IOAPP>();
+            OASISResult<IHolon> deleteResult = OAPP.Delete(true, providerType);
+
+            if (deleteResult != null && !deleteResult.IsError && deleteResult.Result != null)
+            {
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon, IOAPP>(deleteResult);
+                result.Result = (IOAPP)deleteResult.Result;
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.DeleteOAPP deleting the OAPP. Reason: {deleteResult.Message}");
+
+            return result;
+        }
+
         public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
