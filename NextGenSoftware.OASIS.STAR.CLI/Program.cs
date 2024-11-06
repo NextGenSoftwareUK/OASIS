@@ -18,6 +18,9 @@ using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.STAR.CLI.Lib;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using Console = System.Console;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using NextGenSoftware.Utilities.ExtentionMethods;
+using System.Security.Cryptography;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 {
@@ -112,17 +115,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
             e.Cancel = true;
 
-                //if (_inMainMenu = false)
-                //    e.Cancel = !CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
-                //else
-                //    e.Cancel = true;
+            //if (_inMainMenu = false)
+            //    e.Cancel = !CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
+            //else
+            //    e.Cancel = true;
 
-                ////Console.WriteLine("\nThe read operation has been interrupted.");
-                ////Console.WriteLine($"  Key pressed: {e.SpecialKey}");
-                ////Console.WriteLine($"  Cancel property: {e.Cancel}");
+            ////Console.WriteLine("\nThe read operation has been interrupted.");
+            ////Console.WriteLine($"  Key pressed: {e.SpecialKey}");
+            ////Console.WriteLine($"  Cancel property: {e.Cancel}");
 
-                //if (e.Cancel)
-                //    ReadyPlayerOne();
+            //if (e.Cancel)
+            //    ReadyPlayerOne();
         }
 
         private static void STAR_OnDefaultCeletialBodyInit(object sender, EventArgs.DefaultCelestialBodyInitEventArgs e)
@@ -184,34 +187,34 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
-                            case "beamin":
-                                {
-                                    if (STAR.BeamedInAvatar == null)
-                                        await STARCLI.BeamInAvatar();
-                                    else
-                                        CLIEngine.ShowErrorMessage($"Avatar {STAR.BeamedInAvatar.Username} Already Beamed In. Please Beam Out First!");
-                                }
-                                break;
+                            //case "beamin":
+                            //    {
+                            //        if (STAR.BeamedInAvatar == null)
+                            //            await STARCLI.BeamInAvatar();
+                            //        else
+                            //            CLIEngine.ShowErrorMessage($"Avatar {STAR.BeamedInAvatar.Username} Already Beamed In. Please Beam Out First!");
+                            //    }
+                            //    break;
 
-                            case "beamout":
-                                {
-                                    if (STAR.BeamedInAvatar != null)
-                                    {
-                                        OASISResult<IAvatar> avatarResult = await STAR.BeamedInAvatar.BeamOutAsync();
+                            //case "beamout":
+                            //    {
+                            //        if (STAR.BeamedInAvatar != null)
+                            //        {
+                            //            OASISResult<IAvatar> avatarResult = await STAR.BeamedInAvatar.BeamOutAsync();
 
-                                        if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                                        {
-                                            STAR.BeamedInAvatar = null;
-                                            STAR.BeamedInAvatarDetail = null;
-                                            CLIEngine.ShowSuccessMessage("Avatar Successfully Beamed Out! We Hope You Enjoyed Your Time In The OASIS! Please Come Again! :)");
-                                        }
-                                        else
-                                            CLIEngine.ShowErrorMessage($"Error Beaming Out Avatar: {avatarResult.Message}");
-                                    }
-                                    else
-                                        CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
-                                }
-                                break;
+                            //            if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                            //            {
+                            //                STAR.BeamedInAvatar = null;
+                            //                STAR.BeamedInAvatarDetail = null;
+                            //                CLIEngine.ShowSuccessMessage("Avatar Successfully Beamed Out! We Hope You Enjoyed Your Time In The OASIS! Please Come Again! :)");
+                            //            }
+                            //            else
+                            //                CLIEngine.ShowErrorMessage($"Error Beaming Out Avatar: {avatarResult.Message}");
+                            //        }
+                            //        else
+                            //            CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                            //    }
+                            //    break;
 
                             case "help":
                                 {
@@ -258,7 +261,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     if (inputArgs.Length > 1)
                                     {
                                         if (inputArgs[1].ToLower() == "wiz")
-                                            await STARCLI.LightWizard();
+                                            await STARCLI.LightWizardAsync();
                                         else
                                         {
                                             CLIEngine.ShowWorkingMessage("Generating OAPP...");
@@ -319,7 +322,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         if (CLIEngine.GetConfirmation("Do you wish to start the wizard?"))
                                         {
                                             Console.WriteLine("");
-                                            await STARCLI.LightWizard();
+                                            await STARCLI.LightWizardAsync();
                                         }
                                         else
                                             Console.WriteLine("");
@@ -490,78 +493,80 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 break;
 
                             case "oapp":
-                                {
-                                    if (inputArgs.Length > 1)
-                                    {
-                                        switch (inputArgs[1].ToLower())
-                                        {
-                                            case "create":
-                                                await STARCLI.LightWizardAsync();
-                                                break;
+                                //if (inputArgs.Length > 1)
+                                //{
+                                //    switch (inputArgs[1].ToLower())
+                                //    {
+                                //        case "create":
+                                //            await STARCLI.LightWizardAsync();
+                                //            break;
 
-                                            case "update":
-                                                await STARCLI.EditOAPPAsync();
-                                                break;
+                                //        case "update":
+                                //            await STARCLI.EditOAPPAsync();
+                                //            break;
 
-                                            case "delete":
-                                                await STARCLI.DeleteOAPPAsync();
-                                                break;
+                                //        case "delete":
+                                //            await STARCLI.DeleteOAPPAsync();
+                                //            break;
 
-                                            case "install":
-                                                await STARCLI.InstallOAPPAsync();
-                                                break;
+                                //        case "install":
+                                //            await STARCLI.InstallOAPPAsync();
+                                //            break;
 
-                                            case "uninstall":
-                                                await STARCLI.UnInstallOAPPAsync();
-                                                break;
+                                //        case "uninstall":
+                                //            await STARCLI.UnInstallOAPPAsync();
+                                //            break;
 
-                                            case "publish":
-                                                await STARCLI.PublishOAPPAsync();
-                                                break;
+                                //        case "publish":
+                                //            await STARCLI.PublishOAPPAsync();
+                                //            break;
 
-                                            case "unpublish":
-                                                await STARCLI.UnPublishOAPPAsync();
-                                                break;
+                                //        case "unpublish":
+                                //            await STARCLI.UnPublishOAPPAsync();
+                                //            break;
 
-                                            case "show":
-                                                await STARCLI.ShowOAPPAsync();
-                                                break;
+                                //        case "show":
+                                //            await STARCLI.ShowOAPPAsync();
+                                //            break;
 
-                                            case "list":
-                                                {
-                                                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
-                                                        await STARCLI.ListAllOAPPsAsync();
+                                //        case "list":
+                                //            {
+                                //                if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+                                //                    await STARCLI.ListAllOAPPsAsync();
 
-                                                    else if (inputArgs[2] != null && inputArgs[2].ToLower() == "installed")
-                                                        await STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync();
-                                                    else
-                                                        await STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync();
-                                                }
-                                                break;
+                                //                else if (inputArgs[2] != null && inputArgs[2].ToLower() == "installed")
+                                //                    await STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync();
+                                //                else
+                                //                    await STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync();
+                                //            }
+                                //            break;
 
-                                            case "search":
-                                                await STARCLI.SearchOAPPs();
-                                                break;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("");
-                                        CLIEngine.ShowMessage("OAPP SUBCOMMANDS:", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("    create              Shortcut to the light sub-command.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("    update    {id/name} Update an existing OAPP for the given {id} or {name}.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("    delete    {id/name} Delete an existing OAPP for the given {id} or {name}.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("    install             Install a OAPP.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("    uninstall           Uninstall a OAPP.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("    publish   {id/name} Shortcut to the seed sub-command.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("    unpublish {id/name} Shortcut to the un-seed sub-command.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("    show      {id/name} Shows a OAPP for the given {id} or {name}.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("    list      {all}     List all OAPPs (contains zomes and holons) that have been generated.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("    list installed      List all OAPP's installed for the current beamed in avatar.", ConsoleColor.Green);
-                                        CLIEngine.ShowMessage("    search    {all}     Searches the OAPP's for the given search critera.", ConsoleColor.Green);
-                                        Console.WriteLine("");
-                                    }
-                                }
+                                //        case "search":
+                                //            await STARCLI.SearchOAPPsAsync();
+                                //            break;
+                                //    }
+                                //}
+                                //else
+                                //{
+                                //    ShowSubCommand("OAPP", "", true);
+
+                                //    //Console.WriteLine("");
+                                //    //CLIEngine.ShowMessage("OAPP SUBCOMMANDS:", ConsoleColor.Green);
+                                //    //CLIEngine.ShowMessage("    create              Shortcut to the light sub-command.", ConsoleColor.Green);
+                                //    //CLIEngine.ShowMessage("    update    {id/name} Update an existing OAPP for the given {id} or {name}.", ConsoleColor.Green);
+                                //    //CLIEngine.ShowMessage("    delete    {id/name} Delete an existing OAPP for the given {id} or {name}.", ConsoleColor.Green);
+                                //    //CLIEngine.ShowMessage("    install             Install a OAPP.", ConsoleColor.Green);
+                                //    //CLIEngine.ShowMessage("    uninstall           Uninstall a OAPP.", ConsoleColor.Green);
+                                //    //CLIEngine.ShowMessage("    publish   {id/name} Shortcut to the seed sub-command (Publish a OAPP to the STARNET Store).", ConsoleColor.Green);
+                                //    //CLIEngine.ShowMessage("    unpublish {id/name} Shortcut to the un-seed sub-command (Unpublish a OAPP from the STARNET Store).", ConsoleColor.Green);
+                                //    //CLIEngine.ShowMessage("    show      {id/name} Shows a OAPP for the given {id} or {name}.", ConsoleColor.Green);
+                                //    //CLIEngine.ShowMessage("    list      {all}     List all OAPPs (contains zomes and holons) that have been generated.", ConsoleColor.Green);
+                                //    //CLIEngine.ShowMessage("    list installed      List all OAPP's installed for the current beamed in avatar.", ConsoleColor.Green);
+                                //    //CLIEngine.ShowMessage("    search    {all}     Searches the OAPP's for the given search critera.", ConsoleColor.Green);
+                                //    //Console.WriteLine("");
+                                //}
+
+                                ShowSubCommand(inputArgs, "OAPP", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, STARCLI.PublishOAPPAsync, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true);
                                 break;
 
                             //case "installoapp":
@@ -587,130 +592,323 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             //    }
                             //    break;
 
-                            case "listhapps":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
+                            case "happ":
+                                //{
+                                //    if (inputArgs.Length > 1)
+                                //    {
+                                //        switch (inputArgs[1].ToLower())
+                                //        {
+                                //            case "create":
+                                //                await STARCLI.LightWizardAsync();
+                                //                break;
+
+                                //            case "update":
+                                //                await STARCLI.EditOAPPAsync();
+                                //                break;
+
+                                //            case "delete":
+                                //                await STARCLI.DeleteOAPPAsync();
+                                //                break;
+
+                                //            case "install":
+                                //                await STARCLI.InstallOAPPAsync();
+                                //                break;
+
+                                //            case "uninstall":
+                                //                await STARCLI.UnInstallOAPPAsync();
+                                //                break;
+
+                                //            case "publish":
+                                //                await STARCLI.PublishOAPPAsync();
+                                //                break;
+
+                                //            case "unpublish":
+                                //                await STARCLI.UnPublishOAPPAsync();
+                                //                break;
+
+                                //            case "show":
+                                //                await STARCLI.ShowOAPPAsync();
+                                //                break;
+
+                                //            case "list":
+                                //                {
+                                //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+                                //                        await STARCLI.ListAllOAPPsAsync();
+
+                                //                    else if (inputArgs[2] != null && inputArgs[2].ToLower() == "installed")
+                                //                        await STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync();
+                                //                    else
+                                //                        await STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync();
+                                //                }
+                                //                break;
+
+                                //            case "search":
+                                //                await STARCLI.SearchOAPPsAsync();
+                                //                break;
+                                //        }
+                                //    }
+                                //    else
+                                //    {
+                                //        ShowSubCommand("hApp", "", true);
+
+                                //        //Console.WriteLine("");
+                                //        //CLIEngine.ShowMessage("HAPP SUBCOMMANDS:", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    create              Create a hApp.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    update    {id/name} Update an existing hApp for the given {id} or {name}.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    delete    {id/name} Delete an existing hApp for the given {id} or {name}.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    install             Install a hApp.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    uninstall           Uninstall a hApp.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    publish   {id/name} Publish a hApp to the STARNET Store.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    unpublish {id/name} Unpublish a hApp from the STARNET Store.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    show      {id/name} Shows a hApp for the given {id} or {name}.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    list      {all}     List all hApp's (contains zomes and holons) that have been generated.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    list installed      List all hApp's installed for the current beamed in avatar.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    search    {all}     Searches the hApp's for the given search critera.", ConsoleColor.Green);
+                                //        //Console.WriteLine("");
+                                //    }
+                                //}
+
+                                ShowSubCommand(inputArgs, "hApp", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, STARCLI.PublishOAPPAsync, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true);
                                 break;
 
-                            case "listinstalledhapps":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
+                            //case "listhapps":
+                            //    {
+                            //        CLIEngine.ShowMessage("Coming soon...");
+                            //    }
+                            //    break;
+
+                            //case "listinstalledhapps":
+                            //    {
+                            //        CLIEngine.ShowMessage("Coming soon...");
+                            //    }
+                            //    break;
+
+                            case "celestialspace":
+                                //{
+                                //    if (inputArgs.Length > 1)
+                                //    {
+                                //        switch (inputArgs[1].ToLower())
+                                //        {
+                                //            case "create":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+
+                                //            case "update":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+
+                                //            case "delete":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+
+                                //            case "publish":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+
+                                //            case "unpublish":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+
+                                //            case "show":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+
+                                //            case "list":
+                                //                {
+                                //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+                                //                        CLIEngine.ShowMessage("Coming soon...");
+
+                                //                    else
+                                //                        CLIEngine.ShowMessage("Coming soon...");
+                                //                }
+                                //                break;
+
+                                //            case "search":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+                                //        }
+                                //    }
+                                //    else
+                                //    {
+                                //        ShowSubCommand("celestial space");
+
+                                //        //Console.WriteLine("");
+                                //        //CLIEngine.ShowMessage("CELESTIAL SPACE SUBCOMMANDS:", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    create              Create a celestial space.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    update    {id/name} Update an celestial space for the given {id} or {name}.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    delete    {id/name} Delete an celestial space for the given {id} or {name}.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    publish   {id/name} Publish a celestial space to the STARNET Store.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    unpublish {id/name} Unpublish a celestial space from the STARNET Store.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    show      {id/name} Shows a celestial space for the given {id} or {name}.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    list      {all}     List all celestial space's (contains zomes and holons) that have been generated.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    list installed      List all celestial space's installed for the current beamed in avatar.", ConsoleColor.Green);
+                                //        //CLIEngine.ShowMessage("    search    {all}     Searches the celestial space's for the given search critera.", ConsoleColor.Green);
+                                //        //Console.WriteLine("");
+                                //    }
+                                //}
+
+                                ShowSubCommand(inputArgs, "celestial space");
                                 break;
 
-                            case " listcelestialspaces":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
+                            //case " listcelestialspaces":
+                            //    {
+                            //        CLIEngine.ShowMessage("Coming soon...");
+                            //    }
+                            //    break;
+
+                            //case "listcelestialbodies":
+                            //    {
+                            //        CLIEngine.ShowMessage("Coming soon...");
+                            //    }
+                            //    break;
+
+                            case "celestialbody":
+                                //{
+                                //    if (inputArgs.Length > 1)
+                                //    {
+                                //        switch (inputArgs[1].ToLower())
+                                //        {
+                                //            case "create":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+
+                                //            case "update":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+
+                                //            case "delete":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+
+                                //            case "publish":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+
+                                //            case "unpublish":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+
+                                //            case "show":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+
+                                //            case "list":
+                                //                {
+                                //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+                                //                        CLIEngine.ShowMessage("Coming soon...");
+
+                                //                    else
+                                //                        CLIEngine.ShowMessage("Coming soon...");
+                                //                }
+                                //                break;
+
+                                //            case "search":
+                                //                CLIEngine.ShowMessage("Coming soon...");
+                                //                break;
+                                //        }
+                                //    }
+                                //    else
+                                //        ShowSubCommand("celestial body", "celestial bodies");
+                                //}
+
+                                ShowSubCommand(inputArgs, "celestial body", "celestial bodies");
                                 break;
 
-                            case "listcelestialbodies":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
+                            case "zome":
+                                ShowSubCommand(inputArgs);
                                 break;
 
-                            case "listzomes":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
+                            case "holon":
+                                ShowSubCommand(inputArgs);
                                 break;
 
-                            case "listholons":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
+                            case "mission":
+                                ShowSubCommand(inputArgs);
                                 break;
 
-                            case "showoapp":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
+                            case "chapter":
+                                ShowSubCommand(inputArgs);
                                 break;
 
-                            case "showhapp":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
+                            case "quest":
+                                ShowSubCommand(inputArgs);
                                 break;
 
-                            case " showcelestialspace":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "showcelestialbody":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "showzome":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "showholon":
+                            case "nft":
                                 {
                                     if (inputArgs.Length > 1)
                                     {
-                                        Guid id = Guid.Empty;
-
-                                        if (Guid.TryParse(inputArgs[1], out id))
+                                        switch (inputArgs[1].ToLower())
                                         {
-                                            OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.LoadHolonAsync(id);
+                                            case "mint":
+                                                await STARCLI.MintNFTAsync();
+                                                break;
 
-                                            if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
-                                                STARCLI.ShowHolonProperties(holonResult.Result);
-                                            else
-                                                CLIEngine.ShowErrorMessage($"Error Occured: {holonResult.Message}");
+                                            case "send":
+                                                await STARCLI.SendNFTAsync();
+                                                break;
                                         }
-                                        else
-                                            CLIEngine.ShowErrorMessage("The HolonID Is Not Valid.");
+
+                                        ShowSubCommand(inputArgs, "", "", null, null, null, null, null, null, null, STARCLI.ShowNFTAsync, STARCLI.ListNFTsForBeamedInAvatarAsync, STARCLI.ListAllNFTsAsync, null, null, ProviderType.Default, false, false, true, true, "burn");
                                     }
-                                    else
-                                        CLIEngine.ShowErrorMessage("No HolonID Specified.");
                                 }
                                 break;
 
-                            case "searchoapps":
+                            case "geonft":
                                 {
-                                    CLIEngine.ShowMessage("Coming soon...");
+                                    if (inputArgs.Length > 1)
+                                    {
+                                        switch (inputArgs[1].ToLower())
+                                        {
+                                            case "mint":
+                                                await STARCLI.MintGeoNFTAsync();
+                                                break;
+
+                                            case "place":
+                                                await STARCLI.PlaceGeoNFTAsync();
+                                                break;
+
+                                            case "send":
+                                                await STARCLI.SendNFTAsync(); //TODO: Implement SendGeoNFTAsync() here.
+                                                break;
+                                        }
+
+                                        ShowSubCommand(inputArgs, "", "", null, null, null, null, null, null, null, null, null, null, null, null, ProviderType.Default, false, false, true, true, "burn");
+                                    }
                                 }
                                 break;
 
-                            case "searchhapps":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
+                            case "geohotspot":
+                                ShowSubCommand(inputArgs);
                                 break;
 
-                            case "searchcelestialspaces":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
+                            case "avatar":
+                                ShowSubCommand(inputArgs);
                                 break;
 
-                            case "searchcelestialbodies":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
+                            //case "showholon":
+                            //    {
+                            //        if (inputArgs.Length > 1)
+                            //        {
+                            //            Guid id = Guid.Empty;
 
-                            case "searchzomes":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
+                            //            if (Guid.TryParse(inputArgs[1], out id))
+                            //            {
+                            //                OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.LoadHolonAsync(id);
 
-                            case "searchholons":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
+                            //                if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                            //                    STARCLI.ShowHolonProperties(holonResult.Result);
+                            //                else
+                            //                    CLIEngine.ShowErrorMessage($"Error Occured: {holonResult.Message}");
+                            //            }
+                            //            else
+                            //                CLIEngine.ShowErrorMessage("The HolonID Is Not Valid.");
+                            //        }
+                            //        else
+                            //            CLIEngine.ShowErrorMessage("No HolonID Specified.");
+                            //    }
+                            //    break;
+
 
                             case "saveholon":
                                 {
@@ -764,110 +962,74 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
-                            case "updateoapp":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
+                            //case "whoisbeamedin":
+                            //    {
+                            //        if (STAR.BeamedInAvatar != null)
+                            //            CLIEngine.ShowMessage($"Avatar {STAR.BeamedInAvatar.Username} Beamed In On {STAR.BeamedInAvatar.LastBeamedIn} And Last Beamed Out On {STAR.BeamedInAvatar.LastBeamedOut}. They Are Level {STAR.BeamedInAvatarDetail.Level} With {STAR.BeamedInAvatarDetail.Karma} Karma.", ConsoleColor.Green);
+                            //        else
+                            //            CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                            //    }
+                            //    break;
 
-                            case "updatehapp":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
+                            //case "showmyavatar":
+                            //    {
+                            //        if (STAR.BeamedInAvatar != null)
+                            //            STARCLI.ShowAvatarStats();
+                            //        else
+                            //            CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                            //    }
+                            //    break;
 
-                            case "updatecelestialspace":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
+                            //case "showavatar":
+                            //    {
+                            //        if (inputArgs.Length > 1)
+                            //        {
+                            //            Guid id = Guid.Empty;
 
-                            case "updatecelestialbody":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
+                            //            if (Guid.TryParse(inputArgs[1], out id))
+                            //            {
+                            //                OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatar.LoadAvatarAsync(id);
 
-                            case "updatezome":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
+                            //                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                            //                {
+                            //                    OASISResult<IAvatarDetail> avatarDetailResult = await STAR.OASISAPI.Avatar.LoadAvatarDetailAsync(id);
 
-                            case "updateholon":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
+                            //                    if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                            //                        STARCLI.ShowAvatar(avatarResult.Result, avatarDetailResult.Result);
+                            //                    else
+                            //                        CLIEngine.ShowErrorMessage($"Error Occured Loading Avatar Detail: {avatarDetailResult.Message}");
+                            //                }
+                            //                else
+                            //                    CLIEngine.ShowErrorMessage($"Error Occured Loading Avatar: {avatarResult.Message}");
+                            //            }
+                            //            else
+                            //                CLIEngine.ShowErrorMessage("The AvatarID Is Not Valid.");
+                            //        }
+                            //        else
+                            //            CLIEngine.ShowErrorMessage("No AvatarID Specified.");
+                            //    }
+                            //    break;
 
-                            case "whoisbeamedin":
-                                {
-                                    if (STAR.BeamedInAvatar != null)
-                                        CLIEngine.ShowMessage($"Avatar {STAR.BeamedInAvatar.Username} Beamed In On {STAR.BeamedInAvatar.LastBeamedIn} And Last Beamed Out On {STAR.BeamedInAvatar.LastBeamedOut}. They Are Level {STAR.BeamedInAvatarDetail.Level} With {STAR.BeamedInAvatarDetail.Karma} Karma.", ConsoleColor.Green);
-                                    else
-                                        CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
-                                }
-                                break;
+                            //case "editmyavatar":
+                            //    {
+                            //        if (STAR.BeamedInAvatar != null)
+                            //            CLIEngine.ShowMessage("Coming soon...");
+                            //        else
+                            //            CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                            //    }
+                            //    break;
 
-                            case "showmyavatar":
-                                {
-                                    if (STAR.BeamedInAvatar != null)
-                                        STARCLI.ShowAvatarStats();
-                                    else
-                                        CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
-                                }
-                                break;
+                            //case "listallavatars":
+                            //    {
+                            //        CLIEngine.ShowMessage("Coming soon...");
+                            //    }
+                            //    break;
 
-                            case "showavatar":
-                                {
-                                    if (inputArgs.Length > 1)
-                                    {
-                                        Guid id = Guid.Empty;
-
-                                        if (Guid.TryParse(inputArgs[1], out id))
-                                        {
-                                            OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatar.LoadAvatarAsync(id);
-
-                                            if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                                            {
-                                                OASISResult<IAvatarDetail> avatarDetailResult = await STAR.OASISAPI.Avatar.LoadAvatarDetailAsync(id);
-
-                                                if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
-                                                    STARCLI.ShowAvatar(avatarResult.Result, avatarDetailResult.Result);
-                                                else
-                                                    CLIEngine.ShowErrorMessage($"Error Occured Loading Avatar Detail: {avatarDetailResult.Message}");
-                                            }
-                                            else
-                                                CLIEngine.ShowErrorMessage($"Error Occured Loading Avatar: {avatarResult.Message}");
-                                        }
-                                        else
-                                            CLIEngine.ShowErrorMessage("The AvatarID Is Not Valid.");
-                                    }
-                                    else
-                                        CLIEngine.ShowErrorMessage("No AvatarID Specified.");
-                                }
-                                break;
-
-                            case "editmyavatar":
-                                {
-                                    if (STAR.BeamedInAvatar != null)
-                                        CLIEngine.ShowMessage("Coming soon...");
-                                    else
-                                        CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
-                                }
-                                break;
-
-                            case "listallavatars":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "searchavatars":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
+                            //case "searchavatars":
+                            //    {
+                            //        CLIEngine.ShowMessage("Coming soon...");
+                            //    }
+                            //    break;
 
                             case "listkarmalevels":
                                 {
@@ -902,57 +1064,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 break;
 
-                            case "mintnft":
-                                await STARCLI.MintNFTAsync();
-                                break;
+                            //case "shownft":
+                            //    {
+                            //        if (inputArgs.Length > 1)
+                            //        {
+                            //            Guid id = Guid.Empty;
 
-                            case "mintgeonft":
-                                await STARCLI.MintGeoNFTAsync();
-                                break;
-
-                            case "placegeonft":
-                                await STARCLI.PlaceGeoNFTAsync();
-                                break;
-
-                            case "listmynfts":
-                                await STARCLI.ListNFTsAsync();
-                                break;
-
-                            case "listnfts":
-                                await STARCLI.ListNFTsAsync();
-                                break;
-
-                            case "searchnfts":
-                                await STARCLI.ListNFTsAsync();
-                                break;
-
-                            case "shownft":
-                                {
-                                    if (inputArgs.Length > 1)
-                                    {
-                                        Guid id = Guid.Empty;
-
-                                        if (Guid.TryParse(inputArgs[1], out id))
-                                            await STARCLI.ShowNFTAsync(id);
-                                        else
-                                            CLIEngine.ShowErrorMessage($"The id ({inputArgs[1]}) passed in is not a valid GUID!");
-                                    }
-                                    else
-                                    {
-                                        //TODO: Add in future ability to seach by title.
-                                        Guid id = CLIEngine.GetValidInputForGuid("Enter the id you wish to search for?");
-                                        await STARCLI.ShowNFTAsync(id);
-                                    }
-                                }
-                                break;
-
-                            case "listmygeonfts":
-                                await STARCLI.ListGeoNFTsAsync();
-                                break;
-
-                            case "listgeonfts":
-                                await STARCLI.ListGeoNFTsAsync();
-                                break;
+                            //            if (Guid.TryParse(inputArgs[1], out id))
+                            //                await STARCLI.ShowNFTAsync(id);
+                            //            else
+                            //                CLIEngine.ShowErrorMessage($"The id ({inputArgs[1]}) passed in is not a valid GUID!");
+                            //        }
+                            //        else
+                            //        {
+                            //            //TODO: Add in future ability to seach by title.
+                            //            Guid id = CLIEngine.GetValidInputForGuid("Enter the id you wish to search for?");
+                            //            await STARCLI.ShowNFTAsync(id);
+                            //        }
+                            //    }
+                            //    break;
 
                             case "showgeonft":
                                 {
@@ -972,14 +1102,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         await STARCLI.ShowGeoNFTAsync(id);
                                     }
                                 }
-                                break;
-
-                            case "searchgeonft":
-                                CLIEngine.ShowMessage("Coming soon...");
-                                break;
-
-                            case "sendnft":
-                                await STARCLI.SendNFTAsync();
                                 break;
 
                             case "enablecosmicdetailedoutput":
@@ -1066,12 +1188,749 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     //if (keyInfo.KeyChar == 'c' && keyInfo.Modifiers == ConsoleModifiers.Control)
                     //    exit = CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
                 }
-            } 
+            }
             while (!exit);
 
             CLIEngine.ShowMessage("Thank you for using STAR & The OASIS! We hope you enjoyed your stay, have a nice day! :)");
             Console.ForegroundColor = ConsoleColor.White;
         }
+
+        private static async Task ShowAvatarSubCommand(string[] inputArgs)
+        {
+            if (inputArgs.Length > 1)
+            {
+                Guid id = Guid.Empty;
+
+                if (inputArgs.Length > 2)
+                {
+                    if (!Guid.TryParse(inputArgs[2], out id))
+                        CLIEngine.ShowErrorMessage($"The id ({inputArgs[2]}) passed in is not a valid GUID!");
+                }
+
+                switch (inputArgs[1].ToLower())
+                {
+                    case "beamin":
+                        {
+                            if (STAR.BeamedInAvatar == null)
+                                await STARCLI.BeamInAvatar();
+                            else
+                                CLIEngine.ShowErrorMessage($"Avatar {STAR.BeamedInAvatar.Username} Already Beamed In. Please Beam Out First!");
+                        }
+                        break;
+
+                    case "beamout":
+                        {
+                            if (STAR.BeamedInAvatar != null)
+                            {
+                                OASISResult<IAvatar> avatarResult = await STAR.BeamedInAvatar.BeamOutAsync();
+
+                                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                                {
+                                    STAR.BeamedInAvatar = null;
+                                    STAR.BeamedInAvatarDetail = null;
+                                    CLIEngine.ShowSuccessMessage("Avatar Successfully Beamed Out! We Hope You Enjoyed Your Time In The OASIS! Please Come Again! :)");
+                                }
+                                else
+                                    CLIEngine.ShowErrorMessage($"Error Beaming Out Avatar: {avatarResult.Message}");
+                            }
+                            else
+                                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                        }
+                        break;
+
+                    case "whoisbeamedin":
+                        {
+                            if (STAR.BeamedInAvatar != null)
+                                CLIEngine.ShowMessage($"Avatar {STAR.BeamedInAvatar.Username} Beamed In On {STAR.BeamedInAvatar.LastBeamedIn} And Last Beamed Out On {STAR.BeamedInAvatar.LastBeamedOut}. They Are Level {STAR.BeamedInAvatarDetail.Level} With {STAR.BeamedInAvatarDetail.Karma} Karma.", ConsoleColor.Green);
+                            else
+                                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                        }
+                        break;
+
+                    case "show":
+                        {
+                            if (STAR.BeamedInAvatar != null)
+                                STARCLI.ShowAvatarStats();
+                            else
+                                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                        }
+                        break;
+
+                    case "showavatar":
+                        {
+                            if (inputArgs.Length > 1)
+                            {
+                                Guid id = Guid.Empty;
+
+                                if (Guid.TryParse(inputArgs[1], out id))
+                                {
+                                    OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatar.LoadAvatarAsync(id);
+
+                                    if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                                    {
+                                        OASISResult<IAvatarDetail> avatarDetailResult = await STAR.OASISAPI.Avatar.LoadAvatarDetailAsync(id);
+
+                                        if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                                            STARCLI.ShowAvatar(avatarResult.Result, avatarDetailResult.Result);
+                                        else
+                                            CLIEngine.ShowErrorMessage($"Error Occured Loading Avatar Detail: {avatarDetailResult.Message}");
+                                    }
+                                    else
+                                        CLIEngine.ShowErrorMessage($"Error Occured Loading Avatar: {avatarResult.Message}");
+                                }
+                                else
+                                    CLIEngine.ShowErrorMessage("The AvatarID Is Not Valid.");
+                            }
+                            else
+                                CLIEngine.ShowErrorMessage("No AvatarID Specified.");
+                        }
+                        break;
+
+
+                    case "edit":
+                        {
+                            if (STAR.BeamedInAvatar != null)
+                                CLIEngine.ShowMessage("Coming soon...");
+                            else
+                                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                        }
+                        break;
+
+                    case "list":
+                        {
+                            CLIEngine.ShowMessage("Coming soon...");
+                        }
+                        break;
+
+                    case "search":
+                        {
+                            CLIEngine.ShowMessage("Coming soon...");
+                        }
+                        break;
+
+
+                    //case "beamin":
+                    //    {
+
+                    //    }
+                    //    break;
+
+                    //case "beamout":
+                    //    {
+
+                    //    }
+                    //    break;
+
+                    //case "whobeamedin":
+                    //    {
+                            
+                    //    }
+                    //    break;
+
+                    //case "show":
+                    //    {
+                            
+                    //    }
+                    //    break;
+
+                    //case "edit":
+                    //    {
+                           
+                    //    }
+                    //    break;
+
+                    //case "list":
+                    //    {
+                           
+                    //    }
+                    //    break;
+
+                    //case "search":
+                    //    {
+                            
+                    //    }
+                    //    break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowMessage($"AVATAR SUBCOMMANDS:", ConsoleColor.Green);
+                CLIEngine.ShowMessage("    beamin                       Beam in (log in).", ConsoleColor.Green);
+                CLIEngine.ShowMessage("    beamout                      Beam out (log out).", ConsoleColor.Green);
+                CLIEngine.ShowMessage("    whoisbeamedin                Display who is currently beamed in (if any) and the last time they beamed in and out.", ConsoleColor.Green);
+                CLIEngine.ShowMessage("    show me                      Display the currently beamed in avatar details (if any).", ConsoleColor.Green);
+                CLIEngine.ShowMessage("    show          {id/username}  Shows the details for the avatar for the given {id} or {username}.", ConsoleColor.Green);
+                CLIEngine.ShowMessage("    edit                         Edit the currently beamed in avatar.", ConsoleColor.Green);
+                CLIEngine.ShowMessage("    list                         Lists all avatars.", ConsoleColor.Green);
+                CLIEngine.ShowMessage("    search                       Seach avatars that match the given seach parameters (public fields only such as level, karma, username & any fields the player has set to public).", ConsoleColor.Green);
+                Console.WriteLine("");
+            }
+        }
+
+        private static void ShowSubCommand(string[] inputArgs, 
+            string subCommand = "",
+            string subCommandPlural = "",
+            Func<ProviderType, Task> createPredicate = null, 
+            Func<Guid, ProviderType, Task> updatePredicate = null, 
+            Func<Guid, ProviderType, Task> deletePredicate = null, 
+            Func<Guid, ProviderType, Task> installPredicate = null,
+            Func<Guid, ProviderType, Task> uninstallPredicate = null,
+            Func<Guid, ProviderType, Task> publishPredicate = null,
+            Func<Guid, ProviderType, Task> unpublishPredicate = null,
+            Func<Guid, ProviderType, Task> showPredicate = null,
+            Func<ProviderType, Task> listPredicate = null,
+            Func<ProviderType, Task> listAllPredicate = null,
+            Func<ProviderType, Task> listInstalledPredicate = null,
+            Func<ProviderType, Task> searchPredicate = null, 
+            ProviderType providerType = ProviderType.Default,
+            bool isOAPPOrHapp = false,
+            bool showCreate = true,
+            bool showUpdate = true,
+            bool showDelete = true,
+            string deleteName = "delete")
+        {
+            if (string.IsNullOrEmpty(subCommand))
+                subCommand = inputArgs[0];
+
+            if (inputArgs.Length > 1)
+            {
+                Guid id = Guid.Empty;
+
+                if (inputArgs.Length > 2)
+                {
+                    if (!Guid.TryParse(inputArgs[2], out id))
+                        CLIEngine.ShowErrorMessage($"The id ({inputArgs[2]}) passed in is not a valid GUID!");
+                }
+
+                switch (inputArgs[1].ToLower())
+                {
+                    case "create":
+                        {
+                            if (showCreate)
+                            {
+                                if (createPredicate != null)
+                                    createPredicate(providerType);
+                                else
+                                    CLIEngine.ShowMessage("Coming Soon...");
+                            }
+                            else
+                                CLIEngine.ShowMessage("Command not supported.");
+                        }
+                        break;
+
+                    case "update":
+                        {
+                            if (showUpdate)
+                            {
+                                if (updatePredicate != null)
+                                    updatePredicate(id, providerType);
+                                else
+                                    CLIEngine.ShowMessage("Coming Soon...");
+                            }
+                            else
+                                CLIEngine.ShowMessage("Command not supported.");
+                        }
+                        break;
+
+                    case "delete":
+                        {
+                            if (showDelete)
+                            {
+                                if (deletePredicate != null)
+                                    deletePredicate(id, providerType);
+                                else
+                                    CLIEngine.ShowMessage("Coming Soon...");
+                            }
+                            else
+                                CLIEngine.ShowMessage("Command not supported.");
+                        }
+                        break;
+
+                    case "install":
+                        {
+                            if (isOAPPOrHapp)
+                            {
+                                if (installPredicate != null)
+                                    installPredicate(id, providerType);
+                                else
+                                    CLIEngine.ShowMessage("Coming Soon...");
+                            }
+                            else
+                                CLIEngine.ShowMessage("Command not supported.");
+                        }
+                        break;
+
+                    case "uninstall":
+                        {
+                            if (isOAPPOrHapp)
+                            {
+                                if (uninstallPredicate != null)
+                                    uninstallPredicate(Guid.Empty, providerType);
+                                else
+                                    CLIEngine.ShowMessage("Coming Soon...");
+                            }
+                            else
+                                CLIEngine.ShowMessage("Command not supported.");
+                        }
+                        break;
+
+                    case "publish":
+                        {
+                            if (publishPredicate != null)
+                                publishPredicate(id, providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "unpublish":
+                        {
+                            if (unpublishPredicate != null)
+                                unpublishPredicate(id, providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "show":
+                        {
+                            if (showPredicate != null)
+                                showPredicate(id, providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "list":
+                        {
+                            if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+                            {
+                                if (listAllPredicate != null)
+                                    listAllPredicate(providerType);
+                                else
+                                    CLIEngine.ShowMessage("Coming Soon...");
+                            }
+                            else if (inputArgs[2] != null && inputArgs[2].ToLower() == "installed")
+                            {
+                                if (isOAPPOrHapp)
+                                {
+                                    if (listInstalledPredicate != null)
+                                        listInstalledPredicate(providerType);
+                                    else
+                                        CLIEngine.ShowMessage("Coming Soon...");
+                                }
+                                else
+                                    CLIEngine.ShowMessage("Command not supported.");
+                            }
+                            else
+                            {
+                                if (listPredicate != null)
+                                    listPredicate(providerType);
+                                else
+                                    CLIEngine.ShowMessage("Coming Soon...");
+                            }
+                        }
+                        break;
+
+                    case "search":
+                        {
+                            if (searchPredicate != null)
+                                searchPredicate(providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(subCommandPlural))
+                    subCommandPlural = $"{subCommand}'s";
+
+                Console.WriteLine("");
+                CLIEngine.ShowMessage($"{subCommand.ToUpper()} SUBCOMMANDS:", ConsoleColor.Green);
+                
+                if (showCreate)
+                    CLIEngine.ShowMessage(string.Concat("    create         {id/name} Create a ", subCommand, "."), ConsoleColor.Green);
+                
+                if (showUpdate)
+                    CLIEngine.ShowMessage(string.Concat("    update         {id/name} Update an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green);
+                
+                if (showDelete)
+                    CLIEngine.ShowMessage(string.Concat("    ", deleteName, "         { id/name} ", deleteName.ToPascalCase(), " an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green);
+                
+                if (isOAPPOrHapp)
+                {
+                    CLIEngine.ShowMessage(string.Concat("    install        {id/name} Install a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green);
+                    CLIEngine.ShowMessage(string.Concat("    uninstall      {id/name} Uninstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green);
+                }
+
+                CLIEngine.ShowMessage(string.Concat("    publish        {id/name} Publish a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green);
+                CLIEngine.ShowMessage(string.Concat("    unpublish      {id/name} Unpublish a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green);
+                CLIEngine.ShowMessage(string.Concat("    list           {id/name} List all ", subCommandPlural, " for the given {id} or {name}."), ConsoleColor.Green);
+
+                if (isOAPPOrHapp)
+                    CLIEngine.ShowMessage(string.Concat("    list installed {id/name} List all ", subCommandPlural, "' installed for the current beamed in avatar."), ConsoleColor.Green);
+
+                CLIEngine.ShowMessage(string.Concat("    search         {id/name} Searches the ", subCommandPlural, " for the given search critera."), ConsoleColor.Green);
+
+                //CLIEngine.ShowMessage($"    create              Create a {subCommand}.", ConsoleColor.Green);
+                //CLIEngine.ShowMessage("    delete    {id/name} Delete an existing hApp for the given {id} or {name}.", ConsoleColor.Green);
+                //CLIEngine.ShowMessage("    install             Install a hApp.", ConsoleColor.Green);
+                //CLIEngine.ShowMessage("    uninstall           Uninstall a hApp.", ConsoleColor.Green);
+                //CLIEngine.ShowMessage("    publish   {id/name} Publish a hApp to the STARNET Store.", ConsoleColor.Green);
+                //CLIEngine.ShowMessage("    unpublish {id/name} Unpublish a hApp from the STARNET Store.", ConsoleColor.Green);
+                //CLIEngine.ShowMessage("    show      {id/name} Shows a hApp for the given {id} or {name}.", ConsoleColor.Green);
+                //CLIEngine.ShowMessage("    list      {all}     List all hApp's (contains zomes and holons) that have been generated.", ConsoleColor.Green);
+                //CLIEngine.ShowMessage("    list installed      List all hApp's installed for the current beamed in avatar.", ConsoleColor.Green);
+                //CLIEngine.ShowMessage("    search    {all}     Searches the hApp's for the given search critera.", ConsoleColor.Green);
+                Console.WriteLine("");
+            }
+        }
+
+        //private static void ShowOappSubCommand(string[] inputArgs)
+        //{
+        //    if (inputArgs.Length > 1)
+        //    {
+        //        switch (inputArgs[1].ToLower())
+        //        {
+        //            case "create":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "update":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "delete":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "publish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "unpublish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "show":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "list":
+        //                {
+        //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+        //                        CLIEngine.ShowMessage("Coming soon...");
+
+        //                    else
+        //                        CLIEngine.ShowMessage("Coming soon...");
+        //                }
+        //                break;
+
+        //            case "search":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+        //        }
+        //    }
+        //    else
+        //        ShowSubCommand("celestial body", "celestial bodies");
+        //}
+
+        //private static void ShowHappSubCommand(string[] inputArgs)
+        //{
+        //    if (inputArgs.Length > 1)
+        //    {
+        //        switch (inputArgs[1].ToLower())
+        //        {
+        //            case "create":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "update":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "delete":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "publish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "unpublish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "show":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "list":
+        //                {
+        //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+        //                        CLIEngine.ShowMessage("Coming soon...");
+
+        //                    else
+        //                        CLIEngine.ShowMessage("Coming soon...");
+        //                }
+        //                break;
+
+        //            case "search":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+        //        }
+        //    }
+        //    else
+        //        ShowSubCommand("celestial body", "celestial bodies");
+        //}
+
+        //private static void ShowCelestialBodySubCommand(string[] inputArgs)
+        //{
+        //    if (inputArgs.Length > 1)
+        //    {
+        //        switch (inputArgs[1].ToLower())
+        //        {
+        //            case "create":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "update":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "delete":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "publish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "unpublish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "show":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "list":
+        //                {
+        //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+        //                        CLIEngine.ShowMessage("Coming soon...");
+
+        //                    else
+        //                        CLIEngine.ShowMessage("Coming soon...");
+        //                }
+        //                break;
+
+        //            case "search":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+        //        }
+        //    }
+        //    else
+        //        ShowSubCommand("celestial body", "celestial bodies");
+        //}
+
+        //private static void ShowCelestialSpaceSubCommand(string[] inputArgs)
+        //{
+        //    if (inputArgs.Length > 1)
+        //    {
+        //        switch (inputArgs[1].ToLower())
+        //        {
+        //            case "create":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "update":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "delete":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "publish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "unpublish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "show":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "list":
+        //                {
+        //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+        //                        CLIEngine.ShowMessage("Coming soon...");
+
+        //                    else
+        //                        CLIEngine.ShowMessage("Coming soon...");
+        //                }
+        //                break;
+
+        //            case "search":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+        //        }
+        //    }
+        //    else
+        //        ShowSubCommand("celestial space");
+        //}
+
+        //private static void ShowZomeSubCommand(string[] inputArgs)
+        //{
+        //    if (inputArgs.Length > 1)
+        //    {
+        //        switch (inputArgs[1].ToLower())
+        //        {
+        //            case "create":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "update":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "delete":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "publish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "unpublish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "show":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "list":
+        //                {
+        //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+        //                        CLIEngine.ShowMessage("Coming soon...");
+
+        //                    else
+        //                        CLIEngine.ShowMessage("Coming soon...");
+        //                }
+        //                break;
+
+        //            case "search":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+        //        }
+        //    }
+        //    else
+        //        ShowSubCommand("zome");
+        //}
+
+        //private static void ShowHolonSubCommand(string[] inputArgs)
+        //{
+        //    if (inputArgs.Length > 1)
+        //    {
+        //        switch (inputArgs[1].ToLower())
+        //        {
+        //            case "create":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "update":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "delete":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "publish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "unpublish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "show":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "list":
+        //                {
+        //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+        //                        CLIEngine.ShowMessage("Coming soon...");
+
+        //                    else
+        //                        CLIEngine.ShowMessage("Coming soon...");
+        //                }
+        //                break;
+
+        //            case "search":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+        //        }
+        //    }
+        //    else
+        //        ShowSubCommand("holon");
+        //}
+
+        //private static void ShowMissionSubCommand(string[] inputArgs)
+        //{
+        //    if (inputArgs.Length > 1)
+        //    {
+        //        switch (inputArgs[1].ToLower())
+        //        {
+        //            case "create":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "update":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "delete":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "publish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "unpublish":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "show":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+
+        //            case "list":
+        //                {
+        //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+        //                        CLIEngine.ShowMessage("Coming soon...");
+
+        //                    else
+        //                        CLIEngine.ShowMessage("Coming soon...");
+        //                }
+        //                break;
+
+        //            case "search":
+        //                CLIEngine.ShowMessage("Coming soon...");
+        //                break;
+        //        }
+        //    }
+        //    else
+        //        ShowSubCommand("mission");
+        //}
 
         private static async Task SaveHolonWizard()
         {
@@ -2596,7 +3455,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.Write(" STAR");
             Console.ForegroundColor = ConsoleColor.Green;
             //Console.Write($" (Synergiser Transformer Aggregator Resolver) HDK/ODK TEST HARNESS v{versionString} ");
-            Console.Write($" (Synergiser Transformer Aggregator Resolver) HDK/ODK {OASISBootLoader.OASISBootLoader.STARODKVersion} ");
+
+            if (RandomNumberGenerator.GetInt32(1) == 0)
+                Console.Write($" (Synergiser Transformer Aggregator Resolver) HDK/ODK {OASISBootLoader.OASISBootLoader.STARODKVersion} ");
+            else
+                Console.Write($" (Super Technogically Advanced Reality-Engine) HDK/ODK {OASISBootLoader.OASISBootLoader.STARODKVersion} ");
+
             Console.WriteLine("");
             Console.WriteLine("*************************************************************************************************");
             Console.WriteLine("");
@@ -2668,10 +3532,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("    star {SUBCOMMAND}");
             Console.WriteLine("");
             Console.WriteLine(" FLAGS:");
-            Console.WriteLine("    ignite         Ignite SuperStar & Boot The OASIS");
-            Console.WriteLine("    extinguish     Extinguish SuperStar & Shutdown The OASIS");
-            Console.WriteLine("    beamin         Log in");
-            Console.WriteLine("    beamout        Log out");
+            Console.WriteLine("    ignite         Ignite STAR & Boot The OASIS");
+            Console.WriteLine("    extinguish     Extinguish STAR & Shutdown The OASIS");
+            //Console.WriteLine("    beamin         Log in");
+            //Console.WriteLine("    beamout        Log out");
             Console.WriteLine("    help {full}    Show this help page. If {full} is omitted it will show only the top level sub-commands, if [full} is included it will show every option for each sub-command.");
             Console.WriteLine("    version        Show the versions of STAR ODK, COSMIC ORM, OASIS Runtime & the OASIS Providers..");
             Console.WriteLine("    status         Show the status of STAR ODK.");
@@ -2706,7 +3570,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 //Console.WriteLine("    net = Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's, zomes, holons, celestial spaces, celestial bodies, geo-nft's, geo-hotspots, missions, chapters, quests & inventory items.");
                 Console.WriteLine("    net = Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
 
-                Console.WriteLine("    avatar beamedin = Display who is currently beamed in (if any) and the last time they beamed in and out.");
+                Console.WriteLine("    avatar beamin = Beam in (log in).");
+                Console.WriteLine("    avatar beamout = Beam out (Log out).");
+                Console.WriteLine("    avatar whoisbeamedin = Display who is currently beamed in (if any) and the last time they beamed in and out.");
                 Console.WriteLine("    avatar show me = Display the currently beamed in avatar details (if any).");
                 Console.WriteLine("    avatar show {id/username} = Shows the details for the avatar for the given {id} or {username}.");
                 Console.WriteLine("    avatar edit = Edit the currently beamed in avatar.");
@@ -2772,6 +3638,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    celestialspace list {all} = List all celestial spaces that have been generated.");
                 Console.WriteLine("    celestialspace search {all} = Searches the celestial spaces for the given search critera.");
                 Console.WriteLine("    nft mint = Mints a OASIS NFT for the current beamed in avatar.");
+                Console.WriteLine("    nft update {id/name} = Updates a nft for the given {id} or {name}.");
+                Console.WriteLine("    nft burn {id/name} = Burn's a nft for the given {id} or {name}.");
                 Console.WriteLine("    nft send {id/name} = Send a NFT for the given {id} or {name} to another wallet cross-chain.");
                 Console.WriteLine("    nft publish {id/name} = Publishes a OASIS NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.");
                 Console.WriteLine("    nft unpublish {id/name} = Unpublishes a OASIS NFT for the given {id} or {name} from the STARNET store.");
@@ -2779,6 +3647,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    nft list {all} = Shows the NFT's that belong to the current beamed in avatar.");
                 Console.WriteLine("    nft search {all} = Search for NFT's that match certain criteria and belong to the current beamed in avatar.");
                 Console.WriteLine("    geonft mint = Mints a OASIS Geo-NFT and places in Our World/AR World for the current beamed in avatar.");
+                Console.WriteLine("    geonft update {id/name} = Updates a geo-nft for the given {id} or {name}.");
+                Console.WriteLine("    geonft burn {id/name} = Burn's a geo-nft for the given {id} or {name}.");
                 Console.WriteLine("    geonft place {id/name} = Places an existing OASIS NFT for the given {id} or {name} in Our World/AR World for the current beamed in avatar.");
                 Console.WriteLine("    geonft send {id/name} = Send a geo-nft for the given {id} or {name} to another wallet cross-chain.");
                 Console.WriteLine("    geonft publish {id/name} = Publishes a geo-nft for the given {id} or {name} to the STARNET store so others can use in their own quests etc.");

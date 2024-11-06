@@ -136,7 +136,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage("No Geo-NFT's Found.");
         }
 
-        public static async Task ListNFTsAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task ListNFTsForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading NFTs...");
             OASISResult<IEnumerable<IOASISNFT>> nfts = await STAR.OASISAPI.NFTs.LoadAllNFTsForAvatarAsync(STAR.BeamedInAvatar.Id);
@@ -152,8 +152,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage("No NFT's Found.");
         }
 
-        public static async Task ShowNFTAsync(Guid id, ProviderType providerType = ProviderType.Default)
+        public static async Task ListAllNFTsAsync(ProviderType providerType = ProviderType.Default)
         {
+            CLIEngine.ShowWorkingMessage("Loading NFTs...");
+            OASISResult<IEnumerable<IOASISNFT>> nfts = await STAR.OASISAPI.NFTs.LoadAllNFTsAsync();
+
+            if (nfts != null && !nfts.IsError && nfts.Result != null)
+            {
+                CLIEngine.ShowDivider();
+
+                foreach (IOASISNFT nft in nfts.Result)
+                    ShowNFT(nft);
+            }
+            else
+                CLIEngine.ShowErrorMessage("No NFT's Found.");
+        }
+
+        public static async Task ShowNFTAsync(Guid id = new Guid(), ProviderType providerType = ProviderType.Default)
+        {
+            if (id == Guid.Empty)
+                id = CLIEngine.GetValidInputForGuid("What is the GUID/ID to the NFT you wish to view?");
+
             CLIEngine.ShowWorkingMessage("Loading NFT...");
             OASISResult<IOASISNFT> nft = await STAR.OASISAPI.NFTs.LoadNftAsync(id);
 
