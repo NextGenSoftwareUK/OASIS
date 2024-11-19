@@ -28,5 +28,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         bool IsActive { get; set; }
         public string LaunchTarget { get; set; }
         string Version { get; set; }
+        public string STARODKVersion { get; set; }
+        public string OASISVersion { get; set; }
+        public string COSMICVersion { get; set; }
     }
 }

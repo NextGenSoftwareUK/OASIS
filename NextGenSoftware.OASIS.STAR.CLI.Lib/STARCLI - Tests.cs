@@ -28,10 +28,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             CLIEngine.ShowWorkingMessage("BEGINNING STAR ODK/COSMIC TEST'S...");
 
-            OASISResult<CoronalEjection> result = await GenerateZomesAndHolons("Zomes And Holons Only", "Zomes And Holons Only Desc", OAPPType, celestialBodyDNAFolder, Path.Combine(geneisFolder, "ZomesAndHolons"), "NextGenSoftware.OASIS.OAPPS.ZomesAndHolonsOnly");
+            OASISResult<CoronalEjection> result = await GenerateZomesAndHolonsAsync("Zomes And Holons Only", "Zomes And Holons Only Desc", OAPPType, celestialBodyDNAFolder, Path.Combine(geneisFolder, "ZomesAndHolons"), "NextGenSoftware.OASIS.OAPPS.ZomesAndHolonsOnly");
 
             //Passing in null for the ParentCelestialBody will default it to the default planet (Our World).
-            result = await GenerateCelestialBody("The Justice League Academy", "Test Moon", null, OAPPType, GenesisType.Moon, celestialBodyDNAFolder, Path.Combine(geneisFolder, "JLA"), "NextGenSoftware.OASIS.OAPPS.JLA");
+            result = await GenerateCelestialBodyAsync("The Justice League Academy", "Test Moon", null, OAPPType, GenesisType.Moon, celestialBodyDNAFolder, Path.Combine(geneisFolder, "JLA"), "NextGenSoftware.OASIS.OAPPS.JLA");
 
             // Currenly the JLA Moon and Our World Planet share the same Zome/Holon DNA (celestialBodyDNAFolder) but they can also have their own zomes/holons if they wish...
             // TODO: In future you will also be able to define the full CelestialBody DNA seperatley (cs/json) for each planet, moon, star etc where they can also define additional meta data for the moon/planet/star as well as their own zomes/holons like we have now, plus they can also refer to existing holons/zomes either in a folder (like we have now) or in STARNET Library using the GUID.
@@ -45,7 +45,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             //Passing in null for the ParentCelestialBody will default it to the default Star (Our Sun Sol).
-            result = await GenerateCelestialBody("Our World", "Test Planet", null, OAPPType, GenesisType.Planet, celestialBodyDNAFolder, Path.Combine(geneisFolder, "Our World"), "NextGenSoftware.OASIS.OAPPS.OurWorld");
+            result = await GenerateCelestialBodyAsync("Our World", "Test Planet", null, OAPPType, GenesisType.Planet, celestialBodyDNAFolder, Path.Combine(geneisFolder, "Our World"), "NextGenSoftware.OASIS.OAPPS.OurWorld");
 
             if (result != null && !result.IsError && result.Result != null && result.Result.CelestialBody != null)
             {

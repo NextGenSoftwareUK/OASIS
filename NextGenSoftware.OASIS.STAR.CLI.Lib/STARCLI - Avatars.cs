@@ -380,6 +380,58 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             else
                 CLIEngine.ShowErrorMessage("Error Loading Avatar.");
         }
+
+        public static async Task ShowAvatar(Guid id = new Guid())
+        {
+            if (id == Guid.Empty)
+                id = CLIEngine.GetValidInputForGuid("What is the ID/GUID for the avatar you wish to view?");
+
+            OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatar.LoadAvatarAsync(id);
+
+            if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+            {
+                OASISResult<IAvatarDetail> avatarDetailResult = await STAR.OASISAPI.Avatar.LoadAvatarDetailAsync(id);
+
+                if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                    STARCLI.ShowAvatar(avatarResult.Result, avatarDetailResult.Result);
+                else
+                    CLIEngine.ShowErrorMessage($"Error Occured Loading Avatar Detail: {avatarDetailResult.Message}");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error Occured Loading Avatar: {avatarResult.Message}");
+        }
+
+        public static async Task ShowAvatar(string idOrUsername)
+        {
+            Guid id = Guid.Empty;
+
+            if (string.IsNullOrEmpty(idOrUsername))
+                idOrUsername = CLIEngine.GetValidInput("What is the username or ID/GUID for the avatar you wish to view?");
+
+            if (Guid.TryParse(idOrUsername, out id))
+                await ShowAvatar(id);
+            else
+            {
+                OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatar.LoadAvatarAsync(idOrUsername);
+
+                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                {
+                    OASISResult<IAvatarDetail> avatarDetailResult = await STAR.OASISAPI.Avatar.LoadAvatarDetailByUsernameAsync(idOrUsername);
+
+                    if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                        STARCLI.ShowAvatar(avatarResult.Result, avatarDetailResult.Result);
+                    else
+                        CLIEngine.ShowErrorMessage($"Error Occured Loading Avatar Detail: {avatarDetailResult.Message}");
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error Occured Loading Avatar: {avatarResult.Message}");
+            }
+        }
+
+        public static async Task ShowAvatar()
+        {
+            await ShowAvatar("");
+        }
     }
 }
 

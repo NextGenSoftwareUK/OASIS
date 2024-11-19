@@ -1,4 +1,5 @@
 ﻿using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -7,6 +8,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public static partial class STARCLI
     {
+        public static async Task CreateHolonAsync(string name = "", string desc = "", HolonType holonType = HolonType.Holon, ProviderType providerType = ProviderType.Default)
+        {
+           
+        }
+
+        public static async Task CreateHolonFromJSONFileAsync(string jsonHolonFile = "", ProviderType providerType = ProviderType.Default)
+        {
+            if (string.IsNullOrEmpty(jsonHolonFile))
+            {
+
+            }
+        }
+
+        public static async Task ShowHolonAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IHolon> result = await LoadHolonAsync(idOrName, "view", providerType);
+
+            if (result != null && !result.IsError && result.Result != null)
+                ShowHolonProperties(result.Result);
+            else
+                CLIEngine.ShowErrorMessage($"An error occured loading the holon. Reason: {result.Message}");
+        }
+
         public static void ShowZomesAndHolons(IEnumerable<IZome> zomes, string customHeader = null, string indentBuffer = " ")
         {
             if (string.IsNullOrEmpty(customHeader))
@@ -19,12 +43,32 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             foreach (IZome zome in zomes)
             {
                 //Console.WriteLine(string.Concat("  | ZOME | Name: ", zome.Name.PadRight(20), " | Id: ", zome.Id, " | Containing ", zome.Children.Count(), " Holon(s)", zome.Children.Count > 0 ? ":" : ""));
-                string tree = string.Concat(" |", indentBuffer, "ZOME").PadRight(22);
+                string tree = string.Concat("  |", indentBuffer, "ZOME").PadRight(22);
                 string children = string.Concat(" | Containing ", zome.Children != null ? zome.Children.Count() : 0, " Child Holon(s)");
 
                 Console.WriteLine(string.Concat(tree, " | Name: ", zome.Name.PadRight(40), " | Id: ", zome.Id, " | Type: ", "Zome".PadRight(15), children.PadRight(30), " |".PadRight(30), "|"));
                 ShowHolons(zome.Children, false);
             }
+        }
+
+        public static async Task ListAllHolonsForForBeamedInAvatar(ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IHolon>> holonsResult = await STAR.OASISAPI.Data.LoadHolonsForParentAsync(STAR.BeamedInAvatar.Id, HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+
+            if (holonsResult != null && holonsResult.Result != null && !holonsResult.IsError)
+                ShowHolons(holonsResult.Result);
+            else
+                CLIEngine.ShowErrorMessage($"Error occured loading holons. Reason: {holonsResult.Message}");
+        }
+
+        public static async Task ListAllHolonsAsync(ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IHolon>> holonsResult = await STAR.OASISAPI.Data.LoadAllHolonsAsync(HolonType.All, true, true, 0, true, false, HolonType.All, 0, providerType);
+
+            if (holonsResult != null && holonsResult.Result != null && !holonsResult.IsError)
+                ShowHolons(holonsResult.Result);
+            else
+                CLIEngine.ShowErrorMessage($"Error occured loading holons. Reason: {holonsResult.Message}");
         }
 
         public static void ShowHolons(IEnumerable<IHolon> holons, bool showHeader = true, string customHeader = null, int indentBy = 2, int level = 0)
@@ -58,7 +102,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (holon.Nodes != null)
                 {
-                    foreach (API.Core.Interfaces.INode node in holon.Nodes)
+                    foreach (INode node in holon.Nodes)
                     {
                         //Console.WriteLine("");
                         CLIEngine.ShowMessage("", false);
@@ -299,6 +343,92 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             foreach (ProviderType providerType in holon.ProviderUniqueStorageKey.Keys)
                 Console.WriteLine(string.Concat("   Provider: ", Enum.GetName(typeof(ProviderType), providerType), " = ", holon.ProviderUniqueStorageKey[providerType]));
 
+        }
+
+        public static async Task DeleteHolonAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IHolon> result = await LoadHolonAsync(idOrName, "delete", providerType);
+
+            if (result != null && !result.IsError && result.Result != null)
+            { 
+                if (CLIEngine.GetConfirmation($"Are you sure you wish to delete the holon with name {result.Result.Name}, id {result.Result.Id} and type {Enum.GetName(typeof(HolonType), result.Result.HolonType)}?"))
+                {
+                    OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.DeleteHolonAsync(result.Result.Id, true, providerType);
+
+                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                        STARCLI.ShowHolonProperties(holonResult.Result);
+                    else
+                        CLIEngine.ShowErrorMessage($"Error Occured: {holonResult.Message}");
+                }
+            }
+            else
+                CLIEngine.ShowErrorMessage($"An error occured loading the holon. Reason: {result.Message}");
+        }
+
+        private static async Task<OASISResult<IHolon>> LoadHolonAsync(string idOrName, string operationName, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+            Guid id = Guid.Empty;
+
+            if (string.IsNullOrEmpty(idOrName))
+                idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the Holon you wish to {operationName}?");
+
+            CLIEngine.ShowWorkingMessage("Loading Holon...");
+
+            if (Guid.TryParse(idOrName, out id))
+                result = await STAR.OASISAPI.Data.LoadHolonAsync(id, true, true, 0, true, false, HolonType.All, 0, providerType);
+            else
+            {
+                OASISResult<IEnumerable<IHolon>> allHolonsResult = await STAR.OASISAPI.Data.LoadAllHolonsAsync();
+
+                if (allHolonsResult != null && allHolonsResult.Result != null && !allHolonsResult.IsError)
+                {
+                    result.Result = allHolonsResult.Result.FirstOrDefault(x => x.Name == idOrName); //TODO: In future will use Where instead so user can select which Holon they want... (if more than one matches the given name).
+
+                    if (result.Result == null)
+                    {
+                        result.IsError = true;
+                        result.Message = "No Holon Was Found!";
+                    }
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"An error occured calling STAR.OASISAPI.Data.LoadAllHolonsAsync. Reason: {allHolonsResult.Message}");
+            }
+
+            return result;
+        }
+
+        private static async Task<OASISResult<IHolon>> LoadHolon(string idOrName, string operationName, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+            Guid id = Guid.Empty;
+
+            if (string.IsNullOrEmpty(idOrName))
+                idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the Holon you wish to {operationName}?");
+
+            CLIEngine.ShowWorkingMessage("Loading Holon...");
+
+            if (Guid.TryParse(idOrName, out id))
+                result = await STAR.OASISAPI.Data.LoadHolonAsync(id, true, true, 0, true, false, HolonType.All, 0, providerType);
+            else
+            {
+                OASISResult<IEnumerable<IHolon>> allHolonsResult = STAR.OASISAPI.Data.LoadAllHolons();
+
+                if (allHolonsResult != null && allHolonsResult.Result != null && !allHolonsResult.IsError)
+                {
+                    result.Result = allHolonsResult.Result.FirstOrDefault(x => x.Name == idOrName); //TODO: In future will use Where instead so user can select which Holon they want... (if more than one matches the given name).
+
+                    if (result.Result == null)
+                    {
+                        result.IsError = true;
+                        result.Message = "No Holon Was Found!";
+                    }
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"An error occured calling STAR.OASISAPI.Data.LoadAllHolons. Reason: {allHolonsResult.Message}");
+            }
+
+            return result;
         }
     }
 }
