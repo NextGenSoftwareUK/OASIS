@@ -538,7 +538,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (readOAPPDNAResult != null && !readOAPPDNAResult.IsError && readOAPPDNAResult.Result != null)
                 {
-                    OASISResult<IAvatar> loadAvatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
+                    OASISResult <IAvatar> loadAvatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
                     if (loadAvatarResult != null && loadAvatarResult.Result != null && !loadAvatarResult.IsError)
                     {
@@ -596,6 +596,20 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             {
                                 result.Result = readOAPPDNAResult.Result;
                                 result.IsSaved = true;
+       
+                                if (readOAPPDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
+                                    OASISErrorHandling.HandleWarning(ref result, $"The STAR ODK Version {readOAPPDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                if (readOAPPDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
+                                    OASISErrorHandling.HandleWarning(ref result, $"The OASIS Version {readOAPPDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                if (readOAPPDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
+                                    OASISErrorHandling.HandleWarning(ref result, $"The COSMIC Version {readOAPPDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                if (result.InnerMessages.Count > 0)
+                                    result.Message = $"OAPP successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                                else
+                                    result.Message = "OAPP Successfully Published";
                             }
                             else
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPResult.Message}");
@@ -714,6 +728,20 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             {
                                 result.Result = readOAPPDNAResult.Result;
                                 result.IsSaved = true;
+
+                                if (readOAPPDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
+                                    OASISErrorHandling.HandleWarning(ref result, $"The STAR ODK Version {readOAPPDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                if (readOAPPDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
+                                    OASISErrorHandling.HandleWarning(ref result, $"The OASIS Version {readOAPPDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                if (readOAPPDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
+                                    OASISErrorHandling.HandleWarning(ref result, $"The COSMIC Version {readOAPPDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                if (result.InnerMessages.Count > 0)
+                                    result.Message = $"OAPP successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                                else
+                                    result.Message = "OAPP Successfully Published";
                             }
                             else
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPP on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPResult.Message}");
@@ -893,8 +921,21 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                         if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                         {
-                            result.Message = "OAPP Installed";
                             result.Result = installedOAPP;
+
+                            if (OAPPDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
+                                OASISErrorHandling.HandleWarning(ref result, $"The STAR ODK Version {OAPPDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                            if (OAPPDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
+                                OASISErrorHandling.HandleWarning(ref result, $"The OASIS Version {OAPPDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                            if (OAPPDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
+                                OASISErrorHandling.HandleWarning(ref result, $"The COSMIC Version {OAPPDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                            if (result.InnerMessages.Count > 0)
+                                result.Message = $"OAPP successfully installed but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                            else
+                                result.Message = "OAPP Successfully Installed";
                         }
                         else
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync method. Reason: {saveResult.Message}");
@@ -941,8 +982,21 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                         if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                         {
-                            result.Message = "OAPP Installed";
                             result.Result = installedOAPP;
+
+                            if (OAPPDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
+                                OASISErrorHandling.HandleWarning(ref result, $"The STAR ODK Version {OAPPDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                            if (OAPPDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
+                                OASISErrorHandling.HandleWarning(ref result, $"The OASIS Version {OAPPDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                            if (OAPPDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
+                                OASISErrorHandling.HandleWarning(ref result, $"The COSMIC Version {OAPPDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                            if (result.InnerMessages.Count > 0)
+                                result.Message = $"OAPP successfully installed but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                            else
+                                result.Message = "OAPP Successfully Installed";
                         }
                         else
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling Save method. Reason: {saveResult.Message}");

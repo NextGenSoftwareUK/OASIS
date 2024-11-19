@@ -24,14 +24,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         public bool IsActive { get; set; }
         public OAPPType OAPPType { get; set; }
         public GenesisType GenesisType { get; set; }
-        public ICelestialBody CelestialBody { get; set; } //optional
+        //public ICelestialBody CelestialBody { get; set; } //optional
         public Guid CelestialBodyId { get; set; }
         public string CelestialBodyName { get; set; }
         public HolonType CelestialBodyType { get; set; }
         public IEnumerable<IZome> Zomes { get; set; }
         public string LaunchTarget { get; set; }
         public string Version { get; set; }
-        
+        public string STARODKVersion { get; set; }
+        public string OASISVersion {  get; set; }
+        public string COSMICVersion {  get; set; }
 
 
         //public DateTime CreatedDate { get; set; }

@@ -8,6 +8,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -120,52 +122,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task ListGeoNFTsAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task ListAllGeoNFTsForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading Geo-NFTs...");
-            OASISResult<IEnumerable<IOASISGeoSpatialNFT>> nfts = await STAR.OASISAPI.NFTs.LoadAllGeoNFTsForAvatarAsync(STAR.BeamedInAvatar.Id);
+            OASISResult<IEnumerable<IOASISGeoSpatialNFT>> geonftsResult = await STAR.OASISAPI.NFTs.LoadAllGeoNFTsForAvatarAsync(STAR.BeamedInAvatar.Id);
+           // ListHolons<IOASISGeoSpatialNFT>(geonftsResult, "Geo-NFT", ShowGeoNFT(x) => { });
+            ListGeoNFTs(geonftsResult);
+        }
 
-            if (nfts != null && !nfts.IsError && nfts.Result != null)
-            {
-                CLIEngine.ShowDivider();
-
-                foreach (IOASISGeoSpatialNFT nft in nfts.Result)
-                    ShowGeoNFT(nft);
-            }
-            else
-                CLIEngine.ShowErrorMessage("No Geo-NFT's Found.");
+        public static async Task ListAllGeoNFTsAsync(ProviderType providerType = ProviderType.Default)
+        {
+            CLIEngine.ShowWorkingMessage("Loading Geo-NFTs...");
+            OASISResult<IEnumerable<IOASISGeoSpatialNFT>> geonftsResult = await STAR.OASISAPI.NFTs.LoadAllGeoNFTsAsync();
+            ListGeoNFTs(geonftsResult);
         }
 
         public static async Task ListNFTsForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading NFTs...");
-            OASISResult<IEnumerable<IOASISNFT>> nfts = await STAR.OASISAPI.NFTs.LoadAllNFTsForAvatarAsync(STAR.BeamedInAvatar.Id);
-
-            if (nfts != null && !nfts.IsError && nfts.Result != null)
-            {
-                CLIEngine.ShowDivider();
-
-                foreach (IOASISNFT nft in nfts.Result)
-                    ShowNFT(nft);
-            }
-            else
-                CLIEngine.ShowErrorMessage("No NFT's Found.");
+            OASISResult<IEnumerable<IOASISNFT>> nftsResult = await STAR.OASISAPI.NFTs.LoadAllNFTsForAvatarAsync(STAR.BeamedInAvatar.Id);
+            ListNFTs(nftsResult);
         }
 
         public static async Task ListAllNFTsAsync(ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading NFTs...");
-            OASISResult<IEnumerable<IOASISNFT>> nfts = await STAR.OASISAPI.NFTs.LoadAllNFTsAsync();
-
-            if (nfts != null && !nfts.IsError && nfts.Result != null)
-            {
-                CLIEngine.ShowDivider();
-
-                foreach (IOASISNFT nft in nfts.Result)
-                    ShowNFT(nft);
-            }
-            else
-                CLIEngine.ShowErrorMessage("No NFT's Found.");
+            OASISResult<IEnumerable<IOASISNFT>> nftsResult = await STAR.OASISAPI.NFTs.LoadAllNFTsAsync();
+            ListNFTs(nftsResult);
         }
 
         public static async Task ShowNFTAsync(Guid id = new Guid(), ProviderType providerType = ProviderType.Default)
@@ -514,6 +497,57 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 OriginalOASISNFTOffChainProviderType = originalOffChainProviderType,
                 PlacedByAvatarId = STAR.BeamedInAvatar.Id
             };
+        }
+
+
+        private static void ListNFTs(OASISResult<IEnumerable<IOASISNFT>> nftsResult)
+        {
+            if (nftsResult != null && nftsResult.Result != null && !nftsResult.IsError)
+            {
+                if (nftsResult.Result.Count() > 0)
+                {
+                    Console.WriteLine();
+
+                    if (nftsResult.Result.Count() == 1)
+                        CLIEngine.ShowMessage($"{nftsResult.Result.Count()} NFT Found:");
+                    else
+                        CLIEngine.ShowMessage($"{nftsResult.Result.Count()} NFT's' Found:");
+
+                    CLIEngine.ShowDivider();
+
+                    foreach (IOASISGeoSpatialNFT geoNFT in nftsResult.Result)
+                        ShowGeoNFT(geoNFT);
+                }
+                else
+                    CLIEngine.ShowWarningMessage("No NFT's Found.");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error occured loading NFT's. Reason: {nftsResult.Message}");
+        }
+
+        private static void ListGeoNFTs(OASISResult<IEnumerable<IOASISGeoSpatialNFT>> geonftsResult)
+        {
+            if (geonftsResult != null && geonftsResult.Result != null && !geonftsResult.IsError)
+            {
+                if (geonftsResult.Result.Count() > 0)
+                {
+                    Console.WriteLine();
+
+                    if (geonftsResult.Result.Count() == 1)
+                        CLIEngine.ShowMessage($"{geonftsResult.Result.Count()} Geo-NFT Found:");
+                    else
+                        CLIEngine.ShowMessage($"{geonftsResult.Result.Count()} Geo-NFT's' Found:");
+
+                    CLIEngine.ShowDivider();
+
+                    foreach (IOASISGeoSpatialNFT geoNFT in geonftsResult.Result)
+                        ShowGeoNFT(geoNFT);
+                }
+                else
+                    CLIEngine.ShowWarningMessage("No Geo-NFT's Found.");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error occured loading Geo-NFT's. Reason: {geonftsResult.Message}");
         }
     }
 }
