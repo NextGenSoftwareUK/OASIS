@@ -1095,7 +1095,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 break;
 
                             default:
-                                CLIEngine.ShowErrorMessage("Unknown Command.");
+                                CLIEngine.ShowErrorMessage("Command Unknown.");
                                 break;
                         }
                     }
@@ -1305,54 +1305,55 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     subCommandPlural = $"{subCommand}'s";
 
                 Console.WriteLine("");
-                CLIEngine.ShowMessage($"{subCommand.ToUpper()} 1SUBCOMMANDS:", ConsoleColor.Green);
-                //Console.WriteLine("");
+                Console.ForegroundColor = ConsoleColor.Green;
+                CLIEngine.ShowMessage($"{subCommand.ToUpper()} SUBCOMMANDS:", ConsoleColor.Green);
+                Console.WriteLine("");
 
-                if (showCreate)
-                    CLIEngine.ShowMessage(string.Concat("    create         {id/name} Create a ", subCommand, "."), ConsoleColor.Green, false);
-                
-                if (showUpdate)
-                    CLIEngine.ShowMessage(string.Concat("    update         {id/name} Update an existing ", subCommand, " for the given {id} or {name}.", false), ConsoleColor.Green);
-                
-                if (showDelete)
-                    CLIEngine.ShowMessage(string.Concat("    delete         {id/name} Delete an existing ", subCommand, " for the given {id} or {name}.", false), ConsoleColor.Green);
-                //CLIEngine.ShowMessage(string.Concat("    ", deleteName, "         { id/name} ", deleteName.ToPascalCase(), " an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green);
+                int commandSpace = 15;
+                //int paramSpace = 2;
+                //string commandSpace = " ";
+                string paramSpace = "  ";
 
                 if (isOAPPOrHapp)
                 {
-                    CLIEngine.ShowMessage(string.Concat("    install        {id/name} Install a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
-                    CLIEngine.ShowMessage(string.Concat("    uninstall      {id/name} Uninstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                    //commandSpace = "           ";
+                    commandSpace = 20;
+                    paramSpace = "                   ";
+                }
+
+                if (showCreate)
+                    CLIEngine.ShowMessage(string.Concat("    create".PadRight(commandSpace), "{id/name}", paramSpace, "Create a ", subCommand, "."), ConsoleColor.Green, false);
+
+                if (showUpdate)
+                    CLIEngine.ShowMessage(string.Concat("    update".PadRight(commandSpace), "{id/name}", paramSpace, "Update an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+
+                if (showDelete)
+                    CLIEngine.ShowMessage(string.Concat("    delete".PadRight(commandSpace), "{id/name}", paramSpace, "Delete an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+
+                if (isOAPPOrHapp)
+                {
+                    CLIEngine.ShowMessage(string.Concat("    install".PadRight(commandSpace), "{id/name}", paramSpace, "Install a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    uninstall".PadRight(commandSpace), "{id/name}", paramSpace, "Uninstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 }
 
                 if (isOAPPOrHapp)
                 {
                     if (ishApp)
-                        CLIEngine.ShowMessage(string.Concat("    publish        {hAppPath} [publishDotNet] Publish a ", subCommand, " for the given {hAppPath}. If the flag [publishDotNet] is specefied it will first do a dotnet publish before publishing to STARNET."), ConsoleColor.Green, false);
+                        CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{hAppPath} [publishDotNet]  Publish a ", subCommand, " for the given {hAppPath}. If the flag [publishDotNet] is specefied it will first do a dotnet publish before publishing to STARNET."), ConsoleColor.Green, false);
                     else
-                        CLIEngine.ShowMessage(string.Concat("    publish        {oappPath} [publishDotNet] Publish a ", subCommand, " for the given {oappPath}. If the flag [publishDotNet] is specefied it will first do a dotnet publish before publishing to STARNET."), ConsoleColor.Green, false);
+                        CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{oappPath} [publishDotNet]  Publish a ", subCommand, " for the given {oappPath}. If the flag [publishDotNet] is specefied it will first do a dotnet publish before publishing to STARNET."), ConsoleColor.Green, false);
                 }
                 else
-                    CLIEngine.ShowMessage(string.Concat("    publish        {id/name} Publish a ", subCommand, " to STARNET for the given {id} or {name}."), ConsoleColor.Green);
+                    CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{id/name}", paramSpace, "Publish a ", subCommand, " to STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
 
-                CLIEngine.ShowMessage(string.Concat("    unpublish      {id/name} Unpublish a ", subCommand, " from STARNET for the given {id} or {name}."), ConsoleColor.Green);
-                CLIEngine.ShowMessage(string.Concat("    list           [all]     List all ", subCommandPlural, " that have been created. If {all} is omitted it will list only your ", subCommandPlural, "'s otherwise it will list all published ", subCommandPlural, "'s as well as yours."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    unpublish".PadRight(commandSpace), "{id/name}", paramSpace, "Unpublish a ", subCommand, " from STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "[all]", paramSpace, "    List all ", subCommandPlural, " that have been created. If {all} is omitted it will list only your ", subCommandPlural, "'s otherwise it will list all published ", subCommandPlural, "'s as well as yours."), ConsoleColor.Green, false);
 
                 if (isOAPPOrHapp)
-                    CLIEngine.ShowMessage(string.Concat("    list installed {id/name} List all ", subCommandPlural, "' installed for the current beamed in avatar."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    list installed".PadRight(commandSpace), "{id/name}", paramSpace, "List all ", subCommandPlural, "' installed for the current beamed in avatar."), ConsoleColor.Green, false);
 
-                CLIEngine.ShowMessage(string.Concat("    search         {id/name} Searches the ", subCommandPlural, " for the given search critera."), ConsoleColor.Green, false);
-
-                //CLIEngine.ShowMessage($"    create              Create a {subCommand}.", ConsoleColor.Green);
-                //CLIEngine.ShowMessage("    delete    {id/name} Delete an existing hApp for the given {id} or {name}.", ConsoleColor.Green);
-                //CLIEngine.ShowMessage("    install             Install a hApp.", ConsoleColor.Green);
-                //CLIEngine.ShowMessage("    uninstall           Uninstall a hApp.", ConsoleColor.Green);
-                //CLIEngine.ShowMessage("    publish   {id/name} Publish a hApp to the STARNET Store.", ConsoleColor.Green);
-                //CLIEngine.ShowMessage("    unpublish {id/name} Unpublish a hApp from the STARNET Store.", ConsoleColor.Green);
-                //CLIEngine.ShowMessage("    show      {id/name} Shows a hApp for the given {id} or {name}.", ConsoleColor.Green);
-                //CLIEngine.ShowMessage("    list      {all}     List all hApp's (contains zomes and holons) that have been generated.", ConsoleColor.Green);
-                //CLIEngine.ShowMessage("    list installed      List all hApp's installed for the current beamed in avatar.", ConsoleColor.Green);
-                //CLIEngine.ShowMessage("    search    {all}     Searches the hApp's for the given search critera.", ConsoleColor.Green);
-                Console.WriteLine("");
+                CLIEngine.ShowMessage(string.Concat("    search".PadRight(commandSpace), "{id/name}", paramSpace, "Searches the ", subCommandPlural, " for the given search critera."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
 
@@ -1454,15 +1455,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             {
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"AVATAR SUBCOMMANDS:", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    beamin                       Beam in (log in).", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    beamout                      Beam out (log out).", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    whoisbeamedin                Display who is currently beamed in (if any) and the last time they beamed in and out.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    show me                      Display the currently beamed in avatar details (if any).", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    show          {id/username}  Shows the details for the avatar for the given {id} or {username}.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    edit                         Edit the currently beamed in avatar.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    list                         Lists all avatars.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    search                       Seach avatars that match the given seach parameters (public fields only such as level, karma, username & any fields the player has set to public).", ConsoleColor.Green);
                 Console.WriteLine("");
+                CLIEngine.ShowMessage("    beamin                       Beam in (log in).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    beamout                      Beam out (log out).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    whoisbeamedin                Display who is currently beamed in (if any) and the last time they beamed in and out.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    show me                      Display the currently beamed in avatar details (if any).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    show          {id/username}  Shows the details for the avatar for the given {id} or {username}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    edit                         Edit the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list                         Lists all avatars.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    search                       Seach avatars that match the given seach parameters (public fields only such as level, karma, username & any fields the player has set to public).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
 
@@ -1627,16 +1629,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             {
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"NFT SUBCOMMANDS:", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    mint                  Mints a OASIS NFT for the current beamed in avatar.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    update     {id/name}  Updates a OASIS NFT for the given {id} or {name}.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    burn                  Burn's a OASIS NFT for the given {id} or {name}.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    send                  Send a OASIS NFT for the given {id} or {name} to another wallet cross-chain.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    publish    {id/name}  Publishes a OASIS NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    unpublish  {id/name}  Unpublishes a OASIS NFT for the given {id} or {name} from the STARNET store.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    show       {id/name}  Shows the OASIS NFT for the given {id} or {name}.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    list       [all]      List all OASIS NFT's that have been created. If the [all] flag is omitted it will list only your NFT's otherwise it will list all published NFT's as well as yours.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    search                Search for OASIS NFT's that match certain criteria and belong to the current beamed in avatar.", ConsoleColor.Green);
                 Console.WriteLine("");
+                CLIEngine.ShowMessage("    mint                  Mints a OASIS NFT for the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    update     {id/name}  Updates a OASIS NFT for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    burn                  Burn's a OASIS NFT for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    send                  Send a OASIS NFT for the given {id} or {name} to another wallet cross-chain.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    publish    {id/name}  Publishes a OASIS NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    unpublish  {id/name}  Unpublishes a OASIS NFT for the given {id} or {name} from the STARNET store.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    show       {id/name}  Shows the OASIS NFT for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list       [all]      List all OASIS NFT's that have been created. If the [all] flag is omitted it will list only your NFT's otherwise it will list all published NFT's as well as yours.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    search                Search for OASIS NFT's that match certain criteria and belong to the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
 
@@ -1721,16 +1724,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             {
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"GEONFT SUBCOMMANDS:", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    mint                  Mints a OASIS Geo-NFT and places in Our World/AR World for the current beamed in avatar.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    update     {id/name}  Updates a OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    burn       {id/name}  Burn's a OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    send       {id/name}  Send a OASIS Geo-NFT for the given {id} or {name} to another wallet cross-chain.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    publish    {id/name}  Publishes a OASIS Geo-NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    unpublish  {id/name}  Unpublishes a OASIS Geo-NFT for the given {id} or {name} from the STARNET store.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    show       {id/name}  Shows the OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    list       [all]      List all OASIS Geo-NFT's that have been created. If the [all] flag is omitted it will list only your Geo-NFT's otherwise it will list all published Geo-NFT's as well as yours.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    search                Search for OASIS Geo-NFT's that match certain criteria and belong to the current beamed in avatar.", ConsoleColor.Green);
                 Console.WriteLine("");
+                CLIEngine.ShowMessage("    mint                  Mints a OASIS Geo-NFT and places in Our World/AR World for the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    update     {id/name}  Updates a OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    burn       {id/name}  Burn's a OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    send       {id/name}  Send a OASIS Geo-NFT for the given {id} or {name} to another wallet cross-chain.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    publish    {id/name}  Publishes a OASIS Geo-NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    unpublish  {id/name}  Unpublishes a OASIS Geo-NFT for the given {id} or {name} from the STARNET store.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    show       {id/name}  Shows the OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list       [all]      List all OASIS Geo-NFT's that have been created. If the [all] flag is omitted it will list only your Geo-NFT's otherwise it will list all published Geo-NFT's as well as yours.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    search                Search for OASIS Geo-NFT's that match certain criteria and belong to the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
 
@@ -1757,11 +1761,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             {
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"KEYS SUBCOMMANDS:", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    link                  Links a OASIS Provider Key to the current beamed in avatar.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    list                  Shows the keys for the current beamed in avatar.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("", ConsoleColor.Green);
-                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
                 Console.WriteLine("");
+                CLIEngine.ShowMessage("    link                  Links a OASIS Provider Key to the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list                  Shows the keys for the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
 
@@ -1772,7 +1775,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 switch (inputArgs[1].ToLower())
                 {
                     case "list":
-                        CLIEngine.ShowMessage("Coming soon...");
+                        STAR.OASISAPI.Avatar.ShowKarmaThresholds();
                         break;
 
                     default:
@@ -1784,10 +1787,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             {
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"KARMA SUBCOMMANDS:", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    list                  Display the karma thresholds.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("", ConsoleColor.Green);
-                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
                 Console.WriteLine("");
+                CLIEngine.ShowMessage("    list                  Display the karma thresholds.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
 
@@ -1810,10 +1812,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             {
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"WALLET SUBCOMMANDS:", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    list                  Shows the wallets for the current beamed in avatar.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("", ConsoleColor.Green);
-                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
                 Console.WriteLine("");
+                CLIEngine.ShowMessage("    list                  Shows the wallets for the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
 
@@ -1920,11 +1921,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             {
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"CONFIG SUBCOMMANDS:", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    cosmicdetailedoutput     [enable/disable/status] Enables/disables COSMIC Detailed Output.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("    starstatusdetailedoutput [enable/disable/status] Enables/disables STAR ODK Detailed Output.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("", ConsoleColor.Green);
-                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
                 Console.WriteLine("");
+                CLIEngine.ShowMessage("    cosmicdetailedoutput     [enable/disable/status] Enables/disables COSMIC Detailed Output.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    starstatusdetailedoutput [enable/disable/status] Enables/disables STAR ODK Detailed Output.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
 
@@ -4320,9 +4320,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("");
             //Console.WriteLine(" NOTES: -  is not needed if using the STAR CLI Console directly. Star is only needed if calling from the command line or another external script ( is simply the name of the exe).");
             Console.WriteLine(" NOTES:");
-            Console.WriteLine("                      When invoking any sub-commands that take a {id} or {title}, if neither is specified then a wizard will launch to help find the correct item.");
-            Console.WriteLine("                      When invoking any sub-commands that have an optional [all] argument/flag, if it is omitted it will search only your items, otherwise it will search all published items as well as yours.");
-            Console.WriteLine("                      If you invoke a sub-command without any arguments it will show more detailed help on how to use that sub-command as well as the option to lanuch any wizards to help guide you.");
+            Console.WriteLine("                     When invoking any sub-commands that take a {id} or {title}, if neither is specified then a wizard will launch to help find the correct item.");
+            Console.WriteLine("                     When invoking any sub-commands that have an optional [all] argument/flag, if it is omitted it will search only your items, otherwise it will search all published items as well as yours.");
+            Console.WriteLine("                     If you invoke a sub-command without any arguments it will show more detailed help on how to use that sub-command as well as the option to lanuch any wizards to help guide you.");
             
            // Console.Ge
             Console.WriteLine("************************************************************************************************");
