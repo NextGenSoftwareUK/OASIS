@@ -363,7 +363,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, oappPath);
 
-
+                Console.WriteLine("");
                 bool registerOnSTARNET = CLIEngine.GetConfirmation("Do you wish to publish to STARNET? If you select 'Y' to this question then your OAPP will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .OAPP install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.");
 
                 if (Path.IsPathRooted(STAR.STARDNA.DefaultPublishedOAPPsPath))
@@ -371,6 +371,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     publishPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultPublishedOAPPsPath);
 
+                Console.WriteLine("");
                 if (!CLIEngine.GetConfirmation($"Do you wish to publish the OAPP to the default publish folder defined in the STARDNA as DefaultPublishedOAPPsPath : {publishPath}?"))
                 {
                     if (CLIEngine.GetConfirmation($"Do you wish to publish the OAPP to: {Path.Combine(oappPath, "Published")}?"))
