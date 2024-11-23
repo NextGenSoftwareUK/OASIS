@@ -36,12 +36,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         //[CustomOASISProperty]
         //public Guid PublishedByAvatarId { get; set; }
 
-        [CustomOASISProperty()]
-        public string OAPPDNAJSON { get; set; }
+        //[CustomOASISProperty()]
+        //public string OAPPDNAJSON { get; set; }
 
         private IOAPPDNA _OAPPDNA;
 
-        [CustomOASISProperty(StoreAsJsonString = true)]
+        // [CustomOASISProperty(StoreAsJsonString = true)] //TODO: Get this working later on so we dont need to do the manual code below in the getter.
         public IOAPPDNA OAPPDNA
         {
             get
@@ -54,6 +54,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
             set
             {
                 _OAPPDNA = value;
+                MetaData["OAPPDNAJSON"] = JsonSerializer.Serialize(OAPPDNA);
             }
         }
 

@@ -274,9 +274,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private static void ListQuests(OASISResult<IEnumerable<IQuest>> quests)
         {
-            if (quests != null && quests.Result != null && !quests.IsError)
+            if (quests != null && !quests.IsError)
             {
-                if (quests.Result.Count() > 0)
+                if (quests.Result != null && quests.Result.Count() > 0)
                 {
                     Console.WriteLine();
 
@@ -299,9 +299,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private static void ListMissions(OASISResult<IEnumerable<IMission>> missions)
         {
-            if (missions != null && missions.Result != null && !missions.IsError)
+            if (missions != null && !missions.IsError)
             {
-                if (missions.Result.Count() > 0)
+                if (missions.Result != null && missions.Result.Count() > 0)
                 {
                     Console.WriteLine();
 
@@ -325,9 +325,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //private static void ListHolons(OASISResult<IEnumerable<IHolon>> holons, string holonTypeName, Func<OASISResult<IHolon>, void> showHolonDelicate)
         private static void ListHolons<T>(OASISResult<IEnumerable<T>> holons, string holonTypeName, Action<IHolon> showHolonDelicate) where T : IHolon
         {
-            if (holons != null && holons.Result != null && !holons.IsError)
+            if (holons != null && !holons.IsError)
             {
-                if (holons.Result.Count() > 0)
+                if (holons.Result != null && holons.Result.Count() > 0)
                 {
                     Console.WriteLine();
 

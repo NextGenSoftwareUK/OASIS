@@ -152,960 +152,980 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             bool exit = false;
             do
             {
-                //if (_exiting)
-                //    exit = true;
-
-                _inMainMenu = true;
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("");
-                CLIEngine.ShowMessage("STAR: ", false, true);
-                string input = Console.ReadLine();
-
-                if (!string.IsNullOrEmpty(input))
+                try
                 {
-                    string[] inputArgs = input.Split(" ");
 
-                    if (inputArgs.Length > 0)
+                    //if (_exiting)
+                    //    exit = true;
+
+                    _inMainMenu = true;
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("");
+                    CLIEngine.ShowMessage("STAR: ", false, true);
+                    string input = Console.ReadLine();
+
+                    if (!string.IsNullOrEmpty(input))
                     {
-                        switch (inputArgs[0].ToLower())
+                        string[] inputArgs = input.Split(" ");
+
+                        if (inputArgs.Length > 0)
                         {
-                            case "ignite":
-                                {
-                                    if (!STAR.IsStarIgnited)
-                                        await STAR.IgniteStarAsync();
-                                    else
-                                        CLIEngine.ShowErrorMessage("STAR Is Already Ignited!");
-                                }
-                                break;
-
-                            case "extinguish":
-                                {
-                                    if (STAR.IsStarIgnited)
-                                        await STAR.ExtinguishSuperStarAsync();
-                                    else
-                                        CLIEngine.ShowErrorMessage("STAR Is Not Ignited!");
-                                }
-                                break;
-
-                            //case "beamin":
-                            //    {
-                            //        if (STAR.BeamedInAvatar == null)
-                            //            await STARCLI.BeamInAvatar();
-                            //        else
-                            //            CLIEngine.ShowErrorMessage($"Avatar {STAR.BeamedInAvatar.Username} Already Beamed In. Please Beam Out First!");
-                            //    }
-                            //    break;
-
-                            //case "beamout":
-                            //    {
-                            //        if (STAR.BeamedInAvatar != null)
-                            //        {
-                            //            OASISResult<IAvatar> avatarResult = await STAR.BeamedInAvatar.BeamOutAsync();
-
-                            //            if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                            //            {
-                            //                STAR.BeamedInAvatar = null;
-                            //                STAR.BeamedInAvatarDetail = null;
-                            //                CLIEngine.ShowSuccessMessage("Avatar Successfully Beamed Out! We Hope You Enjoyed Your Time In The OASIS! Please Come Again! :)");
-                            //            }
-                            //            else
-                            //                CLIEngine.ShowErrorMessage($"Error Beaming Out Avatar: {avatarResult.Message}");
-                            //        }
-                            //        else
-                            //            CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
-                            //    }
-                            //    break;
-
-                            case "help":
-                                {
-                                    if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "full")
-                                        ShowCommands(true);
-                                    else
-                                        ShowCommands(false);
-                                }
-                                break;
-
-                            case "version":
-                                {
-                                    Console.WriteLine("");
-                                    CLIEngine.ShowMessage($"STAR ODK Version: {OASISBootLoader.OASISBootLoader.STARODKVersion}", ConsoleColor.Green, false);
-                                    CLIEngine.ShowMessage($"COSMIC ORM Version: {OASISBootLoader.OASISBootLoader.COSMICVersion}", ConsoleColor.Green, false);
-                                    CLIEngine.ShowMessage($"OASIS Runtime Version: {OASISBootLoader.OASISBootLoader.OASISVersion}", ConsoleColor.Green, false);
-                                    CLIEngine.ShowMessage($"OASIS Provider Versions: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
-                                }
-                                break;
-
-                            case "status":
-                                {
-                                    Console.WriteLine("");
-                                    CLIEngine.ShowMessage($"STAR ODK Status: {Enum.GetName(typeof(StarStatus), STAR.Status)}", ConsoleColor.Green, false);
-                                    CLIEngine.ShowMessage($"COSMIC ORM Status: Online", ConsoleColor.Green, false);
-                                    CLIEngine.ShowMessage($"OASIS Runtime Status: Online", ConsoleColor.Green, false);
-                                    CLIEngine.ShowMessage($"OASIS Provider Status: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
-                                }
-                                break;
-
-                            case "exit":
-                                exit = CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
-                                break;
-
-                            case "light":
-                                {
-                                    object oappTypeObj = null;
-                                    object genesisTypeObj = null;
-                                    OAPPType oappType = DEFAULT_OAPP_TYPE;
-                                    GenesisType genesisType = GenesisType.Planet;
-                                    OASISResult<CoronalEjection> lightResult = null;
-                                    _inMainMenu = false;
-
-                                    if (inputArgs.Length > 1)
+                            switch (inputArgs[0].ToLower())
+                            {
+                                case "ignite":
                                     {
-                                        if (inputArgs[1].ToLower() == "wiz")
-                                            await STARCLI.LightWizardAsync();
+                                        if (!STAR.IsStarIgnited)
+                                            await STAR.IgniteStarAsync();
                                         else
+                                            CLIEngine.ShowErrorMessage("STAR Is Already Ignited!");
+                                    }
+                                    break;
+
+                                case "extinguish":
+                                    {
+                                        if (STAR.IsStarIgnited)
+                                            await STAR.ExtinguishSuperStarAsync();
+                                        else
+                                            CLIEngine.ShowErrorMessage("STAR Is Not Ignited!");
+                                    }
+                                    break;
+
+                                //case "beamin":
+                                //    {
+                                //        if (STAR.BeamedInAvatar == null)
+                                //            await STARCLI.BeamInAvatar();
+                                //        else
+                                //            CLIEngine.ShowErrorMessage($"Avatar {STAR.BeamedInAvatar.Username} Already Beamed In. Please Beam Out First!");
+                                //    }
+                                //    break;
+
+                                //case "beamout":
+                                //    {
+                                //        if (STAR.BeamedInAvatar != null)
+                                //        {
+                                //            OASISResult<IAvatar> avatarResult = await STAR.BeamedInAvatar.BeamOutAsync();
+
+                                //            if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                                //            {
+                                //                STAR.BeamedInAvatar = null;
+                                //                STAR.BeamedInAvatarDetail = null;
+                                //                CLIEngine.ShowSuccessMessage("Avatar Successfully Beamed Out! We Hope You Enjoyed Your Time In The OASIS! Please Come Again! :)");
+                                //            }
+                                //            else
+                                //                CLIEngine.ShowErrorMessage($"Error Beaming Out Avatar: {avatarResult.Message}");
+                                //        }
+                                //        else
+                                //            CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                                //    }
+                                //    break;
+
+                                case "help":
+                                    {
+                                        if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "full")
+                                            ShowCommands(true);
+                                        else
+                                            ShowCommands(false);
+                                    }
+                                    break;
+
+                                case "version":
+                                    {
+                                        Console.WriteLine("");
+                                        CLIEngine.ShowMessage($"STAR ODK Version: {OASISBootLoader.OASISBootLoader.STARODKVersion}", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"COSMIC ORM Version: {OASISBootLoader.OASISBootLoader.COSMICVersion}", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"OASIS Runtime Version: {OASISBootLoader.OASISBootLoader.OASISVersion}", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"OASIS Provider Versions: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
+                                    }
+                                    break;
+
+                                case "status":
+                                    {
+                                        Console.WriteLine("");
+                                        CLIEngine.ShowMessage($"STAR ODK Status: {Enum.GetName(typeof(StarStatus), STAR.Status)}", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"COSMIC ORM Status: Online", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"OASIS Runtime Status: Online", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"OASIS Provider Status: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
+                                    }
+                                    break;
+
+                                case "exit":
+                                    exit = CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
+                                    break;
+
+                                case "light":
+                                    {
+                                        object oappTypeObj = null;
+                                        object genesisTypeObj = null;
+                                        OAPPType oappType = DEFAULT_OAPP_TYPE;
+                                        GenesisType genesisType = GenesisType.Planet;
+                                        OASISResult<CoronalEjection> lightResult = null;
+                                        _inMainMenu = false;
+
+                                        if (inputArgs.Length > 1)
                                         {
-                                            CLIEngine.ShowWorkingMessage("Generating OAPP...");
-
-                                            if (Enum.TryParse(typeof(OAPPType), inputArgs[2], true, out oappTypeObj))
+                                            if (inputArgs[1].ToLower() == "wiz")
+                                                await STARCLI.LightWizardAsync();
+                                            else
                                             {
-                                                oappType = (OAPPType)oappTypeObj;
+                                                CLIEngine.ShowWorkingMessage("Generating OAPP...");
 
-                                                if (inputArgs.Length > 5)
+                                                if (Enum.TryParse(typeof(OAPPType), inputArgs[2], true, out oappTypeObj))
                                                 {
-                                                    if (Enum.TryParse(typeof(GenesisType), inputArgs[6], true, out genesisTypeObj))
+                                                    oappType = (OAPPType)oappTypeObj;
+
+                                                    if (inputArgs.Length > 5)
                                                     {
-                                                        genesisType = (GenesisType)genesisTypeObj;
-
-                                                        if (inputArgs.Length > 7)
+                                                        if (Enum.TryParse(typeof(GenesisType), inputArgs[6], true, out genesisTypeObj))
                                                         {
-                                                            Guid parentId = Guid.Empty;
+                                                            genesisType = (GenesisType)genesisTypeObj;
 
-                                                            if (Guid.TryParse(inputArgs[7], out parentId))
-                                                                lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, genesisType, inputArgs[4], inputArgs[5], inputArgs[6], parentId);
+                                                            if (inputArgs.Length > 7)
+                                                            {
+                                                                Guid parentId = Guid.Empty;
+
+                                                                if (Guid.TryParse(inputArgs[7], out parentId))
+                                                                    lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, genesisType, inputArgs[4], inputArgs[5], inputArgs[6], parentId);
+                                                                else
+                                                                    CLIEngine.ShowErrorMessage($"The ParentCelestialBodyId Passed In ({inputArgs[6]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                            }
                                                             else
-                                                                CLIEngine.ShowErrorMessage($"The ParentCelestialBodyId Passed In ({inputArgs[6]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                                lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, genesisType, inputArgs[4], inputArgs[5], inputArgs[6], ProviderType.Default);
                                                         }
                                                         else
-                                                            lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, genesisType, inputArgs[4], inputArgs[5], inputArgs[6], ProviderType.Default);
+                                                            CLIEngine.ShowErrorMessage($"The GenesisType Passed In ({inputArgs[7]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
                                                     }
                                                     else
-                                                        CLIEngine.ShowErrorMessage($"The GenesisType Passed In ({inputArgs[7]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                        lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, inputArgs[4], inputArgs[5], inputArgs[6]);
                                                 }
                                                 else
-                                                    lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, inputArgs[4], inputArgs[5], inputArgs[6]);
-                                            }
-                                            else
-                                                CLIEngine.ShowErrorMessage($"The OAPPType Passed In ({inputArgs[3]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                    CLIEngine.ShowErrorMessage($"The OAPPType Passed In ({inputArgs[3]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.");
 
-                                            if (lightResult != null)
-                                            {
-                                                if (!lightResult.IsError && lightResult.Result != null)
-                                                    CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
-                                                else
-                                                    CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                                                if (lightResult != null)
+                                                {
+                                                    if (!lightResult.IsError && lightResult.Result != null)
+                                                        CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                                                    else
+                                                        CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                                                }
                                             }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("");
-                                        CLIEngine.ShowMessage("Light SUBCOMMAND:", ConsoleColor.Green);
-                                        Console.WriteLine("");
-                                        CLIEngine.ShowMessage("OAPPName              The name of the OAPP.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"OAPPType              The type of the OAPP, which can be any of the following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage("DnaFolder             The path to the DNA Folder which will be used to generate the OAPP from.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage("GenesisFolder         The path to the Genesis Folder where the OAPP will be created.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage("GenesisNameSpace      The namespace of the OAPP to generate.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"GenesisType           The Genesis Type can be any of the following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage("ParentCelestialBodyId The ID (GUID) of the Parent CelestialBody the generated OAPP will belong to. (optional)", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage("NOTE: Use 'light wiz' to start the light wizard.", ConsoleColor.Green);
-
-                                        if (CLIEngine.GetConfirmation("Do you wish to start the wizard?"))
-                                        {
-                                            Console.WriteLine("");
-                                            await STARCLI.LightWizardAsync();
                                         }
                                         else
+                                        {
                                             Console.WriteLine("");
+                                            CLIEngine.ShowMessage("LIGHT SUBCOMMAND:", ConsoleColor.Green);
+                                            Console.WriteLine("");
+                                            CLIEngine.ShowMessage("OAPPName               The name of the OAPP.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"OAPPType               The type of the OAPP, which can be any of the following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage("DnaFolder              The path to the DNA Folder which will be used to generate the OAPP from.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage("GenesisFolder          The path to the Genesis Folder where the OAPP will be created.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage("GenesisNameSpace       The namespace of the OAPP to generate.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"GenesisType            The Genesis Type can be any of the following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage("ParentCelestialBodyId  The ID (GUID) of the Parent CelestialBody the generated OAPP will belong to. (optional)", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage("NOTE: Use 'light wiz' to start the light wizard.", ConsoleColor.Green);
 
-                                        Console.ForegroundColor = ConsoleColor.Yellow;
+                                            if (CLIEngine.GetConfirmation("Do you wish to start the wizard?"))
+                                            {
+                                                Console.WriteLine("");
+                                                await STARCLI.LightWizardAsync();
+                                            }
+                                            else
+                                                Console.WriteLine("");
+
+                                            Console.ForegroundColor = ConsoleColor.Yellow;
+                                        }
                                     }
-                                }
-                                break;
+                                    break;
 
-                            case "bang":
-                                {
-                                    _inMainMenu = false;
-                                    object value = CLIEngine.GetValidInputForEnum("What type of metaverse do you wish to create?", typeof(MetaverseType));
-
-                                    if (value != null)
+                                case "bang":
                                     {
-                                        MetaverseType metaverseType = (MetaverseType)value;
-                                    }
-                                }
-                                break;
-
-                            case "wiz":
-                                {
-                                    _inMainMenu = false;
-                                    OASISResult<CoronalEjection> lightResult = null;
-                                    string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
-                                    object value = CLIEngine.GetValidInputForEnum("What type of OAPP do you wish to create?", typeof(OAPPType));
-
-                                    if (value != null)
-                                    {
-                                        OAPPType OAPPType = (OAPPType)value;
-
-                                        value = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create?", typeof(GenesisType));
+                                        _inMainMenu = false;
+                                        object value = CLIEngine.GetValidInputForEnum("What type of metaverse do you wish to create?", typeof(MetaverseType));
 
                                         if (value != null)
                                         {
-                                            GenesisType genesisType = (GenesisType)value;
+                                            MetaverseType metaverseType = (MetaverseType)value;
+                                        }
+                                    }
+                                    break;
 
-                                            string genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace?");
-                                            Guid parentId = Guid.Empty;
+                                case "wiz":
+                                    {
+                                        _inMainMenu = false;
+                                        OASISResult<CoronalEjection> lightResult = null;
+                                        string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
+                                        object value = CLIEngine.GetValidInputForEnum("What type of OAPP do you wish to create?", typeof(OAPPType));
 
-                                            if (!CLIEngine.GetConfirmation("Do you wish to add support for all OASIS Providers (recommeneded) or only specefic ones?"))
+                                        if (value != null)
+                                        {
+                                            OAPPType OAPPType = (OAPPType)value;
+
+                                            value = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create?", typeof(GenesisType));
+
+                                            if (value != null)
                                             {
-                                                bool providersSelected = false;
-                                                List<ProviderType> providers = new List<ProviderType>();
+                                                GenesisType genesisType = (GenesisType)value;
 
-                                                while (!providersSelected)
+                                                string genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace?");
+                                                Guid parentId = Guid.Empty;
+
+                                                if (!CLIEngine.GetConfirmation("Do you wish to add support for all OASIS Providers (recommeneded) or only specefic ones?"))
                                                 {
-                                                    object providerType = CLIEngine.GetValidInputForEnum("What provider do you wish to add?", typeof(ProviderType));
-                                                    providers.Add((ProviderType)providerType);
+                                                    bool providersSelected = false;
+                                                    List<ProviderType> providers = new List<ProviderType>();
 
-                                                    if (!CLIEngine.GetConfirmation("Do you wish to add any other providers?"))
-                                                        providersSelected = true;
+                                                    while (!providersSelected)
+                                                    {
+                                                        object providerType = CLIEngine.GetValidInputForEnum("What provider do you wish to add?", typeof(ProviderType));
+                                                        providers.Add((ProviderType)providerType);
+
+                                                        if (!CLIEngine.GetConfirmation("Do you wish to add any other providers?"))
+                                                            providersSelected = true;
+                                                    }
                                                 }
-                                            }
 
-                                            string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
-                                            string holonName = CLIEngine.GetValidInput("What is the name of the Holon (OASIS Data Object)?");
-                                            string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
-                                            object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(HolonPropType));
+                                                string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
+                                                string holonName = CLIEngine.GetValidInput("What is the name of the Holon (OASIS Data Object)?");
+                                                string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
+                                                object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(HolonPropType));
 
-                                            //TODO: Come back to this... :)
+                                                //TODO: Come back to this... :)
 
-                                            if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody?"))
-                                                parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+                                                if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody?"))
+                                                    parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
 
 
-                                            if (lightResult != null)
-                                            {
-                                                if (!lightResult.IsError && lightResult.Result != null)
-                                                    CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
-                                                else
-                                                    CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                                                if (lightResult != null)
+                                                {
+                                                    if (!lightResult.IsError && lightResult.Result != null)
+                                                        CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                                                    else
+                                                        CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                                                }
                                             }
                                         }
                                     }
-                                }
-                                break;
+                                    break;
 
-                            case "flare":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "shine":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "dim":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "seed":
-                                await STARCLI.PublishOAPPAsync();
-                                break;
-
-                            case "unseed":
-                                await STARCLI.UnPublishOAPPAsync();
-                                break;
-
-                            case "twinkle":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "dust":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "radiate":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "emit":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "reflect":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "evolve":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "mutate":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "love":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "burst":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "super":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "net":
-                                await STARCLI.LaunchSTARNETAsync();
-                                break;
-
-                            case "oapp":
-                                //if (inputArgs.Length > 1)
-                                //{
-                                //    switch (inputArgs[1].ToLower())
-                                //    {
-                                //        case "create":
-                                //            await STARCLI.LightWizardAsync();
-                                //            break;
-
-                                //        case "update":
-                                //            await STARCLI.EditOAPPAsync();
-                                //            break;
-
-                                //        case "delete":
-                                //            await STARCLI.DeleteOAPPAsync();
-                                //            break;
-
-                                //        case "install":
-                                //            await STARCLI.InstallOAPPAsync();
-                                //            break;
-
-                                //        case "uninstall":
-                                //            await STARCLI.UnInstallOAPPAsync();
-                                //            break;
-
-                                //        case "publish":
-                                //            await STARCLI.PublishOAPPAsync();
-                                //            break;
-
-                                //        case "unpublish":
-                                //            await STARCLI.UnPublishOAPPAsync();
-                                //            break;
-
-                                //        case "show":
-                                //            await STARCLI.ShowOAPPAsync();
-                                //            break;
-
-                                //        case "list":
-                                //            {
-                                //                if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
-                                //                    await STARCLI.ListAllOAPPsAsync();
-
-                                //                else if (inputArgs[2] != null && inputArgs[2].ToLower() == "installed")
-                                //                    await STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync();
-                                //                else
-                                //                    await STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync();
-                                //            }
-                                //            break;
-
-                                //        case "search":
-                                //            await STARCLI.SearchOAPPsAsync();
-                                //            break;
-                                //    }
-                                //}
-                                //else
-                                //{
-                                //    ShowSubCommand("OAPP", "", true);
-
-                                //    //Console.WriteLine("");
-                                //    //CLIEngine.ShowMessage("OAPP SUBCOMMANDS:", ConsoleColor.Green);
-                                //    //CLIEngine.ShowMessage("    create              Shortcut to the light sub-command.", ConsoleColor.Green);
-                                //    //CLIEngine.ShowMessage("    update    {id/name} Update an existing OAPP for the given {id} or {name}.", ConsoleColor.Green);
-                                //    //CLIEngine.ShowMessage("    delete    {id/name} Delete an existing OAPP for the given {id} or {name}.", ConsoleColor.Green);
-                                //    //CLIEngine.ShowMessage("    install             Install a OAPP.", ConsoleColor.Green);
-                                //    //CLIEngine.ShowMessage("    uninstall           Uninstall a OAPP.", ConsoleColor.Green);
-                                //    //CLIEngine.ShowMessage("    publish   {id/name} Shortcut to the seed sub-command (Publish a OAPP to the STARNET Store).", ConsoleColor.Green);
-                                //    //CLIEngine.ShowMessage("    unpublish {id/name} Shortcut to the un-seed sub-command (Unpublish a OAPP from the STARNET Store).", ConsoleColor.Green);
-                                //    //CLIEngine.ShowMessage("    show      {id/name} Shows a OAPP for the given {id} or {name}.", ConsoleColor.Green);
-                                //    //CLIEngine.ShowMessage("    list      {all}     List all OAPPs (contains zomes and holons) that have been generated.", ConsoleColor.Green);
-                                //    //CLIEngine.ShowMessage("    list installed      List all OAPP's installed for the current beamed in avatar.", ConsoleColor.Green);
-                                //    //CLIEngine.ShowMessage("    search    {all}     Searches the OAPP's for the given search critera.", ConsoleColor.Green);
-                                //    //Console.WriteLine("");
-                                //}
-
-
-                                if (inputArgs.Length > 1)
-                                {
-                                    switch (inputArgs[1].ToLower())
+                                case "flare":
                                     {
-                                        case "publish":
-                                            {
-                                                string oappPath = "";
-                                                bool dotNetPublish = false;
-
-                                                if (inputArgs.Length > 2)
-                                                    oappPath = inputArgs[2];
-
-                                                if (inputArgs.Length > 3 && inputArgs[3].ToLower() == "dotnetpublish")
-                                                    dotNetPublish = true;
-
-                                                await STARCLI.PublishOAPPAsync(oappPath, dotNetPublish);
-                                            }
-                                            break;
+                                        CLIEngine.ShowMessage("Coming soon...");
                                     }
-                                }
+                                    break;
 
-                                await ShowSubCommandAsync(inputArgs, "OAPP", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true);
-                                break;
-
-                            //case "installoapp":
-                            //    await STARCLI.InstallOAPPAsync();
-                            //    break;
-
-                            //case "uninstalloapp":
-                            //    await STARCLI.UnPublishOAPPAsync();
-                            //    break;
-
-                            //case "listoapps":
-                            //    {
-                            //        if (CLIEngine.GetConfirmation("Do you want to list all OAPPs? Press 'Y' to list all OAPPs or 'N' to list only the OAPPs you have created."))
-                            //            await STARCLI.ListAllOAPPsAsync();
-                            //        else
-                            //            await STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync();
-
-                            //    } break;
-
-                            //case "listinstalledoapps":
-                            //    {
-                            //        await STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync();
-                            //    }
-                            //    break;
-
-                            case "happ":
-                                //{
-                                //    if (inputArgs.Length > 1)
-                                //    {
-                                //        switch (inputArgs[1].ToLower())
-                                //        {
-                                //            case "create":
-                                //                await STARCLI.LightWizardAsync();
-                                //                break;
-
-                                //            case "update":
-                                //                await STARCLI.EditOAPPAsync();
-                                //                break;
-
-                                //            case "delete":
-                                //                await STARCLI.DeleteOAPPAsync();
-                                //                break;
-
-                                //            case "install":
-                                //                await STARCLI.InstallOAPPAsync();
-                                //                break;
-
-                                //            case "uninstall":
-                                //                await STARCLI.UnInstallOAPPAsync();
-                                //                break;
-
-                                //            case "publish":
-                                //                await STARCLI.PublishOAPPAsync();
-                                //                break;
-
-                                //            case "unpublish":
-                                //                await STARCLI.UnPublishOAPPAsync();
-                                //                break;
-
-                                //            case "show":
-                                //                await STARCLI.ShowOAPPAsync();
-                                //                break;
-
-                                //            case "list":
-                                //                {
-                                //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
-                                //                        await STARCLI.ListAllOAPPsAsync();
-
-                                //                    else if (inputArgs[2] != null && inputArgs[2].ToLower() == "installed")
-                                //                        await STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync();
-                                //                    else
-                                //                        await STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync();
-                                //                }
-                                //                break;
-
-                                //            case "search":
-                                //                await STARCLI.SearchOAPPsAsync();
-                                //                break;
-                                //        }
-                                //    }
-                                //    else
-                                //    {
-                                //        ShowSubCommand("hApp", "", true);
-
-                                //        //Console.WriteLine("");
-                                //        //CLIEngine.ShowMessage("HAPP SUBCOMMANDS:", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    create              Create a hApp.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    update    {id/name} Update an existing hApp for the given {id} or {name}.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    delete    {id/name} Delete an existing hApp for the given {id} or {name}.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    install             Install a hApp.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    uninstall           Uninstall a hApp.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    publish   {id/name} Publish a hApp to the STARNET Store.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    unpublish {id/name} Unpublish a hApp from the STARNET Store.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    show      {id/name} Shows a hApp for the given {id} or {name}.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    list      {all}     List all hApp's (contains zomes and holons) that have been generated.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    list installed      List all hApp's installed for the current beamed in avatar.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    search    {all}     Searches the hApp's for the given search critera.", ConsoleColor.Green);
-                                //        //Console.WriteLine("");
-                                //    }
-                                //}
-
-                                //await ShowSubCommandAsync(inputArgs, "hApp", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, STARCLI.PublishOAPPAsync, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true);
-
-                                if (inputArgs.Length > 1)
-                                {
-                                    switch (inputArgs[1].ToLower())
+                                case "shine":
                                     {
-                                        case "publish":
-                                            {
-                                                string oappPath = "";
-                                                bool dotNetPublish = false;
-
-                                                if (inputArgs.Length > 2)
-                                                    oappPath = inputArgs[2];
-
-                                                if (inputArgs.Length > 3 && inputArgs[3].ToLower() == "dotnetpublish")
-                                                    dotNetPublish = true;
-
-                                                await STARCLI.PublishOAPPAsync(oappPath, dotNetPublish); //TODO: Implement PublishHappAsync ASAP!
-                                            }
-                                            break;
+                                        CLIEngine.ShowMessage("Coming soon...");
                                     }
-                                }
+                                    break;
 
-                                await ShowSubCommandAsync(inputArgs, "hApp", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true, true);
-                                break;
+                                case "dim":
+                                    {
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    }
+                                    break;
 
+                                case "seed":
+                                    await STARCLI.PublishOAPPAsync();
+                                    break;
 
-                            //case "listhapps":
-                            //    {
-                            //        CLIEngine.ShowMessage("Coming soon...");
-                            //    }
-                            //    break;
+                                case "unseed":
+                                    await STARCLI.UnPublishOAPPAsync();
+                                    break;
 
-                            //case "listinstalledhapps":
-                            //    {
-                            //        CLIEngine.ShowMessage("Coming soon...");
-                            //    }
-                            //    break;
+                                case "twinkle":
+                                    {
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    }
+                                    break;
 
-                            case "celestialspace":
-                                //{
-                                //    if (inputArgs.Length > 1)
-                                //    {
-                                //        switch (inputArgs[1].ToLower())
-                                //        {
-                                //            case "create":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
+                                case "dust":
+                                    {
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    }
+                                    break;
 
-                                //            case "update":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
+                                case "radiate":
+                                    {
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    }
+                                    break;
 
-                                //            case "delete":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
+                                case "emit":
+                                    {
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    }
+                                    break;
 
-                                //            case "publish":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
+                                case "reflect":
+                                    {
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    }
+                                    break;
 
-                                //            case "unpublish":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
+                                case "evolve":
+                                    {
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    }
+                                    break;
 
-                                //            case "show":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
+                                case "mutate":
+                                    {
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    }
+                                    break;
 
-                                //            case "list":
-                                //                {
-                                //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
-                                //                        CLIEngine.ShowMessage("Coming soon...");
+                                case "love":
+                                    {
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    }
+                                    break;
 
-                                //                    else
-                                //                        CLIEngine.ShowMessage("Coming soon...");
-                                //                }
-                                //                break;
+                                case "burst":
+                                    {
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    }
+                                    break;
 
-                                //            case "search":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
-                                //        }
-                                //    }
-                                //    else
-                                //    {
-                                //        ShowSubCommand("celestial space");
+                                case "super":
+                                    {
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    }
+                                    break;
 
-                                //        //Console.WriteLine("");
-                                //        //CLIEngine.ShowMessage("CELESTIAL SPACE SUBCOMMANDS:", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    create              Create a celestial space.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    update    {id/name} Update an celestial space for the given {id} or {name}.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    delete    {id/name} Delete an celestial space for the given {id} or {name}.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    publish   {id/name} Publish a celestial space to the STARNET Store.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    unpublish {id/name} Unpublish a celestial space from the STARNET Store.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    show      {id/name} Shows a celestial space for the given {id} or {name}.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    list      {all}     List all celestial space's (contains zomes and holons) that have been generated.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    list installed      List all celestial space's installed for the current beamed in avatar.", ConsoleColor.Green);
-                                //        //CLIEngine.ShowMessage("    search    {all}     Searches the celestial space's for the given search critera.", ConsoleColor.Green);
-                                //        //Console.WriteLine("");
-                                //    }
-                                //}
+                                case "net":
+                                    await STARCLI.LaunchSTARNETAsync();
+                                    break;
 
-                                await ShowSubCommandAsync(inputArgs, "celestial space");
-                                break;
-
-                            //case " listcelestialspaces":
-                            //    {
-                            //        CLIEngine.ShowMessage("Coming soon...");
-                            //    }
-                            //    break;
-
-                            //case "listcelestialbodies":
-                            //    {
-                            //        CLIEngine.ShowMessage("Coming soon...");
-                            //    }
-                            //    break;
-
-                            case "celestialbody":
-                                //{
-                                //    if (inputArgs.Length > 1)
-                                //    {
-                                //        switch (inputArgs[1].ToLower())
-                                //        {
-                                //            case "create":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
-
-                                //            case "update":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
-
-                                //            case "delete":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
-
-                                //            case "publish":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
-
-                                //            case "unpublish":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
-
-                                //            case "show":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
-
-                                //            case "list":
-                                //                {
-                                //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
-                                //                        CLIEngine.ShowMessage("Coming soon...");
-
-                                //                    else
-                                //                        CLIEngine.ShowMessage("Coming soon...");
-                                //                }
-                                //                break;
-
-                                //            case "search":
-                                //                CLIEngine.ShowMessage("Coming soon...");
-                                //                break;
-                                //        }
-                                //    }
-                                //    else
-                                //        ShowSubCommand("celestial body", "celestial bodies");
-                                //}
-
-                                await ShowSubCommandAsync(inputArgs, "celestial body", "celestial bodies");
-                                break;
-
-                            case "zome":
-                                await ShowSubCommandAsync(inputArgs);
-                                break;
-
-                            case "holon":
-                                {
-                                    //switch (inputArgs[1])
-                                    //{
-                                    //    case "create":
-                                    //        {
-                                    //            STARCLI.CreateHolon()
-                                    //        }
-                                    //        break;
-                                    //}
-
-                                    await ShowSubCommandAsync(inputArgs, "", "", null, null, STARCLI.DeleteHolonAsync, null, null, null, null, STARCLI.ShowHolonAsync, STARCLI.ListAllHolonsForForBeamedInAvatar, STARCLI.ListAllHolonsAsync, null, null, ProviderType.Default);
-                                }
-
-                                break;
-
-                            //case "saveholon":
-                            //    {
-                            //        if (inputArgs.Length > 1)
-                            //        {
-                            //            if (inputArgs[1].ToLower().Contains("json="))
-                            //            {
-                            //                string[] parts = inputArgs[1].Split('=');
-
-                            //                //TODO: Finish implementing...
-                            //                CLIEngine.ShowMessage("Coming Soon...");
-                            //            }
-                            //            else if (inputArgs[1].ToLower() == "wiz")
-                            //                await SaveHolonWizard();
-                            //            else
-                            //                CLIEngine.ShowErrorMessage("Unknown Sub-Command. Use 'wiz' or 'json={holonJSONFile}'");
-                            //        }
-                            //        else
-                            //        {
-                            //            if (CLIEngine.GetConfirmation($"Do you wish to start the Save Holon Wizard?"))
-                            //                await SaveHolonWizard();
-                            //        }
-                            //    }
-                            //    break;
-
-                            //case "deleteholon":
-                            //    {
-                            //        _inMainMenu = false;
-
-                            //        if (inputArgs.Length > 1)
-                            //        {
-                            //            Guid id = Guid.Empty;
-
-                            //            if (Guid.TryParse(inputArgs[1], out id))
-                            //            {
-                            //                if (CLIEngine.GetConfirmation($"Are you sure you wish to delete the holon with id {inputArgs[1]}?"))
-                            //                {
-                            //                    OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.DeleteHolonAsync(id);
-
-                            //                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
-                            //                        STARCLI.ShowHolonProperties(holonResult.Result);
-                            //                    else
-                            //                        CLIEngine.ShowErrorMessage($"Error Occured: {holonResult.Message}");
-                            //                }
-                            //            }
-                            //            else
-                            //                CLIEngine.ShowErrorMessage("The HolonID Is Not Valid.");
-                            //        }
-                            //        else
-                            //            CLIEngine.ShowErrorMessage("No HolonID Specified.");
-                            //    }
-                            //    break;
-
-                            case "mission":
-                                await ShowSubCommandAsync(inputArgs);
-                                break;
-
-                            case "chapter":
-                                await ShowSubCommandAsync(inputArgs);
-                                break;
-
-                            case "quest":
-                                await ShowSubCommandAsync(inputArgs);
-                                break;
-
-                            case "nft":
-                                {
-                                    await ShowNftSubCommandAsync(inputArgs);
-
+                                case "oapp":
                                     //if (inputArgs.Length > 1)
                                     //{
                                     //    switch (inputArgs[1].ToLower())
                                     //    {
-                                    //        case "mint":
-                                    //            await STARCLI.MintNFTAsync();
+                                    //        case "create":
+                                    //            await STARCLI.LightWizardAsync();
                                     //            break;
 
-                                    //        case "send":
-                                    //            await STARCLI.SendNFTAsync();
+                                    //        case "update":
+                                    //            await STARCLI.EditOAPPAsync();
+                                    //            break;
+
+                                    //        case "delete":
+                                    //            await STARCLI.DeleteOAPPAsync();
+                                    //            break;
+
+                                    //        case "install":
+                                    //            await STARCLI.InstallOAPPAsync();
+                                    //            break;
+
+                                    //        case "uninstall":
+                                    //            await STARCLI.UnInstallOAPPAsync();
+                                    //            break;
+
+                                    //        case "publish":
+                                    //            await STARCLI.PublishOAPPAsync();
+                                    //            break;
+
+                                    //        case "unpublish":
+                                    //            await STARCLI.UnPublishOAPPAsync();
+                                    //            break;
+
+                                    //        case "show":
+                                    //            await STARCLI.ShowOAPPAsync();
+                                    //            break;
+
+                                    //        case "list":
+                                    //            {
+                                    //                if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+                                    //                    await STARCLI.ListAllOAPPsAsync();
+
+                                    //                else if (inputArgs[2] != null && inputArgs[2].ToLower() == "installed")
+                                    //                    await STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync();
+                                    //                else
+                                    //                    await STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync();
+                                    //            }
+                                    //            break;
+
+                                    //        case "search":
+                                    //            await STARCLI.SearchOAPPsAsync();
                                     //            break;
                                     //    }
-
-                                    //    ShowSubCommand(inputArgs, "", "", null, null, null, null, null, null, null, STARCLI.ShowNFTAsync, STARCLI.ListNFTsForBeamedInAvatarAsync, STARCLI.ListAllNFTsAsync, null, null, ProviderType.Default, false, false, true, true, "burn");
                                     //}
-                                }
-                                break;
-
-                            case "geonft":
-                                {
-                                    await ShowGeoNftSubCommandAsync(inputArgs);
-
-                                    //if (inputArgs.Length > 1)
+                                    //else
                                     //{
-                                    //    switch (inputArgs[1].ToLower())
-                                    //    {
-                                    //        case "mint":
-                                    //            await STARCLI.MintGeoNFTAsync();
-                                    //            break;
+                                    //    ShowSubCommand("OAPP", "", true);
 
-                                    //        case "place":
-                                    //            await STARCLI.PlaceGeoNFTAsync();
-                                    //            break;
-
-                                    //        case "send":
-                                    //            await STARCLI.SendNFTAsync(); //TODO: Implement SendGeoNFTAsync() here.
-                                    //            break;
-                                    //    }
-
-                                    //    ShowSubCommand(inputArgs, "", "", null, null, null, null, null, null, null, null, null, null, null, null, ProviderType.Default, false, false, true, true, "burn");
+                                    //    //Console.WriteLine("");
+                                    //    //CLIEngine.ShowMessage("OAPP SUBCOMMANDS:", ConsoleColor.Green);
+                                    //    //CLIEngine.ShowMessage("    create              Shortcut to the light sub-command.", ConsoleColor.Green);
+                                    //    //CLIEngine.ShowMessage("    update    {id/name} Update an existing OAPP for the given {id} or {name}.", ConsoleColor.Green);
+                                    //    //CLIEngine.ShowMessage("    delete    {id/name} Delete an existing OAPP for the given {id} or {name}.", ConsoleColor.Green);
+                                    //    //CLIEngine.ShowMessage("    install             Install a OAPP.", ConsoleColor.Green);
+                                    //    //CLIEngine.ShowMessage("    uninstall           Uninstall a OAPP.", ConsoleColor.Green);
+                                    //    //CLIEngine.ShowMessage("    publish   {id/name} Shortcut to the seed sub-command (Publish a OAPP to the STARNET Store).", ConsoleColor.Green);
+                                    //    //CLIEngine.ShowMessage("    unpublish {id/name} Shortcut to the un-seed sub-command (Unpublish a OAPP from the STARNET Store).", ConsoleColor.Green);
+                                    //    //CLIEngine.ShowMessage("    show      {id/name} Shows a OAPP for the given {id} or {name}.", ConsoleColor.Green);
+                                    //    //CLIEngine.ShowMessage("    list      {all}     List all OAPPs (contains zomes and holons) that have been generated.", ConsoleColor.Green);
+                                    //    //CLIEngine.ShowMessage("    list installed      List all OAPP's installed for the current beamed in avatar.", ConsoleColor.Green);
+                                    //    //CLIEngine.ShowMessage("    search    {all}     Searches the OAPP's for the given search critera.", ConsoleColor.Green);
+                                    //    //Console.WriteLine("");
                                     //}
-                                }
-                                break;
 
-                            case "geohotspot":
-                                await ShowSubCommandAsync(inputArgs);
-                                break;
-
-                            case "avatar":
-                                await ShowAvatarSubCommandAsync(inputArgs);
-                                break;
-
-                            case "karma":
-                                await ShowKarmaSubCommandAsync(inputArgs);
-                                break;
-
-                            case "keys":
-                                await ShowKeysSubCommandAsync(inputArgs);
-                                break;
-
-                            case "wallet":
-                                await ShowWalletSubCommandAsync(inputArgs);
-                                break;
-
-                            case "search":
-                                {
-                                    CLIEngine.ShowMessage("Coming soon...");
-                                }
-                                break;
-
-                            case "config":
-                                await ShowConfigSubCommandAsync(inputArgs);
-                                break;
-
-                            //case "enablecosmicdetailedoutput":
-                            //    {
-                            //        STAR.IsDetailedCOSMICOutputsEnabled = true;
-                            //        CLIEngine.ShowMessage("Detailed COSMIC Output Enabled.");
-                            //    }
-                            //    break;
-
-                            //case "disablecosmicdetailedoutput":
-                            //    {
-                            //        STAR.IsDetailedCOSMICOutputsEnabled = false;
-                            //        CLIEngine.ShowMessage("Detailed COSMIC Output Disabled.");
-                            //    }
-                            //    break;
-
-                            //case "enablestarstatusdetailedoutput":
-                            //    {
-                            //        STAR.IsDetailedStatusUpdatesEnabled = true;
-                            //        CLIEngine.ShowMessage("Detailed STAR ODK Status Output Enabled.");
-                            //    }
-                            //    break;
-
-                            //case "disablestarstatusdetailedoutput":
-                            //    {
-                            //        STAR.IsDetailedStatusUpdatesEnabled = false;
-                            //        CLIEngine.ShowMessage("Detailed STAR ODK Status Output Disabled.");
-                            //    }
-                            //    break;
-
-                            case "runcosmictests":
-                                {
-                                    object oappTypeObj = null;
-                                    OAPPType OAPPType = DEFAULT_OAPP_TYPE;
-                                    string dnaFolder = DEFAULT_DNA_FOLDER;
-                                    string genesisFolder = DEFAULT_GENESIS_FOLDER;
-                                    //string genesisNameSpace = DEFAULT_GENESIS_NAMESPACE;
 
                                     if (inputArgs.Length > 1)
                                     {
-                                        if (Enum.TryParse(typeof(OAPPType), inputArgs[2], true, out oappTypeObj))
-                                            OAPPType = (OAPPType)oappTypeObj;
+                                        switch (inputArgs[1].ToLower())
+                                        {
+                                            case "publish":
+                                                {
+                                                    string oappPath = "";
+                                                    bool dotNetPublish = false;
+
+                                                    if (inputArgs.Length > 2)
+                                                        oappPath = inputArgs[2];
+
+                                                    if (inputArgs.Length > 3 && inputArgs[3].ToLower() == "dotnetpublish")
+                                                        dotNetPublish = true;
+
+                                                    await STARCLI.PublishOAPPAsync(oappPath, dotNetPublish);
+                                                }
+                                                break;
+                                        }
                                     }
 
-                                    if (inputArgs.Length > 2)
-                                        dnaFolder = inputArgs[1];
+                                    await ShowSubCommandAsync(inputArgs, "OAPP", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true);
+                                    break;
 
-                                    if (inputArgs.Length > 3)
-                                        genesisFolder = inputArgs[2];
+                                //case "installoapp":
+                                //    await STARCLI.InstallOAPPAsync();
+                                //    break;
 
-                                    if (OAPPType == DEFAULT_OAPP_TYPE)
-                                        CLIEngine.ShowWorkingMessage($"OAPPType Not Specified, Using Default: {Enum.GetName(typeof(OAPPType), OAPPType)}");
-                                    else
-                                        CLIEngine.ShowWorkingMessage($"OAPPType Specified: {Enum.GetName(typeof(OAPPType), OAPPType)}");
+                                //case "uninstalloapp":
+                                //    await STARCLI.UnPublishOAPPAsync();
+                                //    break;
 
-                                    if (dnaFolder == DEFAULT_DNA_FOLDER)
-                                        CLIEngine.ShowWorkingMessage($"DNAFolder Not Specified, Using Default: {dnaFolder}");
-                                    else
-                                        CLIEngine.ShowWorkingMessage($"DNAFolder Specified: {dnaFolder}");
+                                //case "listoapps":
+                                //    {
+                                //        if (CLIEngine.GetConfirmation("Do you want to list all OAPPs? Press 'Y' to list all OAPPs or 'N' to list only the OAPPs you have created."))
+                                //            await STARCLI.ListAllOAPPsAsync();
+                                //        else
+                                //            await STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync();
 
-                                    if (genesisFolder == DEFAULT_GENESIS_FOLDER)
-                                        CLIEngine.ShowWorkingMessage($"GenesisFolder Not Specified, Using Default: {genesisFolder}");
-                                    else
-                                        CLIEngine.ShowWorkingMessage($"GenesisFolder Specified: {genesisFolder}");
+                                //    } break;
 
-                                    await STARCLI.RunCOSMICTests(OAPPType, dnaFolder, genesisFolder);
-                                }
-                                break;
+                                //case "listinstalledoapps":
+                                //    {
+                                //        await STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync();
+                                //    }
+                                //    break;
 
-                            case "runoasisapitests":
-                                await STARCLI.RunOASISAPTests();
-                                break;
+                                case "happ":
+                                    //{
+                                    //    if (inputArgs.Length > 1)
+                                    //    {
+                                    //        switch (inputArgs[1].ToLower())
+                                    //        {
+                                    //            case "create":
+                                    //                await STARCLI.LightWizardAsync();
+                                    //                break;
 
-                            default:
-                                CLIEngine.ShowErrorMessage("Command Unknown.");
-                                break;
+                                    //            case "update":
+                                    //                await STARCLI.EditOAPPAsync();
+                                    //                break;
+
+                                    //            case "delete":
+                                    //                await STARCLI.DeleteOAPPAsync();
+                                    //                break;
+
+                                    //            case "install":
+                                    //                await STARCLI.InstallOAPPAsync();
+                                    //                break;
+
+                                    //            case "uninstall":
+                                    //                await STARCLI.UnInstallOAPPAsync();
+                                    //                break;
+
+                                    //            case "publish":
+                                    //                await STARCLI.PublishOAPPAsync();
+                                    //                break;
+
+                                    //            case "unpublish":
+                                    //                await STARCLI.UnPublishOAPPAsync();
+                                    //                break;
+
+                                    //            case "show":
+                                    //                await STARCLI.ShowOAPPAsync();
+                                    //                break;
+
+                                    //            case "list":
+                                    //                {
+                                    //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+                                    //                        await STARCLI.ListAllOAPPsAsync();
+
+                                    //                    else if (inputArgs[2] != null && inputArgs[2].ToLower() == "installed")
+                                    //                        await STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync();
+                                    //                    else
+                                    //                        await STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync();
+                                    //                }
+                                    //                break;
+
+                                    //            case "search":
+                                    //                await STARCLI.SearchOAPPsAsync();
+                                    //                break;
+                                    //        }
+                                    //    }
+                                    //    else
+                                    //    {
+                                    //        ShowSubCommand("hApp", "", true);
+
+                                    //        //Console.WriteLine("");
+                                    //        //CLIEngine.ShowMessage("HAPP SUBCOMMANDS:", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    create              Create a hApp.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    update    {id/name} Update an existing hApp for the given {id} or {name}.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    delete    {id/name} Delete an existing hApp for the given {id} or {name}.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    install             Install a hApp.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    uninstall           Uninstall a hApp.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    publish   {id/name} Publish a hApp to the STARNET Store.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    unpublish {id/name} Unpublish a hApp from the STARNET Store.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    show      {id/name} Shows a hApp for the given {id} or {name}.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    list      {all}     List all hApp's (contains zomes and holons) that have been generated.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    list installed      List all hApp's installed for the current beamed in avatar.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    search    {all}     Searches the hApp's for the given search critera.", ConsoleColor.Green);
+                                    //        //Console.WriteLine("");
+                                    //    }
+                                    //}
+
+                                    //await ShowSubCommandAsync(inputArgs, "hApp", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, STARCLI.PublishOAPPAsync, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true);
+
+                                    if (inputArgs.Length > 1)
+                                    {
+                                        switch (inputArgs[1].ToLower())
+                                        {
+                                            case "publish":
+                                                {
+                                                    string oappPath = "";
+                                                    bool dotNetPublish = false;
+
+                                                    if (inputArgs.Length > 2)
+                                                        oappPath = inputArgs[2];
+
+                                                    if (inputArgs.Length > 3 && inputArgs[3].ToLower() == "dotnetpublish")
+                                                        dotNetPublish = true;
+
+                                                    await STARCLI.PublishOAPPAsync(oappPath, dotNetPublish); //TODO: Implement PublishHappAsync ASAP!
+                                                }
+                                                break;
+                                        }
+                                    }
+
+                                    await ShowSubCommandAsync(inputArgs, "hApp", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true, true);
+                                    break;
+
+
+                                //case "listhapps":
+                                //    {
+                                //        CLIEngine.ShowMessage("Coming soon...");
+                                //    }
+                                //    break;
+
+                                //case "listinstalledhapps":
+                                //    {
+                                //        CLIEngine.ShowMessage("Coming soon...");
+                                //    }
+                                //    break;
+
+                                case "celestialspace":
+                                    //{
+                                    //    if (inputArgs.Length > 1)
+                                    //    {
+                                    //        switch (inputArgs[1].ToLower())
+                                    //        {
+                                    //            case "create":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+
+                                    //            case "update":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+
+                                    //            case "delete":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+
+                                    //            case "publish":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+
+                                    //            case "unpublish":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+
+                                    //            case "show":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+
+                                    //            case "list":
+                                    //                {
+                                    //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+                                    //                        CLIEngine.ShowMessage("Coming soon...");
+
+                                    //                    else
+                                    //                        CLIEngine.ShowMessage("Coming soon...");
+                                    //                }
+                                    //                break;
+
+                                    //            case "search":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+                                    //        }
+                                    //    }
+                                    //    else
+                                    //    {
+                                    //        ShowSubCommand("celestial space");
+
+                                    //        //Console.WriteLine("");
+                                    //        //CLIEngine.ShowMessage("CELESTIAL SPACE SUBCOMMANDS:", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    create              Create a celestial space.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    update    {id/name} Update an celestial space for the given {id} or {name}.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    delete    {id/name} Delete an celestial space for the given {id} or {name}.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    publish   {id/name} Publish a celestial space to the STARNET Store.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    unpublish {id/name} Unpublish a celestial space from the STARNET Store.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    show      {id/name} Shows a celestial space for the given {id} or {name}.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    list      {all}     List all celestial space's (contains zomes and holons) that have been generated.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    list installed      List all celestial space's installed for the current beamed in avatar.", ConsoleColor.Green);
+                                    //        //CLIEngine.ShowMessage("    search    {all}     Searches the celestial space's for the given search critera.", ConsoleColor.Green);
+                                    //        //Console.WriteLine("");
+                                    //    }
+                                    //}
+
+                                    await ShowSubCommandAsync(inputArgs, "celestial space");
+                                    break;
+
+                                //case " listcelestialspaces":
+                                //    {
+                                //        CLIEngine.ShowMessage("Coming soon...");
+                                //    }
+                                //    break;
+
+                                //case "listcelestialbodies":
+                                //    {
+                                //        CLIEngine.ShowMessage("Coming soon...");
+                                //    }
+                                //    break;
+
+                                case "celestialbody":
+                                    //{
+                                    //    if (inputArgs.Length > 1)
+                                    //    {
+                                    //        switch (inputArgs[1].ToLower())
+                                    //        {
+                                    //            case "create":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+
+                                    //            case "update":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+
+                                    //            case "delete":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+
+                                    //            case "publish":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+
+                                    //            case "unpublish":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+
+                                    //            case "show":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+
+                                    //            case "list":
+                                    //                {
+                                    //                    if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+                                    //                        CLIEngine.ShowMessage("Coming soon...");
+
+                                    //                    else
+                                    //                        CLIEngine.ShowMessage("Coming soon...");
+                                    //                }
+                                    //                break;
+
+                                    //            case "search":
+                                    //                CLIEngine.ShowMessage("Coming soon...");
+                                    //                break;
+                                    //        }
+                                    //    }
+                                    //    else
+                                    //        ShowSubCommand("celestial body", "celestial bodies");
+                                    //}
+
+                                    await ShowSubCommandAsync(inputArgs, "celestial body", "celestial bodies");
+                                    break;
+
+                                case "zome":
+                                    await ShowSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "holon":
+                                    {
+                                        //switch (inputArgs[1])
+                                        //{
+                                        //    case "create":
+                                        //        {
+                                        //            STARCLI.CreateHolon()
+                                        //        }
+                                        //        break;
+                                        //}
+
+                                        await ShowSubCommandAsync(inputArgs, "", "", null, null, STARCLI.DeleteHolonAsync, null, null, null, null, STARCLI.ShowHolonAsync, STARCLI.ListAllHolonsForForBeamedInAvatar, STARCLI.ListAllHolonsAsync, null, null, ProviderType.Default);
+                                    }
+
+                                    break;
+
+                                //case "saveholon":
+                                //    {
+                                //        if (inputArgs.Length > 1)
+                                //        {
+                                //            if (inputArgs[1].ToLower().Contains("json="))
+                                //            {
+                                //                string[] parts = inputArgs[1].Split('=');
+
+                                //                //TODO: Finish implementing...
+                                //                CLIEngine.ShowMessage("Coming Soon...");
+                                //            }
+                                //            else if (inputArgs[1].ToLower() == "wiz")
+                                //                await SaveHolonWizard();
+                                //            else
+                                //                CLIEngine.ShowErrorMessage("Unknown Sub-Command. Use 'wiz' or 'json={holonJSONFile}'");
+                                //        }
+                                //        else
+                                //        {
+                                //            if (CLIEngine.GetConfirmation($"Do you wish to start the Save Holon Wizard?"))
+                                //                await SaveHolonWizard();
+                                //        }
+                                //    }
+                                //    break;
+
+                                //case "deleteholon":
+                                //    {
+                                //        _inMainMenu = false;
+
+                                //        if (inputArgs.Length > 1)
+                                //        {
+                                //            Guid id = Guid.Empty;
+
+                                //            if (Guid.TryParse(inputArgs[1], out id))
+                                //            {
+                                //                if (CLIEngine.GetConfirmation($"Are you sure you wish to delete the holon with id {inputArgs[1]}?"))
+                                //                {
+                                //                    OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.DeleteHolonAsync(id);
+
+                                //                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                                //                        STARCLI.ShowHolonProperties(holonResult.Result);
+                                //                    else
+                                //                        CLIEngine.ShowErrorMessage($"Error Occured: {holonResult.Message}");
+                                //                }
+                                //            }
+                                //            else
+                                //                CLIEngine.ShowErrorMessage("The HolonID Is Not Valid.");
+                                //        }
+                                //        else
+                                //            CLIEngine.ShowErrorMessage("No HolonID Specified.");
+                                //    }
+                                //    break;
+
+                                case "mission":
+                                    await ShowSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "chapter":
+                                    await ShowSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "quest":
+                                    await ShowSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "nft":
+                                    {
+                                        await ShowNftSubCommandAsync(inputArgs);
+
+                                        //if (inputArgs.Length > 1)
+                                        //{
+                                        //    switch (inputArgs[1].ToLower())
+                                        //    {
+                                        //        case "mint":
+                                        //            await STARCLI.MintNFTAsync();
+                                        //            break;
+
+                                        //        case "send":
+                                        //            await STARCLI.SendNFTAsync();
+                                        //            break;
+                                        //    }
+
+                                        //    ShowSubCommand(inputArgs, "", "", null, null, null, null, null, null, null, STARCLI.ShowNFTAsync, STARCLI.ListNFTsForBeamedInAvatarAsync, STARCLI.ListAllNFTsAsync, null, null, ProviderType.Default, false, false, true, true, "burn");
+                                        //}
+                                    }
+                                    break;
+
+                                case "geonft":
+                                    {
+                                        await ShowGeoNftSubCommandAsync(inputArgs);
+
+                                        //if (inputArgs.Length > 1)
+                                        //{
+                                        //    switch (inputArgs[1].ToLower())
+                                        //    {
+                                        //        case "mint":
+                                        //            await STARCLI.MintGeoNFTAsync();
+                                        //            break;
+
+                                        //        case "place":
+                                        //            await STARCLI.PlaceGeoNFTAsync();
+                                        //            break;
+
+                                        //        case "send":
+                                        //            await STARCLI.SendNFTAsync(); //TODO: Implement SendGeoNFTAsync() here.
+                                        //            break;
+                                        //    }
+
+                                        //    ShowSubCommand(inputArgs, "", "", null, null, null, null, null, null, null, null, null, null, null, null, ProviderType.Default, false, false, true, true, "burn");
+                                        //}
+                                    }
+                                    break;
+
+                                case "geohotspot":
+                                    await ShowSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "avatar":
+                                    await ShowAvatarSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "karma":
+                                    await ShowKarmaSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "keys":
+                                    await ShowKeysSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "wallet":
+                                    await ShowWalletSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "search":
+                                    {
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    }
+                                    break;
+
+                                case "onode":
+                                    await ShowONODEConfigSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "hypernet":
+                                    await ShowHyperNETSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "onet":
+                                    await ShowONETSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "config":
+                                    await ShowConfigSubCommandAsync(inputArgs);
+                                    break;
+
+                                //case "enablecosmicdetailedoutput":
+                                //    {
+                                //        STAR.IsDetailedCOSMICOutputsEnabled = true;
+                                //        CLIEngine.ShowMessage("Detailed COSMIC Output Enabled.");
+                                //    }
+                                //    break;
+
+                                //case "disablecosmicdetailedoutput":
+                                //    {
+                                //        STAR.IsDetailedCOSMICOutputsEnabled = false;
+                                //        CLIEngine.ShowMessage("Detailed COSMIC Output Disabled.");
+                                //    }
+                                //    break;
+
+                                //case "enablestarstatusdetailedoutput":
+                                //    {
+                                //        STAR.IsDetailedStatusUpdatesEnabled = true;
+                                //        CLIEngine.ShowMessage("Detailed STAR ODK Status Output Enabled.");
+                                //    }
+                                //    break;
+
+                                //case "disablestarstatusdetailedoutput":
+                                //    {
+                                //        STAR.IsDetailedStatusUpdatesEnabled = false;
+                                //        CLIEngine.ShowMessage("Detailed STAR ODK Status Output Disabled.");
+                                //    }
+                                //    break;
+
+                                case "runcosmictests":
+                                    {
+                                        object oappTypeObj = null;
+                                        OAPPType OAPPType = DEFAULT_OAPP_TYPE;
+                                        string dnaFolder = DEFAULT_DNA_FOLDER;
+                                        string genesisFolder = DEFAULT_GENESIS_FOLDER;
+                                        //string genesisNameSpace = DEFAULT_GENESIS_NAMESPACE;
+
+                                        if (inputArgs.Length > 1)
+                                        {
+                                            if (Enum.TryParse(typeof(OAPPType), inputArgs[2], true, out oappTypeObj))
+                                                OAPPType = (OAPPType)oappTypeObj;
+                                        }
+
+                                        if (inputArgs.Length > 2)
+                                            dnaFolder = inputArgs[1];
+
+                                        if (inputArgs.Length > 3)
+                                            genesisFolder = inputArgs[2];
+
+                                        if (OAPPType == DEFAULT_OAPP_TYPE)
+                                            CLIEngine.ShowWorkingMessage($"OAPPType Not Specified, Using Default: {Enum.GetName(typeof(OAPPType), OAPPType)}");
+                                        else
+                                            CLIEngine.ShowWorkingMessage($"OAPPType Specified: {Enum.GetName(typeof(OAPPType), OAPPType)}");
+
+                                        if (dnaFolder == DEFAULT_DNA_FOLDER)
+                                            CLIEngine.ShowWorkingMessage($"DNAFolder Not Specified, Using Default: {dnaFolder}");
+                                        else
+                                            CLIEngine.ShowWorkingMessage($"DNAFolder Specified: {dnaFolder}");
+
+                                        if (genesisFolder == DEFAULT_GENESIS_FOLDER)
+                                            CLIEngine.ShowWorkingMessage($"GenesisFolder Not Specified, Using Default: {genesisFolder}");
+                                        else
+                                            CLIEngine.ShowWorkingMessage($"GenesisFolder Specified: {genesisFolder}");
+
+                                        await STARCLI.RunCOSMICTests(OAPPType, dnaFolder, genesisFolder);
+                                    }
+                                    break;
+
+                                case "runoasisapitests":
+                                    await STARCLI.RunOASISAPTests();
+                                    break;
+
+                                default:
+                                    CLIEngine.ShowErrorMessage("Command Unknown.");
+                                    break;
+                            }
                         }
                     }
-                }
-                else
-                {
-                    //ConsoleKeyInfo keyInfo = Console.ReadKey();
+                    else
+                    {
+                        //ConsoleKeyInfo keyInfo = Console.ReadKey();
 
-                    //if (keyInfo.KeyChar == 'c' && keyInfo.Modifiers == ConsoleModifiers.Control)
-                    //    exit = CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
+                        //if (keyInfo.KeyChar == 'c' && keyInfo.Modifiers == ConsoleModifiers.Control)
+                        //    exit = CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OASISErrorHandling.HandleError($"An unknown error occured in STARCLI.ReadyPlayerOne. Reason: {ex}", ex);
                 }
             }
             while (!exit);
@@ -1256,14 +1276,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "list":
                         {
-                            if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+                            if (inputArgs.Length > 2 && inputArgs[2] != null && inputArgs[2].ToLower() == "all")
                             {
                                 if (listAllPredicate != null)
                                     await listAllPredicate(providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
-                            else if (inputArgs[2] != null && inputArgs[2].ToLower() == "installed")
+                            else if (inputArgs.Length > 2 && inputArgs[2] != null && inputArgs[2].ToLower() == "installed")
                             {
                                 if (isOAPPOrHapp)
                                 {
@@ -1607,7 +1627,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "list":
                         {
-                            if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+                            if (inputArgs.Length > 2 && inputArgs[2] != null && inputArgs[2].ToLower() == "all")
                                 await STARCLI.ListAllNFTsAsync();
                             else
                                 await STARCLI.ListNFTsForBeamedInAvatarAsync();
@@ -1702,7 +1722,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "list":
                         {
-                            if (inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+                            if (inputArgs.Length > 2 && inputArgs[2] != null && inputArgs[2].ToLower() == "all")
                                 await STARCLI.ListAllGeoNFTsAsync();
                             else
                                 await STARCLI.ListAllGeoNFTsForBeamedInAvatarAsync();
@@ -1828,7 +1848,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         { 
                             if (inputArgs.Length > 2)
                             {
-                                switch (inputArgs[1].ToLower())
+                                switch (inputArgs[2].ToLower())
                                 {
                                     case "enabled":
                                         {
@@ -1872,7 +1892,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         {
                             if (inputArgs.Length > 2)
                             {
-                                switch (inputArgs[1].ToLower())
+                                switch (inputArgs[2].ToLower())
                                 {
                                     case "enabled":
                                         {
@@ -1924,6 +1944,157 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage("    cosmicdetailedoutput     [enable/disable/status] Enables/disables COSMIC Detailed Output.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    starstatusdetailedoutput [enable/disable/status] Enables/disables STAR ODK Detailed Output.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
+            }
+        }
+
+        private static async Task ShowONODEConfigSubCommandAsync(string[] inputArgs)
+        {
+            if (inputArgs.Length > 1)
+            {
+                switch (inputArgs[1].ToLower())
+                {
+                    case "start":
+                        {
+                            CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "stop":
+                        {
+                            CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "status":
+                        {
+                            CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "config":
+                        {
+                            CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "providers":
+                        {
+                            CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "startprovider":
+                        {
+                            CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "stopprovider":
+                        {
+                            CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    default:
+                        CLIEngine.ShowErrorMessage("Command Unknown.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowMessage($"ONODE SUBCOMMANDS:", ConsoleColor.Green);
+                Console.WriteLine("");
+                CLIEngine.ShowMessage("    start                          Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    stop                           Stops a OASIS Node (ONODE).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    status                         Shows stats for this ONODE.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    config                         Opens the ONODE's OASISDNA to allow changes to be made (you will need to stop and start the ONODE for changes to apply).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    providers                      Shows what OASIS Providers are running for this ONODE.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    startprovider  {ProviderName}  Starts a given provider.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    stopprovider   {ProviderName}  Stops a given provider.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
+            }
+        }
+
+        private static async Task ShowHyperNETSubCommandAsync(string[] inputArgs)
+        {
+            if (inputArgs.Length > 1)
+            {
+                switch (inputArgs[1].ToLower())
+                {
+                    case "start":
+                        {
+                            CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "stop":
+                        {
+                            CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "status":
+                        {
+                            CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "config":
+                        {
+                            CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    default:
+                        CLIEngine.ShowErrorMessage("Command Unknown.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowMessage($"HOLONET P2P HYPERNET SUBCOMMANDS:", ConsoleColor.Green);
+                Console.WriteLine("");
+                CLIEngine.ShowMessage("    start   Starts the HoloNET P2P HyperNET Service.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    stop    Stops the HoloNET P2P HyperNET Service.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    status  Shows stats for the HoloNET P2P HyperNET Service.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    config  Opens the HyperNET's DNA to allow changes to be made (you will need to stop and start the HyperNET Service for changes to apply).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
+            }
+        }
+
+        private static async Task ShowONETSubCommandAsync(string[] inputArgs)
+        {
+            if (inputArgs.Length > 1)
+            {
+                switch (inputArgs[1].ToLower())
+                {
+                    case "status":
+                        {
+                            CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "providers":
+                        {
+                            CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    default:
+                        CLIEngine.ShowErrorMessage("Command Unknown.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowMessage($"ONET SUBCOMMANDS:", ConsoleColor.Green);
+                Console.WriteLine("");
+                CLIEngine.ShowMessage("    status     Shows stats for the OASIS Network (ONET).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    providers  Shows what OASIS Providers are running across the ONET and on what ONODE's.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -3884,175 +4055,363 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
             if (showFullCommands)
             {
-                Console.WriteLine("    light {OAPPName} {OAPPDesc} {OAPPType} {dnaFolder} {geneisFolder} {genesisNameSpace} {genesisTyp} {parentCelestialBodyId} (optional) = Creates a new OAPP (Zomes/Holons/Star/Planet/Moon) at the given genesis folder location, from the given OAPP DNA.");
-                Console.WriteLine("    light = Displays more detail on how to use this command and optionally launches the Light Wizard.");
-                Console.WriteLine("    light wiz = Start the Light Wizard.");
-                Console.WriteLine("    light transmute {hAppDNA} {geneisFolder}  = Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
-               
-                Console.WriteLine("    bang = Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
-                Console.WriteLine("    wiz = Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
-                Console.WriteLine("    flare {id/name} = Build a OAPP for the given {id} or {name}.");
-                Console.WriteLine("    shine {id/name} = Launch & activate a OAPP for the given {id} or {name} by shining the 's light upon it..."); //TODO: Dev next.
-                Console.WriteLine("    twinkle {id/name} = Activate a published OAPP for the given {id} or {name} within the STARNET store."); //TODO: Dev next.
-                Console.WriteLine("    dim {id/name} = Deactivate a published OAPP for the given {id} or {name} within the STARNET store."); //TODO: Dev next.
-                Console.WriteLine("    seed {id/name} = Deploy/Publish a OAPP for the given {id} or {name} to the STARNET Store.");
-                Console.WriteLine("    unseed {id/name} = Undeploy/Unpublish a OAPP for the given {id} or {name} from the STARNET Store.");
-                Console.WriteLine("    dust {id/name} = Delete a OAPP for the given {id} or {name} (this will also remove it from STARNET if it has already been published)."); //TODO: Dev next.
-                Console.WriteLine("    radiate {id/name} = Highlight the OAPP for the given {id} or {name} in the STARNET Store. *Admin/Wizards Only*");
-                Console.WriteLine("    emit {id/name} = Show how much light the OAPP is emitting into the solar system for the given {id} or {name} (this is determined by the collective karma score of all users of that OAPP).");
-                Console.WriteLine("    reflect {id/name} = Show stats of the OAPP for the given {id} or {name}.");
-                Console.WriteLine("    evolve {id/name} = Upgrade/update a OAPP) for the given {id} or {name}."); //TODO: Dev next.
-                Console.WriteLine("    mutate {id/name} = Import/Export hApp, dApp & others for the given {id} or {name}.");
-                Console.WriteLine("    love {id/name} = Send/Receive Love for the given {id} or {name}.");
-                Console.WriteLine("    burst = View network stats/management/settings.");
-                Console.WriteLine("    super = Reserved For Future Use...");
+                Console.WriteLine("    light                            {OAPPName} {OAPPDesc} {OAPPType}       Creates a new OAPP (Zomes/Holons/Star/Planet/Moon) at the given genesis folder location, from the given OAPP DNA.");
+                Console.WriteLine("                                     {dnaFolder} {geneisFolder}");
+                Console.WriteLine("                                     {genesisNameSpace} {genesisType}");
+                Console.WriteLine("                                     {parentCelestialBodyId}");
+                Console.WriteLine("    light                                                                   Displays more detail on how to use this command and optionally launches the Light Wizard.");
+                Console.WriteLine("    light wiz                                                               Start the Light Wizard.");
+                Console.WriteLine("    light transmute                  {hAppDNA} {geneisFolder}               Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
+                Console.WriteLine("    bang                                                                    Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
+                Console.WriteLine("    wiz                                                                     Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs");
+                Console.WriteLine("                                                                            (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
+                Console.WriteLine("    flare                            {id/name}                              Build a OAPP for the given {id} or {name}.");
+                Console.WriteLine("    shine                            {id/name}                              Launch & activate a OAPP for the given {id} or {name} by shining the 's light upon it..."); //TODO: Dev next.
+                Console.WriteLine("    twinkle                          {id/name}                              Activate a published OAPP for the given {id} or {name} within the STARNET store."); //TODO: Dev next.
+                Console.WriteLine("    dim                              {id/name}                              Deactivate a published OAPP for the given {id} or {name} within the STARNET store."); //TODO: Dev next.
+                Console.WriteLine("    seed                             {id/name}                              Deploy/Publish a OAPP for the given {id} or {name} to the STARNET Store.");
+                Console.WriteLine("    unseed                           {id/name}                              Undeploy/Unpublish a OAPP for the given {id} or {name} from the STARNET Store.");
+                Console.WriteLine("    dust                             {id/name}                              Delete a OAPP for the given {id} or {name} (this will also remove it from STARNET if it has already been published)."); //TODO: Dev next.
+                Console.WriteLine("    radiate                          {id/name}                              Highlight the OAPP for the given {id} or {name} in the STARNET Store. *Admin/Wizards Only*");
+                Console.WriteLine("    emit                             {id/name}                              Show how much light the OAPP is emitting into the solar system for the given {id} or {name}");
+                Console.WriteLine("                                                                            (this is determined by the collective karma score of all users of that OAPP).");
+                Console.WriteLine("    reflect                          {id/name}                              Show stats of the OAPP for the given {id} or {name}.");
+                Console.WriteLine("    evolve                           {id/name}                              Upgrade/update a OAPP) for the given {id} or {name}."); //TODO: Dev next.
+                Console.WriteLine("    mutate                           {id/name}                              Import/Export hApp, dApp & others for the given {id} or {name}.");
+                Console.WriteLine("    love                             {id/username}                          Send/Receive Love for the given {id} or {username}.");
+                Console.WriteLine("    burst                                                                   View network stats/management/settings.");
+                Console.WriteLine("    super                                                                   Reserved For Future Use...");
                 //Console.WriteLine("    net = Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's, zomes, holons, celestial spaces, celestial bodies, geo-nft's, geo-hotspots, missions, chapters, quests & inventory items.");
-                Console.WriteLine("    net = Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
+                Console.WriteLine("    net                                                                     Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
 
-                Console.WriteLine("    avatar beamin = Beam in (log in).");
-                Console.WriteLine("    avatar beamout = Beam out (Log out).");
-                Console.WriteLine("    avatar whoisbeamedin = Display who is currently beamed in (if any) and the last time they beamed in and out.");
-                Console.WriteLine("    avatar show me = Display the currently beamed in avatar details (if any).");
-                Console.WriteLine("    avatar show {id/username} = Shows the details for the avatar for the given {id} or {username}.");
-                Console.WriteLine("    avatar edit = Edit the currently beamed in avatar.");
-                Console.WriteLine("    avatar list = Loads all avatars.");
-                Console.WriteLine("    avatar search = Seach avatars that match the given seach parameters (public fields only such as level, karma, username & any fields the player has set to public).");
-                Console.WriteLine("    karma list = Display the karma thresholds.");
-                Console.WriteLine("    keys link = Links a OASIS Provider Key to the current beamed in avatar.");
-                Console.WriteLine("    keys list = Shows the keys for the current beamed in avatar.");
-                Console.WriteLine("    wallet list = Shows the wallets for the current beamed in avatar.");
-                Console.WriteLine("    search = Seaches The OASIS for the given seach parameters.");
-                Console.WriteLine("    oapp create = Shortcut to the light sub-command.");
-                Console.WriteLine("    oapp update {id/name} = Update an existing OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp delete {id/name} = Delete an existing OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp install = Install a OAPP.");
-                Console.WriteLine("    oapp uninstall = Uninstall a OAPP.");
-                Console.WriteLine("    oapp publish {id/name} = Shortcut to the seed sub-command.");
-                Console.WriteLine("    oapp unpublish {id/name} = Shortcut to the un-seed sub-command.");
-                Console.WriteLine("    oapp show {id/name} = Shows a OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp list [all] = List all OAPPs (contains zomes and holons) that have been generated.");
-                Console.WriteLine("    oapp list installed = List all OAPP's installed for the current beamed in avatar.");
-                Console.WriteLine("    oapp search [all] = Searches the OAPP's for the given search critera.");
-                Console.WriteLine("    happ create = Shortcut to the light sub-command.");
-                Console.WriteLine("    happ update {id/name} = Update an existing hApp for the given {id} or {name}.");
-                Console.WriteLine("    happ delete {id/name} = Delete an existing hApp for the given {id} or {name}.");
-                Console.WriteLine("    happ publish {id/name} = Shortcut to the seed sub-command.");
-                Console.WriteLine("    happ unpublish {id/name} = Shortcut to the un-seed sub-command.");
-                Console.WriteLine("    happ show {id/name} = Shows a hApp for the given {id} or {name}.");
-                Console.WriteLine("    happ list [all] = List all hApps (contains zomes) that have been generated.");
-                Console.WriteLine("    happ list installed = List all hApp's installed for the current beamed in avatar.");
-                Console.WriteLine("    happ search [all] = Searches the hApp's for the given search critera.");
-                Console.WriteLine("    zome create = Create a zome (module).");
-                Console.WriteLine("    zome update {id/name} = Update an existing zome for the given {id} or {name} (can upload a zome.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
-                Console.WriteLine("    zome delete {id/name} = Delete an existing zome for the given {id} or {name}.");
-                Console.WriteLine("    zome publish {id/name} = Publishes a zome for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
-                Console.WriteLine("    zome unpublish {id/name} = Unpublishes a zome for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    zome show {id/name} = Shows a zome for the given {id} or {name}.");
-                Console.WriteLine("    zome list [all] = List all zomes (modules that contain holons) that have been generated.");
-                Console.WriteLine("    zome search [all] = Searches the zomes (modules) for the given search critera. If [all] is omitted it will search only your zomes otherwise it will search all public/shared zomes.");
+                Console.WriteLine("    avatar beamin                                                           Beam in (log in).");
+                Console.WriteLine("    avatar beamout                                                          Beam out (Log out).");
+                Console.WriteLine("    avatar whoisbeamedin                                                    Display who is currently beamed in (if any) and the last time they beamed in and out.");
+                Console.WriteLine("    avatar show me                                                          Display the currently beamed in avatar details (if any).");
+                Console.WriteLine("    avatar show                      {id/username}                          Shows the details for the avatar for the given {id} or {username}.");
+                Console.WriteLine("    avatar edit                                                             Edit the currently beamed in avatar.");
+                Console.WriteLine("    avatar list                                                             Loads all avatars.");
+                Console.WriteLine("    avatar search                                                           Seach avatars that match the given seach parameters (public fields only such as level, karma, username & any fields the player has set to public).");
+                Console.WriteLine("    karma list                                                              Display the karma thresholds.");
+                Console.WriteLine("    keys link                                                               Links a OASIS Provider Key to the current beamed in avatar.");
+                Console.WriteLine("    keys list                                                               Shows the keys for the current beamed in avatar.");
+                Console.WriteLine("    wallet list                                                             Shows the wallets for the current beamed in avatar.");
+                Console.WriteLine("    search                                                                  Seaches The OASIS for the given seach parameters.");
+                Console.WriteLine("    oapp create                                                             Shortcut to the light sub-command.");
+                Console.WriteLine("    oapp update                      {id/name}                              Update an existing OAPP for the given {id} or {name}.");
+                Console.WriteLine("    oapp delete                      {id/name}                              Delete an existing OAPP for the given {id} or {name}.");
+                Console.WriteLine("    oapp install                                                            Install a OAPP.");
+                Console.WriteLine("    oapp uninstall                                                          Uninstall a OAPP.");
+                Console.WriteLine("    oapp publish                     {id/name}                              Shortcut to the seed sub-command.");
+                Console.WriteLine("    oapp unpublish                   {id/name}                              Shortcut to the un-seed sub-command.");
+                Console.WriteLine("    oapp show                        {id/name}                              Shows a OAPP for the given {id} or {name}.");
+                Console.WriteLine("    oapp list                        [all]                                  List all OAPPs (contains zomes and holons) that have been generated.");
+                Console.WriteLine("    oapp list installed                                                     List all OAPP's installed for the current beamed in avatar.");
+                Console.WriteLine("    oapp search                      [all]                                  Searches the OAPP's for the given search critera.");
+                Console.WriteLine("    happ create                                                             Shortcut to the light sub-command.");
+                Console.WriteLine("    happ update                      {id/name}                              Update an existing hApp for the given {id} or {name}.");
+                Console.WriteLine("    happ delete                      {id/name}                              Delete an existing hApp for the given {id} or {name}.");
+                Console.WriteLine("    happ publish                     {id/name}                              Shortcut to the seed sub-command.");
+                Console.WriteLine("    happ unpublish                   {id/name}                              Shortcut to the un-seed sub-command.");
+                Console.WriteLine("    happ show                        {id/name}                              Shows a hApp for the given {id} or {name}.");
+                Console.WriteLine("    happ list                        [all]                                  List all hApps (contains zomes) that have been generated.");
+                Console.WriteLine("    happ list installed                                                     List all hApp's installed for the current beamed in avatar.");
+                Console.WriteLine("    happ search                      [all]                                  Searches the hApp's for the given search critera.");
+                Console.WriteLine("    zome create                                                             Create a zome (module).");
+                Console.WriteLine("    zome update                      {id/name}                              Update an existing zome for the given {id} or {name}");
+                Console.WriteLine("                                                                            (can upload a zome.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
+                Console.WriteLine("    zome delete                      {id/name}                              Delete an existing zome for the given {id} or {name}.");
+                Console.WriteLine("    zome publish                     {id/name}                              Publishes a zome for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
+                Console.WriteLine("    zome unpublish                   {id/name}                              Unpublishes a zome for the given {id} or {name} from the STARNET store.");
+                Console.WriteLine("    zome show                        {id/name}                              Shows a zome for the given {id} or {name}.");
+                Console.WriteLine("    zome list                        [all]                                  List all zomes (modules that contain holons) that have been generated.");
+                Console.WriteLine("    zome search                      [all]                                  Searches the zomes (modules) for the given search critera. If [all] is omitted it will search only your zomes otherwise it will search all public/shared zomes.");
                 //Console.WriteLine("    holon = Shows more info on how to use this command and optionally lauches the Save Holon Wizard.");
-                Console.WriteLine("    holon create json={holonJSONFile} = Creates/Saves a holon from the given {holonJSONFile}.");
-                Console.WriteLine("    holon create wiz = Starts the Create Holon Wizard.");
-                Console.WriteLine("    holon update {id/name} = Update an existing holon for the given {id} or {name} (can upload a holon.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
-                Console.WriteLine("    holon delete {id/name} = Deletes a holon for the given {id} or {name}.");
-                Console.WriteLine("    holon publish {id/name} = Publishes a holon for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
-                Console.WriteLine("    holon unpublish {id/name} = Unpublishes a holon for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    holon show {id/name} = Shows a holon for the given {id} or {name}.");
-                Console.WriteLine("    holon list [all] = List all holons (OASIS Data Objects) that have been generated.");
-                Console.WriteLine("    holon search [all] = Searches the holons for the given search critera.");
-                Console.WriteLine("    celestialbody create = Creates a celestial body.");
-                Console.WriteLine("    celestialbody update {id/name} = Update an existing celestial body for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody delete {id/name} = Delete an existing celestial body for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody publish {id/name} = Publishes a celestial body for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
-                Console.WriteLine("    celestialbody unpublish {id/name} = Unpublishes a celestial body for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    celestialbody show {id/name} = Shows a celestial body for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody list [all] = List all celestial bodies that have been generated.");
-                Console.WriteLine("    celestialbody search [all] = Searches the celestial bodies for the given search critera.");
-                Console.WriteLine("    celestialspace create = Creates a celestial space.");
-                Console.WriteLine("    celestialspace update {id/name} = Update an existing celestial space for the given {id} or {name}.");
-                Console.WriteLine("    celestialspace delete {id/name} = Delete an existing celestial space for the given {id} or {name}.");
-                Console.WriteLine("    celestialspace publish {id/name} = Publishes a celestial space for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
-                Console.WriteLine("    celestialspace unpublish {id/name} = Unpublishes a celestial space for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    celestialspace show {id/name} = Shows a celestial space for the given {id} or {name}.");
-                Console.WriteLine("    celestialspace list [all] = List all celestial spaces that have been generated.");
-                Console.WriteLine("    celestialspace search [all] = Searches the celestial spaces for the given search critera.");
-                Console.WriteLine("    nft mint = Mints a OASIS NFT for the current beamed in avatar.");
-                Console.WriteLine("    nft update {id/name} = Updates a nft for the given {id} or {name}.");
-                Console.WriteLine("    nft burn {id/name} = Burn's a nft for the given {id} or {name}.");
-                Console.WriteLine("    nft send {id/name} = Send a NFT for the given {id} or {name} to another wallet cross-chain.");
-                Console.WriteLine("    nft publish {id/name} = Publishes a OASIS NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.");
-                Console.WriteLine("    nft unpublish {id/name} = Unpublishes a OASIS NFT for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    nft show {id/name} = Shows the NFT for the given {id} or {name}.");
-                Console.WriteLine("    nft list [all] = Shows the NFT's that belong to the current beamed in avatar.");
-                Console.WriteLine("    nft search [all] = Search for NFT's that match certain criteria and belong to the current beamed in avatar.");
-                Console.WriteLine("    geonft mint = Mints a OASIS Geo-NFT and places in Our World/AR World for the current beamed in avatar.");
-                Console.WriteLine("    geonft update {id/name} = Updates a geo-nft for the given {id} or {name}.");
-                Console.WriteLine("    geonft burn {id/name} = Burn's a geo-nft for the given {id} or {name}.");
-                Console.WriteLine("    geonft place {id/name} = Places an existing OASIS NFT for the given {id} or {name} in Our World/AR World for the current beamed in avatar.");
-                Console.WriteLine("    geonft send {id/name} = Send a geo-nft for the given {id} or {name} to another wallet cross-chain.");
-                Console.WriteLine("    geonft publish {id/name} = Publishes a geo-nft for the given {id} or {name} to the STARNET store so others can use in their own quests etc.");
-                Console.WriteLine("    geonft unpublish {id/name} = Unpublishes a geo-nft for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    geonft show {id/name} = Shows the Geo-NFT for the given {id} or {name}");
-                Console.WriteLine("    geonft list [all] = List all geo-nft's that have been created. If [all] is omitted it will list only your geo-nft's otherwise it will list all published geo-nft's as well as yours.");
-                Console.WriteLine("    geonft search [all] = Search for Geo-NFT's that match certain criteria and belong to the current beamed in avatar. If [all] is used then it will also include any shared/public/published geo-nft's");
-                Console.WriteLine("    inventoryitem create = Creates an inventory item that can be granted as a reward (will be placed in the avatar's inventory) for completing quests, collecting geo-nft's, triggering geo-hotspots etc.");
-                Console.WriteLine("    inventoryitem update {id/name} = Updates a inventory item for the given {id} or {name}.");
-                Console.WriteLine("    inventoryitem delete {id/name} = Deletes a inventory item for the given {id} or {name}.");
-                Console.WriteLine("    inventoryitem publish {id/name} = Publishes an inventory item for the given {id} or {name} to the STARNET store so others can use in their own quests, geo-hotspots, geo-nfts, etc.");
-                Console.WriteLine("    inventoryitem unpublish {id/name} = Unpublishes an inventory item  for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    inventoryitem show {id/name} = Shows the inventory item for the given {id} or {name}.");
-                Console.WriteLine("    inventoryitem list [all] = List all inventory item's that have been created.");
-                Console.WriteLine("    inventoryitem search [all] = Search all inventory item's that have been created.");
+                Console.WriteLine("    holon create                     json={holonJSONFile}                   Creates/Saves a holon from the given {holonJSONFile}.");
+                Console.WriteLine("    holon create wiz                                                        Starts the Create Holon Wizard.");
+                Console.WriteLine("    holon update                     {id/name}                              Update an existing holon for the given {id} or {name}");
+                Console.WriteLine("                                                                            (can upload a holon.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
+                Console.WriteLine("    holon delete                     {id/name}                              Deletes a holon for the given {id} or {name}.");
+                Console.WriteLine("    holon publish                    {id/name}                              Publishes a holon for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
+                Console.WriteLine("    holon unpublish                  {id/name}                              Unpublishes a holon for the given {id} or {name} from the STARNET store.");
+                Console.WriteLine("    holon show                       {id/name}                              Shows a holon for the given {id} or {name}.");
+                Console.WriteLine("    holon list                       [all]                                  List all holons (OASIS Data Objects) that have been generated.");
+                Console.WriteLine("    holon search                     [all]                                  Searches the holons for the given search critera.");
+                Console.WriteLine("    celestialbody create                                                    Creates a celestial body.");
+                Console.WriteLine("    celestialbody update             {id/name}                              Update an existing celestial body for the given {id} or {name}.");
+                Console.WriteLine("    celestialbody delete             {id/name}                              Delete an existing celestial body for the given {id} or {name}.");
+                Console.WriteLine("    celestialbody publish            {id/name}                              Publishes a celestial body for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
+                Console.WriteLine("    celestialbody unpublish          {id/name}                              Unpublishes a celestial body for the given {id} or {name} from the STARNET store.");
+                Console.WriteLine("    celestialbody show               {id/name}                              Shows a celestial body for the given {id} or {name}.");
+                Console.WriteLine("    celestialbody list               [all]                                  List all celestial bodies that have been generated.");
+                Console.WriteLine("    celestialbody search             [all]                                  Searches the celestial bodies for the given search critera.");
+                Console.WriteLine("    celestialspace create                                                   Creates a celestial space.");
+                Console.WriteLine("    celestialspace update            {id/name}                              Update an existing celestial space for the given {id} or {name}.");
+                Console.WriteLine("    celestialspace delete            {id/name}                              Delete an existing celestial space for the given {id} or {name}.");
+                Console.WriteLine("    celestialspace publish           {id/name}                              Publishes a celestial space for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
+                Console.WriteLine("    celestialspace unpublish         {id/name}                              Unpublishes a celestial space for the given {id} or {name} from the STARNET store.");
+                Console.WriteLine("    celestialspace show              {id/name}                              Shows a celestial space for the given {id} or {name}.");
+                Console.WriteLine("    celestialspace list              [all]                                  List all celestial spaces that have been generated.");
+                Console.WriteLine("    celestialspace search            [all]                                  Searches the celestial spaces for the given search critera.");
+                Console.WriteLine("    nft mint                                                                Mints a OASIS NFT for the current beamed in avatar.");
+                Console.WriteLine("    nft update                       {id/name}                              Updates a nft for the given {id} or {name}.");
+                Console.WriteLine("    nft burn                         {id/name}                              Burn's a nft for the given {id} or {name}.");
+                Console.WriteLine("    nft send                         {id/name}                              Send a NFT for the given {id} or {name} to another wallet cross-chain.");
+                Console.WriteLine("    nft publish                      {id/name}                              Publishes a OASIS NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.");
+                Console.WriteLine("    nft unpublish                    {id/name}                              Unpublishes a OASIS NFT for the given {id} or {name} from the STARNET store.");
+                Console.WriteLine("    nft show                         {id/name}                              Shows the NFT for the given {id} or {name}.");
+                Console.WriteLine("    nft list                         [all]                                  Shows the NFT's that belong to the current beamed in avatar.");
+                Console.WriteLine("    nft search                       [all]                                  Search for NFT's that match certain criteria and belong to the current beamed in avatar.");
+                Console.WriteLine("    geonft mint                                                             Mints a OASIS Geo-NFT and places in Our World/AR World for the current beamed in avatar.");
+                Console.WriteLine("    geonft update                    {id/name}                              Updates a geo-nft for the given {id} or {name}.");
+                Console.WriteLine("    geonft burn                      {id/name}                              Burn's a geo-nft for the given {id} or {name}.");
+                Console.WriteLine("    geonft place                     {id/name}                              Places an existing OASIS NFT for the given {id} or {name} in Our World/AR World for the current beamed in avatar.");
+                Console.WriteLine("    geonft send                      {id/name}                              Send a geo-nft for the given {id} or {name} to another wallet cross-chain.");
+                Console.WriteLine("    geonft publish                   {id/name}                              Publishes a geo-nft for the given {id} or {name} to the STARNET store so others can use in their own quests etc.");
+                Console.WriteLine("    geonft unpublish                 {id/name}                              Unpublishes a geo-nft for the given {id} or {name} from the STARNET store.");
+                Console.WriteLine("    geonft show                      {id/name}                              Shows the Geo-NFT for the given {id} or {name}");
+                Console.WriteLine("    geonft list                      [all]                                  List all geo-nft's that have been created. If [all] is omitted it will list only your geo-nft's otherwise it will list all published geo-nft's as well as yours.");
+                Console.WriteLine("    geonft search                    [all]                                  Search for Geo-NFT's that match certain criteria and belong to the current beamed in avatar.");
+                Console.WriteLine("                                                                            If [all] is used then it will also include any shared/public/published geo-nft's");
+                Console.WriteLine("    inventoryitem create                                                    Creates an inventory item that can be granted as a reward");
+                Console.WriteLine("                                                                            (will be placed in the avatar's inventory) for completing quests, collecting geo-nft's, triggering geo-hotspots etc.");
+                Console.WriteLine("    inventoryitem update             {id/name}                              Updates a inventory item for the given {id} or {name}.");
+                Console.WriteLine("    inventoryitem delete             {id/name}                              Deletes a inventory item for the given {id} or {name}.");
+                Console.WriteLine("    inventoryitem publish            {id/name}                              Publishes an inventory item for the given {id} or {name} to the STARNET store so others can use in their own quests, geo-hotspots, geo-nfts, etc.");
+                Console.WriteLine("    inventoryitem unpublish          {id/name}                              Unpublishes an inventory item  for the given {id} or {name} from the STARNET store.");
+                Console.WriteLine("    inventoryitem show               {id/name}                              Shows the inventory item for the given {id} or {name}.");
+                Console.WriteLine("    inventoryitem list               [all]                                  List all inventory item's that have been created.");
+                Console.WriteLine("    inventoryitem search             [all]                                  Search all inventory item's that have been created.");
                 //Console.WriteLine("    inventoryitem activate = Activates an inventory item that has been published to the STARNET store so is visible to others.");
                 //Console.WriteLine("    inventoryitem deactivate = Deactivates an inventory item that has been published to the STARNET store so is invisible to others.");
-                Console.WriteLine("    geohotspot create = Creates a geo-hotspot that chapters & quests can be added to.");
-                Console.WriteLine("    geohotspot update {id/name} = Updates a geo-hotspot for the given {id} or {name}.");
-                Console.WriteLine("    geohotspot delete {id/name} = Deletes an geo-hotspot for the given {id} or {name}.");
-                Console.WriteLine("    geohotspot publish {id/name} = Publishes a geo-hotspot for the given {id} or {name} to the STARNET store so others can use in their own quests.");
-                Console.WriteLine("    geohotspot unpublish {id/name} = Unpublishes a geo-hotspot from the STARNET store.");
-                Console.WriteLine("    geohotspot show {id/name} = Shows the geo-hotspot for the given {id} or {name}.");
-                Console.WriteLine("    geohotspots list [all] = List all geo-hotspot's that have been created.");
-                Console.WriteLine("    geohotspots search [all] = Search all geo-hotspot's that have been created.");
-                Console.WriteLine("    mission create = Creates a mission that chapters & quests can be added to.");
-                Console.WriteLine("    mission update {id/name} = Updates a mission for the given {id} or {name}.");
-                Console.WriteLine("    mission delete {id/name} = Deletes an mission for the given {id} or {name}.");
-                Console.WriteLine("    mission publish {id/name} = Publishes a mission  for the given {id} or {name} to the STARNET store so others can find and play in Our World/AR World, One World & any other OASIS OAPP.");
-                Console.WriteLine("    mission unpublish {id/name} = Unpublishes a mission from the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    mission show {id/name} = Shows the mission for the given {id} or {name}.");
-                Console.WriteLine("    missions list [all] = List all mission's that have been created.");
-                Console.WriteLine("    missions search [all] = Search all mission's that have been created.");
-                Console.WriteLine("    quest create = Creates a quest that can be linked to a mission. Geo-nfts, geo-hotspots & rewards can be linked to the quest.");
-                Console.WriteLine("    quest update {id/name} = Updates a quest for the given {id} or {name}.");
-                Console.WriteLine("    quest delete {id/name} = Deletes a quest for the given {id} or {name}.");
-                Console.WriteLine("    quest publish {id/name} = Publishes a quest to the STARNET store so others can use in their own quests as sub-quests or in missions/chapters.");
-                Console.WriteLine("    quest unpublish {id/name} = Unpublishes a quest from the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    quest show {id/name} = Shows the quest for the given {id} or {name}.");
-                Console.WriteLine("    quest list [all] = List all quests that have been created.");
-                Console.WriteLine("    quest search [all] - Search all quests that have been created.");
-                Console.WriteLine("    chapter create = Creates a chapter that can be linked to a mission. Quests can be added to the chapter. Chapters are used to group quests together (optional).");
-                Console.WriteLine("    chapter update {id/name} = Updates a chapter for the given {id} or {name}.");
-                Console.WriteLine("    chapter delete {id/name} = Deletes a chapter for the given {id} or {name}.");
-                Console.WriteLine("    chapter publish {id/name} = Publishes a chapter to the STARNET store for the given {id} or {name} so others can use in their own missions.");
-                Console.WriteLine("    chapter unpublish {id/name} = Unpublishes a chapter from the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    chapter show {id/name} = Shows the chapter for the given {id} or {name}.");
-                Console.WriteLine("    chapter list [all] = List chapters that have been created.");
-                Console.WriteLine("    chapter search [all] = Search chapters that have been created.");
-                Console.WriteLine("    onode start = Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).");
-                Console.WriteLine("    onode stop = Stops a OASIS Node (ONODE).");
-                Console.WriteLine("    onode status = Shows stats for this ONODE.");
-                Console.WriteLine("    onode config = Opens the ONODE's OASISDNA to allow changes to be made (you will need to stop and start the ONODE for changes to apply).");
-                Console.WriteLine("    onode providers = Shows what OASIS Providers are running for this ONODE.");
-                Console.WriteLine("    onode startprovider {ProviderName} = Starts a given provider.");
-                Console.WriteLine("    onode stopprovider {ProviderName} = Stops a given provider.");
-                Console.WriteLine("    hypernet start = Starts the HoloNET P2P HyperNET Service.");
-                Console.WriteLine("    hypernet stop = Stops the HoloNET P2P HyperNET Service.");
-                Console.WriteLine("    hypernet status = Shows stats for the HoloNET P2P HyperNET Service.");
-                Console.WriteLine("    onet status = Shows stats for the OASIS Network (ONET).");
-                Console.WriteLine("    onet providers = Shows what OASIS Providers are running across the ONET and on what ONODE's.");
-                Console.WriteLine("    config cosmicdetailedoutput {enable/disable/status}    Enables/disables COSMIC Detailed Output.");
-                Console.WriteLine("    config starstatusdetailedoutput {enable/disable/status} Enables/disables STAR ODK Detailed Output.");
-                Console.WriteLine("    runcosmictests {OAPPType} {dnaFolder} {geneisFolder} = Run the STAR ODK/COSMIC Tests... If OAPPType, DNAFolder or GenesisFolder are not specified it will use the defaults.");
-                Console.WriteLine("    runoasisapitests = Run the OASIS API Tests...");
+                Console.WriteLine("    geohotspot create                                                       Creates a geo-hotspot that chapters & quests can be added to.");
+                Console.WriteLine("    geohotspot update                {id/name}                              Updates a geo-hotspot for the given {id} or {name}.");
+                Console.WriteLine("    geohotspot delete                {id/name}                              Deletes an geo-hotspot for the given {id} or {name}.");
+                Console.WriteLine("    geohotspot publish               {id/name}                              Publishes a geo-hotspot for the given {id} or {name} to the STARNET store so others can use in their own quests.");
+                Console.WriteLine("    geohotspot unpublish             {id/name}                              Unpublishes a geo-hotspot from the STARNET store.");
+                Console.WriteLine("    geohotspot show                  {id/name}                              Shows the geo-hotspot for the given {id} or {name}.");
+                Console.WriteLine("    geohotspots list                 [all]                                  List all geo-hotspot's that have been created.");
+                Console.WriteLine("    geohotspots search               [all]                                  Search all geo-hotspot's that have been created.");
+                Console.WriteLine("    mission create                                                          Creates a mission that chapters & quests can be added to.");
+                Console.WriteLine("    mission update                   {id/name}                              Updates a mission for the given {id} or {name}.");
+                Console.WriteLine("    mission delete                   {id/name}                              Deletes an mission for the given {id} or {name}.");
+                Console.WriteLine("    mission publish                  {id/name}                              Publishes a mission  for the given {id} or {name} to the STARNET store so others can find and play in Our World/AR World, One World & any other OASIS OAPP.");
+                Console.WriteLine("    mission unpublish                {id/name}                              Unpublishes a mission from the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    mission show                     {id/name}                              Shows the mission for the given {id} or {name}.");
+                Console.WriteLine("    missions list                    [all]                                  List all mission's that have been created.");
+                Console.WriteLine("    missions search                  [all]                                  Search all mission's that have been created.");
+                Console.WriteLine("    quest create                                                            Creates a quest that can be linked to a mission. Geo-nfts, geo-hotspots & rewards can be linked to the quest.");
+                Console.WriteLine("    quest update                     {id/name}                              Updates a quest for the given {id} or {name}.");
+                Console.WriteLine("    quest delete                     {id/name}                              Deletes a quest for the given {id} or {name}.");
+                Console.WriteLine("    quest publish                    {id/name}                              Publishes a quest to the STARNET store so others can use in their own quests as sub-quests or in missions/chapters.");
+                Console.WriteLine("    quest unpublish                  {id/name}                              Unpublishes a quest from the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    quest show                       {id/name}                              Shows the quest for the given {id} or {name}.");
+                Console.WriteLine("    quest list                       [all]                                  List all quests that have been created.");
+                Console.WriteLine("    quest search                     [all]                                  Search all quests that have been created.");
+                Console.WriteLine("    chapter create                                                          Creates a chapter that can be linked to a mission. Quests can be added to the chapter. Chapters are used to group quests together (optional).");
+                Console.WriteLine("    chapter update                   {id/name}                              Updates a chapter for the given {id} or {name}.");
+                Console.WriteLine("    chapter delete                   {id/name}                              Deletes a chapter for the given {id} or {name}.");
+                Console.WriteLine("    chapter publish                  {id/name}                              Publishes a chapter to the STARNET store for the given {id} or {name} so others can use in their own missions.");
+                Console.WriteLine("    chapter unpublish                {id/name}                              Unpublishes a chapter from the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    chapter show                     {id/name}                              Shows the chapter for the given {id} or {name}.");
+                Console.WriteLine("    chapter list                     [all]                                  List chapters that have been created.");
+                Console.WriteLine("    chapter search                   [all]                                  Search chapters that have been created.");
+                Console.WriteLine("    onode start                                                             Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).");
+                Console.WriteLine("    onode stop                                                              Stops a OASIS Node (ONODE).");
+                Console.WriteLine("    onode status                                                            Shows stats for this ONODE.");
+                Console.WriteLine("    onode config                                                            Opens the ONODE's OASISDNA to allow changes to be made (you will need to stop and start the ONODE for changes to apply).");
+                Console.WriteLine("    onode providers                                                         Shows what OASIS Providers are running for this ONODE.");
+                Console.WriteLine("    onode startprovider              {ProviderName}                         Starts a given provider.");
+                Console.WriteLine("    onode stopprovider               {ProviderName}                         Stops a given provider.");
+                Console.WriteLine("    hypernet start                                                          Starts the HoloNET P2P HyperNET Service.");
+                Console.WriteLine("    hypernet stop                                                           Stops the HoloNET P2P HyperNET Service.");
+                Console.WriteLine("    hypernet status                                                         Shows stats for the HoloNET P2P HyperNET Service.");
+                Console.WriteLine("    hypernet config                                                         Opens the HyperNET's DNA to allow changes to be made (you will need to stop and start the HyperNET Service for changes to apply.");
+                Console.WriteLine("    onet status                                                             Shows stats for the OASIS Network (ONET).");
+                Console.WriteLine("    onet providers                                                          Shows what OASIS Providers are running across the ONET and on what ONODE's.");
+                Console.WriteLine("    config cosmicdetailedoutput      {enable/disable/status}                Enables/disables COSMIC Detailed Output.");
+                Console.WriteLine("    config starstatusdetailedoutput  {enable/disable/status}                Enables/disables STAR ODK Detailed Output.");
+                Console.WriteLine("    runcosmictests                   {OAPPType} {dnaFolder} {geneisFolder}  Run the STAR ODK/COSMIC Tests... If OAPPType, DNAFolder or GenesisFolder are not specified it will use the defaults.");
+                Console.WriteLine("    runoasisapitests                                                        Run the OASIS API Tests...");
+                Console.WriteLine("");
+                //Console.WriteLine(" NOTES: -  is not needed if using the STAR CLI Console directly. Star is only needed if calling from the command line or another external script ( is simply the name of the exe).");
+                Console.WriteLine(" NOTES:");
+                Console.WriteLine("        When invoking any sub-commands that take a {id} or {title}, if neither is specified then a wizard will launch to help find the correct item.");
+                Console.WriteLine("        When invoking any sub-commands that have an optional [all] argument/flag, if it is omitted it will search only your items, otherwise it will search all published items as well as yours.");
+                Console.WriteLine("        If you invoke a sub-command without any arguments it will show more detailed help on how to use that sub-command as well as the option to lanuch any wizards to help guide you.");
+
+
+
+                //Console.WriteLine("    light {OAPPName} {OAPPDesc} {OAPPType} {dnaFolder} {geneisFolder} {genesisNameSpace} {genesisTyp} {parentCelestialBodyId} (optional) = Creates a new OAPP (Zomes/Holons/Star/Planet/Moon) at the given genesis folder location, from the given OAPP DNA.");
+                //Console.WriteLine("    light = Displays more detail on how to use this command and optionally launches the Light Wizard.");
+                //Console.WriteLine("    light wiz = Start the Light Wizard.");
+                //Console.WriteLine("    light transmute {hAppDNA} {geneisFolder}  = Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
+
+                //Console.WriteLine("    bang = Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
+                //Console.WriteLine("    wiz = Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
+                //Console.WriteLine("    flare {id/name} = Build a OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    shine {id/name} = Launch & activate a OAPP for the given {id} or {name} by shining the 's light upon it..."); //TODO: Dev next.
+                //Console.WriteLine("    twinkle {id/name} = Activate a published OAPP for the given {id} or {name} within the STARNET store."); //TODO: Dev next.
+                //Console.WriteLine("    dim {id/name} = Deactivate a published OAPP for the given {id} or {name} within the STARNET store."); //TODO: Dev next.
+                //Console.WriteLine("    seed {id/name} = Deploy/Publish a OAPP for the given {id} or {name} to the STARNET Store.");
+                //Console.WriteLine("    unseed {id/name} = Undeploy/Unpublish a OAPP for the given {id} or {name} from the STARNET Store.");
+                //Console.WriteLine("    dust {id/name} = Delete a OAPP for the given {id} or {name} (this will also remove it from STARNET if it has already been published)."); //TODO: Dev next.
+                //Console.WriteLine("    radiate {id/name} = Highlight the OAPP for the given {id} or {name} in the STARNET Store. *Admin/Wizards Only*");
+                //Console.WriteLine("    emit {id/name} = Show how much light the OAPP is emitting into the solar system for the given {id} or {name} (this is determined by the collective karma score of all users of that OAPP).");
+                //Console.WriteLine("    reflect {id/name} = Show stats of the OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    evolve {id/name} = Upgrade/update a OAPP) for the given {id} or {name}."); //TODO: Dev next.
+                //Console.WriteLine("    mutate {id/name} = Import/Export hApp, dApp & others for the given {id} or {name}.");
+                //Console.WriteLine("    love {id/name} = Send/Receive Love for the given {id} or {name}.");
+                //Console.WriteLine("    burst = View network stats/management/settings.");
+                //Console.WriteLine("    super = Reserved For Future Use...");
+                ////Console.WriteLine("    net = Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's, zomes, holons, celestial spaces, celestial bodies, geo-nft's, geo-hotspots, missions, chapters, quests & inventory items.");
+                //Console.WriteLine("    net = Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
+
+                //Console.WriteLine("    avatar beamin = Beam in (log in).");
+                //Console.WriteLine("    avatar beamout = Beam out (Log out).");
+                //Console.WriteLine("    avatar whoisbeamedin = Display who is currently beamed in (if any) and the last time they beamed in and out.");
+                //Console.WriteLine("    avatar show me = Display the currently beamed in avatar details (if any).");
+                //Console.WriteLine("    avatar show {id/username} = Shows the details for the avatar for the given {id} or {username}.");
+                //Console.WriteLine("    avatar edit = Edit the currently beamed in avatar.");
+                //Console.WriteLine("    avatar list = Loads all avatars.");
+                //Console.WriteLine("    avatar search = Seach avatars that match the given seach parameters (public fields only such as level, karma, username & any fields the player has set to public).");
+                //Console.WriteLine("    karma list = Display the karma thresholds.");
+                //Console.WriteLine("    keys link = Links a OASIS Provider Key to the current beamed in avatar.");
+                //Console.WriteLine("    keys list = Shows the keys for the current beamed in avatar.");
+                //Console.WriteLine("    wallet list = Shows the wallets for the current beamed in avatar.");
+                //Console.WriteLine("    search = Seaches The OASIS for the given seach parameters.");
+                //Console.WriteLine("    oapp create = Shortcut to the light sub-command.");
+                //Console.WriteLine("    oapp update {id/name} = Update an existing OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp delete {id/name} = Delete an existing OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp install = Install a OAPP.");
+                //Console.WriteLine("    oapp uninstall = Uninstall a OAPP.");
+                //Console.WriteLine("    oapp publish {id/name} = Shortcut to the seed sub-command.");
+                //Console.WriteLine("    oapp unpublish {id/name} = Shortcut to the un-seed sub-command.");
+                //Console.WriteLine("    oapp show {id/name} = Shows a OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp list [all] = List all OAPPs (contains zomes and holons) that have been generated.");
+                //Console.WriteLine("    oapp list installed = List all OAPP's installed for the current beamed in avatar.");
+                //Console.WriteLine("    oapp search [all] = Searches the OAPP's for the given search critera.");
+                //Console.WriteLine("    happ create = Shortcut to the light sub-command.");
+                //Console.WriteLine("    happ update {id/name} = Update an existing hApp for the given {id} or {name}.");
+                //Console.WriteLine("    happ delete {id/name} = Delete an existing hApp for the given {id} or {name}.");
+                //Console.WriteLine("    happ publish {id/name} = Shortcut to the seed sub-command.");
+                //Console.WriteLine("    happ unpublish {id/name} = Shortcut to the un-seed sub-command.");
+                //Console.WriteLine("    happ show {id/name} = Shows a hApp for the given {id} or {name}.");
+                //Console.WriteLine("    happ list [all] = List all hApps (contains zomes) that have been generated.");
+                //Console.WriteLine("    happ list installed = List all hApp's installed for the current beamed in avatar.");
+                //Console.WriteLine("    happ search [all] = Searches the hApp's for the given search critera.");
+                //Console.WriteLine("    zome create = Create a zome (module).");
+                //Console.WriteLine("    zome update {id/name} = Update an existing zome for the given {id} or {name} (can upload a zome.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
+                //Console.WriteLine("    zome delete {id/name} = Delete an existing zome for the given {id} or {name}.");
+                //Console.WriteLine("    zome publish {id/name} = Publishes a zome for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
+                //Console.WriteLine("    zome unpublish {id/name} = Unpublishes a zome for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    zome show {id/name} = Shows a zome for the given {id} or {name}.");
+                //Console.WriteLine("    zome list [all] = List all zomes (modules that contain holons) that have been generated.");
+                //Console.WriteLine("    zome search [all] = Searches the zomes (modules) for the given search critera. If [all] is omitted it will search only your zomes otherwise it will search all public/shared zomes.");
+                ////Console.WriteLine("    holon = Shows more info on how to use this command and optionally lauches the Save Holon Wizard.");
+                //Console.WriteLine("    holon create json={holonJSONFile} = Creates/Saves a holon from the given {holonJSONFile}.");
+                //Console.WriteLine("    holon create wiz = Starts the Create Holon Wizard.");
+                //Console.WriteLine("    holon update {id/name} = Update an existing holon for the given {id} or {name} (can upload a holon.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
+                //Console.WriteLine("    holon delete {id/name} = Deletes a holon for the given {id} or {name}.");
+                //Console.WriteLine("    holon publish {id/name} = Publishes a holon for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
+                //Console.WriteLine("    holon unpublish {id/name} = Unpublishes a holon for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    holon show {id/name} = Shows a holon for the given {id} or {name}.");
+                //Console.WriteLine("    holon list [all] = List all holons (OASIS Data Objects) that have been generated.");
+                //Console.WriteLine("    holon search [all] = Searches the holons for the given search critera.");
+                //Console.WriteLine("    celestialbody create = Creates a celestial body.");
+                //Console.WriteLine("    celestialbody update {id/name} = Update an existing celestial body for the given {id} or {name}.");
+                //Console.WriteLine("    celestialbody delete {id/name} = Delete an existing celestial body for the given {id} or {name}.");
+                //Console.WriteLine("    celestialbody publish {id/name} = Publishes a celestial body for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
+                //Console.WriteLine("    celestialbody unpublish {id/name} = Unpublishes a celestial body for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    celestialbody show {id/name} = Shows a celestial body for the given {id} or {name}.");
+                //Console.WriteLine("    celestialbody list [all] = List all celestial bodies that have been generated.");
+                //Console.WriteLine("    celestialbody search [all] = Searches the celestial bodies for the given search critera.");
+                //Console.WriteLine("    celestialspace create = Creates a celestial space.");
+                //Console.WriteLine("    celestialspace update {id/name} = Update an existing celestial space for the given {id} or {name}.");
+                //Console.WriteLine("    celestialspace delete {id/name} = Delete an existing celestial space for the given {id} or {name}.");
+                //Console.WriteLine("    celestialspace publish {id/name} = Publishes a celestial space for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
+                //Console.WriteLine("    celestialspace unpublish {id/name} = Unpublishes a celestial space for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    celestialspace show {id/name} = Shows a celestial space for the given {id} or {name}.");
+                //Console.WriteLine("    celestialspace list [all] = List all celestial spaces that have been generated.");
+                //Console.WriteLine("    celestialspace search [all] = Searches the celestial spaces for the given search critera.");
+                //Console.WriteLine("    nft mint = Mints a OASIS NFT for the current beamed in avatar.");
+                //Console.WriteLine("    nft update {id/name} = Updates a nft for the given {id} or {name}.");
+                //Console.WriteLine("    nft burn {id/name} = Burn's a nft for the given {id} or {name}.");
+                //Console.WriteLine("    nft send {id/name} = Send a NFT for the given {id} or {name} to another wallet cross-chain.");
+                //Console.WriteLine("    nft publish {id/name} = Publishes a OASIS NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.");
+                //Console.WriteLine("    nft unpublish {id/name} = Unpublishes a OASIS NFT for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    nft show {id/name} = Shows the NFT for the given {id} or {name}.");
+                //Console.WriteLine("    nft list [all] = Shows the NFT's that belong to the current beamed in avatar.");
+                //Console.WriteLine("    nft search [all] = Search for NFT's that match certain criteria and belong to the current beamed in avatar.");
+                //Console.WriteLine("    geonft mint = Mints a OASIS Geo-NFT and places in Our World/AR World for the current beamed in avatar.");
+                //Console.WriteLine("    geonft update {id/name} = Updates a geo-nft for the given {id} or {name}.");
+                //Console.WriteLine("    geonft burn {id/name} = Burn's a geo-nft for the given {id} or {name}.");
+                //Console.WriteLine("    geonft place {id/name} = Places an existing OASIS NFT for the given {id} or {name} in Our World/AR World for the current beamed in avatar.");
+                //Console.WriteLine("    geonft send {id/name} = Send a geo-nft for the given {id} or {name} to another wallet cross-chain.");
+                //Console.WriteLine("    geonft publish {id/name} = Publishes a geo-nft for the given {id} or {name} to the STARNET store so others can use in their own quests etc.");
+                //Console.WriteLine("    geonft unpublish {id/name} = Unpublishes a geo-nft for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    geonft show {id/name} = Shows the Geo-NFT for the given {id} or {name}");
+                //Console.WriteLine("    geonft list [all] = List all geo-nft's that have been created. If [all] is omitted it will list only your geo-nft's otherwise it will list all published geo-nft's as well as yours.");
+                //Console.WriteLine("    geonft search [all] = Search for Geo-NFT's that match certain criteria and belong to the current beamed in avatar. If [all] is used then it will also include any shared/public/published geo-nft's");
+                //Console.WriteLine("    inventoryitem create = Creates an inventory item that can be granted as a reward (will be placed in the avatar's inventory) for completing quests, collecting geo-nft's, triggering geo-hotspots etc.");
+                //Console.WriteLine("    inventoryitem update {id/name} = Updates a inventory item for the given {id} or {name}.");
+                //Console.WriteLine("    inventoryitem delete {id/name} = Deletes a inventory item for the given {id} or {name}.");
+                //Console.WriteLine("    inventoryitem publish {id/name} = Publishes an inventory item for the given {id} or {name} to the STARNET store so others can use in their own quests, geo-hotspots, geo-nfts, etc.");
+                //Console.WriteLine("    inventoryitem unpublish {id/name} = Unpublishes an inventory item  for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    inventoryitem show {id/name} = Shows the inventory item for the given {id} or {name}.");
+                //Console.WriteLine("    inventoryitem list [all] = List all inventory item's that have been created.");
+                //Console.WriteLine("    inventoryitem search [all] = Search all inventory item's that have been created.");
+                ////Console.WriteLine("    inventoryitem activate = Activates an inventory item that has been published to the STARNET store so is visible to others.");
+                ////Console.WriteLine("    inventoryitem deactivate = Deactivates an inventory item that has been published to the STARNET store so is invisible to others.");
+                //Console.WriteLine("    geohotspot create = Creates a geo-hotspot that chapters & quests can be added to.");
+                //Console.WriteLine("    geohotspot update {id/name} = Updates a geo-hotspot for the given {id} or {name}.");
+                //Console.WriteLine("    geohotspot delete {id/name} = Deletes an geo-hotspot for the given {id} or {name}.");
+                //Console.WriteLine("    geohotspot publish {id/name} = Publishes a geo-hotspot for the given {id} or {name} to the STARNET store so others can use in their own quests.");
+                //Console.WriteLine("    geohotspot unpublish {id/name} = Unpublishes a geo-hotspot from the STARNET store.");
+                //Console.WriteLine("    geohotspot show {id/name} = Shows the geo-hotspot for the given {id} or {name}.");
+                //Console.WriteLine("    geohotspots list [all] = List all geo-hotspot's that have been created.");
+                //Console.WriteLine("    geohotspots search [all] = Search all geo-hotspot's that have been created.");
+                //Console.WriteLine("    mission create = Creates a mission that chapters & quests can be added to.");
+                //Console.WriteLine("    mission update {id/name} = Updates a mission for the given {id} or {name}.");
+                //Console.WriteLine("    mission delete {id/name} = Deletes an mission for the given {id} or {name}.");
+                //Console.WriteLine("    mission publish {id/name} = Publishes a mission  for the given {id} or {name} to the STARNET store so others can find and play in Our World/AR World, One World & any other OASIS OAPP.");
+                //Console.WriteLine("    mission unpublish {id/name} = Unpublishes a mission from the STARNET store for the given {id} or {name}.");
+                //Console.WriteLine("    mission show {id/name} = Shows the mission for the given {id} or {name}.");
+                //Console.WriteLine("    missions list [all] = List all mission's that have been created.");
+                //Console.WriteLine("    missions search [all] = Search all mission's that have been created.");
+                //Console.WriteLine("    quest create = Creates a quest that can be linked to a mission. Geo-nfts, geo-hotspots & rewards can be linked to the quest.");
+                //Console.WriteLine("    quest update {id/name} = Updates a quest for the given {id} or {name}.");
+                //Console.WriteLine("    quest delete {id/name} = Deletes a quest for the given {id} or {name}.");
+                //Console.WriteLine("    quest publish {id/name} = Publishes a quest to the STARNET store so others can use in their own quests as sub-quests or in missions/chapters.");
+                //Console.WriteLine("    quest unpublish {id/name} = Unpublishes a quest from the STARNET store for the given {id} or {name}.");
+                //Console.WriteLine("    quest show {id/name} = Shows the quest for the given {id} or {name}.");
+                //Console.WriteLine("    quest list [all] = List all quests that have been created.");
+                //Console.WriteLine("    quest search [all] - Search all quests that have been created.");
+                //Console.WriteLine("    chapter create = Creates a chapter that can be linked to a mission. Quests can be added to the chapter. Chapters are used to group quests together (optional).");
+                //Console.WriteLine("    chapter update {id/name} = Updates a chapter for the given {id} or {name}.");
+                //Console.WriteLine("    chapter delete {id/name} = Deletes a chapter for the given {id} or {name}.");
+                //Console.WriteLine("    chapter publish {id/name} = Publishes a chapter to the STARNET store for the given {id} or {name} so others can use in their own missions.");
+                //Console.WriteLine("    chapter unpublish {id/name} = Unpublishes a chapter from the STARNET store for the given {id} or {name}.");
+                //Console.WriteLine("    chapter show {id/name} = Shows the chapter for the given {id} or {name}.");
+                //Console.WriteLine("    chapter list [all] = List chapters that have been created.");
+                //Console.WriteLine("    chapter search [all] = Search chapters that have been created.");
+                //Console.WriteLine("    onode start = Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).");
+                //Console.WriteLine("    onode stop = Stops a OASIS Node (ONODE).");
+                //Console.WriteLine("    onode status = Shows stats for this ONODE.");
+                //Console.WriteLine("    onode config = Opens the ONODE's OASISDNA to allow changes to be made (you will need to stop and start the ONODE for changes to apply).");
+                //Console.WriteLine("    onode providers = Shows what OASIS Providers are running for this ONODE.");
+                //Console.WriteLine("    onode startprovider {ProviderName} = Starts a given provider.");
+                //Console.WriteLine("    onode stopprovider {ProviderName} = Stops a given provider.");
+                //Console.WriteLine("    hypernet start = Starts the HoloNET P2P HyperNET Service.");
+                //Console.WriteLine("    hypernet stop = Stops the HoloNET P2P HyperNET Service.");
+                //Console.WriteLine("    hypernet status = Shows stats for the HoloNET P2P HyperNET Service.");
+                //Console.WriteLine("    hypernet config = Opens the HyperNET's DNA to allow changes to be made (you will need to stop and start the HyperNET Service for changes to apply.");
+                //Console.WriteLine("    onet status = Shows stats for the OASIS Network (ONET).");
+                //Console.WriteLine("    onet providers                                           Shows what OASIS Providers are running across the ONET and on what ONODE's.");
+                //Console.WriteLine("    config cosmicdetailedoutput {enable/disable/status}      Enables/disables COSMIC Detailed Output.");
+                //Console.WriteLine("    config starstatusdetailedoutput {enable/disable/status}  Enables/disables STAR ODK Detailed Output.");
+                //Console.WriteLine("    runcosmictests    {OAPPType} {dnaFolder} {geneisFolder}  Run the STAR ODK/COSMIC Tests... If OAPPType, DNAFolder or GenesisFolder are not specified it will use the defaults.");
+                //Console.WriteLine("    runoasisapitests                                         Run the OASIS API Tests...");
             }
             else
             {
@@ -4100,12 +4459,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    config           Enables/disables COSMIC detailed output & STAR ODK detailed output.");
                 Console.WriteLine("    runcosmictests   Run the STAR ODK/COSMIC tests.");
                 Console.WriteLine("    runoasisapitests Run the OASIS API tests.");
+                Console.WriteLine("");
+                //Console.WriteLine(" NOTES: -  is not needed if using the STAR CLI Console directly. Star is only needed if calling from the command line or another external script ( is simply the name of the exe).");
+                Console.WriteLine(" NOTES:");
+                Console.WriteLine("                     When invoking any sub-commands that take a {id} or {title}, if neither is specified then a wizard will launch to help find the correct item.");
+                Console.WriteLine("                     When invoking any sub-commands that have an optional [all] argument/flag, if it is omitted it will search only your items, otherwise it will search all published items as well as yours.");
+                Console.WriteLine("                     If you invoke a sub-command without any arguments it will show more detailed help on how to use that sub-command as well as the option to lanuch any wizards to help guide you.");
             }
 
-           
-           
 
-            
+
             /*
             Console.WriteLine("    ignite = Ignite SuperStar & Boot The OASIS");
             Console.WriteLine("    extinguish = Extinguish SuperStar & Shutdown The OASIS");
@@ -4317,14 +4680,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine("    runoasisapitests = Run the OASIS API Tests...");
             */
 
-            Console.WriteLine("");
-            //Console.WriteLine(" NOTES: -  is not needed if using the STAR CLI Console directly. Star is only needed if calling from the command line or another external script ( is simply the name of the exe).");
-            Console.WriteLine(" NOTES:");
-            Console.WriteLine("                     When invoking any sub-commands that take a {id} or {title}, if neither is specified then a wizard will launch to help find the correct item.");
-            Console.WriteLine("                     When invoking any sub-commands that have an optional [all] argument/flag, if it is omitted it will search only your items, otherwise it will search all published items as well as yours.");
-            Console.WriteLine("                     If you invoke a sub-command without any arguments it will show more detailed help on how to use that sub-command as well as the option to lanuch any wizards to help guide you.");
-            
-           // Console.Ge
+
+            // Console.Ge
             Console.WriteLine("************************************************************************************************");
             //Console.WriteLine("");
             Console.ForegroundColor = ConsoleColor.Yellow;
