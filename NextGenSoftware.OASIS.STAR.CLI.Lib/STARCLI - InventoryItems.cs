@@ -103,9 +103,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private static void ListInventoryItems(OASISResult<IEnumerable<IInventoryItem>> inventoryItems)
         {
-            if (inventoryItems != null && inventoryItems.Result != null && !inventoryItems.IsError)
+            if (inventoryItems != null && !inventoryItems.IsError)
             {
-                if (inventoryItems.Result.Count() > 0)
+                if (inventoryItems.Result != null && inventoryItems.Result.Count() > 0)
                 {
                     Console.WriteLine();
 

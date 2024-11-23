@@ -309,12 +309,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         CreatedByAvatarId = avatarId,
                         CreatedByAvatarUsername = avatarResult.Result.Username,
                         CreatedOn = DateTime.Now,
-                        Version = "1.0.0"
+                        Version = "1.0.0",
+                        STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion,
+                        OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion,
+                        COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion
                     };
 
                     await WriteOAPPDNAAsync(OAPPDNA, fullPathToOAPP);
 
-                    OAPP.MetaData["OAPPDNAJSON"] = JsonSerializer.Serialize(OAPPDNA); //Store the OAPPDNA in the db so it can be verified later against the file OASISDNA when publishing, installing etc to make sure its not been tampered with.
+                    OAPP.OAPPDNA = OAPPDNA;
+                    //OAPP.MetaData["OAPPDNAJSON"] = JsonSerializer.Serialize(OAPPDNA); //Store the OAPPDNA in the db so it can be verified later against the file OASISDNA when publishing, installing etc to make sure its not been tampered with.
                     //OAPP.OAPPDNA = JsonSerializer.Serialize(OAPPDNA); //OAPPDNA;
                     OASISResult<OAPP> saveHolonResult = await Data.SaveHolonAsync<OAPP>(OAPP, avatarId, true, true, 0, true, false, providerType);
 
@@ -560,7 +564,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         }
 
                         if (string.IsNullOrEmpty(fullPathToPublishTo))
-                            fullPathToPublishTo = Path.Combine(fullPathToOAPP, "Published", publishedOAPPFileName);
+                        {
+                            //Directory.CreateDirectory(Path.Combine(fullPathToOAPP, "Published"));
+                            //fullPathToPublishTo = Path.Combine(fullPathToOAPP, "Published", publishedOAPPFileName);
+                            fullPathToPublishTo = Path.Combine(fullPathToOAPP, "Published");
+                        }
+
+                        if (!Directory.Exists(fullPathToPublishTo))
+                            Directory.CreateDirectory(fullPathToPublishTo);
+
+                        fullPathToPublishTo = Path.Combine(fullPathToPublishTo, publishedOAPPFileName);
 
                         readOAPPDNAResult.Result.PublishedOn = DateTime.Now;
                         readOAPPDNAResult.Result.PublishedByAvatarId = avatarId;
@@ -576,7 +589,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                         ZipFile.CreateFromDirectory(fullPathToOAPP, tempPath);
 
-                        Directory.CreateDirectory(Path.Combine(fullPathToOAPP, "Published"));
+                        if (File.Exists(readOAPPDNAResult.Result.PublishedPath))
+                            File.Delete(readOAPPDNAResult.Result.PublishedPath);
+
                         File.Move(tempPath, readOAPPDNAResult.Result.PublishedPath);
 
                         if (File.Exists(tempPath))
@@ -598,13 +613,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 result.IsSaved = true;
        
                                 if (readOAPPDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
-                                    OASISErrorHandling.HandleWarning(ref result, $"The STAR ODK Version {readOAPPDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+                                    OASISErrorHandling.HandleWarning(ref result, $" The STAR ODK Version {readOAPPDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
                                 if (readOAPPDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
-                                    OASISErrorHandling.HandleWarning(ref result, $"The OASIS Version {readOAPPDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+                                    OASISErrorHandling.HandleWarning(ref result, $" The OASIS Version {readOAPPDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
                                 if (readOAPPDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
-                                    OASISErrorHandling.HandleWarning(ref result, $"The COSMIC Version {readOAPPDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+                                    OASISErrorHandling.HandleWarning(ref result, $" The COSMIC Version {readOAPPDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
                                 if (result.InnerMessages.Count > 0)
                                     result.Message = $"OAPP successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";

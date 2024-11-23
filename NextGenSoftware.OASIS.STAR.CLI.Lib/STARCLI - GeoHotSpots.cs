@@ -155,9 +155,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private static void ListGeoHotSpots(OASISResult<IEnumerable<IGeoHotSpot>> missions)
         {
-            if (missions != null && missions.Result != null && !missions.IsError)
+            if (missions != null && !missions.IsError)
             {
-                if (missions.Result.Count() > 0)
+                if (missions.Result != null && missions.Result.Count() > 0)
                 {
                     Console.WriteLine();
 

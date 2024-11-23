@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons
         //string PublishedByAvatarUsername { get; set; }
 
         //ICelestialBody CelestialBody { get; set; } //TODO: Dont think we need this?
-        string OAPPDNAJSON { get; set; }
+        //string OAPPDNAJSON { get; set; }
         IOAPPDNA OAPPDNA { get; set; }
         byte[] PublishedOAPP { get; set; }
         IList<IMission> Missions { get; set; }

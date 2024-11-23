@@ -9,12 +9,14 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
     [BsonDiscriminator("OAPPDNA")]
+    //[BsonDiscriminator("OAPPDNAJSON")]
     public class HolonBase : IHolonBase// Equvilant to the HolonBase object in OASIS.API.Core.
     {
         [BsonId]  

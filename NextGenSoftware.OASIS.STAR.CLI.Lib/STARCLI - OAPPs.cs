@@ -318,7 +318,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (string.IsNullOrEmpty(oappPath))
             {
-                string OAPPPathQuestion = "What is the full path to the dotnet published output for the OAPP you wish to publish?";
+                string OAPPPathQuestion = "What is the full path to the (dotnet) published output for the OAPP you wish to publish?";
                 launchTargetQuestion = "What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the OAPP? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)";
 
                 if (!CLIEngine.GetConfirmation("Have you already published the OAPP within Visual Studio (VS), Visual Studio Code (VSCode) or using the dotnet command? (If your OAPP is using a non dotnet template you can answer 'N')."))
@@ -328,6 +328,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     Console.WriteLine();
                     CLIEngine.ShowMessage("No worries, we will do that for you (if it's a dotnet OAPP)! ;-)");
                 }
+                else
+                    Console.WriteLine();
 
                 oappPath = CLIEngine.GetValidFolder(OAPPPathQuestion, false);
             }
@@ -399,7 +401,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowErrorMessage($"An error occured publishing the OAPP. Reason: {publishResult.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage("The OAPPDNA.json file could not be found! Please ensure it is in the folder you specefied.");
+                CLIEngine.ShowErrorMessage("The OAPPDNA.json file could not be found! Please ensure it is in the folder you specified.");
         }
 
         public static async Task UnPublishOAPPAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
@@ -555,6 +557,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
             {
+                Console.WriteLine("");
                 if (CLIEngine.GetConfirmation("Do you wish to install the OAPP from a local .oapp file or from STARNET? Press 'Y' for local .oapp or 'N' for STARNET."))
                 {
                     Console.WriteLine("");
@@ -816,9 +819,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private static void ListOAPPs(OASISResult<IEnumerable<IOAPP>> oapps)
         {
-            if (oapps != null && oapps.Result != null && !oapps.IsError)
+            if (oapps != null && !oapps.IsError)
             {
-                if (oapps.Result.Count() > 0)
+                if (oapps.Result != null && oapps.Result.Count() > 0)
                 {
                     Console.WriteLine();
 

@@ -79,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsLoaded = true;
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Reason: ", holonsResult != null ? holonsResult.Message : ""));
                 }
             }
             catch (Exception ex)
@@ -165,7 +165,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsSaved = true;
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult.Message}");
+                        //TODO: Need to make this bug fix everywhere! ;-)
+                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Reason: ", holonsResult != null ? holonsResult.Message :""));
+                        //OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult != null ? holonsResult.Message :}");
                 }
             }
             catch (Exception ex)

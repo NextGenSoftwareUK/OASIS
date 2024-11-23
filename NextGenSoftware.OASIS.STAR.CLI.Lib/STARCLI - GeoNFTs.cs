@@ -502,9 +502,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private static void ListNFTs(OASISResult<IEnumerable<IOASISNFT>> nftsResult)
         {
-            if (nftsResult != null && nftsResult.Result != null && !nftsResult.IsError)
+            if (nftsResult != null && !nftsResult.IsError)
             {
-                if (nftsResult.Result.Count() > 0)
+                if (nftsResult.Result != null && nftsResult.Result.Count() > 0)
                 {
                     Console.WriteLine();
 
@@ -527,9 +527,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private static void ListGeoNFTs(OASISResult<IEnumerable<IOASISGeoSpatialNFT>> geonftsResult)
         {
-            if (geonftsResult != null && geonftsResult.Result != null && !geonftsResult.IsError)
+            if (geonftsResult != null && !geonftsResult.IsError)
             {
-                if (geonftsResult.Result.Count() > 0)
+                if (geonftsResult.Result != null && geonftsResult.Result.Count() > 0)
                 {
                     Console.WriteLine();
 
