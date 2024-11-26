@@ -906,18 +906,26 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPP>> InstallOAPPAsync(Guid avatarId, string fullPathToPublishedOAPPFile, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPP>> InstallOAPPAsync(Guid avatarId, string fullPathToPublishedOAPPFile, string fullInstallPath, bool createOAPPDirectory = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
             string errorMessage = "Error occured in OAPPManager.InstallOAPPAsync. Reason: ";
 
             try
             {
-                ZipFile.ExtractToDirectory(fullPathToPublishedOAPPFile, fullInstallPath, Encoding.Default, true);
-                OASISResult<IOAPPDNA> OAPPDNAResult = await ReadOAPPDNAAsync(fullInstallPath);
+                OASISResult<IOAPPDNA> OAPPDNAResult = await ReadOAPPDNAAsync(fullPathToPublishedOAPPFile);
 
                 if (OAPPDNAResult != null && OAPPDNAResult.Result != null && !OAPPDNAResult.IsError)
                 {
+                    if (createOAPPDirectory)
+                        fullInstallPath = Path.Combine(fullInstallPath, OAPPDNAResult.Result.OAPPName);
+
+                    if (Directory.Exists(fullInstallPath))
+                        Directory.Delete(fullInstallPath, true);
+
+                    Directory.CreateDirectory(fullInstallPath);
+
+                    ZipFile.ExtractToDirectory(fullPathToPublishedOAPPFile, fullInstallPath, Encoding.Default, true);
                     OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
                     if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
@@ -967,7 +975,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPP> InstallOAPP(Guid avatarId, string fullPathToPublishedOAPPFile, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPP> InstallOAPP(Guid avatarId, string fullPathToPublishedOAPPFile, string fullInstallPath, bool createOAPPDirectory = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
             string errorMessage = "Error occured in OAPPManager.InstallOAPP. Reason: ";
@@ -1028,7 +1036,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPP>> InstallOAPPAsync(Guid avatarId, IOAPP OAPP, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPP>> InstallOAPPAsync(Guid avatarId, IOAPP OAPP, string fullInstallPath, bool createOAPPDirectory = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
             string errorMessage = "Error occured in OAPPManager.InstallOAPPAsync. Reason: ";
@@ -1037,7 +1045,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 string OAPPPath = Path.Combine("temp", OAPP.Name, ".oapp");
                 await File.WriteAllBytesAsync(OAPPPath, OAPP.PublishedOAPP);
-                result = await InstallOAPPAsync(avatarId, OAPPPath, fullInstallPath, providerType);
+                result = await InstallOAPPAsync(avatarId, OAPPPath, fullInstallPath, createOAPPDirectory, providerType);
             }
             catch (Exception ex)
             {
@@ -1047,7 +1055,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPP> InstallOAPP(Guid avatarId, IOAPP OAPP, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPP> InstallOAPP(Guid avatarId, IOAPP OAPP, string fullInstallPath, bool createOAPPDirectory = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
             string errorMessage = "Error occured in OAPPManager.InstallOAPP. Reason: ";
@@ -1056,7 +1064,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 string OAPPPath = Path.Combine("temp", OAPP.Name, ".oapp");
                 File.WriteAllBytes(OAPPPath, OAPP.PublishedOAPP);
-                result = InstallOAPP(avatarId, OAPPPath, fullInstallPath, providerType);
+                result = InstallOAPP(avatarId, OAPPPath, fullInstallPath, createOAPPDirectory, providerType);
             }
             catch (Exception ex)
             {
@@ -1066,26 +1074,26 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPP>> InstallOAPPAsync(Guid avatarId, Guid OAPPId, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPP>> InstallOAPPAsync(Guid avatarId, Guid OAPPId, string fullInstallPath, bool createOAPPDirectory = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
             OASISResult<IOAPP> OAPPResult = await LoadOAPPAsync(OAPPId, providerType);
 
             if (OAPPResult != null && !OAPPResult.IsError && OAPPResult.Result != null)
-                result = await InstallOAPPAsync(avatarId, OAPPResult.Result, fullInstallPath, providerType);
+                result = await InstallOAPPAsync(avatarId, OAPPResult.Result, fullInstallPath, createOAPPDirectory, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPManager.InstallOAPPAsync loading the OAPP with the LoadOAPPAsync method, reason: {result.Message}");
 
             return result;
         }
 
-        public OASISResult<IInstalledOAPP> InstallOAPP(Guid avatarId, Guid OAPPId, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPP> InstallOAPP(Guid avatarId, Guid OAPPId, string fullInstallPath, bool createOAPPDirectory = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
             OASISResult<IOAPP> OAPPResult = LoadOAPP(OAPPId, providerType);
 
             if (OAPPResult != null && !OAPPResult.IsError && OAPPResult.Result != null)
-                result = InstallOAPP(avatarId, OAPPResult.Result, fullInstallPath, providerType);
+                result = InstallOAPP(avatarId, OAPPResult.Result, fullInstallPath, createOAPPDirectory, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPManager.InstallOAPP loading the OAPP with the LoadOAPP method, reason: {result.Message}");
 

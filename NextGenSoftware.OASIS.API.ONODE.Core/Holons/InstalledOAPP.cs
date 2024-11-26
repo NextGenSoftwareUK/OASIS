@@ -4,11 +4,14 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
     public class InstalledOAPP : Holon, IInstalledOAPP //TODO: Do we want to use Holon? What was the reason again?! ;-) Think so can be used with Data API and HolonManager?
     {
+        private IOAPPDNA _OAPPDNA;
+
         public InstalledOAPP()
         {
             this.HolonType = HolonType.InstalledOAPP;
@@ -17,8 +20,24 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         [CustomOASISProperty]
         public Guid OAPPId { get; set; }
 
-        [CustomOASISProperty]
-        public IOAPPDNA OAPPDNA { get; set; }
+        // [CustomOASISProperty(StoreAsJsonString = true)] //TODO: Get this working later on so we dont need to do the manual code below.
+        //public IOAPPDNA OAPPDNA { get; set; }
+
+        public IOAPPDNA OAPPDNA
+        {
+            get
+            {
+                if (_OAPPDNA == null && MetaData["OAPPDNAJSON"] != null && !string.IsNullOrEmpty(MetaData["OAPPDNAJSON"].ToString()))
+                    _OAPPDNA = JsonSerializer.Deserialize<OAPPDNA>(MetaData["OAPPDNAJSON"].ToString());
+
+                return _OAPPDNA;
+            }
+            set
+            {
+                _OAPPDNA = value;
+                MetaData["OAPPDNAJSON"] = JsonSerializer.Serialize(OAPPDNA);
+            }
+        }
 
         [CustomOASISProperty]
         public string InstalledPath { get; set; }

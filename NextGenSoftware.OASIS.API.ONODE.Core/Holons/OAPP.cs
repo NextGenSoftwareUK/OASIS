@@ -12,6 +12,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
     public class OAPP : Holon, IOAPP
     //public class OAPP : HolonBase, IOAPP //TODO: Eventually want to change HolonManager to work with IHolonBase instead of IHolon.
     {
+        private IOAPPDNA _OAPPDNA;
+
         public OAPP()
         {
             this.HolonType = HolonType.OAPP;
@@ -39,9 +41,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         //[CustomOASISProperty()]
         //public string OAPPDNAJSON { get; set; }
 
-        private IOAPPDNA _OAPPDNA;
-
-        // [CustomOASISProperty(StoreAsJsonString = true)] //TODO: Get this working later on so we dont need to do the manual code below in the getter.
+        // [CustomOASISProperty(StoreAsJsonString = true)] //TODO: Get this working later on so we dont need to do the manual code below.
         public IOAPPDNA OAPPDNA
         {
             get
