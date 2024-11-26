@@ -101,6 +101,35 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         Guid IHolonBase.Id { get; set; }
         Guid IHolonBase.ModifiedByAvatarId { get; set; }
 
+        //For some unknown reason MongoDB insists on having these properties from the IOAPPDNA interface here so it can deserilaize the OAPPDNAJSON key on the MetaData property! 
+        //TODO: Want to find a way to remove this and force MongoDB not to try and map the JSON into properties, want it to just treat it as a normal string! ;-)
+        public Guid OAPPId { get; set; }
+        public string OAPPName { get; set; }
+       // public string Description { get; set; }
+       // public Guid CreatedByAvatarId { get; set; }
+        //public string CreatedByAvatarName { get; set; }
+        public string CreatedByAvatarUsername { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public Guid PublishedByAvatarId { get; set; }
+        //public string PublishedByAvatarName { get; set; }
+        public string PublishedByAvatarUsername { get; set; }
+        public DateTime PublishedOn { get; set; }
+        public string PublishedPath { get; set; }
+        public bool PublishedOnSTARNET { get; set; }
+      //  public bool IsActive { get; set; }
+        public OAPPType OAPPType { get; set; }
+        public GenesisType GenesisType { get; set; }
+        //public ICelestialBody CelestialBody { get; set; } //optional
+        public Guid CelestialBodyId { get; set; }
+        public string CelestialBodyName { get; set; }
+        public HolonType CelestialBodyType { get; set; }
+        public IEnumerable<IZome> Zomes { get; set; }
+        public string LaunchTarget { get; set; }
+        //public string Version { get; set; }
+        public string STARODKVersion { get; set; }
+        public string OASISVersion { get; set; }
+        public string COSMICVersion { get; set; }
+
         public event EventDelegates.HolonsLoaded OnChildrenLoaded;
         public event EventDelegates.HolonsError OnChildrenLoadError;
         public event EventDelegates.HolonDeleted OnDeleted;

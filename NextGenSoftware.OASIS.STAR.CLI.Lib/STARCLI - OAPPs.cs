@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
+using Microsoft.Azure.Cosmos.Serialization.HybridRow;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -40,7 +41,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowDivider();
 
             string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
+
+            if (OAPPName == "exit")
+                return;
+
             string OAPPDesc = CLIEngine.GetValidInput("What is the description of the OAPP?");
+
+            if (OAPPDesc == "exit")
+                return;
+
             object value = CLIEngine.GetValidInputForEnum("What type of OAPP do you wish to create?", typeof(OAPPType));
             long ourWorldLat = 0;
             long ourWorldLong = 0;
@@ -62,6 +71,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (value != null)
             {
+                if (value.ToString() == "exit")
+                    return;
+
                 OAPPType OAPPType = (OAPPType)value;
 
                 //TODO: I think star bang was going to be used to create non OAPP Celestial bodies or spaces outside of the magic verse.
@@ -75,7 +87,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     Console.WriteLine("");
                     ourWorldLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in Our World/AR World?");
+
+                    if (ourWorldLat == -1)
+                        return;
+                    
                     ourWorldLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your OAPP to appear in Our World/AR World?");
+
+                    if (ourWorldLong == -1)
+                        return;
 
                     if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your OAPP? Press Y for 3D or N for 2D."))
                     {
@@ -85,12 +104,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             Console.WriteLine("");
                             ourWorld3dObjectPath = CLIEngine.GetValidFile("What is the full path to the local 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                            if (ourWorld3dObjectPath == "exit")
+                                return;
+                            
                             ourWorld3dObject = File.ReadAllBytes(ourWorld3dObjectPath);
+
                         }
                         else
                         {
                             Console.WriteLine("");
                             ourWorld3dObjectURI = await CLIEngine.GetValidURIAsync("What is the URI to the 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                            if (ourWorld3dObjectURI == null)
+                                return;
                         }
                     }
                     else
@@ -101,12 +128,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             Console.WriteLine("");
                             ourWorld2dSpritePath = CLIEngine.GetValidFile("What is the full path to the local 2d sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+
+                            if (ourWorld2dSpritePath == "exit")
+                                return;
+
                             ourWorld2dSprite = File.ReadAllBytes(ourWorld2dSpritePath);
                         }
                         else
                         {
                             Console.WriteLine("");
                             ourWorld2dSpriteURI = await CLIEngine.GetValidURIAsync("What is the URI to the 2D sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+
+                            if (ourWorld3dObjectURI == null)
+                                return;
                         }
                     }
                 }
@@ -117,7 +151,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     Console.WriteLine("");
                     oneWorlddLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in One World?");
+
+                    if (oneWorlddLat == -1)
+                        return;
+                    
                     oneWorldLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your OAPP to appear in One World?");
+
+                    if ( oneWorldLong == -1)
+                        return;
 
                     if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your OAPP within One World? Press Y for 3D or N for 2D."))
                     {
@@ -127,12 +168,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             Console.WriteLine("");
                             oneWorld3dObjectPath = CLIEngine.GetValidFile("What is the full path to the local 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+                            
+                            if (oneWorld3dObjectPath == "exit")
+                                return;
+                            
                             oneWorld3dObject = File.ReadAllBytes(oneWorld3dObjectPath);
                         }
                         else
                         {
                             Console.WriteLine("");
                             oneWorld3dObjectURI = await CLIEngine.GetValidURIAsync("What is the URI to the 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                            if (oneWorld3dObjectURI == null)
+                                return;
                         }
                     }
                     else
@@ -143,12 +191,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             Console.WriteLine("");
                             oneWorld2dSpritePath = CLIEngine.GetValidFile("What is the full path to the local 2d sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+                            
+                            if (oneWorld2dSpritePath == "exit")
+                                return;
+                            
                             oneWorld2dSprite = File.ReadAllBytes(oneWorld2dSpritePath);
                         }
                         else
                         {
                             Console.WriteLine("");
                             oneWorld2dSpriteURI = await CLIEngine.GetValidURIAsync("What is the URI to the 2D sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+
+                            if (oneWorld2dSpriteURI == null)
+                                return;
                         }
                     }
                 }
@@ -159,6 +214,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (value != null)
                 {
+                    if (value.ToString() == "exit")
+                        return;
+
                     GenesisType genesisType = (GenesisType)value;
                     string dnaFolder = "";
 
@@ -174,15 +232,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     //else
                     dnaFolder = CLIEngine.GetValidFolder("What is the path to the CelestialBody/Zomes/Holons DNA?", false);
 
+                    if (dnaFolder == "exit")
+                        return;
+
                     if (Directory.Exists(dnaFolder) && Directory.GetFiles(dnaFolder).Length > 0)
                     {
                         string genesisFolder = CLIEngine.GetValidFolder("What is the path to the GenesisFolder (where the OAPP will be generated)?");
+                        if (genesisFolder == "exit") return;
+                        
                         string genesisNamespace = OAPPName;
 
                         if (!CLIEngine.GetConfirmation("Do you wish to use the OAPP Name for the Genesis Namespace (the OAPP namespace)? (Recommended)"))
                         {
                             Console.WriteLine();
                             genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace (the OAPP namespace)?");
+                            if (genesisNamespace == "exit") return;
                         }
                         else
                             Console.WriteLine();
@@ -197,6 +261,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             {
                                 Console.WriteLine("");
                                 parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+                                if (parentId == Guid.Empty) return;
 
                                 CLIEngine.ShowWorkingMessage("Generating OAPP...");
                                 lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, parentId, providerType);
@@ -394,7 +459,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (CLIEngine.GetConfirmation("Do you wish to install the OAPP now?"))
                     {
                         Console.WriteLine("");
-                        await InstallOAPPAsync();
+                        await InstallOAPPAsync(publishResult.Result.OAPPId.ToString());
                     }
                 }
                 else
@@ -494,19 +559,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 OASISResult<IOAPP> result = await LoadOAPPAsync(idOrName, "install", providerType);
 
                 if (result != null && result.Result != null && !result.IsError)
-                    installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, result.Result, installPath, providerType);
+                    installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, result.Result, installPath, true, providerType);
 
                 //installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, id, installPath, providerType);
             }
             else
             {
+                Console.WriteLine("");
                 if (CLIEngine.GetConfirmation("Do you wish to install the OAPP from a local .oapp file or from STARNET? Press 'Y' for local .oapp or 'N' for STARNET."))
                 {
                     Console.WriteLine("");
                     string oappPath = CLIEngine.GetValidFile("What is the full path to the .oapp file?");
 
                     CLIEngine.ShowWorkingMessage("Installing OAPP...");
-                    installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, oappPath, installPath, providerType);
+                    installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, oappPath, installPath, true, providerType);
                 }
                 else
                     await LaunchSTARNETAsync(true);
@@ -551,7 +617,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 OASISResult<IOAPP> result = LoadOAPP(idOrName, "install", providerType);
 
                 if (result != null && result.Result != null && !result.IsError)
-                    installResult = STAR.OASISAPI.OAPPs.InstallOAPP(STAR.BeamedInAvatar.Id, result.Result, installPath, providerType);
+                    installResult = STAR.OASISAPI.OAPPs.InstallOAPP(STAR.BeamedInAvatar.Id, result.Result, installPath, true, providerType);
 
                 //installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, id, installPath, providerType);
             }
@@ -564,7 +630,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     string oappPath = CLIEngine.GetValidFile("What is the full path to the .oapp file?");
 
                     CLIEngine.ShowWorkingMessage("Installing OAPP...");
-                    installResult = STAR.OASISAPI.OAPPs.InstallOAPP(STAR.BeamedInAvatar.Id, oappPath, installPath, providerType);
+                    installResult = STAR.OASISAPI.OAPPs.InstallOAPP(STAR.BeamedInAvatar.Id, oappPath, installPath, true, providerType);
                 }
                 else
                     LaunchSTARNETAsync(true);
@@ -672,24 +738,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
         }
 
-        public static async Task ListOAPPsInstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IEnumerable<IInstalledOAPP>>> ListOAPPsInstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
+            OASISResult<IEnumerable<IInstalledOAPP>> result = new OASISResult<IEnumerable<IInstalledOAPP>>();
+
             if (STAR.BeamedInAvatar != null)
             {
-                OASISResult<IEnumerable<IInstalledOAPP>> oapps = await STAR.OASISAPI.OAPPs.ListInstalledOAPPsAsync(STAR.BeamedInAvatar.AvatarId);
-
-                if (oapps != null && oapps.Result != null && !oapps.IsError)
-                {
-                    CLIEngine.ShowDivider();
-
-                    foreach (IInstalledOAPP oapp in oapps.Result)
-                        ShowInstalledOAPP(oapp);
-                }
-                else
-                    CLIEngine.ShowErrorMessage("No OAPP's Found.");
+                result = await STAR.OASISAPI.OAPPs.ListInstalledOAPPsAsync(STAR.BeamedInAvatar.AvatarId);
+                ListInstalledOAPPs(result);
             }
             else
-                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
+                OASISErrorHandling.HandleError(ref result, "No Avatar Is Beamed In. Please Beam In First!");
+                //CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
+
+            return result;
         }
 
         public static async Task SearchOAPPsAsync(ProviderType providerType = ProviderType.Default)
@@ -842,6 +904,31 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"Error occured loading OAPP's. Reason: {oapps.Message}");
         }
 
+        private static void ListInstalledOAPPs(OASISResult<IEnumerable<IInstalledOAPP>> oapps)
+        {
+            if (oapps != null && !oapps.IsError)
+            {
+                if (oapps.Result != null && oapps.Result.Count() > 0)
+                {
+                    Console.WriteLine();
+
+                    if (oapps.Result.Count() == 1)
+                        CLIEngine.ShowMessage($"{oapps.Result.Count()} OAPP Found:");
+                    else
+                        CLIEngine.ShowMessage($"{oapps.Result.Count()} OAPP's Found:");
+
+                    CLIEngine.ShowDivider();
+
+                    foreach (IInstalledOAPP oapp in oapps.Result)
+                        ShowInstalledOAPP(oapp);
+                }
+                else
+                    CLIEngine.ShowWarningMessage("No OAPP's Found.");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error occured loading OAPP's. Reason: {oapps.Message}");
+        }
+
         private static async Task<OASISResult<IOAPP>> LoadOAPPAsync(string idOrName, string operationName, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
@@ -850,6 +937,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (string.IsNullOrEmpty(idOrName))
                 idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name to the OAPP you wish to {operationName}?");
 
+            Console.WriteLine("");
             CLIEngine.ShowWorkingMessage("Loading OAPP...");
 
             if (Guid.TryParse(idOrName, out id))
