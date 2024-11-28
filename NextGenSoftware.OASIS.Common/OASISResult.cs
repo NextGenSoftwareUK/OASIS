@@ -99,6 +99,8 @@ namespace NextGenSoftware.OASIS.Common
 
         public string DetailedMessage { get; set; }
 
+        public string? FunctionName { get; set; }
+
         public T Result { get; set; }
 
         public OASISResult()
@@ -109,6 +111,11 @@ namespace NextGenSoftware.OASIS.Common
         public OASISResult(T value)
         {
             Result = value;
+        }
+
+        public OASISResult(string? functionName)
+        {
+            FunctionName = functionName;
         }
     }
 }
