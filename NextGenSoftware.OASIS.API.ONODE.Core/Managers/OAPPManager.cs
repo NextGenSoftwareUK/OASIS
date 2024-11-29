@@ -19,6 +19,9 @@ using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
+using Google.Cloud.Storage.V1;
+using Neo4j.Driver;
+using System.Security.AccessControl;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -445,12 +448,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IOAPP>> SaveOAPPAsync(IOAPP OAPP, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
-            OASISResult<IHolon> saveResult = await OAPP.SaveAsync(true, true, 0, true, false, providerType);
+            OASISResult<OAPP> saveResult = await OAPP.SaveAsync<OAPP>(true, true, 0, true, false, providerType);
 
             if (saveResult != null && !saveResult.IsError && saveResult.Result != null)
             {
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon, IOAPP>(saveResult);
-                result.Result = (IOAPP)saveResult.Result;
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<OAPP, IOAPP>(saveResult);
+                result.Result = saveResult.Result;
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.SaveOAPPAsync saving the OAPP. Reason: {saveResult.Message}");
@@ -462,12 +465,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IOAPP> SaveOAPP(IOAPP OAPP, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
-            OASISResult<IHolon> saveResult = OAPP.Save(true, true, 0, true, false, providerType);
+            OASISResult<OAPP> saveResult = OAPP.Save<OAPP>(true, true, 0, true, false, providerType);
 
             if (saveResult != null && !saveResult.IsError && saveResult.Result != null)
             {
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon, IOAPP>(saveResult);
-                result.Result = (IOAPP)saveResult.Result;
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<OAPP, IOAPP>(saveResult);
+                result.Result = saveResult.Result;
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.SaveOAPP saving the OAPP. Reason: {saveResult.Message}");
@@ -531,7 +534,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default, ProviderType starNETPublishedOAPPBinaryProviderType = ProviderType.IPFSOASIS)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.PublishOAPPAsync. Reason: ";
@@ -588,6 +591,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             File.Delete(tempPath);
 
                         ZipFile.CreateFromDirectory(fullPathToOAPP, tempPath);
+                        //SharpCompress.Compressors.LZMA.LZipStream. (7Zip)
+                        //SharpZipLib.
+                       
+                        //TODO: Look into the most optimal compression...
+                        //using (FileStream fs = File.OpenRead(tempPath))
+                        //{
+                        //    DeflateStream deflateStream = new DeflateStream(fs, CompressionLevel.SmallestSize, false);
+                        //    GZipStream gZipStream = new GZipStream(fs, CompressionLevel.SmallestSize, false);
+                            
+                        //    //deflateStream.Write
+                        //}
 
                         if (File.Exists(readOAPPDNAResult.Result.PublishedPath))
                             File.Delete(readOAPPDNAResult.Result.PublishedPath);
@@ -601,17 +615,47 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                         if (loadOAPPResult != null && loadOAPPResult.Result != null && !loadOAPPResult.IsError)
                         {
-                            if (registerOnSTARNET)
-                                loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(readOAPPDNAResult.Result.PublishedPath);
+                            //if (registerOnSTARNET)
+                            //    loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(readOAPPDNAResult.Result.PublishedPath);
 
                             loadOAPPResult.Result.OAPPDNA = readOAPPDNAResult.Result;
                             OASISResult<IOAPP> saveOAPPResult = await SaveOAPPAsync(loadOAPPResult.Result, providerType);
 
                             if (saveOAPPResult != null && !saveOAPPResult.IsError && saveOAPPResult.Result != null)
                             {
+                                if (registerOnSTARNET)
+                                {
+                                    try
+                                    {
+                                        StorageClient storage = await StorageClient.CreateAsync();
+                                        //var bucket = storage.CreateBucket("oasis", "oapps");
+
+                                        using var fileStream = File.OpenRead(readOAPPDNAResult.Result.PublishedPath);
+                                        await storage.UploadObjectAsync("oasis_oapps", publishedOAPPFileName, "oapp", fileStream);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        OASISErrorHandling.HandleError(ref result, $"An error occured publishing the OAPP to cloud storage. Reason: {ex}");
+                                    }
+
+                                    //The smallest OAPP is around 250MB because of the 208MB runtimes.
+                                    loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(readOAPPDNAResult.Result.PublishedPath);
+
+                                    //TODO: We could use HoloOASIS and other large file storage providers in future...
+                                    saveOAPPResult = await SaveOAPPAsync(loadOAPPResult.Result, starNETPublishedOAPPBinaryProviderType);
+
+                                    if (saveOAPPResult != null && !saveOAPPResult.IsError && saveOAPPResult.Result != null)
+                                    {
+                                        result.Result = readOAPPDNAResult.Result;
+                                        result.IsSaved = true;
+                                    }
+                                    else
+                                        OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPP binary to STARNET using the {starNETPublishedOAPPBinaryProviderType} provider. Reason: {saveOAPPResult.Message}");
+                                }
+                                
                                 result.Result = readOAPPDNAResult.Result;
                                 result.IsSaved = true;
-       
+                                
                                 if (readOAPPDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
                                     OASISErrorHandling.HandleWarning(ref result, $" The STAR ODK Version {readOAPPDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
@@ -621,7 +665,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 if (readOAPPDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
                                     OASISErrorHandling.HandleWarning(ref result, $" The COSMIC Version {readOAPPDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
-                                if (result.InnerMessages.Count > 0)
+                                if (result.IsWarning)
                                     result.Message = $"OAPP successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
                                 else
                                     result.Message = "OAPP Successfully Published";
@@ -1043,9 +1087,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                string OAPPPath = Path.Combine("temp", OAPP.Name, ".oapp");
-                await File.WriteAllBytesAsync(OAPPPath, OAPP.PublishedOAPP);
-                result = await InstallOAPPAsync(avatarId, OAPPPath, fullInstallPath, createOAPPDirectory, providerType);
+                if (OAPP.PublishedOAPP != null)
+                {
+                    string OAPPPath = Path.Combine("temp", OAPP.Name, ".oapp");
+                    await File.WriteAllBytesAsync(OAPPPath, OAPP.PublishedOAPP);
+                    result = await InstallOAPPAsync(avatarId, OAPPPath, fullInstallPath, createOAPPDirectory, providerType);
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, "The OAPP.PublishedOAPP property is null! Please make sure this OAPP was published to STARNET and try again.");
             }
             catch (Exception ex)
             {
@@ -1062,9 +1111,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                string OAPPPath = Path.Combine("temp", OAPP.Name, ".oapp");
-                File.WriteAllBytes(OAPPPath, OAPP.PublishedOAPP);
-                result = InstallOAPP(avatarId, OAPPPath, fullInstallPath, createOAPPDirectory, providerType);
+                if (OAPP.PublishedOAPP != null)
+                {
+                    string OAPPPath = Path.Combine("temp", OAPP.Name, ".oapp");
+                    File.WriteAllBytes(OAPPPath, OAPP.PublishedOAPP);
+                    result = InstallOAPP(avatarId, OAPPPath, fullInstallPath, createOAPPDirectory, providerType);
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, "The OAPP.PublishedOAPP property is null! Please make sure this OAPP was published to STARNET and try again.");
             }
             catch (Exception ex)
             {

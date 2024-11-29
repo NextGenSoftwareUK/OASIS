@@ -37,6 +37,13 @@
 		</None>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="Google.Cloud.Storage.V1" Version="4.10.0" />
+	  <PackageReference Include="SevenZip" Version="19.0.0" />
+	  <PackageReference Include="SharpCompress" Version="0.38.0" />
+	  <PackageReference Include="SharpZipLib" Version="1.4.2" />
+	</ItemGroup>
+
 	<!--<ItemGroup>
 	  <Reference Include="NextGenSoftware.OASIS.STAR">
 	    <HintPath>..\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\Runtimes\STAR ODK Runtime v2.0.2\NextGenSoftware.OASIS.STAR.dll</HintPath>

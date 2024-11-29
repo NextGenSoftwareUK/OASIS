@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         public OASISDNA OASISDNA { get; set; } 
         public AvatarManager Avatar { get; set; }
         public HolonManager Data { get; set; }
+        //public HolonManager HolonicGraph { get; set; }
         public KeyManager Keys { get; set; }
         public WalletManager Wallets { get; set; }
         public NFTManager NFTs { get; set; }
