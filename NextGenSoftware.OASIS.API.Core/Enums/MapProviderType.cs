@@ -3,6 +3,7 @@
     public enum MapProviderType
     {
         MapBox,
-        WRLD3D
+        WRLD3D,
+        GoMap
     }
 }

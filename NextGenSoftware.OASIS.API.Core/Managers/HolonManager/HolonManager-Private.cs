@@ -94,6 +94,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (holon.ParentHolonId == Guid.Empty)
                 holon.ParentHolonId = holon.CreatedByAvatarId;
 
+            holon.Original = null;
+
             // Retreive any custom properties and store in the holon metadata dictionary.
             // TODO: Would ideally like to find a better way to do this so we can avoid reflection if possible because of the potential overhead!
             // Need to do some perfomrnace tests with reflection turned on/off (so with this code enabled/disabled) to see what the overhead is exactly...

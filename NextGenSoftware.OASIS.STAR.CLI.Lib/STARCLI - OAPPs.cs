@@ -376,6 +376,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public static async Task PublishOAPPAsync(string oappPath = "", bool publishDotNot = false, ProviderType providerType = ProviderType.Default)
         //public static async Task PublishOAPPAsync(string oappPath = "", ProviderType providerType = ProviderType.Default)
         {
+            ProviderType largeFileProviderType = ProviderType.IPFSOASIS;
             string launchTarget = "";
             string publishPath = "";
             string launchTargetQuestion = "";
@@ -433,12 +434,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
                 bool registerOnSTARNET = CLIEngine.GetConfirmation("Do you wish to publish to STARNET? If you select 'Y' to this question then your OAPP will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .OAPP install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.");
 
+                if (registerOnSTARNET)
+                {
+                    Console.WriteLine("");
+                    object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to publish the OAPP to? (The default is IPFSOASIS)", typeof(ProviderType));
+
+                    if (largeProviderTypeObject != null)
+                        largeFileProviderType = (ProviderType)largeProviderTypeObject;
+                }
+                else
+                    Console.WriteLine("");
+
                 if (Path.IsPathRooted(STAR.STARDNA.DefaultPublishedOAPPsPath))
                     publishPath = STAR.STARDNA.DefaultPublishedOAPPsPath;
                 else
                     publishPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultPublishedOAPPsPath);
 
-                Console.WriteLine("");
+                //Console.WriteLine("");
                 if (!CLIEngine.GetConfirmation($"Do you wish to publish the OAPP to the default publish folder defined in the STARDNA as DefaultPublishedOAPPsPath : {publishPath}?"))
                 {
                     if (CLIEngine.GetConfirmation($"Do you wish to publish the OAPP to: {Path.Combine(oappPath, "Published")}?"))
@@ -449,7 +461,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 Console.WriteLine("");
                 CLIEngine.ShowWorkingMessage("Publishing OAPP...");
-                OASISResult<IOAPPDNA> publishResult = await STAR.OASISAPI.OAPPs.PublishOAPPAsync(oappPath, launchTarget, STAR.BeamedInAvatar.Id, publishDotNot, publishPath, registerOnSTARNET, providerType);
+                OASISResult<IOAPPDNA> publishResult = await STAR.OASISAPI.OAPPs.PublishOAPPAsync(oappPath, launchTarget, STAR.BeamedInAvatar.Id, publishDotNot, publishPath, registerOnSTARNET, providerType, largeFileProviderType);
 
                 if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
                 {
@@ -457,10 +469,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     ShowOAPP(publishResult.Result);
 
                     if (CLIEngine.GetConfirmation("Do you wish to install the OAPP now?"))
-                    {
-                        Console.WriteLine("");
                         await InstallOAPPAsync(publishResult.Result.OAPPId.ToString());
-                    }
+
+                    Console.WriteLine("");
                 }
                 else
                     CLIEngine.ShowErrorMessage($"An error occured publishing the OAPP. Reason: {publishResult.Message}");
@@ -551,17 +562,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             else
                 installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultInstalledOAPPsPath);
 
+            Console.WriteLine("");
+
             if (!CLIEngine.GetConfirmation($"Do you wish to install the OAPP to the default install folder defined in the STARDNA as DefaultInstalledOAPPsPath : {installPath}?"))
                 installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the OAPP?", true);
 
             if (!string.IsNullOrEmpty(idOrName))
             {
-                OASISResult<IOAPP> result = await LoadOAPPAsync(idOrName, "install", providerType);
+                Console.WriteLine("");
+                ProviderType largeFileProviderType = ProviderType.IPFSOASIS;
+                object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to install the OAPP from? (The default is IPFSOASIS)", typeof(ProviderType));
 
-                if (result != null && result.Result != null && !result.IsError)
-                    installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, result.Result, installPath, true, providerType);
+                if (largeProviderTypeObject != null)
+                {
+                    largeFileProviderType = (ProviderType)largeProviderTypeObject;
+                    OASISResult<IOAPP> result = await LoadOAPPAsync(idOrName, "install", largeFileProviderType, false);
 
-                //installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, id, installPath, providerType);
+                    if (result != null && result.Result != null && !result.IsError)
+                        installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, result.Result, installPath, true, providerType);
+
+                    //installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, id, installPath, providerType);
+                }
             }
             else
             {
@@ -692,10 +713,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 //Guid OAPPID = CLIEngine.GetValidInputForGuid("What is the GUID/ID of the OAPP you wish to install?");
 
-                OASISResult<IOAPP> result = await LoadOAPPAsync("", "install", providerType);
+                ProviderType largeFileProviderType = ProviderType.IPFSOASIS;
+                object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to install the OAPP from? (The default is IPFSOASIS)", typeof(ProviderType));
 
-                if (result != null && result.Result != null && !result.IsError)
-                    await InstallOAPPAsync(result.Result.Id.ToString());
+                if (largeProviderTypeObject != null)
+                {
+                    largeFileProviderType = (ProviderType)largeProviderTypeObject;
+                    OASISResult<IOAPP> result = await LoadOAPPAsync("", "install", largeFileProviderType);
+
+                    if (result != null && result.Result != null && !result.IsError)
+                        await InstallOAPPAsync(result.Result.Id.ToString());
+                }
             }
 
             //TODO: Soon this will be like a sub-menu listing the STARNET commands (install, uninstall, list, publish, unpublish etc) and change the cursor to STARNET: rather than STAR:. They can then type exit to go back to the main STAR menu.
@@ -929,7 +957,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"Error occured loading OAPP's. Reason: {oapps.Message}");
         }
 
-        private static async Task<OASISResult<IOAPP>> LoadOAPPAsync(string idOrName, string operationName, ProviderType providerType = ProviderType.Default)
+        private static async Task<OASISResult<IOAPP>> LoadOAPPAsync(string idOrName, string operationName, ProviderType providerType = ProviderType.Default, bool addSpace = true)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
             Guid id = Guid.Empty;
@@ -937,7 +965,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (string.IsNullOrEmpty(idOrName))
                 idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name to the OAPP you wish to {operationName}?");
 
-            Console.WriteLine("");
+            if (addSpace)
+                Console.WriteLine("");
+
             CLIEngine.ShowWorkingMessage("Loading OAPP...");
 
             if (Guid.TryParse(idOrName, out id))
