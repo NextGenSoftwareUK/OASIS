@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.Oracle";
+
+package crosschainbridge;
+
+service CrossChainBridge {
+    rpc BurnTransaction(BurnRequest) returns (TransactionResponse);
+    rpc MintTransaction(MintRequest) returns (TransactionResponse);
+    rpc GetTransactionStatus(StatusRequest) returns (StatusResponse);
+    rpc CancelTransaction(CancelRequest) returns (CancelResponse);
+}
+
+message BurnRequest {
+    string network = 1;
+    string sourceAddress = 2;
+    string targetAddress = 3;
+    double amount = 4;
+}
+
+message MintRequest {
+    string network = 1;
+    string sourceTransactionId = 2;
+    string targetAddress = 3;
+    double amount = 4;
+}
+
+message StatusRequest {
+    string transactionId = 1;
+}
+
+message StatusResponse {
+    string transactionId = 1;
+    string status = 2;
+}
+
+message CancelRequest {
+    string transactionId = 1;
+}
+
+message CancelResponse {
+    string transactionId = 1;
+    string message = 2;
+}
+
+message TransactionResponse {
+    string transactionId = 1;
+    string message = 2;
+}
