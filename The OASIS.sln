@@ -288,6 +288,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.RadixOASIS", "NextGenSoftware.OASIS.API.Providers.RadixOASIS\NextGenSoftware.OASIS.API.Providers.RadixOASIS.csproj", "{4BF506B8-6178-434F-A415-EF20BB3BA031}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Oracle", "NextGenSoftware.OASIS.API.Oracle\NextGenSoftware.OASIS.API.Oracle.csproj", "{4A2669FF-1A65-4562-A33E-811B29DB9A3D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -2064,6 +2066,24 @@ Global
 		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Release|x64.Build.0 = Release|Any CPU
 		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Release|x86.ActiveCfg = Release|Any CPU
 		{4BF506B8-6178-434F-A415-EF20BB3BA031}.Release|x86.Build.0 = Release|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Debug|x64.Build.0 = Debug|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Debug|x86.Build.0 = Debug|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Linux|x64.Build.0 = Debug|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Linux|x86.Build.0 = Debug|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Release|x64.ActiveCfg = Release|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Release|x64.Build.0 = Release|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Release|x86.ActiveCfg = Release|Any CPU
+		{4A2669FF-1A65-4562-A33E-811B29DB9A3D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

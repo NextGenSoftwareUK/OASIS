@@ -77,37 +77,37 @@ public sealed class RadixClient(
         return await response.Content.ReadAsStringAsync();
     }
 
-    public Task<OASISResult<string>> CreateProposalAsync(string description, ulong duration, string ownerBadge)
+    public Task<OASISResult<TransactionDetails>> CreateProposalAsync(string description, ulong duration, string ownerBadge)
     {
         var data = new { description, duration };
         return _httpClient.SendTransactionAsync("/create_proposal", data, ownerBadge);
     }
 
-    public Task<OASISResult<string>> VoteProposalAsync(ulong proposalId, bool support, decimal voterTokens)
+    public Task<OASISResult<TransactionDetails>> VoteProposalAsync(ulong proposalId, bool support, decimal voterTokens)
     {
         var data = new { proposal_id = proposalId, support, voter_tokens = voterTokens };
         return _httpClient.SendTransactionAsync("/vote_proposal", data);
     }
 
-    public Task<OASISResult<string>> ExecuteProposalAsync(ulong proposalId, string ownerBadge)
+    public Task<OASISResult<TransactionDetails>> ExecuteProposalAsync(ulong proposalId, string ownerBadge)
     {
         var data = new { proposal_id = proposalId };
         return _httpClient.SendTransactionAsync("/execute_proposal", data, ownerBadge);
     }
 
-    public Task<OASISResult<string>> SendTokensAsync(string recipientAddress, decimal amount, string ownerBadge)
+    public Task<OASISResult<TransactionDetails>> SendTokensAsync(string recipientAddress, decimal amount, string ownerBadge)
     {
         var data = new { recipient = recipientAddress, amount };
         return _httpClient.SendTransactionAsync("/send_tokens", data, ownerBadge);
     }
 
-    public Task<OASISResult<string>> BurnTokensAsync(decimal amount, string ownerBadge)
+    public Task<OASISResult<TransactionDetails>> BurnTokensAsync(decimal amount, string ownerBadge)
     {
         var data = new { amount };
         return _httpClient.SendTransactionAsync("/burn_tokens", data, ownerBadge);
     }
 
-    public Task<OASISResult<string>> MintNFTAsync(string name, string description, decimal paymentAmount, string ownerBadge)
+    public Task<OASISResult<TransactionDetails>> MintNFTAsync(string name, string description, decimal paymentAmount, string ownerBadge)
     {
         var data = new { name, description, payment = paymentAmount };
         return _httpClient.SendTransactionAsync("/mint_nft", data, ownerBadge);
