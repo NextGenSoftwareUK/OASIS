@@ -18,6 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons
         //string OAPPDNAJSON { get; set; }
         IOAPPDNA OAPPDNA { get; set; }
         byte[] PublishedOAPP { get; set; }
+        byte[] PublishedOAPPSource { get; set; }
         IList<IMission> Missions { get; set; }
     }
 }

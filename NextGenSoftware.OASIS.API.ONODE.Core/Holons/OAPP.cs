@@ -68,6 +68,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         public byte[] PublishedOAPP { get; set; }
 
         [CustomOASISProperty()]
+        public byte[] PublishedOAPPSource { get; set; }
+
+        [CustomOASISProperty()]
         public IList<IMission> Missions { get; set; }
 
         //[CustomOASISProperty]
