@@ -461,7 +461,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 Console.WriteLine("");
                 CLIEngine.ShowWorkingMessage("Publishing OAPP...");
+
+                STAR.OASISAPI.OAPPs.OnOAPPUploadStatusChanged += OAPPs_OnOAPPUploadStatusChanged;
                 OASISResult<IOAPPDNA> publishResult = await STAR.OASISAPI.OAPPs.PublishOAPPAsync(oappPath, launchTarget, STAR.BeamedInAvatar.Id, publishDotNot, publishPath, registerOnSTARNET, providerType, largeFileProviderType);
+                STAR.OASISAPI.OAPPs.OnOAPPUploadStatusChanged -= OAPPs_OnOAPPUploadStatusChanged;
 
                 if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
                 {
@@ -478,6 +481,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
                 CLIEngine.ShowErrorMessage("The OAPPDNA.json file could not be found! Please ensure it is in the folder you specified.");
+        }
+
+        private static void OAPPs_OnOAPPUploadStatusChanged(object sender, API.ONODE.Core.Events.OAPPUploadProgressEventArgs e)
+        {
+            CLIEngine.ShowMessage($"Uploading OAPP... {e.Progress}%");
         }
 
         public static async Task UnPublishOAPPAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)

@@ -17,17 +17,16 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
-
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using Google.Cloud.Storage.V1;
-using Neo4j.Driver;
-using System.Security.AccessControl;
+using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
     public class OAPPManager : OASISManager
     {
-       //private static OAPPManager _instance = null;
+        private int _progress = 0;
+        private long _fileLength = 0;
 
         public OAPPManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
         {
@@ -38,6 +37,20 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         {
 
         }
+
+        public delegate void OAPPUploadStatusChanged(object sender, OAPPUploadProgressEventArgs e);
+        public delegate void OAPPDownloadStatusChanged(object sender, OAPPDownloadProgressEventArgs e);
+
+        /// <summary>
+        /// Fired when there is a change in the OAPP upload status.
+        /// </summary>
+        public event OAPPUploadStatusChanged OnOAPPUploadStatusChanged;
+
+        /// <summary>
+        /// Fired when there is a change in the OAPP download status.
+        /// </summary>
+        public event OAPPDownloadStatusChanged OnOAPPDownloadStatusChanged;
+
 
         //TODO: Think will return IOAPPDNA instead of IOAPP (get from metadata)
         public async Task<OASISResult<IEnumerable<IOAPP>>> ListOAPPsCreatedByAvatarAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
@@ -630,8 +643,20 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                         StorageClient storage = await StorageClient.CreateAsync();
                                         //var bucket = storage.CreateBucket("oasis", "oapps");
 
+                                        // set minimum chunksize just to see progress updating
+                                        var uploadObjectOptions = new Google.Cloud.Storage.V1.UploadObjectOptions
+                                        {
+                                            ChunkSize = Google.Cloud.Storage.V1.UploadObjectOptions.MinimumChunkSize
+                                        };
+
+                                        var progressReporter = new Progress<Google.Apis.Upload.IUploadProgress>(OnUploadProgress);
+                                        
                                         using var fileStream = File.OpenRead(readOAPPDNAResult.Result.PublishedPath);
-                                        await storage.UploadObjectAsync("oasis_oapps", publishedOAPPFileName, "oapp", fileStream);
+
+                                        _fileLength = fileStream.Length;
+                                        _progress = 0;
+
+                                        await storage.UploadObjectAsync("oasis_oapps", publishedOAPPFileName, "oapp", fileStream, uploadObjectOptions, progress: progressReporter);
                                     }
                                     catch (Exception ex)
                                     {
@@ -1087,14 +1112,46 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
+                string OAPPPath = Path.Combine("temp", OAPP.Name, ".oapp");
+
                 if (OAPP.PublishedOAPP != null)
                 {
-                    string OAPPPath = Path.Combine("temp", OAPP.Name, ".oapp");
                     await File.WriteAllBytesAsync(OAPPPath, OAPP.PublishedOAPP);
                     result = await InstallOAPPAsync(avatarId, OAPPPath, fullInstallPath, createOAPPDirectory, providerType);
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, "The OAPP.PublishedOAPP property is null! Please make sure this OAPP was published to STARNET and try again.");
+                {
+                    //OASISErrorHandling.HandleWarning(ref result, "The OAPP.PublishedOAPP property is null! Please make sure this OAPP was published to STARNET and try again.");
+                   // FileStream fileStream = null;
+
+                    try
+                    {
+                        StorageClient storage = await StorageClient.CreateAsync();
+
+                        // set minimum chunksize just to see progress updating
+                        var downloadObjectOptions = new Google.Cloud.Storage.V1.DownloadObjectOptions
+                        {
+                             ChunkSize = Google.Cloud.Storage.V1.UploadObjectOptions.MinimumChunkSize,
+                        };
+
+                        var progressReporter = new Progress<Google.Apis.Download.IDownloadProgress>(OnDownloadProgress);
+
+                        using var fileStream = File.OpenWrite(OAPPPath);
+                        _fileLength = fileStream.Length;
+                        _progress = 0;
+
+                        await storage.DownloadObjectAsync("oasis_oapps", string.Concat(OAPP.Name, ".oapp"), fileStream, downloadObjectOptions, progress: progressReporter);
+                        result = await InstallOAPPAsync(avatarId, OAPPPath, fullInstallPath, createOAPPDirectory, providerType);
+                    }
+                    catch (Exception ex)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"An error occured downloading the OAPP from cloud storage. Reason: {ex}");
+                    }
+                    finally
+                    {
+                       // fileStream.Close();
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -1652,6 +1709,61 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.GetOAPPMissions calling LoadOAPP. Reason: {loadResult.Message}");
 
             return result;
+        }
+
+        private void OnUploadProgress(Google.Apis.Upload.IUploadProgress progress)
+        {
+            switch (progress.Status)
+            {
+                case Google.Apis.Upload.UploadStatus.NotStarted:
+                    _progress = 0;
+                    OnOAPPUploadStatusChanged?.Invoke(this, new OAPPUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPUploadStatus.NotStarted });
+                    break;
+
+                case Google.Apis.Upload.UploadStatus.Starting:
+                    _progress = 0;
+                    OnOAPPUploadStatusChanged?.Invoke(this, new OAPPUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPUploadStatus.Uploading });
+                    break;
+
+                case Google.Apis.Upload.UploadStatus.Completed:
+                    _progress = 100;
+                    OnOAPPUploadStatusChanged?.Invoke(this, new OAPPUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPUploadStatus.Uploaded });
+                    break;
+
+                case Google.Apis.Upload.UploadStatus.Uploading:
+                    _progress = Convert.ToInt32((progress.BytesSent / _fileLength) * 100);
+                    OnOAPPUploadStatusChanged?.Invoke(this, new OAPPUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPUploadStatus.Uploading });
+                    break;
+
+                case Google.Apis.Upload.UploadStatus.Failed:
+                    OnOAPPUploadStatusChanged?.Invoke(this, new OAPPUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPUploadStatus.Error, ErrorMessage = progress.Exception.ToString() });
+                    break;
+            }
+        }
+
+        private void OnDownloadProgress(Google.Apis.Download.IDownloadProgress progress)
+        {
+            switch (progress.Status)
+            {
+                case Google.Apis.Download.DownloadStatus.NotStarted:
+                    _progress = 0;
+                    OnOAPPDownloadStatusChanged?.Invoke(this, new OAPPDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPDownloadStatus.NotStarted });
+                    break;
+
+                case Google.Apis.Download.DownloadStatus.Completed:
+                    _progress = 100;
+                    OnOAPPDownloadStatusChanged?.Invoke(this, new OAPPDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPDownloadStatus.Downloaded });
+                    break;
+
+                case Google.Apis.Download.DownloadStatus.Downloading:
+                    _progress = Convert.ToInt32((progress.BytesDownloaded / _fileLength) * 100);
+                    OnOAPPDownloadStatusChanged?.Invoke(this, new OAPPDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPDownloadStatus.Downloading });
+                    break;
+
+                case Google.Apis.Download.DownloadStatus.Failed:
+                    OnOAPPDownloadStatusChanged?.Invoke(this, new OAPPDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPDownloadStatus.Error, ErrorMessage = progress.Exception.ToString()});
+                    break;
+            }
         }
     }
 }
