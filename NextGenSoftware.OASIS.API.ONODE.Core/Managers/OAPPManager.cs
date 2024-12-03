@@ -20,6 +20,7 @@ using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using Google.Cloud.Storage.V1;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
+using static NextGenSoftware.OASIS.API.ONode.Core.Managers.OAPPManager;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -38,8 +39,20 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
         }
 
+        public delegate void OAPPPublishStatusChanged(object sender, OAPPPublishStatusEventArgs e);
+        public delegate void OAPPInstallStatusChanged(object sender, OAPPInstallStatusEventArgs e);
         public delegate void OAPPUploadStatusChanged(object sender, OAPPUploadProgressEventArgs e);
         public delegate void OAPPDownloadStatusChanged(object sender, OAPPDownloadProgressEventArgs e);
+
+        /// <summary>
+        /// Fired when there is a change in the OAPP publish status.
+        /// </summary>
+        public event OAPPPublishStatusChanged OnOAPPPublishStatusChanged;
+
+        /// <summary>
+        /// Fired when there is a change to the OAPP Install status.
+        /// </summary>
+        public event OAPPInstallStatusChanged OnOAPPInstallStatusChanged;
 
         /// <summary>
         /// Fired when there is a change in the OAPP upload status.
@@ -551,6 +564,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.PublishOAPPAsync. Reason: ";
+            IOAPPDNA OAPPDNA = null;
 
             try
             {
@@ -558,6 +572,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (readOAPPDNAResult != null && !readOAPPDNAResult.IsError && readOAPPDNAResult.Result != null)
                 {
+                    OAPPDNA = readOAPPDNAResult.Result;
+                    OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = readOAPPDNAResult.Result, Status = Enums.OAPPPublishStatus.Packaging });
                     OASISResult <IAvatar> loadAvatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
                     if (loadAvatarResult != null && loadAvatarResult.Result != null && !loadAvatarResult.IsError)
@@ -572,6 +588,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             //Process.Start("dotnet publish -c Release -r win-x64 --self-contained");
                             //string command = 
 
+                            OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = readOAPPDNAResult.Result, Status = Enums.OAPPPublishStatus.DotNetPublishing });
                             string dotnetPublishPath = Path.Combine(fullPathToOAPP, "dotnetPublished");
                             Process.Start($"dotnet publish PROJECT {fullPathToOAPP} -c Release --self-contained -output {dotnetPublishPath}");
                             fullPathToOAPP = dotnetPublishPath;
@@ -603,16 +620,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         if (File.Exists(tempPath))
                             File.Delete(tempPath);
 
+                        OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = readOAPPDNAResult.Result, Status = Enums.OAPPPublishStatus.Compressing });
                         ZipFile.CreateFromDirectory(fullPathToOAPP, tempPath);
                         //SharpCompress.Compressors.LZMA.LZipStream. (7Zip)
                         //SharpZipLib.
-                       
+
                         //TODO: Look into the most optimal compression...
                         //using (FileStream fs = File.OpenRead(tempPath))
                         //{
                         //    DeflateStream deflateStream = new DeflateStream(fs, CompressionLevel.SmallestSize, false);
                         //    GZipStream gZipStream = new GZipStream(fs, CompressionLevel.SmallestSize, false);
-                            
+
                         //    //deflateStream.Write
                         //}
 
@@ -640,19 +658,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 {
                                     try
                                     {
+                                        OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = readOAPPDNAResult.Result, Status = Enums.OAPPPublishStatus.Uploading });
                                         StorageClient storage = await StorageClient.CreateAsync();
                                         //var bucket = storage.CreateBucket("oasis", "oapps");
 
                                         // set minimum chunksize just to see progress updating
-                                        var uploadObjectOptions = new Google.Cloud.Storage.V1.UploadObjectOptions
+                                        var uploadObjectOptions = new UploadObjectOptions
                                         {
-                                            ChunkSize = Google.Cloud.Storage.V1.UploadObjectOptions.MinimumChunkSize
+                                            ChunkSize = UploadObjectOptions.MinimumChunkSize
                                         };
 
                                         var progressReporter = new Progress<Google.Apis.Upload.IUploadProgress>(OnUploadProgress);
-                                        
                                         using var fileStream = File.OpenRead(readOAPPDNAResult.Result.PublishedPath);
-
                                         _fileLength = fileStream.Length;
                                         _progress = 0;
 
@@ -663,19 +680,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                         OASISErrorHandling.HandleError(ref result, $"An error occured publishing the OAPP to cloud storage. Reason: {ex}");
                                     }
 
-                                    //The smallest OAPP is around 250MB because of the 208MB runtimes.
-                                    loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(readOAPPDNAResult.Result.PublishedPath);
+                                    ////The smallest OAPP is around 250MB because of the 208MB runtimes.
+                                    //loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(readOAPPDNAResult.Result.PublishedPath);
 
-                                    //TODO: We could use HoloOASIS and other large file storage providers in future...
-                                    saveOAPPResult = await SaveOAPPAsync(loadOAPPResult.Result, starNETPublishedOAPPBinaryProviderType);
+                                    ////TODO: We could use HoloOASIS and other large file storage providers in future...
+                                    //saveOAPPResult = await SaveOAPPAsync(loadOAPPResult.Result, starNETPublishedOAPPBinaryProviderType);
 
-                                    if (saveOAPPResult != null && !saveOAPPResult.IsError && saveOAPPResult.Result != null)
-                                    {
-                                        result.Result = readOAPPDNAResult.Result;
-                                        result.IsSaved = true;
-                                    }
-                                    else
-                                        OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPP binary to STARNET using the {starNETPublishedOAPPBinaryProviderType} provider. Reason: {saveOAPPResult.Message}");
+                                    //if (saveOAPPResult != null && !saveOAPPResult.IsError && saveOAPPResult.Result != null)
+                                    //{
+                                    //    result.Result = readOAPPDNAResult.Result;
+                                    //    result.IsSaved = true;
+                                    //}
+                                    //else
+                                    //    OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPP binary to STARNET using the {starNETPublishedOAPPBinaryProviderType} provider. Reason: {saveOAPPResult.Message}");
                                 }
                                 
                                 result.Result = readOAPPDNAResult.Result;
@@ -694,6 +711,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     result.Message = $"OAPP successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
                                 else
                                     result.Message = "OAPP Successfully Published";
+
+                                OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Published });
                             }
                             else
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPResult.Message}");
@@ -711,6 +730,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
             }
+
+            if (result.IsError)
+                OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Error, ErrorMessage = result.Message });
 
             return result;
         }
@@ -979,6 +1001,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         {
             OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
             string errorMessage = "Error occured in OAPPManager.InstallOAPPAsync. Reason: ";
+            IOAPPDNA OAPPDNA = null;
 
             try
             {
@@ -986,6 +1009,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (OAPPDNAResult != null && OAPPDNAResult.Result != null && !OAPPDNAResult.IsError)
                 {
+                    OAPPDNA = OAPPDNAResult.Result;
+
                     if (createOAPPDirectory)
                         fullInstallPath = Path.Combine(fullInstallPath, OAPPDNAResult.Result.OAPPName);
 
@@ -994,7 +1019,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     Directory.CreateDirectory(fullInstallPath);
 
+                    OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPPDNAResult.Result, Status = Enums.OAPPInstallStatus.Decompressing });
                     ZipFile.ExtractToDirectory(fullPathToPublishedOAPPFile, fullInstallPath, Encoding.Default, true);
+
+                    OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPPDNAResult.Result, Status = Enums.OAPPInstallStatus.Installing });
                     OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
                     if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
@@ -1028,6 +1056,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 result.Message = $"OAPP successfully installed but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
                             else
                                 result.Message = "OAPP Successfully Installed";
+
+                            OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPPDNAResult.Result, Status = Enums.OAPPInstallStatus.Installed });
                         }
                         else
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync method. Reason: {saveResult.Message}");
@@ -1040,6 +1070,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
             }
+
+            if (result.IsError)
+                OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPInstallStatus.Error, ErrorMessage = result.Message });
 
             return result;
         }
@@ -1129,9 +1162,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         StorageClient storage = await StorageClient.CreateAsync();
 
                         // set minimum chunksize just to see progress updating
-                        var downloadObjectOptions = new Google.Cloud.Storage.V1.DownloadObjectOptions
+                        var downloadObjectOptions = new DownloadObjectOptions
                         {
-                             ChunkSize = Google.Cloud.Storage.V1.UploadObjectOptions.MinimumChunkSize,
+                             ChunkSize = UploadObjectOptions.MinimumChunkSize,
                         };
 
                         var progressReporter = new Progress<Google.Apis.Download.IDownloadProgress>(OnDownloadProgress);
@@ -1140,6 +1173,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         _fileLength = fileStream.Length;
                         _progress = 0;
 
+                        OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPP.OAPPDNA, Status = Enums.OAPPInstallStatus.Downloading });
                         await storage.DownloadObjectAsync("oasis_oapps", string.Concat(OAPP.Name, ".oapp"), fileStream, downloadObjectOptions, progress: progressReporter);
                         result = await InstallOAPPAsync(avatarId, OAPPPath, fullInstallPath, createOAPPDirectory, providerType);
                     }
@@ -1147,16 +1181,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     {
                         OASISErrorHandling.HandleError(ref result, $"An error occured downloading the OAPP from cloud storage. Reason: {ex}");
                     }
-                    finally
-                    {
-                       // fileStream.Close();
-                    }
                 }
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
             }
+
+            if (result.IsError)
+                OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPP.OAPPDNA, Status = Enums.OAPPInstallStatus.Error, ErrorMessage = result.Message });
 
             return result;
         }
@@ -1731,7 +1764,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     break;
 
                 case Google.Apis.Upload.UploadStatus.Uploading:
-                    _progress = Convert.ToInt32((progress.BytesSent / _fileLength) * 100);
+                    _progress = Convert.ToInt32(((double)progress.BytesSent / (double)_fileLength) * 100);
                     OnOAPPUploadStatusChanged?.Invoke(this, new OAPPUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPUploadStatus.Uploading });
                     break;
 

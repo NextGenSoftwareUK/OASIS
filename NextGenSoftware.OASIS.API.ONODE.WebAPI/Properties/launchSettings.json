@@ -1,13 +1,5 @@
 {
   "profiles": {
-    "IIS Express": {
-      "commandName": "IIS",
-      "launchBrowser": true,
-      "launchUrl": "api/values",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
     "OASIS_API": {
       "commandName": "Project",
       "launchBrowser": true,

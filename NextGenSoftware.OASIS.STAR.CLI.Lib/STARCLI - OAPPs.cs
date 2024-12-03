@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using Microsoft.Azure.Cosmos.Serialization.HybridRow;
+using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -462,9 +463,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
                 CLIEngine.ShowWorkingMessage("Publishing OAPP...");
 
+                STAR.OASISAPI.OAPPs.OnOAPPPublishStatusChanged += OAPPs_OnOAPPPublishStatusChanged;
                 STAR.OASISAPI.OAPPs.OnOAPPUploadStatusChanged += OAPPs_OnOAPPUploadStatusChanged;
                 OASISResult<IOAPPDNA> publishResult = await STAR.OASISAPI.OAPPs.PublishOAPPAsync(oappPath, launchTarget, STAR.BeamedInAvatar.Id, publishDotNot, publishPath, registerOnSTARNET, providerType, largeFileProviderType);
                 STAR.OASISAPI.OAPPs.OnOAPPUploadStatusChanged -= OAPPs_OnOAPPUploadStatusChanged;
+                STAR.OASISAPI.OAPPs.OnOAPPPublishStatusChanged -= OAPPs_OnOAPPPublishStatusChanged;
 
                 if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
                 {
@@ -481,11 +484,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
                 CLIEngine.ShowErrorMessage("The OAPPDNA.json file could not be found! Please ensure it is in the folder you specified.");
-        }
-
-        private static void OAPPs_OnOAPPUploadStatusChanged(object sender, API.ONODE.Core.Events.OAPPUploadProgressEventArgs e)
-        {
-            CLIEngine.ShowMessage($"Uploading OAPP... {e.Progress}%");
         }
 
         public static async Task UnPublishOAPPAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
@@ -587,7 +585,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     OASISResult<IOAPP> result = await LoadOAPPAsync(idOrName, "install", largeFileProviderType, false);
 
                     if (result != null && result.Result != null && !result.IsError)
+                    {
+                        STAR.OASISAPI.OAPPs.OnOAPPDownloadStatusChanged += OAPPs_OnOAPPDownloadStatusChanged;
+                        STAR.OASISAPI.OAPPs.OnOAPPInstallStatusChanged += OAPPs_OnOAPPInstallStatusChanged;
+                        CLIEngine.ShowWorkingMessage("Installing OAPP...");
                         installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, result.Result, installPath, true, providerType);
+                        STAR.OASISAPI.OAPPs.OnOAPPDownloadStatusChanged -= OAPPs_OnOAPPDownloadStatusChanged;
+                        STAR.OASISAPI.OAPPs.OnOAPPInstallStatusChanged -= OAPPs_OnOAPPInstallStatusChanged;
+                    }
 
                     //installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, id, installPath, providerType);
                 }
@@ -1032,6 +1037,72 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             return result;
+        }
+
+        private static void OAPPs_OnOAPPPublishStatusChanged(object sender, API.ONODE.Core.Events.OAPPPublishStatusEventArgs e)
+        {
+            switch (e.Status)
+            {
+                case OAPPPublishStatus.DotNetPublishing:
+                    CLIEngine.ShowWorkingMessage($"Dotnet Publishing...");
+                    break;
+
+                case OAPPPublishStatus.Uploading:
+                    CLIEngine.ShowWorkingMessage("Uploading... 0% ");
+                    //CLIEngine.BeginWorkingMessage("Uploading... 0%");
+                    //CLIEngine.ShowProgressBar(0);
+                    break;
+
+                case OAPPPublishStatus.Published:
+                    CLIEngine.ShowSuccessMessage("OAPP Published Successfully");
+                    break;
+
+                case OAPPPublishStatus.Error:
+                    CLIEngine.ShowErrorMessage(e.ErrorMessage);
+                    break;
+
+                default:
+                    CLIEngine.ShowWorkingMessage($"{Enum.GetName(typeof(OAPPPublishStatus), e.Status)}...");
+                    break;
+            }  
+        }
+
+        private static void OAPPs_OnOAPPUploadStatusChanged(object sender, API.ONODE.Core.Events.OAPPUploadProgressEventArgs e)
+        {
+            //CLIEngine.ShowProgressBar(e.Progress, true);
+            //CLIEngine.ShowProgressBar(e.Progress);
+            //CLIEngine.UpdateWorkingMessage($"Uploading... {e.Progress}%");
+            CLIEngine.UpdateWorkingMessageWithPercent(e.Progress);
+        }
+
+        private static void OAPPs_OnOAPPInstallStatusChanged(object sender, API.ONODE.Core.Events.OAPPInstallStatusEventArgs e)
+        {
+            switch (e.Status)
+            {
+                case OAPPInstallStatus.Downloading:
+                    CLIEngine.BeginWorkingMessage("Downloading...");
+                    //CLIEngine.ShowProgressBar(0);
+                    break;
+
+                case OAPPInstallStatus.Installed:
+                    CLIEngine.ShowSuccessMessage("OAPP Installed Successfully");
+                    break;
+
+                case OAPPInstallStatus.Error:
+                    CLIEngine.ShowErrorMessage(e.ErrorMessage);
+                    break;
+
+                default:
+                    CLIEngine.ShowWorkingMessage($"{Enum.GetName(typeof(OAPPInstallStatus), e.Status)}...");
+                    break;
+            }
+        }
+
+        private static void OAPPs_OnOAPPDownloadStatusChanged(object sender, API.ONODE.Core.Events.OAPPDownloadProgressEventArgs e)
+        {
+            //CLIEngine.ShowProgressBar(e.Progress, true);
+            //LIEngine.ShowProgressBar(e.Progress);
+            CLIEngine.UpdateWorkingMessage($"Downloading... {e.Progress}%");
         }
     }
 }
