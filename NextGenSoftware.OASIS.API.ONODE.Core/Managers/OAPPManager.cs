@@ -21,6 +21,7 @@ using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using Google.Cloud.Storage.V1;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using static NextGenSoftware.OASIS.API.ONode.Core.Managers.OAPPManager;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -560,7 +561,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default, ProviderType starNETPublishedOAPPBinaryProviderType = ProviderType.IPFSOASIS)
+        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool uploadToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType starNETPublishedOAPPBinaryProviderType = ProviderType.IPFSOASIS)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.PublishOAPPAsync. Reason: ";
@@ -573,12 +574,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 if (readOAPPDNAResult != null && !readOAPPDNAResult.IsError && readOAPPDNAResult.Result != null)
                 {
                     OAPPDNA = readOAPPDNAResult.Result;
-                    OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = readOAPPDNAResult.Result, Status = Enums.OAPPPublishStatus.Packaging });
+                    OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Packaging });
                     OASISResult <IAvatar> loadAvatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
                     if (loadAvatarResult != null && loadAvatarResult.Result != null && !loadAvatarResult.IsError)
                     {
-                        string publishedOAPPFileName = string.Concat(readOAPPDNAResult.Result.OAPPName, ".oapp");
+                        string publishedOAPPFileName = string.Concat(OAPPDNA.OAPPName, ".oapp");
+                        string publishedOAPPSourceFileName = string.Concat(OAPPDNA.OAPPName, ".oappsource");
                         string tempPath = Path.Combine(Path.GetTempPath(), publishedOAPPFileName);
 
                         if (dotnetPublish)
@@ -588,7 +590,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             //Process.Start("dotnet publish -c Release -r win-x64 --self-contained");
                             //string command = 
 
-                            OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = readOAPPDNAResult.Result, Status = Enums.OAPPPublishStatus.DotNetPublishing });
+                            OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.DotNetPublishing });
                             string dotnetPublishPath = Path.Combine(fullPathToOAPP, "dotnetPublished");
                             Process.Start($"dotnet publish PROJECT {fullPathToOAPP} -c Release --self-contained -output {dotnetPublishPath}");
                             fullPathToOAPP = dotnetPublishPath;
@@ -607,20 +609,25 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             Directory.CreateDirectory(fullPathToPublishTo);
 
                         fullPathToPublishTo = Path.Combine(fullPathToPublishTo, publishedOAPPFileName);
+                        string fullPathToPublishToOAPPSource = Path.Combine(fullPathToPublishTo, publishedOAPPSourceFileName);
 
-                        readOAPPDNAResult.Result.PublishedOn = DateTime.Now;
-                        readOAPPDNAResult.Result.PublishedByAvatarId = avatarId;
-                        readOAPPDNAResult.Result.PublishedByAvatarUsername = loadAvatarResult.Result.Username;
-                        readOAPPDNAResult.Result.LaunchTarget = launchTarget;
-                        readOAPPDNAResult.Result.PublishedPath = fullPathToPublishTo;
-                        readOAPPDNAResult.Result.PublishedOnSTARNET = registerOnSTARNET;
+                        OAPPDNA.PublishedOn = DateTime.Now;
+                        OAPPDNA.PublishedByAvatarId = avatarId;
+                        OAPPDNA.PublishedByAvatarUsername = loadAvatarResult.Result.Username;
+                        OAPPDNA.LaunchTarget = launchTarget;
+                        OAPPDNA.OAPPPublishedPath = fullPathToPublishTo;
+                        OAPPDNA.OAPPSourcePublishedPath = fullPathToPublishToOAPPSource;
+                        OAPPDNA.OAPPSourcePublishedOnSTARNET = registerOnSTARNET;
+                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && (starNETPublishedOAPPBinaryProviderType != ProviderType.None || uploadToCloud);
+                        OAPPDNA.OAPPPublishedToCloud = registerOnSTARNET && uploadToCloud;
+                        OAPPDNA.OAPPPublishedProviderType = starNETPublishedOAPPBinaryProviderType;
 
-                        WriteOAPPDNA(readOAPPDNAResult.Result, fullPathToOAPP);
+                        WriteOAPPDNA(OAPPDNA, fullPathToOAPP);
 
                         if (File.Exists(tempPath))
                             File.Delete(tempPath);
 
-                        OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = readOAPPDNAResult.Result, Status = Enums.OAPPPublishStatus.Compressing });
+                        OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Compressing });
                         ZipFile.CreateFromDirectory(fullPathToOAPP, tempPath);
                         //SharpCompress.Compressors.LZMA.LZipStream. (7Zip)
                         //SharpZipLib.
@@ -634,27 +641,42 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         //    //deflateStream.Write
                         //}
 
-                        if (File.Exists(readOAPPDNAResult.Result.PublishedPath))
-                            File.Delete(readOAPPDNAResult.Result.PublishedPath);
+                        if (File.Exists(OAPPDNA.OAPPPublishedPath))
+                            File.Delete(OAPPDNA.OAPPPublishedPath);
 
-                        File.Move(tempPath, readOAPPDNAResult.Result.PublishedPath);
+                        if (File.Exists(OAPPDNA.OAPPSourcePublishedPath))
+                            File.Delete(OAPPDNA.OAPPSourcePublishedPath);
 
-                        if (File.Exists(tempPath))
-                            File.Delete(tempPath);
+                        File.Move(tempPath, readOAPPDNAResult.Result.OAPPPublishedPath);
 
-                        OASISResult<IOAPP> loadOAPPResult = await LoadOAPPAsync(readOAPPDNAResult.Result.OAPPId);
+                        //TODO: Need to generate and move the oappsource file here.
+                        tempPath = Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName);
+                        //stringtempPath = Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName);
+
+                        if (Directory.Exists(tempPath))
+                            Directory.Delete(tempPath, true);
+
+                        DirectoryHelper.CopyFilesRecursively(fullPathToOAPP, Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName));
+                        Directory.Delete(Path.Combine(tempPath, "bin"), true);
+                        Directory.Delete(Path.Combine(tempPath, "obj"), true);
+
+                        ZipFile.CreateFromDirectory(tempPath, OAPPDNA.OAPPSourcePublishedPath);
+
+                        //TODO: Currently the filesize will NOT be in the compressed .oapp file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPDNA inside it...
+                        OAPPDNA.OAPPFileSize = new FileInfo(OAPPDNA.OAPPPublishedPath).Length;
+                        WriteOAPPDNA(OAPPDNA, fullPathToOAPP);
+
+                        OASISResult<IOAPP> loadOAPPResult = await LoadOAPPAsync(OAPPDNA.OAPPId);
 
                         if (loadOAPPResult != null && loadOAPPResult.Result != null && !loadOAPPResult.IsError)
                         {
-                            //if (registerOnSTARNET)
-                            //    loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(readOAPPDNAResult.Result.PublishedPath);
+                            loadOAPPResult.Result.OAPPDNA = OAPPDNA;
 
-                            loadOAPPResult.Result.OAPPDNA = readOAPPDNAResult.Result;
-                            OASISResult<IOAPP> saveOAPPResult = await SaveOAPPAsync(loadOAPPResult.Result, providerType);
-
-                            if (saveOAPPResult != null && !saveOAPPResult.IsError && saveOAPPResult.Result != null)
+                            if (registerOnSTARNET)
                             {
-                                if (registerOnSTARNET)
+                                loadOAPPResult.Result.PublishedOAPPSource = File.ReadAllBytes(OAPPDNA.OAPPSourcePublishedPath);
+
+                                if (uploadToCloud)
                                 {
                                     try
                                     {
@@ -669,7 +691,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                         };
 
                                         var progressReporter = new Progress<Google.Apis.Upload.IUploadProgress>(OnUploadProgress);
-                                        using var fileStream = File.OpenRead(readOAPPDNAResult.Result.PublishedPath);
+                                        using var fileStream = File.OpenRead(OAPPDNA.OAPPPublishedPath);
                                         _fileLength = fileStream.Length;
                                         _progress = 0;
 
@@ -677,27 +699,41 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     }
                                     catch (Exception ex)
                                     {
-                                        OASISErrorHandling.HandleError(ref result, $"An error occured publishing the OAPP to cloud storage. Reason: {ex}");
+                                        OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the OAPP to cloud storage. Reason: {ex}");
+                                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && starNETPublishedOAPPBinaryProviderType != ProviderType.None;
+                                        OAPPDNA.OAPPPublishedToCloud = false;
                                     }
-
-                                    ////The smallest OAPP is around 250MB because of the 208MB runtimes.
-                                    //loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(readOAPPDNAResult.Result.PublishedPath);
-
-                                    ////TODO: We could use HoloOASIS and other large file storage providers in future...
-                                    //saveOAPPResult = await SaveOAPPAsync(loadOAPPResult.Result, starNETPublishedOAPPBinaryProviderType);
-
-                                    //if (saveOAPPResult != null && !saveOAPPResult.IsError && saveOAPPResult.Result != null)
-                                    //{
-                                    //    result.Result = readOAPPDNAResult.Result;
-                                    //    result.IsSaved = true;
-                                    //}
-                                    //else
-                                    //    OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPP binary to STARNET using the {starNETPublishedOAPPBinaryProviderType} provider. Reason: {saveOAPPResult.Message}");
                                 }
-                                
+
+                                if (starNETPublishedOAPPBinaryProviderType != ProviderType.None)
+                                {
+                                    //The smallest OAPP is around 250MB because of the 208MB runtimes.
+                                    loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(OAPPDNA.OAPPPublishedPath);
+
+                                    //TODO: We could use HoloOASIS and other large file storage providers in future...
+                                    OASISResult<IOAPP> saveLargeOAPPResult = await SaveOAPPAsync(loadOAPPResult.Result, starNETPublishedOAPPBinaryProviderType);
+
+                                    if (saveLargeOAPPResult != null && !saveLargeOAPPResult.IsError && saveLargeOAPPResult.Result != null)
+                                    {
+                                        result.Result = readOAPPDNAResult.Result;
+                                        result.IsSaved = true;
+                                    }
+                                    else
+                                    {
+                                        OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPP binary to STARNET using the {starNETPublishedOAPPBinaryProviderType} provider. Reason: {saveLargeOAPPResult.Message}");
+                                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && uploadToCloud;
+                                        OAPPDNA.OAPPPublishedProviderType = ProviderType.None;
+                                    }
+                                }
+                            }
+
+                            OASISResult<IOAPP> saveOAPPResult = await SaveOAPPAsync(loadOAPPResult.Result, providerType);
+
+                            if (saveOAPPResult != null && !saveOAPPResult.IsError && saveOAPPResult.Result != null)
+                            {
                                 result.Result = readOAPPDNAResult.Result;
                                 result.IsSaved = true;
-                                
+
                                 if (readOAPPDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
                                     OASISErrorHandling.HandleWarning(ref result, $" The STAR ODK Version {readOAPPDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
@@ -716,7 +752,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             }
                             else
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPResult.Message}");
-                        }
+                        }  
                         else
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadOAPPResult.Message}");
                     }

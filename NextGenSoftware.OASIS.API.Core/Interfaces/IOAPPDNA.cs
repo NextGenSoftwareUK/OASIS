@@ -23,8 +23,14 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         //public string PublishedByAvatarName { get; set; }
         public string PublishedByAvatarUsername { get; set; }
         DateTime PublishedOn { get; set; }
-        string PublishedPath { get; set; }
-        bool PublishedOnSTARNET { get; set; }
+        public string OAPPPublishedPath { get; set; }
+        public string OAPPSourcePublishedPath { get; set; }
+        public bool OAPPSourcePublishedOnSTARNET { get; set; }
+        public bool OAPPPublishedOnSTARNET { get; set; }
+        public bool OAPPPublishedToCloud { get; set; }
+        public ProviderType OAPPPublishedProviderType { get; set; }
+        public long OAPPSourceFileSize { get; set; }
+        public long OAPPFileSize { get; set; }
         bool IsActive { get; set; }
         public string LaunchTarget { get; set; }
         string Version { get; set; }

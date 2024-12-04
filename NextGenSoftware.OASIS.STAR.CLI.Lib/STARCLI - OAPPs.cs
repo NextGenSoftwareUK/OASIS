@@ -377,7 +377,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public static async Task PublishOAPPAsync(string oappPath = "", bool publishDotNot = false, ProviderType providerType = ProviderType.Default)
         //public static async Task PublishOAPPAsync(string oappPath = "", ProviderType providerType = ProviderType.Default)
         {
-            ProviderType largeFileProviderType = ProviderType.IPFSOASIS;
+            bool cloud = false;
+            ProviderType largeFileProviderType = ProviderType.None; //ProviderType.IPFSOASIS;
             string launchTarget = "";
             string publishPath = "";
             string launchTargetQuestion = "";
@@ -438,10 +439,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (registerOnSTARNET)
                 {
                     Console.WriteLine("");
-                    object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to publish the OAPP to? (The default is IPFSOASIS)", typeof(ProviderType));
+                    if (CLIEngine.GetConfirmation("STAR will automatically upload a .oappsource file to STARNET from which the OAPP can be built & published which will restore any dependencies via nuget including the OASIS & STAR Runtimes (around 203MB). STAR also generates the full .oapp file which is pre-built and published and is around 250MB minimum. You can optionally choose to also upload this file to STARNET? The advantage of this is that the OAPP is pre-built with all dependencies and so is guaranteed to install and run without any issues. If an OAPP is installed from the smaller .oappsource file there may be problems with restoring all dependencies etc so there are pros and cons to both approaches with the oapp taking longer to publish/upload and download over the .oappsource but has the advantage of being fully self contained and guaranteed to install & run fine. Do you wish to upload the .oapp file now?"))
+                    {
+                        CLIEngine.ShowMessage("Do you wish to publish/upload the.oapp file to an OASIS Provider or to the cloud or both ? Depending on which OASIS Provider is chosen such as IPFSOASIS there may issues such as speed, relialbility etc for such a large file.If you choose to upload to the cloud this could be faster and more reliable(but there is a limit of 5 OAPPs on the free plan and you will need to upgrade to upload more than 5 OAPPs). You may want to choose to use both to add an extra layer of redundancy (recommended).");
 
-                    if (largeProviderTypeObject != null)
-                        largeFileProviderType = (ProviderType)largeProviderTypeObject;
+                        if (CLIEngine.GetConfirmation("Do you wish to upload to the cloud?"))
+                            cloud = true;
+                        
+                        if (CLIEngine.GetConfirmation("Do you wish to upload to an OASIS Provider? Make sure you select a provider that can handle large files such as IPFSOASIS, HoloOASIS etc. Also remember the OASIS Hyperdrive will only be able to auto-replicate to other providers that also support large files are are free or cost effective. By default it will NOT auto-replicate large files, you will need to manually configure this in your OASIS Profile settings."))
+                        {
+                            object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to publish the OAPP to? (The default is IPFSOASIS)", typeof(ProviderType));
+
+                            if (largeProviderTypeObject != null)
+                                largeFileProviderType = (ProviderType)largeProviderTypeObject;
+                        }
+                    }
                 }
                 else
                     Console.WriteLine("");
@@ -1048,7 +1060,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     break;
 
                 case OAPPPublishStatus.Uploading:
-                    CLIEngine.ShowWorkingMessage("Uploading... 0% ");
+                    CLIEngine.ShowMessage("Uploading...");
+                    Console.WriteLine("");
+                    //CLIEngine.ShowWorkingMessage("Uploading... 0%");
                     //CLIEngine.BeginWorkingMessage("Uploading... 0%");
                     //CLIEngine.ShowProgressBar(0);
                     break;
@@ -1071,8 +1085,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             //CLIEngine.ShowProgressBar(e.Progress, true);
             //CLIEngine.ShowProgressBar(e.Progress);
-            //CLIEngine.UpdateWorkingMessage($"Uploading... {e.Progress}%");
-            CLIEngine.UpdateWorkingMessageWithPercent(e.Progress);
+            //CLIEngine.UpdateWorkingMessageWithPercent(e.Progress);
+            //CLIEngine.UpdateWorkingMessage($"Uploading... {e.Progress}%"); //was this one.
+            CLIEngine.ShowProgressBar((double)e.Progress / (double)100);
         }
 
         private static void OAPPs_OnOAPPInstallStatusChanged(object sender, API.ONODE.Core.Events.OAPPInstallStatusEventArgs e)
