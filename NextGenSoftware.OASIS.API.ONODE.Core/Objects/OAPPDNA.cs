@@ -19,8 +19,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         //public string PublishedByAvatarName { get; set; }
         public string PublishedByAvatarUsername { get; set; }
         public DateTime PublishedOn { get; set; }
-        public string PublishedPath { get; set; }
-        public bool PublishedOnSTARNET { get; set; }
+        public string OAPPPublishedPath { get; set; }
+        public string OAPPSourcePublishedPath { get; set; }
+        public bool OAPPSourcePublishedOnSTARNET { get; set; }
+        public bool OAPPPublishedOnSTARNET { get; set; }
+        public bool OAPPPublishedToCloud { get; set; }
+        public ProviderType OAPPPublishedProviderType { get; set; }
+        public long OAPPSourceFileSize { get; set; }
+        public long OAPPFileSize { get; set; }
         public bool IsActive { get; set; }
         public OAPPType OAPPType { get; set; }
         public GenesisType GenesisType { get; set; }

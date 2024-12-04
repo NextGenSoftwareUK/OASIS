@@ -18,9 +18,8 @@ using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.STAR.CLI.Lib;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using Console = System.Console;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
-using NextGenSoftware.Utilities.ExtentionMethods;
 using System.Security.Cryptography;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 {
@@ -88,6 +87,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 STAR.IsDetailedStatusUpdatesEnabled = CLIEngine.GetConfirmation("Do you wish to enable detailed STAR ODK Status outputs?");
 
                 Console.WriteLine("");
+                
+               // CLIEngine.ShowMessage("Uploading...");
+               // Console.WriteLine("");
+               // //CLIEngine.ShowProgressBar(0);
+               //// Console.WriteLine("");
+               // //CLIEngine.ShowWorkingMessage("Uploading... 0%");
+               // //CLIEngine.ShowWorkingMessage("Uploading...");
+
+               // for (int i =0; i<100; i++)
+               // {
+               //     //CLIEngine.UpdateWorkingMessageWithPercent(i);
+               //    // CLIEngine.UpdateWorkingMessage($"Uploading... {i}%");
+               //     //CLIEngine.ShowProgressBar(i, true);
+               //     CLIEngine.ShowProgressBar((double)i/(double)100);
+               //     Thread.Sleep(1000);
+               // }
+                
                 //await ReadyPlayerOne(); //TODO: TEMP!  Remove after testing!
 
                 OASISResult<IOmiverse> result = STAR.IgniteStar();
