@@ -12,16 +12,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         public string OAPPName { get; set; }
         public string Description { get; set; }
         public Guid CreatedByAvatarId { get; set; }
-        //public string CreatedByAvatarName { get; set; }
         public string CreatedByAvatarUsername { get; set; }
         public DateTime CreatedOn { get; set; }
         public Guid PublishedByAvatarId { get; set; }
-        //public string PublishedByAvatarName { get; set; }
         public string PublishedByAvatarUsername { get; set; }
         public DateTime PublishedOn { get; set; }
         public string OAPPPublishedPath { get; set; }
         public string OAPPSourcePublishedPath { get; set; }
         public bool OAPPSourcePublishedOnSTARNET { get; set; }
+        public bool OAPPSourcePublicOnSTARNET { get; set; }
         public bool OAPPPublishedOnSTARNET { get; set; }
         public bool OAPPPublishedToCloud { get; set; }
         public ProviderType OAPPPublishedProviderType { get; set; }
@@ -40,6 +39,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         public string STARODKVersion { get; set; }
         public string OASISVersion {  get; set; }
         public string COSMICVersion {  get; set; }
+        public int Versions { get; set; } //Is IOAPP better place for these?
+        public int OAPPDownloads { get; set; } //Is IOAPP better place for these?
+        public int OAPPSourceDownloads { get; set; } //Is IOAPP better place for these?
 
 
         //public DateTime CreatedDate { get; set; }
