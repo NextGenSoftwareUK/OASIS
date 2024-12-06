@@ -561,7 +561,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool uploadToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType starNETPublishedOAPPBinaryProviderType = ProviderType.IPFSOASIS)
+        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPSource = true, bool uploadOAPPSourceToSTARNET = true, bool makeOAPPSourcePublic = false, bool uploadOAPPToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType starNETPublishedOAPPBinaryProviderType = ProviderType.IPFSOASIS)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.PublishOAPPAsync. Reason: ";
@@ -618,9 +618,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         OAPPDNA.OAPPPublishedPath = fullPathToPublishTo;
                         OAPPDNA.OAPPSourcePublishedPath = fullPathToPublishToOAPPSource;
                         OAPPDNA.OAPPSourcePublishedOnSTARNET = registerOnSTARNET;
-                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && (starNETPublishedOAPPBinaryProviderType != ProviderType.None || uploadToCloud);
-                        OAPPDNA.OAPPPublishedToCloud = registerOnSTARNET && uploadToCloud;
+                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && (starNETPublishedOAPPBinaryProviderType != ProviderType.None || uploadOAPPToCloud);
+                        OAPPDNA.OAPPPublishedToCloud = registerOnSTARNET && uploadOAPPToCloud;
                         OAPPDNA.OAPPPublishedProviderType = starNETPublishedOAPPBinaryProviderType;
+                        OAPPDNA.OAPPSourcePublicOnSTARNET = makeOAPPSourcePublic;
+                        OAPPDNA.Versions++;
 
                         WriteOAPPDNA(OAPPDNA, fullPathToOAPP);
 
@@ -650,20 +652,28 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         File.Move(tempPath, readOAPPDNAResult.Result.OAPPPublishedPath);
 
                         //TODO: Need to generate and move the oappsource file here.
-                        tempPath = Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName);
-                        //stringtempPath = Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName);
+                        if (generateOAPPSource)
+                        {
+                            tempPath = Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName);
+                            //stringtempPath = Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName);
 
-                        if (Directory.Exists(tempPath))
-                            Directory.Delete(tempPath, true);
+                            if (Directory.Exists(tempPath))
+                                Directory.Delete(tempPath, true);
 
-                        DirectoryHelper.CopyFilesRecursively(fullPathToOAPP, Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName));
-                        Directory.Delete(Path.Combine(tempPath, "bin"), true);
-                        Directory.Delete(Path.Combine(tempPath, "obj"), true);
+                            DirectoryHelper.CopyFilesRecursively(fullPathToOAPP, Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName));
+                            Directory.Delete(Path.Combine(tempPath, "bin"), true);
+                            Directory.Delete(Path.Combine(tempPath, "obj"), true);
 
-                        ZipFile.CreateFromDirectory(tempPath, OAPPDNA.OAPPSourcePublishedPath);
+                            ZipFile.CreateFromDirectory(tempPath, OAPPDNA.OAPPSourcePublishedPath);
+                        }
 
                         //TODO: Currently the filesize will NOT be in the compressed .oapp file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPDNA inside it...
-                        OAPPDNA.OAPPFileSize = new FileInfo(OAPPDNA.OAPPPublishedPath).Length;
+                        if (!string.IsNullOrEmpty(OAPPDNA.OAPPPublishedPath) && File.Exists(OAPPDNA.OAPPPublishedPath))
+                            OAPPDNA.OAPPFileSize = new FileInfo(OAPPDNA.OAPPPublishedPath).Length;
+                        
+                        if (!string.IsNullOrEmpty(OAPPDNA.OAPPSourcePublishedPath) && File.Exists(OAPPDNA.OAPPSourcePublishedPath))
+                            OAPPDNA.OAPPSourceFileSize = new FileInfo(OAPPDNA.OAPPSourcePublishedPath).Length;
+                        
                         WriteOAPPDNA(OAPPDNA, fullPathToOAPP);
 
                         OASISResult<IOAPP> loadOAPPResult = await LoadOAPPAsync(OAPPDNA.OAPPId);
@@ -674,9 +684,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                             if (registerOnSTARNET)
                             {
-                                loadOAPPResult.Result.PublishedOAPPSource = File.ReadAllBytes(OAPPDNA.OAPPSourcePublishedPath);
+                                if (uploadOAPPSourceToSTARNET)
+                                    loadOAPPResult.Result.PublishedOAPPSource = File.ReadAllBytes(OAPPDNA.OAPPSourcePublishedPath);
 
-                                if (uploadToCloud)
+                                if (uploadOAPPToCloud)
                                 {
                                     try
                                     {
@@ -721,7 +732,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     else
                                     {
                                         OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPP binary to STARNET using the {starNETPublishedOAPPBinaryProviderType} provider. Reason: {saveLargeOAPPResult.Message}");
-                                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && uploadToCloud;
+                                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && uploadOAPPToCloud;
                                         OAPPDNA.OAPPPublishedProviderType = ProviderType.None;
                                     }
                                 }
@@ -801,10 +812,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         //    }
         //}
 
-        public OASISResult<IOAPPDNA> PublishOAPP(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> PublishOAPP(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPSource = true, bool uploadOAPPSourceToSTARNET = true, bool makeOAPPSourcePublic = false, bool uploadOAPPToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType starNETPublishedOAPPBinaryProviderType = ProviderType.IPFSOASIS)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
-            string errorMessage = "Error occured in OAPPManager.PublishOAPP. Reason: ";
+            string errorMessage = "Error occured in OAPPManager.PublishOAPPAsync. Reason: ";
+            IOAPPDNA OAPPDNA = null;
 
             try
             {
@@ -812,11 +824,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (readOAPPDNAResult != null && !readOAPPDNAResult.IsError && readOAPPDNAResult.Result != null)
                 {
+                    OAPPDNA = readOAPPDNAResult.Result;
+                    OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Packaging });
                     OASISResult<IAvatar> loadAvatarResult = AvatarManager.Instance.LoadAvatar(avatarId, false, true, providerType);
 
                     if (loadAvatarResult != null && loadAvatarResult.Result != null && !loadAvatarResult.IsError)
                     {
-                        string publishedOAPPFileName = string.Concat(readOAPPDNAResult.Result.OAPPName, ".oapp");
+                        string publishedOAPPFileName = string.Concat(OAPPDNA.OAPPName, ".oapp");
+                        string publishedOAPPSourceFileName = string.Concat(OAPPDNA.OAPPName, ".oappsource");
                         string tempPath = Path.Combine(Path.GetTempPath(), publishedOAPPFileName);
 
                         if (dotnetPublish)
@@ -826,6 +841,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             //Process.Start("dotnet publish -c Release -r win-x64 --self-contained");
                             //string command = 
 
+                            OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.DotNetPublishing });
                             string dotnetPublishPath = Path.Combine(fullPathToOAPP, "dotnetPublished");
                             Process.Start($"dotnet publish PROJECT {fullPathToOAPP} -c Release --self-contained -output {dotnetPublishPath}");
                             fullPathToOAPP = dotnetPublishPath;
@@ -834,36 +850,145 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         }
 
                         if (string.IsNullOrEmpty(fullPathToPublishTo))
-                            fullPathToPublishTo = Path.Combine(fullPathToOAPP, "Published", publishedOAPPFileName);
+                        {
+                            //Directory.CreateDirectory(Path.Combine(fullPathToOAPP, "Published"));
+                            //fullPathToPublishTo = Path.Combine(fullPathToOAPP, "Published", publishedOAPPFileName);
+                            fullPathToPublishTo = Path.Combine(fullPathToOAPP, "Published");
+                        }
 
-                        readOAPPDNAResult.Result.PublishedOn = DateTime.Now;
-                        readOAPPDNAResult.Result.PublishedByAvatarId = avatarId;
-                        readOAPPDNAResult.Result.PublishedByAvatarUsername = loadAvatarResult.Result.Username;
-                        readOAPPDNAResult.Result.LaunchTarget = launchTarget;
-                        readOAPPDNAResult.Result.PublishedPath = fullPathToPublishTo;
-                        readOAPPDNAResult.Result.PublishedOnSTARNET = registerOnSTARNET;
+                        if (!Directory.Exists(fullPathToPublishTo))
+                            Directory.CreateDirectory(fullPathToPublishTo);
 
-                        WriteOAPPDNA(readOAPPDNAResult.Result, fullPathToOAPP);
+                        fullPathToPublishTo = Path.Combine(fullPathToPublishTo, publishedOAPPFileName);
+                        string fullPathToPublishToOAPPSource = Path.Combine(fullPathToPublishTo, publishedOAPPSourceFileName);
+
+                        OAPPDNA.PublishedOn = DateTime.Now;
+                        OAPPDNA.PublishedByAvatarId = avatarId;
+                        OAPPDNA.PublishedByAvatarUsername = loadAvatarResult.Result.Username;
+                        OAPPDNA.LaunchTarget = launchTarget;
+                        OAPPDNA.OAPPPublishedPath = fullPathToPublishTo;
+                        OAPPDNA.OAPPSourcePublishedPath = fullPathToPublishToOAPPSource;
+                        OAPPDNA.OAPPSourcePublishedOnSTARNET = registerOnSTARNET;
+                        OAPPDNA.OAPPSourcePublicOnSTARNET = makeOAPPSourcePublic;
+                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && (starNETPublishedOAPPBinaryProviderType != ProviderType.None || uploadOAPPToCloud);
+                        OAPPDNA.OAPPPublishedToCloud = registerOnSTARNET && uploadOAPPToCloud;
+                        OAPPDNA.OAPPPublishedProviderType = starNETPublishedOAPPBinaryProviderType;
+                        OAPPDNA.Versions++;
+
+                        WriteOAPPDNA(OAPPDNA, fullPathToOAPP);
 
                         if (File.Exists(tempPath))
                             File.Delete(tempPath);
 
+                        OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Compressing });
                         ZipFile.CreateFromDirectory(fullPathToOAPP, tempPath);
+                        //SharpCompress.Compressors.LZMA.LZipStream. (7Zip)
+                        //SharpZipLib.
 
-                        Directory.CreateDirectory(Path.Combine(fullPathToOAPP, "Published"));
-                        File.Move(tempPath, readOAPPDNAResult.Result.PublishedPath);
+                        //TODO: Look into the most optimal compression...
+                        //using (FileStream fs = File.OpenRead(tempPath))
+                        //{
+                        //    DeflateStream deflateStream = new DeflateStream(fs, CompressionLevel.SmallestSize, false);
+                        //    GZipStream gZipStream = new GZipStream(fs, CompressionLevel.SmallestSize, false);
 
-                        if (File.Exists(tempPath))
-                            File.Delete(tempPath);
+                        //    //deflateStream.Write
+                        //}
 
-                        OASISResult<IOAPP> loadOAPPResult = LoadOAPP(readOAPPDNAResult.Result.OAPPId);
+                        if (File.Exists(OAPPDNA.OAPPPublishedPath))
+                            File.Delete(OAPPDNA.OAPPPublishedPath);
+
+                        if (File.Exists(OAPPDNA.OAPPSourcePublishedPath))
+                            File.Delete(OAPPDNA.OAPPSourcePublishedPath);
+
+                        File.Move(tempPath, readOAPPDNAResult.Result.OAPPPublishedPath);
+
+                        //TODO: Need to generate and move the oappsource file here.
+                        if (generateOAPPSource)
+                        {
+                            tempPath = Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName);
+                            //stringtempPath = Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName);
+
+                            if (Directory.Exists(tempPath))
+                                Directory.Delete(tempPath, true);
+
+                            DirectoryHelper.CopyFilesRecursively(fullPathToOAPP, Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName));
+                            Directory.Delete(Path.Combine(tempPath, "bin"), true);
+                            Directory.Delete(Path.Combine(tempPath, "obj"), true);
+
+                            ZipFile.CreateFromDirectory(tempPath, OAPPDNA.OAPPSourcePublishedPath);
+                        }
+
+                        //TODO: Currently the filesize will NOT be in the compressed .oapp file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPDNA inside it...
+                        if (!string.IsNullOrEmpty(OAPPDNA.OAPPPublishedPath) && File.Exists(OAPPDNA.OAPPPublishedPath))
+                            OAPPDNA.OAPPFileSize = new FileInfo(OAPPDNA.OAPPPublishedPath).Length;
+
+                        if (!string.IsNullOrEmpty(OAPPDNA.OAPPSourcePublishedPath) && File.Exists(OAPPDNA.OAPPSourcePublishedPath))
+                            OAPPDNA.OAPPSourceFileSize = new FileInfo(OAPPDNA.OAPPSourcePublishedPath).Length;
+
+                        WriteOAPPDNA(OAPPDNA, fullPathToOAPP);
+
+                        OASISResult<IOAPP> loadOAPPResult = LoadOAPP(OAPPDNA.OAPPId);
 
                         if (loadOAPPResult != null && loadOAPPResult.Result != null && !loadOAPPResult.IsError)
                         {
-                            if (registerOnSTARNET)
-                                loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(readOAPPDNAResult.Result.PublishedPath);
+                            loadOAPPResult.Result.OAPPDNA = OAPPDNA;
 
-                            loadOAPPResult.Result.OAPPDNA = readOAPPDNAResult.Result;
+                            if (registerOnSTARNET)
+                            {
+                                if (uploadOAPPSourceToSTARNET)
+                                    loadOAPPResult.Result.PublishedOAPPSource = File.ReadAllBytes(OAPPDNA.OAPPSourcePublishedPath);
+
+                                if (uploadOAPPToCloud)
+                                {
+                                    try
+                                    {
+                                        OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = readOAPPDNAResult.Result, Status = Enums.OAPPPublishStatus.Uploading });
+                                        StorageClient storage = StorageClient.Create();
+                                        //var bucket = storage.CreateBucket("oasis", "oapps");
+
+                                        // set minimum chunksize just to see progress updating
+                                        var uploadObjectOptions = new UploadObjectOptions
+                                        {
+                                            ChunkSize = UploadObjectOptions.MinimumChunkSize
+                                        };
+
+                                        var progressReporter = new Progress<Google.Apis.Upload.IUploadProgress>(OnUploadProgress);
+                                        using var fileStream = File.OpenRead(OAPPDNA.OAPPPublishedPath);
+                                        _fileLength = fileStream.Length;
+                                        _progress = 0;
+
+                                        storage.UploadObject("oasis_oapps", publishedOAPPFileName, "oapp", fileStream, uploadObjectOptions, progress: progressReporter);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the OAPP to cloud storage. Reason: {ex}");
+                                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && starNETPublishedOAPPBinaryProviderType != ProviderType.None;
+                                        OAPPDNA.OAPPPublishedToCloud = false;
+                                    }
+                                }
+
+                                if (starNETPublishedOAPPBinaryProviderType != ProviderType.None)
+                                {
+                                    //The smallest OAPP is around 250MB because of the 208MB runtimes.
+                                    loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(OAPPDNA.OAPPPublishedPath);
+
+                                    //TODO: We could use HoloOASIS and other large file storage providers in future...
+                                    OASISResult<IOAPP> saveLargeOAPPResult = SaveOAPP(loadOAPPResult.Result, starNETPublishedOAPPBinaryProviderType);
+
+                                    if (saveLargeOAPPResult != null && !saveLargeOAPPResult.IsError && saveLargeOAPPResult.Result != null)
+                                    {
+                                        result.Result = readOAPPDNAResult.Result;
+                                        result.IsSaved = true;
+                                    }
+                                    else
+                                    {
+                                        OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPP binary to STARNET using the {starNETPublishedOAPPBinaryProviderType} provider. Reason: {saveLargeOAPPResult.Message}");
+                                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && uploadOAPPToCloud;
+                                        OAPPDNA.OAPPPublishedProviderType = ProviderType.None;
+                                    }
+                                }
+                            }
+
                             OASISResult<IOAPP> saveOAPPResult = SaveOAPP(loadOAPPResult.Result, providerType);
 
                             if (saveOAPPResult != null && !saveOAPPResult.IsError && saveOAPPResult.Result != null)
@@ -872,35 +997,40 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 result.IsSaved = true;
 
                                 if (readOAPPDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
-                                    OASISErrorHandling.HandleWarning(ref result, $"The STAR ODK Version {readOAPPDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+                                    OASISErrorHandling.HandleWarning(ref result, $" The STAR ODK Version {readOAPPDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
                                 if (readOAPPDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
-                                    OASISErrorHandling.HandleWarning(ref result, $"The OASIS Version {readOAPPDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+                                    OASISErrorHandling.HandleWarning(ref result, $" The OASIS Version {readOAPPDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
                                 if (readOAPPDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
-                                    OASISErrorHandling.HandleWarning(ref result, $"The COSMIC Version {readOAPPDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+                                    OASISErrorHandling.HandleWarning(ref result, $" The COSMIC Version {readOAPPDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
-                                if (result.InnerMessages.Count > 0)
+                                if (result.IsWarning)
                                     result.Message = $"OAPP successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
                                 else
                                     result.Message = "OAPP Successfully Published";
+
+                                OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Published });
                             }
                             else
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPP on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPResult.Message}");
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPResult.Message}");
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadOAPP on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadOAPPResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadOAPPAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadOAPPResult.Message}");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatar on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadAvatarResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadAvatarResult.Message}");
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling ReadOAPPDNA on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {readOAPPDNAResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling ReadOAPPDNAAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {readOAPPDNAResult.Message}");
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
             }
+
+            if (result.IsError)
+                OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Error, ErrorMessage = result.Message });
 
             return result;
         }
@@ -1045,61 +1175,79 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (OAPPDNAResult != null && OAPPDNAResult.Result != null && !OAPPDNAResult.IsError)
                 {
-                    OAPPDNA = OAPPDNAResult.Result;
-
-                    if (createOAPPDirectory)
-                        fullInstallPath = Path.Combine(fullInstallPath, OAPPDNAResult.Result.OAPPName);
-
-                    if (Directory.Exists(fullInstallPath))
-                        Directory.Delete(fullInstallPath, true);
-
-                    Directory.CreateDirectory(fullInstallPath);
-
-                    OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPPDNAResult.Result, Status = Enums.OAPPInstallStatus.Decompressing });
-                    ZipFile.ExtractToDirectory(fullPathToPublishedOAPPFile, fullInstallPath, Encoding.Default, true);
-
-                    OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPPDNAResult.Result, Status = Enums.OAPPInstallStatus.Installing });
-                    OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
-
-                    if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                    //Load the OAPP from the OASIS to make sure the OAPPDNA is valid (and has not been tampered with).
+                    OASISResult<IOAPP> oappResult = await LoadOAPPAsync(OAPPDNAResult.Result.OAPPId, providerType);
+                    
+                    if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
                     {
-                        InstalledOAPP installedOAPP = new InstalledOAPP()
+                        //TODO: Not sure if we want to add a check here to compare the OAPPDNA in the OAPP dir with the one stored in the OASIS?
+                        OAPPDNA = oappResult.Result.OAPPDNA;
+
+                        if (createOAPPDirectory)
+                            fullInstallPath = Path.Combine(fullInstallPath, OAPPDNAResult.Result.OAPPName);
+
+                        if (Directory.Exists(fullInstallPath))
+                            Directory.Delete(fullInstallPath, true);
+
+                        Directory.CreateDirectory(fullInstallPath);
+
+                        OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPPDNAResult.Result, Status = Enums.OAPPInstallStatus.Decompressing });
+                        ZipFile.ExtractToDirectory(fullPathToPublishedOAPPFile, fullInstallPath, Encoding.Default, true);
+
+                        OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPPDNAResult.Result, Status = Enums.OAPPInstallStatus.Installing });
+                        OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
+
+                        if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
                         {
-                            OAPPId = OAPPDNAResult.Result.OAPPId,
-                            OAPPDNA = OAPPDNAResult.Result,
-                            InstalledBy = avatarId,
-                            InstalledByAvatarUsername = avatarResult.Result.Username,
-                            InstalledOn = DateTime.Now,
-                            InstalledPath = fullInstallPath
-                        };
+                            InstalledOAPP installedOAPP = new InstalledOAPP()
+                            {
+                                OAPPId = OAPPDNAResult.Result.OAPPId,
+                                OAPPDNA = OAPPDNAResult.Result,
+                                InstalledBy = avatarId,
+                                InstalledByAvatarUsername = avatarResult.Result.Username,
+                                InstalledOn = DateTime.Now,
+                                InstalledPath = fullInstallPath
+                            };
 
-                        OASISResult<IHolon> saveResult = await installedOAPP.SaveAsync();
+                            OASISResult<IHolon> saveResult = await installedOAPP.SaveAsync();
 
-                        if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
-                        {
-                            result.Result = installedOAPP;
+                            if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                            {
+                                result.Result = installedOAPP;
+                                OAPPDNA.Downloads++;
+                                oappResult.Result.OAPPDNA = OAPPDNA;
 
-                            if (OAPPDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
-                                OASISErrorHandling.HandleWarning(ref result, $"The STAR ODK Version {OAPPDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+                                OASISResult<IOAPP> oappSaveResult = await SaveOAPPAsync(oappResult.Result, providerType);
 
-                            if (OAPPDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
-                                OASISErrorHandling.HandleWarning(ref result, $"The OASIS Version {OAPPDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+                                if (oappSaveResult!= null && !oappSaveResult.IsError && oappSaveResult.Result != null)
+                                {
+                                    if (OAPPDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
+                                        OASISErrorHandling.HandleWarning(ref result, $"The STAR ODK Version {OAPPDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
-                            if (OAPPDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
-                                OASISErrorHandling.HandleWarning(ref result, $"The COSMIC Version {OAPPDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+                                    if (OAPPDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
+                                        OASISErrorHandling.HandleWarning(ref result, $"The OASIS Version {OAPPDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
-                            if (result.InnerMessages.Count > 0)
-                                result.Message = $"OAPP successfully installed but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                                    if (OAPPDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
+                                        OASISErrorHandling.HandleWarning(ref result, $"The COSMIC Version {OAPPDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                    if (result.InnerMessages.Count > 0)
+                                        result.Message = $"OAPP successfully installed but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                                    else
+                                        result.Message = "OAPP Successfully Installed";
+
+                                    OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPPDNAResult.Result, Status = Enums.OAPPInstallStatus.Installed });
+                                }
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPAsync method. Reason: {oappSaveResult.Message}");
+                            }
                             else
-                                result.Message = "OAPP Successfully Installed";
-
-                            OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPPDNAResult.Result, Status = Enums.OAPPInstallStatus.Installed });
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync method. Reason: {saveResult.Message}");
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync method. Reason: {saveResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync method. Reason: {avatarResult.Message}");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync method. Reason: {avatarResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadOAPPAsync method. Reason: {oappResult.Message}");
                 }
             }
             catch (Exception ex)
