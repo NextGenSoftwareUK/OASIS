@@ -1214,7 +1214,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                             {
                                 result.Result = installedOAPP;
-                                OAPPDNA.Downloads++;
+                                OAPPDNA.OAPPDownloads++;
                                 oappResult.Result.OAPPDNA = OAPPDNA;
 
                                 OASISResult<IOAPP> oappSaveResult = await SaveOAPPAsync(oappResult.Result, providerType);

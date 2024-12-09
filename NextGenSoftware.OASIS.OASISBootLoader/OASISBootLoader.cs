@@ -26,6 +26,7 @@ using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.Utilities;
+using System.Runtime.InteropServices;
 //using System.Reflection;
 
 namespace NextGenSoftware.OASIS.OASISBootLoader
@@ -42,6 +43,21 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public static string OASISVersion { get; set; } = "v3.4.0";
         public static string COSMICVersion { get; set; } = "v2.0.1";
         public static string STARODKVersion { get; set; } = "v2.3.0";
+        public static string DotNetVersion
+        {
+            get
+            {
+                return string.Concat(Environment.Version.ToString(), "(", RuntimeInformation.FrameworkDescription, ")");
+            }
+        }
+
+        //public static string DotNetVersionDetailed
+        //{
+        //    get
+        //    {
+        //        return RuntimeInformation.FrameworkDescription;
+        //    }
+        //}
 
         //public static string OASISVersion
         //{
