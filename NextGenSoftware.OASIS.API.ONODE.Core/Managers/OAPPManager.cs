@@ -561,11 +561,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPSource = true, bool uploadOAPPSourceToSTARNET = true, bool makeOAPPSourcePublic = false, bool uploadOAPPToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType starNETPublishedOAPPBinaryProviderType = ProviderType.IPFSOASIS)
+        public async Task<OASISResult<IOAPPDNA>> PublishOAPPAsync(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPSource = true, bool uploadOAPPSourceToSTARNET = true, bool makeOAPPSourcePublic = false, bool generateOAPPBinary = true, bool generateOAPPSelfContainedBinary = false, bool generateOAPPSelfContainedFullBinary = false, bool uploadOAPPToCloud = false, bool uploadOAPPSelfContainedToCloud = false, bool uploadOAPPSelfContainedFullToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS, ProviderType oappSelfContainedBinaryProviderType = ProviderType.None, ProviderType oappSelfContainedFullBinaryProviderType = ProviderType.None)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.PublishOAPPAsync. Reason: ";
             IOAPPDNA OAPPDNA = null;
+            string tempPath = "";
 
             try
             {
@@ -580,8 +581,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     if (loadAvatarResult != null && loadAvatarResult.Result != null && !loadAvatarResult.IsError)
                     {
                         string publishedOAPPFileName = string.Concat(OAPPDNA.OAPPName, ".oapp");
+                        string publishedOAPPSelfContainedFileName = string.Concat(OAPPDNA.OAPPName, "(Self Contained).oapp");
+                        string publishedOAPPSelfContainedFullFileName = string.Concat(OAPPDNA.OAPPName, "(Self Contained Full).oapp");
                         string publishedOAPPSourceFileName = string.Concat(OAPPDNA.OAPPName, ".oappsource");
-                        string tempPath = Path.Combine(Path.GetTempPath(), publishedOAPPFileName);
 
                         if (dotnetPublish)
                         {
@@ -608,59 +610,142 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         if (!Directory.Exists(fullPathToPublishTo))
                             Directory.CreateDirectory(fullPathToPublishTo);
 
-                        fullPathToPublishTo = Path.Combine(fullPathToPublishTo, publishedOAPPFileName);
-                        string fullPathToPublishToOAPPSource = Path.Combine(fullPathToPublishTo, publishedOAPPSourceFileName);
+                        //fullPathToPublishTo = Path.Combine(fullPathToPublishTo, publishedOAPPFileName);
+                        //string fullPathToPublishToOAPPSource = Path.Combine(fullPathToPublishTo, publishedOAPPSourceFileName);
 
                         OAPPDNA.PublishedOn = DateTime.Now;
                         OAPPDNA.PublishedByAvatarId = avatarId;
                         OAPPDNA.PublishedByAvatarUsername = loadAvatarResult.Result.Username;
+                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && (oappBinaryProviderType != ProviderType.None || uploadOAPPToCloud || oappSelfContainedBinaryProviderType != ProviderType.None || uploadOAPPSelfContainedToCloud || oappSelfContainedFullBinaryProviderType != ProviderType.None || uploadOAPPSelfContainedFullToCloud);
                         OAPPDNA.LaunchTarget = launchTarget;
-                        OAPPDNA.OAPPPublishedPath = fullPathToPublishTo;
-                        OAPPDNA.OAPPSourcePublishedPath = fullPathToPublishToOAPPSource;
-                        OAPPDNA.OAPPSourcePublishedOnSTARNET = registerOnSTARNET;
-                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && (starNETPublishedOAPPBinaryProviderType != ProviderType.None || uploadOAPPToCloud);
-                        OAPPDNA.OAPPPublishedToCloud = registerOnSTARNET && uploadOAPPToCloud;
-                        OAPPDNA.OAPPPublishedProviderType = starNETPublishedOAPPBinaryProviderType;
-                        OAPPDNA.OAPPSourcePublicOnSTARNET = makeOAPPSourcePublic;
+
+                        if (generateOAPPBinary)
+                        {
+                            OAPPDNA.OAPPPublishedPath = Path.Combine(fullPathToPublishTo, publishedOAPPFileName);
+                            OAPPDNA.OAPPPublishedToCloud = registerOnSTARNET && uploadOAPPToCloud;
+                            OAPPDNA.OAPPPublishedProviderType = oappBinaryProviderType;
+                        }
+
+                        if (generateOAPPSelfContainedBinary)
+                        {
+                            OAPPDNA.OAPPSelfContainedPublishedPath = Path.Combine(fullPathToPublishTo, publishedOAPPSelfContainedFileName);
+                            OAPPDNA.OAPPSelfContainedPublishedToCloud = registerOnSTARNET && uploadOAPPSelfContainedToCloud;
+                            OAPPDNA.OAPPSelfContainedPublishedProviderType = oappSelfContainedBinaryProviderType;
+                        }
+
+                        if (generateOAPPSelfContainedFullBinary)
+                        {
+                            OAPPDNA.OAPPSelfContainedFullPublishedPath = Path.Combine(fullPathToPublishTo, publishedOAPPSelfContainedFullFileName);
+                            OAPPDNA.OAPPSelfContainedFullPublishedToCloud = registerOnSTARNET && uploadOAPPSelfContainedFullToCloud;
+                            OAPPDNA.OAPPSelfContainedFullPublishedProviderType = oappSelfContainedFullBinaryProviderType;
+                        }
+
+                        if (generateOAPPSource)
+                        {
+                            OAPPDNA.OAPPSourcePublishedPath = Path.Combine(fullPathToPublishTo, publishedOAPPSourceFileName);
+                            OAPPDNA.OAPPSourcePublishedOnSTARNET = registerOnSTARNET && uploadOAPPSourceToSTARNET;
+                            OAPPDNA.OAPPSourcePublicOnSTARNET = makeOAPPSourcePublic;
+                        }
+
                         OAPPDNA.Versions++;
 
                         WriteOAPPDNA(OAPPDNA, fullPathToOAPP);
-
-                        if (File.Exists(tempPath))
-                            File.Delete(tempPath);
-
                         OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Compressing });
-                        ZipFile.CreateFromDirectory(fullPathToOAPP, tempPath);
-                        //SharpCompress.Compressors.LZMA.LZipStream. (7Zip)
-                        //SharpZipLib.
 
-                        //TODO: Look into the most optimal compression...
-                        //using (FileStream fs = File.OpenRead(tempPath))
-                        //{
-                        //    DeflateStream deflateStream = new DeflateStream(fs, CompressionLevel.SmallestSize, false);
-                        //    GZipStream gZipStream = new GZipStream(fs, CompressionLevel.SmallestSize, false);
+                        if (generateOAPPBinary)
+                        {
+                            //tempPath = Path.Combine(Path.GetTempPath(), publishedOAPPFileName);
 
-                        //    //deflateStream.Write
-                        //}
+                            //if (File.Exists(tempPath))
+                            //    File.Delete(tempPath);
 
-                        if (File.Exists(OAPPDNA.OAPPPublishedPath))
-                            File.Delete(OAPPDNA.OAPPPublishedPath);
+                            if (File.Exists(OAPPDNA.OAPPPublishedPath))
+                                File.Delete(OAPPDNA.OAPPPublishedPath);
 
-                        if (File.Exists(OAPPDNA.OAPPSourcePublishedPath))
-                            File.Delete(OAPPDNA.OAPPSourcePublishedPath);
+                            ZipFile.CreateFromDirectory(fullPathToOAPP, OAPPDNA.OAPPPublishedPath);
+                            //ZipFile.CreateFromDirectory(fullPathToOAPP, tempPath);
+                            //SharpCompress.Compressors.LZMA.LZipStream. (7Zip)
+                            //SharpZipLib.
 
-                        File.Move(tempPath, readOAPPDNAResult.Result.OAPPPublishedPath);
+                            //TODO: Look into the most optimal compression...
+                            //using (FileStream fs = File.OpenRead(tempPath))
+                            //{
+                            //    DeflateStream deflateStream = new DeflateStream(fs, CompressionLevel.SmallestSize, false);
+                            //    GZipStream gZipStream = new GZipStream(fs, CompressionLevel.SmallestSize, false);
+
+                            //    //deflateStream.Write
+                            //}
+
+                            File.Move(tempPath, readOAPPDNAResult.Result.OAPPPublishedPath);
+                        }
+
+                        if (generateOAPPSelfContainedBinary)
+                        {
+                           // tempPath = Path.Combine(Path.GetTempPath(), publishedOAPPSelfContainedFileName);
+
+                            //if (File.Exists(tempPath))
+                            //    File.Delete(tempPath);
+
+                            if (File.Exists(OAPPDNA.OAPPSelfContainedPublishedPath))
+                                File.Delete(OAPPDNA.OAPPSelfContainedPublishedPath);
+
+                            ZipFile.CreateFromDirectory(fullPathToOAPP, OAPPDNA.OAPPSelfContainedPublishedPath);
+                            //ZipFile.CreateFromDirectory(fullPathToOAPP, tempPath);
+                            //SharpCompress.Compressors.LZMA.LZipStream. (7Zip)
+                            //SharpZipLib.
+
+                            //TODO: Look into the most optimal compression...
+                            //using (FileStream fs = File.OpenRead(tempPath))
+                            //{
+                            //    DeflateStream deflateStream = new DeflateStream(fs, CompressionLevel.SmallestSize, false);
+                            //    GZipStream gZipStream = new GZipStream(fs, CompressionLevel.SmallestSize, false);
+
+                            //    //deflateStream.Write
+                            //}
+
+                            File.Move(tempPath, readOAPPDNAResult.Result.OAPPSelfContainedPublishedPath);
+                        }
+
+                        if (generateOAPPSelfContainedFullBinary)
+                        {
+                            //tempPath = Path.Combine(Path.GetTempPath(), publishedOAPPSelfContainedFullFileName);
+
+                            //if (File.Exists(tempPath))
+                            //    File.Delete(tempPath);
+
+                            if (File.Exists(OAPPDNA.OAPPSelfContainedFullPublishedPath))
+                                File.Delete(OAPPDNA.OAPPSelfContainedFullPublishedPath);
+
+                            ZipFile.CreateFromDirectory(fullPathToOAPP, OAPPDNA.OAPPSelfContainedFullPublishedPath);
+                            //ZipFile.CreateFromDirectory(fullPathToOAPP, tempPath);
+                            //SharpCompress.Compressors.LZMA.LZipStream. (7Zip)
+                            //SharpZipLib.
+
+                            //TODO: Look into the most optimal compression...
+                            //using (FileStream fs = File.OpenRead(tempPath))
+                            //{
+                            //    DeflateStream deflateStream = new DeflateStream(fs, CompressionLevel.SmallestSize, false);
+                            //    GZipStream gZipStream = new GZipStream(fs, CompressionLevel.SmallestSize, false);
+
+                            //    //deflateStream.Write
+                            //}
+
+                            //File.Move(tempPath, readOAPPDNAResult.Result.OAPPSelfContainedFullPublishedPath);
+                        }
+
 
                         //TODO: Need to generate and move the oappsource file here.
                         if (generateOAPPSource)
                         {
                             tempPath = Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName);
-                            //stringtempPath = Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName);
+
+                            if (File.Exists(OAPPDNA.OAPPSourcePublishedPath))
+                                File.Delete(OAPPDNA.OAPPSourcePublishedPath);
 
                             if (Directory.Exists(tempPath))
                                 Directory.Delete(tempPath, true);
 
-                            DirectoryHelper.CopyFilesRecursively(fullPathToOAPP, Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName));
+                            DirectoryHelper.CopyFilesRecursively(fullPathToOAPP, tempPath);
                             Directory.Delete(Path.Combine(tempPath, "bin"), true);
                             Directory.Delete(Path.Combine(tempPath, "obj"), true);
 
@@ -670,7 +755,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         //TODO: Currently the filesize will NOT be in the compressed .oapp file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPDNA inside it...
                         if (!string.IsNullOrEmpty(OAPPDNA.OAPPPublishedPath) && File.Exists(OAPPDNA.OAPPPublishedPath))
                             OAPPDNA.OAPPFileSize = new FileInfo(OAPPDNA.OAPPPublishedPath).Length;
-                        
+
+                        if (!string.IsNullOrEmpty(OAPPDNA.OAPPSelfContainedPublishedPath) && File.Exists(OAPPDNA.OAPPSelfContainedPublishedPath))
+                            OAPPDNA.OAPPSelfContainedFileSize = new FileInfo(OAPPDNA.OAPPSelfContainedPublishedPath).Length;
+
+                        if (!string.IsNullOrEmpty(OAPPDNA.OAPPSelfContainedFullPublishedPath) && File.Exists(OAPPDNA.OAPPSelfContainedFullPublishedPath))
+                            OAPPDNA.OAPPSelfContainedFullFileSize = new FileInfo(OAPPDNA.OAPPSelfContainedFullPublishedPath).Length;
+
                         if (!string.IsNullOrEmpty(OAPPDNA.OAPPSourcePublishedPath) && File.Exists(OAPPDNA.OAPPSourcePublishedPath))
                             OAPPDNA.OAPPSourceFileSize = new FileInfo(OAPPDNA.OAPPSourcePublishedPath).Length;
                         
@@ -711,18 +802,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     catch (Exception ex)
                                     {
                                         OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the OAPP to cloud storage. Reason: {ex}");
-                                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && starNETPublishedOAPPBinaryProviderType != ProviderType.None;
+                                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
                                         OAPPDNA.OAPPPublishedToCloud = false;
                                     }
                                 }
 
-                                if (starNETPublishedOAPPBinaryProviderType != ProviderType.None)
+                                if (oappBinaryProviderType != ProviderType.None)
                                 {
                                     //The smallest OAPP is around 250MB because of the 208MB runtimes.
                                     loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(OAPPDNA.OAPPPublishedPath);
 
                                     //TODO: We could use HoloOASIS and other large file storage providers in future...
-                                    OASISResult<IOAPP> saveLargeOAPPResult = await SaveOAPPAsync(loadOAPPResult.Result, starNETPublishedOAPPBinaryProviderType);
+                                    OASISResult<IOAPP> saveLargeOAPPResult = await SaveOAPPAsync(loadOAPPResult.Result, oappBinaryProviderType);
 
                                     if (saveLargeOAPPResult != null && !saveLargeOAPPResult.IsError && saveLargeOAPPResult.Result != null)
                                     {
@@ -731,7 +822,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     }
                                     else
                                     {
-                                        OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPP binary to STARNET using the {starNETPublishedOAPPBinaryProviderType} provider. Reason: {saveLargeOAPPResult.Message}");
+                                        OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPP binary to STARNET using the {oappBinaryProviderType} provider. Reason: {saveLargeOAPPResult.Message}");
                                         OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && uploadOAPPToCloud;
                                         OAPPDNA.OAPPPublishedProviderType = ProviderType.None;
                                     }
@@ -812,7 +903,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         //    }
         //}
 
-        public OASISResult<IOAPPDNA> PublishOAPP(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPSource = true, bool uploadOAPPSourceToSTARNET = true, bool makeOAPPSourcePublic = false, bool uploadOAPPToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType starNETPublishedOAPPBinaryProviderType = ProviderType.IPFSOASIS)
+        public OASISResult<IOAPPDNA> PublishOAPP(string fullPathToOAPP, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPSource = true, bool uploadOAPPSourceToSTARNET = true, bool makeOAPPSourcePublic = false, bool generateOAPPBinary = true, bool generateOAPPSelfContainedBinary = false, bool generateOAPPSelfContainedFullBinary = false, bool uploadOAPPToCloud = false, bool uploadOAPPSelfContainedToCloud = false, bool uploadOAPPSelfContainedFullToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS, ProviderType oappSelfContainedBinaryProviderType = ProviderType.None, ProviderType oappSelfContainedFullBinaryProviderType = ProviderType.None)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.PublishOAPPAsync. Reason: ";
