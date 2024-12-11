@@ -1,0 +1,102 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\HolonDNATemplate.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Interfaces\ILoadHolonDNATemplate.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Interfaces\ISaveHolonDNATemplate.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Interfaces\IZomeDNATemplate.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\LoadHolonDNATemplate.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\SaveHolonDNATemplate.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Types\bool.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Types\int.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\Types\string.cs" />
+    <Compile Remove="DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="appsettings.Development.json" />
+    <None Remove="CelestialBodyDNA.json" />
+    <None Remove="OASIS_DNA.json" />
+    <None Remove="STAR_DNA.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="DNA\OASIS_DNA.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="DNA\CelestialBodyDNA.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="DNA\STAR_DNA.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+    <!--<ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" />-->
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="DNATemplates\CSharpDNATemplates\ZomeTemplate.cs">
+      <DependentUpon>ZomeTemplate.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="EntityFramework\NETHDKEFModel.cs">
+      <DependentUpon>NETHDKEFModel.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="DNATemplates\CSharpDNATemplates\ZomeTemplate.tt">
+      <LastGenOutput>ZomeTemplate.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="EntityFramework\NETHDKEFModel.tt">
+      <LastGenOutput>NETHDKEFModel.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="DNATemplates\CSharpDNATemplates\HolonDNATemplate.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Interfaces\ILoadHolonDNATemplate.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Interfaces\ISaveHolonDNATemplate.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Interfaces\IZomeDNATemplate.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\SaveHolonDNATemplate.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\LoadHolonDNATemplate.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Types\bool.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Types\int.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\Types\string.cs" />
+    <None Include="DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MappingGenerator" Version="1.22.3" />
+    <PackageReference Include="Mapster" Version="7.2.0" />
+    <!--<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.8" />-->
+  </ItemGroup>
+
+</Project>
