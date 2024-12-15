@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
@@ -23,7 +24,7 @@ public sealed class RadixClient(
     private readonly HttpClient _httpClient = clientFactory.CreateClient(nameof(RadixClient));
     private readonly ILogger<RadixClient> _logger = logger;
 
-    public async Task<OASISResult<string>> CreateAsync(ulong numericId, string guidId, string infoJson, OASISEntityType entityType)
+    public Task<OASISResult<TransactionDetails>> CreateAsync(ulong numericId, string guidId, string infoJson, OASISEntityType entityType, string ownerBadge, CancellationToken token = default)
     {
         var data = new
         {
@@ -33,13 +34,7 @@ public sealed class RadixClient(
             entity_type = entityType.ToString()
         };
 
-        string jsonContent = JsonSerializer.Serialize(data);
-        HttpContent content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync($"/create", content);
-
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync();
+        return _httpClient.SendTransactionAsync("/create/", data, ownerBadge, token);
     }
 
     public async Task<OASISResult<OASISEntity?>> GetAsync(ulong numericId)
@@ -48,10 +43,10 @@ public sealed class RadixClient(
         response.EnsureSuccessStatusCode();
 
         string jsonResponse = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<OASISEntity>(jsonResponse);
+        return new(JsonSerializer.Deserialize<OASISEntity>(jsonResponse));
     }
 
-    public async Task<OASISResult<string>> UpdateAsync(ulong numericId, string? infoJson, OASISEntityType? entityType)
+    public Task<OASISResult<TransactionDetails>> UpdateAsync(ulong numericId, string? infoJson, OASISEntityType? entityType, string ownerBadge, CancellationToken token = default)
     {
         var data = new
         {
@@ -60,21 +55,12 @@ public sealed class RadixClient(
             entity_type = entityType?.ToString()
         };
 
-        string jsonContent = JsonSerializer.Serialize(data);
-        HttpContent content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync($"/update", content);
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadAsStringAsync();
+        return _httpClient.SendTransactionAsync("/update/", data, ownerBadge, token);
     }
 
-    public async Task<OASISResult<string>> DeleteAsync(ulong numericId)
+    public Task<OASISResult<TransactionDetails>> DeleteAsync(ulong numericId, string ownerBadge, CancellationToken token = default)
     {
-        using HttpResponseMessage response = await _httpClient.DeleteAsync($"/delete/{numericId}");
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadAsStringAsync();
+        return _httpClient.SendTransactionAsync<object?>($"/delete/{numericId}", data: null, ownerBadge, token);
     }
 
     public Task<OASISResult<TransactionDetails>> CreateProposalAsync(string description, ulong duration, string ownerBadge)
@@ -221,8 +207,10 @@ internal static class HttpClientExtension
 
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadAsStringAsync(token)
+        TransactionDetails txnDetails = await response.Content.ReadFromJsonAsync<TransactionDetails>(token)
             .ConfigureAwait(continueOnCapturedContext: false);
+
+        return new(txnDetails);
     }
 }
 
