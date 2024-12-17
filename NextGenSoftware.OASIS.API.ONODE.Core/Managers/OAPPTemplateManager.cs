@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
@@ -7,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -15,20 +17,48 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OAPPTemplateManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA) { }
         public OAPPTemplateManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA) { }
 
+        //public async Task<OASISResult<IOAPPTemplate>> CreateOAPPTemplateAsync(IOAPPTemplate oappTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+
+        //    if (!Directory.Exists(oappTemplate.OAPPTemplatePath))
+        //        Directory.CreateDirectory(oappTemplate.OAPPTemplatePath);
+
+        //    return await SaveOAPPTemplateAsync(oappTemplate, avatarId, providerType);
+        //}
+
+        //public OASISResult<IOAPPTemplate> CreateOAPPTemplate(IOAPPTemplate oappTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+
+        //    if (!Directory.Exists(oappTemplate.OAPPTemplatePath))
+        //        Directory.CreateDirectory(oappTemplate.OAPPTemplatePath);
+
+        //    return SaveOAPPTemplate(oappTemplate, avatarId, providerType);
+        //}
+
         #region COSMICManagerBase
-        public async Task<OASISResult<IOAPPTemplate>> SaveOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> SaveOAPPTemplateAsync(IOAPPTemplate oappTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<OAPPTemplate> saveResult = await SaveHolonAsync<OAPPTemplate>(OAPPTemplate, avatarId, providerType, "OAPPTemplateManager.SaveOAPPTemplateAsync");
+
+            if (!Directory.Exists(oappTemplate.OAPPTemplatePath))
+                Directory.CreateDirectory(oappTemplate.OAPPTemplatePath);
+
+            OASISResult<OAPPTemplate> saveResult = await SaveHolonAsync<OAPPTemplate>(oappTemplate, avatarId, providerType, "OAPPTemplateManager.SaveOAPPTemplateAsync");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
             result.Result = saveResult.Result;
             return result;
         }
 
-        public OASISResult<IOAPPTemplate> SaveOAPPTemplate(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> SaveOAPPTemplate(IOAPPTemplate oappTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<OAPPTemplate> saveResult = SaveHolon<OAPPTemplate>(OAPPTemplate, avatarId, providerType, "OAPPTemplateManager.SaveOAPPTemplate");
+
+            if (!Directory.Exists(oappTemplate.OAPPTemplatePath))
+                Directory.CreateDirectory(oappTemplate.OAPPTemplatePath);
+
+            OASISResult<OAPPTemplate> saveResult = SaveHolon<OAPPTemplate>(oappTemplate, avatarId, providerType, "OAPPTemplateManager.SaveOAPPTemplate");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
             result.Result = saveResult.Result;
             return result;
