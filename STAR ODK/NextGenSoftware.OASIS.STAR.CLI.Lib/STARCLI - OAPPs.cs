@@ -379,9 +379,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             bool generateOAPPSource = false;
             bool uploadOAPPSource = false;
+            bool generateOAPP = true;
+            //bool uploadOAPP = true;
+            bool uploadOAPPToCloud = false;
+            bool generateOAPPSelfContained = false;
+            //bool uploadOAPPSelfContained = false;
+            bool uploadOAPPSelfContainedToCloud = false;
+            bool generateOAPPSelfContainedFull = false;
+            //bool uploadOAPPSelfContainedFull = false;
+            bool uploadOAPPSelfContainedFullToCloud = false;
             bool makeOAPPSourcePublic = false;
-            bool uploadToCloud = false;
-            ProviderType largeFileProviderType = ProviderType.None; //ProviderType.IPFSOASIS;
+            ProviderType OAPPBinaryProviderType = providerType; //ProviderType.IPFSOASIS;
+            ProviderType OAPPSelfContainedBinaryProviderType = ProviderType.IPFSOASIS; //ProviderType.IPFSOASIS;
+            ProviderType OAPPSelfContainedFullBinaryProviderType = ProviderType.IPFSOASIS; //ProviderType.IPFSOASIS;
             string launchTarget = "";
             string publishPath = "";
             string launchTargetQuestion = "";
@@ -437,6 +447,75 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, oappPath);
 
                 Console.WriteLine("");
+                if (CLIEngine.GetConfirmation("Do you wish to generate the standard .oapp file? (Recommended). This file contains only the built & published OAPP source code. NOTE: You will need to make sure the target machine that runs this OAPP has both the appropriate OASIS & STAR ODK Runtimes installed along with the appropriate .NET Runtime."))
+                {
+                    generateOAPP = true;
+
+                    if (CLIEngine.GetConfirmation("Do you wish to upload/publish the .oapp file to STARNET?"))
+                    {
+                        if (CLIEngine.GetConfirmation("Do you wish to upload/publish the .oapp file to cloud storage?"))
+                            uploadOAPPToCloud = true;
+
+                        object OAPPBinaryProviderTypeObject = CLIEngine.GetValidInputForEnum("Do you wish to upload/publish the .oapp file to The OASIS? If so what provider do you wish to upload to? If you do not wish to then enter 'None'.", typeof(ProviderType));
+
+                        if (OAPPBinaryProviderTypeObject != null)
+                        {
+                            if (OAPPBinaryProviderTypeObject.ToString() == "exit")
+                                return;
+                            else
+                                OAPPBinaryProviderType = (ProviderType)OAPPBinaryProviderTypeObject;
+                        }
+                    }
+                }
+
+                Console.WriteLine("");
+                if (CLIEngine.GetConfirmation("Do you wish to generate the self-contained .oapp file? This file contains the built & published OAPP source code along with the OASIS & STAR ODK Runtimes. NOTE: You will need to make sure the target machine that runs this OAPP has the appropriate .NET runtime installed. The file will be a minimum of 250 MB."))
+                {
+                    generateOAPPSelfContained = true;
+
+                    if (CLIEngine.GetConfirmation("Do you wish to upload/publish the self-contained .oapp file to STARNET?"))
+                    {
+                        if (CLIEngine.GetConfirmation("Do you wish to upload/publish the .oapp file to cloud storage?"))
+                            uploadOAPPToCloud = true;
+
+                        object OAPPBinaryProviderTypeObject = CLIEngine.GetValidInputForEnum("Do you wish to upload/publish the .oapp file to The OASIS? If so what provider do you wish to upload to? If you do not wish to then enter 'None'.", typeof(ProviderType));
+
+                        if (OAPPBinaryProviderTypeObject != null)
+                        {
+                            if (OAPPBinaryProviderTypeObject.ToString() == "exit")
+                                return;
+                            else
+                                OAPPBinaryProviderType = (ProviderType)OAPPBinaryProviderTypeObject;
+                        }
+                    }
+                }
+
+                Console.WriteLine("");
+                if (CLIEngine.GetConfirmation("Do you wish to generate the self-contained (full) .oapp file? This file contains the built & published OAPP source code along with the OASIS, STAR ODK & .NET Runtimes. NOTE: The file will be a minimum of 500 MB."))
+                {
+                    generateOAPPSelfContained = true;
+
+                    if (CLIEngine.GetConfirmation("Do you wish to upload/publish the self-contained (full) .oapp file to STARNET?"))
+                    {
+                        if (CLIEngine.GetConfirmation("Do you wish to upload/publish the .oapp file to cloud storage?"))
+                            uploadOAPPToCloud = true;
+
+                        object OAPPBinaryProviderTypeObject = CLIEngine.GetValidInputForEnum("Do you wish to upload/publish the .oapp file to The OASIS? If so what provider do you wish to upload to? If you do not wish to then enter 'None'.", typeof(ProviderType));
+
+                        if (OAPPBinaryProviderTypeObject != null)
+                        {
+                            if (OAPPBinaryProviderTypeObject.ToString() == "exit")
+                                return;
+                            else
+                                OAPPBinaryProviderType = (ProviderType)OAPPBinaryProviderTypeObject;
+                        }
+                    }
+                }
+
+                if (!uploadOAPPToCloud && OAPPBinaryProviderType == ProviderType.None)
+                    CLIEngine.ShowMessage("Since you did not select to upload to the cloud or OASIS storage the oapp will not be published to STARNET.");
+
+                Console.WriteLine("");
                 if (CLIEngine.GetConfirmation("Do you wish to generate a .oappsource file? This file will contain only the source files with no dependencies such as the OASIS or STAR runtimes (around 203MB). These will automatically be restored via nuget when the OAPP is built and/or published. You can optionally choose to upload this .oappsource file to STARNET from which others can download and then build to install and run your OAPP. NOTE: The full .oapp file is pre-built and published and is around 250MB minimum. You can optionally choose to also upload this file to STARNET (but you MUST upload either the .oappsource and make public or the full .oapp file if you want people to to be able to download and install your OAPP.) The advantage of the full .oapp file is that the OAPP is pre-built with all dependencies and so is guaranteed to install and run without any issues. It can also verify the launch target exists in the pre-built OAPP. If an OAPP is installed from the smaller .oappsource file (if you choose to upload and make public) there may be problems with restoring all dependencies etc so there are pros and cons to both approaches with the oapp taking longer to publish/upload and download over the .oappsource (as well as taking up more storage space) but has the advantage of being fully self contained and guaranteed to install & run fine."))
                 {
                     generateOAPPSource = true;
@@ -468,16 +547,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         CLIEngine.ShowMessage("Do you wish to publish/upload the.oapp file to an OASIS Provider or to the cloud or both? Depending on which OASIS Provider is chosen such as IPFSOASIS there may issues such as speed, relialbility etc for such a large file. If you choose to upload to the cloud this could be faster and more reliable (but there is a limit of 5 OAPPs on the free plan and you will need to upgrade to upload more than 5 OAPPs). You may want to choose to use both to add an extra layer of redundancy (recommended).");
 
-                        if (CLIEngine.GetConfirmation("Do you wish to upload to the cloud?"))
-                            uploadToCloud = true;
+                        //if (CLIEngine.GetConfirmation("Do you wish to upload to the cloud?"))
+                        //    uploadToCloud = true;
                         
-                        if (CLIEngine.GetConfirmation("Do you wish to upload to an OASIS Provider? Make sure you select a provider that can handle large files such as IPFSOASIS, HoloOASIS etc. Also remember the OASIS Hyperdrive will only be able to auto-replicate to other providers that also support large files and are free or cost effective. By default it will NOT auto-replicate large files, you will need to manually configure this in your OASIS Profile settings."))
-                        {
-                            object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to publish the OAPP to? (The default is IPFSOASIS)", typeof(ProviderType));
+                        //if (CLIEngine.GetConfirmation("Do you wish to upload to an OASIS Provider? Make sure you select a provider that can handle large files such as IPFSOASIS, HoloOASIS etc. Also remember the OASIS Hyperdrive will only be able to auto-replicate to other providers that also support large files and are free or cost effective. By default it will NOT auto-replicate large files, you will need to manually configure this in your OASIS Profile settings."))
+                        //{
+                        //    object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to publish the OAPP to? (The default is IPFSOASIS)", typeof(ProviderType));
 
-                            if (largeProviderTypeObject != null)
-                                largeFileProviderType = (ProviderType)largeProviderTypeObject;
-                        }
+                        //    if (largeProviderTypeObject != null)
+                        //        largeFileProviderType = (ProviderType)largeProviderTypeObject;
+                        //}
                     }
                 }
                 else
@@ -502,7 +581,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 STAR.OASISAPI.OAPPs.OnOAPPPublishStatusChanged += OAPPs_OnOAPPPublishStatusChanged;
                 STAR.OASISAPI.OAPPs.OnOAPPUploadStatusChanged += OAPPs_OnOAPPUploadStatusChanged;
-                OASISResult<IOAPPDNA> publishResult = await STAR.OASISAPI.OAPPs.PublishOAPPAsync(oappPath, launchTarget, STAR.BeamedInAvatar.Id, publishDotNot, publishPath, registerOnSTARNET, generateOAPPSource, uploadOAPPSource, makeOAPPSourcePublic, uploadToCloud, providerType, largeFileProviderType);
+                OASISResult<IOAPPDNA> publishResult = await STAR.OASISAPI.OAPPs.PublishOAPPAsync(oappPath, launchTarget, STAR.BeamedInAvatar.Id, publishDotNot, publishPath, registerOnSTARNET, generateOAPPSource, uploadOAPPSource, makeOAPPSourcePublic, generateOAPP, generateOAPPSelfContained, generateOAPPSelfContainedFull, uploadOAPPToCloud, uploadOAPPSelfContainedToCloud, uploadOAPPSelfContainedFullToCloud, providerType, OAPPBinaryProviderType, OAPPSelfContainedBinaryProviderType, OAPPSelfContainedFullBinaryProviderType);
                 STAR.OASISAPI.OAPPs.OnOAPPUploadStatusChanged -= OAPPs_OnOAPPUploadStatusChanged;
                 STAR.OASISAPI.OAPPs.OnOAPPPublishStatusChanged -= OAPPs_OnOAPPPublishStatusChanged;
 

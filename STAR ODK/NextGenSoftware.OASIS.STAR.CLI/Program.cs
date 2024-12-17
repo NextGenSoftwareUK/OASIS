@@ -532,6 +532,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                         await STARCLI.PublishOAPPAsync(oappPath, dotNetPublish);
                                                     }
                                                     break;
+
+                                                case "template":
+                                                    {
+                                                        //await ShowOAPPTemplateSubCommandsAsync(inputArgs);
+                                                        await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.CreateOAPPTemplateAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true);
+                                                    }
+                                                    break;
                                             }
                                         }
 
@@ -957,13 +964,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         {
             if (inputArgs.Length > 1)
             {
-                Guid id = Guid.Empty;
+                //Guid id = Guid.Empty;
 
-                if (inputArgs.Length > 2)
-                {
-                    if (!Guid.TryParse(inputArgs[2], out id))
-                        CLIEngine.ShowErrorMessage($"The id ({inputArgs[2]}) passed in is not a valid GUID!");
-                }
+                //if (inputArgs.Length > 2)
+                //{
+                //    if (!Guid.TryParse(inputArgs[2], out id))
+                //        CLIEngine.ShowErrorMessage($"The id ({inputArgs[2]}) passed in is not a valid GUID!");
+                //}
 
                 switch (inputArgs[1].ToLower())
                 {
@@ -1064,6 +1071,126 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
         }
 
+        private static async Task ShowOAPPTemplateSubCommandsAsync(string[] inputArgs)
+        {
+            if (inputArgs.Length > 2)
+            {
+                //Guid id = Guid.Empty;
+
+                //if (inputArgs.Length > 3)
+                //{
+                //    if (!Guid.TryParse(inputArgs[2], out id))
+                //        CLIEngine.ShowErrorMessage($"The id ({inputArgs[2]}) passed in is not a valid GUID!");
+                //}
+
+                switch (inputArgs[2].ToLower())
+                {
+                    case "create":
+                        {
+                            if (STAR.BeamedInAvatar == null)
+                                await STARCLI.BeamInAvatar();
+                            else
+                                CLIEngine.ShowErrorMessage($"Avatar {STAR.BeamedInAvatar.Username} Already Beamed In. Please Beam Out First!");
+                        }
+                        break;
+
+                    case "update":
+                        {
+                            if (STAR.BeamedInAvatar != null)
+                            {
+                                OASISResult<IAvatar> avatarResult = await STAR.BeamedInAvatar.BeamOutAsync();
+
+                                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                                {
+                                    STAR.BeamedInAvatar = null;
+                                    STAR.BeamedInAvatarDetail = null;
+                                    CLIEngine.ShowSuccessMessage("Avatar Successfully Beamed Out! We Hope You Enjoyed Your Time In The OASIS! Please Come Again! :)");
+                                }
+                                else
+                                    CLIEngine.ShowErrorMessage($"Error Beaming Out Avatar: {avatarResult.Message}");
+                            }
+                            else
+                                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                        }
+                        break;
+
+                    case "delete":
+                        {
+                            if (STAR.BeamedInAvatar != null)
+                                CLIEngine.ShowMessage($"Avatar {STAR.BeamedInAvatar.Username} Beamed In On {STAR.BeamedInAvatar.LastBeamedIn} And Last Beamed Out On {STAR.BeamedInAvatar.LastBeamedOut}. They Are Level {STAR.BeamedInAvatarDetail.Level} With {STAR.BeamedInAvatarDetail.Karma} Karma.", ConsoleColor.Green);
+                            else
+                                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                        }
+                        break;
+
+                    case "install":
+                        {
+                            if (inputArgs.Length > 2)
+                            {
+                                if (inputArgs[2] == "me")
+                                    STARCLI.ShowAvatar(STAR.BeamedInAvatar, STAR.BeamedInAvatarDetail);
+                                else
+                                    await STARCLI.ShowAvatar(inputArgs[2]);
+                            }
+                            else
+                                await STARCLI.ShowAvatar();
+                        }
+                        break;
+
+
+                    case "uninstall":
+                        {
+                            if (STAR.BeamedInAvatar != null)
+                                CLIEngine.ShowMessage("Coming soon...");
+                            else
+                                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                        }
+                        break;
+
+                    case "publish":
+                        {
+                            //STARCLI.ListAvat
+                            CLIEngine.ShowMessage("Coming soon...");
+                        }
+                        break;
+
+                    case "unpublish":
+                        {
+                            CLIEngine.ShowMessage("Coming soon...");
+                        }
+                        break;
+
+                    case "show":
+                        {
+                            CLIEngine.ShowMessage("Coming soon...");
+                        }
+                        break;
+
+                    default:
+                        CLIEngine.ShowErrorMessage("Command Unknown.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowMessage($"OAPP TEMPLATE SUBCOMMANDS:", ConsoleColor.Green);
+                Console.WriteLine("");
+                CLIEngine.ShowMessage("    create                         Creates a OAPP template.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    update          {id/username}  Updates a OAPP template for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    delete          {id/username}  Deletes a OAPP template for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    install         {id/username}  Installs a OAPP template for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    uninstall       {id/username}  Uninstalls a OAPP template for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    publish         {id/username}  Publishes a OAPP template to the STARNET store for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    unpublish       {id/username}  Unpublishes a OAPP template from the STARNET store for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    show            {id/username}  Shows a OAPP template for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list            [all]          List all OAPP templates that have been created.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list installed  {id/username}  List all OAPP templates installed for the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    search          [all]          Searches the OAPP templates for the given search critera.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
+            }
+        }
+
 
         /*
         private static async Task ShowHolonSubCommandAsync(string[] inputArgs)
@@ -1153,13 +1280,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         {
             if (inputArgs.Length > 1)
             {
-                Guid id = Guid.Empty;
+                //Guid id = Guid.Empty;
 
-                if (inputArgs.Length > 2)
-                {
-                    if (!Guid.TryParse(inputArgs[2], out id))
-                        CLIEngine.ShowErrorMessage($"The id ({inputArgs[2]}) passed in is not a valid GUID!");
-                }
+                //if (inputArgs.Length > 2)
+                //{
+                //    if (!Guid.TryParse(inputArgs[2], out id))
+                //        CLIEngine.ShowErrorMessage($"The id ({inputArgs[2]}) passed in is not a valid GUID!");
+                //}
 
                 switch (inputArgs[1].ToLower())
                 {
@@ -1243,13 +1370,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         {
             if (inputArgs.Length > 1)
             {
-                Guid id = Guid.Empty;
+                //Guid id = Guid.Empty;
 
-                if (inputArgs.Length > 2)
-                {
-                    if (!Guid.TryParse(inputArgs[2], out id))
-                        CLIEngine.ShowErrorMessage($"The id ({inputArgs[2]}) passed in is not a valid GUID!");
-                }
+                //if (inputArgs.Length > 2)
+                //{
+                //    if (!Guid.TryParse(inputArgs[2], out id))
+                //        CLIEngine.ShowErrorMessage($"The id ({inputArgs[2]}) passed in is not a valid GUID!");
+                //}
 
                 switch (inputArgs[1].ToLower())
                 {
@@ -3676,14 +3803,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    oapp create                                                             Shortcut to the light sub-command.");
                 Console.WriteLine("    oapp update                      {id/name}                              Update an existing OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp delete                      {id/name}                              Delete an existing OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp install                                                            Install a OAPP.");
-                Console.WriteLine("    oapp uninstall                                                          Uninstall a OAPP.");
+                Console.WriteLine("    oapp install                     {id/name}                              Install a OAPP for the given {id} or {name}.");
+                Console.WriteLine("    oapp uninstall                   {id/name}                              Uninstall a OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp publish                     {id/name}                              Shortcut to the seed sub-command.");
                 Console.WriteLine("    oapp unpublish                   {id/name}                              Shortcut to the un-seed sub-command.");
                 Console.WriteLine("    oapp show                        {id/name}                              Shows a OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp list                        [all]                                  List all OAPPs (contains zomes and holons) that have been generated.");
                 Console.WriteLine("    oapp list installed                                                     List all OAPP's installed for the current beamed in avatar.");
                 Console.WriteLine("    oapp search                      [all]                                  Searches the OAPP's for the given search critera.");
+                Console.WriteLine("    oapp template create                                                    Creates a OAPP template.");
+                Console.WriteLine("    oapp template update             {id/name}                              Updates a OAPP template for the given {id} or {name}.");
+                Console.WriteLine("    oapp template delete             {id/name}                              Deletes a OAPP template for the given {id} or {name}.");
+                Console.WriteLine("    oapp template install            {id/name}                              Installs a OAPP template for the given {id} or {name}.");
+                Console.WriteLine("    oapp template uninstall          {id/name}                              Uninstalls a OAPP template for the given {id} or {name}.");
+                Console.WriteLine("    oapp template publish            {id/name}                              Publishes a OAPP template to the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    oapp template unpublish          {id/name}                              Unpublishes a OAPP template from the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    oapp template show               {id/name}                              Shows a OAPP template for the given {id} or {name}.");
+                Console.WriteLine("    oapp template list               [all]                                  List all OAPP templates that have been created.");
+                Console.WriteLine("    oapp template list installed                                            List all OAPP templates installed for the current beamed in avatar.");
+                Console.WriteLine("    oapp template search             [all]                                  Searches the OAPP templates for the given search critera.");
                 Console.WriteLine("    happ create                                                             Shortcut to the light sub-command.");
                 Console.WriteLine("    happ update                      {id/name}                              Update an existing hApp for the given {id} or {name}.");
                 Console.WriteLine("    happ delete                      {id/name}                              Delete an existing hApp for the given {id} or {name}.");
