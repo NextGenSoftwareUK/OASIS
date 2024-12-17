@@ -342,7 +342,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         Version = "1.0.0",
                         STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion,
                         OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion,
-                        COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion
+                        COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion,
+                        DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion
                     };
 
                     await WriteOAPPDNAAsync(OAPPDNA, fullPathToOAPP);
@@ -961,9 +962,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         OAPPDNA.OAPPSourcePublishedPath = fullPathToPublishToOAPPSource;
                         OAPPDNA.OAPPSourcePublishedOnSTARNET = registerOnSTARNET;
                         OAPPDNA.OAPPSourcePublicOnSTARNET = makeOAPPSourcePublic;
-                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && (starNETPublishedOAPPBinaryProviderType != ProviderType.None || uploadOAPPToCloud);
+                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && (oappBinaryProviderType != ProviderType.None || uploadOAPPToCloud);
                         OAPPDNA.OAPPPublishedToCloud = registerOnSTARNET && uploadOAPPToCloud;
-                        OAPPDNA.OAPPPublishedProviderType = starNETPublishedOAPPBinaryProviderType;
+                        OAPPDNA.OAPPPublishedProviderType = oappBinaryProviderType;
                         OAPPDNA.Versions++;
 
                         WriteOAPPDNA(OAPPDNA, fullPathToOAPP);
@@ -1053,18 +1054,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     catch (Exception ex)
                                     {
                                         OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the OAPP to cloud storage. Reason: {ex}");
-                                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && starNETPublishedOAPPBinaryProviderType != ProviderType.None;
+                                        OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
                                         OAPPDNA.OAPPPublishedToCloud = false;
                                     }
                                 }
 
-                                if (starNETPublishedOAPPBinaryProviderType != ProviderType.None)
+                                if (oappBinaryProviderType != ProviderType.None)
                                 {
                                     //The smallest OAPP is around 250MB because of the 208MB runtimes.
                                     loadOAPPResult.Result.PublishedOAPP = File.ReadAllBytes(OAPPDNA.OAPPPublishedPath);
 
                                     //TODO: We could use HoloOASIS and other large file storage providers in future...
-                                    OASISResult<IOAPP> saveLargeOAPPResult = SaveOAPP(loadOAPPResult.Result, starNETPublishedOAPPBinaryProviderType);
+                                    OASISResult<IOAPP> saveLargeOAPPResult = SaveOAPP(loadOAPPResult.Result, oappBinaryProviderType);
 
                                     if (saveLargeOAPPResult != null && !saveLargeOAPPResult.IsError && saveLargeOAPPResult.Result != null)
                                     {
@@ -1073,7 +1074,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     }
                                     else
                                     {
-                                        OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPP binary to STARNET using the {starNETPublishedOAPPBinaryProviderType} provider. Reason: {saveLargeOAPPResult.Message}");
+                                        OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPP binary to STARNET using the {oappBinaryProviderType} provider. Reason: {saveLargeOAPPResult.Message}");
                                         OAPPDNA.OAPPPublishedOnSTARNET = registerOnSTARNET && uploadOAPPToCloud;
                                         OAPPDNA.OAPPPublishedProviderType = ProviderType.None;
                                     }

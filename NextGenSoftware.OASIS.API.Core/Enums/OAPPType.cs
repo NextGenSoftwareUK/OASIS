@@ -6,18 +6,19 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
     {
         //CelestialBodies,
         GeneratedCodeOnly,
-        Console,
-        Blazor,
-        WebMVC,
-        MAUI,
-        Unity,
-        WinForms,
-        WPF,
-        WindowsService,
-        RESTService,
-        gRPCService,
-        GraphQLService,
-        //ClassLibrary,
-        Custom
+        OAPPTemplate
+        //Console,
+        //Blazor,
+        //WebMVC,
+        //MAUI,
+        //Unity,
+        //WinForms,
+        //WPF,
+        //WindowsService,
+        //RESTService,
+        //gRPCService,
+        //GraphQLService,
+        ////ClassLibrary,
+        //Custom
     }
 }
