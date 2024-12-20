@@ -274,79 +274,94 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private static void ListQuests(OASISResult<IEnumerable<IQuest>> quests)
         {
-            if (quests != null && !quests.IsError)
+            if (quests != null)
             {
-                if (quests.Result != null && quests.Result.Count() > 0)
+                if (!quests.IsError)
                 {
-                    Console.WriteLine();
+                    if (quests.Result != null && quests.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
 
-                    if (quests.Result.Count() == 1)
-                        CLIEngine.ShowMessage($"{quests.Result.Count()} Quest Found:");
+                        if (quests.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{quests.Result.Count()} Quest Found:");
+                        else
+                            CLIEngine.ShowMessage($"{quests.Result.Count()} Quest's Found:");
+
+                        CLIEngine.ShowDivider();
+
+                        foreach (IOAPP oapp in quests.Result)
+                            ShowOAPP(oapp);
+                    }
                     else
-                        CLIEngine.ShowMessage($"{quests.Result.Count()} Quest's Found:");
-
-                    CLIEngine.ShowDivider();
-
-                    foreach (IOAPP oapp in quests.Result)
-                        ShowOAPP(oapp);
+                        CLIEngine.ShowWarningMessage("No Quest's Found.");
                 }
                 else
-                    CLIEngine.ShowWarningMessage("No Quest's Found.");
+                    CLIEngine.ShowErrorMessage($"Error occured loading Quest's. Reason: {quests.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Error occured loading Quest's. Reason: {quests.Message}");
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading Quest's.");
         }
 
         private static void ListMissions(OASISResult<IEnumerable<IMission>> missions)
         {
-            if (missions != null && !missions.IsError)
+            if (missions != null)
             {
-                if (missions.Result != null && missions.Result.Count() > 0)
+                if (!missions.IsError)
                 {
-                    Console.WriteLine();
+                    if (missions.Result != null && missions.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
 
-                    if (missions.Result.Count() == 1)
-                        CLIEngine.ShowMessage($"{missions.Result.Count()} Mission Found:");
+                        if (missions.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{missions.Result.Count()} Mission Found:");
+                        else
+                            CLIEngine.ShowMessage($"{missions.Result.Count()} Mission's Found:");
+
+                        CLIEngine.ShowDivider();
+
+                        foreach (IOAPP oapp in missions.Result)
+                            ShowOAPP(oapp);
+                    }
                     else
-                        CLIEngine.ShowMessage($"{missions.Result.Count()} Mission's Found:");
-
-                    CLIEngine.ShowDivider();
-
-                    foreach (IOAPP oapp in missions.Result)
-                        ShowOAPP(oapp);
+                        CLIEngine.ShowWarningMessage("No Mission's Found.");
                 }
                 else
-                    CLIEngine.ShowWarningMessage("No Mission's Found.");
+                    CLIEngine.ShowErrorMessage($"Error occured loading Mission's. Reason: {missions.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Error occured loading Mission's. Reason: {missions.Message}");
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading Mission's.");
         }
 
         //private static void ListHolons(OASISResult<IEnumerable<IHolon>> holons, string holonTypeName, Func<OASISResult<IHolon>, void> showHolonDelicate)
         private static void ListHolons<T>(OASISResult<IEnumerable<T>> holons, string holonTypeName, Action<IHolon> showHolonDelicate) where T : IHolon
         {
-            if (holons != null && !holons.IsError)
+            if (holons != null)
             {
-                if (holons.Result != null && holons.Result.Count() > 0)
+                if (!holons.IsError)
                 {
-                    Console.WriteLine();
+                    if (holons.Result != null && holons.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
 
-                    if (holons.Result.Count() == 1)
-                        CLIEngine.ShowMessage($"{holons.Result.Count()} {holonTypeName} Found:");
-                    else
-                        CLIEngine.ShowMessage($"{holons.Result.Count()} {holonTypeName}'s Found:");
+                        if (holons.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{holons.Result.Count()} {holonTypeName} Found:");
+                        else
+                            CLIEngine.ShowMessage($"{holons.Result.Count()} {holonTypeName}'s Found:");
 
-                    CLIEngine.ShowDivider();
+                        CLIEngine.ShowDivider();
 
-                    foreach (IOAPP oapp in holons.Result)
-                        showHolonDelicate(oapp);
+                        foreach (IOAPP oapp in holons.Result)
+                            showHolonDelicate(oapp);
                         //ShowOAPP(oapp);
+                    }
+                    else
+                        CLIEngine.ShowWarningMessage($"No {holonTypeName}'s Found.");
                 }
                 else
-                    CLIEngine.ShowWarningMessage($"No {holonTypeName}'s Found.");
+                    CLIEngine.ShowErrorMessage($"Error occured loading {holonTypeName}'s. Reason: {holons.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Error occured loading {holonTypeName}'s. Reason: {holons.Message}");
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading {holonTypeName}'s.");
         }
     }
 }

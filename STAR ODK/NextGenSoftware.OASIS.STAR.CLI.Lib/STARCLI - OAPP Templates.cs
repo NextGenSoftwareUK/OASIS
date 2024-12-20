@@ -84,6 +84,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
+
+
         public static void ShowOAPPTemplate(IOAPPTemplate oappTemplate)
         {
             CLIEngine.ShowMessage(string.Concat($"Id:                                         ", oappTemplate.Id != Guid.Empty ? oappTemplate.Id : "None"));
@@ -124,16 +126,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             if (oappTemplates != null)
             { 
-                if (oappTemplates != null && !oappTemplates.IsError)
+                if (!oappTemplates.IsError)
                 {
                     if (oappTemplates.Result != null && oappTemplates.Result.Count() > 0)
                     {
                         Console.WriteLine();
 
                         if (oappTemplates.Result.Count() == 1)
-                            CLIEngine.ShowMessage($"{oappTemplates.Result.Count()} OAPP Found:");
+                            CLIEngine.ShowMessage($"{oappTemplates.Result.Count()} OAPP Templates Found:");
                         else
-                            CLIEngine.ShowMessage($"{oappTemplates.Result.Count()} OAPP's Found:");
+                            CLIEngine.ShowMessage($"{oappTemplates.Result.Count()} OAPP Templates Found:");
 
                         CLIEngine.ShowDivider();
 
@@ -143,10 +145,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         ShowOAPPListFooter();
                     }
                     else
-                        CLIEngine.ShowWarningMessage("No OAPP's Found.");
+                        CLIEngine.ShowWarningMessage("No OAPP Templates Found.");
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error occured loading OAPP's. Reason: {oappTemplates.Message}");
+                    CLIEngine.ShowErrorMessage($"Error occured loading OAPP Temmplates. Reason: {oappTemplates.Message}");
             }
             else
                 CLIEngine.ShowErrorMessage($"Unknown error occured loading OAPP Templates.");
