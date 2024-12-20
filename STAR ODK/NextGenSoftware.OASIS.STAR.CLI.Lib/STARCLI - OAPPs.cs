@@ -1152,29 +1152,34 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private static void ListOAPPs(OASISResult<IEnumerable<IOAPP>> oapps)
         {
-            if (oapps != null && !oapps.IsError)
-            {
-                if (oapps.Result != null && oapps.Result.Count() > 0)
+            if (oapps != null)
+            { 
+                if (!oapps.IsError)
                 {
-                    Console.WriteLine();
+                    if (oapps.Result != null && oapps.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
 
-                    if (oapps.Result.Count() == 1)
-                        CLIEngine.ShowMessage($"{oapps.Result.Count()} OAPP Found:");
+                        if (oapps.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{oapps.Result.Count()} OAPP Found:");
+                        else
+                            CLIEngine.ShowMessage($"{oapps.Result.Count()} OAPP's Found:");
+
+                        CLIEngine.ShowDivider();
+
+                        foreach (IOAPP oapp in oapps.Result)
+                            ShowOAPP(oapp);
+
+                        ShowOAPPListFooter();
+                    }
                     else
-                        CLIEngine.ShowMessage($"{oapps.Result.Count()} OAPP's Found:");
-
-                    CLIEngine.ShowDivider();
-
-                    foreach (IOAPP oapp in oapps.Result)
-                        ShowOAPP(oapp);
-
-                    ShowOAPPListFooter();
+                        CLIEngine.ShowWarningMessage("No OAPP's Found.");
                 }
                 else
-                    CLIEngine.ShowWarningMessage("No OAPP's Found.");
+                    CLIEngine.ShowErrorMessage($"Error occured loading OAPP's. Reason: {oapps.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Error occured loading OAPP's. Reason: {oapps.Message}");
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading OAPP's.");
         }
 
         private static void ListInstalledOAPPs(OASISResult<IEnumerable<IInstalledOAPP>> oapps)

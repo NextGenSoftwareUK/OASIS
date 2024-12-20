@@ -103,27 +103,32 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private static void ListInventoryItems(OASISResult<IEnumerable<IInventoryItem>> inventoryItems)
         {
-            if (inventoryItems != null && !inventoryItems.IsError)
+            if (inventoryItems != null)
             {
-                if (inventoryItems.Result != null && inventoryItems.Result.Count() > 0)
+                if (!inventoryItems.IsError)
                 {
-                    Console.WriteLine();
+                    if (inventoryItems.Result != null && inventoryItems.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
 
-                    if (inventoryItems.Result.Count() == 1)
-                        CLIEngine.ShowMessage($"{inventoryItems.Result.Count()} Inventory Item Found:");
+                        if (inventoryItems.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{inventoryItems.Result.Count()} Inventory Item Found:");
+                        else
+                            CLIEngine.ShowMessage($"{inventoryItems.Result.Count()} Inventory Item's Found:");
+
+                        CLIEngine.ShowDivider();
+
+                        foreach (IOAPP oapp in inventoryItems.Result)
+                            ShowOAPP(oapp);
+                    }
                     else
-                        CLIEngine.ShowMessage($"{inventoryItems.Result.Count()} Inventory Item's Found:");
-
-                    CLIEngine.ShowDivider();
-
-                    foreach (IOAPP oapp in inventoryItems.Result)
-                        ShowOAPP(oapp);
+                        CLIEngine.ShowWarningMessage("No Inventory Item's Found.");
                 }
                 else
-                    CLIEngine.ShowWarningMessage("No Inventory Item's Found.");
+                    CLIEngine.ShowErrorMessage($"Error occured loading Inventory Item's. Reason: {inventoryItems.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Error occured loading Inventory Item's. Reason: {inventoryItems.Message}");
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading Inventory Item's.");
         }
     }
 }

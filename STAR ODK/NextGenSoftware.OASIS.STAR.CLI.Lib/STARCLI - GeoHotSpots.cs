@@ -153,29 +153,34 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Version: ", mission.Version));
         }
 
-        private static void ListGeoHotSpots(OASISResult<IEnumerable<IGeoHotSpot>> missions)
+        private static void ListGeoHotSpots(OASISResult<IEnumerable<IGeoHotSpot>> geoHotSpots)
         {
-            if (missions != null && !missions.IsError)
+            if (geoHotSpots != null)
             {
-                if (missions.Result != null && missions.Result.Count() > 0)
+                if (!geoHotSpots.IsError)
                 {
-                    Console.WriteLine();
+                    if (geoHotSpots.Result != null && geoHotSpots.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
 
-                    if (missions.Result.Count() == 1)
-                        CLIEngine.ShowMessage($"{missions.Result.Count()} GeoHotSpot Found:");
+                        if (geoHotSpots.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{geoHotSpots.Result.Count()} GeoHotSpot Found:");
+                        else
+                            CLIEngine.ShowMessage($"{geoHotSpots.Result.Count()} GeoHotSpot's Found:");
+
+                        CLIEngine.ShowDivider();
+
+                        foreach (IOAPP oapp in geoHotSpots.Result)
+                            ShowOAPP(oapp);
+                    }
                     else
-                        CLIEngine.ShowMessage($"{missions.Result.Count()} GeoHotSpot's Found:");
-
-                    CLIEngine.ShowDivider();
-
-                    foreach (IOAPP oapp in missions.Result)
-                        ShowOAPP(oapp);
+                        CLIEngine.ShowWarningMessage("No GeoHotSpot's Found.");
                 }
                 else
-                    CLIEngine.ShowWarningMessage("No GeoHotSpot's Found.");
+                    CLIEngine.ShowErrorMessage($"Error occured loading GeoHotSpot's. Reason: {geoHotSpots.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Error occured loading GeoHotSpot's. Reason: {missions.Message}");
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading GeoHotSpot's.");
         }
     }
 }

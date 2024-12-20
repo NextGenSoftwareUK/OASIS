@@ -502,52 +502,62 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private static void ListNFTs(OASISResult<IEnumerable<IOASISNFT>> nftsResult)
         {
-            if (nftsResult != null && !nftsResult.IsError)
+            if (nftsResult != null)
             {
-                if (nftsResult.Result != null && nftsResult.Result.Count() > 0)
+                if (!nftsResult.IsError)
                 {
-                    Console.WriteLine();
+                    if (nftsResult.Result != null && nftsResult.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
 
-                    if (nftsResult.Result.Count() == 1)
-                        CLIEngine.ShowMessage($"{nftsResult.Result.Count()} NFT Found:");
+                        if (nftsResult.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{nftsResult.Result.Count()} NFT Found:");
+                        else
+                            CLIEngine.ShowMessage($"{nftsResult.Result.Count()} NFT's' Found:");
+
+                        CLIEngine.ShowDivider();
+
+                        foreach (IOASISGeoSpatialNFT geoNFT in nftsResult.Result)
+                            ShowGeoNFT(geoNFT);
+                    }
                     else
-                        CLIEngine.ShowMessage($"{nftsResult.Result.Count()} NFT's' Found:");
-
-                    CLIEngine.ShowDivider();
-
-                    foreach (IOASISGeoSpatialNFT geoNFT in nftsResult.Result)
-                        ShowGeoNFT(geoNFT);
+                        CLIEngine.ShowWarningMessage("No NFT's Found.");
                 }
                 else
-                    CLIEngine.ShowWarningMessage("No NFT's Found.");
+                    CLIEngine.ShowErrorMessage($"Error occured loading NFT's. Reason: {nftsResult.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Error occured loading NFT's. Reason: {nftsResult.Message}");
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading NFT's.");
         }
 
         private static void ListGeoNFTs(OASISResult<IEnumerable<IOASISGeoSpatialNFT>> geonftsResult)
         {
-            if (geonftsResult != null && !geonftsResult.IsError)
+            if (geonftsResult != null)
             {
-                if (geonftsResult.Result != null && geonftsResult.Result.Count() > 0)
+                if (!geonftsResult.IsError)
                 {
-                    Console.WriteLine();
+                    if (geonftsResult.Result != null && geonftsResult.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
 
-                    if (geonftsResult.Result.Count() == 1)
-                        CLIEngine.ShowMessage($"{geonftsResult.Result.Count()} Geo-NFT Found:");
+                        if (geonftsResult.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{geonftsResult.Result.Count()} Geo-NFT Found:");
+                        else
+                            CLIEngine.ShowMessage($"{geonftsResult.Result.Count()} Geo-NFT's' Found:");
+
+                        CLIEngine.ShowDivider();
+
+                        foreach (IOASISGeoSpatialNFT geoNFT in geonftsResult.Result)
+                            ShowGeoNFT(geoNFT);
+                    }
                     else
-                        CLIEngine.ShowMessage($"{geonftsResult.Result.Count()} Geo-NFT's' Found:");
-
-                    CLIEngine.ShowDivider();
-
-                    foreach (IOASISGeoSpatialNFT geoNFT in geonftsResult.Result)
-                        ShowGeoNFT(geoNFT);
+                        CLIEngine.ShowWarningMessage("No Geo-NFT's Found.");
                 }
                 else
-                    CLIEngine.ShowWarningMessage("No Geo-NFT's Found.");
+                    CLIEngine.ShowErrorMessage($"Error occured loading Geo-NFT's. Reason: {geonftsResult.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Error occured loading Geo-NFT's. Reason: {geonftsResult.Message}");
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading Geo-NFT's.");
         }
     }
 }
