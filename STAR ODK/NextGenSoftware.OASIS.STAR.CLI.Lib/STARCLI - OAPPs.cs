@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
+using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -1286,7 +1287,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private static void OAPPs_OnOAPPPublishStatusChanged(object sender, API.ONODE.Core.Events.OAPPPublishStatusEventArgs e)
+        private static void OAPPs_OnOAPPPublishStatusChanged(object sender, OAPPPublishStatusEventArgs e)
         {
             switch (e.Status)
             {
@@ -1316,7 +1317,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }  
         }
 
-        private static void OAPPs_OnOAPPUploadStatusChanged(object sender, API.ONODE.Core.Events.OAPPUploadProgressEventArgs e)
+        private static void OAPPs_OnOAPPUploadStatusChanged(object sender, OAPPUploadProgressEventArgs e)
         {
             //CLIEngine.ShowProgressBar(e.Progress, true);
             //CLIEngine.ShowProgressBar(e.Progress);
@@ -1325,7 +1326,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowProgressBar((double)e.Progress / (double)100);
         }
 
-        private static void OAPPs_OnOAPPInstallStatusChanged(object sender, API.ONODE.Core.Events.OAPPInstallStatusEventArgs e)
+        private static void OAPPs_OnOAPPInstallStatusChanged(object sender, OAPPInstallStatusEventArgs e)
         {
             switch (e.Status)
             {
@@ -1348,7 +1349,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        private static void OAPPs_OnOAPPDownloadStatusChanged(object sender, API.ONODE.Core.Events.OAPPDownloadProgressEventArgs e)
+        private static void OAPPs_OnOAPPDownloadStatusChanged(object sender, OAPPDownloadProgressEventArgs e)
         {
             //CLIEngine.ShowProgressBar(e.Progress, true);
             //LIEngine.ShowProgressBar(e.Progress);
