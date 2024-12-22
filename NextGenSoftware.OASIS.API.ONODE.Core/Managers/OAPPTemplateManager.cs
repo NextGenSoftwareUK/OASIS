@@ -42,8 +42,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
 
-            if (!Directory.Exists(oappTemplate.OAPPTemplatePath))
-                Directory.CreateDirectory(oappTemplate.OAPPTemplatePath);
+            //if (!Directory.Exists(oappTemplate.OAPPTemplatePath))
+            //    Directory.CreateDirectory(oappTemplate.OAPPTemplatePath);
+
+            if (!Directory.Exists(oappTemplate.OAPPTemplateDNA.OAPPTemplatePath))
+                Directory.CreateDirectory(oappTemplate.OAPPTemplateDNA.OAPPTemplatePath);
 
             OASISResult<OAPPTemplate> saveResult = await SaveHolonAsync<OAPPTemplate>(oappTemplate, avatarId, providerType, "OAPPTemplateManager.SaveOAPPTemplateAsync");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
@@ -55,8 +58,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
 
-            if (!Directory.Exists(oappTemplate.OAPPTemplatePath))
-                Directory.CreateDirectory(oappTemplate.OAPPTemplatePath);
+            //if (!Directory.Exists(oappTemplate.OAPPTemplatePath))
+            //    Directory.CreateDirectory(oappTemplate.OAPPTemplatePath);
+
+            if (!Directory.Exists(oappTemplate.OAPPTemplateDNA.OAPPTemplatePath))
+                Directory.CreateDirectory(oappTemplate.OAPPTemplateDNA.OAPPTemplatePath);
 
             OASISResult<OAPPTemplate> saveResult = SaveHolon<OAPPTemplate>(oappTemplate, avatarId, providerType, "OAPPTemplateManager.SaveOAPPTemplate");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
@@ -118,19 +124,37 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(Guid inventoryId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(Guid oappTemplateId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<OAPPTemplate> loadHolonsResult = await DeleteHolonAsync<OAPPTemplate>(inventoryId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
+            OASISResult<OAPPTemplate> loadHolonsResult = await DeleteHolonAsync<OAPPTemplate>(oappTemplateId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
         }
 
-        public OASISResult<IOAPPTemplate> DeleteOAPPTemplate(Guid inventoryId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> DeleteOAPPTemplate(Guid oappTemplateId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<OAPPTemplate> loadHolonsResult = DeleteHolon<OAPPTemplate>(inventoryId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplate");
+            OASISResult<OAPPTemplate> loadHolonsResult = DeleteHolon<OAPPTemplate>(oappTemplateId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplate");
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(IOAPPTemplate oappTemplate, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<OAPPTemplate> loadHolonsResult = await DeleteHolonAsync<OAPPTemplate>(oappTemplate.Id, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
+        public OASISResult<IOAPPTemplate> DeleteOAPPTemplate(IOAPPTemplate oappTemplate, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<OAPPTemplate> loadHolonsResult = DeleteHolon<OAPPTemplate>(oappTemplate.Id, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplate");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;

@@ -3,16 +3,19 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces
 {
-    public interface IOAPPTemplate : IPublishableHolon
+    public interface IOAPPTemplate : IHolon // : IPublishableHolon
     {
-       public OAPPTemplateType OAPPTemplateType { get; set; }
-       public string OAPPTemplatePath { get; set; }
-       public string OAPPTemplatePublishedPath { get; set; }
-       public bool OAPPTemplatePublishedOnSTARNET { get; set; }
-       public bool OAPPTemplatePublishedToCloud { get; set; }
-       public ProviderType OAPPTemplatePublishedProviderType { get; set; }
-       public long OAPPTemplateFileSize { get; set; }
-       public int Versions { get; set; } 
-       public int Downloads { get; set; }
+        IOAPPTemplateDNA OAPPTemplateDNA { get; set; }
+        byte[] PublishedOAPPTemplate { get; set; }
+
+       // OAPPTemplateType OAPPTemplateType { get; set; }
+       //public string OAPPTemplatePath { get; set; }
+       //public string OAPPTemplatePublishedPath { get; set; }
+       //public bool OAPPTemplatePublishedOnSTARNET { get; set; }
+       //public bool OAPPTemplatePublishedToCloud { get; set; }
+       //public ProviderType OAPPTemplatePublishedProviderType { get; set; }
+       //public long OAPPTemplateFileSize { get; set; }
+       //public int Versions { get; set; } 
+       //public int Downloads { get; set; }
     }
 }
