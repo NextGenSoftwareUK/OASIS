@@ -1,6 +1,6 @@
 {
   //TODO: If BasePath is blank then all other paths below are absolute otherwise they are relative.
-  "BasePath": "C:\\OASIS\\STAR ODK", //TODO: Need to get this from code rather than hard coding! Need to fix the whole pathing to templates etc ASAP!
+  "BasePath": "C:\\OASIS\\STAR ODK",
   "OASISRunTimePath": "Runtimes\\OASIS Runtime\\OASIS Runtime (With Holochain Conductors Embedded) v3.3.1",
   "STARRunTimePath": "Runtimes\\STAR Runtime\\STAR ODK Runtime v2.2.0 (With OASIS Runtime v3.3.1 HC Conductor Embedded)",
   "OAPPDNATemplatePath": "STAR OAPP DNA Templates",
@@ -54,5 +54,6 @@
   "DefaultStarId": "",
   "DefaultPlanetId": "",
   "DefaultPublishedOAPPsPath": "PublishedOAPPs", //Can be releative to BasePath above or absolute.
-  "DefaultInstalledOAPPsPath": "InstalledOAPPs" //Can be releative to BasePath above or absolute.
+  "DefaultInstalledOAPPsPath": "InstalledOAPPs", //Can be releative to BasePath above or absolute.
+  "DefaultInstalledOAPPTemplatesPath": "InstalledOAPPTemplates" //Can be releative to BasePath above or absolute.
 }

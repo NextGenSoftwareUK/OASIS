@@ -1293,7 +1293,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         {
                             InstalledOAPP installedOAPP = new InstalledOAPP()
                             {
-                                OAPPId = OAPPDNAResult.Result.OAPPId,
+                                //OAPPId = OAPPDNAResult.Result.OAPPId,
                                 OAPPDNA = OAPPDNAResult.Result,
                                 InstalledBy = avatarId,
                                 InstalledByAvatarUsername = avatarResult.Result.Username,
@@ -1371,7 +1371,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     {
                         InstalledOAPP installedOAPP = new InstalledOAPP()
                         {
-                            OAPPId = OAPPDNAResult.Result.OAPPId,
+                            //OAPPId = OAPPDNAResult.Result.OAPPId,
                             OAPPDNA = OAPPDNAResult.Result,
                             InstalledBy = avatarId,
                             InstalledByAvatarUsername = avatarResult.Result.Username,
