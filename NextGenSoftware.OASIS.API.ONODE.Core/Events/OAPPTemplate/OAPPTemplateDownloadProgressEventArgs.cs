@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Events
     {
         public IOAPPTemplateDNA OAPPTemmplateDNA { get; set; }
         public int Progress { get; set; }
-        public OAPPDownloadStatus Status { get; set; }
+        public OAPPTemplateDownloadStatus Status { get; set; }
         public string ErrorMessage { get; set; }
     }
 }

@@ -296,29 +296,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                //TODO: Phase this out ASAP!
                 OAPP OAPP = new OAPP()
                 {
                     Id = Guid.NewGuid(),
                     Name = OAPPName,
                     Description = OAPPDescription,
-                    //CelestialBody = celestialBody, //The CelestialBody that represents the OAPP (if any).
-                    //CelestialBodyId = celestialBody != null ? celestialBody.Id : Guid.Empty,
-                    //OAPPType = OAPPType,
-                    //GenesisType = genesisType,
                 };
-
-                //if (celestialBody != null)
-                //{
-                //    foreach (IZome zome in celestialBody.CelestialBodyCore.Zomes)
-                //        OAPP.Children.Add(zome);
-                //}
-
-                //if (zomes != null)
-                //{
-                //    foreach (IZome zome in zomes)
-                //        OAPP.Children.Add(zome);
-                //}
 
                 OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
@@ -349,17 +332,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     await WriteOAPPDNAAsync(OAPPDNA, fullPathToOAPP);
 
                     OAPP.OAPPDNA = OAPPDNA;
-                    //OAPP.MetaData["OAPPDNAJSON"] = JsonSerializer.Serialize(OAPPDNA); //Store the OAPPDNA in the db so it can be verified later against the file OASISDNA when publishing, installing etc to make sure its not been tampered with.
-                    //OAPP.OAPPDNA = JsonSerializer.Serialize(OAPPDNA); //OAPPDNA;
                     OASISResult<OAPP> saveHolonResult = await Data.SaveHolonAsync<OAPP>(OAPP, avatarId, true, true, 0, true, false, providerType);
 
                     if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
                     {
                         if (celestialBody != null)
                         {
-                            //celestialBody.MetaData["OAPPID"] = saveHolonResult.Result.Id; //Store a link to the OAPP on the CelestialBody.
-                            //celestialBody.MetaData["OAPP"] = JsonSerializer.Serialize(saveHolonResult.Result); //TODO: Don't think we need to store the whole OAPP here (especially since it extends Holon so has a LOT of props) and is duplicated when the OAPP can be easily loaded from the ID.
-
                             OASISResult<ICelestialBody> celestialBodyResult = await celestialBody.SaveAsync(true, true, 0, true, false, providerType);
 
                             if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
@@ -398,10 +376,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     Id = Guid.NewGuid(),
                     Name = OAPPName,
                     Description = OAPPDescription,
-                    //CelestialBody = celestialBody, //The CelestialBody that represents the OAPP (if any).
-                    //CelestialBodyId = celestialBody != null ? celestialBody.Id : Guid.Empty,
-                    //OAPPType = OAPPType,
-                    //GenesisType = genesisType,
                 };
 
                 if (zomes != null)
@@ -435,16 +409,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     WriteOAPPDNA(OAPPDNA, fullPathToOAPP);
 
                     OAPP.MetaData["OAPPDNAJSON"] = JsonSerializer.Serialize(OAPPDNA); //Store the OAPPDNA in the db so it can be verified later against the file OASISDNA when publishing, installing etc to make sure its not been tampered with.
-                    //OAPP.OAPPDNA = OAPPDNA;
                     OASISResult<IHolon> saveHolonResult = Data.SaveHolon(OAPP, avatarId, true, true, 0, true, false, providerType);
 
                     if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
                     {
                         if (celestialBody != null)
                         {
-                            //celestialBody.MetaData["OAPPID"] = saveHolonResult.Result.Id;
-                            //celestialBody.MetaData["OAPP"] = JsonSerializer.Serialize(saveHolonResult.Result); //TODO: Don't think we need to store the whole OAPP here (especially since it extends Holon so has a LOT of props) and is duplicated when the OAPP can be easily loaded from the ID.
-
                             OASISResult<ICelestialBody> celestialBodyResult = celestialBody.Save(true, true, 0, true, false, providerType);
 
                             if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
