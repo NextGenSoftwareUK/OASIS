@@ -6,8 +6,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Events
 {
     public class OAPPTemplateInstallStatusEventArgs : EventArgs
     {
-        public IOAPPTemplateDNA OAPPTemmplateDNA { get; set; }
-        public OAPPInstallStatus Status { get; set; }
+        public IOAPPTemplateDNA OAPPTemplateDNA { get; set; }
+        public OAPPTemplateInstallStatus Status { get; set; }
         public string ErrorMessage { get; set; }
     }
 }

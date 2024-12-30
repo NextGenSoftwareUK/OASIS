@@ -1,10 +1,10 @@
 ﻿using System;
-using NextGenSoftware.OASIS.API.Core.Holons;
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
@@ -17,8 +17,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
             this.HolonType = HolonType.InstalledOAPP;
         }
 
-        [CustomOASISProperty]
-        public Guid OAPPId { get; set; }
+        //[CustomOASISProperty]
+        //public Guid OAPPId { get; set; }
 
         // [CustomOASISProperty(StoreAsJsonString = true)] //TODO: Get this working later on so we dont need to do the manual code below.
         //public IOAPPDNA OAPPDNA { get; set; }
