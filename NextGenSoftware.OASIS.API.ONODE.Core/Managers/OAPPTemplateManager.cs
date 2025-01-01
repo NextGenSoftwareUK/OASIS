@@ -310,15 +310,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         }
         #endregion
 
-        public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> SearchOAPPTemplatesAsync(string OAPPTemplateName, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
-
-            LoadAllOAPPTemplates
-
-            return result;
-        }
-
         /*
         #region PublishManagerBase
         public async Task<OASISResult<IOAPPTemplate>> PublishOAPPTemplateAsync(Guid OAPPTemplateId, Guid avatarId, ProviderType providerType = ProviderType.Default)
