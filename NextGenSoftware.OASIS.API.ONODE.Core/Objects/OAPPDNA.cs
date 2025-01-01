@@ -48,6 +48,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         public long OAPPSourceFileSize { get; set; }
         public bool IsActive { get; set; }
         public OAPPType OAPPType { get; set; }
+        public OAPPTemplateType OAPPTemplateType { get; set; }
+        public Guid OAPPTemplateId { get; set; }
         public GenesisType GenesisType { get; set; }
         //public ICelestialBody CelestialBody { get; set; } //optional
         public Guid CelestialBodyId { get; set; }
