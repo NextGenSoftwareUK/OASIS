@@ -19,7 +19,6 @@ using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using Google.Cloud.Storage.V1;
-using static NextGenSoftware.OASIS.API.ONode.Core.Managers.OAPPManager;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 
@@ -289,7 +288,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPDNA>> CreateOAPPAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, Guid avatarId, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPDNA>> CreateOAPPAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, Guid avatarId, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.CreateOAPPAsync, Reason:";
@@ -318,6 +317,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         CelestialBodyType = celestialBody != null ? celestialBody.HolonType : HolonType.None,
                         //Zomes = zomes, //Can be either zomes of CelestialBody but not both (zomes are contained in CelestialBody) but if no CelestialBody is generated then this prop is used instead.
                         OAPPType = OAPPType,
+                        OAPPTemplateType = OAPPTemplateType,
+                        OAPPTemplateId = OAPPTemplateId,
                         GenesisType = genesisType,
                         CreatedByAvatarId = avatarId,
                         CreatedByAvatarUsername = avatarResult.Result.Username,
@@ -364,7 +365,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             return result;
         }
-        public OASISResult<IOAPPDNA> CreateOAPP(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, Guid avatarId, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPDNA> CreateOAPP(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, Guid avatarId, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPDNA> result = new OASISResult<IOAPPDNA>();
             string errorMessage = "Error occured in OAPPManager.CreateOAPP, Reason:";
@@ -399,6 +400,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         CelestialBodyType = celestialBody != null ? celestialBody.HolonType : HolonType.None,
                         //Zomes = zomes, //Can be either zomes of CelestialBody but not both (zomes are contained in CelestialBody) but if no CelestialBody is generated then this prop is used instead.
                         OAPPType = OAPPType,
+                        OAPPTemplateType = OAPPTemplateType,
+                        OAPPTemplateId = OAPPTemplateId,
                         GenesisType = genesisType,
                         CreatedByAvatarId = avatarId,
                         CreatedByAvatarUsername = avatarResult.Result.Username,

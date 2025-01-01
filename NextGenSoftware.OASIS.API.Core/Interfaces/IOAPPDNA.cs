@@ -19,6 +19,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Guid OAPPId { get; set; }
         string OAPPName { get; set; }
         OAPPType OAPPType { get; set; }
+        OAPPTemplateType OAPPTemplateType { get; set; }
+        Guid OAPPTemplateId { get; set; }
         Guid PublishedByAvatarId { get; set; }
         //public string PublishedByAvatarName { get; set; }
         public string PublishedByAvatarUsername { get; set; }

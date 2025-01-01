@@ -24,6 +24,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public static async Task LightWizardAsync(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<CoronalEjection> lightResult = null;
+            object enumValue = null;
+            OAPPType OAPPType = OAPPType.OAPPTemplate;
+            OAPPTemplateType OAPPTemplateType = OAPPTemplateType.Console;
+            Guid OAPPTemplateId = Guid.Empty;
+            long ourWorldLat = 0;
+            long ourWorldLong = 0;
+            long oneWorlddLat = 0;
+            long oneWorldLong = 0;
+            string ourWorld3dObjectPath = "";
+            byte[] ourWorld3dObject = null;
+            Uri ourWorld3dObjectURI = null;
+            string ourWorld2dSpritePath = "";
+            byte[] ourWorld2dSprite = null;
+            Uri ourWorld2dSpriteURI = null;
+            string oneWorld3dObjectPath = "";
+            byte[] oneWorld3dObject = null;
+            Uri oneWorld3dObjectURI = null;
+            string oneWorld2dSpritePath = "";
+            byte[] oneWorld2dSprite = null;
+            Uri oneWorld2dSpriteURI = null;
 
             CLIEngine.ShowDivider();
             CLIEngine.ShowMessage("Welcome to the OASIS Omniverse/MagicVerse Light Wizard!");
@@ -52,263 +72,265 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (OAPPDesc == "exit")
                 return;
 
-            object value = CLIEngine.GetValidInputForEnum("What type of OAPP do you wish to create?", typeof(OAPPType));
-            long ourWorldLat = 0;
-            long ourWorldLong = 0;
-            long oneWorlddLat = 0;
-            long oneWorldLong = 0;
-            string ourWorld3dObjectPath = "";
-            byte[] ourWorld3dObject = null;
-            Uri ourWorld3dObjectURI = null;
-            string ourWorld2dSpritePath = "";
-            byte[] ourWorld2dSprite = null;
-            Uri ourWorld2dSpriteURI = null;
-
-            string oneWorld3dObjectPath = "";
-            byte[] oneWorld3dObject = null;
-            Uri oneWorld3dObjectURI = null;
-            string oneWorld2dSpritePath = "";
-            byte[] oneWorld2dSprite = null;
-            Uri oneWorld2dSpriteURI = null;
-
-            if (value != null)
+            if (CLIEngine.GetConfirmation("Do you want to create the OAPP from an OAPP Template or do you want to generate the code only? Select 'Y' for OAPPTemplate or 'N' for Generated Code Only."))
             {
-                if (value.ToString() == "exit")
+                enumValue = CLIEngine.GetValidInputForEnum("What type of OAPP Template do you wish to use?", typeof(OAPPTemplateType));
+
+                if (enumValue != null)
+                {
+                    if (enumValue.ToString() == "exit")
+                        return;
+                    else
+                    {
+                        OAPPTemplateType = (OAPPTemplateType)enumValue;
+
+                        if (CLIEngine.GetConfirmation("Do you know the GUID/ID of the OAPP Template?"))
+                            OAPPTemplateId = CLIEngine.GetValidInputForGuid("What is the GUID/ID?");
+                        else
+                        {
+                            if (CLIEngine.GetConfirmation("Do you know the name of the OAPP Template?"))
+                            {
+                                string OAPPTemplateName = CLIEngine.GetValidInput("What is the name?");
+
+                                STAR.OASISAPI.OAPPTemplates.Sear
+
+                            }
+                        }
+                    }
+                }
+            }
+            else
+                OAPPType = OAPPType.GeneratedCodeOnly;
+
+            //TODO: I think star bang was going to be used to create non OAPP Celestial bodies or spaces outside of the magic verse.
+            //if (CLIEngine.GetConfirmation("Do you wish the OAPP to be part of the MagicVerse within the OASIS Omniverse (will optionally appear in Our World/AR World)? If you say yes then new avatars will only be able to create moons that orbit Our World until you reach karma level 33 where you will then be able to create planets, when you reach level 77 you can create stars. If you select no then you can create whatever you like outside of the MagicVerse but it will still be within the OASIS Omniverse."))
+            //{
+
+            //}
+
+            if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the AR geo-location Our World/AR World game/platform? (recommeneded)"))
+            {
+                Console.WriteLine("");
+                ourWorldLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in Our World/AR World?");
+
+                if (ourWorldLat == -1)
                     return;
 
-                OAPPType OAPPType = (OAPPType)value;
+                ourWorldLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your OAPP to appear in Our World/AR World?");
 
-                //TODO: I think star bang was going to be used to create non OAPP Celestial bodies or spaces outside of the magic verse.
-                //if (CLIEngine.GetConfirmation("Do you wish the OAPP to be part of the MagicVerse within the OASIS Omniverse (will optionally appear in Our World/AR World)? If you say yes then new avatars will only be able to create moons that orbit Our World until you reach karma level 33 where you will then be able to create planets, when you reach level 77 you can create stars. If you select no then you can create whatever you like outside of the MagicVerse but it will still be within the OASIS Omniverse."))
+                if (ourWorldLong == -1)
+                    return;
+
+                if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your OAPP? Press Y for 3D or N for 2D."))
+                {
+                    Console.WriteLine("");
+
+                    if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
+                    {
+                        Console.WriteLine("");
+                        ourWorld3dObjectPath = CLIEngine.GetValidFile("What is the full path to the local 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                        if (ourWorld3dObjectPath == "exit")
+                            return;
+
+                        ourWorld3dObject = File.ReadAllBytes(ourWorld3dObjectPath);
+
+                    }
+                    else
+                    {
+                        Console.WriteLine("");
+                        ourWorld3dObjectURI = await CLIEngine.GetValidURIAsync("What is the URI to the 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                        if (ourWorld3dObjectURI == null)
+                            return;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("");
+
+                    if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
+                    {
+                        Console.WriteLine("");
+                        ourWorld2dSpritePath = CLIEngine.GetValidFile("What is the full path to the local 2d sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+
+                        if (ourWorld2dSpritePath == "exit")
+                            return;
+
+                        ourWorld2dSprite = File.ReadAllBytes(ourWorld2dSpritePath);
+                    }
+                    else
+                    {
+                        Console.WriteLine("");
+                        ourWorld2dSpriteURI = await CLIEngine.GetValidURIAsync("What is the URI to the 2D sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+
+                        if (ourWorld3dObjectURI == null)
+                            return;
+                    }
+                }
+            }
+            else
+                Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the Open World MMORPG One World game/platform? (recommeneded)"))
+            {
+                Console.WriteLine("");
+                oneWorlddLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in One World?");
+
+                if (oneWorlddLat == -1)
+                    return;
+
+                oneWorldLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your OAPP to appear in One World?");
+
+                if (oneWorldLong == -1)
+                    return;
+
+                if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your OAPP within One World? Press Y for 3D or N for 2D."))
+                {
+                    Console.WriteLine("");
+
+                    if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
+                    {
+                        Console.WriteLine("");
+                        oneWorld3dObjectPath = CLIEngine.GetValidFile("What is the full path to the local 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                        if (oneWorld3dObjectPath == "exit")
+                            return;
+
+                        oneWorld3dObject = File.ReadAllBytes(oneWorld3dObjectPath);
+                    }
+                    else
+                    {
+                        Console.WriteLine("");
+                        oneWorld3dObjectURI = await CLIEngine.GetValidURIAsync("What is the URI to the 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                        if (oneWorld3dObjectURI == null)
+                            return;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("");
+
+                    if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
+                    {
+                        Console.WriteLine("");
+                        oneWorld2dSpritePath = CLIEngine.GetValidFile("What is the full path to the local 2d sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+
+                        if (oneWorld2dSpritePath == "exit")
+                            return;
+
+                        oneWorld2dSprite = File.ReadAllBytes(oneWorld2dSpritePath);
+                    }
+                    else
+                    {
+                        Console.WriteLine("");
+                        oneWorld2dSpriteURI = await CLIEngine.GetValidURIAsync("What is the URI to the 2D sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+
+                        if (oneWorld2dSpriteURI == null)
+                            return;
+                    }
+                }
+            }
+            else
+                Console.WriteLine("");
+
+            enumValue = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create? (New avatars will only be able to create moons that orbit Our World until you reach karma level 33 where you will then be able to create planets, when you reach level 77 you can create stars & beyond 77 you can create Galaxies and even entire Universes in your jounrey to become fully God realised!.)", typeof(GenesisType));
+
+            if (enumValue != null)
+            {
+                if (enumValue.ToString() == "exit")
+                    return;
+
+                GenesisType genesisType = (GenesisType)enumValue;
+                string dnaFolder = "";
+
+                //if (CLIEngine.GetConfirmation("Do you wish to create the CelestialBody/Zomes/Holons DNA now? (Enter 'n' if you already have a folder containing the DNA)."))
                 //{
+                //    //string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
+                //    //string holonName = CLIEngine.GetValidInput("What is the name of the Holon (OASIS Data Object)?");
+                //    //string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
+                //    //object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(HolonPropType));
 
+                //    //TODO:Come back to this.
                 //}
+                //else
+                dnaFolder = CLIEngine.GetValidFolder("What is the path to the CelestialBody/Zomes/Holons DNA?", false);
 
+                if (dnaFolder == "exit")
+                    return;
 
-                if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the AR geo-location Our World/AR World game/platform? (recommeneded)"))
+                if (Directory.Exists(dnaFolder) && Directory.GetFiles(dnaFolder).Length > 0)
                 {
-                    Console.WriteLine("");
-                    ourWorldLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in Our World/AR World?");
+                    string genesisFolder = CLIEngine.GetValidFolder("What is the path to the GenesisFolder (where the OAPP will be generated)?");
+                    if (genesisFolder == "exit") return;
 
-                    if (ourWorldLat == -1)
-                        return;
-                    
-                    ourWorldLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your OAPP to appear in Our World/AR World?");
+                    string genesisNamespace = OAPPName;
 
-                    if (ourWorldLong == -1)
-                        return;
-
-                    if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your OAPP? Press Y for 3D or N for 2D."))
+                    if (!CLIEngine.GetConfirmation("Do you wish to use the OAPP Name for the Genesis Namespace (the OAPP namespace)? (Recommended)"))
                     {
-                        Console.WriteLine("");
-
-                        if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
-                        {
-                            Console.WriteLine("");
-                            ourWorld3dObjectPath = CLIEngine.GetValidFile("What is the full path to the local 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
-
-                            if (ourWorld3dObjectPath == "exit")
-                                return;
-                            
-                            ourWorld3dObject = File.ReadAllBytes(ourWorld3dObjectPath);
-
-                        }
-                        else
-                        {
-                            Console.WriteLine("");
-                            ourWorld3dObjectURI = await CLIEngine.GetValidURIAsync("What is the URI to the 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
-
-                            if (ourWorld3dObjectURI == null)
-                                return;
-                        }
+                        Console.WriteLine();
+                        genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace (the OAPP namespace)?");
+                        if (genesisNamespace == "exit") return;
                     }
                     else
+                        Console.WriteLine();
+
+                    Guid parentId = Guid.Empty;
+
+                    //bool multipleHolonInstances = CLIEngine.GetConfirmation("Do you want holons to create multiple instances of themselves?");
+
+                    if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody? (e.g. if it's a moon, what planet does it orbit or if it's a planet what star does it orbit? Only possible for avatars over level 33. Pressing N will add the OAPP (Moon) to the default planet (Our World))"))
                     {
-                        Console.WriteLine("");
-
-                        if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
+                        if (STAR.BeamedInAvatarDetail.Level > 33)
                         {
                             Console.WriteLine("");
-                            ourWorld2dSpritePath = CLIEngine.GetValidFile("What is the full path to the local 2d sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+                            parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+                            if (parentId == Guid.Empty) return;
 
-                            if (ourWorld2dSpritePath == "exit")
-                                return;
-
-                            ourWorld2dSprite = File.ReadAllBytes(ourWorld2dSpritePath);
+                            CLIEngine.ShowWorkingMessage("Generating OAPP...");
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, parentId, providerType);
                         }
                         else
                         {
                             Console.WriteLine("");
-                            ourWorld2dSpriteURI = await CLIEngine.GetValidURIAsync("What is the URI to the 2D sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
-
-                            if (ourWorld3dObjectURI == null)
-                                return;
-                        }
-                    }
-                }
-                else
-                    Console.WriteLine("");
-
-                if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the Open World MMORPG One World game/platform? (recommeneded)"))
-                {
-                    Console.WriteLine("");
-                    oneWorlddLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in One World?");
-
-                    if (oneWorlddLat == -1)
-                        return;
-                    
-                    oneWorldLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your OAPP to appear in One World?");
-
-                    if ( oneWorldLong == -1)
-                        return;
-
-                    if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your OAPP within One World? Press Y for 3D or N for 2D."))
-                    {
-                        Console.WriteLine("");
-
-                        if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
-                        {
-                            Console.WriteLine("");
-                            oneWorld3dObjectPath = CLIEngine.GetValidFile("What is the full path to the local 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
-                            
-                            if (oneWorld3dObjectPath == "exit")
-                                return;
-                            
-                            oneWorld3dObject = File.ReadAllBytes(oneWorld3dObjectPath);
-                        }
-                        else
-                        {
-                            Console.WriteLine("");
-                            oneWorld3dObjectURI = await CLIEngine.GetValidURIAsync("What is the URI to the 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
-
-                            if (oneWorld3dObjectURI == null)
-                                return;
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("");
-
-                        if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
-                        {
-                            Console.WriteLine("");
-                            oneWorld2dSpritePath = CLIEngine.GetValidFile("What is the full path to the local 2d sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
-                            
-                            if (oneWorld2dSpritePath == "exit")
-                                return;
-                            
-                            oneWorld2dSprite = File.ReadAllBytes(oneWorld2dSpritePath);
-                        }
-                        else
-                        {
-                            Console.WriteLine("");
-                            oneWorld2dSpriteURI = await CLIEngine.GetValidURIAsync("What is the URI to the 2D sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
-
-                            if (oneWorld2dSpriteURI == null)
-                                return;
-                        }
-                    }
-                }
-                else
-                    Console.WriteLine("");
-
-                value = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create? (New avatars will only be able to create moons that orbit Our World until you reach karma level 33 where you will then be able to create planets, when you reach level 77 you can create stars & beyond 77 you can create Galaxies and even entire Universes in your jounrey to become fully God realised!.)", typeof(GenesisType));
-
-                if (value != null)
-                {
-                    if (value.ToString() == "exit")
-                        return;
-
-                    GenesisType genesisType = (GenesisType)value;
-                    string dnaFolder = "";
-
-                    //if (CLIEngine.GetConfirmation("Do you wish to create the CelestialBody/Zomes/Holons DNA now? (Enter 'n' if you already have a folder containing the DNA)."))
-                    //{
-                    //    //string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
-                    //    //string holonName = CLIEngine.GetValidInput("What is the name of the Holon (OASIS Data Object)?");
-                    //    //string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
-                    //    //object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(HolonPropType));
-
-                    //    //TODO:Come back to this.
-                    //}
-                    //else
-                    dnaFolder = CLIEngine.GetValidFolder("What is the path to the CelestialBody/Zomes/Holons DNA?", false);
-
-                    if (dnaFolder == "exit")
-                        return;
-
-                    if (Directory.Exists(dnaFolder) && Directory.GetFiles(dnaFolder).Length > 0)
-                    {
-                        string genesisFolder = CLIEngine.GetValidFolder("What is the path to the GenesisFolder (where the OAPP will be generated)?");
-                        if (genesisFolder == "exit") return;
-                        
-                        string genesisNamespace = OAPPName;
-
-                        if (!CLIEngine.GetConfirmation("Do you wish to use the OAPP Name for the Genesis Namespace (the OAPP namespace)? (Recommended)"))
-                        {
-                            Console.WriteLine();
-                            genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace (the OAPP namespace)?");
-                            if (genesisNamespace == "exit") return;
-                        }
-                        else
-                            Console.WriteLine();
-
-                        Guid parentId = Guid.Empty;
-
-                        //bool multipleHolonInstances = CLIEngine.GetConfirmation("Do you want holons to create multiple instances of themselves?");
-
-                        if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody? (e.g. if it's a moon, what planet does it orbit or if it's a planet what star does it orbit? Only possible for avatars over level 33. Pressing N will add the OAPP (Moon) to the default planet (Our World))"))
-                        {
-                            if (STAR.BeamedInAvatarDetail.Level > 33)
-                            {
-                                Console.WriteLine("");
-                                parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
-                                if (parentId == Guid.Empty) return;
-
-                                CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                                lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, parentId, providerType);
-                            }
-                            else
-                            {
-                                Console.WriteLine("");
-                                CLIEngine.ShowErrorMessage($"You are only level {STAR.BeamedInAvatarDetail.Level}. You need to be at least level 33 to be able to change the parent celestialbody. Using the default of Our World.");
-                                Console.WriteLine("");
-                                CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                                lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, providerType);
-                            }
-                        }
-                        else
-                        {
+                            CLIEngine.ShowErrorMessage($"You are only level {STAR.BeamedInAvatarDetail.Level}. You need to be at least level 33 to be able to change the parent celestialbody. Using the default of Our World.");
                             Console.WriteLine("");
                             CLIEngine.ShowWorkingMessage("Generating OAPP...");
                             lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, providerType);
                         }
-
-                        if (lightResult != null)
-                        {
-                            if (!lightResult.IsError && lightResult.Result != null)
-                            {
-                                CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
-                                ShowOAPP(lightResult.Result.OAPPDNA, lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
-                                Console.WriteLine("");
-
-                                if (CLIEngine.GetConfirmation("Do you wish to open the OAPP now?"))
-                                    Process.Start("explorer.exe", Path.Combine(genesisFolder, string.Concat(OAPPName, " OAPP"), string.Concat(genesisNamespace, ".csproj")));
-
-                                Console.WriteLine("");
-
-                                if (CLIEngine.GetConfirmation("Do you wish to open the OAPP folder now?"))
-                                    Process.Start("explorer.exe", Path.Combine(genesisFolder, string.Concat(OAPPName, " OAPP")));
-
-                                Console.WriteLine("");
-                            }
-                            else
-                                CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
-                        }
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"The DnaFolder {dnaFolder} Is Not Valid. It Does Mot Contain Any Files!");
+                    {
+                        Console.WriteLine("");
+                        CLIEngine.ShowWorkingMessage("Generating OAPP...");
+                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, providerType);
+                    }
+
+                    if (lightResult != null)
+                    {
+                        if (!lightResult.IsError && lightResult.Result != null)
+                        {
+                            CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                            ShowOAPP(lightResult.Result.OAPPDNA, lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
+                            Console.WriteLine("");
+
+                            if (CLIEngine.GetConfirmation("Do you wish to open the OAPP now?"))
+                                Process.Start("explorer.exe", Path.Combine(genesisFolder, string.Concat(OAPPName, " OAPP"), string.Concat(genesisNamespace, ".csproj")));
+
+                            Console.WriteLine("");
+
+                            if (CLIEngine.GetConfirmation("Do you wish to open the OAPP folder now?"))
+                                Process.Start("explorer.exe", Path.Combine(genesisFolder, string.Concat(OAPPName, " OAPP")));
+
+                            Console.WriteLine("");
+                        }
+                        else
+                            CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                    }
                 }
+                else
+                    CLIEngine.ShowErrorMessage($"The DnaFolder {dnaFolder} Is Not Valid. It Does Mot Contain Any Files!");
             }
         }
 
@@ -420,18 +442,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (OAPPDNAResult != null && OAPPDNAResult.Result != null && !OAPPDNAResult.IsError)
             {
-                switch (OAPPDNAResult.Result.OAPPType)
+                switch (OAPPDNAResult.Result.OAPPTemplateType)
                 {
-                    case OAPPType.Console:
-                    case OAPPType.WPF:
-                    case OAPPType.WinForms:
+                    case OAPPTemplateType.Console:
+                    case OAPPTemplateType.WPF:
+                    case OAPPTemplateType.WinForms:
                         launchTarget = $"{OAPPDNAResult.Result.OAPPName}.exe"; //TODO: For this line to work need to remove the namespace question so it just uses the OAPPName as the namespace. //TODO: Eventually this will be set in the OAPPTemplate and/or can also be set when I add the command line dotnet publish integration.
                         //launchTarget = $"bin\\Release\\net8.0\\{OAPPDNAResult.Result.OAPPName}.exe"; //TODO: For this line to work need to remove the namespace question so it just uses the OAPPName as the namespace. //TODO: Eventually this will be set in the OAPPTemplate and/or can also be set when I add the command line dotnet publish integration.
                         break;
 
-                    case OAPPType.Blazor:
-                    case OAPPType.MAUI:
-                    case OAPPType.WebMVC:
+                    case OAPPTemplateType.Blazor:
+                    case OAPPTemplateType.MAUI:
+                    case OAPPTemplateType.WebMVC:
                         //launchTarget = $"bin\\Release\\net8.0\\index.html"; 
                         launchTarget = $"index.html";
                         break;
@@ -1038,6 +1060,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Name:                                                 ", !string.IsNullOrEmpty(oapp.OAPPName) ? oapp.OAPPName : "None"));
             CLIEngine.ShowMessage(string.Concat($"Description:                                          ", !string.IsNullOrEmpty(oapp.Description) ? oapp.Description : "None"));
             CLIEngine.ShowMessage(string.Concat($"OAPP Type:                                            ", Enum.GetName(typeof(OAPPType), oapp.OAPPType)));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                                   ", Enum.GetName(typeof(OAPPTemplateType), oapp.OAPPTemplateType)));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Id:                                     ", oapp.OAPPTemplateId));
             CLIEngine.ShowMessage(string.Concat($"Genesis Type:                                         ", Enum.GetName(typeof(GenesisType), oapp.GenesisType)));
             CLIEngine.ShowMessage(string.Concat($"Celestial Body Id:                                    ", oapp.CelestialBodyId != Guid.Empty ? oapp.CelestialBodyId : "None"));
             CLIEngine.ShowMessage(string.Concat($"Celestial Body Name:                                  ", !string.IsNullOrEmpty(oapp.CelestialBodyName) ? oapp.CelestialBodyName : "None"));

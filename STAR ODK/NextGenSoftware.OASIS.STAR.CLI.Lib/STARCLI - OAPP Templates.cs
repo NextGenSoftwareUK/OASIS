@@ -55,14 +55,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 oappTemplatePath = Path.Combine(oappTemplatePath, OAPPTemplateName);
 
                 CLIEngine.ShowWorkingMessage("Generating OAPP Template...");
-                OASISResult<IOAPPTemplate> oappTemplateResult = await STAR.OASISAPI.OAPPTemplates.SaveOAPPTemplateAsync(new OAPPTemplate() 
-                {
-                    Name = OAPPTemplateName,
-                    Description = OAPPTemplateDesc,
-                    OAPPTemplateType = OAPPTemplateType,
-                    OAPPTemplatePath = oappTemplatePath 
-                }, STAR.BeamedInAvatar.AvatarId, providerType);
-
+                OASISResult<IOAPPTemplateDNA> oappTemplateResult = await STAR.OASISAPI.OAPPTemplates.CreateOAPPAsync(OAPPTemplateName, OAPPTemplateDesc, OAPPTemplateType, STAR.BeamedInAvatar.Id, oappTemplatePath, providerType);
 
                 if (oappTemplateResult != null)
                 {
@@ -91,7 +84,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
             {
-                ShowOAPPTemplate(loadResult.Result);
+                ShowOAPPTemplate(loadResult.Result.OAPPTemplateDNA);
 
                 //TODO: Comeback to this.
                 loadResult.Result.Name = CLIEngine.GetValidInput("What is the name of the OAPP Template?");
@@ -103,7 +96,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (result != null && !result.IsError && result.Result != null)
                 {
                     CLIEngine.ShowSuccessMessage("OAPP Template Successfully Updated.");
-                    ShowOAPPTemplate(result.Result);
+                    ShowOAPPTemplate(result.Result.OAPPTemplateDNA);
                 }
                 else
                     CLIEngine.ShowErrorMessage($"An error occured updating the OAPP Template. Reason: {result.Message}");
@@ -118,7 +111,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                ShowOAPPTemplate(result.Result);
+                ShowOAPPTemplate(result.Result.OAPPTemplateDNA);
 
                 if (CLIEngine.GetConfirmation("Are you sure you wish to delete the OAPP Template?"))
                 {
@@ -128,7 +121,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (result != null && !result.IsError && result.Result != null)
                     {
                         CLIEngine.ShowSuccessMessage("OAPP Template Successfully Deleted.");
-                        ShowOAPPTemplate(result.Result);
+                        ShowOAPPTemplate(result.Result.OAPPTemplateDNA);
                     }
                     else
                         CLIEngine.ShowErrorMessage($"An error occured deleting the OAPP Template. Reason: {result.Message}");

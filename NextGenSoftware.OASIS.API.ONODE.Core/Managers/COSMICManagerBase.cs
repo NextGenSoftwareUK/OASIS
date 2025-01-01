@@ -6,6 +6,8 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -150,6 +152,40 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             try
             {
                 result = Data.LoadAllHolons<T>(holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, childHolonType, version, providerType);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured: {ex}");
+            }
+
+            return result;
+        }
+
+        protected async Task<OASISResult<IEnumerable<T>>> SearchHolonsAsync<T>(string searchTerm, ProviderType providerType = ProviderType.Default, string methodName = "COSMICManager.LoadAllHolonsAsync", HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0) where T : IHolon, new()
+        {
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            string errorMessage = $"Error occured in {methodName}. Reason:";
+
+            try
+            {
+                result = await Data.SearchHolonsAsync<T>(searchTerm, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, childHolonType, version, providerType);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured: {ex}");
+            }
+
+            return result;
+        }
+
+        protected OASISResult<IEnumerable<T>> SearchHolons<T>(string searchTerm, ProviderType providerType = ProviderType.Default, string methodName = "COSMICManager.LoadAllHolonsAsync", HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0) where T : IHolon, new()
+        {
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            string errorMessage = $"Error occured in {methodName}. Reason:";
+
+            try
+            {
+                result = Data.SearchHolons<T>(searchTerm, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, childHolonType, version, providerType);
             }
             catch (Exception ex)
             {

@@ -25,6 +25,6 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Pascal,
         Java,
         //ClassLibrary,
-        Custom
+        Other
     }
 }
