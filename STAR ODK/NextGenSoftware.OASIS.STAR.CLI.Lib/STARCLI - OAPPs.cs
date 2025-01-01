@@ -11,6 +11,8 @@ using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -84,18 +86,42 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         OAPPTemplateType = (OAPPTemplateType)enumValue;
 
-                        if (CLIEngine.GetConfirmation("Do you know the GUID/ID of the OAPP Template?"))
-                            OAPPTemplateId = CLIEngine.GetValidInputForGuid("What is the GUID/ID?");
-                        else
+                        do
                         {
-                            if (CLIEngine.GetConfirmation("Do you know the name of the OAPP Template?"))
+                            if (CLIEngine.GetConfirmation("Do you know the GUID/ID of the OAPP Template?"))
+                                OAPPTemplateId = CLIEngine.GetValidInputForGuid("What is the GUID/ID?");
+                            else
                             {
-                                string OAPPTemplateName = CLIEngine.GetValidInput("What is the name?");
+                                if (CLIEngine.GetConfirmation("Do you know the name of the OAPP Template?"))
+                                {
+                                    string OAPPTemplateName = CLIEngine.GetValidInput("What is the name?");
 
-                                STAR.OASISAPI.OAPPTemplates.Sear
+                                    OASISResult<IEnumerable<IOAPPTemplate>> oappTemplateResults = await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(OAPPTemplateName);
 
+                                    if (oappTemplateResults != null && oappTemplateResults.Result != null && !oappTemplateResults.IsError)
+                                    {
+                                        if (oappTemplateResults.Result.Count() > 1)
+                                        {
+                                            CLIEngine.ShowMessage($"The following OAPP Template's were found for '{OAPPTemplateName}':");
+
+                                            foreach (IOAPPTemplate oappTemplate in oappTemplateResults.Result)
+                                                ShowOAPPTemplate(oappTemplate.OAPPTemplateDNA);
+
+                                            OAPPTemplateId = CLIEngine.GetValidInputForGuid($"Which OAPP Template do you wish to use? Please enter the GUID/ID of the OAPP Template.");
+                                        }
+                                        else
+                                        {
+                                            CLIEngine.ShowMessage($"The following OAPP Template was found for '{OAPPTemplateName}':");
+                                            ShowOAPPTemplate(oappTemplateResults.Result.FirstOrDefault().OAPPTemplateDNA);
+
+                                            if (CLIEngine.GetConfirmation("Do you wish to use this OAPP Template?"))
+                                                OAPPTemplateId = oappTemplateResults.Result.FirstOrDefault().OAPPTemplateDNA.Id;
+                                        }
+                                    }
+                                }
                             }
                         }
+                        while (OAPPTemplateId == Guid.Empty);
                     }
                 }
             }
