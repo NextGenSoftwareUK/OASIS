@@ -27,6 +27,7 @@ using NextGenSoftware.OASIS.STAR.EventArgs;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.Enums;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -531,9 +532,9 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
+        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
-            return Light(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null, providerType);
+            return Light(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null, providerType);
         }
 
         //public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IStar starToAddPlanetTo = null, ProviderType providerType = ProviderType.Default)
@@ -546,19 +547,19 @@ namespace NextGenSoftware.OASIS.STAR
         //    return Light(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)planetToAddMoonTo, providerType);
         //}
 
-        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
+        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
         {
-            return LightAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent, providerType).Result;
+            return LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent, providerType).Result;
         }
 
-        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
+        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
-            return LightInternalAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId, providerType).Result;
+            return LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId, providerType).Result;
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
-            return await LightAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null, providerType);
+            return await LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null, providerType);
         }
 
         //public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IStar starToAddPlanetTo = null, ProviderType providerType = ProviderType.Default)
@@ -571,22 +572,22 @@ namespace NextGenSoftware.OASIS.STAR
         //    return await LightAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)planetToAddMoonTo, providerType);
         //}
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
-            return await LightAsync(OAPPName, OAPPDescription, OAPPType, GenesisType.ZomesAndHolonsOnly, zomeAndHolonDNAFolder, genesisFolder, genesisNameSpace, providerType);
+            return await LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, GenesisType.ZomesAndHolonsOnly, zomeAndHolonDNAFolder, genesisFolder, genesisNameSpace, providerType);
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
-            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId, providerType);
+            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId, providerType);
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
         {
-            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent, Guid.Empty, providerType);
+            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent, Guid.Empty, providerType);
         }
 
-        private static async Task<OASISResult<CoronalEjection>> LightInternalAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "",  string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
+        private static async Task<OASISResult<CoronalEjection>> LightInternalAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "",  string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
             OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>(new CoronalEjection());
             ICelestialBody newBody = null;
@@ -609,7 +610,7 @@ namespace NextGenSoftware.OASIS.STAR
             string OAPPFolder = "";
             List<string> holonNames = new List<string>();
             string firstStringProperty = "";
-            string errorMessage = "Error Occured In STAR.LightInternalAsync. Reason: ";
+            string errorMessage = "Error Occured In STAR.LightInternalAsync. Reason:";
 
             if (BeamedInAvatarDetail == null)
             {
@@ -714,18 +715,28 @@ namespace NextGenSoftware.OASIS.STAR
                 if (Directory.Exists(OAPPFolder))
                     Directory.Delete(OAPPFolder, true);
                     
-                Directory.CreateDirectory(string.Concat(OAPPFolder));
+                Directory.CreateDirectory(OAPPFolder);
 
-                switch (OAPPType)
+                OASISResult<IInstalledOAPPTemplate> installedOAPPTemplateResult = await OASISAPI.OAPPTemplates.LoadInstalledOAPPTemplateAsync(BeamedInAvatar.Id, OAPPTemplateId, providerType);
+
+                if (installedOAPPTemplateResult != null && installedOAPPTemplateResult.Result != null && !installedOAPPTemplateResult.IsError)
+                    CopyFolder(genesisNameSpace, new DirectoryInfo(installedOAPPTemplateResult.Result.InstalledPath), new DirectoryInfo(OAPPFolder));
+                else
                 {
-                    case OAPPType.Blazor:
-                        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPBlazorTemplateDNA)), new DirectoryInfo(OAPPFolder));
-                        break;
-
-                    case OAPPType.Console:
-                        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPConsoleTemplateDNA)), new DirectoryInfo(OAPPFolder));
-                        break;
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling OASISAPI.OAPPTemplates.LoadInstalledOAPPTemplateAsync. Reason: {installedOAPPTemplateResult.Message}");
+                    return result;
                 }
+
+                //switch (OAPPType)
+                //{
+                //    case OAPPType.Blazor:
+                //        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPBlazorTemplateDNA)), new DirectoryInfo(OAPPFolder));
+                //        break;
+
+                //    case OAPPType.Console:
+                //        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPConsoleTemplateDNA)), new DirectoryInfo(OAPPFolder));
+                //        break;
+                //}
 
                 genesisFolder = string.Concat(OAPPFolder, "\\", STARDNA.OAPPGeneratedCodeFolder);
 
@@ -1258,7 +1269,7 @@ namespace NextGenSoftware.OASIS.STAR
 
 
             //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
-            OASISResult<IOAPPDNA> OAPPResult = await OASISAPI.OAPPs.CreateOAPPAsync(OAPPName, OAPPDescription, OAPPType, genesisType, BeamedInAvatar.AvatarId, OAPPFolder, newBody, zomes);
+            OASISResult<IOAPPDNA> OAPPResult = await OASISAPI.OAPPs.CreateOAPPAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, BeamedInAvatar.AvatarId, OAPPFolder, newBody, zomes);
 
             if (OAPPResult != null && !OAPPResult.IsError && OAPPResult.Result != null)
                 result.Result.OAPPDNA = OAPPResult.Result;
@@ -1569,8 +1580,8 @@ namespace NextGenSoftware.OASIS.STAR
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateString, "STARDNA.CSharpTemplateString");
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateBool, "STARDNA.CSharpTemplateBool");
 
-                ValidateFolder(starDNA.BasePath, starDNA.OAPPBlazorTemplateDNA, "STARDNA.OAPPBlazorTemplateDNA", true);
-                ValidateFolder(starDNA.BasePath, starDNA.OAPPConsoleTemplateDNA, "STARDNA.OAPPConsoleTemplateDNA", true);
+                //ValidateFolder(starDNA.BasePath, starDNA.OAPPBlazorTemplateDNA, "STARDNA.OAPPBlazorTemplateDNA", true);
+                //ValidateFolder(starDNA.BasePath, starDNA.OAPPConsoleTemplateDNA, "STARDNA.OAPPConsoleTemplateDNA", true);
                 //ValidateFolder(starDNA.BasePath, starDNA.OAPPCustomTemplateDNA, "STARDNA.OAPPCustomTemplateDNA", true);
                 //ValidateFolder(starDNA.BasePath, starDNA.OAPPGraphQLServiceTemplateDNA, "STARDNA.OAPPGraphQLServiceTemplateDNA", true);
                 //ValidateFolder(starDNA.BasePath, starDNA.OAPPgRPCServiceTemplateDNA, "STARDNA.OAPPgRPCServiceTemplateDNA", true);

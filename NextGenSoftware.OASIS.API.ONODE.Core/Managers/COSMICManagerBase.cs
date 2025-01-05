@@ -202,7 +202,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                result = await Data.LoadHolonsForParentAsync<T>(avatarId, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
+                result = await Data.LoadHolonsForParentAsync<T>(avatarId, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
             }
             catch (Exception ex)
             {
@@ -219,7 +219,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                result = Data.LoadHolonsForParent<T>(avatarId, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
+                result = Data.LoadHolonsForParent<T>(avatarId, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
             }
             catch (Exception ex)
             {
