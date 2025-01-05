@@ -4,6 +4,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
 {
     public enum OAPPTemplateType
     {
+        All,
         Console,
         Blazor,
         WebMVC,

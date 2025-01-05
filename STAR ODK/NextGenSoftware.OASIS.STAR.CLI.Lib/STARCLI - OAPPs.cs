@@ -96,29 +96,31 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 {
                                     string OAPPTemplateName = CLIEngine.GetValidInput("What is the name?");
 
-                                    OASISResult<IEnumerable<IOAPPTemplate>> oappTemplateResults = await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(OAPPTemplateName);
+                                    if (OAPPTemplateName == "exit")
+                                        return;
 
-                                    if (oappTemplateResults != null && oappTemplateResults.Result != null && !oappTemplateResults.IsError)
+                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(OAPPTemplateName), OAPPTemplateName);
+                                }
+                                else
+                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(OAPPTemplateType), Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType));
+                            }
+
+                            if (OAPPTemplateId != Guid.Empty)
+                            {
+                                OASISResult<bool> oappTemplateInstalledResult = STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalled(STAR.BeamedInAvatar.Id, OAPPTemplateId, providerType);
+
+                                if (oappTemplateInstalledResult != null && !oappTemplateInstalledResult.IsError)
+                                {
+                                    if (!oappTemplateInstalledResult.Result)
                                     {
-                                        if (oappTemplateResults.Result.Count() > 1)
+                                        if (CLIEngine.GetConfirmation($"The selected OAPP Template is not currently installed. Do you wish to install it now?"))
                                         {
-                                            CLIEngine.ShowMessage($"The following OAPP Template's were found for '{OAPPTemplateName}':");
 
-                                            foreach (IOAPPTemplate oappTemplate in oappTemplateResults.Result)
-                                                ShowOAPPTemplate(oappTemplate.OAPPTemplateDNA);
-
-                                            OAPPTemplateId = CLIEngine.GetValidInputForGuid($"Which OAPP Template do you wish to use? Please enter the GUID/ID of the OAPP Template.");
-                                        }
-                                        else
-                                        {
-                                            CLIEngine.ShowMessage($"The following OAPP Template was found for '{OAPPTemplateName}':");
-                                            ShowOAPPTemplate(oappTemplateResults.Result.FirstOrDefault().OAPPTemplateDNA);
-
-                                            if (CLIEngine.GetConfirmation("Do you wish to use this OAPP Template?"))
-                                                OAPPTemplateId = oappTemplateResults.Result.FirstOrDefault().OAPPTemplateDNA.Id;
                                         }
                                     }
                                 }
+                                else
+                                    CLIEngine.ShowErrorMessage($"Error occured checking if OAPP Template is installed. Reason: {oappTemplateInstalledResult.Message}");
                             }
                         }
                         while (OAPPTemplateId == Guid.Empty);
@@ -315,7 +317,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             if (parentId == Guid.Empty) return;
 
                             CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, parentId, providerType);
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, dnaFolder, genesisFolder, genesisNamespace, parentId, providerType);
                         }
                         else
                         {
@@ -323,14 +325,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             CLIEngine.ShowErrorMessage($"You are only level {STAR.BeamedInAvatarDetail.Level}. You need to be at least level 33 to be able to change the parent celestialbody. Using the default of Our World.");
                             Console.WriteLine("");
                             CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, providerType);
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, dnaFolder, genesisFolder, genesisNamespace, providerType);
                         }
                     }
                     else
                     {
                         Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, dnaFolder, genesisFolder, genesisNamespace, providerType);
+                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, dnaFolder, genesisFolder, genesisNamespace, providerType);
                     }
 
                     if (lightResult != null)
@@ -360,7 +362,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task<OASISResult<CoronalEjection>> GenerateCelestialBodyAsync(string OAPPName, string OAPPDesc, ICelestialBody parentCelestialBody, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> GenerateCelestialBodyAsync(string OAPPName, string OAPPDesc, ICelestialBody parentCelestialBody, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
             // Create (OApp) by generating dynamic template/scaffolding code.
             string message = $"Generating {Enum.GetName(typeof(GenesisType), genesisType)} '{OAPPName}' (OApp)";
@@ -373,7 +375,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowWorkingMessage(message);
 
             //Allows the celestialBodyDNAFolder, genesisFolder & genesisNameSpace params to be passed in overridng what is in the STARDNA.json file.
-            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, parentCelestialBody, providerType).Result;
+            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, parentCelestialBody, providerType).Result;
 
             //Will use settings in the STARDNA.json file.
             //OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPType, genesisType, name, parentCelestialBody).Result;
@@ -395,13 +397,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return lightResult;
         }
 
-        public static async Task<OASISResult<CoronalEjection>> GenerateZomesAndHolonsAsync(string OAPPName, string OAPPDesc, OAPPType OAPPType, string zomesAndHolonsyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> GenerateZomesAndHolonsAsync(string OAPPName, string OAPPDesc, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, string zomesAndHolonsyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
             // Create (OApp) by generating dynamic template/scaffolding code.
             CLIEngine.ShowWorkingMessage($"Generating Zomes & Holons...");
 
             //OASISResult<CoronalEjection> lightResult = STAR.LightAsync(oAPPName, OAPPType, zomesAndHolonsyDNAFolder, genesisFolder, genesisNameSpace).Result;
-            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, zomesAndHolonsyDNAFolder, genesisFolder, genesisNameSpace).Result;
+            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, zomesAndHolonsyDNAFolder, genesisFolder, genesisNameSpace).Result;
 
             //Will use settings in the STARDNA.json file.
             //OASISResult<CoronalEjection> lightResult = STAR.LightAsync(oAPPName, OAPPType).Result;
@@ -1199,6 +1201,37 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //    ShowHolons(oapp.Children);
 
             CLIEngine.ShowDivider();
+        }
+
+        private static Guid ProcessOAPPTemplateResults(OASISResult<IEnumerable<IOAPPTemplate>> oappTemplateResults, string searchTerm)
+        {
+            Guid OAPPTemplateId = Guid.Empty;
+
+            if (oappTemplateResults != null && oappTemplateResults.Result != null && !oappTemplateResults.IsError)
+            {
+                if (oappTemplateResults.Result.Count() > 1)
+                {
+                    CLIEngine.ShowMessage($"The following OAPP Template's were found for '{searchTerm}':");
+
+                    foreach (IOAPPTemplate oappTemplate in oappTemplateResults.Result)
+                        ShowOAPPTemplate(oappTemplate.OAPPTemplateDNA);
+
+                    if (CLIEngine.GetConfirmation("Do you wish to use any of these OAPP Templates?"))
+                        OAPPTemplateId = CLIEngine.GetValidInputForGuid($"Which OAPP Template do you wish to use? Please enter the GUID/ID of the OAPP Template.");
+                }
+                else
+                {
+                    CLIEngine.ShowMessage($"The following OAPP Template was found for '{searchTerm}':");
+                    ShowOAPPTemplate(oappTemplateResults.Result.FirstOrDefault().OAPPTemplateDNA);
+
+                    if (CLIEngine.GetConfirmation("Do you wish to use this OAPP Template?"))
+                        OAPPTemplateId = oappTemplateResults.Result.FirstOrDefault().OAPPTemplateDNA.Id;
+                }
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error occured searching for OAPP Templates: Reason: {oappTemplateResults.Message}");
+
+            return OAPPTemplateId;
         }
 
         private static void ListOAPPs(OASISResult<IEnumerable<IOAPP>> oapps)

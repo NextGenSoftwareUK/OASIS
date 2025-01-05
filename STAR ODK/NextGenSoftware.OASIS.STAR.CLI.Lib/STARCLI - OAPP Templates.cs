@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 oappTemplatePath = Path.Combine(oappTemplatePath, OAPPTemplateName);
 
                 CLIEngine.ShowWorkingMessage("Generating OAPP Template...");
-                OASISResult<IOAPPTemplateDNA> oappTemplateResult = await STAR.OASISAPI.OAPPTemplates.CreateOAPPAsync(OAPPTemplateName, OAPPTemplateDesc, OAPPTemplateType, STAR.BeamedInAvatar.Id, oappTemplatePath, providerType);
+                OASISResult<IOAPPTemplateDNA> oappTemplateResult = await STAR.OASISAPI.OAPPTemplates.CreateOAPPTemplateAsync(OAPPTemplateName, OAPPTemplateDesc, OAPPTemplateType, STAR.BeamedInAvatar.Id, oappTemplatePath, providerType);
 
                 if (oappTemplateResult != null)
                 {
