@@ -4,8 +4,18 @@ version = "1.0.0"
 edition = "2021"
 
 [dependencies]
-scrypto = { version = "1.2.0" }
+scrypto = { version = "1.2.0", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }
+
+# [dependencies.uuid]
+# version = "1.11.0"
+# features = [
+#     "v4",                # Lets you generate random UUIDs
+#     "v7",
+#     "js",
+#     "fast-rng",          # Use a faster (but still sufficiently random) RNG
+#     "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+# ]
 
 [dev-dependencies]
 scrypto-test = { version = "1.2.0" }

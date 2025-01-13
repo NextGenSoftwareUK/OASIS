@@ -1,0 +1,25 @@
+CALL_METHOD
+    Address("account_sim1c956qr3kxlgypxwst89j9yf24tjc7zxd4up38x37zr6q4jxdx9rhma")
+    "lock_fee"
+    Decimal("10")
+;
+
+CALL_METHOD 
+    Address("account_sim1c956qr3kxlgypxwst89j9yf24tjc7zxd4up38x37zr6q4jxdx9rhma")  
+    "withdraw"
+    Address("resource_sim1t4czst3wl4maw93g3cnqz2tujsnf7rr7egjuzwv0a4njmumxtll7zw")
+    Decimal("10") 
+;
+
+TAKE_FROM_WORKTOP 
+    Address("resource_sim1t4czst3wl4maw93g3cnqz2tujsnf7rr7egjuzwv0a4njmumxtll7zw")
+    Decimal("10") 
+    Bucket("oasis_bucket")
+;
+
+CALL_FUNCTION 
+    Address("package_sim1pk3cmat8st4ja2ms8mjqy2e9ptk8y6cx40v4qnfrkgnxcp2krkpr92") 
+    "OASISComponent" 
+    "instantiate" 
+    Bucket("oasis_bucket")
+;
