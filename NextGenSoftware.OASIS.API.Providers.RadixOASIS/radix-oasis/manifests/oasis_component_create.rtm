@@ -1,0 +1,14 @@
+CALL_METHOD
+    Address("account_sim1c956qr3kxlgypxwst89j9yf24tjc7zxd4up38x37zr6q4jxdx9rhma")
+    "lock_fee"
+    Decimal("1")
+;
+
+CALL_METHOD 
+    Address("component_sim1crssf04h9xgeqxv6hn0yx5cute5ezhhy5gtz96uqy26qtk0xj08nr5") 
+    "create" 
+    1u64
+    "f889de61-fc98-4d20-a296-5f1de71b24ea"
+    "{\"name\":\"Avatar1\",\"level\":1}"
+    Enum<0u8>()
+;
