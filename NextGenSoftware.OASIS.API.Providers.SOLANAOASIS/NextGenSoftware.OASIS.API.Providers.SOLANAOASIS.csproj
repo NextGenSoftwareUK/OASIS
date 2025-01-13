@@ -47,6 +47,7 @@
     <ItemGroup>
       <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
       <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+      <ProjectReference Include="..\NextGenSoftware.OASIS.API.Bridging\NextGenSoftware.OASIS.API.Bridging.csproj" />
     </ItemGroup>
 
     <ItemGroup>
