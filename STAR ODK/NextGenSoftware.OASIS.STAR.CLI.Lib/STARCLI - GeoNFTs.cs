@@ -203,8 +203,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowDivider();
         }
 
-        public static async Task ShowGeoNFTAsync(Guid id, ProviderType providerType = ProviderType.Default)
+        public static async Task ShowGeoNFTAsync(Guid id = new Guid(), ProviderType providerType = ProviderType.Default)
         {
+            if (id == Guid.Empty)
+                id = CLIEngine.GetValidInputForGuid("What is the GUID/ID to the NFT you wish to view?");
+
             CLIEngine.ShowWorkingMessage("Loading Geo-NFT...");
             OASISResult<IOASISGeoSpatialNFT> nft = await STAR.OASISAPI.NFTs.LoadGeoNftAsync(id);
 
