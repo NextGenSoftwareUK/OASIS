@@ -602,11 +602,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     await ShowSubCommandAsync(inputArgs, "", "", null, null, STARCLI.DeleteHolonAsync, null, null, null, null, STARCLI.ShowHolonAsync, STARCLI.ListAllHolonsForForBeamedInAvatar, STARCLI.ListAllHolonsAsync, null, null, ProviderType.Default);
                                     break;
 
-                                case "mission":
+                                case "chapter":
                                     await ShowSubCommandAsync(inputArgs);
                                     break;
 
-                                case "chapter":
+                                case "mission":
                                     await ShowSubCommandAsync(inputArgs);
                                     break;
 
@@ -626,6 +626,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     await ShowSubCommandAsync(inputArgs);
                                     break;
 
+                                case "inventoryitem":
+                                    await ShowSubCommandAsync(inputArgs);
+                                    break;
+
                                 case "avatar":
                                     await ShowAvatarSubCommandAsync(inputArgs);
                                     break;
@@ -640,6 +644,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 case "wallet":
                                     await ShowWalletSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "map":
+                                    await ShowMapSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "seeds":
+                                    await ShowSeedsSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "data":
+                                    await ShowDataSubCommandAsync(inputArgs);
+                                    break;
+
+                                case "oland":
+                                    await ShowOlandSubCommandAsync(inputArgs);
                                     break;
 
                                 case "search":
@@ -1552,6 +1572,228 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage($"WALLET SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
                 CLIEngine.ShowMessage("    list                  Shows the wallets for the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
+            }
+        }
+
+        private static async Task ShowMapSubCommandAsync(string[] inputArgs)
+        {
+            if (inputArgs.Length > 1)
+            {
+                switch (inputArgs[1].ToLower())
+                {
+                    case "setprovider":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "draw3dobject":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "draw2dsprite":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "draw2dspriteonhud":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "draw2dspriteonhud":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    default:
+                        CLIEngine.ShowErrorMessage("Command Unknown.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowMessage($"MAP SUBCOMMANDS:", ConsoleColor.Green);
+                Console.WriteLine("");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("    map setprovider            {mapProviderType}                 Sets the current {mapProviderType}.");
+                Console.WriteLine("    map draw3dobject           {3dObjectPath} {x} {y}            Draws a 3D object on the map at {x/y} co-ordinates for the given file {3dobjectPath}.");
+                Console.WriteLine("    map draw2dsprite           {2dSpritePath} {x} {y}            Draws a 2d sprite on the map at {x/y} co-ordinates for the given file {2dSpritePath}.");
+                Console.WriteLine("    map draw2dspriteonhud      {2dSpritePath}                    Draws a 2d sprite on the HUD for the given file {2dSpritePath}.");
+                Console.WriteLine("    map zoomOut                                                  Zoom the map out.");
+                Console.WriteLine("    map zoomIn                                                   Zoom the map in.");
+                Console.WriteLine("    map pamLeft                                                  Pam the map left.");
+                Console.WriteLine("    map pamLeft                                                  Pam the map left.");
+                Console.WriteLine("    map pamRight                                                 Pam the map right.");
+                Console.WriteLine("    map pamUp                                                    Pam the map left.");
+                Console.WriteLine("    map pamDown                                                  Pam the map down.");
+                Console.WriteLine("    map pamToGeoNFT             {GeoNFT id/name}                 Pam the map to the location of the given GeoNFT.");
+                Console.WriteLine("    map pamToGeoHotSpot         {GeoHotSpot id/name}             Pam the map to the location of the given GeoHotSpot.");
+                Console.WriteLine("    map pamToOAPP               {OAPP id/name}                   Pam the map to the location of the given OAPP.");
+                Console.WriteLine("    map pamToCoOrds             {x} {y}                          Pam the map to the location of the given {x} and {y} coordinates.");
+                Console.WriteLine("    map selectBuildingOnMap     {building id}                    Selects the given building on the map.");
+                //Console.WriteLine("    map highlightBuildingOnMap  {building id}                    Highlight the given building on the map.");
+                Console.WriteLine("    map drawRouteOnMap          {startX} {startY} {endX} {endY}  Draw a route on the map.");
+                Console.WriteLine("    map drawRouteOnMap          {startX} {startY} {endX} {endY}  Draw a route on the map.");
+
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
+            }
+        }
+
+        private static async Task ShowDataSubCommandAsync(string[] inputArgs)
+        {
+            if (inputArgs.Length > 1)
+            {
+                switch (inputArgs[1].ToLower())
+                {
+                    case "save":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "load":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "delete":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "list":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    default:
+                        CLIEngine.ShowErrorMessage("Command Unknown.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowMessage($"DATA SUBCOMMANDS:", ConsoleColor.Green);
+                Console.WriteLine("");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("    data save    {key} {value}  Saves data for the given {key} and {value} to the currently beamed in avatar.");
+                Console.WriteLine("    data load    {key}          Loads data for the given {key} for the currently beamed in avatar.");
+                Console.WriteLine("    data delete  {key}          Deletes data for the given {key} for the currently beamed in avatar.");
+                Console.WriteLine("    data list                   Lists all data for the currently beamed in avatar.");
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
+            }
+        }
+
+        private static async Task ShowSeedsSubCommandAsync(string[] inputArgs)
+        {
+            if (inputArgs.Length > 1)
+            {
+                switch (inputArgs[1].ToLower())
+                {
+                    case "balance":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "organisations":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "organisation":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "pay":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "donate":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "reward":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "invite":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "accept":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "qrcode":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    default:
+                        CLIEngine.ShowErrorMessage("Command Unknown.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowMessage($"SEEDS SUBCOMMANDS:", ConsoleColor.Green);
+                Console.WriteLine("");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("    seeds balance        {telosAccountName/avatarId}  Get's the balance of your SEEDS account.");
+                Console.WriteLine("    seeds organisations                               Get's a list of all the SEEDS organisations.");
+                Console.WriteLine("    seeds organisation   {organisationName}           Get's a organisation for the given {organisationName}.");
+                Console.WriteLine("    seeds pay            {telosAccountName/avatarId}  Pay using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                Console.WriteLine("    seeds donate         {telosAccountName/avatarId}  Donate using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                Console.WriteLine("    seeds reward         {telosAccountName/avatarId}  Reward using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                Console.WriteLine("    seeds invite         {telosAccountName/avatarId}  Send invite to join SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                Console.WriteLine("    seeds accept         {telosAccountName/avatarId}  Accept the invite to join SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                Console.WriteLine("    seeds qrcode         {telosAccountName/avatarId}  Generate a sign-in QR code using either your {telosAccountName} or {avatarId}.");
+
+                //CLIEngine.ShowMessage("    balance        {telosAccountName/avatarId}  Get's the balance of your SEEDS account.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    organisations                               Get's a list of all the SEEDS organisations.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    organisation   {organisationName}           Get's a list of all the SEEDS organisations.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
+            }
+        }
+
+        private static async Task ShowOlandSubCommandAsync(string[] inputArgs)
+        {
+            if (inputArgs.Length > 1)
+            {
+                switch (inputArgs[1].ToLower())
+                {
+                    case "price":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "purchase":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "load":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "save":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "delete":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "list":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    default:
+                        CLIEngine.ShowErrorMessage("Command Unknown.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowMessage($"OLAND SUBCOMMANDS:", ConsoleColor.Green);
+                Console.WriteLine("");
+                CLIEngine.ShowMessage("    price                  Get the current OLAND price.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    purchase               Purchase OLAND for Our World/OASIS.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    load      {id}         Load a OLAND for the given {id}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    save      {id}         Save a OLAND for the given {id}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    delete    {id}         Delete a OLAND for the given {id}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list      {all}        If [all] is omitted it will list all OLAND for the given beamed in avatar, otherwise it will list all OLAND for all avatars.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -3846,6 +4088,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    happ list                        [all]                                  List all hApps (contains zomes) that have been generated.");
                 Console.WriteLine("    happ list installed                                                     List all hApp's installed for the current beamed in avatar.");
                 Console.WriteLine("    happ search                      [all]                                  Searches the hApp's for the given search critera.");
+                Console.WriteLine("    celestialspace create                                                   Creates a celestial space.");
+                Console.WriteLine("    celestialspace update            {id/name}                              Update an existing celestial space for the given {id} or {name}.");
+                Console.WriteLine("    celestialspace delete            {id/name}                              Delete an existing celestial space for the given {id} or {name}.");
+                Console.WriteLine("    celestialspace publish           {id/name}                              Publishes a celestial space for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
+                Console.WriteLine("    celestialspace unpublish         {id/name}                              Unpublishes a celestial space for the given {id} or {name} from the STARNET store.");
+                Console.WriteLine("    celestialspace show              {id/name}                              Shows a celestial space for the given {id} or {name}.");
+                Console.WriteLine("    celestialspace list              [all]                                  List all celestial spaces that have been generated.");
+                Console.WriteLine("    celestialspace search            [all]                                  Searches the celestial spaces for the given search critera.");
+                Console.WriteLine("    celestialbody create                                                    Creates a celestial body.");
+                Console.WriteLine("    celestialbody update             {id/name}                              Update an existing celestial body for the given {id} or {name}.");
+                Console.WriteLine("    celestialbody delete             {id/name}                              Delete an existing celestial body for the given {id} or {name}.");
+                Console.WriteLine("    celestialbody publish            {id/name}                              Publishes a celestial body for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
+                Console.WriteLine("    celestialbody unpublish          {id/name}                              Unpublishes a celestial body for the given {id} or {name} from the STARNET store.");
+                Console.WriteLine("    celestialbody show               {id/name}                              Shows a celestial body for the given {id} or {name}.");
+                Console.WriteLine("    celestialbody list               [all]                                  List all celestial bodies that have been generated.");
+                Console.WriteLine("    celestialbody search             [all]                                  Searches the celestial bodies for the given search critera.");
                 Console.WriteLine("    zome create                                                             Create a zome (module).");
                 Console.WriteLine("    zome update                      {id/name}                              Update an existing zome for the given {id} or {name}");
                 Console.WriteLine("                                                                            (can upload a zome.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
@@ -3866,22 +4124,30 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    holon show                       {id/name}                              Shows a holon for the given {id} or {name}.");
                 Console.WriteLine("    holon list                       [all]                                  List all holons (OASIS Data Objects) that have been generated.");
                 Console.WriteLine("    holon search                     [all]                                  Searches the holons for the given search critera.");
-                Console.WriteLine("    celestialbody create                                                    Creates a celestial body.");
-                Console.WriteLine("    celestialbody update             {id/name}                              Update an existing celestial body for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody delete             {id/name}                              Delete an existing celestial body for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody publish            {id/name}                              Publishes a celestial body for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
-                Console.WriteLine("    celestialbody unpublish          {id/name}                              Unpublishes a celestial body for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    celestialbody show               {id/name}                              Shows a celestial body for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody list               [all]                                  List all celestial bodies that have been generated.");
-                Console.WriteLine("    celestialbody search             [all]                                  Searches the celestial bodies for the given search critera.");
-                Console.WriteLine("    celestialspace create                                                   Creates a celestial space.");
-                Console.WriteLine("    celestialspace update            {id/name}                              Update an existing celestial space for the given {id} or {name}.");
-                Console.WriteLine("    celestialspace delete            {id/name}                              Delete an existing celestial space for the given {id} or {name}.");
-                Console.WriteLine("    celestialspace publish           {id/name}                              Publishes a celestial space for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
-                Console.WriteLine("    celestialspace unpublish         {id/name}                              Unpublishes a celestial space for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    celestialspace show              {id/name}                              Shows a celestial space for the given {id} or {name}.");
-                Console.WriteLine("    celestialspace list              [all]                                  List all celestial spaces that have been generated.");
-                Console.WriteLine("    celestialspace search            [all]                                  Searches the celestial spaces for the given search critera.");
+                Console.WriteLine("    chapter create                                                          Creates a chapter that can be linked to a mission. Quests can be added to the chapter. Chapters are used to group quests together (optional).");
+                Console.WriteLine("    chapter update                   {id/name}                              Updates a chapter for the given {id} or {name}.");
+                Console.WriteLine("    chapter delete                   {id/name}                              Deletes a chapter for the given {id} or {name}.");
+                Console.WriteLine("    chapter publish                  {id/name}                              Publishes a chapter to the STARNET store for the given {id} or {name} so others can use in their own missions.");
+                Console.WriteLine("    chapter unpublish                {id/name}                              Unpublishes a chapter from the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    chapter show                     {id/name}                              Shows the chapter for the given {id} or {name}.");
+                Console.WriteLine("    chapter list                     [all]                                  List chapters that have been created.");
+                Console.WriteLine("    chapter search                   [all]                                  Search chapters that have been created.");
+                Console.WriteLine("    mission create                                                          Creates a mission that chapters & quests can be added to.");
+                Console.WriteLine("    mission update                   {id/name}                              Updates a mission for the given {id} or {name}.");
+                Console.WriteLine("    mission delete                   {id/name}                              Deletes an mission for the given {id} or {name}.");
+                Console.WriteLine("    mission publish                  {id/name}                              Publishes a mission  for the given {id} or {name} to the STARNET store so others can find and play in Our World/AR World, One World & any other OASIS OAPP.");
+                Console.WriteLine("    mission unpublish                {id/name}                              Unpublishes a mission from the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    mission show                     {id/name}                              Shows the mission for the given {id} or {name}.");
+                Console.WriteLine("    missions list                    [all]                                  List all mission's that have been created.");
+                Console.WriteLine("    missions search                  [all]                                  Search all mission's that have been created.");
+                Console.WriteLine("    quest create                                                            Creates a quest that can be linked to a mission. Geo-nfts, geo-hotspots & rewards can be linked to the quest.");
+                Console.WriteLine("    quest update                     {id/name}                              Updates a quest for the given {id} or {name}.");
+                Console.WriteLine("    quest delete                     {id/name}                              Deletes a quest for the given {id} or {name}.");
+                Console.WriteLine("    quest publish                    {id/name}                              Publishes a quest to the STARNET store so others can use in their own quests as sub-quests or in missions/chapters.");
+                Console.WriteLine("    quest unpublish                  {id/name}                              Unpublishes a quest from the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    quest show                       {id/name}                              Shows the quest for the given {id} or {name}.");
+                Console.WriteLine("    quest list                       [all]                                  List all quests that have been created.");
+                Console.WriteLine("    quest search                     [all]                                  Search all quests that have been created.");
                 Console.WriteLine("    nft mint                                                                Mints a OASIS NFT for the current beamed in avatar.");
                 Console.WriteLine("    nft update                       {id/name}                              Updates a nft for the given {id} or {name}.");
                 Console.WriteLine("    nft burn                         {id/name}                              Burn's a nft for the given {id} or {name}.");
@@ -3902,6 +4168,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    geonft list                      [all]                                  List all geo-nft's that have been created. If [all] is omitted it will list only your geo-nft's otherwise it will list all published geo-nft's as well as yours.");
                 Console.WriteLine("    geonft search                    [all]                                  Search for Geo-NFT's that match certain criteria and belong to the current beamed in avatar.");
                 Console.WriteLine("                                                                            If [all] is used then it will also include any shared/public/published geo-nft's");
+                Console.WriteLine("    geohotspot create                                                       Creates a geo-hotspot that chapters & quests can be added to.");
+                Console.WriteLine("    geohotspot update                {id/name}                              Updates a geo-hotspot for the given {id} or {name}.");
+                Console.WriteLine("    geohotspot delete                {id/name}                              Deletes an geo-hotspot for the given {id} or {name}.");
+                Console.WriteLine("    geohotspot publish               {id/name}                              Publishes a geo-hotspot for the given {id} or {name} to the STARNET store so others can use in their own quests.");
+                Console.WriteLine("    geohotspot unpublish             {id/name}                              Unpublishes a geo-hotspot from the STARNET store.");
+                Console.WriteLine("    geohotspot show                  {id/name}                              Shows the geo-hotspot for the given {id} or {name}.");
+                Console.WriteLine("    geohotspots list                 [all]                                  List all geo-hotspot's that have been created.");
+                Console.WriteLine("    geohotspots search               [all]                                  Search all geo-hotspot's that have been created.");
                 Console.WriteLine("    inventoryitem create                                                    Creates an inventory item that can be granted as a reward");
                 Console.WriteLine("                                                                            (will be placed in the avatar's inventory) for completing quests, collecting geo-nft's, triggering geo-hotspots etc.");
                 Console.WriteLine("    inventoryitem update             {id/name}                              Updates a inventory item for the given {id} or {name}.");
@@ -3913,38 +4187,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    inventoryitem search             [all]                                  Search all inventory item's that have been created.");
                 //Console.WriteLine("    inventoryitem activate = Activates an inventory item that has been published to the STARNET store so is visible to others.");
                 //Console.WriteLine("    inventoryitem deactivate = Deactivates an inventory item that has been published to the STARNET store so is invisible to others.");
-                Console.WriteLine("    geohotspot create                                                       Creates a geo-hotspot that chapters & quests can be added to.");
-                Console.WriteLine("    geohotspot update                {id/name}                              Updates a geo-hotspot for the given {id} or {name}.");
-                Console.WriteLine("    geohotspot delete                {id/name}                              Deletes an geo-hotspot for the given {id} or {name}.");
-                Console.WriteLine("    geohotspot publish               {id/name}                              Publishes a geo-hotspot for the given {id} or {name} to the STARNET store so others can use in their own quests.");
-                Console.WriteLine("    geohotspot unpublish             {id/name}                              Unpublishes a geo-hotspot from the STARNET store.");
-                Console.WriteLine("    geohotspot show                  {id/name}                              Shows the geo-hotspot for the given {id} or {name}.");
-                Console.WriteLine("    geohotspots list                 [all]                                  List all geo-hotspot's that have been created.");
-                Console.WriteLine("    geohotspots search               [all]                                  Search all geo-hotspot's that have been created.");
-                Console.WriteLine("    mission create                                                          Creates a mission that chapters & quests can be added to.");
-                Console.WriteLine("    mission update                   {id/name}                              Updates a mission for the given {id} or {name}.");
-                Console.WriteLine("    mission delete                   {id/name}                              Deletes an mission for the given {id} or {name}.");
-                Console.WriteLine("    mission publish                  {id/name}                              Publishes a mission  for the given {id} or {name} to the STARNET store so others can find and play in Our World/AR World, One World & any other OASIS OAPP.");
-                Console.WriteLine("    mission unpublish                {id/name}                              Unpublishes a mission from the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    mission show                     {id/name}                              Shows the mission for the given {id} or {name}.");
-                Console.WriteLine("    missions list                    [all]                                  List all mission's that have been created.");
-                Console.WriteLine("    missions search                  [all]                                  Search all mission's that have been created.");
-                Console.WriteLine("    quest create                                                            Creates a quest that can be linked to a mission. Geo-nfts, geo-hotspots & rewards can be linked to the quest.");
-                Console.WriteLine("    quest update                     {id/name}                              Updates a quest for the given {id} or {name}.");
-                Console.WriteLine("    quest delete                     {id/name}                              Deletes a quest for the given {id} or {name}.");
-                Console.WriteLine("    quest publish                    {id/name}                              Publishes a quest to the STARNET store so others can use in their own quests as sub-quests or in missions/chapters.");
-                Console.WriteLine("    quest unpublish                  {id/name}                              Unpublishes a quest from the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    quest show                       {id/name}                              Shows the quest for the given {id} or {name}.");
-                Console.WriteLine("    quest list                       [all]                                  List all quests that have been created.");
-                Console.WriteLine("    quest search                     [all]                                  Search all quests that have been created.");
-                Console.WriteLine("    chapter create                                                          Creates a chapter that can be linked to a mission. Quests can be added to the chapter. Chapters are used to group quests together (optional).");
-                Console.WriteLine("    chapter update                   {id/name}                              Updates a chapter for the given {id} or {name}.");
-                Console.WriteLine("    chapter delete                   {id/name}                              Deletes a chapter for the given {id} or {name}.");
-                Console.WriteLine("    chapter publish                  {id/name}                              Publishes a chapter to the STARNET store for the given {id} or {name} so others can use in their own missions.");
-                Console.WriteLine("    chapter unpublish                {id/name}                              Unpublishes a chapter from the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    chapter show                     {id/name}                              Shows the chapter for the given {id} or {name}.");
-                Console.WriteLine("    chapter list                     [all]                                  List chapters that have been created.");
-                Console.WriteLine("    chapter search                   [all]                                  Search chapters that have been created.");
                 Console.WriteLine("    seeds balance                    {telosAccountName/avatarId}            Get's the balance of your SEEDS account.");
                 Console.WriteLine("    seeds organisations                                                     Get's a list of all the SEEDS organisations.");
                 Console.WriteLine("    seeds organisation               {organisationName}                     Get's a organisation for the given {organisationName}.");
@@ -3957,6 +4199,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    data save                        {key} {value}                          Saves data for the given {key} and {value} to the currently beamed in avatar.");
                 Console.WriteLine("    data load                        {key}                                  Loads data for the given {key} for the currently beamed in avatar.");
                 Console.WriteLine("    data delete                      {key}                                  Deletes data for the given {key} for the currently beamed in avatar.");
+                Console.WriteLine("    data list                                                               Lists all data for the currently beamed in avatar.");
                 Console.WriteLine("    map setprovider                  {mapProviderType}                      Sets the current {mapProviderType}.");
                 Console.WriteLine("    map draw3dobject                 {3dObjectPath} {x} {y}                 Draws a 3D object on the map at {x/y} co-ordinates for the given file {3dobjectPath}.");
                 Console.WriteLine("    map draw2dsprite                 {2dSpritePath} {x} {y}                 Draws a 2d sprite on the map at {x/y} co-ordinates for the given file {2dSpritePath}.");
@@ -4194,17 +4437,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    search           Search the OASIS.");
                 Console.WriteLine("    oapp             Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP's.");
                 Console.WriteLine("    happ             Create, edit, delete, publish, unpublish, install, uninstall, list & show hApp's.");
+                Console.WriteLine("    celestialspace   Create, edit, delete, publish, unpublish, list & show celestial space's.");
+                Console.WriteLine("    celestialbody    Create, edit, delete, publish, unpublish, list & show celestial bodies's.");
                 Console.WriteLine("    zome             Create, edit, delete, publish, unpublish, list & show zome's.");
                 Console.WriteLine("    holon            Create, edit, delete, publish, unpublish, list & show holon's.");
-                Console.WriteLine("    celestialbody    Create, edit, delete, publish, unpublish, list & show celestial bodies's.");
-                Console.WriteLine("    celestialspace   Create, edit, delete, publish, unpublish, list & show celestial space's.");
-                Console.WriteLine("    nft              Mint, send, edit, burn, publish, unpublish, list & show nft's.");
-                Console.WriteLine("    geonft           Mint, place, edit, burn, publish, unpublish, list & show geo-nft's.");
-                Console.WriteLine("    inventoryitem    Create, edit, delete, publish, unpublish, list & show inventory item's.");
-                Console.WriteLine("    geohotspot       Create, edit, delete, publish, unpublish, list & show geo-hotspot's.");
+                Console.WriteLine("    chapter          Create, edit, delete, publish, unpublish, list & show chapter's.");
                 Console.WriteLine("    mission          Create, edit, delete, publish, unpublish, list & show mission's.");
                 Console.WriteLine("    quest            Create, edit, delete, publish, unpublish, list & show quest's.");
-                Console.WriteLine("    chapter          Create, edit, delete, publish, unpublish, list & show chapter's.");
+                Console.WriteLine("    nft              Mint, send, edit, burn, publish, unpublish, list & show nft's.");
+                Console.WriteLine("    geonft           Mint, place, edit, burn, publish, unpublish, list & show geo-nft's.");
+                Console.WriteLine("    geohotspot       Create, edit, delete, publish, unpublish, list & show geo-hotspot's.");
+                Console.WriteLine("    inventoryitem    Create, edit, delete, publish, unpublish, list & show inventory item's.");
                 Console.WriteLine("    seeds            Access the SEEDS API.");
                 Console.WriteLine("    data             Access the Data API.");
                 Console.WriteLine("    map              Access the Map API.");
