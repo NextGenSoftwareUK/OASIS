@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
@@ -31,11 +32,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         bool Draw2DSpriteOnHUD(object sprite, float x, float y);
         bool Draw2DSpriteOnMap(object sprite, float x, float y);
         bool Draw3DObjectOnMap(object obj, float x, float y);
-        bool DrawRouteOnMap(float startX, float startY, float endX, float endY);
+        bool DrawRouteOnMap(float startX, float startY, float endX, float endY, Color colour);
         bool PanMapDown(float value);
         bool PanMapLeft(float value);
         bool PanMapRight(float value);
         bool PanMapUp(float value);
+        bool PlaceBuildingOnMap(IBuilding building, float x, float y);
+        bool PlaceGeoHotSpotOnMap(IGeoHotSpot geoHotSpot, float x, float y);
+        bool PlaceGeoNFTOnMap(IOASISGeoSpatialNFT geoNFT, float x, float y);
+        bool PlaceHolonOnMap(IHolon holon, float x, float y);
+        bool PlaceOAPPOnMap(IOAPP OAPP, float x, float y);
+        bool PlaceQuestOnMap(IQuest quest, float x, float y);
         bool SelectBuildingOnMap(Building building);
         bool SelectGeoHotSpotOnMap(Guid geoHotSpotId);
         bool SelectGeoHotSpotOnMap(IGeoHotSpot geoHotSpot);

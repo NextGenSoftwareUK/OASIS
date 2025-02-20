@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -52,17 +53,42 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return true;
         }
 
-        public bool SelectBuildingOnMap(Building building)
-        {
-            return true;
-        }
-
         //public bool HighlightBuildingOnMap(Building building)
         //{
         //    return true;
         //}
 
-        public bool DrawRouteOnMap(float startX, float startY, float endX, float endY)
+        public bool PlaceHolonOnMap(IHolon holon, float x, float y)
+        {
+            return true;
+        }
+
+        public bool PlaceBuildingOnMap(IBuilding building, float x, float y)
+        {
+            return true;
+        }
+
+        public bool PlaceQuestOnMap(IQuest quest, float x, float y)
+        {
+            return true;
+        }
+
+        public bool PlaceGeoNFTOnMap(IOASISGeoSpatialNFT geoNFT, float x, float y)
+        {
+            return true;
+        }
+
+        public bool PlaceGeoHotSpotOnMap(IGeoHotSpot geoHotSpot, float x, float y)
+        {
+            return true;
+        }
+
+        public bool PlaceOAPPOnMap(IOAPP OAPP, float x, float y)
+        {
+            return true;
+        }
+
+        public bool DrawRouteOnMap(float startX, float startY, float endX, float endY, Color colour)
         {
             return true;
         }
@@ -162,55 +188,61 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return true;
         }
 
-        public bool SelectHolonOnMap(IHolon holon)
-        {
-            return true;
-        }
+        //Select is same as Zoom so these functions are now redundant because zoom will zoom to and select the item on the map...
+        //public bool SelectHolonOnMap(IHolon holon)
+        //{
+        //    return true;
+        //}
 
-        public bool SelectHolonOnMap(Guid holonId)
-        {
-            return true;
-        }
+        //public bool SelectHolonOnMap(Guid holonId)
+        //{
+        //    return true;
+        //}
 
-        public bool SelectQuestOnMap(IQuest quest)
-        {
-            return true;
-        }
+        //public bool SelectQuestOnMap(IQuest quest)
+        //{
+        //    return true;
+        //}
 
-        public bool SelectQuestOnMap(Guid questId)
-        {
-            return true;
-        }
+        //public bool SelectQuestOnMap(Guid questId)
+        //{
+        //    return true;
+        //}
 
-        public bool SelectGeoNFTOnMap(IOASISGeoSpatialNFT geoNFT)
-        {
-            return true;
-        }
+        //public bool SelectGeoNFTOnMap(IOASISGeoSpatialNFT geoNFT)
+        //{
+        //    return true;
+        //}
 
-        public bool SelectGeoNFTOnMap(Guid geoNFTId)
-        {
-            return true;
-        }
+        //public bool SelectGeoNFTOnMap(Guid geoNFTId)
+        //{
+        //    return true;
+        //}
 
-        public bool SelectGeoHotSpotOnMap(IGeoHotSpot geoHotSpot)
-        {
-            return true;
-        }
+        //public bool SelectGeoHotSpotOnMap(IGeoHotSpot geoHotSpot)
+        //{
+        //    return true;
+        //}
 
-        public bool SelectGeoHotSpotOnMap(Guid geoHotSpotId)
-        {
-            return true;
-        }
+        //public bool SelectGeoHotSpotOnMap(Guid geoHotSpotId)
+        //{
+        //    return true;
+        //}
 
-        public bool SelectOAPPOnMap(IOAPP oapp)
-        {
-            return true;
-        }
+        //public bool SelectOAPPOnMap(IOAPP oapp)
+        //{
+        //    return true;
+        //}
 
-        public bool SelectOAPPOnMap(Guid oappId)
-        {
-            return true;
-        }
+        //public bool SelectOAPPOnMap(Guid oappId)
+        //{
+        //    return true;
+        //}
+
+        //public bool SelectBuildingOnMap(Building building)
+        //{
+        //    return true;
+        //}
 
         public bool ZoomToHolonOnMap(IHolon holon)
         {
@@ -268,6 +300,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         }
 
         public bool ZoomToBuildingOnMap(Guid buildingId)
+        {
+            return true;
+        }
+
+        public bool ZoomToCoOrdsOnMap(float x, float y)
         {
             return true;
         }
