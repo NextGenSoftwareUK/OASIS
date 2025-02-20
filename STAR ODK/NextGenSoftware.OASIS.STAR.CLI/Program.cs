@@ -1598,7 +1598,107 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         CLIEngine.ShowMessage("Coming soon...");
                         break;
 
-                    case "draw2dspriteonhud":
+                    case "placeHolon":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "placeBuilding":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "placeQuest":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "placeGeoNFT":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "placeGeoHotSpot":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "placeOAPP":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "pamLeft":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "pamRight":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "pamUp":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "pamDown":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "zoomOut":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "zoomIn":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "zoomToHolon":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "zoomToBuilding":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "zoomToQuest":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "zoomToGeoNFT":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "zoomToGeoHotSpot":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "zoomToOAPP":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "zoomToCoOrds":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "drawRouteOnMap":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "drawRouteOnMapBetweenHolons":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "drawRouteOnMapBetweenBuildings":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "drawRouteOnMapBetweenQuests":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "drawRouteOnMapBetweenGeoNFTs":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "drawRouteOnMapBetweenGeoHotSpots":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "drawRouteOnMapBetweenOAPPs":
                         CLIEngine.ShowMessage("Coming soon...");
                         break;
 
@@ -1613,25 +1713,38 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage($"MAP SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("    map setprovider            {mapProviderType}                 Sets the current {mapProviderType}.");
-                Console.WriteLine("    map draw3dobject           {3dObjectPath} {x} {y}            Draws a 3D object on the map at {x/y} co-ordinates for the given file {3dobjectPath}.");
-                Console.WriteLine("    map draw2dsprite           {2dSpritePath} {x} {y}            Draws a 2d sprite on the map at {x/y} co-ordinates for the given file {2dSpritePath}.");
-                Console.WriteLine("    map draw2dspriteonhud      {2dSpritePath}                    Draws a 2d sprite on the HUD for the given file {2dSpritePath}.");
-                Console.WriteLine("    map zoomOut                                                  Zoom the map out.");
-                Console.WriteLine("    map zoomIn                                                   Zoom the map in.");
-                Console.WriteLine("    map pamLeft                                                  Pam the map left.");
-                Console.WriteLine("    map pamLeft                                                  Pam the map left.");
-                Console.WriteLine("    map pamRight                                                 Pam the map right.");
-                Console.WriteLine("    map pamUp                                                    Pam the map left.");
-                Console.WriteLine("    map pamDown                                                  Pam the map down.");
-                Console.WriteLine("    map pamToGeoNFT             {GeoNFT id/name}                 Pam the map to the location of the given GeoNFT.");
-                Console.WriteLine("    map pamToGeoHotSpot         {GeoHotSpot id/name}             Pam the map to the location of the given GeoHotSpot.");
-                Console.WriteLine("    map pamToOAPP               {OAPP id/name}                   Pam the map to the location of the given OAPP.");
-                Console.WriteLine("    map pamToCoOrds             {x} {y}                          Pam the map to the location of the given {x} and {y} coordinates.");
-                Console.WriteLine("    map selectBuildingOnMap     {building id}                    Selects the given building on the map.");
-                //Console.WriteLine("    map highlightBuildingOnMap  {building id}                    Highlight the given building on the map.");
-                Console.WriteLine("    map drawRouteOnMap          {startX} {startY} {endX} {endY}  Draw a route on the map.");
-                Console.WriteLine("    map drawRouteOnMap          {startX} {startY} {endX} {endY}  Draw a route on the map.");
+                Console.WriteLine("    map setprovider                      {mapProviderType}                                 Sets the current {mapProviderType}.");
+                Console.WriteLine("    map draw3dobject                     {3dObjectPath} {x} {y}                            Draws a 3D object on the map at {x/y} co-ordinates for the given file {3dobjectPath}.");
+                Console.WriteLine("    map draw2dsprite                     {2dSpritePath} {x} {y}                            Draws a 2d sprite on the map at {x/y} co-ordinates for the given file {2dSpritePath}.");
+                Console.WriteLine("    map draw2dspriteonhud                {2dSpritePath}                                    Draws a 2d sprite on the HUD for the given file {2dSpritePath}.");
+                Console.WriteLine("    map placeHolon                       {Holon id/name} {x} {y}                           Place the holon on the map.");
+                Console.WriteLine("    map placeBuilding                    {Building id/name} {x} {y}                        Place the building on the map.");
+                Console.WriteLine("    map placeQuest                       {Quest id/name} {x} {y}                           Place the Quest on the map.");
+                Console.WriteLine("    map placeGeoNFT                      {GeoNFT id/name} {x} {y}                          Place the GeoNFT on the map.");
+                Console.WriteLine("    map placeGeoHotSpot                  {GeoHotSpot id/name} {x} {y}                      Place the GeoHotSpot on the map.");
+                Console.WriteLine("    map placeOAPP                        {OAPP id/name} {x} {y}                            Place the OAPP on the map.");
+                Console.WriteLine("    map pamLeft                                                                            Pam the map left.");
+                Console.WriteLine("    map pamRight                                                                           Pam the map right.");
+                Console.WriteLine("    map pamUp                                                                              Pam the map left.");
+                Console.WriteLine("    map pamDown                                                                            Pam the map down.");
+                Console.WriteLine("    map zoomOut                                                                            Zoom the map out.");
+                Console.WriteLine("    map zoomIn                                                                             Zoom the map in.");
+                Console.WriteLine("    map zoomToHolon                       {GeoNFT id/name}                                 Zoom the map to the location of the given holon.");
+                Console.WriteLine("    map zoomToBuilding                    {GeoNFT id/name}                                 Zoom the map to the location of the given building.");
+                Console.WriteLine("    map zoomToQuest                       {GeoNFT id/name}                                 Zoom the map to the location of the given quest.");
+                Console.WriteLine("    map zoomToGeoNFT                      {GeoNFT id/name}                                 Zoom the map to the location of the given GeoNFT.");
+                Console.WriteLine("    map zoomToGeoHotSpot                  {GeoHotSpot id/name}                             Zoom the map to the location of the given GeoHotSpot.");
+                Console.WriteLine("    map zoomToOAPP                        {OAPP id/name}                                   Zoom the map to the location of the given OAPP.");
+                Console.WriteLine("    map zoomToCoOrds                      {x} {y}                                          Zoom the map to the location of the given {x} and {y} coordinates.");
+                //Console.WriteLine("    map selectBuildingOnMap             {building id}                                    Selects the given building on the map.");
+                //Console.WriteLine("    map highlightBuildingOnMap          {building id}                                    Highlight the given building on the map.");
+                Console.WriteLine("    map drawRouteOnMap                    {startX} {startY} {endX} {endY}                  Draw a route on the map.");
+                Console.WriteLine("    map drawRouteOnMapBetweenHolons       {fromHolon id/name} {toHolon id/name}            Draw a route on the map between the two holons.");
+                Console.WriteLine("    map drawRouteOnMapBetweenBuildings    {fromBuilding id/name} {toBuilding id/name}      Draw a route on the map between the two buildings.");
+                Console.WriteLine("    map drawRouteOnMapBetweenQuests       {fromQuest id/name} {toQuest id/name}            Draw a route on the map between the two quests.");
+                Console.WriteLine("    map drawRouteOnMapBetweenGeoNFTs      {fromGeoNFT id/name} {ToGeoNFT id/name}          Draw a route on the map between the two GeoNFTs.");
+                Console.WriteLine("    map drawRouteOnMapBetweenGeoHotSpots  {fromGeoHotSpot id/name} {ToGeoHotSpot id/name}  Draw a route on the map between the two GeoHotSpots.");
+                Console.WriteLine("    map drawRouteOnMapBetweenOAPPs        {fromOAPP id/name} {ToOAPP id/name}              Draw a route on the map between the two OAPPs.");
 
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
@@ -4204,7 +4317,34 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    map draw3dobject                 {3dObjectPath} {x} {y}                 Draws a 3D object on the map at {x/y} co-ordinates for the given file {3dobjectPath}.");
                 Console.WriteLine("    map draw2dsprite                 {2dSpritePath} {x} {y}                 Draws a 2d sprite on the map at {x/y} co-ordinates for the given file {2dSpritePath}.");
                 Console.WriteLine("    map draw2dspriteonhud            {2dSpritePath}                         Draws a 2d sprite on the HUD for the given file {2dSpritePath}.");
-                Console.WriteLine("    map draw2dspriteonhud            {2dSpritePath}                         Draws a 2d sprite on the HUD for the given file {2dSpritePath}.");
+                Console.WriteLine("    map placeHolon                   {Holon id/name} {x} {y}                Place the holon on the map.");
+                Console.WriteLine("    map placeBuilding                {Building id/name} {x} {y}             Place the building on the map.");
+                Console.WriteLine("    map placeQuest                   {Quest id/name} {x} {y}                Place the Quest on the map.");
+                Console.WriteLine("    map placeGeoNFT                  {GeoNFT id/name} {x} {y}               Place the GeoNFT on the map.");
+                Console.WriteLine("    map placeGeoHotSpot              {GeoHotSpot id/name} {x} {y}           Place the GeoHotSpot on the map.");
+                Console.WriteLine("    map placeOAPP                    {OAPP id/name} {x} {y}                 Place the OAPP on the map.");
+                Console.WriteLine("    map pamLeft                                                             Pam the map left.");
+                Console.WriteLine("    map pamRight                                                            Pam the map right.");
+                Console.WriteLine("    map pamUp                                                               Pam the map left.");
+                Console.WriteLine("    map pamDown                                                             Pam the map down.");
+                Console.WriteLine("    map zoomOut                                                             Zoom the map out.");
+                Console.WriteLine("    map zoomIn                                                              Zoom the map in.");
+                Console.WriteLine("    map zoomToHolon                  {GeoNFT id/name}                       Zoom the map to the location of the given holon.");
+                Console.WriteLine("    map zoomToBuilding               {GeoNFT id/name}                       Zoom the map to the location of the given building.");
+                Console.WriteLine("    map zoomToQuest                  {GeoNFT id/name}                       Zoom the map to the location of the given quest.");
+                Console.WriteLine("    map zoomToGeoNFT                 {GeoNFT id/name}                       Zoom the map to the location of the given GeoNFT.");
+                Console.WriteLine("    map zoomToGeoHotSpot             {GeoHotSpot id/name}                   Zoom the map to the location of the given GeoHotSpot.");
+                Console.WriteLine("    map zoomToOAPP                   {OAPP id/name}                         Zoom the map to the location of the given OAPP.");
+                Console.WriteLine("    map zoomToCoOrds                 {x} {y}                                Zoom the map to the location of the given {x} and {y} coordinates.");
+                //Console.WriteLine("    map selectBuildingOnMap        {building id}                          Selects the given building on the map.");
+                //Console.WriteLine("    map highlightBuildingOnMap     {building id}                          Highlight the given building on the map.");
+                Console.WriteLine("    map drawRouteOnMap               {startX} {startY} {endX} {endY}        Draw a route on the map.");
+                Console.WriteLine("    map drawRouteBetweenHolons       {fromHolonId} {toHolonId}              Draw a route on the map between the two holons.");
+                Console.WriteLine("    map drawRouteBetweenBuildings    {fromBuildingId} {toBuildingId}        Draw a route on the map between the two buildings.");
+                Console.WriteLine("    map drawRouteBetweenQuests       {fromQuestId} {toQuestId}              Draw a route on the map between the two quests.");
+                Console.WriteLine("    map drawRouteBetweenGeoNFTs      {fromGeoNFTId} {ToGeoNFTId}            Draw a route on the map between the two GeoNFTs.");
+                Console.WriteLine("    map drawRouteBetweenGeoHotSpots  {fromGeoHotSpotId} {ToGeoHotSpotId}    Draw a route on the map between the two GeoHotSpots.");
+                Console.WriteLine("    map drawRouteBetweenOAPPs        {fromOAPP id/name} {ToOAPP id/name}    Draw a route on the map between the two OAPPs.");
                 Console.WriteLine("    oland price                                                             Get the current OLAND price.");
                 Console.WriteLine("    oland purchase                                                          Purchase OLAND for Our World/OASIS.");
                 Console.WriteLine("    oland load                       {id}                                   Load a OLAND for the given {id}.");
@@ -4231,7 +4371,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 //Console.WriteLine(" NOTES: -  is not needed if using the STAR CLI Console directly. Star is only needed if calling from the command line or another external script ( is simply the name of the exe).");
                 Console.WriteLine(" NOTES:");
-                Console.WriteLine("        When invoking any sub-commands that take a {id} or {title}, if neither is specified then a wizard will launch to help find the correct item.");
+                Console.WriteLine("        When invoking any sub-commands that take a {id} or {name}, if neither is specified then a wizard will launch to help find the correct item.");
+                Console.WriteLine("        In some cases, sub-commands may only list {id} as a param to save space but these also accept the {name}.");
                 Console.WriteLine("        When invoking any sub-commands that have an optional [all] argument/flag, if it is omitted it will search only your items, otherwise it will search all published items as well as yours.");
                 Console.WriteLine("        If you invoke a sub-command without any arguments it will show more detailed help on how to use that sub-command as well as the option to lanuch any wizards to help guide you.");
 
