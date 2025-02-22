@@ -1557,7 +1557,35 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             {
                 switch (inputArgs[1].ToLower())
                 {
+                    case "sendtoken":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "get":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "getDefault":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "setDefault":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "import":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "add":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
                     case "list":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "balance":
                         CLIEngine.ShowMessage("Coming soon...");
                         break;
 
@@ -1571,7 +1599,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"WALLET SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    list                  Shows the wallets for the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    sendtoken          [walletAddress]  Sends a token to the given wallet address.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    get                [publickey]      Gets the wallet that the public key belongs to.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    getDefault                          Gets the default wallet for the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    setDefault         [walletId]       Sets the default wallet for the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import privateKey  [privatekey]     Imports a wallet using the privateKey.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import publicKey   [publickey]      Imports a wallet using the publicKey.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import secretPhase [secretPhase]    Imports a wallet using the secretPhase.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import json        [jsonFile]       Imports a wallet using the jsonFile.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    add                                 Adds a wallet for the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list                                Lists the wallets for the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    balance                             Gets the total balance for all wallets for the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    balance            [walletId]       Gets the balance for the given wallet for the current beamed in avatar.", ConsoleColor.Green, false);
+
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -4166,9 +4206,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    avatar list                                                             Loads all avatars.");
                 Console.WriteLine("    avatar search                                                           Seach avatars that match the given seach parameters (public fields only such as level, karma, username & any fields the player has set to public).");
                 Console.WriteLine("    karma list                                                              Display the karma thresholds.");
-                Console.WriteLine("    keys link                                                               Links a OASIS Provider Key to the current beamed in avatar.");
+                Console.WriteLine("    keys link privateKey             [walletId] [privateKey]                Links a private key to the given wallet for the current beamed in avatar.");
+                Console.WriteLine("    keys link publicKey              [walletId] [publicKey]                 Links a public key to the given wallet for the current beamed in avatar.");
+                Console.WriteLine("    keys link genKeyPair             [walletId]                             Generates a unique keyvalue pair and then links them to to the given wallet for the current beamed in avatar.");
+                Console.WriteLine("    keys generateKeyPair                                                    Generates a unique keyvalue pair.");
+                Console.WriteLine("    keys clearCache                                                         Clears the cache.");
                 Console.WriteLine("    keys list                                                               Shows the keys for the current beamed in avatar.");
-                Console.WriteLine("    wallet list                                                             Shows the wallets for the current beamed in avatar.");
+                Console.WriteLine("    wallet sendtoken                        [walletAddress]                 Sends a token to the given wallet address.");
+                Console.WriteLine("    wallet gwalletet                        [publickey]                     Gets the wallet that the public key belongs to.");
+                Console.WriteLine("    wallet getDefault                                                       Gets the default wallet for the current beamed in avatar.");
+                Console.WriteLine("    wallet setDefault                       [walletId]                      Sets the default wallet for the current beamed in avatar.");
+                Console.WriteLine("    wallet import privateKey                [privateKey]                    Imports a wallet using the privateKey.");
+                Console.WriteLine("    wallet import publicKey                 [publicKey]                     Imports a wallet using the publicKey.");
+                Console.WriteLine("    wallet import secretPhase               [secretPhase]                   Imports a wallet using the secretPhase.");
+                Console.WriteLine("    wallet import json                      [jsonFile]                      Imports a wallet using the jsonFile.");
+                Console.WriteLine("    wallet import json                      [jsonFile]                      Imports a wallet using the jsonFile.");
+                Console.WriteLine("    wallet add                                                              Adds a wallet for the current beamed in avatar.");
+                Console.WriteLine("    wallet list                                                             Lists the wallets for the current beamed in avatar.");
+                Console.WriteLine("    wallet balance                          [walletId]                      Gets the balance for the given wallet for the current beamed in avatar.");
+                Console.WriteLine("    wallet balance                                                          Gets the total balance for all wallets for the current beamed in avatar.");
                 Console.WriteLine("    search                                                                  Seaches The OASIS for the given seach parameters.");
                 Console.WriteLine("    oapp create                                                             Shortcut to the light sub-command.");
                 Console.WriteLine("    oapp update                      {id/name}                              Update an existing OAPP for the given {id} or {name}.");
