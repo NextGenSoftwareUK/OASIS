@@ -21,6 +21,7 @@ using Console = System.Console;
 using System.Security.Cryptography;
 using System.Threading;
 using ConsoleTables;
+using BetterConsoleTables;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 {
@@ -4152,7 +4153,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void ShowCommands(bool showFullCommands = false)
         {
-            var table = new ConsoleTable("one", "two", "three");
+            Table table = new Table("one", "two", "three");
+            
+
+            
+
+
+            //var table = new ConsoleTable("one", "two", "three");
             table.AddRow("ssdsd", "dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d 111122 2222 33333333333 44444 55555555 666666666666 677 ");
             table.AddRow("2ssdsd", "2dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "2dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
             table.AddRow("3ssdsd", "3dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "3dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
@@ -4160,11 +4167,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             table.AddRow("5sdsd", "5fdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "d5fdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
             table.AddRow("6ssdsd", "6dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "6dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
             table.AddRow("7sdsd", "7dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "7dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
-            table.Write(Format.Default);
-            table.Write(Format.Alternative);
-            table.Write(Format.MarkDown);
-            table.Write(Format.Minimal);
+            //table.Write(Format.Default);
+            //table.Write(Format.Alternative);
+            //table.Write(Format.MarkDown);
+            //table.Write(Format.Minimal);
 
+            Console.Write(table.ToString());
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("\n USAGE:");
