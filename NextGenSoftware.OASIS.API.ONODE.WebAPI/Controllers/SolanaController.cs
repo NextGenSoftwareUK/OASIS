@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
@@ -28,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         /// <returns>Mint NFT Transaction Hash</returns>
         [HttpPost]
         [Route("Mint")]
-        public async Task<OASISResult<MintNftResult>> MintNft([FromBody] MintNftRequest request)
+        public async Task<OASISResult<MintNftResult>> MintNft([FromBody] MintNFTTransactionRequestForProvider request)
         {
             return await _solanaService.MintNftAsync(request);
         }
