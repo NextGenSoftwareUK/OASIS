@@ -317,10 +317,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public static async Task SearchOAPPTemplatesAsync(ProviderType providerType = ProviderType.Default)
-        {
-
-        }
+        //public static async Task SearchOAPPTemplatesAsync(ProviderType providerType = ProviderType.Default)
+        //{
+        //    //await STAR.OASISAPI.OAPPs.
+        //}
 
         public static void ShowOAPPTemplate(IOAPPTemplateDNA oappTemplateDNA)
         {

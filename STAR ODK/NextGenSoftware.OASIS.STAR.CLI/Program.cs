@@ -4153,26 +4153,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void ShowCommands(bool showFullCommands = false)
         {
-            Table table = new Table("one", "two", "three");
+            //Table table = new Table("one", "two", "three");
             
 
             
 
 
-            //var table = new ConsoleTable("one", "two", "three");
-            table.AddRow("ssdsd", "dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d 111122 2222 33333333333 44444 55555555 666666666666 677 ");
-            table.AddRow("2ssdsd", "2dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "2dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
-            table.AddRow("3ssdsd", "3dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "3dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
-            table.AddRow("4ssdsd", "4dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "4dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
-            table.AddRow("5sdsd", "5fdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "d5fdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
-            table.AddRow("6ssdsd", "6dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "6dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
-            table.AddRow("7sdsd", "7dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "7dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
-            //table.Write(Format.Default);
-            //table.Write(Format.Alternative);
-            //table.Write(Format.MarkDown);
-            //table.Write(Format.Minimal);
+            ////var table = new ConsoleTable("one", "two", "three");
+            //table.AddRow("ssdsd", "dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d 111122 2222 33333333333 44444 55555555 666666666666 677 ");
+            //table.AddRow("2ssdsd", "2dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "2dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
+            //table.AddRow("3ssdsd", "3dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "3dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
+            //table.AddRow("4ssdsd", "4dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "4dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
+            //table.AddRow("5sdsd", "5fdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "d5fdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
+            //table.AddRow("6ssdsd", "6dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "6dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
+            //table.AddRow("7sdsd", "7dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "7dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
+            ////table.Write(Format.Default);
+            ////table.Write(Format.Alternative);
+            ////table.Write(Format.MarkDown);
+            ////table.Write(Format.Minimal);
 
-            Console.Write(table.ToString());
+            //Console.Write(table.ToString());
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("\n USAGE:");
@@ -4201,8 +4201,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    light wiz                                                               Start the Light Wizard.");
                 Console.WriteLine("    light transmute                  {hAppDNA} {geneisFolder}               Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
                 Console.WriteLine("    bang                                                                    Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
-                Console.WriteLine("    wiz                                                                     Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs");
-                Console.WriteLine("                                                                            (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
+                //Console.WriteLine("    wiz                                                                     Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs");
+                //Console.WriteLine("                                                                            (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
+                Console.WriteLine("    wiz                                                                     Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
                 Console.WriteLine("    flare                            {id/name}                              Build a OAPP for the given {id} or {name}.");
                 Console.WriteLine("    shine                            {id/name}                              Launch & activate a OAPP for the given {id} or {name} by shining the 's light upon it..."); //TODO: Dev next.
                 Console.WriteLine("    twinkle                          {id/name}                              Activate a published OAPP for the given {id} or {name} within the STARNET store."); //TODO: Dev next.

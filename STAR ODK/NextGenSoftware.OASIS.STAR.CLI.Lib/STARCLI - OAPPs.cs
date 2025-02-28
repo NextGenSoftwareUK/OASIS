@@ -76,6 +76,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.GetConfirmation("Do you want to create the OAPP from an OAPP Template or do you want to generate the code only? Select 'Y' for OAPPTemplate or 'N' for Generated Code Only."))
             {
+                Console.WriteLine("");
                 enumValue = CLIEngine.GetValidInputForEnum("What type of OAPP Template do you wish to use?", typeof(OAPPTemplateType));
 
                 if (enumValue != null)
@@ -85,15 +86,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     else
                     {
                         OAPPTemplateType = (OAPPTemplateType)enumValue;
+                        bool templateInstalled = false;
 
                         do
                         {
                             if (CLIEngine.GetConfirmation("Do you know the GUID/ID of the OAPP Template?"))
+                            {
+                                Console.WriteLine("");
                                 OAPPTemplateId = CLIEngine.GetValidInputForGuid("What is the GUID/ID?");
+                            }
                             else
                             {
+                                Console.WriteLine("");
+
                                 if (CLIEngine.GetConfirmation("Do you know the name of the OAPP Template?"))
                                 {
+                                    Console.WriteLine("");
+
                                     string OAPPTemplateName = CLIEngine.GetValidInput("What is the name?");
 
                                     if (OAPPTemplateName == "exit")
@@ -115,7 +124,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                     {
                                         if (CLIEngine.GetConfirmation($"The selected OAPP Template is not currently installed. Do you wish to install it now?"))
                                         {
-
+                                            STAR.OASISAPI.OAPPTemplates.
+                                            templateInstalled = true;
                                         }
                                     }
                                 }
@@ -123,7 +133,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                     CLIEngine.ShowErrorMessage($"Error occured checking if OAPP Template is installed. Reason: {oappTemplateInstalledResult.Message}");
                             }
                         }
-                        while (OAPPTemplateId == Guid.Empty);
+                        while (!templateInstalled);
                     }
                 }
             }
@@ -1219,7 +1229,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (CLIEngine.GetConfirmation("Do you wish to use any of these OAPP Templates?"))
                         OAPPTemplateId = CLIEngine.GetValidInputForGuid($"Which OAPP Template do you wish to use? Please enter the GUID/ID of the OAPP Template.");
                 }
-                else
+                else if (oappTemplateResults.Result.Count() == 1)
                 {
                     CLIEngine.ShowMessage($"The following OAPP Template was found for '{searchTerm}':");
                     ShowOAPPTemplate(oappTemplateResults.Result.FirstOrDefault().OAPPTemplateDNA);
@@ -1227,6 +1237,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (CLIEngine.GetConfirmation("Do you wish to use this OAPP Template?"))
                         OAPPTemplateId = oappTemplateResults.Result.FirstOrDefault().OAPPTemplateDNA.Id;
                 }
+                else
+                    CLIEngine.ShowMessage($"No results were found for '{searchTerm}'.");
             }
             else
                 CLIEngine.ShowErrorMessage($"Error occured searching for OAPP Templates: Reason: {oappTemplateResults.Message}");
