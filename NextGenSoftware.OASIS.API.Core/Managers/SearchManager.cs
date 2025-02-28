@@ -263,7 +263,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<ISearchResults>> SearchProviderAsync(ISearchParams searchParams, OASISResult<ISearchResults> result, ProviderType providerType = ProviderType.Default, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            string errorMessageTemplate = "Error in SearchProviderAsync method in SearchManager for provider {1}. Reason: ";
+            string errorMessageTemplate = "Error in SearchProviderAsync method in SearchManager for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
             try
@@ -306,7 +306,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private OASISResult<ISearchResults> SearchProvider(ISearchParams searchParams, OASISResult<ISearchResults> result, ProviderType providerType = ProviderType.Default, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            string errorMessageTemplate = "Error in SearchProvider method in SearchManager for provider {1}. Reason: ";
+            string errorMessageTemplate = "Error in SearchProvider method in SearchManager for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
             try
