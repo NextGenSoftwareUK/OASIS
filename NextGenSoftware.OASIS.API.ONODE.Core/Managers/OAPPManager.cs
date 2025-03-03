@@ -6,6 +6,8 @@ using System.Text.Json;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Threading.Tasks;
+using Google.Cloud.Storage.V1;
+using NextGenSoftware.Utilities;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using NextGenSoftware.OASIS.Common;
@@ -18,8 +20,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
-using Google.Cloud.Storage.V1;
-using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers

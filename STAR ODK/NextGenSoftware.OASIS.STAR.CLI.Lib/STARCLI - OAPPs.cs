@@ -124,8 +124,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                     {
                                         if (CLIEngine.GetConfirmation($"The selected OAPP Template is not currently installed. Do you wish to install it now?"))
                                         {
-                                            STAR.OASISAPI.OAPPTemplates.
-                                            templateInstalled = true;
+                                            //STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, OAPPTemplateId, providerType);
+                                            OASISResult<IInstalledOAPPTemplate> installResult = await InstallOAPPTemplateAsync(OAPPTemplateId.ToString(), providerType);
+
+                                            if (installResult.Result != null && !installResult.IsError)
+                                                templateInstalled = true;
                                         }
                                     }
                                 }

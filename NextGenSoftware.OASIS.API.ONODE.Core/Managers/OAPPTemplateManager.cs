@@ -1,25 +1,24 @@
 ﻿using System;
 using System.IO;
+using System.Text;
+using System.Linq;
 using System.Text.Json;
+using System.Diagnostics;
+using System.IO.Compression;
 using System.Threading.Tasks;
+using Google.Cloud.Storage.V1;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.Core.Managers;
-using System.IO.Compression;
-using Google.Cloud.Storage.V1;
-using System.Text;
-using System.Linq;
-using System.Diagnostics;
-using System.Text.Json.Serialization;
-
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -870,13 +869,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 {
                     OAPPTemplateDNA.PublishedOn = DateTime.MinValue;
                     OAPPTemplateDNA.PublishedByAvatarId = Guid.Empty;
-                    result.Message = "OAPPTemplate Unpublised";
+                    result.Message = "OAPP Template Unpublised";
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPPTemplate with the SaveOAPPTemplateAsync method, reason: {oappResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplateAsync method, reason: {oappResult.Message}");
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPPTemplate with the LoadOAPPTemplateAsync method, reason: {oappResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP Template with the LoadOAPPTemplateAsync method, reason: {oappResult.Message}");
 
             return result;
         }
@@ -899,13 +898,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 {
                     OAPPTemplateDNA.PublishedOn = DateTime.MinValue;
                     OAPPTemplateDNA.PublishedByAvatarId = Guid.Empty;
-                    result.Message = "OAPPTemplate Unpublised";
+                    result.Message = "OAPP Template Unpublised";
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPPTemplate with the SaveOAPPTemplate method, reason: {oappResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplate method, reason: {oappResult.Message}");
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPPTemplate with the LoadOAPPTemplate method, reason: {oappResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP Template with the LoadOAPPTemplate method, reason: {oappResult.Message}");
 
             return result;
         }
@@ -922,12 +921,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<IOAPPTemplate> oappResult = await SaveOAPPTemplateAsync(OAPPTemplate, avatarId, providerType);
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
-            {
+            { 
                 result.Result = OAPPTemplate.OAPPTemplateDNA; //ConvertOAPPTemplateToOAPPTemplateDNA(OAPPTemplate);
                 result.Message = "OAPPTemplate Unpublised";
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPPTemplate with the SaveOAPPTemplateAsync method, reason: {oappResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplateAsync method, reason: {oappResult.Message}");
 
             return result;
         }
@@ -946,10 +945,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
             {
                 result.Result = OAPPTemplate.OAPPTemplateDNA; //ConvertOAPPTemplateToOAPPTemplateDNA(OAPPTemplate);
-                result.Message = "OAPPTemplate Unpublised";
+                result.Message = "OAPP Template Unpublised";
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPPTemplate with the SaveOAPPTemplate method, reason: {oappResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplate method, reason: {oappResult.Message}");
 
             return result;
         }
@@ -1146,7 +1145,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                string OAPPTemplatePath = Path.Combine("temp", OAPPTemplate.Name, ".oapp");
+                string OAPPTemplatePath = Path.Combine("temp", OAPPTemplate.Name, ".oapptemplate");
 
                 if (OAPPTemplate.PublishedOAPPTemplate != null)
                 {
@@ -1209,7 +1208,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     result = InstallOAPPTemplate(avatarId, OAPPTemplatePath, fullInstallPath, createOAPPTemplateDirectory, providerType);
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, "The OAPPTemplate.PublishedOAPPTemplate property is null! Please make sure this OAPPTemplate was published to STARNET and try again.");
+                    OASISErrorHandling.HandleError(ref result, "The OAPPTemplate.PublishedOAPPTemplate property is null! Please make sure this OAPP Template was published to STARNET and try again.");
             }
             catch (Exception ex)
             {
@@ -1480,7 +1479,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 }
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The OAPPTemplate is null!");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The OAPP Template is null!");
 
             return result;
         }
@@ -1562,7 +1561,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An error occured writing the OAPPTemplateDNA in WriteOAPPTemplateDNAAsync: Reason: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"An error occured writing the OAPP Template DNA in WriteOAPPTemplateDNAAsync: Reason: {ex.Message}");
             }
 
             return result;
@@ -1579,7 +1578,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An error occured writing the OAPPTemplateDNA in WriteOAPPTemplateDNA: Reason: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"An error occured writing the OAPP Template DNA in WriteOAPPTemplateDNA: Reason: {ex.Message}");
             }
 
             return result;
@@ -1595,7 +1594,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An error occured reading the OAPPTemplateDNA in ReadOAPPTemplateDNAAsync: Reason: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"An error occured reading the OAPP Template DNA in ReadOAPPTemplateDNAAsync: Reason: {ex.Message}");
             }
 
             return result;
@@ -1611,7 +1610,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An error occured reading the OAPPTemplateDNA in ReadOAPPTemplateDNA: Reason: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"An error occured reading the OAPP Template DNA in ReadOAPPTemplateDNA: Reason: {ex.Message}");
             }
 
             return result;
