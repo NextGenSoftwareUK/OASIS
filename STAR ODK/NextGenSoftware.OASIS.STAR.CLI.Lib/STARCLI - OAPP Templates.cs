@@ -2,10 +2,10 @@
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -131,9 +131,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the OAPP Template. Reason: {result.Message}");
         }
 
-        public static async Task InstallOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IInstalledOAPPTemplate> installResult = null;
+            OASISResult<IInstalledOAPPTemplate> installResult = new OASISResult<IInstalledOAPPTemplate>();
             string installPath = "";
 
             if (Path.IsPathRooted(STAR.STARDNA.DefaultInstalledOAPPTemplatesPath))
@@ -159,19 +159,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
-                        STAR.OASISAPI.OAPPs.OnOAPPDownloadStatusChanged += OAPPs_OnOAPPDownloadStatusChanged;
-                        STAR.OASISAPI.OAPPs.OnOAPPInstallStatusChanged += OAPPs_OnOAPPInstallStatusChanged;
+                        STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged += OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
+                        STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged += OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
                         CLIEngine.ShowWorkingMessage("Installing OAPP Template...");
-                        installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, installPath, true, providerType);
-                        STAR.OASISAPI.OAPPs.OnOAPPDownloadStatusChanged -= OAPPs_OnOAPPDownloadStatusChanged;
-                        STAR.OASISAPI.OAPPs.OnOAPPInstallStatusChanged -= OAPPs_OnOAPPInstallStatusChanged;
+                        STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged -= OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
+                        STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged -= OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
                     }
                 }
             }
             else
             {
                 Console.WriteLine("");
-                if (CLIEngine.GetConfirmation("Do you wish to install the OAPP Template from a local .oapptemplate file or from STARNET? Press 'Y' for local .oapptemplate or 'N' for STARNET."))
+                if (CLIEngine.GetConfirmation("Do you wish to install the OAPP Template from a local .oapptemplate file or from STARNET? Press 'Y' for local .oapptemplate file or 'N' for STARNET."))
                 {
                     Console.WriteLine("");
                     string oappPath = CLIEngine.GetValidFile("What is the full path to the .oapptemplate file?");
@@ -198,11 +197,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
                 CLIEngine.ShowErrorMessage($"Error installing OAPP Template. Reason: Unknown error occured!");
+
+            return installResult;
         }
 
-        public static void InstallOAPPTemplate(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public static OASISResult<IInstalledOAPPTemplate> InstallOAPPTemplate(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IInstalledOAPP> installResult = null;
+            OASISResult<IInstalledOAPPTemplate> installResult = new OASISResult<IInstalledOAPPTemplate>();
             string installPath = "";
 
             if (Path.IsPathRooted(STAR.STARDNA.DefaultInstalledOAPPsPath))
@@ -210,28 +211,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             else
                 installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultInstalledOAPPsPath);
 
-            if (!CLIEngine.GetConfirmation($"Do you wish to install the OAPP Template to the default install folder defined in the STARDNA as DefaultInstalledOAPPsPath : {installPath}?"))
-                installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the OAPP?", true);
+            if (!CLIEngine.GetConfirmation($"Do you wish to install the OAPP Template to the default install folder defined in the STARDNA as DefaultInstalledOAPPTemplatesPath : {installPath}?"))
+                installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the OAPP Template?", true);
 
             if (!string.IsNullOrEmpty(idOrName))
             {
-                OASISResult<IOAPP> result = LoadOAPP(idOrName, "install", providerType);
+                OASISResult<IOAPPTemplate> result = LoadOAPPTemplate(idOrName, "install", providerType);
 
                 if (result != null && result.Result != null && !result.IsError)
-                    installResult = STAR.OASISAPI.OAPPs.InstallOAPP(STAR.BeamedInAvatar.Id, result.Result, installPath, true, providerType);
+                    installResult = STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result, installPath, true, providerType);
 
                 //installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, id, installPath, providerType);
             }
             else
             {
                 Console.WriteLine("");
-                if (CLIEngine.GetConfirmation("Do you wish to install the OAPP from a local .oapp file or from STARNET? Press 'Y' for local .oapp or 'N' for STARNET."))
+                if (CLIEngine.GetConfirmation("Do you wish to install the OAPP Template from a local .oapptemplate file or from STARNET? Press 'Y' for local .oapptemplate file or 'N' for STARNET."))
                 {
                     Console.WriteLine("");
-                    string oappPath = CLIEngine.GetValidFile("What is the full path to the .oapp file?");
+                    string oappPath = CLIEngine.GetValidFile("What is the full path to the .oapptemplate file?");
 
-                    CLIEngine.ShowWorkingMessage("Installing OAPP...");
-                    installResult = STAR.OASISAPI.OAPPs.InstallOAPP(STAR.BeamedInAvatar.Id, oappPath, installPath, true, providerType);
+                    CLIEngine.ShowWorkingMessage("Installing OAPP Template...");
+                    installResult = STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplate(STAR.BeamedInAvatar.Id, oappPath, installPath, true, providerType);
                 }
                 else
                     LaunchSTARNETAsync(true);
@@ -241,46 +242,44 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (!installResult.IsError && installResult.Result != null)
                 {
-                    CLIEngine.ShowSuccessMessage("OAPP Successfully Installed.");
-                    ShowInstalledOAPP(installResult.Result);
+                    CLIEngine.ShowSuccessMessage("OAPP Template Successfully Installed.");
+                    ShowInstalledOAPPTemplate(installResult.Result);
 
-                    if (CLIEngine.GetConfirmation("Do you wish to launch the OAPP now?"))
-                    {
-                        string oappTarget = Path.Combine(installPath, installResult.Result.OAPPDNA.LaunchTarget);
-                        //Process.Start("explorer.exe", Path.Combine(installPath, installResult.Result.OAPPDNA.LaunchTarget));
-                        Process.Start("dotnet.exe", Path.Combine(installPath, installResult.Result.OAPPDNA.LaunchTarget));
-                    }
+                    if (CLIEngine.GetConfirmation("Do you wish to open the folder to the OAPP Template now?"))
+                        STAR.OASISAPI.OAPPTemplates.OpenOAPPTemplateFolder(STAR.BeamedInAvatar.Id, installResult.Result);
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error installing OAPP. Reason: {installResult.Message}");
+                    CLIEngine.ShowErrorMessage($"Error installing OAPP Template. Reason: {installResult.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Error installing OAPP. Reason: Unknown error occured!");
+                CLIEngine.ShowErrorMessage($"Error installing OAPP Template. Reason: Unknown error occured!");
+
+            return installResult;
         }
 
         public static async Task UnInstallOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPP> result = await LoadOAPPAsync(idOrName, "uninstall", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "uninstall", providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                OASISResult<IOAPPDNA> uninstallResult = await STAR.OASISAPI.OAPPs.UnInstallOAPPAsync(result.Result.OAPPDNA, STAR.BeamedInAvatar.Id, providerType);
+                OASISResult<IOAPPTemplateDNA> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UnInstallOAPPTemplateAsync(result.Result.OAPPTemplateDNA, STAR.BeamedInAvatar.Id, providerType);
 
                 if (uninstallResult != null)
                 {
                     if (!uninstallResult.IsError && uninstallResult.Result != null)
                     {
-                        CLIEngine.ShowSuccessMessage("OAPP Successfully Uninstalled.");
-                        ShowOAPP(uninstallResult.Result);
+                        CLIEngine.ShowSuccessMessage("OAPP Template Successfully Uninstalled.");
+                        ShowOAPPTemplate(uninstallResult.Result);
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"Error installing OAPP. Reason: {uninstallResult.Message}");
+                        CLIEngine.ShowErrorMessage($"Error installing OAPP Template. Reason: {uninstallResult.Message}");
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error uninstalling OAPP. Reason: Unknown error occured!");
+                    CLIEngine.ShowErrorMessage($"Error uninstalling OAPP Template. Reason: Unknown error occured!");
             }
             else
-                CLIEngine.ShowErrorMessage($"An error occured loading the OAPP. Reason: {result.Message}");
+                CLIEngine.ShowErrorMessage($"An error occured loading the OAPP Template. Reason: {result.Message}");
         }
 
         public static async Task ListAllOAPPTemplatesAsync(ProviderType providerType = ProviderType.Default)
@@ -317,10 +316,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        //public static async Task SearchOAPPTemplatesAsync(ProviderType providerType = ProviderType.Default)
-        //{
-        //    //await STAR.OASISAPI.OAPPs.
-        //}
+        public static async Task SearchOAPPTemplatesAsync(ProviderType providerType = ProviderType.Default)
+        {
+
+        }
 
         public static void ShowOAPPTemplate(IOAPPTemplateDNA oappTemplateDNA)
         {
@@ -368,7 +367,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         private static void ListOAPPTemplates(OASISResult<IEnumerable<IOAPPTemplate>> oappTemplates)
         {
             if (oappTemplates != null)
-            { 
+            {
                 if (!oappTemplates.IsError)
                 {
                     if (oappTemplates.Result != null && oappTemplates.Result.Count() > 0)
@@ -382,16 +381,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         CLIEngine.ShowDivider();
 
-                        foreach (IOAPP oapp in oappTemplates.Result)
-                            ShowOAPP(oapp);
+                        foreach (IOAPPTemplate oappTemplate in oappTemplates.Result)
+                            ShowOAPPTemplate(oappTemplate.OAPPTemplateDNA);
 
-                        ShowOAPPListFooter();
+                        //ShowOAPPTemplateListFooter();
                     }
                     else
                         CLIEngine.ShowWarningMessage("No OAPP Templates Found.");
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error occured loading OAPP Temmplates. Reason: {oappTemplates.Message}");
+                    CLIEngine.ShowErrorMessage($"Error occured loading OAPP Templates. Reason: {oappTemplates.Message}");
             }
             else
                 CLIEngine.ShowErrorMessage($"Unknown error occured loading OAPP Templates.");
@@ -467,6 +466,34 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             return result;
+        }
+
+        private static void OAPPTemplates_OnOAPPTemplateInstallStatusChanged(object sender, API.ONODE.Core.Events.OAPPTemplateInstallStatusEventArgs e)
+        {
+            switch (e.Status)
+            {
+                case OAPPTemplateInstallStatus.Downloading:
+                    CLIEngine.BeginWorkingMessage("Downloading...");
+                    //CLIEngine.ShowProgressBar(0);
+                    break;
+
+                case OAPPTemplateInstallStatus.Installed:
+                    CLIEngine.ShowSuccessMessage("OAPP Template Installed Successfully");
+                    break;
+
+                case OAPPTemplateInstallStatus.Error:
+                    CLIEngine.ShowErrorMessage(e.ErrorMessage);
+                    break;
+
+                default:
+                    CLIEngine.ShowWorkingMessage($"{Enum.GetName(typeof(OAPPInstallStatus), e.Status)}...");
+                    break;
+            }
+        }
+
+        private static void OAPPTemplates_OnOAPPTemplateDownloadStatusChanged(object sender, API.ONODE.Core.Events.OAPPTemplateDownloadProgressEventArgs e)
+        {
+            CLIEngine.UpdateWorkingMessage($"Downloading... {e.Progress}%");
         }
     }
 }
