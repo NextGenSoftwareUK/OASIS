@@ -163,7 +163,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                 foreach (Holon holon in documents)
                 {
-                    if (holon.MetaData[metaKey].ToString() == metaValue)
+                    if (holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey].ToString() == metaValue)
                     {
                         matchedHolon = holon;
                         break;
@@ -414,7 +414,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                return _dbContext.Holon.Find(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).ToList();
+                //return _dbContext.Holon.Find(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).ToList();
+                FilterDefinition<Holon> filter = BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType);
+                
+                if (filter != null)
+                    return _dbContext.Holon.Find(filter).ToList();
+                else 
+                    return new List<Holon>();
             }
             catch
             {

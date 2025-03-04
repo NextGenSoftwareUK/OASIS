@@ -8,11 +8,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Enums;
-
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -102,16 +100,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 if (CLIEngine.GetConfirmation("Do you know the name of the OAPP Template?"))
                                 {
                                     Console.WriteLine("");
-
                                     string OAPPTemplateName = CLIEngine.GetValidInput("What is the name?");
 
                                     if (OAPPTemplateName == "exit")
                                         return;
 
+                                    CLIEngine.ShowWorkingMessage("Searching STARNET...");
                                     OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(OAPPTemplateName), OAPPTemplateName);
                                 }
                                 else
-                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(OAPPTemplateType), Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType));
+                                {
+                                    Console.WriteLine("");
+                                    CLIEngine.ShowWorkingMessage("Searching STARNET...");
+                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(OAPPTemplateType), string.Concat("type ", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)));
+                                }
                             }
 
                             if (OAPPTemplateId != Guid.Empty)
