@@ -530,6 +530,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 case "oapp":
                                     {
+                                        //await ShowOAPPSubCommandsAsync(inputArgs);
+
+                                        
                                         if (inputArgs.Length > 1)
                                         {
                                             switch (inputArgs[1].ToLower())
@@ -552,7 +555,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                 case "template":
                                                     {
                                                         //await ShowOAPPTemplateSubCommandsAsync(inputArgs);
-                                                        await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.CreateOAPPTemplateAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true);
+                                                        await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.CreateOAPPTemplateAsync, STARCLI.EditOAPPTemplateAsync, STARCLI.DeleteOAPPTemplateAsync, STARCLI.InstallOAPPTemplateAsync, STARCLI.UnInstallOAPPTemplateAsync, null, STARCLI.UnPublishOAPPTemplateAsync, STARCLI.ShowOAPPTemplateAsync, STARCLI.ListOAPPTemplatesCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPTemplatesAsync, STARCLI.ListOAPPTemplatesInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPTemplatesAsync, ProviderType.Default, true);
                                                     }
                                                     break;
                                             }
@@ -994,6 +997,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     CLIEngine.ShowMessage(string.Concat("    list installed".PadRight(commandSpace), "{id/name}", paramSpace, "List all ", subCommandPlural, "' installed for the current beamed in avatar."), ConsoleColor.Green, false);
 
                 CLIEngine.ShowMessage(string.Concat("    search".PadRight(commandSpace), "{id/name}", paramSpace, "Searches the ", subCommandPlural, " for the given search critera."), ConsoleColor.Green, false);
+                
+                if (isOAPPOrHapp && !ishApp)
+                    CLIEngine.ShowMessage(string.Concat("    template".PadRight(commandSpace), "", paramSpace, "Shows the OAPP Template Subcommand menu."), ConsoleColor.Green, false);
+
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -1109,6 +1116,115 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
         }
 
+        /*
+        private static async Task ShowOAPPSubCommandsAsync(string[] inputArgs)
+        {
+            if (inputArgs.Length > 2)
+            {
+                //Guid id = Guid.Empty;
+
+                //if (inputArgs.Length > 3)
+                //{
+                //    if (!Guid.TryParse(inputArgs[2], out id))
+                //        CLIEngine.ShowErrorMessage($"The id ({inputArgs[2]}) passed in is not a valid GUID!");
+                //}
+
+                switch (inputArgs[2].ToLower())
+                {
+                    case "create":
+                        {
+                            await STARCLI.LightWizardAsync();
+                        }
+                        break;
+
+                    case "update":
+                        {
+                            await STARCLI.EditOAPPAsync(inputArgs[2]);
+                        }
+                        break;
+
+                    case "delete":
+                        {
+                            await STARCLI.DeleteOAPPAsync(inputArgs[2]);
+                        }
+                        break;
+
+                    case "list":
+                        {
+                            await STARCLI.ListAllOAPPsAsync();
+                        }
+                        break;
+
+                    case "install":
+                        {
+                            await STARCLI.InstallOAPPAsync(inputArgs[2]);
+                        }
+                        break;
+
+
+                    case "uninstall":
+                        {
+                            await STARCLI.UnInstallOAPPAsync(inputArgs[2]);
+                        }
+                        break;
+
+                    case "publish":
+                        {
+                            string oappPath = "";
+                            bool dotNetPublish = false;
+
+                            if (inputArgs.Length > 2)
+                                oappPath = inputArgs[2];
+
+                            if (inputArgs.Length > 3 && inputArgs[3].ToLower() == "dotnetpublish")
+                                dotNetPublish = true;
+
+                            await STARCLI.PublishOAPPAsync(oappPath, dotNetPublish);
+                        }
+                        break;
+
+                    case "unpublish":
+                        {
+                            await STARCLI.UnPublishOAPPAsync(inputArgs[2]);
+                        }
+                        break;
+
+                    case "show":
+                        {
+                            await STARCLI.ShowOAPPAsync(inputArgs[2]);
+                        }
+                        break;
+
+                    case "template":
+                        await ShowOAPPTemplateSubCommandsAsync(inputArgs);
+                        break;
+
+                    default:
+                        CLIEngine.ShowErrorMessage("Command Unknown.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowMessage($"OAPP TEMPLATE SUBCOMMANDS:", ConsoleColor.Green);
+                Console.WriteLine("");
+                CLIEngine.ShowMessage("    create                         Creates a OAPP template.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    update          {id/username}  Updates a OAPP template for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    delete          {id/username}  Deletes a OAPP template for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    install         {id/username}  Installs a OAPP template for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    uninstall       {id/username}  Uninstalls a OAPP template for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    publish         {id/username}  Publishes a OAPP template to the STARNET store for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    unpublish       {id/username}  Unpublishes a OAPP template from the STARNET store for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    show            {id/username}  Shows a OAPP template for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list            [all]          List all OAPP templates that have been created.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list installed  {id/username}  List all OAPP templates installed for the current beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    search          [all]          Searches the OAPP templates for the given search critera.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    template                       Shows the OAPP Template sub-command menu.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
+            }
+        }*/
+        /*
         private static async Task ShowOAPPTemplateSubCommandsAsync(string[] inputArgs)
         {
             if (inputArgs.Length > 2)
@@ -1228,7 +1344,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
-
+        */
 
         /*
         private static async Task ShowHolonSubCommandAsync(string[] inputArgs)
@@ -4664,7 +4780,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    keys             Manage keys.");
                 Console.WriteLine("    wallet           Manage wallets.");
                 Console.WriteLine("    search           Search the OASIS.");
-                Console.WriteLine("    oapp             Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP's.");
+                Console.WriteLine("    oapp             Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP Templates & OAPP's.");
                 Console.WriteLine("    happ             Create, edit, delete, publish, unpublish, install, uninstall, list & show hApp's.");
                 Console.WriteLine("    celestialspace   Create, edit, delete, publish, unpublish, list & show celestial space's.");
                 Console.WriteLine("    celestialbody    Create, edit, delete, publish, unpublish, list & show celestial bodies's.");

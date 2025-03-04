@@ -99,8 +99,8 @@
         "HoloNETORMUseReflection": false
       },
       "MongoDBOASIS": {
-        //"ConnectionString": "mongodb://localhost:27017",
-        "ConnectionString": "mongodb+srv://dbadmin:PoDTe9TioMMySeaS@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority&keepAlive=true&poolSize=30&autoReconnect=true&socketTimeoutMS=360000&connectTimeoutMS=360000&connect=replicaSet",
+        "ConnectionString": "mongodb://localhost:27017",
+        //"ConnectionString": "mongodb+srv://dbadmin:PoDTe9TioMMySeaS@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority&keepAlive=true&poolSize=30&autoReconnect=true&socketTimeoutMS=360000&connectTimeoutMS=360000&connect=replicaSet",
         //"ConnectionString": "mongodb+srv://oasisadmin:4ABeZIUHwTVbiFWn@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
         //"ConnectionString": "mongodb+srv://dbadmin:ZDVxEMHJJTfdtJ0S@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
         // "ConnectionString": "mongodb+srv://oasisuser:EHPpjGAmW74lg8qS@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
