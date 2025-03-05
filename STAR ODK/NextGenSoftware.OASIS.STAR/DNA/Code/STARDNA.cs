@@ -63,6 +63,7 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultStarId { get; set; }
         public string DefaultPlanetId { get; set; }
         public string DefaultPublishedOAPPsPath { get; set; }
+        public string DefaultPublishedOAPPTemplatesPath { get; set; }
         public string DefaultInstalledOAPPsPath { get; set; }
         public string DefaultInstalledOAPPTemplatesPath { get; set; }
     }

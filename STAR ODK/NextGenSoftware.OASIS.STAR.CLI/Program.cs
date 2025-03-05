@@ -561,7 +561,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                             }
                                         }
 
-                                        await ShowSubCommandAsync(inputArgs, "OAPP", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true);
+                                        bool showSubCommand = false;
+
+                                        if (inputArgs.Length > 1)
+                                        {
+                                            if (inputArgs[1].ToLower() != "template")
+                                                showSubCommand = true;
+                                        }
+                                        else
+                                            showSubCommand = true;
+
+                                        if (showSubCommand)
+                                            await ShowSubCommandAsync(inputArgs, "OAPP", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true);
+
                                         break;
                                     }
 
@@ -763,7 +775,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             string subCommandPlural = "",
             Func<ProviderType, Task> createPredicate = null, 
             Func<string, ProviderType, Task> updatePredicate = null, 
-            Func<string, ProviderType, Task> deletePredicate = null, 
+            Func<string, bool, ProviderType, Task> deletePredicate = null, 
             Func<string, ProviderType, Task> installPredicate = null,
             Func<string, ProviderType, Task> uninstallPredicate = null,
             Func<string, ProviderType, Task> publishPredicate = null,
@@ -784,10 +796,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             if (string.IsNullOrEmpty(subCommand))
                 subCommand = inputArgs[0];
 
-            if (inputArgs.Length > 1)
-            {
-                string id = "";
+            string id = "";
 
+            if ((inputArgs.Length > 1 && inputArgs[1] != "template") || (inputArgs.Length > 2 && inputArgs[1] == "template"))
+            { 
                 if (inputArgs.Length > 2)
                     id = inputArgs[2];
 
@@ -799,7 +811,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 //        CLIEngine.ShowErrorMessage($"The id ({inputArgs[2]}) passed in is not a valid GUID!");
                 //}
 
-                switch (inputArgs[1].ToLower())
+                string subCommandParam = inputArgs[1].ToLower();
+
+                if (subCommand.ToUpper() == "OAPP TEMPLATE")
+                    subCommandParam = inputArgs[2].ToLower();
+
+                switch (subCommandParam)
                 {
                     case "create":
                         {
@@ -833,8 +850,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         {
                             if (showDelete)
                             {
+                                bool softDelete = true;
+
+                                if (inputArgs.Length > 3)
+                                    bool.TryParse(inputArgs[3], out softDelete);
+
                                 if (deletePredicate != null)
-                                    await deletePredicate(id, providerType);
+                                    await deletePredicate(id, softDelete, providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
@@ -954,30 +976,31 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
 
                 int commandSpace = 15;
+                int paramSpace = 9;
                 //int paramSpace = 2;
                 //string commandSpace = " ";
-                string paramSpace = "  ";
+                string paramDivider = "  ";
 
                 if (isOAPPOrHapp)
                 {
                     //commandSpace = "           ";
                     commandSpace = 20;
-                    paramSpace = "                   ";
+                    paramDivider = "                   ";
                 }
 
                 if (showCreate)
-                    CLIEngine.ShowMessage(string.Concat("    create".PadRight(commandSpace), "{id/name}", paramSpace, "Create a ", subCommand, "."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    create".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Create a ", subCommand, "."), ConsoleColor.Green, false);
 
                 if (showUpdate)
-                    CLIEngine.ShowMessage(string.Concat("    update".PadRight(commandSpace), "{id/name}", paramSpace, "Update an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    update".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Update an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
 
                 if (showDelete)
-                    CLIEngine.ShowMessage(string.Concat("    delete".PadRight(commandSpace), "{id/name}", paramSpace, "Delete an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    delete".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Delete an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
 
                 if (isOAPPOrHapp)
                 {
-                    CLIEngine.ShowMessage(string.Concat("    install".PadRight(commandSpace), "{id/name}", paramSpace, "Install a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
-                    CLIEngine.ShowMessage(string.Concat("    uninstall".PadRight(commandSpace), "{id/name}", paramSpace, "Uninstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    install".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Install a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    uninstall".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Uninstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 }
 
                 if (isOAPPOrHapp)
@@ -988,18 +1011,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{oappPath} [publishDotNet]  Publish a ", subCommand, " for the given {oappPath}. If the flag [publishDotNet] is specefied it will first do a dotnet publish before publishing to STARNET."), ConsoleColor.Green, false);
                 }
                 else
-                    CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{id/name}", paramSpace, "Publish a ", subCommand, " to STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Publish a ", subCommand, " to STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
 
-                CLIEngine.ShowMessage(string.Concat("    unpublish".PadRight(commandSpace), "{id/name}", paramSpace, "Unpublish a ", subCommand, " from STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "[all]", paramSpace, "    List all ", subCommandPlural, " that have been created. If {all} is omitted it will list only your ", subCommandPlural, "'s otherwise it will list all published ", subCommandPlural, "'s as well as yours."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    unpublish".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Unpublish a ", subCommand, " from STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "[all]".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " that have been created. If {all} is omitted it will list only your ", subCommandPlural, "'s otherwise it will list all published ", subCommandPlural, "'s as well as yours."), ConsoleColor.Green, false);
 
                 if (isOAPPOrHapp)
-                    CLIEngine.ShowMessage(string.Concat("    list installed".PadRight(commandSpace), "{id/name}", paramSpace, "List all ", subCommandPlural, "' installed for the current beamed in avatar."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    list installed".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, "' installed for the current beamed in avatar."), ConsoleColor.Green, false);
 
-                CLIEngine.ShowMessage(string.Concat("    search".PadRight(commandSpace), "{id/name}", paramSpace, "Searches the ", subCommandPlural, " for the given search critera."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    search".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Searches the ", subCommandPlural, " for the given search critera."), ConsoleColor.Green, false);
                 
-                if (isOAPPOrHapp && !ishApp)
-                    CLIEngine.ShowMessage(string.Concat("    template".PadRight(commandSpace), "", paramSpace, "Shows the OAPP Template Subcommand menu."), ConsoleColor.Green, false);
+                if (subCommand.ToUpper() == "OAPP")
+                    CLIEngine.ShowMessage(string.Concat("    template".PadRight(commandSpace), "".PadRight(paramSpace), paramDivider, "Shows the OAPP Template Subcommand menu."), ConsoleColor.Green, false);
 
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }

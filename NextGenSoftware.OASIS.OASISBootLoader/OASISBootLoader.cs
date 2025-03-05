@@ -244,8 +244,12 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                     if (result.Result && !result.IsError)
                     {
+                        List<EnumValue<ProviderType>> currentProviderFailOverList = ProviderManager.Instance.GetProviderAutoFailOverList();
+                        ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(ProviderManager.Instance.GetProviderAutoFailOverListForCheckIfOASISSystemAccountExists());
+
                         LoggingManager.BeginLogAction($"Looking For OASIS System Account For Email {OASISDNA.OASIS.Email.SmtpUser}...", LogType.Info);
                         OASISResult<IAvatar> oasisSystemAccountResult = await AvatarManager.Instance.LoadAvatarByEmailAsync(OASISDNA.OASIS.Email.SmtpUser);
+                        ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(currentProviderFailOverList);
 
                         //if (!string.IsNullOrEmpty(OASISDNA.OASIS.OASISSystemAccountId))
                         if (oasisSystemAccountResult != null && oasisSystemAccountResult.Result != null && !oasisSystemAccountResult.IsError)
@@ -1046,6 +1050,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
             if (providerTypesResult != null && !providerTypesResult.IsError)
                 ProviderManager.Instance.SetAutoFailOverForProvidersForCheckIfUsernameAlreadyInUse(true, providerTypesResult.Result);
+            else
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
+
+
+            providerTypesResult = GetProviderTypesFromDNA("AutoFailOverProvidersForCheckIfOASISSystemAccountExists", OASISDNA.OASIS.StorageProviders.AutoFailOverProvidersForCheckIfOASISSystemAccountExists);
+
+            if (providerTypesResult != null && !providerTypesResult.IsError)
+                ProviderManager.Instance.SetAutoFailOverForProvidersForCheckIfOASISSystemAccountExists(true, providerTypesResult.Result);
             else
                 OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
 
