@@ -714,7 +714,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the OAPP. Reason: {loadResult.Message}");
         }
 
-        public static async Task DeleteOAPPAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public static async Task DeleteOAPPAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = await LoadOAPPAsync(idOrName, "delete", providerType);
 

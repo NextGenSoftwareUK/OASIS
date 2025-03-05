@@ -91,15 +91,23 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion
                     };
 
-                    await WriteOAPPTemplateDNAAsync(OAPPTemplateDNA, fullPathToOAPPTemplate);
+                    OASISResult<bool> writeOAPPTemplateDNAResult = await WriteOAPPTemplateDNAAsync(OAPPTemplateDNA, fullPathToOAPPTemplate);
 
-                    OAPPTemplate.OAPPTemplateDNA = OAPPTemplateDNA;
-                    OASISResult<OAPPTemplate> saveHolonResult = await Data.SaveHolonAsync<OAPPTemplate>(OAPPTemplate, avatarId, true, true, 0, true, false, providerType);
+                    if (writeOAPPTemplateDNAResult != null && writeOAPPTemplateDNAResult.Result && !writeOAPPTemplateDNAResult.IsError)
+                    {
+                        OAPPTemplate.OAPPTemplateDNA = OAPPTemplateDNA;
+                        OASISResult<OAPPTemplate> saveHolonResult = await Data.SaveHolonAsync<OAPPTemplate>(OAPPTemplate, avatarId, true, true, 0, true, false, providerType);
 
-                    if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                        result.Message = $"Successfully created the OAPP Template on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPTemplateType {Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)}.";
+                        if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                        {
+                            result.Result = OAPPTemplateDNA;
+                            result.Message = $"Successfully created the OAPP Template on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPTemplateType {Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)}.";
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
+                    }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured writing the OAPP Template DNA. Reason: {writeOAPPTemplateDNAResult.Message}");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {avatarResult.Message}");
@@ -153,7 +161,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     OASISResult<OAPPTemplate> saveHolonResult = Data.SaveHolon<OAPPTemplate>(OAPPTemplate, avatarId, true, true, 0, true, false, providerType);
 
                     if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                    {
+                        result.Result = OAPPTemplateDNA;
                         result.Message = $"Successfully created the OAPP Template on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPTemplateType {Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)}.";
+                    }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
                 }
@@ -441,7 +452,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         }
         #endregion*/
 
-        public async Task<OASISResult<IOAPPTemplateDNA>> PublishOAPPTemplateTemplateAsync(string fullPathToOAPPTemplate, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPTemplateBinary = true, bool uploadOAPPTemplateToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
+        public async Task<OASISResult<IOAPPTemplateDNA>> PublishOAPPTemplateAsync(string fullPathToOAPPTemplate, string launchTarget, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPTemplateBinary = true, bool uploadOAPPTemplateToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
         {
             OASISResult<IOAPPTemplateDNA> result = new OASISResult<IOAPPTemplateDNA>();
             string errorMessage = "Error occured in OAPPTemplateManager.PublishOAPPTemplateAsync. Reason: ";
@@ -663,7 +674,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IOAPPTemplateDNA> PublishOAPPTemplate(string fullPathToOAPPTemplate, string launchTarget, Guid avatarId, bool dotnetPublish = true, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPTemplateSource = true, bool uploadOAPPTemplateSourceToSTARNET = true, bool makeOAPPTemplateSourcePublic = false, bool generateOAPPTemplateBinary = true, bool generateOAPPTemplateSelfContainedBinary = false, bool generateOAPPTemplateSelfContainedFullBinary = false, bool uploadOAPPTemplateToCloud = false, bool uploadOAPPTemplateSelfContainedToCloud = false, bool uploadOAPPTemplateSelfContainedFullToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS, ProviderType oappSelfContainedBinaryProviderType = ProviderType.None, ProviderType oappSelfContainedFullBinaryProviderType = ProviderType.None)
         {
             OASISResult<IOAPPTemplateDNA> result = new OASISResult<IOAPPTemplateDNA>();
-            string errorMessage = "Error occured in OAPPTemplateManager.PublishOAPPTemplateAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPTemplateManager.PublishOAPPTemplate. Reason: ";
             IOAPPTemplateDNA OAPPTemplateDNA = null;
             string tempPath = "";
 
@@ -1556,6 +1567,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     WriteIndented = true
                 };
 
+                if (!Directory.Exists(fullPathToOAPPTemplate))
+                    Directory.CreateDirectory(fullPathToOAPPTemplate);
+
                 await File.WriteAllTextAsync(Path.Combine(fullPathToOAPPTemplate, "OAPPTemplateDNA.json"), JsonSerializer.Serialize((OAPPTemplateDNA)OAPPTemplateDNA, options));
                 result.Result = true;
             }
@@ -1573,6 +1587,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
+                if (!Directory.Exists(fullPathToOAPPTemplate))
+                    Directory.CreateDirectory(fullPathToOAPPTemplate);
+
                 File.WriteAllText(Path.Combine(fullPathToOAPPTemplate, "OAPPTemplateDNA.json"), JsonSerializer.Serialize((OAPPTemplateDNA)OAPPTemplateDNA));
                 result.Result = true;
             }

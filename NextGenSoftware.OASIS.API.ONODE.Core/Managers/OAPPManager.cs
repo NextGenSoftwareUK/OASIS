@@ -1787,6 +1787,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     WriteIndented = true
                 };
 
+                if (!Directory.Exists(fullPathToOAPP))
+                    Directory.CreateDirectory(fullPathToOAPP);
+
                 await File.WriteAllTextAsync(Path.Combine(fullPathToOAPP, "OAPPDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA, options));
                 result.Result = true;
             }
@@ -1804,6 +1807,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
+                if (!Directory.Exists(fullPathToOAPP))
+                    Directory.CreateDirectory(fullPathToOAPP);
+
                 File.WriteAllText(Path.Combine(fullPathToOAPP, "OAPPDNA.json"), JsonSerializer.Serialize((OAPPDNA)OAPPDNA));
                 result.Result = true;
             }

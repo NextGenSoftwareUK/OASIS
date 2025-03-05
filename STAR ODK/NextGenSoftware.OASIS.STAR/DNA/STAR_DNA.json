@@ -55,5 +55,6 @@
     "DefaultPlanetId": "",
     "DefaultPublishedOAPPsPath": "PublishedOAPPs", //Can be releative to BasePath above or absolute.
     "DefaultInstalledOAPPsPath": "InstalledOAPPs", //Can be releative to BasePath above or absolute.
-    "DefaultInstalledOAPPTemplatesPath": "InstalledOAPPTemplates" //Can be releative to BasePath above or absolute.
+    "DefaultInstalledOAPPTemplatesPath": "InstalledOAPPTemplates", //Can be releative to BasePath above or absolute.
+    "DefaultPublishedOAPPTemplatesPath": "PublishedOAPPTemplates" //Can be releative to BasePath above or absolute.
 }

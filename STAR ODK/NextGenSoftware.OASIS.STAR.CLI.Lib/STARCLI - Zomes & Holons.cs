@@ -345,7 +345,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         }
 
-        public static async Task DeleteHolonAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public static async Task DeleteHolonAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = await LoadHolonAsync(idOrName, "delete", providerType);
 
