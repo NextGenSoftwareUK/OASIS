@@ -1,8 +1,11 @@
 {
     //TODO: If BasePath is blank then all other paths below are absolute otherwise they are relative.
     "BasePath": "C:\\Users\\David\\OneDrive\\Documents\\GitHub\\OASIS\\STAR ODK",
-    "OASISRunTimePath": "Runtimes\\OASIS Runtime\\OASIS Runtime (With Holochain Conductors Embedded) v3.3.1",
-    "STARRunTimePath": "Runtimes\\STAR Runtime\\STAR ODK Runtime v2.2.0 (With OASIS Runtime v3.3.1 HC Conductor Embedded)",
+    "OASISRuntimes": "Runtimes\\OASIS Runtime",
+    "STARRuntimes": "Runtimes\\STAR Runtime",
+    //"OASISRunTimePath": "Runtimes\\OASIS Runtime\\OASIS Runtime (With Holochain Conductors Embedded) v3.3.1",
+    //"STARRunTimePath": "Runtimes\\STAR Runtime\\STAR ODK Runtime v2.2.0",
+    //"STARRunTimePath": "Runtimes\\STAR Runtime\\STAR ODK Runtime v2.2.0 (With OASIS Runtime v3.3.1 HC Conductor Embedded)",
     "OAPPDNATemplatePath": "STAR OAPP DNA Templates",
     "RustDNARSMTemplateFolder": "NextGenSoftware.OASIS.STAR\\DNATemplates\\RustDNATemplates\\RSM",
     "CSharpDNATemplateFolder": "NextGenSoftware.OASIS.STAR\\DNATemplates\\CSharpDNATemplates",

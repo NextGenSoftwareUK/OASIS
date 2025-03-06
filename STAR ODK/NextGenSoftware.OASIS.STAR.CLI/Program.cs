@@ -555,7 +555,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                 case "template":
                                                     {
                                                         //await ShowOAPPTemplateSubCommandsAsync(inputArgs);
-                                                        await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.CreateOAPPTemplateAsync, STARCLI.EditOAPPTemplateAsync, STARCLI.DeleteOAPPTemplateAsync, STARCLI.InstallOAPPTemplateAsync, STARCLI.UnInstallOAPPTemplateAsync, null, STARCLI.UnPublishOAPPTemplateAsync, STARCLI.ShowOAPPTemplateAsync, STARCLI.ListOAPPTemplatesCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPTemplatesAsync, STARCLI.ListOAPPTemplatesInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPTemplatesAsync, ProviderType.Default, true);
+                                                        await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.CreateOAPPTemplateAsync, STARCLI.EditOAPPTemplateAsync, STARCLI.DeleteOAPPTemplateAsync, STARCLI.InstallOAPPTemplateAsync, STARCLI.UnInstallOAPPTemplateAsync, STARCLI.PublishOAPPTemplateAsync, STARCLI.UnPublishOAPPTemplateAsync, STARCLI.ShowOAPPTemplateAsync, STARCLI.ListOAPPTemplatesCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPTemplatesAsync, STARCLI.ListOAPPTemplatesInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPTemplatesAsync, ProviderType.Default, true);
                                                     }
                                                     break;
                                             }

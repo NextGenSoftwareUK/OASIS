@@ -19,6 +19,7 @@ using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -56,6 +57,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public event OAPPTemplateDownloadStatusChanged OnOAPPTemplateDownloadStatusChanged;
 
 
+        //public async Task<OASISResult<IOAPPTemplateDNA>> CreateOAPPTemplateAsync(string name, string description, OAPPTemplateType OAPPTemplateType, Guid avatarId, string fullPathToOAPPTemplate, string fullPathToOASISRuntime, string fullpathToSTARODKRuntime, ProviderType providerType = ProviderType.Default)
         public async Task<OASISResult<IOAPPTemplateDNA>> CreateOAPPTemplateAsync(string name, string description, OAPPTemplateType OAPPTemplateType, Guid avatarId, string fullPathToOAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplateDNA> result = new OASISResult<IOAPPTemplateDNA>();
@@ -63,6 +65,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
+                //if (!Directory.Exists(fullPathToOASISRuntime))
+                //{
+                //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The fullPathToOASISRuntime param passed in was not found!");
+                //    return result;
+                //}
+
+                //if (!Directory.Exists(fullpathToSTARODKRuntime))
+                //{
+                //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The fullpathToSTARODKRuntime param passed in was not found!");
+                //    return result;
+                //}
+
                 OAPPTemplate OAPPTemplate = new OAPPTemplate()
                 {
                     Id = Guid.NewGuid(),
@@ -100,6 +114,27 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                         if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
                         {
+                            //if (Directory.Exists(fullPathToOASISRuntime))
+                            //{
+                            //    DirectoryInfo directoryInfo = new DirectoryInfo(fullPathToOASISRuntime);
+
+                            //    if (directoryInfo != null)
+                            //    {
+                            //        Directory.CreateDirectory(Path.Combine(fullPathToOAPPTemplate, directoryInfo.Name));
+                            //        DirectoryHelper.CopyFilesRecursively(fullPathToOASISRuntime, Path.Combine(fullPathToOAPPTemplate, directoryInfo.Name));
+                            //    }
+                            //}
+                            //else
+                            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The fullPathToOASISRuntime param passed in was not found!");
+
+                            //directoryInfo = new DirectoryInfo(fullpathToSTARODKRuntime);
+
+                            //if (directoryInfo != null)
+                            //{
+                            //    Directory.CreateDirectory(Path.Combine(fullPathToOAPPTemplate, directoryInfo.Name));
+                            //    DirectoryHelper.CopyFilesRecursively(fullpathToSTARODKRuntime, Path.Combine(fullPathToOAPPTemplate, directoryInfo.Name));
+                            //}
+
                             result.Result = OAPPTemplateDNA;
                             result.Message = $"Successfully created the OAPP Template on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPTemplateType {Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)}.";
                         }

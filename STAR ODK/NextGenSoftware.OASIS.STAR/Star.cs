@@ -28,6 +28,7 @@ using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.Enums;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using NextGenSoftware.CLI.Engine;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -706,42 +707,12 @@ namespace NextGenSoftware.OASIS.STAR
             if (string.IsNullOrEmpty(genesisNameSpace))
                 genesisNameSpace = string.Concat(OAPPName, "OAPP");
 
-            //Setup the OApp files from the relevant template.
-            if (OAPPType != OAPPType.GeneratedCodeOnly)
+            OASISResult<bool> initOASISFolderResult = await InitOAPPFolderAsync(OAPPType, OAPPName, genesisFolder, genesisNameSpace, OAPPTemplateId, providerType);
+
+            if (initOASISFolderResult.IsError || !initOASISFolderResult.Result)
             {
-                //OAPPFolder = string.Concat(genesisFolder, "\\", OAPPName, " OAPP");
-                OAPPFolder = Path.Combine(genesisFolder, string.Concat(OAPPName, " OAPP"));
-
-                if (Directory.Exists(OAPPFolder))
-                    Directory.Delete(OAPPFolder, true);
-                    
-                Directory.CreateDirectory(OAPPFolder);
-
-                OASISResult<IInstalledOAPPTemplate> installedOAPPTemplateResult = await OASISAPI.OAPPTemplates.LoadInstalledOAPPTemplateAsync(BeamedInAvatar.Id, OAPPTemplateId, providerType);
-
-                if (installedOAPPTemplateResult != null && installedOAPPTemplateResult.Result != null && !installedOAPPTemplateResult.IsError)
-                    CopyFolder(genesisNameSpace, new DirectoryInfo(installedOAPPTemplateResult.Result.InstalledPath), new DirectoryInfo(OAPPFolder));
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling OASISAPI.OAPPTemplates.LoadInstalledOAPPTemplateAsync. Reason: {installedOAPPTemplateResult.Message}");
-                    return result;
-                }
-
-                //switch (OAPPType)
-                //{
-                //    case OAPPType.Blazor:
-                //        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPBlazorTemplateDNA)), new DirectoryInfo(OAPPFolder));
-                //        break;
-
-                //    case OAPPType.Console:
-                //        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPConsoleTemplateDNA)), new DirectoryInfo(OAPPFolder));
-                //        break;
-                //}
-
-                genesisFolder = string.Concat(OAPPFolder, "\\", STARDNA.OAPPGeneratedCodeFolder);
-
-                if (!Directory.Exists(genesisFolder))
-                    Directory.CreateDirectory(genesisFolder);
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in InitOAPPFolderAsync. Reason: {initOASISFolderResult.Message}");
+                return result;
             }
 
             if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp")))
@@ -2570,5 +2541,115 @@ namespace NextGenSoftware.OASIS.STAR
         //        File.Move(string.Concat(file.FullName, ".temp"), file.FullName);
         //    }
         //}
+
+        private static async Task<OASISResult<bool>> InitOAPPFolderAsync(OAPPType OAPPType, string OAPPName, string genesisFolder, string genesisNameSpace, Guid OAPPTemplateId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "An error occured in InitOAPPFolderAsync. Reason:";
+
+            try
+            {
+                //Setup the OApp files from the relevant template.
+                //if (OAPPType != OAPPType.GeneratedCodeOnly)
+                //{
+                //OAPPFolder = string.Concat(genesisFolder, "\\", OAPPName, " OAPP");
+                string OAPPFolder = Path.Combine(genesisFolder, string.Concat(OAPPName, " OAPP"));
+
+                if (Directory.Exists(OAPPFolder))
+                    Directory.Delete(OAPPFolder, true);
+
+                Directory.CreateDirectory(OAPPFolder);
+
+                OASISResult<IInstalledOAPPTemplate> installedOAPPTemplateResult = await OASISAPI.OAPPTemplates.LoadInstalledOAPPTemplateAsync(BeamedInAvatar.Id, OAPPTemplateId, providerType);
+
+                if (installedOAPPTemplateResult != null && installedOAPPTemplateResult.Result != null && !installedOAPPTemplateResult.IsError)
+                    CopyFolder(genesisNameSpace, new DirectoryInfo(installedOAPPTemplateResult.Result.InstalledPath), new DirectoryInfo(OAPPFolder));
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling OASISAPI.OAPPTemplates.LoadInstalledOAPPTemplateAsync. Reason: {installedOAPPTemplateResult.Message}");
+                    return result;
+                }
+
+                string OASISRunTimePath = STARDNA.OASISRuntimes;
+                string STARRunTimePath = STARDNA.STARRuntimes;
+
+                if (!string.IsNullOrEmpty(STARDNA.BasePath))
+                {
+                    OASISRunTimePath = Path.Combine(STARDNA.BasePath, STARDNA.OASISRuntimes);
+                    STARRunTimePath = Path.Combine(STARDNA.BasePath, STARDNA.STARRuntimes);
+                }
+
+                //Copy the correct runtimes to the OAPP folder.
+                if (Directory.Exists(Path.Combine(OASISRunTimePath, installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion)))
+                    DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
+                else
+                {
+                    CLIEngine.ShowWarningMessage($"The target OASIS Runtime v{installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion} is not installed!");
+                    
+                    if (CLIEngine.GetConfirmation("Do you wish to download & install now?"))
+                    {
+                        OASISResult<bool> downloadAndInstallResult = await DownloadAndInstallOASISRunTime(installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion);
+
+                        if (downloadAndInstallResult != null && downloadAndInstallResult.Result && !downloadAndInstallResult.IsError)
+                            DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the OASIS Runtime v{installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion}. Reason: {downloadAndInstallResult.Message}");
+                            return result;
+                        }
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The target OASIS Runtime v{installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion} is not installed!");
+                        return result;
+                    }
+                }
+
+                //string OASISRunTimePath = STARDNA.OASISRunTimePath;
+                //string STARRunTimePath = STARDNA.STARRunTimePath;
+
+                //if (!string.IsNullOrEmpty(STARDNA.BasePath))
+                //{
+                //    OASISRunTimePath = Path.Combine(STARDNA.BasePath, STARDNA.OASISRunTimePath);
+                //    STARRunTimePath = Path.Combine(STARDNA.BasePath, STARDNA.STARRunTimePath);
+                //}
+
+                //DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
+                //DirectoryHelper.CopyFilesRecursively(STARRunTimePath, OAPPFolder);
+
+                //switch (OAPPType)
+                //{
+                //    case OAPPType.Blazor:
+                //        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPBlazorTemplateDNA)), new DirectoryInfo(OAPPFolder));
+                //        break;
+
+                //    case OAPPType.Console:
+                //        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPConsoleTemplateDNA)), new DirectoryInfo(OAPPFolder));
+                //        break;
+                //}
+
+                genesisFolder = string.Concat(OAPPFolder, "\\", STARDNA.OAPPGeneratedCodeFolder);
+
+                if (!Directory.Exists(genesisFolder))
+                    Directory.CreateDirectory(genesisFolder);
+
+                result.Result = true;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured: Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        private static async Task<OASISResult<bool>> DownloadAndInstallOASISRunTime(string OASISRuntimeVersion)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+
+
+            return result;
+        }
     }
 }

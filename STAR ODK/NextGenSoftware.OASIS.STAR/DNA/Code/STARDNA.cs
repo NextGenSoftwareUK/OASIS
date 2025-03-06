@@ -10,8 +10,10 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         //TODO: If BasePath is blank then all other paths below are absolute otherwise they are relative.
         //public string BasePath { get; set; } = @"C:\Users\\USER\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK";
         public string BasePath { get; set; } = @"C:\OASIS\STAR ODK";
-        public string OASISRunTimePath { get; set; } = @"Runtimes\OASIS Runtime\OASIS Runtime (With Holochain Conductors Embedded) v3.3.1";
-        public string STARRunTimePath { get; set; } = @"Runtimes\STAR Runtime\STAR ODK Runtime v2.2.0 (With OASIS Runtime v3.3.1 HC Conductor Embedded)";
+        //public string OASISRunTimePath { get; set; } = @"Runtimes\OASIS Runtime\OASIS Runtime (With Holochain Conductors Embedded) v3.3.1";
+        //public string STARRunTimePath { get; set; } = @"Runtimes\STAR Runtime\STAR ODK Runtime v2.2.0 (With OASIS Runtime v3.3.1 HC Conductor Embedded)";
+        public string OASISRuntimes { get; set; } = "Runtimes\\OASIS Runtime";
+        public string STARRuntimes { get; set; } = "Runtimes\\STAR Runtime";
         public string OAPPDNATemplatePath { get; set; } = @"STAR OAPP DNA Templates";
         public string RustDNARSMTemplateFolder { get; set; } = @"NextGenSoftware.OASIS.STAR\DNATemplates\RustDNATemplates\RSM";
         public string CSharpDNATemplateFolder { get; set; } = @"NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates";
