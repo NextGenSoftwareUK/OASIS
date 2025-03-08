@@ -2035,21 +2035,21 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 case Google.Apis.Download.DownloadStatus.NotStarted:
                     _progress = 0;
-                    OnOAPPDownloadStatusChanged?.Invoke(this, new OAPPDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPDownloadStatus.NotStarted });
+                    OnOAPPDownloadStatusChanged?.Invoke(this, new RuntimeDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPDownloadStatus.NotStarted });
                     break;
 
                 case Google.Apis.Download.DownloadStatus.Completed:
                     _progress = 100;
-                    OnOAPPDownloadStatusChanged?.Invoke(this, new OAPPDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPDownloadStatus.Downloaded });
+                    OnOAPPDownloadStatusChanged?.Invoke(this, new RuntimeDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPDownloadStatus.Downloaded });
                     break;
 
                 case Google.Apis.Download.DownloadStatus.Downloading:
                     _progress = Convert.ToInt32((progress.BytesDownloaded / _fileLength) * 100);
-                    OnOAPPDownloadStatusChanged?.Invoke(this, new OAPPDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPDownloadStatus.Downloading });
+                    OnOAPPDownloadStatusChanged?.Invoke(this, new RuntimeDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPDownloadStatus.Downloading });
                     break;
 
                 case Google.Apis.Download.DownloadStatus.Failed:
-                    OnOAPPDownloadStatusChanged?.Invoke(this, new OAPPDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPDownloadStatus.Error, ErrorMessage = progress.Exception.ToString()});
+                    OnOAPPDownloadStatusChanged?.Invoke(this, new RuntimeDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPDownloadStatus.Error, ErrorMessage = progress.Exception.ToString()});
                     break;
             }
         }
