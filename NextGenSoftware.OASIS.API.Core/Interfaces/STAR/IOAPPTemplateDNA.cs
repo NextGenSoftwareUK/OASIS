@@ -1,7 +1,7 @@
 ﻿using System;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
-namespace NextGenSoftware.OASIS.API.Core.Interfaces
+namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     public interface IOAPPTemplateDNA
     {
@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         OAPPTemplateType OAPPTemplateType { get; set; }
         string OAPPTemplatePath { get; set; }
         string OAPPTemplatePublishedPath { get; set; }
-        
+
         Guid PublishedByAvatarId { get; set; }
         string PublishedByAvatarUsername { get; set; }
         DateTime PublishedOn { get; set; }

@@ -7,6 +7,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Events
 {
     public class RuntimeInstallStatusEventArgs : EventArgs
     {
+        public RuntimeDNA RuntimeDNA { get; set; }
         public RuntimeType RunTimeType { get; set; }
         public string Version { get; set; }
         public RuntimeInstallStatus Status { get; set; }

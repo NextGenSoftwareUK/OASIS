@@ -1,4 +1,5 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons
