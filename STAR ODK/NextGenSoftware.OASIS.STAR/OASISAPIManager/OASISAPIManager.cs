@@ -29,6 +29,7 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         public OLandManager OLAND { get; set; }
         public OAPPManager OAPPs { get; set; }
         public OAPPTemplateManager OAPPTemplates { get; set; }
+        public RuntimeManager Runtimes { get; set; }
 
         public OASISResult<bool> BootOASIS(OASISDNA OASISDNA, bool startApolloServer = true)
         {
@@ -109,6 +110,7 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
                 OAPPs = new OAPPManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                 OAPPTemplates = new OAPPTemplateManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                 Inventory = new InventoryManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                Runtimes = new RuntimeManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
             }
         }
 
