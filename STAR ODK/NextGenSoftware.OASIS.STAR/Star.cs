@@ -1782,7 +1782,6 @@ namespace NextGenSoftware.OASIS.STAR
                 return result;
 
             ShowStatusMessage(StarStatusMessageType.Success, "Default Celestial Bodies Initialized.");
-
             return result;
         }
 
@@ -2588,7 +2587,8 @@ namespace NextGenSoftware.OASIS.STAR
                     
                     if (CLIEngine.GetConfirmation("Do you wish to download & install now?"))
                     {
-                        OASISResult<bool> downloadAndInstallResult = await DownloadAndInstallOASISRunTime(installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion);
+                        //OASISResult<bool> downloadAndInstallResult = await DownloadAndInstallOASISRunTime(installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion);
+                        OASISResult<bool> downloadAndInstallResult = await OASISAPI.Runtimes.InstallRuntimeAsync(avatarId,   )
 
                         if (downloadAndInstallResult != null && downloadAndInstallResult.Result && !downloadAndInstallResult.IsError)
                             DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
@@ -2643,13 +2643,13 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        private static async Task<OASISResult<bool>> DownloadAndInstallOASISRunTime(string OASISRuntimeVersion)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
+        //private static async Task<OASISResult<bool>> DownloadAndInstallOASISRunTime(string OASISRuntimeVersion)
+        //{
+        //    OASISResult<bool> result = new OASISResult<bool>();
 
 
 
-            return result;
-        }
+        //    return result;
+        //}
     }
 }

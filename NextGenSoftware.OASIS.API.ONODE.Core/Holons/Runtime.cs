@@ -33,5 +33,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 
         [CustomOASISProperty()]
         public byte[] PublishedRuntime { get; set; }
+
+        [CustomOASISProperty()]
+        public string RuntimeName { get; set; }
     }
 }
