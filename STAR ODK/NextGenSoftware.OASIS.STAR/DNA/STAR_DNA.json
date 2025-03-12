@@ -1,12 +1,12 @@
 {
     //TODO: If BasePath is blank then all other paths below are absolute otherwise they are relative.
     "BasePath": "C:\\Users\\David\\OneDrive\\Documents\\GitHub\\OASIS\\STAR ODK",
-    "OASISRuntimes": "Runtimes\\OASIS Runtime",
-    "STARRuntimes": "Runtimes\\STAR Runtime",
+    //"OASISBaseRuntimesPath": "Runtimes\\OASIS Runtimes",
+    //"STARBaseRuntimesPath": "Runtimes\\STAR Runtimes",
     //"OASISRunTimePath": "Runtimes\\OASIS Runtime\\OASIS Runtime (With Holochain Conductors Embedded) v3.3.1",
     //"STARRunTimePath": "Runtimes\\STAR Runtime\\STAR ODK Runtime v2.2.0",
     //"STARRunTimePath": "Runtimes\\STAR Runtime\\STAR ODK Runtime v2.2.0 (With OASIS Runtime v3.3.1 HC Conductor Embedded)",
-    "OAPPDNATemplatePath": "STAR OAPP DNA Templates",
+    //"OAPPDNATemplatePath": "STAR OAPP DNA Templates",
     "RustDNARSMTemplateFolder": "NextGenSoftware.OASIS.STAR\\DNATemplates\\RustDNATemplates\\RSM",
     "CSharpDNATemplateFolder": "NextGenSoftware.OASIS.STAR\\DNATemplates\\CSharpDNATemplates",
     "CelestialBodyDNA": "NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA",
@@ -56,8 +56,15 @@
     "DefaultSuperStarId": "",
     "DefaultStarId": "",
     "DefaultPlanetId": "",
-    "DefaultPublishedOAPPsPath": "PublishedOAPPs", //Can be releative to BasePath above or absolute.
-    "DefaultInstalledOAPPsPath": "InstalledOAPPs", //Can be releative to BasePath above or absolute.
-    "DefaultInstalledOAPPTemplatesPath": "InstalledOAPPTemplates", //Can be releative to BasePath above or absolute.
-    "DefaultPublishedOAPPTemplatesPath": "PublishedOAPPTemplates" //Can be releative to BasePath above or absolute.
+    "DefaultOAPPsPath": "OAPPs", //Can be releative to BasePath above or absolute.
+    "DefaultPublishedOAPPsPath": "OAPPs\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultInstalledOAPPsPath": "OAPPs\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultOAPPTemplatesPath": "OAPPTemplates", //Can be releative to BasePath above or absolute.
+    "DefaultPublishedOAPPTemplatesPath": "OAPPTemplates\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultInstalledOAPPTemplatesPath": "OAPPTemplates\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultRuntimesPath": "Runtimes", //Can be releative to BasePath above or absolute.": null,
+    "DefaultPublishedRuntimePath": "Runtimes\\PublishedRuntimes", //Can be releative to BasePath above or absolute.": null,
+    "DefaultInstalledOASISRuntimePath": "Runtimes\\Installed\\OASIS Runtimes", //Can be releative to BasePath above or absolute.
+    "DefaultInstalledSTARRuntimePath": "Runtimes\\Installed\\STAR Runtimes", //Can be releative to BasePath above or absolute.
+    "DefaultInstalledRuntimePath": "Runtimes\\Installed\\Other" //Can be releative to BasePath above or absolute.
 }
