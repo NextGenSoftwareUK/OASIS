@@ -12,8 +12,8 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string BasePath { get; set; } = @"C:\OASIS\STAR ODK";
         //public string OASISRunTimePath { get; set; } = @"Runtimes\OASIS Runtime\OASIS Runtime (With Holochain Conductors Embedded) v3.3.1";
         //public string STARRunTimePath { get; set; } = @"Runtimes\STAR Runtime\STAR ODK Runtime v2.2.0 (With OASIS Runtime v3.3.1 HC Conductor Embedded)";
-        public string OASISRuntimes { get; set; } = "Runtimes\\OASIS Runtime";
-        public string STARRuntimes { get; set; } = "Runtimes\\STAR Runtime";
+        //public string OASISBaseRuntimesPath { get; set; } = "Runtimes\\OASIS Runtimes";
+        //public string STARBaseRuntimesPath { get; set; } = "Runtimes\\STAR Runtimes";
         public string OAPPDNATemplatePath { get; set; } = @"STAR OAPP DNA Templates";
         public string RustDNARSMTemplateFolder { get; set; } = @"NextGenSoftware.OASIS.STAR\DNATemplates\RustDNATemplates\RSM";
         public string CSharpDNATemplateFolder { get; set; } = @"NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates";
@@ -66,7 +66,12 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultPlanetId { get; set; }
         public string DefaultPublishedOAPPsPath { get; set; }
         public string DefaultPublishedOAPPTemplatesPath { get; set; }
+        public string DefaultPublishedRuntimesPath { get; set; }
         public string DefaultInstalledOAPPsPath { get; set; }
         public string DefaultInstalledOAPPTemplatesPath { get; set; }
+        public string DefaultInstalledOASISRuntimesPath { get; set; }
+        public string DefaultInstalledSTARRuntimesPath { get; set; }
+        public string DefaultInstalledRuntimesPath { get; set; }
+
     }
 }

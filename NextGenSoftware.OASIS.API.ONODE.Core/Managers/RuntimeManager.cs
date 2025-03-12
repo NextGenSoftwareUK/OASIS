@@ -1474,7 +1474,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         }
 
         //public async Task<OASISResult<IInstalledRuntime>> InstallRuntimeAsync(Guid avatarId, RuntimeType runtimeType, string version, string baseRuntimePath, string fullInstallPath, bool createRuntimeDirectory = true, ProviderType providerType = ProviderType.Default)
-        public async Task<OASISResult<IInstalledRuntime>> InstallRuntimeAsync(Guid avatarId, RuntimeType runtimeType, string version, string baseRuntimeInstalledPath, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> InstallRuntimeAsync(Guid avatarId, RuntimeType runtimeType, string version, string baseRuntimeInstalledPath, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledRuntime> result = new OASISResult<IInstalledRuntime>();
             string errorMessage = "Error occured in RuntimeManager.InstallRuntimeAsync. Reason: ";
@@ -1490,7 +1490,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     OASISResult<Runtime> runtimeResult = await Data.LoadHolonByMetaDataAsync<Runtime>("RuntimeName", runtimeName, false, false, 0, true, 0, false, HolonType.All, providerType);
 
                     if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
-                        result = await InstallRuntimeAsync(avatarId, runtimeResult.Result, fullInstallPath, providerType);
+                        result = await InstallRuntimeAsync(avatarId, runtimeResult.Result, runtimePath, providerType);
                         //result = await InstallRuntimeAsync(avatarId, Path.Combine(runtimePath, runtimeName, string.Concat(".oruntime")), fullInstallPath, providerType);
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the Runtime {runtimeName} holon in Data.LoadHolonByMetaDataAsync. Reason: {runtimeResult.Message}.");
@@ -1511,7 +1511,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         }
 
         //public OASISResult<IInstalledRuntime> InstallRuntime(Guid avatarId, string fullPathToPublishedRuntimeFile, string fullInstallPath, bool createRuntimeDirectory = true, ProviderType providerType = ProviderType.Default)
-        public OASISResult<IInstalledRuntime> InstallRuntime(Guid avatarId, RuntimeType runtimeType, string version, string baseRuntimeInstalledPath, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> InstallRuntime(Guid avatarId, RuntimeType runtimeType, string version, string baseRuntimeInstalledPath, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledRuntime> result = new OASISResult<IInstalledRuntime>();
             string errorMessage = "Error occured in RuntimeManager.InstallRuntimeAsync. Reason: ";
@@ -1527,7 +1527,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     OASISResult<Runtime> runtimeResult = Data.LoadHolonByMetaData<Runtime>("RuntimeName", runtimeName, false, false, 0, true, false, HolonType.All, 0, providerType);
 
                     if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
-                        result = InstallRuntime(avatarId, runtimeResult.Result, fullInstallPath, providerType);
+                        result = InstallRuntime(avatarId, runtimeResult.Result, runtimePath, providerType);
                         //result = await InstallRuntimeAsync(avatarId, Path.Combine(runtimePath, runtimeName, string.Concat(".oruntime")), fullInstallPath, providerType);
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the Runtime {runtimeName} holon in Data.LoadHolonByMetaDataAsync. Reason: {runtimeResult.Message}.");
@@ -1632,7 +1632,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync method. Reason: {avatarResult.Message}");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadRuntimeAsync method. Reason: {RuntimeResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadRuntimeAsync method. Reason: {runtimeResult.Message}");
                 }
             }
             catch (Exception ex)
@@ -2248,39 +2248,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"An error occured reading the RuntimeDNA in ReadRuntimeDNA: Reason: {ex.Message}");
-            }
-
-            return result;
-        }
-
-        private async Task<OASISResult<IInstalledRuntime>> DownloadRuntime(Guid avatarId, string runtimePath, string fullInstallPath, ProviderType providerType)
-        {
-            OASISResult<IInstalledRuntime> result = new OASISResult<IInstalledRuntime>();
-
-            try
-            {
-                StorageClient storage = await StorageClient.CreateAsync();
-
-                // set minimum chunksize just to see progress updating
-                var downloadObjectOptions = new DownloadObjectOptions
-                {
-                    ChunkSize = UploadObjectOptions.MinimumChunkSize,
-                };
-
-                var progressReporter = new Progress<Google.Apis.Download.IDownloadProgress>(OnDownloadProgress);
-
-                using var fileStream = File.OpenWrite(runtimePath);
-                _fileLength = fileStream.Length;
-                _progress = 0;
-
-                OnRuntimeInstallStatusChanged?.Invoke(this, new RuntimeInstallStatusEventArgs() { RuntimeDNA = runtime.RuntimeDNA, Status = Enums.RuntimeInstallStatus.Downloading });
-                await storage.DownloadObjectAsync("oasis_runtimes", string.Concat(runtime.Name, ".oruntime"), fileStream, downloadObjectOptions, progress: progressReporter);
-                //result = await InstallRuntimeAsync(avatarId, RuntimePath, fullInstallPath, createRuntimeDirectory, providerType);
-                result = await InstallRuntimeAsync(avatarId, runtimePath, fullInstallPath, providerType);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An error occured downloading the Runtime from cloud storage. Reason: {ex}");
             }
 
             return result;

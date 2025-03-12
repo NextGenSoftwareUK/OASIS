@@ -3,6 +3,7 @@
     public enum RuntimeType
     {
         OASIS,
-        STAR
+        STAR,
+        Other
     }
 }
