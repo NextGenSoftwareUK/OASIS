@@ -977,9 +977,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public static async Task SearchOAPPsAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task SearchOAPPsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
         {
-            
+            ListOAPPs(await STAR.OASISAPI.OAPPs.SearchOAPPsAsync(searchTerm, providerType));
         }
 
         public static async Task LoadCelestialBodyAsync<T>(T celestialBody, string name, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()

@@ -605,7 +605,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     }
 
                                 case "runtime":  
-                                    await ShowSubCommandAsync(inputArgs, "runtime", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true, true);
+                                    await ShowSubCommandAsync(inputArgs, "runtime", "", STARCLI.CreateRuntimeAsync, STARCLI.EditRuntimeAsync, STARCLI.DeleteRuntimeAsync, STARCLI.InstallRuntimeAsync, STARCLI.UnInstallRuntimeAsync, null, STARCLI.UnPublishRuntimeAsync, STARCLI.ShowRuntimeAsync, STARCLI.ListRuntimesCreatedByBeamedInAvatarAsync, STARCLI.ListAllRuntimesAsync, STARCLI.ListRuntimesInstalledForBeamedInAvatarAsync, STARCLI.SearchRuntimesAsync, ProviderType.Default, true, true);
                                     break;
 
                                 case "celestialspace":

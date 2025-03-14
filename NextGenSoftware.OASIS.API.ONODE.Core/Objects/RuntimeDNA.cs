@@ -7,14 +7,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
     public class RuntimeDNA : IRuntimeDNA
     {
         public Guid Id { get; set; }
-        public string Name
-        {
-            get
-            {
-                return string.Concat(Enum.GetName(typeof(RuntimeType), RuntimeType), " ", Version);
-            }
-        }
+        //public string Name
+        //{
+        //    get
+        //    {
+        //        return string.Concat(Enum.GetName(typeof(RuntimeType), RuntimeType), " ", Version);
+        //    }
+        //}
 
+        public string Name { get; set; }
         public string Description { get; set; }
         public Guid CreatedByAvatarId { get; set; }
         public string CreatedByAvatarUsername { get; set; }

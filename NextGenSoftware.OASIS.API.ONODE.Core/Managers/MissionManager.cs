@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -109,6 +110,25 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             result.Result = loadHolonsResult.Result;
             return result;
         }
+
+        public OASISResult<IEnumerable<IMission>> SearchMissions(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IMission>> result = new OASISResult<IEnumerable<IMission>>();
+            OASISResult<IEnumerable<Mission>> loadHolonsResult = SearchHolons<Mission>(searchTerm, providerType, "MissionManager.SearchMissions", HolonType.Mission);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IMission>>> SearchMissionsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IMission>> result = new OASISResult<IEnumerable<IMission>>();
+            OASISResult<IEnumerable<Mission>> loadHolonsResult = await SearchHolonsAsync<Mission>(searchTerm, providerType, "MissionManager.SearchMissionsAsync", HolonType.Mission);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
         #endregion
 
         #region PublishManagerBase

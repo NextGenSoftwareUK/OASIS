@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         //public string STARRunTimePath { get; set; } = @"Runtimes\STAR Runtime\STAR ODK Runtime v2.2.0 (With OASIS Runtime v3.3.1 HC Conductor Embedded)";
         //public string OASISBaseRuntimesPath { get; set; } = "Runtimes\\OASIS Runtimes";
         //public string STARBaseRuntimesPath { get; set; } = "Runtimes\\STAR Runtimes";
-        public string OAPPDNATemplatePath { get; set; } = @"STAR OAPP DNA Templates";
+        //public string OAPPDNATemplatePath { get; set; } = @"STAR OAPP DNA Templates";
         public string RustDNARSMTemplateFolder { get; set; } = @"NextGenSoftware.OASIS.STAR\DNATemplates\RustDNATemplates\RSM";
         public string CSharpDNATemplateFolder { get; set; } = @"NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates";
         public string CelestialBodyDNA { get; set; } = @"NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
@@ -64,14 +64,16 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultSuperStarId { get; set; }
         public string DefaultStarId { get; set; }
         public string DefaultPlanetId { get; set; }
+        public string DefaultOAPPsPath { get; set; }
         public string DefaultPublishedOAPPsPath { get; set; }
-        public string DefaultPublishedOAPPTemplatesPath { get; set; }
-        public string DefaultPublishedRuntimesPath { get; set; }
         public string DefaultInstalledOAPPsPath { get; set; }
+        public string DefaultOAPPTemplatePath { get; set; }
+        public string DefaultPublishedOAPPTemplatesPath { get; set; }
         public string DefaultInstalledOAPPTemplatesPath { get; set; }
+        public string DefaultRuntimesPath { get; set; }
+        public string DefaultPublishedRuntimesPath { get; set; }
+        public string DefaultInstalledRuntimesPath { get; set; }
         public string DefaultInstalledOASISRuntimesPath { get; set; }
         public string DefaultInstalledSTARRuntimesPath { get; set; }
-        public string DefaultInstalledRuntimesPath { get; set; }
-
     }
 }

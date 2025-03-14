@@ -8,8 +8,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -149,6 +147,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowWorkingMessage("Loading NFTs...");
             OASISResult<IEnumerable<IOASISNFT>> nftsResult = await STAR.OASISAPI.NFTs.LoadAllNFTsAsync();
             ListNFTs(nftsResult);
+        }
+
+        public static async Task SearchNFTsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            ListNFTs(await STAR.OASISAPI.NFTs.SearchNFTsAsync(searchTerm, providerType));
+        }
+
+        public static async Task SearchGeoNFTsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            ListGeoNFTs(await STAR.OASISAPI.NFTs.SearchGeoNFTsAsync(searchTerm, providerType));
         }
 
         public static async Task ShowNFTAsync(Guid id = new Guid(), ProviderType providerType = ProviderType.Default)

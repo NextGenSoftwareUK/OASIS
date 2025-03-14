@@ -63,8 +63,10 @@
     "DefaultPublishedOAPPTemplatesPath": "OAPPTemplates\\Published", //Can be releative to BasePath above or absolute.
     "DefaultInstalledOAPPTemplatesPath": "OAPPTemplates\\Installed", //Can be releative to BasePath above or absolute.
     "DefaultRuntimesPath": "Runtimes", //Can be releative to BasePath above or absolute.": null,
-    "DefaultPublishedRuntimePath": "Runtimes\\PublishedRuntimes", //Can be releative to BasePath above or absolute.": null,
-    "DefaultInstalledOASISRuntimePath": "Runtimes\\Installed\\OASIS Runtimes", //Can be releative to BasePath above or absolute.
-    "DefaultInstalledSTARRuntimePath": "Runtimes\\Installed\\STAR Runtimes", //Can be releative to BasePath above or absolute.
-    "DefaultInstalledRuntimePath": "Runtimes\\Installed\\Other" //Can be releative to BasePath above or absolute.
+    "DefaultPublishedRuntimePath": "Runtimes\\Published", //Can be releative to BasePath above or absolute.": null,
+    "DefaultInstalledRuntimePath": "Runtimes\\Installed\\Other", //Can be releative to BasePath above or absolute.
+    //"DefaultInstalledOASISRuntimePath": "Runtimes\\Installed\\OASIS Runtimes", //Can be releative to BasePath above or absolute.
+    //"DefaultInstalledSTARRuntimePath": "Runtimes\\Installed\\STAR Runtimes" //Can be releative to BasePath above or absolute.
+    "DefaultInstalledOASISRuntimePath": "Runtimes\\OASIS Runtime", //TEMP TILL I CAN CHANGE THE FOLDER STRUCTURE TO ABOVE...
+    "DefaultInstalledSTARRuntimePath": "Runtimes\\STAR Runtime" //TEMP TILL I CAN CHANGE THE FOLDER STRUCTURE TO ABOVE...
 }

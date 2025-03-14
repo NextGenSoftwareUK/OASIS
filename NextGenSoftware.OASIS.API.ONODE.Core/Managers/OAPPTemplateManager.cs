@@ -1514,7 +1514,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPTemplate> OpenOAPPTemplateFolder(Guid avatarId, IInstalledOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> OpenOAPPTemplateFolder(Guid avatarId, IInstalledOAPPTemplate OAPPTemplate)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "An error occured in OAPPTemplateManager.OpenOAPPTemplateFolder. Reason:";
@@ -1543,7 +1543,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             result = await LoadInstalledOAPPTemplateAsync(avatarId, OAPPTemplateId);
 
             if (result != null && !result.IsError && result.Result != null)
-                OpenOAPPTemplateFolder(avatarId, result.Result, providerType);
+                OpenOAPPTemplateFolder(avatarId, result.Result);
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with the LoadInstalledOAPPTemplateAsync method, reason: {result.Message}");
 
@@ -1557,7 +1557,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             result = LoadInstalledOAPPTemplate(avatarId, OAPPTemplateId);
 
             if (result != null && !result.IsError && result.Result != null)
-                OpenOAPPTemplateFolder(avatarId, result.Result, providerType);
+                OpenOAPPTemplateFolder(avatarId, result.Result);
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with the LoadInstalledOAPPTemplate method, reason: {result.Message}");
 
