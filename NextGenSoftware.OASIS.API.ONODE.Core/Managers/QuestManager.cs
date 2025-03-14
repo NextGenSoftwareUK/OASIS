@@ -8,13 +8,14 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
     //TODO: Make a QuestBaseManager and TaskBaseManager to extend from so lots of the same generic code is re-used.
-    public class QuestManager : OASISManager, IQuestManager
+    public class QuestManager : COSMICManagerBase, IQuestManager
     {
         NFTManager _nftManager = null;
 
@@ -304,6 +305,24 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
             }
 
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IQuest>> SearchQuests(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IQuest>> result = new OASISResult<IEnumerable<IQuest>>();
+            OASISResult<IEnumerable<Quest>> loadHolonsResult = SearchHolons<Quest>(searchTerm, providerType, "QuestManager.SearchQuests", HolonType.Quest);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IQuest>>> SearchQuestsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IQuest>> result = new OASISResult<IEnumerable<IQuest>>();
+            OASISResult<IEnumerable<Quest>> loadHolonsResult = await SearchHolonsAsync<Quest>(searchTerm, providerType, "QuestManager.SearchQuestsAsync", HolonType.Quest);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
             return result;
         }
 

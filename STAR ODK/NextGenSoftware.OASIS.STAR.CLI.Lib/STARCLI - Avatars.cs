@@ -4,6 +4,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -431,6 +433,41 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public static async Task ShowAvatar()
         {
             await ShowAvatar("");
+        }
+
+        public static async Task SearchAvatarsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            ListAvatars(await STAR.OASISAPI.Avatar.SearchAvatarsAsync(searchTerm, providerType));
+        }
+
+        private static void ListAvatars(OASISResult<IEnumerable<IAvatar>> avatarsResult)
+        {
+            if (avatarsResult != null)
+            {
+                if (!avatarsResult.IsError)
+                {
+                    if (avatarsResult.Result != null && avatarsResult.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
+
+                        if (avatarsResult.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{avatarsResult.Result.Count()} Avatar Found:");
+                        else
+                            CLIEngine.ShowMessage($"{avatarsResult.Result.Count()} Avatar's' Found:");
+
+                        CLIEngine.ShowDivider();
+
+                        foreach (IOASISGeoSpatialNFT geoNFT in avatarsResult.Result)
+                            ShowGeoNFT(geoNFT);
+                    }
+                    else
+                        CLIEngine.ShowWarningMessage("No Avatar's Found.");
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error occured loading Avatar's. Reason: {avatarsResult.Message}");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading Avatar's.");
         }
     }
 }

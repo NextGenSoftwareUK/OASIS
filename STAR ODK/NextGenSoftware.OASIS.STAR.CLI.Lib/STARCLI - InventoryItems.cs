@@ -79,6 +79,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
+        public static async Task SearchMissionsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            ListInventoryItems(await STAR.OASISAPI.Inventory.SearchInventoryItemsAsync(searchTerm, providerType));
+        }
+
         public static async Task<OASISResult<IInventoryItem>> ShowInventoryItem(Guid inventoryItemId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInventoryItem> result = await STAR.OASISAPI.Inventory.LoadInventoryItemAsync(inventoryItemId, providerType);

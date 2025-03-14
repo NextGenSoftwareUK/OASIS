@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -429,6 +430,38 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             return result;
+        }
+
+        //private static void ListHolons(OASISResult<IEnumerable<IHolon>> holons, string holonTypeName, Func<OASISResult<IHolon>, void> showHolonDelicate)
+        private static void ListHolons<T>(OASISResult<IEnumerable<T>> holons, string holonTypeName, Action<IHolon> showHolonDelicate) where T : IHolon
+        {
+            if (holons != null)
+            {
+                if (!holons.IsError)
+                {
+                    if (holons.Result != null && holons.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
+
+                        if (holons.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{holons.Result.Count()} {holonTypeName} Found:");
+                        else
+                            CLIEngine.ShowMessage($"{holons.Result.Count()} {holonTypeName}'s Found:");
+
+                        CLIEngine.ShowDivider();
+
+                        foreach (IOAPP oapp in holons.Result)
+                            showHolonDelicate(oapp);
+                        //ShowOAPP(oapp);
+                    }
+                    else
+                        CLIEngine.ShowWarningMessage($"No {holonTypeName}'s Found.");
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error occured loading {holonTypeName}'s. Reason: {holons.Message}");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading {holonTypeName}'s.");
         }
     }
 }

@@ -18,6 +18,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using System.Diagnostics;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -110,7 +112,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         //public async Task<OASISResult<IOAPPTemplateDNA>> PublishOAPPTemplateAsync(string fullPathToOAPPTemplate, string launchTarget, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPTemplateBinary = true, bool uploadOAPPTemplateToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
         //{
         //    OASISResult<IOAPPTemplateDNA> result = new OASISResult<IOAPPTemplateDNA>();
-        //    string errorMessage = "Error occured in OAPPTemplateManager.PublishOAPPTemplateAsync. Reason: ";
+        //    string errorMessage = "Error occured in RuntimeManager.PublishOAPPTemplateAsync. Reason: ";
         //    IOAPPTemplateDNA OAPPTemplateDNA = null;
         //    string tempPath = "";
 
@@ -738,7 +740,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         //    return result;
         //}
 
-        public async Task<OASISResult<IRuntimeDNA>> CreateRuntimeAsync(string description, RuntimeType runtimeType, string version, Guid avatarId, string fullPathToRuntime, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntimeDNA>> CreateRuntimeAsync(string name, string description, RuntimeType runtimeType, string version, Guid avatarId, string fullPathToRuntime, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IRuntimeDNA> result = new OASISResult<IRuntimeDNA>();
             string errorMessage = "Error occured in RuntimeManager.CreateRuntimeAsync, Reason:";
@@ -748,7 +750,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 Runtime runtime = new Runtime()
                 {
                     Id = Guid.NewGuid(),
-                    //Name = RuntimeName,
+                    Name = name,
                     Description = description,
                 };
 
@@ -759,7 +761,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     RuntimeDNA runtimeDNA = new RuntimeDNA()
                     {
                         Id = runtime.Id,
-                        //Name = RuntimeName,
+                        Name = name,
                         Description = description,
                         RuntimeType = runtimeType,
                         CreatedByAvatarId = avatarId,
@@ -773,7 +775,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion
                     };
 
-                    runtime.Name = runtimeDNA.Name;
+                    //runtime.Name = runtimeDNA.Name;
                     runtime.RuntimeName = runtimeDNA.Name;
                     runtime.RuntimeDNA = runtimeDNA;
                     await WriteRuntimeDNAAsync(runtimeDNA, fullPathToRuntime);
@@ -798,7 +800,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IRuntimeDNA> CreateRuntime(string description, RuntimeType runtimeType, string version, Guid avatarId, string fullPathToRuntime, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntimeDNA> CreateRuntime(string name, string description, RuntimeType runtimeType, string version, Guid avatarId, string fullPathToRuntime, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IRuntimeDNA> result = new OASISResult<IRuntimeDNA>();
             string errorMessage = "Error occured in RuntimeManager.CreateRuntimeAsync, Reason:";
@@ -808,7 +810,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 Runtime runtime = new Runtime()
                 {
                     Id = Guid.NewGuid(),
-                    //Name = RuntimeName,
+                    Name = name,
                     Description = description,
                 };
 
@@ -819,7 +821,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     RuntimeDNA runtimeDNA = new RuntimeDNA()
                     {
                         Id = runtime.Id,
-                        //Name = RuntimeName,
+                        Name = name,
                         Description = description,
                         RuntimeType = runtimeType,
                         CreatedByAvatarId = avatarId,
@@ -833,7 +835,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion
                     };
 
-                    runtime.Name = runtimeDNA.Name;
+                    //runtime.Name = runtimeDNA.Name;
+                    runtime.RuntimeName = runtimeDNA.Name;
+                    runtime.RuntimeDNA = runtimeDNA;
                     WriteRuntimeDNA(runtimeDNA, fullPathToRuntime);
 
                     runtime.RuntimeDNA = runtimeDNA;
@@ -901,7 +905,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IRuntime>>> LoadAllRuntimesAsync(RuntimeType runtimeType, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IRuntime>>> LoadAllRuntimesForRuntimeTypeAsync(RuntimeType runtimeType, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IRuntime>> result = new OASISResult<IEnumerable<IRuntime>>();
             OASISResult<IEnumerable<Runtime>> loadHolonsResult = Data.LoadHolonsForParentByMetaData<Runtime>("RuntimeType", Enum.GetName(typeof(RuntimeType), runtimeType));
@@ -910,10 +914,28 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<IRuntime>> LoadAllRuntimes(RuntimeType runtimeType, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IRuntime>> LoadAllRuntimesForRuntimeType(RuntimeType runtimeType, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IRuntime>> result = new OASISResult<IEnumerable<IRuntime>>();
             OASISResult<IEnumerable<Runtime>> loadHolonsResult = Data.LoadHolonsForParentByMetaData<Runtime>("RuntimeType", Enum.GetName(typeof(RuntimeType), runtimeType));
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IRuntime>>> LoadAllRuntimesAsync(ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IRuntime>> result = new OASISResult<IEnumerable<IRuntime>>();
+            OASISResult<IEnumerable<Runtime>> loadHolonsResult = await Data.LoadAllHolonsAsync<Runtime>(HolonType.Runtime, true, true, 0, true, false, HolonType.All, 0, providerType);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IRuntime>> LoadAllRuntimes(ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IRuntime>> result = new OASISResult<IEnumerable<IRuntime>>();
+            OASISResult<IEnumerable<Runtime>> loadHolonsResult = Data.LoadAllHolons<Runtime>(HolonType.Runtime, true, true, 0, true, false, HolonType.All, 0, providerType);
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
@@ -2107,6 +2129,56 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 result.Result = installedRuntimesResult.Result.FirstOrDefault(x => x.RuntimeDNA.Name == RuntimeName);
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParent. Reason: {installedRuntimesResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IInstalledOAPPTemplate> OpenRuntimeFolder(Guid avatarId, IInstalledRuntime installedRuntime)
+        {
+            OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
+            string errorMessage = "An error occured in RuntimeManager.OpenRuntimeFolder. Reason:";
+
+            if (installedRuntime != null)
+            {
+                try
+                {
+                    Process.Start("explorer.exe", result.Result.InstalledPath);
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured attempting to open the folder {result.Result.InstalledPath}. Reason: {e}");
+                }
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The Runtime is null!");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> OpenRuntimeFolderAsync(Guid avatarId, Guid runtimeId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledRuntime> result = new OASISResult<IInstalledRuntime>();
+            string errorMessage = "An error occured in RuntimeManager.OpenRuntimeFolderAsync. Reason:";
+            result = await LoadInstalledRuntimeAsync(avatarId, runtimeId);
+
+            if (result != null && !result.IsError && result.Result != null)
+                OpenRuntimeFolder(avatarId, result.Result);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the Runtime with the LoadInstalledRuntimeAsync method, reason: {result.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IInstalledRuntime> OpenRuntimeFolder(Guid avatarId, Guid runtimeId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledRuntime> result = new OASISResult<IInstalledRuntime>();
+            string errorMessage = "An error occured in RuntimeManager.OpenRuntimeFolder. Reason:";
+            result = LoadInstalledRuntime(avatarId, runtimeId);
+
+            if (result != null && !result.IsError && result.Result != null)
+                OpenRuntimeFolder(avatarId, result.Result);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the Runtime with the LoadInstalledRuntime method, reason: {result.Message}");
 
             return result;
         }

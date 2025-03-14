@@ -1,14 +1,13 @@
 ﻿using System.Diagnostics;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.STAR.OASISAPIManager;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -19,6 +18,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             RuntimeType runtimeType = RuntimeType.STAR;
             bool runtimeValid = false;
             string runtimePath = "";
+            string runtimeName = "";
 
             CLIEngine.ShowDivider();
             CLIEngine.ShowMessage("Welcome to the Runtime Wizard");
@@ -32,16 +32,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage("You can then share the .oruntime file with others from which you can create OAPP's from (along with a OAPP Template, you can even use the same OAPP Template for different runtimes).");
             CLIEngine.ShowMessage("You can also optionally choose to upload the .oruntime file to the STARNET store so others can search, download and install the runtime. They can then create OAPP's from the runtime.");
             CLIEngine.ShowDivider();
-
-            string runtimeName = CLIEngine.GetValidInput("What is the name of the Runtime?");
-
-            if (runtimeName == "exit")
-                return;
-
-            string RuntimeDesc = CLIEngine.GetValidInput("What is the description of the Runtime?");
-
-            if (RuntimeDesc == "exit")
-                return; 
 
             do
             {
@@ -62,30 +52,55 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
             } while (!runtimeValid);
 
-            if (!string.IsNullOrEmpty(STAR.STARDNA.BasePath))
-                runtimePath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.OAPPDNATemplatePath);
-            else
-                runtimePath = STAR.STARDNA.OAPPDNATemplatePath;
+            string version = CLIEngine.GetValidInput("What is the version of the Runtime?");
 
-            if (!CLIEngine.GetConfirmation($"Do you wish to create the Runtime in the default path defined in the STARDNA as 'OAPPDNATemplatePath'? The current path points to: {RuntimePath}"))
+            if (version == "exit")
+                return;
+
+            if (runtimeType == RuntimeType.Other)
+            {
+                runtimeName = CLIEngine.GetValidInput("What is the name of the Runtime?");
+
+                if (runtimeName == "exit")
+                    return;
+            }
+            else
+            {
+                runtimeName = string.Concat(Enum.GetName(typeof(RuntimeType), runtimeType), " ", version);
+
+                if (!CLIEngine.GetConfirmation($"Do you wish to use the following default name: {runtimeName}?"))
+                    runtimeName = CLIEngine.GetValidInput("What is the name of the Runtime?");
+            }
+
+            string runtimeDesc = CLIEngine.GetValidInput("What is the description of the Runtime?");
+
+            if (runtimeDesc == "exit")
+                return; 
+
+            if (!string.IsNullOrEmpty(STAR.STARDNA.BasePath))
+                runtimePath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultRuntimesPath);
+            else
+                runtimePath = STAR.STARDNA.DefaultRuntimesPath;
+
+            if (!CLIEngine.GetConfirmation($"Do you wish to create the Runtime in the default path defined in the STARDNA as 'DefaultRuntimesPath'? The current path points to: {runtimePath}"))
                 runtimePath = CLIEngine.GetValidFolder("Where do you wish to create the Runtime?");
 
             runtimePath = Path.Combine(runtimePath, runtimeName);
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage("Generating Runtime...");
-            OASISResult<IRuntimeDNA> RuntimeResult = await STAR.OASISAPI.Runtimes.CreateRuntimeAsync(RuntimeName, RuntimeDesc, RuntimeType, STAR.BeamedInAvatar.Id, RuntimePath, providerType);
+            OASISResult<IRuntimeDNA> runtimeResult = await STAR.OASISAPI.Runtimes.CreateRuntimeAsync(runtimeName, runtimeDesc, runtimeType, version, STAR.BeamedInAvatar.Id, runtimePath, providerType);
 
-            if (RuntimeResult != null)
+            if (runtimeResult != null)
             {
-                if (!RuntimeResult.IsError && RuntimeResult.Result != null)
+                if (!runtimeResult.IsError && runtimeResult.Result != null)
                 {
-                    CLIEngine.ShowSuccessMessage($"Runtime Successfully Generated. ({RuntimeResult.Message})");
-                    ShowRuntime(RuntimeResult.Result);
+                    CLIEngine.ShowSuccessMessage($"Runtime Successfully Generated. ({runtimeResult.Message})");
+                    ShowRuntime(runtimeResult.Result);
                     Console.WriteLine("");
 
                     if (CLIEngine.GetConfirmation("Do you wish to open the Runtime folder now?"))
-                        Process.Start("explorer.exe", RuntimePath);
+                        Process.Start("explorer.exe", runtimePath);
 
                     Console.WriteLine("");
                 }
@@ -150,32 +165,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
         public static async Task PublishRuntimeAsync(string RuntimePath = "", ProviderType providerType = ProviderType.Default)
-        //public static async Task PublishOAPPAsync(string oappPath = "", ProviderType providerType = ProviderType.Default)
         {
-            bool generateOAPPSource = false;
-            bool uploadOAPPSource = false;
-            bool generateOAPP = true;
-            //bool uploadOAPP = true;
-            bool uploadOAPPToCloud = false;
-            bool generateOAPPSelfContained = false;
-            //bool uploadOAPPSelfContained = false;
-            bool uploadOAPPSelfContainedToCloud = false;
-            bool generateOAPPSelfContainedFull = false;
-            //bool uploadOAPPSelfContainedFull = false;
-            bool uploadOAPPSelfContainedFullToCloud = false;
-            bool makeOAPPSourcePublic = false;
-            ProviderType OAPPBinaryProviderType = providerType; //ProviderType.IPFSOASIS;
-            ProviderType OAPPSelfContainedBinaryProviderType = ProviderType.IPFSOASIS; //ProviderType.IPFSOASIS;
-            ProviderType OAPPSelfContainedFullBinaryProviderType = ProviderType.IPFSOASIS; //ProviderType.IPFSOASIS;
-            string launchTarget = "";
+            bool generateRuntime = true;
+            bool uploadRuntimeToCloud = false;
+            ProviderType runtimeBinaryProviderType = ProviderType.IPFSOASIS;
             string publishPath = "";
-            string launchTargetQuestion = "";
-            // bool publishDotNot = false;
 
             if (string.IsNullOrEmpty(RuntimePath))
             {
                 string OAPPPathQuestion = "What is the full path to the Runtime directory?";
-                launchTargetQuestion = "What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the Runtime? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)";
                 RuntimePath = CLIEngine.GetValidFolder(OAPPPathQuestion, false);
             }
 
@@ -183,52 +181,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (RuntimeDNAResult != null && RuntimeDNAResult.Result != null && !RuntimeDNAResult.IsError)
             {
-                switch (RuntimeDNAResult.Result.RuntimeType)
-                {
-                    case RuntimeType.Console:
-                    case RuntimeType.WPF:
-                    case RuntimeType.WinForms:
-                        launchTarget = $"{RuntimeDNAResult.Result.Name}.exe"; //TODO: For this line to work need to remove the namespace question so it just uses the OAPPName as the namespace. //TODO: Eventually this will be set in the Runtime and/or can also be set when I add the command line dotnet publish integration.
-                        //launchTarget = $"bin\\Release\\net8.0\\{OAPPDNAResult.Result.OAPPName}.exe"; //TODO: For this line to work need to remove the namespace question so it just uses the OAPPName as the namespace. //TODO: Eventually this will be set in the Runtime and/or can also be set when I add the command line dotnet publish integration.
-                        break;
-
-                    case RuntimeType.Blazor:
-                    case RuntimeType.MAUI:
-                    case RuntimeType.WebMVC:
-                        //launchTarget = $"bin\\Release\\net8.0\\index.html"; 
-                        launchTarget = $"index.html";
-                        break;
-                }
-
-                if (!string.IsNullOrEmpty(launchTarget))
-                {
-                    if (!CLIEngine.GetConfirmation($"{launchTargetQuestion} Do you wish to use the following default launch target: {launchTarget}?"))
-                        launchTarget = CLIEngine.GetValidFile("What launch target do you wish to use? ", RuntimePath);
-                    else
-                        launchTarget = Path.Combine(RuntimePath, launchTarget);
-                }
-                else
-                    launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, RuntimePath);
-
-                //if (CLIEngine.GetConfirmation("Do you wish to upload/publish the .Runtime file to STARNET?"))
-                //{
-                //    if (CLIEngine.GetConfirmation("Do you wish to upload/publish the .Runtime file to cloud storage?"))
-                //        uploadOAPPToCloud = true;
-
-                //    object OAPPBinaryProviderTypeObject = CLIEngine.GetValidInputForEnum("Do you wish to upload/publish the .Runtime file to The OASIS? If so what provider do you wish to upload to? If you do not wish to then enter 'None'.", typeof(ProviderType));
-
-                //    if (OAPPBinaryProviderTypeObject != null)
-                //    {
-                //        if (OAPPBinaryProviderTypeObject.ToString() == "exit")
-                //            return;
-                //        else
-                //            OAPPBinaryProviderType = (ProviderType)OAPPBinaryProviderTypeObject;
-                //    }
-                //}
-
-                //if (!uploadOAPPToCloud && OAPPBinaryProviderType == ProviderType.None)
-                //    CLIEngine.ShowMessage("Since you did not select to upload to the cloud or OASIS storage the Runtime will NOT be published to STARNET.");
-
                 Console.WriteLine("");
                 bool registerOnSTARNET = CLIEngine.GetConfirmation("Do you wish to publish to STARNET? If you select 'Y' to this question then your Runtime will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .Runtime install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.");
                 Console.WriteLine("");
@@ -238,14 +190,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowMessage("Do you wish to publish/upload the .Runtime file to an OASIS Provider or to the cloud or both? Depending on which OASIS Provider is chosen such as IPFSOASIS there may issues such as speed, relialbility etc for such a large file. If you choose to upload to the cloud this could be faster and more reliable (but there is a limit of 5 OAPPs on the free plan and you will need to upgrade to upload more than 5 OAPPs). You may want to choose to use both to add an extra layer of redundancy (recommended).");
 
                     if (CLIEngine.GetConfirmation("Do you wish to upload to the cloud?"))
-                        uploadOAPPToCloud = true;
+                        uploadRuntimeToCloud = true;
 
                     if (CLIEngine.GetConfirmation("Do you wish to upload to an OASIS Provider? Make sure you select a provider that can handle large files such as IPFSOASIS, HoloOASIS etc. Also remember the OASIS Hyperdrive will only be able to auto-replicate to other providers that also support large files and are free or cost effective. By default it will NOT auto-replicate large files, you will need to manually configure this in your OASIS Profile settings."))
                     {
-                        object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to publish the OAPP to? (The default is IPFSOASIS)", typeof(ProviderType));
+                        object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to publish the Runtime to? (The default is IPFSOASIS)", typeof(ProviderType));
 
                         if (largeProviderTypeObject != null)
-                            OAPPBinaryProviderType = (ProviderType)largeProviderTypeObject;
+                            runtimeBinaryProviderType = (ProviderType)largeProviderTypeObject;
                     }
                 }
 
@@ -254,7 +206,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     publishPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultPublishedRuntimesPath);
 
-                //Console.WriteLine("");
                 if (!CLIEngine.GetConfirmation($"Do you wish to publish the Runtime to the default publish folder defined in the STARDNA as DefaultPublishedRuntimesPath : {publishPath}?"))
                 {
                     if (CLIEngine.GetConfirmation($"Do you wish to publish the Runtime to: {Path.Combine(RuntimePath, "Published")}?"))
@@ -268,7 +219,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 STAR.OASISAPI.Runtimes.OnRuntimePublishStatusChanged += Runtimes_OnRuntimePublishStatusChanged;
                 STAR.OASISAPI.Runtimes.OnRuntimeUploadStatusChanged += Runtimes_OnRuntimeUploadStatusChanged;
-                OASISResult<IRuntimeDNA> publishResult = await STAR.OASISAPI.Runtimes.PublishRuntimeAsync(RuntimePath, launchTarget, STAR.BeamedInAvatar.Id, publishPath, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
+                OASISResult<IRuntimeDNA> publishResult = await STAR.OASISAPI.Runtimes.PublishRuntimeAsync(RuntimePath, STAR.BeamedInAvatar.Id, publishPath, registerOnSTARNET, generateRuntime, uploadRuntimeToCloud, providerType, runtimeBinaryProviderType);
                 STAR.OASISAPI.Runtimes.OnRuntimeUploadStatusChanged -= Runtimes_OnRuntimeUploadStatusChanged;
                 STAR.OASISAPI.Runtimes.OnRuntimePublishStatusChanged -= Runtimes_OnRuntimePublishStatusChanged;
 
@@ -306,7 +257,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowErrorMessage($"An error occured unpublishing the Runtime. Reason: {unpublishResult.Message}");
             }
         }
-
 
         public static async Task<OASISResult<IInstalledRuntime>> InstallRuntimeAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
@@ -347,13 +297,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             else
             {
                 Console.WriteLine("");
-                if (CLIEngine.GetConfirmation("Do you wish to install the Runtime from a local .Runtime file or from STARNET? Press 'Y' for local .Runtime file or 'N' for STARNET."))
+                if (CLIEngine.GetConfirmation("Do you wish to install the Runtime from a local .oruntime file or from STARNET? Press 'Y' for local .oruntime file or 'N' for STARNET."))
                 {
                     Console.WriteLine("");
-                    string oappPath = CLIEngine.GetValidFile("What is the full path to the .Runtime file?");
+                    string runtimePath = CLIEngine.GetValidFile("What is the full path to the .oruntime file?");
 
                     CLIEngine.ShowWorkingMessage("Installing Runtime...");
-                    installResult = await STAR.OASISAPI.Runtimes.InstallRuntimeAsync(STAR.BeamedInAvatar.Id, oappPath, installPath, true, providerType);
+                    installResult = await STAR.OASISAPI.Runtimes.InstallRuntimeAsync(STAR.BeamedInAvatar.Id, runtimePath, installPath, providerType);
                 }
                 else
                     await LaunchSTARNETAsync(true);
@@ -396,20 +346,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 OASISResult<IRuntime> result = LoadRuntime(idOrName, "install", providerType);
 
                 if (result != null && result.Result != null && !result.IsError)
-                    installResult = STAR.OASISAPI.Runtimes.InstallRuntime(STAR.BeamedInAvatar.Id, result.Result, installPath, true, providerType);
+                    installResult = STAR.OASISAPI.Runtimes.InstallRuntime(STAR.BeamedInAvatar.Id, result.Result, installPath, providerType);
 
                 //installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, id, installPath, providerType);
             }
             else
             {
                 Console.WriteLine("");
-                if (CLIEngine.GetConfirmation("Do you wish to install the Runtime from a local .Runtime file or from STARNET? Press 'Y' for local .Runtime file or 'N' for STARNET."))
+                if (CLIEngine.GetConfirmation("Do you wish to install the Runtime from a local .oruntime file or from STARNET? Press 'Y' for local .oruntime file or 'N' for STARNET."))
                 {
                     Console.WriteLine("");
-                    string oappPath = CLIEngine.GetValidFile("What is the full path to the .Runtime file?");
+                    string oappPath = CLIEngine.GetValidFile("What is the full path to the .oruntime file?");
 
                     CLIEngine.ShowWorkingMessage("Installing Runtime...");
-                    installResult = STAR.OASISAPI.Runtimes.InstallRuntime(STAR.BeamedInAvatar.Id, oappPath, installPath, true, providerType);
+                    installResult = STAR.OASISAPI.Runtimes.InstallRuntime(STAR.BeamedInAvatar.Id, oappPath, installPath, providerType);
                 }
                 else
                     LaunchSTARNETAsync(true);
@@ -461,30 +411,30 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task ListAllRuntimesAsync(ProviderType providerType = ProviderType.Default)
         {
-            ListOAPPs(await STAR.OASISAPI.OAPPs.ListAllOAPPsAsync(providerType));
+            ListRuntimes(await STAR.OASISAPI.Runtimes.LoadAllRuntimesAsync(providerType));
         }
 
         public static void ListAllRuntimes(ProviderType providerType = ProviderType.Default)
         {
-            ListOAPPs(STAR.OASISAPI.OAPPs.ListAllOAPPs(providerType));
+            ListRuntimes(STAR.OASISAPI.Runtimes.LoadAllRuntimes(providerType));
         }
 
         public static async Task ListRuntimesCreatedByBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             if (STAR.BeamedInAvatar != null)
-                ListOAPPs(await STAR.OASISAPI.OAPPs.ListOAPPsCreatedByAvatarAsync(STAR.BeamedInAvatar.AvatarId));
+                ListRuntimes(await STAR.OASISAPI.Runtimes.LoadAllRuntimesForAvatarAsync(STAR.BeamedInAvatar.AvatarId));
             else
                 CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
         }
 
-        public static async Task<OASISResult<IEnumerable<IInstalledOAPP>>> ListRuntimesInstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IEnumerable<IInstalledRuntime>>> ListRuntimesInstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<IInstalledOAPP>> result = new OASISResult<IEnumerable<IInstalledOAPP>>();
+            OASISResult<IEnumerable<IInstalledRuntime>> result = new OASISResult<IEnumerable<IInstalledRuntime>>();
 
             if (STAR.BeamedInAvatar != null)
             {
-                result = await STAR.OASISAPI.OAPPs.ListInstalledOAPPsAsync(STAR.BeamedInAvatar.AvatarId);
-                ListInstalledOAPPs(result);
+                result = await STAR.OASISAPI.Runtimes.ListInstalledRuntimesAsync(STAR.BeamedInAvatar.AvatarId);
+                ListInstalledRuntimes(result);
             }
             else
                 OASISErrorHandling.HandleError(ref result, "No Avatar Is Beamed In. Please Beam In First!");
@@ -493,9 +443,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public static async Task SearchRuntimesAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task SearchRuntimesAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
         {
-
+            ListRuntimes(await STAR.OASISAPI.Runtimes.SearchRuntimesAsync(searchTerm, providerType));
         }
 
         public static async Task ShowRuntimeAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
@@ -513,20 +463,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Id:                                         ", RuntimeDNA.Id != Guid.Empty ? RuntimeDNA.Id : "None"));
             CLIEngine.ShowMessage(string.Concat($"Name:                                       ", !string.IsNullOrEmpty(RuntimeDNA.Name) ? RuntimeDNA.Name : "None"));
             CLIEngine.ShowMessage(string.Concat($"Description:                                ", !string.IsNullOrEmpty(RuntimeDNA.Description) ? RuntimeDNA.Description : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Runtime Type:                         ", Enum.GetName(typeof(RuntimeType), RuntimeDNA.RuntimeType)));
+            CLIEngine.ShowMessage(string.Concat($"Runtime Type:                               ", Enum.GetName(typeof(RuntimeType), RuntimeDNA.RuntimeType)));
             CLIEngine.ShowMessage(string.Concat($"Created On:                                 ", RuntimeDNA.CreatedOn != DateTime.MinValue ? RuntimeDNA.CreatedOn.ToString() : "None"));
             CLIEngine.ShowMessage(string.Concat($"Created By:                                 ", RuntimeDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(RuntimeDNA.CreatedByAvatarUsername, " (", RuntimeDNA.CreatedByAvatarId.ToString(), ")") : "None"));
             CLIEngine.ShowMessage(string.Concat($"Published On:                               ", RuntimeDNA.PublishedOn != DateTime.MinValue ? RuntimeDNA.PublishedOn.ToString() : "None"));
             CLIEngine.ShowMessage(string.Concat($"Published By:                               ", RuntimeDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(RuntimeDNA.PublishedByAvatarUsername, " (", RuntimeDNA.PublishedByAvatarId.ToString(), ")") : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Runtime Published Path:               ", !string.IsNullOrEmpty(RuntimeDNA.RuntimePublishedPath) ? RuntimeDNA.RuntimePublishedPath : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Runtime Filesize:                     ", RuntimeDNA.RuntimeFileSize.ToString()));
+            CLIEngine.ShowMessage(string.Concat($"Runtime Published Path:                     ", !string.IsNullOrEmpty(RuntimeDNA.PublishedPath) ? RuntimeDNA.PublishedPath : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Runtime Filesize:                           ", RuntimeDNA.RuntimeFileSize.ToString()));
             //CLIEngine.ShowMessage(string.Concat($"Runtime Self Contained Published Path:                   ", !string.IsNullOrEmpty(RuntimeDNA.OAPPSelfContainedPublishedPath) ? RuntimeDNA.OAPPPublishedPath : "None"));
             //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Filesize:                         ", RuntimeDNA.OAPPSelfContainedFileSize.ToString()));
             //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published Path:              ", !string.IsNullOrEmpty(RuntimeDNA.OAPPSelfContainedFullPublishedPath) ? RuntimeDNA.OAPPPublishedPath : "None"));
             //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Filesize:                    ", RuntimeDNA.OAPPSelfContainedFullFileSize.ToString()));
-            CLIEngine.ShowMessage(string.Concat($"Runtime Published On STARNET:         ", RuntimeDNA.RuntimePublishedOnSTARNET ? "True" : "False"));
-            CLIEngine.ShowMessage(string.Concat($"Runtime Published To Cloud:           ", RuntimeDNA.RuntimePublishedToCloud ? "True" : "False"));
-            CLIEngine.ShowMessage(string.Concat($"Runtime Published To OASIS Provider:  ", Enum.GetName(typeof(ProviderType), RuntimeDNA.RuntimePublishedProviderType)));
+            CLIEngine.ShowMessage(string.Concat($"Runtime Published On STARNET:               ", RuntimeDNA.RuntimePublishedOnSTARNET ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"Runtime Published To Cloud:                 ", RuntimeDNA.RuntimePublishedToCloud ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"Runtime Published To OASIS Provider:        ", Enum.GetName(typeof(ProviderType), RuntimeDNA.RuntimePublishedProviderType)));
             //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To Cloud:               ", RuntimeDNA.OAPPSelfContainedPublishedToCloud ? "True" : "False"));
             //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To OASIS Provider:      ", Enum.GetName(typeof(ProviderType), RuntimeDNA.OAPPSelfContainedPublishedProviderType)));
             //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To Cloud:          ", RuntimeDNA.OAPPSelfContainedFullPublishedToCloud ? "True" : "False"));
@@ -545,9 +495,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public static void ShowInstalledRuntime(IInstalledRuntime Runtime)
         {
             ShowRuntime(Runtime.RuntimeDNA);
-            CLIEngine.ShowMessage(string.Concat($"Installed On:                                         ", Runtime.InstalledOn != DateTime.MinValue ? Runtime.InstalledOn.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Installed By:                                         ", Runtime.InstalledBy != Guid.Empty ? string.Concat(Runtime.InstalledByAvatarUsername, " (", Runtime.InstalledBy.ToString(), ")") : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Installed Path:                                       ", Runtime.InstalledPath));
+            CLIEngine.ShowMessage(string.Concat($"Installed On:                                ", Runtime.InstalledOn != DateTime.MinValue ? Runtime.InstalledOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Installed By:                                ", Runtime.InstalledBy != Guid.Empty ? string.Concat(Runtime.InstalledByAvatarUsername, " (", Runtime.InstalledBy.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Installed Path:                              ", Runtime.InstalledPath));
             CLIEngine.ShowDivider();
         }
 
@@ -563,9 +513,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         Console.WriteLine();
 
                         if (Runtimes.Result.Count() == 1)
-                            CLIEngine.ShowMessage($"{Runtimes.Result.Count()} Runtime Found:");
+                            CLIEngine.ShowMessage($"{Runtimes.Result.Count()} Runtime's Found:");
                         else
-                            CLIEngine.ShowMessage($"{Runtimes.Result.Count()} OAPP Templates Found:");
+                            CLIEngine.ShowMessage($"{Runtimes.Result.Count()} Runtime's Found:");
 
                         CLIEngine.ShowDivider();
 
@@ -575,13 +525,45 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         //ShowRuntimeListFooter();
                     }
                     else
-                        CLIEngine.ShowWarningMessage("No OAPP Templates Found.");
+                        CLIEngine.ShowWarningMessage("No Runtime's Found.");
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error occured loading OAPP Templates. Reason: {Runtimes.Message}");
+                    CLIEngine.ShowErrorMessage($"Error occured loading Runtime's. Reason: {Runtimes.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Unknown error occured loading OAPP Templates.");
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading Runtime's.");
+        }
+
+        private static void ListInstalledRuntimes(OASISResult<IEnumerable<IInstalledRuntime>> installedRuntimes)
+        {
+            if (installedRuntimes != null)
+            {
+                if (!installedRuntimes.IsError)
+                {
+                    if (installedRuntimes.Result != null && installedRuntimes.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
+
+                        if (installedRuntimes.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{installedRuntimes.Result.Count()} Runtime's Found:");
+                        else
+                            CLIEngine.ShowMessage($"{installedRuntimes.Result.Count()} Runtime's Found:");
+
+                        CLIEngine.ShowDivider();
+
+                        foreach (IInstalledRuntime runtime in installedRuntimes.Result)
+                            ShowInstalledRuntime(runtime);
+
+                        //ShowRuntimeListFooter();
+                    }
+                    else
+                        CLIEngine.ShowWarningMessage("No Runtime's Found.");
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error occured loading Runtime's. Reason: {installedRuntimes.Message}");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading Runtime's.");
         }
 
         private static async Task<OASISResult<IRuntime>> LoadRuntimeAsync(string idOrName, string operationName, ProviderType providerType = ProviderType.Default, bool addSpace = true)
@@ -637,7 +619,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 result = STAR.OASISAPI.Runtimes.LoadRuntime(id, providerType);
             else
             {
-                OASISResult<IEnumerable<IRuntime>> allOAPPsTemplatesResult = STAR.OASISAPI.Runtimes.LoadAllRuntimes();
+                OASISResult<IEnumerable<IRuntime>> allOAPPsTemplatesResult = STAR.OASISAPI.Runtimes.LoadAllRuntimes(providerType);
 
                 if (allOAPPsTemplatesResult != null && allOAPPsTemplatesResult.Result != null && !allOAPPsTemplatesResult.IsError)
                 {

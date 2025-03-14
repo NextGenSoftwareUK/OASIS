@@ -131,6 +131,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
+        public static async Task SearchGeoHotSpotsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            ListGeoHotSpots(await STAR.OASISAPI.GeoHotSpots.SearchGeoHotSpotsAsync(searchTerm, providerType));
+        }
+
         public static async Task<OASISResult<IGeoHotSpot>> ShowGeoHotSpot(Guid missionId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IGeoHotSpot> result = await STAR.OASISAPI.GeoHotSpots.LoadGeoHotSpotAsync(missionId, providerType);

@@ -862,7 +862,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return LevelManager.LevelLookup;
         }
 
-        
+        public static async Task SearchAvatarsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            
+        }
 
         /*
        public OASISResult<bool> DeleteAvatarDetailForProvider(Guid id, OASISResult<bool> result, SaveMode saveMode, bool softDelete = true, ProviderType providerType = ProviderType.Default)

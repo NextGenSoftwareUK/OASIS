@@ -8,7 +8,6 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -115,6 +114,25 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             result.Result = loadHolonsResult.Result;
             return result;
         }
+
+        public OASISResult<IEnumerable<IGeoHotSpot>> SearchGeoHotSpots(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IGeoHotSpot>> result = new OASISResult<IEnumerable<IGeoHotSpot>>();
+            OASISResult<IEnumerable<GeoHotSpot>> loadHolonsResult = SearchHolons<GeoHotSpot>(searchTerm, providerType, "GeoHotSpotManager.SearchGeoHotSpots", HolonType.GeoHotSpot);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IGeoHotSpot>>> SearchGeoHotSpotsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IGeoHotSpot>> result = new OASISResult<IEnumerable<IGeoHotSpot>>();
+            OASISResult<IEnumerable<GeoHotSpot>> loadHolonsResult = await SearchHolonsAsync<GeoHotSpot>(searchTerm, providerType, "GeoHotSpotManager.SearchGeoHotSpotsAsync", HolonType.GeoHotSpot);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
         #endregion
 
         #region PublishManagerBase

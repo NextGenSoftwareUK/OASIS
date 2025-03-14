@@ -24,7 +24,8 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
-    public class OAPPManager : OASISManager
+    //TODO: Re-factor to work like OAPPTemplateManager and use generic COSMICManagerBase methods etc...
+    public class OAPPManager : COSMICManagerBase
     {
         private int _progress = 0;
         private long _fileLength = 0;
@@ -532,6 +533,24 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             else
                 OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.DeleteOAPP deleting the OAPP. Reason: {deleteResult.Message}");
 
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IOAPP>> SearchOAPPs(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOAPP>> result = new OASISResult<IEnumerable<IOAPP>>();
+            OASISResult<IEnumerable<OAPP>> loadHolonsResult = SearchHolons<OAPP>(searchTerm, providerType, "OAPPManager.SearchOAPPs", HolonType.OAPPTemplate);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IOAPP>>> SearchOAPPsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOAPP>> result = new OASISResult<IEnumerable<IOAPP>>();
+            OASISResult<IEnumerable<OAPP>> loadHolonsResult = await SearchHolonsAsync<OAPP>(searchTerm, providerType, "OAPPManager.SearchOAPPsAsync", HolonType.OAPPTemplate);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
             return result;
         }
 
@@ -1775,6 +1794,56 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 result.Result = installedOAPPsResult.Result.FirstOrDefault(x => x.OAPPDNA.OAPPName == OAPPName);
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParent. Reason: {installedOAPPsResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IInstalledOAPP> OpenOAPPFolder(Guid avatarId, IInstalledOAPP OAPP)
+        {
+            OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
+            string errorMessage = "An error occured in OAPPManager.OpenOAPPFolder. Reason:";
+
+            if (OAPP != null)
+            {
+                try
+                {
+                    Process.Start("explorer.exe", result.Result.InstalledPath);
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured attempting to open the folder {result.Result.InstalledPath}. Reason: {e}");
+                }
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The OAPP Template is null!");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IInstalledOAPP>> OpenOAPPFolderAsync(Guid avatarId, Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
+            string errorMessage = "An error occured in OAPPManager.OpenOAPPFolderAsync. Reason:";
+            result = await LoadInstalledOAPPAsync(avatarId, OAPPId);
+
+            if (result != null && !result.IsError && result.Result != null)
+                OpenOAPPFolder(avatarId, result.Result);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with the LoadInstalledOAPPAsync method, reason: {result.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IInstalledOAPP> OpenOAPPFolder(Guid avatarId, Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
+            string errorMessage = "An error occured in OAPPManager.OpenOAPPFolder. Reason:";
+            result = LoadInstalledOAPP(avatarId, OAPPId);
+
+            if (result != null && !result.IsError && result.Result != null)
+                OpenOAPPFolder(avatarId, result.Result);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with the LoadInstalledOAPP method, reason: {result.Message}");
 
             return result;
         }

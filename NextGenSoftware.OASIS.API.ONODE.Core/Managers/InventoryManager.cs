@@ -7,6 +7,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONode.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -107,6 +109,25 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             result.Result = loadHolonsResult.Result;
             return result;
         }
+
+        public OASISResult<IEnumerable<IInventoryItem>> SearchInventoryItems(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IInventoryItem>> result = new OASISResult<IEnumerable<IInventoryItem>>();
+            OASISResult<IEnumerable<InventoryItem>> loadHolonsResult = SearchHolons<InventoryItem>(searchTerm, providerType, "InventoryItemManager.SearchInventoryItems", HolonType.InventoryItem);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IInventoryItem>>> SearchInventoryItemsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IInventoryItem>> result = new OASISResult<IEnumerable<IInventoryItem>>();
+            OASISResult<IEnumerable<InventoryItem>> loadHolonsResult = await SearchHolonsAsync<InventoryItem>(searchTerm, providerType, "InventoryItemManager.SearchInventoryItemsAsync", HolonType.InventoryItem);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
         #endregion
 
         #region PublishManagerBase
