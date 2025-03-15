@@ -47,9 +47,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 string oappTemplatePath = "";
 
                 if (!string.IsNullOrEmpty(STAR.STARDNA.BasePath))
-                    oappTemplatePath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.OAPPDNATemplatePath);
+                    oappTemplatePath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPTemplatePath);
                 else
-                    oappTemplatePath = STAR.STARDNA.OAPPDNATemplatePath;
+                    oappTemplatePath = STAR.STARDNA.DefaultOAPPTemplatePath;
 
                 if (!CLIEngine.GetConfirmation($"Do you wish to create the OAPP Template in the default path defined in the STARDNA as 'OAPPDNATemplatePath'? The current path points to: {oappTemplatePath}"))
                     oappTemplatePath = CLIEngine.GetValidFolder("Where do you wish to create the OAPP Template?");
@@ -291,8 +291,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowErrorMessage($"An error occured unpublishing the OAPP Template. Reason: {unpublishResult.Message}");
             }
         }
-
-
         public static async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> installResult = new OASISResult<IInstalledOAPPTemplate>();
