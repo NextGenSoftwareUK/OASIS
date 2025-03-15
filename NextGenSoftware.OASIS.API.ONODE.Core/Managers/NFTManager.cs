@@ -1041,39 +1041,34 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<IOASISNFT>> SearchNFTs(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IOASISNFT>>> SearchNFTsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
         {
+            string errorMessage = "Error occured in SearchNFTsAsync in NFTManager. Reason:";
             OASISResult<IEnumerable<IOASISNFT>> result = new OASISResult<IEnumerable<IOASISNFT>>();
-            OASISResult<IEnumerable<OASISNFT>> loadHolonsResult = SearchHolons<OASISNFT>(searchTerm, providerType, "NFTManager.SearchNFTs", HolonType.Mission);
-            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-            result.Result = loadHolonsResult.Result;
+            result = DecodeNFTMetaData(await Data.SearchHolonsAsync(searchTerm, HolonType.NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage));
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IOASISNFT>>> SearchNFTsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IOASISNFT>> SearchNFTs(string searchTerm, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOASISNFT>> result = new OASISResult<IEnumerable<IOASISNFT>>();
-            OASISResult<IEnumerable<OASISNFT>> loadHolonsResult = await SearchHolonsAsync<OASISNFT>(searchTerm, providerType, "NFTManager.SearchNFTsAsync", HolonType.Mission);
-            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-            result.Result = loadHolonsResult.Result;
+            string errorMessage = "Error occured in SearchNFTs in NFTManager. Reason:";
+            result = DecodeNFTMetaData(Data.SearchHolons(searchTerm, HolonType.NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage));
             return result;
         }
 
         public async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> SearchGeoNFTsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOASISGeoSpatialNFT>> result = new OASISResult<IEnumerable<IOASISGeoSpatialNFT>>();
-            OASISResult<IEnumerable<OASISGeoSpatialNFT>> loadHolonsResult = await SearchHolonsAsync<OASISGeoSpatialNFT>(searchTerm, providerType, "NFTManager.SearchGeoNFTsAsync", HolonType.Mission);
-            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-            result.Result = loadHolonsResult.Result;
+            string errorMessage = "Error occured in SearchGeoNFTsAsync in NFTManager. Reason:";
+            result = DecodeGeoNFTMetaData(await Data.SearchHolonsAsync(searchTerm, HolonType.GEONFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage));
             return result;
         }
-
         public async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> SearchGeoNFTs(string searchTerm, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOASISGeoSpatialNFT>> result = new OASISResult<IEnumerable<IOASISGeoSpatialNFT>>();
-            OASISResult<IEnumerable<OASISGeoSpatialNFT>> loadHolonsResult = SearchHolons<OASISGeoSpatialNFT>(searchTerm, providerType, "NFTManager.SearchGeoNFTs", HolonType.Mission);
-            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-            result.Result = loadHolonsResult.Result;
+            string errorMessage = "Error occured in SearchGeoNFT in NFTManager. Reason:";
+            result = DecodeGeoNFTMetaData(Data.SearchHolons(searchTerm, HolonType.GEONFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage));
             return result;
         }
 

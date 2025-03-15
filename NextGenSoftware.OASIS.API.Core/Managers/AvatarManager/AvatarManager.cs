@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -862,9 +861,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return LevelManager.LevelLookup;
         }
 
-        public static async Task SearchAvatarsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public static async Task SearchAvatarsAsync<(string searchTerm, ProviderType providerType = ProviderType.Default)
         {
-            
+            OASISResult<IEnumerable<IHolon>> searchResults = await HolonManager.Instance.SearchHolonsAsync(searchTerm, HolonType.Avatar, true, true, 0, true, false, HolonType.All, 0, providerType);
         }
 
         /*
