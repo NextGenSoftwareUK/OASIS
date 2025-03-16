@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public static partial class STARCLI
     {
-        public static async Task<OASISResult<IGeoHotSpot>> CreateGeoHotSpotAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IGeoHotSpot>> CreateGeoHotSpotAsync(object createParams = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
             byte[] object3D = null;

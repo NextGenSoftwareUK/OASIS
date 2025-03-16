@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public static partial class STARCLI
     {
-        public static async Task CreateOAPPTemplateAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task CreateOAPPTemplateAsync(object createParams, ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowDivider();
             CLIEngine.ShowMessage("Welcome to the OAPP Template Wizard");
@@ -47,11 +47,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 string oappTemplatePath = "";
 
                 if (!string.IsNullOrEmpty(STAR.STARDNA.BasePath))
-                    oappTemplatePath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPTemplatePath);
+                    oappTemplatePath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPTemplatesPath);
                 else
-                    oappTemplatePath = STAR.STARDNA.DefaultOAPPTemplatePath;
+                    oappTemplatePath = STAR.STARDNA.DefaultOAPPTemplatesPath;
 
-                if (!CLIEngine.GetConfirmation($"Do you wish to create the OAPP Template in the default path defined in the STARDNA as 'OAPPDNATemplatePath'? The current path points to: {oappTemplatePath}"))
+                if (!CLIEngine.GetConfirmation($"Do you wish to create the OAPP Template in the default path defined in the STARDNA as 'DefaultOAPPTemplatesPath'? The current path points to: {oappTemplatePath}"))
                     oappTemplatePath = CLIEngine.GetValidFolder("Where do you wish to create the OAPP Template?");
 
                 oappTemplatePath = Path.Combine(oappTemplatePath, OAPPTemplateName);
@@ -81,7 +81,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task EditOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public static async Task EditOAPPTemplateAsync(string idOrName = "", object editParams = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(idOrName, "edit", providerType);
 
@@ -444,34 +444,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task ListAllOAPPTemplatesAsync(ProviderType providerType = ProviderType.Default)
         {
-            ListOAPPs(await STAR.OASISAPI.OAPPs.ListAllOAPPsAsync(providerType));
+            ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(OAPPTemplateType.All, providerType));
         }
 
         public static void ListAllOAPPTemplates(ProviderType providerType = ProviderType.Default)
         {
-            ListOAPPs(STAR.OASISAPI.OAPPs.ListAllOAPPs(providerType));
+            ListOAPPTemplates(STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplates(OAPPTemplateType.All, providerType));
         }
 
         public static async Task ListOAPPTemplatesCreatedByBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             if (STAR.BeamedInAvatar != null)
-                ListOAPPs(await STAR.OASISAPI.OAPPs.ListOAPPsCreatedByAvatarAsync(STAR.BeamedInAvatar.AvatarId));
+                ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesForAvatarAsync(STAR.BeamedInAvatar.AvatarId));
             else
                 CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
         }
 
-        public static async Task<OASISResult<IEnumerable<IInstalledOAPP>>> ListOAPPTemplatesInstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IEnumerable<IInstalledOAPPTemplate>>> ListOAPPTemplatesInstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<IInstalledOAPP>> result = new OASISResult<IEnumerable<IInstalledOAPP>>();
+            OASISResult<IEnumerable<IInstalledOAPPTemplate>> result = new OASISResult<IEnumerable<IInstalledOAPPTemplate>>();
 
             if (STAR.BeamedInAvatar != null)
             {
-                result = await STAR.OASISAPI.OAPPs.ListInstalledOAPPsAsync(STAR.BeamedInAvatar.AvatarId);
-                ListInstalledOAPPs(result);
+                result = await STAR.OASISAPI.OAPPTemplates.ListInstalledOAPPTemplatesAsync(STAR.BeamedInAvatar.AvatarId);
+                ListInstalledOAPPTemplates(result);
             }
             else
                 OASISErrorHandling.HandleError(ref result, "No Avatar Is Beamed In. Please Beam In First!");
-            //CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
 
             return result;
         }
@@ -536,6 +535,38 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         
         private static void ListOAPPTemplates(OASISResult<IEnumerable<IOAPPTemplate>> oappTemplates)
+        {
+            if (oappTemplates != null)
+            {
+                if (!oappTemplates.IsError)
+                {
+                    if (oappTemplates.Result != null && oappTemplates.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
+
+                        if (oappTemplates.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{oappTemplates.Result.Count()} OAPP Template Found:");
+                        else
+                            CLIEngine.ShowMessage($"{oappTemplates.Result.Count()} OAPP Templates Found:");
+
+                        CLIEngine.ShowDivider();
+
+                        foreach (IOAPPTemplate oappTemplate in oappTemplates.Result)
+                            ShowOAPPTemplate(oappTemplate.OAPPTemplateDNA);
+
+                        //ShowOAPPTemplateListFooter();
+                    }
+                    else
+                        CLIEngine.ShowWarningMessage("No OAPP Templates Found.");
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error occured loading OAPP Templates. Reason: {oappTemplates.Message}");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading OAPP Templates.");
+        }
+
+        private static void ListInstalledOAPPTemplates(OASISResult<IEnumerable<IInstalledOAPPTemplate>> oappTemplates)
         {
             if (oappTemplates != null)
             {

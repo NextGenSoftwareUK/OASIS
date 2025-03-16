@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public static partial class STARCLI
     {
-        public static async Task<OASISResult<IMission>> CreateMissionAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IMission>> CreateMissionAsync(object createParams = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IMission> result = new OASISResult<IMission>();
 

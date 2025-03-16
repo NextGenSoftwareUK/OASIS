@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public static partial class STARCLI
     {
-        public static async Task MintNFTAsync()
+        public static async Task MintNFTAsync(object mintParams = null)
         {
             IMintNFTTransactionRequest request = await GenerateNFTRequestAsync();
 
@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task<OASISResult<IOASISGeoSpatialNFT>> MintGeoNFTAsync()
+        public static async Task<OASISResult<IOASISGeoSpatialNFT>> MintGeoNFTAsync(object mintParams = null)
         {
             IMintNFTTransactionRequest request = await GenerateNFTRequestAsync();
             IPlaceGeoSpatialNFTRequest geoRequest = await GenerateGeoNFTRequestAsync(false);

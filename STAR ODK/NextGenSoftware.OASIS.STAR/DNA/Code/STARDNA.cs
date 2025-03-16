@@ -64,16 +64,16 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultSuperStarId { get; set; }
         public string DefaultStarId { get; set; }
         public string DefaultPlanetId { get; set; }
-        public string DefaultOAPPsPath { get; set; }
-        public string DefaultPublishedOAPPsPath { get; set; }
-        public string DefaultInstalledOAPPsPath { get; set; }
-        public string DefaultOAPPTemplatePath { get; set; }
-        public string DefaultPublishedOAPPTemplatesPath { get; set; }
-        public string DefaultInstalledOAPPTemplatesPath { get; set; }
-        public string DefaultRuntimesPath { get; set; }
-        public string DefaultPublishedRuntimesPath { get; set; }
-        public string DefaultInstalledRuntimesPath { get; set; }
-        public string DefaultInstalledOASISRuntimesPath { get; set; }
-        public string DefaultInstalledSTARRuntimesPath { get; set; }
+        public string DefaultOAPPsPath { get; set; } = "OAPPs";
+        public string DefaultPublishedOAPPsPath { get; set; } = "OAPPs\\Published";
+        public string DefaultInstalledOAPPsPath { get; set; } = "OAPPs\\Installed";
+        public string DefaultOAPPTemplatesPath { get; set; } = "OAPPTemplates";
+        public string DefaultPublishedOAPPTemplatesPath { get; set; } = "OAPPTemplates\\Published";
+        public string DefaultInstalledOAPPTemplatesPath { get; set; } = "OAPPTemplates\\Installed";
+        public string DefaultRuntimesPath { get; set; } = "Runtimes";
+        public string DefaultPublishedRuntimesPath { get; set; } = "Runtimes\\Published";
+        public string DefaultInstalledRuntimesPath { get; set; } = "Runtimes\\Installed\\Other";
+        public string DefaultInstalledOASISRuntimesPath { get; set; } = "Runtimes\\OASIS Runtime";
+        public string DefaultInstalledSTARRuntimesPath { get; set; } = "Runtimes\\STAR Runtime";
     }
 }

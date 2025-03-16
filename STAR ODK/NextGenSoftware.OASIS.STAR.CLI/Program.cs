@@ -286,7 +286,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         if (inputArgs.Length > 1)
                                         {
                                             if (inputArgs[1].ToLower() == "wiz")
-                                                await STARCLI.LightWizardAsync();
+                                                await STARCLI.LightWizardAsync(null);
                                             else
                                             {
                                                 CLIEngine.ShowWorkingMessage("Generating OAPP...");
@@ -358,7 +358,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                             if (CLIEngine.GetConfirmation("Do you wish to start the wizard?"))
                                             {
                                                 Console.WriteLine("");
-                                                await STARCLI.LightWizardAsync();
+                                                await STARCLI.LightWizardAsync(null);
                                             }
                                             else
                                                 Console.WriteLine("");
@@ -621,7 +621,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 case "holon":
-                                    await ShowSubCommandAsync(inputArgs, "", "", null, null, STARCLI.DeleteHolonAsync, null, null, null, null, STARCLI.ShowHolonAsync, STARCLI.ListAllHolonsForForBeamedInAvatar, STARCLI.ListAllHolonsAsync, null, null, ProviderType.Default);
+                                    await ShowSubCommandAsync(inputArgs, "", "", STARCLI.CreateHolonAsync, STARCLI.UpdateHolonAsync, STARCLI.DeleteHolonAsync, null, null, null, null, STARCLI.ShowHolonAsync, STARCLI.ListAllHolonsForForBeamedInAvatar, STARCLI.ListAllHolonsAsync, null, null, ProviderType.Default);
                                     break;
 
                                 case "chapter":
@@ -777,8 +777,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static async Task ShowSubCommandAsync(string[] inputArgs, 
             string subCommand = "",
             string subCommandPlural = "",
-            Func<ProviderType, Task> createPredicate = null, 
-            Func<string, ProviderType, Task> updatePredicate = null, 
+            Func<object, ProviderType, Task> createPredicate = null, 
+            Func<string, object, ProviderType, Task> updatePredicate = null, 
             Func<string, bool, ProviderType, Task> deletePredicate = null, 
             Func<string, ProviderType, Task> installPredicate = null,
             Func<string, ProviderType, Task> uninstallPredicate = null,
@@ -788,7 +788,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<ProviderType, Task> listForBeamedInAvatarPredicate = null,
             Func<ProviderType, Task> listAllPredicate = null,
             Func<ProviderType, Task> listInstalledPredicate = null,
-            Func<ProviderType, Task> searchPredicate = null, 
+            Func<string, ProviderType, Task> searchPredicate = null, 
             ProviderType providerType = ProviderType.Default,
             bool isOAPPOrHappOrRuntime = false,
             bool ishApp = false,
@@ -827,7 +827,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             if (showCreate)
                             {
                                 if (createPredicate != null)
-                                    await createPredicate(providerType);
+                                    await createPredicate(null, providerType); //TODO: Pass in params in a object or dynamic obj.
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
@@ -841,7 +841,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             if (showUpdate)
                             {
                                 if (updatePredicate != null)
-                                    await updatePredicate(id, providerType);
+                                    await updatePredicate(id, null, providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
@@ -958,7 +958,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "search":
                         {
                             if (searchPredicate != null)
-                                await searchPredicate(providerType);
+                            {
+                                string searchTerm = "";
+
+                                if (inputArgs.Length > 2)
+                                    searchTerm = inputArgs[2];
+
+                                await searchPredicate(searchTerm, providerType);
+                            }
                             else
                                 CLIEngine.ShowMessage("Coming Soon...");
                         }
@@ -1472,7 +1479,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 switch (inputArgs[1].ToLower())
                 {
                     case "mint":
-                        await STARCLI.MintNFTAsync();
+                        await STARCLI.MintNFTAsync(null);
                         break;
 
                     case "send":
@@ -1562,7 +1569,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 switch (inputArgs[1].ToLower())
                 {
                     case "mint":
-                        await STARCLI.MintGeoNFTAsync();
+                        await STARCLI.MintGeoNFTAsync(null);
                         break;
 
                     case "send":
@@ -1649,7 +1656,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 switch (inputArgs[1].ToLower())
                 {
                     case "link":
-                        await STARCLI.MintGeoNFTAsync();
+                        await STARCLI.MintGeoNFTAsync(null); //Todo: Pass in params.
                         break;
 
                     case "list":

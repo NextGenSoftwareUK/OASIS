@@ -9,7 +9,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public static partial class STARCLI
     {
-        public static async Task CreateHolonAsync(string name = "", string desc = "", HolonType holonType = HolonType.Holon, ProviderType providerType = ProviderType.Default)
+        public static async Task CreateHolonAsync(object createParams, ProviderType providerType = ProviderType.Default)
+        //public static async Task CreateHolonAsync(string name = "", string desc = "", HolonType holonType = HolonType.Holon, ProviderType providerType = ProviderType.Default)
         {
            
         }
@@ -20,6 +21,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
 
             }
+        }
+
+        //public static async Task UpdateHolonAsync(Guid holonId, string name = "", string desc = "", HolonType holonType = HolonType.Holon, ProviderType providerType = ProviderType.Default)
+        public static async Task UpdateHolonAsync(string idOrName = "", object editParams = null, ProviderType providerType = ProviderType.Default)
+        {
+
         }
 
         public static async Task ShowHolonAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)

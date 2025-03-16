@@ -263,89 +263,28 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> LoadAllOAPPTemplatesAsync(OAPPTemplateType OAPPTemplateType = OAPPTemplateType.All, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
-            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = Data.LoadHolonsForParentByMetaData<OAPPTemplate>("OAPPTemplateType", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType));
+            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = null;
+
+            if (OAPPTemplateType == OAPPTemplateType.All)
+                loadHolonsResult = await Data.LoadAllHolonsAsync<OAPPTemplate>(HolonType.OAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
+            else
+                loadHolonsResult = await Data.LoadHolonsForParentByMetaDataAsync<OAPPTemplate>("OAPPTemplateType", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType));
+
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
-
-            /*
-            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = await LoadAllHolonsAsync<OAPPTemplate>(providerType, "OAPPTemplateManager.LoadAllOAPPTemplatesAsync", HolonType.OAPPTemplate);
-
-            if (loadHolonsResult != null && !loadHolonsResult.IsError && loadHolonsResult.Result != null)
-            {
-                if (OAPPTemplateType != OAPPTemplateType.All)
-                {
-                    List<IOAPPTemplate> filteredList = new List<IOAPPTemplate>();
-
-                    foreach (OAPPTemplate template in loadHolonsResult.Result)
-                    {
-                        if (template.OAPPTemplateDNA.OAPPTemplateType == OAPPTemplateType)
-                            filteredList.Add(template);
-                    }
-
-                    result.Result = filteredList;
-                }
-                else
-                    result.Result = loadHolonsResult.Result;
-
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-            }
-            else
-                OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPTemplateManager.LoadAllOAPPTemplatesAsync calling LoadAllHolonsAsync. Reason: {loadHolonsResult.Message}");
-            */
-            //return result;
         }
 
         public OASISResult<IEnumerable<IOAPPTemplate>> LoadAllOAPPTemplates(OAPPTemplateType OAPPTemplateType = OAPPTemplateType.All, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
-            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = Data.LoadHolonsForParentByMetaData<OAPPTemplate>("OAPPTemplateType", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType));
-            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-            result.Result = loadHolonsResult.Result;
-            return result;
+            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = null;
 
-            /*
-            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = LoadAllHolons<OAPPTemplate>(providerType, "OAPPTemplateManager.LoadAllOAPPTemplatesAsync", HolonType.OAPPTemplate);
-
-            if (loadHolonsResult != null && !loadHolonsResult.IsError && loadHolonsResult.Result != null)
-            {
-                if (OAPPTemplateType != OAPPTemplateType.All)
-                {
-                    List<IOAPPTemplate> filteredList = new List<IOAPPTemplate>();
-
-                    foreach (OAPPTemplate template in loadHolonsResult.Result)
-                    {
-                        if (template.OAPPTemplateDNA.OAPPTemplateType == OAPPTemplateType)
-                            filteredList.Add(template);
-                    }
-
-                    result.Result = filteredList;
-                }
-                else
-                    result.Result = loadHolonsResult.Result;
-
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-            }
+            if (OAPPTemplateType == OAPPTemplateType.All)
+                loadHolonsResult = Data.LoadAllHolons<OAPPTemplate>(HolonType.OAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
             else
-                OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPTemplateManager.LoadAllOAPPTemplates calling LoadAllHolons. Reason: {loadHolonsResult.Message}");
-            */
+                loadHolonsResult = Data.LoadHolonsForParentByMetaData<OAPPTemplate>("OAPPTemplateType", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType));
 
-            //return result;
-        }
-
-        public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> SearchOAPPTemplatesAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
-            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = await SearchHolonsAsync<OAPPTemplate>(searchTerm, providerType, "OAPPTemplateManager.SearchOAPPTemplatesAsync", HolonType.OAPPTemplate);
-            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-            result.Result = loadHolonsResult.Result;
-            return result;
-        }
-
-        public OASISResult<IEnumerable<IOAPPTemplate>> SearchOAPPTemplates(string searchTerm, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
-            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = SearchHolons<OAPPTemplate>(searchTerm, providerType, "OAPPTemplateManager.SearchOAPPTemplates", HolonType.OAPPTemplate);
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
@@ -369,7 +308,23 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> SearchOAPPTemplatesAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
+            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = await SearchHolonsAsync<OAPPTemplate>(searchTerm, providerType, "OAPPTemplateManager.SearchOAPPTemplatesAsync", HolonType.OAPPTemplate);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
 
+        public OASISResult<IEnumerable<IOAPPTemplate>> SearchOAPPTemplates(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
+            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = SearchHolons<OAPPTemplate>(searchTerm, providerType, "OAPPTemplateManager.SearchOAPPTemplates", HolonType.OAPPTemplate);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
         public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(Guid oappTemplateId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
