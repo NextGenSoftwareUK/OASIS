@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public static partial class STARCLI
     {
-        public static async Task CreateRuntimeAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task CreateRuntimeAsync(object createParams, ProviderType providerType = ProviderType.Default)
         {
             RuntimeType runtimeType = RuntimeType.STAR;
             bool runtimeValid = false;
@@ -111,7 +111,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"Unknown Error Occured.");
         }
 
-        public static async Task EditRuntimeAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public static async Task EditRuntimeAsync(string idOrName = "", object editParams = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IRuntime> loadResult = await LoadRuntimeAsync(idOrName, "edit", providerType);
 

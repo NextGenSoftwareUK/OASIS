@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         private static Moon _jlaMoon;
         private static string _privateKey = "";
 
-        public static async Task LightWizardAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task LightWizardAsync(object createParams, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<CoronalEjection> lightResult = null;
             object enumValue = null;
@@ -687,7 +687,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
         //TODO: Make all methods use idOrName instead of just id...
-        public static async Task EditOAPPAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public static async Task EditOAPPAsync(string idOrName = "", object editParams = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> loadResult = await LoadOAPPAsync(idOrName, "edit", providerType);
 

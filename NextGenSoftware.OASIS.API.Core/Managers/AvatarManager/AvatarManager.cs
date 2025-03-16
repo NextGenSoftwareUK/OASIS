@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -861,9 +862,28 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return LevelManager.LevelLookup;
         }
 
-        public static async Task SearchAvatarsAsync<(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IAvatar>>> SearchAvatarsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
         {
+            OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
             OASISResult<IEnumerable<IHolon>> searchResults = await HolonManager.Instance.SearchHolonsAsync(searchTerm, HolonType.Avatar, true, true, 0, true, false, HolonType.All, 0, providerType);
+
+            //result = OASISResultHelper.CopyResult<IEnumerable<IAvatar>, IEnumerable<IHolon>>(searchResults, result);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(searchResults, result);
+            //result.Result = Mapper.Convert<IHolon, IAvatar>(searchResults.Result);
+            result.Result = Mapper.ConvertIHolonsToIAvatars(searchResults.Result);
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IAvatar>> SearchAvatars(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
+            OASISResult<IEnumerable<IHolon>> searchResults = HolonManager.Instance.SearchHolons(searchTerm, HolonType.Avatar, true, true, 0, true, false, HolonType.All, 0, providerType);
+
+            //result = OASISResultHelper.CopyResult<IEnumerable<IAvatar>, IEnumerable<IHolon>>(searchResults, result);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(searchResults, result);
+            //result.Result = Mapper.Convert<IHolon, IAvatar>(searchResults.Result);
+            result.Result = Mapper.ConvertIHolonsToIAvatars(searchResults.Result);
+            return result;
         }
 
         /*

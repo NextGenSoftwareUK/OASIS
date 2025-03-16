@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public static partial class STARCLI
     {
-        public static async Task<OASISResult<IInventoryItem>> CreateInventoryItemAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IInventoryItem>> CreateInventoryItemAsync(object createParams = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInventoryItem> result = new OASISResult<IInventoryItem>();
             byte[] object3D = null;

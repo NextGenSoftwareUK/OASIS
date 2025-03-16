@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public static partial class STARCLI
     {
-        public static async Task<OASISResult<IQuest>> CreateQuestAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IQuest>> CreateQuestAsync(object createParams = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> questResult = new OASISResult<IQuest>();
             Guid missionId = Guid.Empty;

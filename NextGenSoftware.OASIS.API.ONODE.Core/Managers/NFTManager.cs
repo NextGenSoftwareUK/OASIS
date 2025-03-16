@@ -1045,7 +1045,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         {
             string errorMessage = "Error occured in SearchNFTsAsync in NFTManager. Reason:";
             OASISResult<IEnumerable<IOASISNFT>> result = new OASISResult<IEnumerable<IOASISNFT>>();
-            result = DecodeNFTMetaData(await Data.SearchHolonsAsync(searchTerm, HolonType.NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage));
+            result = DecodeNFTMetaData(await Data.SearchHolonsAsync(searchTerm, HolonType.NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
             return result;
         }
 
@@ -1053,7 +1053,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         {
             OASISResult<IEnumerable<IOASISNFT>> result = new OASISResult<IEnumerable<IOASISNFT>>();
             string errorMessage = "Error occured in SearchNFTs in NFTManager. Reason:";
-            result = DecodeNFTMetaData(Data.SearchHolons(searchTerm, HolonType.NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage));
+            result = DecodeNFTMetaData(Data.SearchHolons(searchTerm, HolonType.NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
             return result;
         }
 
@@ -1061,14 +1061,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         {
             OASISResult<IEnumerable<IOASISGeoSpatialNFT>> result = new OASISResult<IEnumerable<IOASISGeoSpatialNFT>>();
             string errorMessage = "Error occured in SearchGeoNFTsAsync in NFTManager. Reason:";
-            result = DecodeGeoNFTMetaData(await Data.SearchHolonsAsync(searchTerm, HolonType.GEONFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage));
+            result = DecodeGeoNFTMetaData(await Data.SearchHolonsAsync(searchTerm, HolonType.GEONFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
             return result;
         }
         public async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> SearchGeoNFTs(string searchTerm, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOASISGeoSpatialNFT>> result = new OASISResult<IEnumerable<IOASISGeoSpatialNFT>>();
             string errorMessage = "Error occured in SearchGeoNFT in NFTManager. Reason:";
-            result = DecodeGeoNFTMetaData(Data.SearchHolons(searchTerm, HolonType.GEONFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage));
+            result = DecodeGeoNFTMetaData(Data.SearchHolons(searchTerm, HolonType.GEONFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
             return result;
         }
 

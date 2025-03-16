@@ -440,6 +440,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             ListAvatars(await STAR.OASISAPI.Avatar.SearchAvatarsAsync(searchTerm, providerType));
         }
 
+        public static void SearchAvatars(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            ListAvatars(STAR.OASISAPI.Avatar.SearchAvatars(searchTerm, providerType));
+        }
+
         private static void ListAvatars(OASISResult<IEnumerable<IAvatar>> avatarsResult)
         {
             if (avatarsResult != null)
