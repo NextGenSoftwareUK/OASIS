@@ -47,11 +47,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 string oappTemplatePath = "";
 
                 if (!string.IsNullOrEmpty(STAR.STARDNA.BasePath))
-                    oappTemplatePath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPTemplatesPath);
+                    oappTemplatePath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPTemplatesSourcePath);
                 else
-                    oappTemplatePath = STAR.STARDNA.DefaultOAPPTemplatesPath;
+                    oappTemplatePath = STAR.STARDNA.DefaultOAPPTemplatesSourcePath;
 
-                if (!CLIEngine.GetConfirmation($"Do you wish to create the OAPP Template in the default path defined in the STARDNA as 'DefaultOAPPTemplatesPath'? The current path points to: {oappTemplatePath}"))
+                if (!CLIEngine.GetConfirmation($"Do you wish to create the OAPP Template in the default path defined in the STARDNA as 'DefaultOAPPTemplatesSourcePath'? The current path points to: {oappTemplatePath}"))
                     oappTemplatePath = CLIEngine.GetValidFolder("Where do you wish to create the OAPP Template?");
 
                 oappTemplatePath = Path.Combine(oappTemplatePath, OAPPTemplateName);
@@ -225,8 +225,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (CLIEngine.GetConfirmation("Do you wish to upload to the cloud?"))
                         uploadOAPPToCloud = true;
 
+                    Console.WriteLine("");
                     if (CLIEngine.GetConfirmation("Do you wish to upload to an OASIS Provider? Make sure you select a provider that can handle large files such as IPFSOASIS, HoloOASIS etc. Also remember the OASIS Hyperdrive will only be able to auto-replicate to other providers that also support large files and are free or cost effective. By default it will NOT auto-replicate large files, you will need to manually configure this in your OASIS Profile settings."))
                     {
+                        Console.WriteLine("");
                         object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to publish the OAPP to? (The default is IPFSOASIS)", typeof(ProviderType));
 
                         if (largeProviderTypeObject != null)
@@ -234,13 +236,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
 
-                if (Path.IsPathRooted(STAR.STARDNA.DefaultPublishedOAPPTemplatesPath))
-                    publishPath = STAR.STARDNA.DefaultPublishedOAPPTemplatesPath;
+                if (Path.IsPathRooted(STAR.STARDNA.DefaultOAPPTemplatesPublishedPath))
+                    publishPath = STAR.STARDNA.DefaultOAPPTemplatesPublishedPath;
                 else
-                    publishPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultPublishedOAPPTemplatesPath);
+                    publishPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPTemplatesPublishedPath);
 
                 //Console.WriteLine("");
-                if (!CLIEngine.GetConfirmation($"Do you wish to publish the OAPP Template to the default publish folder defined in the STARDNA as DefaultPublishedOAPPTemplatesPath : {publishPath}?"))
+                if (!CLIEngine.GetConfirmation($"Do you wish to publish the OAPP Template to the default publish folder defined in the STARDNA as DefaultOAPPTemplatesPublishedPath : {publishPath}?"))
                 {
                     if (CLIEngine.GetConfirmation($"Do you wish to publish the OAPP Template to: {Path.Combine(oappTemplatePath, "Published")}?"))
                         publishPath = Path.Combine(oappTemplatePath, "Published");
@@ -259,7 +261,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
                 {
-                    CLIEngine.ShowSuccessMessage("OAPP Template Successfully Published.");
+                    //CLIEngine.ShowSuccessMessage("OAPP Template Successfully Published.");
                     ShowOAPPTemplate(publishResult.Result);
 
                     if (CLIEngine.GetConfirmation("Do you wish to install the OAPP Template now?"))
@@ -296,14 +298,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IInstalledOAPPTemplate> installResult = new OASISResult<IInstalledOAPPTemplate>();
             string installPath = "";
 
-            if (Path.IsPathRooted(STAR.STARDNA.DefaultInstalledOAPPTemplatesPath))
-                installPath = STAR.STARDNA.DefaultInstalledOAPPTemplatesPath;
+            if (Path.IsPathRooted(STAR.STARDNA.DefaultOAPPTemplatesInstalledPath))
+                installPath = STAR.STARDNA.DefaultOAPPTemplatesInstalledPath;
             else
-                installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultInstalledOAPPTemplatesPath);
+                installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPTemplatesInstalledPath);
 
             Console.WriteLine("");
 
-            if (!CLIEngine.GetConfirmation($"Do you wish to install the OAPP Template to the default install folder defined in the STARDNA as DefaultInstalledOAPPTemplatesPath : {installPath}?"))
+            if (!CLIEngine.GetConfirmation($"Do you wish to install the OAPP Template to the default install folder defined in the STARDNA as DefaultOAPPTemplatesInstalledPath : {installPath}?"))
                 installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the OAPP Template?", true);
 
             if (!string.IsNullOrEmpty(idOrName))
@@ -366,12 +368,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IInstalledOAPPTemplate> installResult = new OASISResult<IInstalledOAPPTemplate>();
             string installPath = "";
 
-            if (Path.IsPathRooted(STAR.STARDNA.DefaultInstalledOAPPsPath))
-                installPath = STAR.STARDNA.DefaultInstalledOAPPsPath;
+            if (Path.IsPathRooted(STAR.STARDNA.DefaultOAPPsInstalledPath))
+                installPath = STAR.STARDNA.DefaultOAPPsInstalledPath;
             else
-                installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultInstalledOAPPsPath);
+                installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPsInstalledPath);
 
-            if (!CLIEngine.GetConfirmation($"Do you wish to install the OAPP Template to the default install folder defined in the STARDNA as DefaultInstalledOAPPTemplatesPath : {installPath}?"))
+            if (!CLIEngine.GetConfirmation($"Do you wish to install the OAPP Template to the default install folder defined in the STARDNA as DefaultOAPPTemplatesInstalledPath : {installPath}?"))
                 installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the OAPP Template?", true);
 
             if (!string.IsNullOrEmpty(idOrName))
@@ -498,6 +500,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                         ", Enum.GetName(typeof(OAPPTemplateType), oappTemplateDNA.OAPPTemplateType)));
             CLIEngine.ShowMessage(string.Concat($"Created On:                                 ", oappTemplateDNA.CreatedOn != DateTime.MinValue ? oappTemplateDNA.CreatedOn.ToString() : "None"));
             CLIEngine.ShowMessage(string.Concat($"Created By:                                 ", oappTemplateDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(oappTemplateDNA.CreatedByAvatarUsername, " (", oappTemplateDNA.CreatedByAvatarId.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Path:                         ", !string.IsNullOrEmpty(oappTemplateDNA.OAPPTemplatePath) ? oappTemplateDNA.OAPPTemplatePath : "None"));
             CLIEngine.ShowMessage(string.Concat($"Published On:                               ", oappTemplateDNA.PublishedOn != DateTime.MinValue ? oappTemplateDNA.PublishedOn.ToString() : "None"));
             CLIEngine.ShowMessage(string.Concat($"Published By:                               ", oappTemplateDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(oappTemplateDNA.PublishedByAvatarUsername, " (", oappTemplateDNA.PublishedByAvatarId.ToString(), ")") : "None"));
             CLIEngine.ShowMessage(string.Concat($"OAPP Template Published Path:               ", !string.IsNullOrEmpty(oappTemplateDNA.OAPPTemplatePublishedPath) ? oappTemplateDNA.OAPPTemplatePublishedPath : "None"));

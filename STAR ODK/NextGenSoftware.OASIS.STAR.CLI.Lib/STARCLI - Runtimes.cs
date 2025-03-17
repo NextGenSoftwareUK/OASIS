@@ -78,11 +78,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 return; 
 
             if (!string.IsNullOrEmpty(STAR.STARDNA.BasePath))
-                runtimePath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultRuntimesPath);
+                runtimePath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultRuntimesSourcePath);
             else
-                runtimePath = STAR.STARDNA.DefaultRuntimesPath;
+                runtimePath = STAR.STARDNA.DefaultRuntimesSourcePath;
 
-            if (!CLIEngine.GetConfirmation($"Do you wish to create the Runtime in the default path defined in the STARDNA as 'DefaultRuntimesPath'? The current path points to: {runtimePath}"))
+            if (!CLIEngine.GetConfirmation($"Do you wish to create the Runtime in the default path defined in the STARDNA as 'DefaultRuntimesSourcePath'? The current path points to: {runtimePath}"))
                 runtimePath = CLIEngine.GetValidFolder("Where do you wish to create the Runtime?");
 
             runtimePath = Path.Combine(runtimePath, runtimeName);
@@ -201,12 +201,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
 
-                if (Path.IsPathRooted(STAR.STARDNA.DefaultPublishedRuntimesPath))
-                    publishPath = STAR.STARDNA.DefaultPublishedRuntimesPath;
+                if (Path.IsPathRooted(STAR.STARDNA.DefaultRuntimesPublishedPath))
+                    publishPath = STAR.STARDNA.DefaultRuntimesPublishedPath;
                 else
-                    publishPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultPublishedRuntimesPath);
+                    publishPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultRuntimesPublishedPath);
 
-                if (!CLIEngine.GetConfirmation($"Do you wish to publish the Runtime to the default publish folder defined in the STARDNA as DefaultPublishedRuntimesPath : {publishPath}?"))
+                if (!CLIEngine.GetConfirmation($"Do you wish to publish the Runtime to the default publish folder defined in the STARDNA as DefaultRuntimesPublishedPath : {publishPath}?"))
                 {
                     if (CLIEngine.GetConfirmation($"Do you wish to publish the Runtime to: {Path.Combine(RuntimePath, "Published")}?"))
                         publishPath = Path.Combine(RuntimePath, "Published");
@@ -263,14 +263,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IInstalledRuntime> installResult = new OASISResult<IInstalledRuntime>();
             string installPath = "";
 
-            if (Path.IsPathRooted(STAR.STARDNA.DefaultInstalledRuntimesPath))
-                installPath = STAR.STARDNA.DefaultInstalledRuntimesPath;
+            if (Path.IsPathRooted(STAR.STARDNA.DefaultRuntimesInstalledPath))
+                installPath = STAR.STARDNA.DefaultRuntimesInstalledPath;
             else
-                installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultInstalledRuntimesPath);
+                installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultRuntimesInstalledPath);
 
             Console.WriteLine("");
 
-            if (!CLIEngine.GetConfirmation($"Do you wish to install the Runtime to the default install folder defined in the STARDNA as DefaultInstalledRuntimesPath : {installPath}?"))
+            if (!CLIEngine.GetConfirmation($"Do you wish to install the Runtime to the default install folder defined in the STARDNA as DefaultRuntimesInstalledPath : {installPath}?"))
                 installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the Runtime?", true);
 
             if (!string.IsNullOrEmpty(idOrName))
@@ -333,12 +333,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IInstalledRuntime> installResult = new OASISResult<IInstalledRuntime>();
             string installPath = "";
 
-            if (Path.IsPathRooted(STAR.STARDNA.DefaultInstalledOAPPsPath))
-                installPath = STAR.STARDNA.DefaultInstalledOAPPsPath;
+            if (Path.IsPathRooted(STAR.STARDNA.DefaultRuntimesInstalledPath))
+                installPath = STAR.STARDNA.DefaultRuntimesInstalledPath;
             else
-                installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultInstalledOAPPsPath);
+                installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultRuntimesInstalledPath);
 
-            if (!CLIEngine.GetConfirmation($"Do you wish to install the Runtime to the default install folder defined in the STARDNA as DefaultInstalledRuntimesPath : {installPath}?"))
+            if (!CLIEngine.GetConfirmation($"Do you wish to install the Runtime to the default install folder defined in the STARDNA as DefaultRuntimesInstalledPath : {installPath}?"))
                 installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the Runtime?", true);
 
             if (!string.IsNullOrEmpty(idOrName))
