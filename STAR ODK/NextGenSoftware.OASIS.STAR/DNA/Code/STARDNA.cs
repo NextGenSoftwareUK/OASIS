@@ -9,17 +9,23 @@ namespace NextGenSoftware.OASIS.STAR.DNA
 
         //TODO: If BasePath is blank then all other paths below are absolute otherwise they are relative.
         //public string BasePath { get; set; } = @"C:\Users\\USER\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK";
-        public string BasePath { get; set; } = @"C:\OASIS\STAR ODK";
+        public string BasePath { get; set; } = @"C:\OASIS\STAR ODK\Release";
         //public string OASISRunTimePath { get; set; } = @"Runtimes\OASIS Runtime\OASIS Runtime (With Holochain Conductors Embedded) v3.3.1";
         //public string STARRunTimePath { get; set; } = @"Runtimes\STAR Runtime\STAR ODK Runtime v2.2.0 (With OASIS Runtime v3.3.1 HC Conductor Embedded)";
         //public string OASISBaseRuntimesPath { get; set; } = "Runtimes\\OASIS Runtimes";
         //public string STARBaseRuntimesPath { get; set; } = "Runtimes\\STAR Runtimes";
         //public string OAPPDNATemplatePath { get; set; } = @"STAR OAPP DNA Templates";
-        public string RustDNARSMTemplateFolder { get; set; } = @"NextGenSoftware.OASIS.STAR\DNATemplates\RustDNATemplates\RSM";
-        public string CSharpDNATemplateFolder { get; set; } = @"NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates";
-        public string CelestialBodyDNA { get; set; } = @"NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
-        public string GenesisFolder { get; set; } = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net8.0\Genesis";
-        public string GenesisNamespace { get; set; } = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
+        //public string RustDNARSMTemplateFolder { get; set; } = @"NextGenSoftware.OASIS.STAR\DNATemplates\RustDNATemplates\RSM";
+        //public string CSharpDNATemplateFolder { get; set; } = @"NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates";
+
+        public string RustDNARSMTemplateFolder { get; set; } = @"DNATemplates\RustDNATemplates\RSM";
+        public string CSharpDNATemplateFolder { get; set; } = @"DNATemplates\CSharpDNATemplates";
+
+        //public string CelestialBodyDNA { get; set; } = @"NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
+        public string CelestialBodyDNA { get; set; } = "CelestialBodyDNA";
+        //public string GenesisFolder { get; set; } = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net8.0\Genesis";
+        //public string GenesisNamespace { get; set; } = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
+        public string GenesisNamespace { get; set; } = "NextGenSoftware.OASIS.STAR.Genesis";
         public string TemplateNamespace { get; set; } = "NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates";
         public string RustTemplateLib { get; set; } = @"core\lib.rs";
         public string RustTemplateHolon { get; set; } = @"core\holon.rs";
@@ -64,16 +70,16 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultSuperStarId { get; set; }
         public string DefaultStarId { get; set; }
         public string DefaultPlanetId { get; set; }
-        public string DefaultOAPPsPath { get; set; } = "OAPPs";
-        public string DefaultPublishedOAPPsPath { get; set; } = "OAPPs\\Published";
-        public string DefaultInstalledOAPPsPath { get; set; } = "OAPPs\\Installed";
-        public string DefaultOAPPTemplatesPath { get; set; } = "OAPPTemplates";
-        public string DefaultPublishedOAPPTemplatesPath { get; set; } = "OAPPTemplates\\Published";
-        public string DefaultInstalledOAPPTemplatesPath { get; set; } = "OAPPTemplates\\Installed";
-        public string DefaultRuntimesPath { get; set; } = "Runtimes";
-        public string DefaultPublishedRuntimesPath { get; set; } = "Runtimes\\Published";
-        public string DefaultInstalledRuntimesPath { get; set; } = "Runtimes\\Installed\\Other";
-        public string DefaultInstalledOASISRuntimesPath { get; set; } = "Runtimes\\OASIS Runtime";
-        public string DefaultInstalledSTARRuntimesPath { get; set; } = "Runtimes\\STAR Runtime";
+        public string DefaultOAPPsSourcePath { get; set; } = "OAPPs\\Source"; //Use to be the Genesis folder above. Not sure what sounds better? Source or Genesis?
+        public string DefaultOAPPsPublishedPath { get; set; } = "OAPPs\\Published";
+        public string DefaultOAPPsInstalledPath { get; set; } = "OAPPs\\Installed";
+        public string DefaultOAPPTemplatesSourcePath { get; set; } = "OAPPTemplates\\Source";
+        public string DefaultOAPPTemplatesPublishedPath { get; set; } = "OAPPTemplates\\Published";
+        public string DefaultOAPPTemplatesInstalledPath { get; set; } = "OAPPTemplates\\Installed";
+        public string DefaultRuntimesSourcePath { get; set; } = "Runtimes\\Source";
+        public string DefaultRuntimesPublishedPath { get; set; } = "Runtimes\\Published";
+        public string DefaultRuntimesInstalledPath { get; set; } = "Runtimes\\Installed\\Other";
+        public string DefaultRuntimesInstalledOASISPath { get; set; } = "Runtimes\\OASIS";
+        public string DefaultRuntimesInstalledSTARPath { get; set; } = "Runtimes\\STAR";
     }
 }

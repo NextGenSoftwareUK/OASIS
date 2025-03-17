@@ -27,9 +27,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 {
     class Program
     {
-        private const string DEFAULT_DNA_FOLDER = "C:\\Users\\user\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
-        private const string DEFAULT_GENESIS_NAMESPACE = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
-        private const string DEFAULT_GENESIS_FOLDER = "C:\\Users\\user\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net8.0\\Genesis";
+        //All params defined in STARDNA now.
+        //private const string DEFAULT_DNA_FOLDER = "C:\\Users\\user\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
+        //private const string DEFAULT_GENESIS_NAMESPACE = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
+        //private const string DEFAULT_GENESIS_FOLDER = "C:\\Users\\user\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net8.0\\Genesis";
         private const OAPPType DEFAULT_OAPP_TYPE = OAPPType.OAPPTemplate;
         private const OAPPTemplateType DEFAULT_OAPP_TEMPLATE_TYPE = OAPPTemplateType.Console;
 
@@ -804,8 +805,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
             if ((inputArgs.Length > 1 && inputArgs[1] != "template") || (inputArgs.Length > 2 && inputArgs[1] == "template"))
             { 
-                if (inputArgs.Length > 2)
+                if (inputArgs[1] != "template" && inputArgs.Length > 2)
                     id = inputArgs[2];
+
+                if (inputArgs[1] == "template" && inputArgs.Length > 3)
+                    id = inputArgs[3];
 
                 //Guid id = Guid.Empty;
 

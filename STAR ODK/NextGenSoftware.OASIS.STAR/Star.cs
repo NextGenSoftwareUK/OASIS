@@ -639,7 +639,8 @@ namespace NextGenSoftware.OASIS.STAR
                 celestialBodyDNAFolder = STARDNA.CelestialBodyDNA;
 
             if (string.IsNullOrEmpty(genesisFolder))
-                genesisFolder = STARDNA.GenesisFolder;
+                genesisFolder = STARDNA.DefaultOAPPsSourcePath;
+                //genesisFolder = STARDNA.GenesisFolder;
 
             if (string.IsNullOrEmpty(genesisNameSpace))
                 genesisNameSpace = STARDNA.GenesisNamespace;
@@ -700,7 +701,8 @@ namespace NextGenSoftware.OASIS.STAR
                 celestialBodyDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.CelestialBodyDNA}";
 
             if (string.IsNullOrEmpty(genesisFolder))
-                genesisFolder = $"{STARDNA.BasePath}\\{STARDNA.GenesisFolder}";
+                genesisFolder = $"{STARDNA.BasePath}\\{STARDNA.DefaultOAPPsSourcePath}";
+                //genesisFolder = $"{STARDNA.BasePath}\\{STARDNA.GenesisFolder}";
 
             if (string.IsNullOrEmpty(genesisNameSpace))
                 genesisNameSpace = $"{STARDNA.BasePath}\\{STARDNA.GenesisNamespace}";
@@ -1538,7 +1540,7 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 ValidateFolder("", starDNA.BasePath, "STARDNA.BasePath");
                 ValidateFolder(starDNA.BasePath, starDNA.CelestialBodyDNA, "STARDNA.CelestialBodyDNA", true);
-                ValidateFolder(starDNA.BasePath, starDNA.GenesisFolder, "STARDNA.GenesisFolder", false, true);
+                //ValidateFolder(starDNA.BasePath, starDNA.GenesisFolder, "STARDNA.GenesisFolder", false, true);
                 //ValidateFolder(starDNA.BasePath, starDNA.GenesisRustFolder, "STARDNA.GenesisRustFolder", false, true);
                 ValidateFolder(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, "STARDNA.CSharpDNATemplateFolder");
                 ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateHolonDNA, "STARDNA.CSharpTemplateHolonDNA");
@@ -1579,54 +1581,54 @@ namespace NextGenSoftware.OASIS.STAR
                 ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateBool, "STARDNA.RustTemplateBool");
                 ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateHolon, "STARDNA.RustTemplateHolon");
 
-                if (string.IsNullOrEmpty(starDNA.DefaultOAPPsPath))
-                    starDNA.DefaultOAPPsPath = "OAPPs";
+                if (string.IsNullOrEmpty(starDNA.DefaultOAPPsSourcePath))
+                    starDNA.DefaultOAPPsSourcePath = "OAPPs\\Source";
 
-                if (string.IsNullOrEmpty(starDNA.DefaultPublishedOAPPsPath))
-                    starDNA.DefaultPublishedOAPPsPath = "OAPPs\\Published";
+                if (string.IsNullOrEmpty(starDNA.DefaultOAPPsPublishedPath))
+                    starDNA.DefaultOAPPsPublishedPath = "OAPPs\\Published";
 
-                if (string.IsNullOrEmpty(starDNA.DefaultInstalledOAPPsPath))
-                    starDNA.DefaultInstalledOAPPsPath = "OAPPs\\Installed";
-
-
-                if (string.IsNullOrEmpty(starDNA.DefaultOAPPTemplatesPath))
-                    starDNA.DefaultOAPPTemplatesPath = "OAPPTemplates";
-
-                if (string.IsNullOrEmpty(starDNA.DefaultPublishedOAPPTemplatesPath))
-                    starDNA.DefaultPublishedOAPPTemplatesPath = "OAPPTemplates\\Published";
-
-                if (string.IsNullOrEmpty(starDNA.DefaultInstalledOAPPTemplatesPath))
-                    starDNA.DefaultInstalledOAPPTemplatesPath = "OAPPTemplates\\Installed";
+                if (string.IsNullOrEmpty(starDNA.DefaultOAPPsInstalledPath))
+                    starDNA.DefaultOAPPsInstalledPath = "OAPPs\\Installed";
 
 
-                if (string.IsNullOrEmpty(starDNA.DefaultRuntimesPath))
-                    starDNA.DefaultRuntimesPath = "Runtimes";
+                if (string.IsNullOrEmpty(starDNA.DefaultOAPPTemplatesSourcePath))
+                    starDNA.DefaultOAPPTemplatesSourcePath = "OAPPTemplates\\Source";
 
-                if (string.IsNullOrEmpty(starDNA.DefaultPublishedRuntimesPath))
-                    starDNA.DefaultPublishedRuntimesPath = "Runtimes\\Published";
+                if (string.IsNullOrEmpty(starDNA.DefaultOAPPTemplatesPublishedPath))
+                    starDNA.DefaultOAPPTemplatesPublishedPath = "OAPPTemplates\\Published";
 
-                if (string.IsNullOrEmpty(starDNA.DefaultInstalledRuntimesPath))
-                    starDNA.DefaultInstalledRuntimesPath = "Runtimes\\Installed\\Other";
+                if (string.IsNullOrEmpty(starDNA.DefaultOAPPTemplatesInstalledPath))
+                    starDNA.DefaultOAPPTemplatesInstalledPath = "OAPPTemplates\\Installed";
 
-                if (string.IsNullOrEmpty(starDNA.DefaultInstalledOASISRuntimesPath))
-                    starDNA.DefaultInstalledOASISRuntimesPath = "Runtimes\\Installed\\OASIS Runtime";
 
-                if (string.IsNullOrEmpty(starDNA.DefaultInstalledSTARRuntimesPath))
-                    starDNA.DefaultInstalledSTARRuntimesPath = "Runtimes\\Installed\\STAR Runtime";
+                if (string.IsNullOrEmpty(starDNA.DefaultRuntimesSourcePath))
+                    starDNA.DefaultRuntimesSourcePath = "Runtimes\\Source";
+
+                if (string.IsNullOrEmpty(starDNA.DefaultRuntimesPublishedPath))
+                    starDNA.DefaultRuntimesPublishedPath = "Runtimes\\Published";
+
+                if (string.IsNullOrEmpty(starDNA.DefaultRuntimesInstalledPath))
+                    starDNA.DefaultRuntimesInstalledPath = "Runtimes\\Installed\\Other";
+
+                if (string.IsNullOrEmpty(starDNA.DefaultRuntimesInstalledOASISPath))
+                    starDNA.DefaultRuntimesInstalledOASISPath = "Runtimes\\Installed\\OASIS";
+
+                if (string.IsNullOrEmpty(starDNA.DefaultRuntimesInstalledSTARPath))
+                    starDNA.DefaultRuntimesInstalledSTARPath = "Runtimes\\Installed\\STAR";
 
                 SaveDNA();
 
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPsPath, "STARDNA.DefaultOAPPsPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultPublishedOAPPsPath, "STARDNA.DefaultPublishedOAPPsPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultInstalledOAPPsPath, "STARDNA.DefaultInstalledOAPPsPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPTemplatesPath, "STARDNA.DefaultOAPPTemplatesPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultPublishedOAPPTemplatesPath, "STARDNA.DefaultPublishedOAPPTemplatesPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultInstalledOAPPTemplatesPath, "STARDNA.DefaultInstalledOAPPTemplatesPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultRuntimesPath, "STARDNA.DefaultRuntimesPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultPublishedRuntimesPath, "STARDNA.DefaultPublishedRuntimesPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultInstalledRuntimesPath, "STARDNA.DefaultInstalledRuntimesPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultInstalledOASISRuntimesPath, "STARDNA.DefaultInstalledOASISRuntimesPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultInstalledSTARRuntimesPath, "STARDNA.DefaultInstalledSTARRuntimesPath", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPsSourcePath, "STARDNA.DefaultOAPPsSourcePath", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPsPublishedPath, "STARDNA.DefaultOAPPsPublishedPath", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPsInstalledPath, "STARDNA.DefaultOAPPsInstalledPath", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPTemplatesSourcePath, "STARDNA.DefaultOAPPTemplatesSourcePath", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPTemplatesPublishedPath, "STARDNA.DefaultOAPPTemplatesPublishedPath", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPTemplatesInstalledPath, "STARDNA.DefaultOAPPTemplatesInstalledPath", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.DefaultRuntimesSourcePath, "STARDNA.DefaultRuntimesSourcePath", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.DefaultRuntimesPublishedPath, "STARDNA.DefaultRuntimesPublishedPath", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.DefaultRuntimesInstalledPath, "STARDNA.DefaultRuntimesInstalledPath", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.DefaultRuntimesInstalledOASISPath, "STARDNA.DefaultRuntimesInstalledOASISPath", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.DefaultRuntimesInstalledSTARPath, "STARDNA.DefaultRuntimesInstalledSTARPath", false, true);
             }
             else
                 throw new ArgumentNullException("STARDNA is null, please check and try again.");
@@ -2619,13 +2621,13 @@ namespace NextGenSoftware.OASIS.STAR
                     return result;
                 }
 
-                string OASISRunTimePath = STARDNA.DefaultInstalledOASISRuntimesPath;
-                string STARRunTimePath = STARDNA.DefaultInstalledSTARRuntimesPath;
+                string OASISRunTimePath = STARDNA.DefaultRuntimesInstalledOASISPath;
+                string STARRunTimePath = STARDNA.DefaultRuntimesInstalledSTARPath;
 
                 if (!string.IsNullOrEmpty(STARDNA.BasePath))
                 {
-                    OASISRunTimePath = Path.Combine(STARDNA.BasePath, STARDNA.DefaultInstalledOASISRuntimesPath);
-                    STARRunTimePath = Path.Combine(STARDNA.BasePath, STARDNA.DefaultInstalledSTARRuntimesPath);
+                    OASISRunTimePath = Path.Combine(STARDNA.BasePath, STARDNA.DefaultRuntimesInstalledOASISPath);
+                    STARRunTimePath = Path.Combine(STARDNA.BasePath, STARDNA.DefaultRuntimesInstalledSTARPath);
                 }
 
                 //Copy the correct runtimes to the OAPP folder.
@@ -2637,7 +2639,7 @@ namespace NextGenSoftware.OASIS.STAR
                     
                     if (CLIEngine.GetConfirmation("Do you wish to download & install now?"))
                     {
-                        OASISResult<IInstalledRuntime> installResult = await OASISAPI.Runtimes.InstallRuntimeAsync(BeamedInAvatar.Id, API.Core.RuntimeType.OASIS, installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion, STARDNA.DefaultInstalledOASISRuntimesPath, providerType);
+                        OASISResult<IInstalledRuntime> installResult = await OASISAPI.Runtimes.InstallRuntimeAsync(BeamedInAvatar.Id, API.Core.RuntimeType.OASIS, installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion, STARDNA.DefaultRuntimesInstalledOASISPath, providerType);
 
                         if (installResult != null && installResult.Result != null && !installResult.IsError)
                             DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);

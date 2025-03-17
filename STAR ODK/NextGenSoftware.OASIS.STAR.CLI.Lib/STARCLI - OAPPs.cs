@@ -305,8 +305,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (Directory.Exists(dnaFolder) && Directory.GetFiles(dnaFolder).Length > 0)
                 {
-                    string genesisFolder = CLIEngine.GetValidFolder("What is the path to the GenesisFolder (where the OAPP will be generated)?");
-                    if (genesisFolder == "exit") return;
+                    string oappPath = "";
+
+                    if (!string.IsNullOrEmpty(STAR.STARDNA.BasePath))
+                        oappPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPsSourcePath);
+                    else
+                        oappPath = STAR.STARDNA.DefaultOAPPsSourcePath;
+
+                    if (!CLIEngine.GetConfirmation($"Do you wish to create the OAPP in the default path defined in the STARDNA as 'DefaultOAPPsSourcePath'? The current path points to: {oappPath}"))
+                        oappPath = CLIEngine.GetValidFolder("Where do you wish to create the OAPP?");
+
+                    if (oappPath == "exit") return;
+
+                    //oappPath = Path.Combine(oappPath, OAPPTemplateName);
+
+                    //string genesisFolder = CLIEngine.GetValidFolder("What is the path to the GenesisFolder (where the OAPP will be generated)?");
+                    
 
                     string genesisNamespace = OAPPName;
 
@@ -332,7 +346,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             if (parentId == Guid.Empty) return;
 
                             CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, dnaFolder, genesisFolder, genesisNamespace, parentId, providerType);
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, dnaFolder, oappPath, genesisNamespace, parentId, providerType);
                         }
                         else
                         {
@@ -340,14 +354,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             CLIEngine.ShowErrorMessage($"You are only level {STAR.BeamedInAvatarDetail.Level}. You need to be at least level 33 to be able to change the parent celestialbody. Using the default of Our World.");
                             Console.WriteLine("");
                             CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, dnaFolder, genesisFolder, genesisNamespace, providerType);
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
                         }
                     }
                     else
                     {
                         Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, dnaFolder, genesisFolder, genesisNamespace, providerType);
+                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
                     }
 
                     if (lightResult != null)
@@ -359,12 +373,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             Console.WriteLine("");
 
                             if (CLIEngine.GetConfirmation("Do you wish to open the OAPP now?"))
-                                Process.Start("explorer.exe", Path.Combine(genesisFolder, string.Concat(OAPPName, " OAPP"), string.Concat(genesisNamespace, ".csproj")));
+                                Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(OAPPName, " OAPP"), string.Concat(genesisNamespace, ".csproj")));
 
                             Console.WriteLine("");
 
                             if (CLIEngine.GetConfirmation("Do you wish to open the OAPP folder now?"))
-                                Process.Start("explorer.exe", Path.Combine(genesisFolder, string.Concat(OAPPName, " OAPP")));
+                                Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(OAPPName, " OAPP")));
 
                             Console.WriteLine("");
                         }
@@ -628,13 +642,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     Console.WriteLine("");
 
-                if (Path.IsPathRooted(STAR.STARDNA.DefaultPublishedOAPPsPath))
-                    publishPath = STAR.STARDNA.DefaultPublishedOAPPsPath;
+                if (Path.IsPathRooted(STAR.STARDNA.DefaultOAPPsPublishedPath))
+                    publishPath = STAR.STARDNA.DefaultOAPPsPublishedPath;
                 else
-                    publishPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultPublishedOAPPsPath);
+                    publishPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPsPublishedPath);
 
                 //Console.WriteLine("");
-                if (!CLIEngine.GetConfirmation($"Do you wish to publish the OAPP to the default publish folder defined in the STARDNA as DefaultPublishedOAPPsPath : {publishPath}?"))
+                if (!CLIEngine.GetConfirmation($"Do you wish to publish the OAPP to the default publish folder defined in the STARDNA as DefaultOAPPsPublishedPath : {publishPath}?"))
                 {
                     if (CLIEngine.GetConfirmation($"Do you wish to publish the OAPP to: {Path.Combine(oappPath, "Published")}?"))
                         publishPath = Path.Combine(oappPath, "Published");
@@ -745,14 +759,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IInstalledOAPP> installResult = null;
             string installPath = "";
 
-            if (Path.IsPathRooted(STAR.STARDNA.DefaultInstalledOAPPsPath))
-                installPath = STAR.STARDNA.DefaultInstalledOAPPsPath;
+            if (Path.IsPathRooted(STAR.STARDNA.DefaultOAPPsInstalledPath))
+                installPath = STAR.STARDNA.DefaultOAPPsInstalledPath;
             else
-                installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultInstalledOAPPsPath);
+                installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPsInstalledPath);
 
             Console.WriteLine("");
 
-            if (!CLIEngine.GetConfirmation($"Do you wish to install the OAPP to the default install folder defined in the STARDNA as DefaultInstalledOAPPsPath : {installPath}?"))
+            if (!CLIEngine.GetConfirmation($"Do you wish to install the OAPP to the default install folder defined in the STARDNA as DefaultOAPPsInstalledPath : {installPath}?"))
                 installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the OAPP?", true);
 
             if (!string.IsNullOrEmpty(idOrName))
@@ -820,12 +834,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IInstalledOAPP> installResult = null;
             string installPath = "";
 
-            if (Path.IsPathRooted(STAR.STARDNA.DefaultInstalledOAPPsPath))
-                installPath = STAR.STARDNA.DefaultInstalledOAPPsPath;
+            if (Path.IsPathRooted(STAR.STARDNA.DefaultOAPPsInstalledPath))
+                installPath = STAR.STARDNA.DefaultOAPPsInstalledPath;
             else
-                installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultInstalledOAPPsPath);
+                installPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPsInstalledPath);
 
-            if (!CLIEngine.GetConfirmation($"Do you wish to install the OAPP to the default install folder defined in the STARDNA as DefaultInstalledOAPPsPath : {installPath}?"))
+            if (!CLIEngine.GetConfirmation($"Do you wish to install the OAPP to the default install folder defined in the STARDNA as DefaultOAPPsInstalledPath : {installPath}?"))
                 installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the OAPP?", true);
 
             if (!string.IsNullOrEmpty(idOrName))

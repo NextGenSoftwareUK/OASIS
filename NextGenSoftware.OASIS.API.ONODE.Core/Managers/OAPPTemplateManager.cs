@@ -103,7 +103,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion,
                         OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion,
                         COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion,
-                        DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion
+                        DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion,
+                        OAPPTemplatePath = fullPathToOAPPTemplate
                     };
 
                     OASISResult<bool> writeOAPPTemplateDNAResult = await WriteOAPPTemplateDNAAsync(OAPPTemplateDNA, fullPathToOAPPTemplate);
@@ -188,7 +189,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion,
                         OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion,
                         COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion,
-                        DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion
+                        DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion,
+                        OAPPTemplatePath = fullPathToOAPPTemplate
                     };
 
                     WriteOAPPTemplateDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
@@ -487,7 +489,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 File.Delete(OAPPTemplateDNA.OAPPTemplatePublishedPath);
 
                             ZipFile.CreateFromDirectory(fullPathToOAPPTemplate, OAPPTemplateDNA.OAPPTemplatePublishedPath);
-                            File.Move(tempPath, readOAPPTemplateDNAResult.Result.OAPPTemplatePublishedPath);
+                            //File.Move(tempPath, readOAPPTemplateDNAResult.Result.OAPPTemplatePublishedPath);
                         }
 
                         //TODO: Currently the filesize will NOT be in the compressed .oapptemplate file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPTemplateDNA inside it...
