@@ -27,6 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
     {
         private int _progress = 0;
         private long _fileLength = 0;
+        private const string GOOGLE_CLOUD_BUCKET_NAME = "oasis_runtimes";
 
         public RuntimeManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
         {
@@ -90,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         //            _progress = 0;
 
         //            OnRuntimeInstallStatusChanged?.Invoke(this, new RuntimeInstallStatusEventArgs() {  RuntimeDNA = run, Status = Enums.RuntimeInstallStatus.Downloading });
-        //            await storage.DownloadObjectAsync("oasis_runtimes", string.Concat(Enum.GetName(typeof(RuntimeType), runtimeType), version, ".oruntime"), fileStream, downloadObjectOptions, progress: progressReporter);
+        //            await storage.DownloadObjectAsync("GOOGLE_CLOUD_BUCKET_NAME", string.Concat(Enum.GetName(typeof(RuntimeType), runtimeType), version, ".oruntime"), fileStream, downloadObjectOptions, progress: progressReporter);
         //            result = await InstallRuntimeAsync(avatarId, runtimePath, fullInstallPath, createOAPPDirectory, providerType);
         //        }
         //        catch (Exception ex)
@@ -440,7 +441,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         //                                _fileLength = fileStream.Length;
         //                                _progress = 0;
 
-        //                                storage.UploadObject("oasis_Runtimes", publishedRuntimeFileName, "Runtime", fileStream, uploadObjectOptions, progress: progressReporter);
+        //                                storage.UploadObject("GOOGLE_CLOUD_BUCKET_NAME", publishedRuntimeFileName, "Runtime", fileStream, uploadObjectOptions, progress: progressReporter);
         //                            }
         //                            catch (Exception ex)
         //                            {
@@ -1100,7 +1101,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                         _fileLength = fileStream.Length;
                                         _progress = 0;
 
-                                        await storage.UploadObjectAsync("oasis_runtimes", publishedRuntimeFileName, "Runtime", fileStream, uploadObjectOptions, progress: progressReporter);
+                                        await storage.UploadObjectAsync("GOOGLE_CLOUD_BUCKET_NAME", publishedRuntimeFileName, "Runtime", fileStream, uploadObjectOptions, progress: progressReporter);
                                     }
                                     catch (Exception ex)
                                     {
@@ -1290,7 +1291,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                         _fileLength = fileStream.Length;
                                         _progress = 0;
 
-                                        storage.UploadObject("oasis_Runtimes", publishedRuntimeFileName, "Runtime", fileStream, uploadObjectOptions, progress: progressReporter);
+                                        storage.UploadObject("GOOGLE_CLOUD_BUCKET_NAME", publishedRuntimeFileName, "Runtime", fileStream, uploadObjectOptions, progress: progressReporter);
                                     }
                                     catch (Exception ex)
                                     {
@@ -1802,7 +1803,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         _progress = 0;
 
                         OnRuntimeInstallStatusChanged?.Invoke(this, new RuntimeInstallStatusEventArgs() { RuntimeDNA = runtime.RuntimeDNA, Status = Enums.RuntimeInstallStatus.Downloading });
-                        await storage.DownloadObjectAsync("oasis_runtimes", string.Concat(runtime.Name, ".oruntime"), fileStream, downloadObjectOptions, progress: progressReporter);
+                        await storage.DownloadObjectAsync("GOOGLE_CLOUD_BUCKET_NAME", string.Concat(runtime.Name, ".oruntime"), fileStream, downloadObjectOptions, progress: progressReporter);
                         //result = await InstallRuntimeAsync(avatarId, RuntimePath, fullInstallPath, createRuntimeDirectory, providerType);
                         result = await InstallRuntimeAsync(avatarId, runtimePath, fullInstallPath, providerType);
                     }
@@ -1858,7 +1859,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         _progress = 0;
 
                         OnRuntimeInstallStatusChanged?.Invoke(this, new RuntimeInstallStatusEventArgs() { RuntimeDNA = runtime.RuntimeDNA, Status = Enums.RuntimeInstallStatus.Downloading });
-                        storage.DownloadObject("oasis_runtimes", string.Concat(runtime.Name, ".oruntime"), fileStream, downloadObjectOptions, progress: progressReporter);
+                        storage.DownloadObject("GOOGLE_CLOUD_BUCKET_NAME", string.Concat(runtime.Name, ".oruntime"), fileStream, downloadObjectOptions, progress: progressReporter);
                         //result = await InstallRuntimeAsync(avatarId, RuntimePath, fullInstallPath, createRuntimeDirectory, providerType);
                         result = InstallRuntime(avatarId, runtimePath, fullInstallPath, providerType);
                     }

@@ -20,7 +20,6 @@ using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
-using static NextGenSoftware.OASIS.API.ONode.Core.Managers.RuntimeManager;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -28,6 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
     {
         private int _progress = 0;
         private long _fileLength = 0;
+        private const string GOOGLE_CLOUD_BUCKET_NAME = "oasis_oapptemplates";
 
         public OAPPTemplateManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA) { }
         public OAPPTemplateManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA) { }
@@ -525,7 +525,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                         _fileLength = fileStream.Length;
                                         _progress = 0;
 
-                                        await storage.UploadObjectAsync("oasis_oapptemplates", publishedOAPPTemplateFileName, "oapptemplate", fileStream, uploadObjectOptions, progress: progressReporter);
+                                        await storage.UploadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME, publishedOAPPTemplateFileName, "oapptemplate", fileStream, uploadObjectOptions, progress: progressReporter);
                                     }
                                     catch (Exception ex)
                                     {
@@ -715,7 +715,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                         _fileLength = fileStream.Length;
                                         _progress = 0;
 
-                                        storage.UploadObject("oasis_oapptemplates", publishedOAPPTemplateFileName, "oapptemplate", fileStream, uploadObjectOptions, progress: progressReporter);
+                                        storage.UploadObject(GOOGLE_CLOUD_BUCKET_NAME, publishedOAPPTemplateFileName, "oapptemplate", fileStream, uploadObjectOptions, progress: progressReporter);
                                     }
                                     catch (Exception ex)
                                     {
@@ -920,7 +920,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, string fullPathToPublishedOAPPTemplateFile, string fullInstallPath, bool createOAPPTemplateDirectory = true, ProviderType providerType = ProviderType.Default)
+        //public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, string fullPathToPublishedOAPPTemplateFile, string fullInstallPath, bool createOAPPTemplateDirectory = true, string OAPPName = "", ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, string fullPathToPublishedOAPPTemplateFile, string fullInstallPath, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.InstallOAPPTemplateAsync. Reason: ";
@@ -928,7 +929,22 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                OASISResult<IOAPPTemplateDNA> OAPPTemplateDNAResult = await ReadOAPPTemplateDNAAsync(fullPathToPublishedOAPPTemplateFile);
+                //if (createOAPPTemplateDirectory)
+                //    fullInstallPath = Path.Combine(fullInstallPath, OAPPName);
+                    //fullInstallPath = Path.Combine(fullInstallPath, OAPPTemplateDNAResult.Result.Name);
+
+                if (Directory.Exists(fullInstallPath))
+                    Directory.Delete(fullInstallPath, true);
+
+                Directory.CreateDirectory(fullInstallPath);
+
+                //Unzip
+                OnOAPPTemplateInstallStatusChanged?.Invoke(this, new OAPPTemplateInstallStatusEventArgs() { Status = Enums.OAPPTemplateInstallStatus.Decompressing });
+                ZipFile.ExtractToDirectory(fullPathToPublishedOAPPTemplateFile, fullInstallPath, Encoding.Default, true);
+
+
+                //OASISResult<IOAPPTemplateDNA> OAPPTemplateDNAResult = await ReadOAPPTemplateDNAAsync(fullPathToPublishedOAPPTemplateFile);
+                OASISResult<IOAPPTemplateDNA> OAPPTemplateDNAResult = await ReadOAPPTemplateDNAAsync(fullInstallPath);
 
                 if (OAPPTemplateDNAResult != null && OAPPTemplateDNAResult.Result != null && !OAPPTemplateDNAResult.IsError)
                 {
@@ -940,16 +956,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         //TODO: Not sure if we want to add a check here to compare the OAPPTemplateDNA in the OAPPTemplate dir with the one stored in the OASIS?
                         OAPPTemplateDNA = oappResult.Result.OAPPTemplateDNA;
 
-                        if (createOAPPTemplateDirectory)
-                            fullInstallPath = Path.Combine(fullInstallPath, OAPPTemplateDNAResult.Result.Name);
+                        //if (createOAPPTemplateDirectory)
+                        //    fullInstallPath = Path.Combine(fullInstallPath, OAPPTemplateDNAResult.Result.Name);
 
-                        if (Directory.Exists(fullInstallPath))
-                            Directory.Delete(fullInstallPath, true);
+                        //if (Directory.Exists(fullInstallPath))
+                        //    Directory.Delete(fullInstallPath, true);
 
-                        Directory.CreateDirectory(fullInstallPath);
+                        //Directory.CreateDirectory(fullInstallPath);
 
-                        OnOAPPTemplateInstallStatusChanged?.Invoke(this, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNAResult.Result, Status = Enums.OAPPTemplateInstallStatus.Decompressing });
-                        ZipFile.ExtractToDirectory(fullPathToPublishedOAPPTemplateFile, fullInstallPath, Encoding.Default, true);
+                        //OnOAPPTemplateInstallStatusChanged?.Invoke(this, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNAResult.Result, Status = Enums.OAPPTemplateInstallStatus.Decompressing });
+                        //ZipFile.ExtractToDirectory(fullPathToPublishedOAPPTemplateFile, fullInstallPath, Encoding.Default, true);
 
                         OnOAPPTemplateInstallStatusChanged?.Invoke(this, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNAResult.Result, Status = Enums.OAPPTemplateInstallStatus.Installing });
                         OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
@@ -1149,7 +1165,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         _progress = 0;
 
                         OnOAPPTemplateInstallStatusChanged?.Invoke(this, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = OAPPTemplate.OAPPTemplateDNA, Status = Enums.OAPPTemplateInstallStatus.Downloading });
-                        await storage.DownloadObjectAsync("oasis_oapptemplates", string.Concat(OAPPTemplate.Name, ".oapptemplates"), fileStream, downloadObjectOptions, progress: progressReporter);
+                        await storage.DownloadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME, string.Concat(OAPPTemplate.Name, ".oapptemplates"), fileStream, downloadObjectOptions, progress: progressReporter);
                         result = await InstallOAPPTemplateAsync(avatarId, OAPPTemplatePath, fullInstallPath, createOAPPTemplateDirectory, providerType);
                     }
                     catch (Exception ex)
@@ -1201,7 +1217,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         _progress = 0;
 
                         OnOAPPTemplateInstallStatusChanged?.Invoke(this, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = OAPPTemplate.OAPPTemplateDNA, Status = Enums.OAPPTemplateInstallStatus.Downloading });
-                        storage.DownloadObject("oasis_oapptemplates", string.Concat(OAPPTemplate.Name, ".oapptemplates"), fileStream, downloadObjectOptions, progress: progressReporter);
+                        storage.DownloadObject(GOOGLE_CLOUD_BUCKET_NAME, string.Concat(OAPPTemplate.Name, ".oapptemplates"), fileStream, downloadObjectOptions, progress: progressReporter);
                         result = InstallOAPPTemplate(avatarId, OAPPTemplatePath, fullInstallPath, createOAPPTemplateDirectory, providerType);
                     }
                     catch (Exception ex)

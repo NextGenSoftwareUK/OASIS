@@ -29,7 +29,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
     {
         private int _progress = 0;
         private long _fileLength = 0;
-
+        //private const string GOOGLE_CLOUD_BUCKET_NAME = "oasis_oapps"; 
+        private const string GOOGLE_CLOUD_BUCKET_NAME = "oasis_oapps_0"; //temp, till I get access to my original google cloud account! ;-)
+        
         public OAPPManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
         {
 
@@ -790,7 +792,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                         _fileLength = fileStream.Length;
                                         _progress = 0;
 
-                                        await storage.UploadObjectAsync("oasis_oapps", publishedOAPPFileName, "oapp", fileStream, uploadObjectOptions, progress: progressReporter);
+                                        await storage.UploadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME, publishedOAPPFileName, "oapp", fileStream, uploadObjectOptions, progress: progressReporter);
                                     }
                                     catch (Exception ex)
                                     {
@@ -1041,7 +1043,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                         _fileLength = fileStream.Length;
                                         _progress = 0;
 
-                                        storage.UploadObject("oasis_oapps", publishedOAPPFileName, "oapp", fileStream, uploadObjectOptions, progress: progressReporter);
+                                        storage.UploadObject(GOOGLE_CLOUD_BUCKET_NAME, publishedOAPPFileName, "oapp", fileStream, uploadObjectOptions, progress: progressReporter);
                                     }
                                     catch (Exception ex)
                                     {
@@ -1476,7 +1478,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         _progress = 0;
 
                         OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPP.OAPPDNA, Status = Enums.OAPPInstallStatus.Downloading });
-                        await storage.DownloadObjectAsync("oasis_oapps", string.Concat(OAPP.Name, ".oapp"), fileStream, downloadObjectOptions, progress: progressReporter);
+                        await storage.DownloadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME, string.Concat(OAPP.Name, ".oapp"), fileStream, downloadObjectOptions, progress: progressReporter);
                         result = await InstallOAPPAsync(avatarId, OAPPPath, fullInstallPath, createOAPPDirectory, providerType);
                     }
                     catch (Exception ex)
@@ -1528,7 +1530,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         _progress = 0;
 
                         OnOAPPInstallStatusChanged?.Invoke(this, new OAPPInstallStatusEventArgs() { OAPPDNA = OAPP.OAPPDNA, Status = Enums.OAPPInstallStatus.Downloading });
-                        storage.DownloadObjectAsync("oasis_oapps", string.Concat(OAPP.Name, ".oapp"), fileStream, downloadObjectOptions, progress: progressReporter);
+                        storage.DownloadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME, string.Concat(OAPP.Name, ".oapp"), fileStream, downloadObjectOptions, progress: progressReporter);
                         result = InstallOAPP(avatarId, OAPPPath, fullInstallPath, createOAPPDirectory, providerType);
                     }
                     catch (Exception ex)
