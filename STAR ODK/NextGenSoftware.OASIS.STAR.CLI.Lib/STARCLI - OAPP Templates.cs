@@ -324,6 +324,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged += OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
                         STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged += OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
                         CLIEngine.ShowWorkingMessage("Installing OAPP Template...");
+                        installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result.Id, installPath, providerType);
                         STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged -= OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
                         STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged -= OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
                     }
@@ -338,7 +339,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     string oappPath = CLIEngine.GetValidFile("What is the full path to the .oapptemplate file?");
 
                     CLIEngine.ShowWorkingMessage("Installing OAPP Template...");
-                    installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappPath, installPath, true, providerType);
+                    //installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappPath, installPath, true, providerType);
+                    installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappPath, installPath, providerType);
                 }
                 else
                     await LaunchSTARNETAsync(true);

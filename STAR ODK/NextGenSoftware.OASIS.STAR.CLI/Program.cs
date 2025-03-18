@@ -31,6 +31,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         //private const string DEFAULT_DNA_FOLDER = "C:\\Users\\user\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
         //private const string DEFAULT_GENESIS_NAMESPACE = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
         //private const string DEFAULT_GENESIS_FOLDER = "C:\\Users\\user\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net8.0\\Genesis";
+        private static string DEFAULT_DNA_FOLDER;
+        private static string DEFAULT_GENESIS_FOLDER;
+        //private static string DEFAULT_GENESIS_NAMESPACE = STAR.STARDNA.GenesisNamespace;
         private const OAPPType DEFAULT_OAPP_TYPE = OAPPType.OAPPTemplate;
         private const OAPPTemplateType DEFAULT_OAPP_TEMPLATE_TYPE = OAPPTemplateType.Console;
 
@@ -117,6 +120,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     CLIEngine.ShowErrorMessage(string.Concat("Error Igniting STAR. Error Message: ", result.Message));
                 else
                 {
+                    DEFAULT_DNA_FOLDER = STAR.STARDNA.CelestialBodyDNA;
+                    DEFAULT_GENESIS_FOLDER = STAR.STARDNA.DefaultOAPPsSourcePath;
+
                     await STARCLI.BeamInAvatar();
                     await ReadyPlayerOne();
                 }
