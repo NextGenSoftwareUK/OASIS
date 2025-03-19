@@ -20,6 +20,9 @@ using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using NextGenSoftware.CLI.Engine;
+using PinataNET;
+using PinataNET.Models;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -526,6 +529,27 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                         _progress = 0;
 
                                         await storage.UploadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME, publishedOAPPTemplateFileName, "oapptemplate", fileStream, uploadObjectOptions, progress: progressReporter);
+
+                                        _progress = 100;
+                                        OnOAPPTemplateUploadStatusChanged?.Invoke(this, new OAPPTemplateUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPTemplateUploadStatus.Uploading });
+                                        CLIEngine.DisposeProgressBar(false);
+                                        Console.WriteLine("");
+
+                                        //var pinataClient = new PinataClient("33e4469830a51af0171b");
+                                        //PinFileResponse pinFileResponse = await pinataClient.PinFileToIPFSAsync(OAPPTemplateDNA.OAPPTemplatePublishedPath);
+
+                                        //if (pinFileResponse != null && !string.IsNullOrEmpty(pinFileResponse.IpfsHash))
+                                        //{
+                                        //    OAPPTemplateDNA.PinataIPFSHash = pinFileResponse.IpfsHash;
+                                        //    OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = true;
+                                        //    //OAPPTemplateDNA.OAPPTemplatePublishedProviderType = ProviderType.IPFSOASIS;
+                                        //    OAPPTemplateDNA.OAPPTemplatePublishedToPinata = true;
+                                        //}
+                                        //else
+                                        //{
+                                        //    OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the OAPPTemplate to Pinata.");
+                                        //    OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
+                                        //}
                                     }
                                     catch (Exception ex)
                                     {
@@ -535,25 +559,26 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     }
                                 }
 
-                                if (oappBinaryProviderType != ProviderType.None)
-                                {
-                                    loadOAPPTemplateResult.Result.PublishedOAPPTemplate = File.ReadAllBytes(OAPPTemplateDNA.OAPPTemplatePublishedPath);
+                                //TEMP REMOVED TO SPEED UP TESTING! ;-)
+                                //if (oappBinaryProviderType != ProviderType.None)
+                                //{
+                                //    loadOAPPTemplateResult.Result.PublishedOAPPTemplate = File.ReadAllBytes(OAPPTemplateDNA.OAPPTemplatePublishedPath);
 
-                                    //TODO: We could use HoloOASIS and other large file storage providers in future...
-                                    OASISResult<IOAPPTemplate> saveLargeOAPPTemplateResult = await SaveOAPPTemplateAsync(loadOAPPTemplateResult.Result, avatarId, oappBinaryProviderType);
+                                //    //TODO: We could use HoloOASIS and other large file storage providers in future...
+                                //    OASISResult<IOAPPTemplate> saveLargeOAPPTemplateResult = await SaveOAPPTemplateAsync(loadOAPPTemplateResult.Result, avatarId, oappBinaryProviderType);
 
-                                    if (saveLargeOAPPTemplateResult != null && !saveLargeOAPPTemplateResult.IsError && saveLargeOAPPTemplateResult.Result != null)
-                                    {
-                                        result.Result = readOAPPTemplateDNAResult.Result;
-                                        result.IsSaved = true;
-                                    }
-                                    else
-                                    {
-                                        OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPPTemplate binary to STARNET using the {oappBinaryProviderType} provider. Reason: {saveLargeOAPPTemplateResult.Message}");
-                                        OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && uploadOAPPTemplateToCloud;
-                                        OAPPTemplateDNA.OAPPTemplatePublishedProviderType = ProviderType.None;
-                                    }
-                                }
+                                //    if (saveLargeOAPPTemplateResult != null && !saveLargeOAPPTemplateResult.IsError && saveLargeOAPPTemplateResult.Result != null)
+                                //    {
+                                //        result.Result = readOAPPTemplateDNAResult.Result;
+                                //        result.IsSaved = true;
+                                //    }
+                                //    else
+                                //    {
+                                //        OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPPTemplate binary to STARNET using the {oappBinaryProviderType} provider. Reason: {saveLargeOAPPTemplateResult.Message}");
+                                //        OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && uploadOAPPTemplateToCloud;
+                                //        OAPPTemplateDNA.OAPPTemplatePublishedProviderType = ProviderType.None;
+                                //    }
+                                //}
                             }
 
                             OASISResult<IOAPPTemplate> saveOAPPTemplateResult = await SaveOAPPTemplateAsync(loadOAPPTemplateResult.Result, avatarId, providerType);
@@ -921,30 +946,22 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         }
 
         //public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, string fullPathToPublishedOAPPTemplateFile, string fullInstallPath, bool createOAPPTemplateDirectory = true, string OAPPName = "", ProviderType providerType = ProviderType.Default)
-        public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, string fullPathToPublishedOAPPTemplateFile, string fullInstallPath, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, string fullPathToPublishedOAPPTemplateFile, string fullInstallPath, bool createOAPPTemplateDirectory = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.InstallOAPPTemplateAsync. Reason: ";
             IOAPPTemplateDNA OAPPTemplateDNA = null;
+            string tempPath = "";
 
             try
             {
-                //if (createOAPPTemplateDirectory)
-                //    fullInstallPath = Path.Combine(fullInstallPath, OAPPName);
-                    //fullInstallPath = Path.Combine(fullInstallPath, OAPPTemplateDNAResult.Result.Name);
-
-                if (Directory.Exists(fullInstallPath))
-                    Directory.Delete(fullInstallPath, true);
-
-                Directory.CreateDirectory(fullInstallPath);
+                tempPath = Path.GetTempPath();
+                tempPath = Path.Combine(tempPath, "OAPP Template");
 
                 //Unzip
                 OnOAPPTemplateInstallStatusChanged?.Invoke(this, new OAPPTemplateInstallStatusEventArgs() { Status = Enums.OAPPTemplateInstallStatus.Decompressing });
-                ZipFile.ExtractToDirectory(fullPathToPublishedOAPPTemplateFile, fullInstallPath, Encoding.Default, true);
-
-
-                //OASISResult<IOAPPTemplateDNA> OAPPTemplateDNAResult = await ReadOAPPTemplateDNAAsync(fullPathToPublishedOAPPTemplateFile);
-                OASISResult<IOAPPTemplateDNA> OAPPTemplateDNAResult = await ReadOAPPTemplateDNAAsync(fullInstallPath);
+                ZipFile.ExtractToDirectory(fullPathToPublishedOAPPTemplateFile, tempPath, Encoding.Default, true);
+                OASISResult<IOAPPTemplateDNA> OAPPTemplateDNAResult = await ReadOAPPTemplateDNAAsync(tempPath);
 
                 if (OAPPTemplateDNAResult != null && OAPPTemplateDNAResult.Result != null && !OAPPTemplateDNAResult.IsError)
                 {
@@ -956,16 +973,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         //TODO: Not sure if we want to add a check here to compare the OAPPTemplateDNA in the OAPPTemplate dir with the one stored in the OASIS?
                         OAPPTemplateDNA = oappResult.Result.OAPPTemplateDNA;
 
-                        //if (createOAPPTemplateDirectory)
-                        //    fullInstallPath = Path.Combine(fullInstallPath, OAPPTemplateDNAResult.Result.Name);
+                        if (createOAPPTemplateDirectory)
+                            fullInstallPath = Path.Combine(fullInstallPath, OAPPTemplateDNAResult.Result.Name);
 
-                        //if (Directory.Exists(fullInstallPath))
-                        //    Directory.Delete(fullInstallPath, true);
+                        if (Directory.Exists(fullInstallPath))
+                            Directory.Delete(fullInstallPath, true);
 
                         //Directory.CreateDirectory(fullInstallPath);
-
-                        //OnOAPPTemplateInstallStatusChanged?.Invoke(this, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNAResult.Result, Status = Enums.OAPPTemplateInstallStatus.Decompressing });
-                        //ZipFile.ExtractToDirectory(fullPathToPublishedOAPPTemplateFile, fullInstallPath, Encoding.Default, true);
+                        Directory.Move(tempPath, fullInstallPath);
+                        //Directory.Delete(tempPath);
 
                         OnOAPPTemplateInstallStatusChanged?.Invoke(this, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNAResult.Result, Status = Enums.OAPPTemplateInstallStatus.Installing });
                         OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
@@ -1026,6 +1042,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}");
+            }
+            finally
+            {
+                if (Directory.Exists(tempPath))
+                    Directory.Delete(tempPath, true);
             }
 
             if (result.IsError)
@@ -1132,6 +1153,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        //public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, IOAPPTemplate OAPPTemplate, string defaultOAPPTemplatesPublishedPath, string fullInstallPath, bool createOAPPTemplateDirectory = true, ProviderType providerType = ProviderType.Default)
         public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, IOAPPTemplate OAPPTemplate, string fullInstallPath, bool createOAPPTemplateDirectory = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
@@ -1139,7 +1161,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                string OAPPTemplatePath = Path.Combine("temp", OAPPTemplate.Name, ".oapptemplate");
+                string tempPath = Path.GetTempPath();
+                string OAPPTemplatePath = Path.Combine(tempPath, string.Concat(OAPPTemplate.Name, ".oapptemplate"));
+                //string OAPPTemplatePath = Path.Combine(defaultOAPPTemplatesPublishedPath, string.Concat(OAPPTemplate.Name, ".oapptemplate"));
+
+                if (File.Exists(OAPPTemplatePath))
+                    File.Delete(OAPPTemplatePath);
 
                 if (OAPPTemplate.PublishedOAPPTemplate != null)
                 {
@@ -1160,12 +1187,32 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                         var progressReporter = new Progress<Google.Apis.Download.IDownloadProgress>(OnDownloadProgress);
 
+                        
                         using var fileStream = File.OpenWrite(OAPPTemplatePath);
                         _fileLength = fileStream.Length;
+
+                        if (_fileLength == 0)
+                            _fileLength = OAPPTemplate.OAPPTemplateDNA.OAPPTemplateFileSize;
+
                         _progress = 0;
 
+                        //string publishedOAPPTemplateFileName = string.Concat(OAPPTemplate.Name, ".oapptemplate");
+                        string publishedOAPPTemplateFileName = string.Concat(OAPPTemplate.Name.Replace(" ", ""), ".oapptemplate");
+
+                        if (!IsValidFileName(publishedOAPPTemplateFileName))
+                        {
+                            throw new FormatException($"The format of value '{publishedOAPPTemplateFileName}' is invalid.");
+                        }
+
+
                         OnOAPPTemplateInstallStatusChanged?.Invoke(this, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = OAPPTemplate.OAPPTemplateDNA, Status = Enums.OAPPTemplateInstallStatus.Downloading });
-                        await storage.DownloadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME, string.Concat(OAPPTemplate.Name, ".oapptemplates"), fileStream, downloadObjectOptions, progress: progressReporter);
+                        //await storage.DownloadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME,  string.Concat(OAPPTemplate.Name, ".oapptemplate"), fileStream, downloadObjectOptions, progress: progressReporter);
+                        await storage.DownloadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME, publishedOAPPTemplateFileName, fileStream, downloadObjectOptions, progress: progressReporter);
+
+                        _progress = 100;
+                        OnOAPPTemplateDownloadStatusChanged?.Invoke(this, new OAPPTemplateDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPTemplateDownloadStatus.Downloaded });
+
+
                         result = await InstallOAPPTemplateAsync(avatarId, OAPPTemplatePath, fullInstallPath, createOAPPTemplateDirectory, providerType);
                     }
                     catch (Exception ex)
@@ -1173,6 +1220,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         OASISErrorHandling.HandleError(ref result, $"An error occured downloading the OAPP Template from cloud storage. Reason: {ex}");
                     }
                 }
+
+                Directory.Delete(tempPath);
             }
             catch (Exception ex)
             {
@@ -1237,12 +1286,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        //public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, string defaultOAPPTemplatesPublishedPath, string fullInstallPath, bool createOAPPTemplateDirectory = true, ProviderType providerType = ProviderType.Default)
         public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, string fullInstallPath, bool createOAPPTemplateDirectory = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             OASISResult<IOAPPTemplate> OAPPTemplateResult = await LoadOAPPTemplateAsync(OAPPTemplateId, providerType);
 
             if (OAPPTemplateResult != null && !OAPPTemplateResult.IsError && OAPPTemplateResult.Result != null)
+                //result = await InstallOAPPTemplateAsync(avatarId, OAPPTemplateResult.Result, defaultOAPPTemplatesPublishedPath, fullInstallPath, createOAPPTemplateDirectory, providerType);
                 result = await InstallOAPPTemplateAsync(avatarId, OAPPTemplateResult.Result, fullInstallPath, createOAPPTemplateDirectory, providerType);
             else
             {
@@ -1496,7 +1547,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 try
                 {
-                    Process.Start("explorer.exe", result.Result.InstalledPath);
+                    Process.Start("explorer.exe", OAPPTemplate.InstalledPath);
                 }
                 catch (Exception e)
                 {
@@ -1645,6 +1696,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
 
             return result;
+        }
+
+        private bool IsValidFileName(string fileName)
+        {
+            return !string.IsNullOrWhiteSpace(fileName) && fileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
         }
 
         private void OnUploadProgress(Google.Apis.Upload.IUploadProgress progress)

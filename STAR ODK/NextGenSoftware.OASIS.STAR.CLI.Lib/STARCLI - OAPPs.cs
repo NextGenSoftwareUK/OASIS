@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.ONode.Core.Enums;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -795,17 +796,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
             {
-                Console.WriteLine("");
-                if (CLIEngine.GetConfirmation("Do you wish to install the OAPP from a local .oapp file or from STARNET? Press 'Y' for local .oapp or 'N' for STARNET."))
-                {
-                    Console.WriteLine("");
-                    string oappPath = CLIEngine.GetValidFile("What is the full path to the .oapp file?");
+                OASISResult<IEnumerable<IOAPP>> oappTemplatesResult = await ListAllOAPPsAsync();
 
-                    CLIEngine.ShowWorkingMessage("Installing OAPP...");
-                    installResult = await STAR.OASISAPI.OAPPs.InstallOAPPAsync(STAR.BeamedInAvatar.Id, oappPath, installPath, true, providerType);
+                if (oappTemplatesResult != null && oappTemplatesResult.Result != null && !oappTemplatesResult.IsError && oappTemplatesResult.Result.Count() > 0)
+                {
+                    OASISResult<IOAPP> result = await LoadOAPPAsync("", "install", providerType);
+
+                    if (result != null && result.Result != null && !result.IsError)
+                        await InstallOAPPAsync(result.Result.Id.ToString());
+                    else
+                    {
+                        installResult.Message = result.Message;
+                        installResult.IsError = true;
+                    }
                 }
                 else
-                    await LaunchSTARNETAsync(true);
+                {
+                    installResult.Message = "No OAPP's found to install.";
+                    installResult.IsError = true;
+                }
             }
 
             if (installResult != null)
@@ -863,7 +872,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     installResult = STAR.OASISAPI.OAPPs.InstallOAPP(STAR.BeamedInAvatar.Id, oappPath, installPath, true, providerType);
                 }
                 else
-                    LaunchSTARNETAsync(true);
+                {
+                    OASISResult<IEnumerable<IOAPP>> oappTemplatesResult = ListAllOAPPs();
+
+                    if (oappTemplatesResult != null && oappTemplatesResult.Result != null && !oappTemplatesResult.IsError && oappTemplatesResult.Result.Count() > 0)
+                    {
+                        OASISResult<IOAPP> result = LoadOAPP("", "install", providerType);
+
+                        if (result != null && result.Result != null && !result.IsError)
+                            InstallOAPP(result.Result.Id.ToString());
+                        else
+                        {
+                            installResult.Message = result.Message;
+                            installResult.IsError = true;
+                        }
+                    }
+                    else
+                    {
+                        installResult.Message = "No OAPP's found to install.";
+                        installResult.IsError = true;
+                    }
+                }
             }
 
             if (installResult != null)
@@ -912,13 +941,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the OAPP. Reason: {result.Message}");
         }
 
-        public static async Task LaunchSTARNETAsync(bool installOAPP = true, ProviderType providerType = ProviderType.Default)
+        public static async Task LaunchSTARNETAsync(AutoLoadHolons autoLoadHolons = AutoLoadHolons.None, bool install = false, ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowMessage("Welcome to STARNET!");
-            await ListAllOAPPsAsync();
+            bool holonsFound = false;
 
-            if (installOAPP)
+            switch (autoLoadHolons)
+            {
+                case AutoLoadHolons.OAPPs:
+                    await ListAllOAPPsAsync(providerType);
+                    break;
+            }
+
+            OASISResult<IEnumerable<IOAPP>> oappsResult = await ListAllOAPPsAsync();
+
+            if (oappsResult != null && oappsResult.Result != null && !oappsResult.IsError && oappsResult.Result.Count() > 0 && install)
             {
                 //Guid OAPPID = CLIEngine.GetValidInputForGuid("What is the GUID/ID of the OAPP you wish to install?");
 
@@ -957,14 +995,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //TODO: Soon this will be like a sub-menu listing the STARNET commands (install, uninstall, list, publish, unpublish etc) and change the cursor to STARNET: rather than STAR:. They can then type exit to go back to the main STAR menu.
         }
 
-        public static async Task ListAllOAPPsAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IEnumerable<IOAPP>>> ListAllOAPPsAsync(ProviderType providerType = ProviderType.Default)
         {
-            ListOAPPs(await STAR.OASISAPI.OAPPs.ListAllOAPPsAsync(providerType));
+            return ListOAPPs(await STAR.OASISAPI.OAPPs.ListAllOAPPsAsync(providerType));
         }
 
-        public static void ListAllOAPPs(ProviderType providerType = ProviderType.Default)
+        public static OASISResult<IEnumerable<IOAPP>> ListAllOAPPs(ProviderType providerType = ProviderType.Default)
         {
-            ListOAPPs(STAR.OASISAPI.OAPPs.ListAllOAPPs(providerType));
+            return ListOAPPs(STAR.OASISAPI.OAPPs.ListAllOAPPs(providerType));
         }
 
         public static async Task ListOAPPsCreatedByBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
@@ -1265,7 +1303,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return OAPPTemplateId;
         }
 
-        private static void ListOAPPs(OASISResult<IEnumerable<IOAPP>> oapps)
+        private static OASISResult<IEnumerable<IOAPP>> ListOAPPs(OASISResult<IEnumerable<IOAPP>> oapps)
         {
             if (oapps != null)
             { 
@@ -1295,6 +1333,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
                 CLIEngine.ShowErrorMessage($"Unknown error occured loading OAPP's.");
+
+            return oapps;
         }
 
         private static void ListInstalledOAPPs(OASISResult<IEnumerable<IInstalledOAPP>> oapps)

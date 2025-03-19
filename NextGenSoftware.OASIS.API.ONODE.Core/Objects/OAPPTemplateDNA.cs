@@ -22,6 +22,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         public DateTime PublishedOn { get; set; }
         public bool OAPPTemplatePublishedOnSTARNET { get; set; }
         public bool OAPPTemplatePublishedToCloud { get; set; }
+        public bool OAPPTemplatePublishedToPinata { get; set; }
+        public string PinataIPFSHash { get; set; }
         public ProviderType OAPPTemplatePublishedProviderType { get; set; }
         public long OAPPTemplateFileSize { get; set; }
 

@@ -95,6 +95,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.IsNewHolon = false;
             result.Result.Id = avatarResult.Result.HolonId;
             result.Result.ProviderUniqueStorageKey = avatarResult.Result.ProviderUniqueStorageKey;
+
+            //Just in case this has not been set yet or has been lost/corrupted somehow! ;-)
+            result.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = avatarResult.Result.Id;
+            //if (result.Result.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS) &&)
+
             //result.Result.ProviderWallets = avatarResult.Result.ProviderWallets;
 
             List<IProviderWallet> wallets;
@@ -107,6 +112,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 
                 result.Result.ProviderWallets[providerType] = wallets;
             }
+
 
             // result.Result.ProviderPrivateKey = avatarResult.Result.ProviderPrivateKey;
             // result.Result.ProviderPublicKey = avatarResult.Result.ProviderPublicKey;
@@ -176,6 +182,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.IsNewHolon = false;
             oasisAvatar.Id = avatar.Result.HolonId;
             oasisAvatar.ProviderUniqueStorageKey = avatar.Result.ProviderUniqueStorageKey;
+
+            //Just in case this has not been set yet or has been lost/corrupted somehow! ;-)
+            result.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = avatar.Result.Id;
+
             oasisAvatar.ProviderMetaData = avatar.Result.ProviderMetaData;
             oasisAvatar.PreviousVersionId = avatar.Result.PreviousVersionId;
             oasisAvatar.PreviousVersionProviderUniqueStorageKey = avatar.Result.PreviousVersionProviderUniqueStorageKey;
@@ -579,6 +589,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.IsNewHolon = false; //TODO: Not sure if best to default all new Holons to have this set to true or not?
             result.Result.Id = holon.Result.HolonId;
             result.Result.ProviderUniqueStorageKey = holon.Result.ProviderUniqueStorageKey;
+
+            //Just in case this has not been set yet or has been lost/corrupted somehow! ;-)
+            result.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Result.Id;
+
             result.Result.PreviousVersionId = holon.Result.PreviousVersionId;
             result.Result.PreviousVersionProviderUniqueStorageKey = holon.Result.PreviousVersionProviderUniqueStorageKey;
             result.Result.MetaData = holon.Result.MetaData;
