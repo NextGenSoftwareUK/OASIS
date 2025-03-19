@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.STAR.OASISAPIManager;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -306,7 +307,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     installResult = await STAR.OASISAPI.Runtimes.InstallRuntimeAsync(STAR.BeamedInAvatar.Id, runtimePath, installPath, providerType);
                 }
                 else
-                    await LaunchSTARNETAsync(true);
+                {
+                    //await LaunchSTARNETAsync(true);
+
+                    OASISResult<IEnumerable<IRuntime>> oappRuntimesResult = await ListAllRuntimesAsync();
+
+                    if (oappRuntimesResult != null && oappRuntimesResult.Result != null && !oappRuntimesResult.IsError && oappRuntimesResult.Result.Count() > 0)
+                    {
+                        //Guid OAPPID = CLIEngine.GetValidInputForGuid("What is the GUID/ID of the OAPP you wish to install?");
+
+                        ProviderType largeFileProviderType = ProviderType.IPFSOASIS;
+                        object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to install the Runtime from? (The default is IPFSOASIS)", typeof(ProviderType));
+
+                        if (largeProviderTypeObject != null)
+                        {
+                            largeFileProviderType = (ProviderType)largeProviderTypeObject;
+                            OASISResult<IRuntime> result = await LoadRuntimeAsync("", "install", largeFileProviderType);
+
+                            if (result != null && result.Result != null && !result.IsError)
+                                await InstallRuntimeAsync(result.Result.Id.ToString());
+                        }
+                    }
+                    else
+                    {
+                        installResult.Message = "No Runtime found to install.";
+                        installResult.IsError = true;
+                    }
+                }
             }
 
             if (installResult != null)
@@ -362,7 +389,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     installResult = STAR.OASISAPI.Runtimes.InstallRuntime(STAR.BeamedInAvatar.Id, oappPath, installPath, providerType);
                 }
                 else
-                    LaunchSTARNETAsync(true);
+                {
+                    //await LaunchSTARNETAsync(true);
+
+                    OASISResult<IEnumerable<IRuntime>> oappRuntimesResult = ListAllRuntimes();
+
+                    if (oappRuntimesResult != null && oappRuntimesResult.Result != null && !oappRuntimesResult.IsError && oappRuntimesResult.Result.Count() > 0)
+                    {
+                        //Guid OAPPID = CLIEngine.GetValidInputForGuid("What is the GUID/ID of the OAPP you wish to install?");
+
+                        ProviderType largeFileProviderType = ProviderType.IPFSOASIS;
+                        object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to install the Runtime from? (The default is IPFSOASIS)", typeof(ProviderType));
+
+                        if (largeProviderTypeObject != null)
+                        {
+                            largeFileProviderType = (ProviderType)largeProviderTypeObject;
+                            OASISResult<IRuntime> result = LoadRuntime("", "install", largeFileProviderType);
+
+                            if (result != null && result.Result != null && !result.IsError)
+                                InstallRuntime(result.Result.Id.ToString());
+                        }
+                    }
+                    else
+                    {
+                        installResult.Message = "No Runtime found to install.";
+                        installResult.IsError = true;
+                    }
+                }
             }
 
             if (installResult != null)
@@ -409,14 +462,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the Runtime. Reason: {result.Message}");
         }
 
-        public static async Task ListAllRuntimesAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IEnumerable<IRuntime>>> ListAllRuntimesAsync(ProviderType providerType = ProviderType.Default)
         {
-            ListRuntimes(await STAR.OASISAPI.Runtimes.LoadAllRuntimesAsync(providerType));
+            return ListRuntimes(await STAR.OASISAPI.Runtimes.LoadAllRuntimesAsync(providerType));
         }
 
-        public static void ListAllRuntimes(ProviderType providerType = ProviderType.Default)
+        public static OASISResult<IEnumerable<IRuntime>> ListAllRuntimes(ProviderType providerType = ProviderType.Default)
         {
-            ListRuntimes(STAR.OASISAPI.Runtimes.LoadAllRuntimes(providerType));
+            return ListRuntimes(STAR.OASISAPI.Runtimes.LoadAllRuntimes(providerType));
         }
 
         public static async Task ListRuntimesCreatedByBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
@@ -502,25 +555,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
         
-        private static void ListRuntimes(OASISResult<IEnumerable<IRuntime>> Runtimes)
+        private static OASISResult<IEnumerable<IRuntime>> ListRuntimes(OASISResult<IEnumerable<IRuntime>> runtimes)
         {
-            if (Runtimes != null)
+            if (runtimes != null)
             {
-                if (!Runtimes.IsError)
+                if (!runtimes.IsError)
                 {
-                    if (Runtimes.Result != null && Runtimes.Result.Count() > 0)
+                    if (runtimes.Result != null && runtimes.Result.Count() > 0)
                     {
                         Console.WriteLine();
 
-                        if (Runtimes.Result.Count() == 1)
-                            CLIEngine.ShowMessage($"{Runtimes.Result.Count()} Runtime's Found:");
+                        if (runtimes.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{runtimes.Result.Count()} Runtime's Found:");
                         else
-                            CLIEngine.ShowMessage($"{Runtimes.Result.Count()} Runtime's Found:");
+                            CLIEngine.ShowMessage($"{runtimes.Result.Count()} Runtime's Found:");
 
                         CLIEngine.ShowDivider();
 
-                        foreach (IRuntime Runtime in Runtimes.Result)
-                            ShowRuntime(Runtime.RuntimeDNA);
+                        foreach (IRuntime runtime in runtimes.Result)
+                            ShowRuntime(runtime.RuntimeDNA);
 
                         //ShowRuntimeListFooter();
                     }
@@ -528,10 +581,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         CLIEngine.ShowWarningMessage("No Runtime's Found.");
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error occured loading Runtime's. Reason: {Runtimes.Message}");
+                    CLIEngine.ShowErrorMessage($"Error occured loading Runtime's. Reason: {runtimes.Message}");
             }
             else
                 CLIEngine.ShowErrorMessage($"Unknown error occured loading Runtime's.");
+
+            return runtimes;
         }
 
         private static void ListInstalledRuntimes(OASISResult<IEnumerable<IInstalledRuntime>> installedRuntimes)

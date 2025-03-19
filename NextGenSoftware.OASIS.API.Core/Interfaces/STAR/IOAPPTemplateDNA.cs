@@ -21,6 +21,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         DateTime PublishedOn { get; set; }
         bool OAPPTemplatePublishedOnSTARNET { get; set; }
         bool OAPPTemplatePublishedToCloud { get; set; }
+        bool OAPPTemplatePublishedToPinata { get; set; }
+        string PinataIPFSHash { get; set; }
         ProviderType OAPPTemplatePublishedProviderType { get; set; }
         long OAPPTemplateFileSize { get; set; }
 

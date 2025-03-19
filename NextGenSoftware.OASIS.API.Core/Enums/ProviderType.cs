@@ -5,8 +5,7 @@
         None,
         All,
         Default,
-        SolanaOASIS,
-        HoloOASIS,
+        SolanaOASIS, //Chains
         ArbitrumOASIS,
         EthereumOASIS,
         PolygonOASIS,
@@ -18,26 +17,30 @@
         StellarOASIS,
         BlockStackOASIS,
         HashgraphOASIS,
-        SOLIDOASIS,
-        IPFSOASIS,
-        ActivityPubOASIS,
-        ScuttlebuttOASIS,
-        MongoDBOASIS,
+        ElrondOASIS,
+        TRONOASIS,
+        CosmosBlockChainOASIS,
+        RootstockOASIS,
+        ChainLinkOASIS,
+        IPFSOASIS, //IPFS
+        PinataOASIS,
+        HoloOASIS, //Holochain
+        MongoDBOASIS, //Databases
+        Neo4jOASIS,
         SQLLiteDBOASIS,
         SQLServerDBOASIS,
         OracleDBOASIS,
+        GoogleCloudOASIS, //Clouds
         AzureStorageOASIS,
         AzureCosmosDBOASIS,
-        ElrondOASIS,
-        UrbitOASIS,
-        ChainLinkOASIS,
+        AWSOASIS,
+        UrbitOASIS, //Other
         ThreeFoldOASIS,
         PLANOASIS,
         HoloWebOASIS,
-        TRONOASIS,
-        Neo4jOASIS,
-        CosmosBlockChainOASIS,
-        LocalFileOASIS,
-        RootstockOASIS
+        SOLIDOASIS,
+        ActivityPubOASIS,
+        ScuttlebuttOASIS,
+        LocalFileOASIS
     }
 }

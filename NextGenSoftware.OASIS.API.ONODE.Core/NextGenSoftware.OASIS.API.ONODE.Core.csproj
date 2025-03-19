@@ -38,9 +38,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Google.Cloud.Storage.V1" Version="4.10.0" />
+	  <PackageReference Include="Google.Cloud.Storage.V1" Version="4.11.0" />
+	  <PackageReference Include="Pinata.Client" Version="1.0.0" />
+	  <PackageReference Include="PinataNET" Version="1.0.2" />
 	  <PackageReference Include="SevenZip" Version="19.0.0" />
-	  <PackageReference Include="SharpCompress" Version="0.38.0" />
+	  <PackageReference Include="SharpCompress" Version="0.39.0" />
 	  <PackageReference Include="SharpZipLib" Version="1.4.2" />
 	</ItemGroup>
 

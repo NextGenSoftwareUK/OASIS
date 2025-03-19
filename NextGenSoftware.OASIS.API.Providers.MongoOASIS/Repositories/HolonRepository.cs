@@ -81,7 +81,25 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonId == id);
-                return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
+                //return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
+
+                Holon holon = await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
+
+                if (holon != null)
+                {
+                    if ((holon.ProviderUniqueStorageKey != null && holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS) && holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] != holon.Id)
+                        || (holon.ProviderUniqueStorageKey != null && !holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS))
+                        || holon.ProviderUniqueStorageKey == null)
+                    {
+                        if (holon.ProviderUniqueStorageKey == null)
+                            holon.ProviderUniqueStorageKey = new Dictionary<ProviderType, string>();
+
+                        holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
+                        await UpdateAsync(holon);
+                    }
+                }
+
+                return holon;
             }
             catch
             {
@@ -94,7 +112,25 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonId == id);
-                return _dbContext.Holon.Find(filter).FirstOrDefault();
+                //return _dbContext.Holon.Find(filter).FirstOrDefault();
+
+                Holon holon = _dbContext.Holon.Find(filter).FirstOrDefault();
+
+                if (holon != null)
+                {
+                    if ((holon.ProviderUniqueStorageKey != null && holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS) && holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] != holon.Id)
+                        || (holon.ProviderUniqueStorageKey != null && !holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS))
+                        || holon.ProviderUniqueStorageKey == null)
+                    {
+                        if (holon.ProviderUniqueStorageKey == null)
+                            holon.ProviderUniqueStorageKey = new Dictionary<ProviderType, string>();
+
+                        holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
+                        Update(holon);
+                    }
+                }
+
+                return holon;
             }
             catch
             {

@@ -4305,7 +4305,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write(" (The");
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(" ♥");
+            Console.Write(" ♥❤️❤ 💓");
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write(" Of The OASIS)");
             Console.ForegroundColor = ConsoleColor.Yellow;
