@@ -188,7 +188,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (!string.IsNullOrEmpty(launchTarget))
                 {
                     if (!CLIEngine.GetConfirmation($"{launchTargetQuestion} Do you wish to use the following default launch target: {launchTarget}?"))
+                    {
+                        Console.WriteLine("");
                         launchTarget = CLIEngine.GetValidFile("What launch target do you wish to use? ", oappTemplatePath);
+                    }
                     else
                         launchTarget = Path.Combine(oappTemplatePath, launchTarget);
                 }
@@ -234,6 +237,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (largeProviderTypeObject != null)
                             OAPPBinaryProviderType = (ProviderType)largeProviderTypeObject;
                     }
+                    else
+                        Console.WriteLine("");
                 }
 
                 if (Path.IsPathRooted(STAR.STARDNA.DefaultOAPPTemplatesPublishedPath))
@@ -244,11 +249,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 //Console.WriteLine("");
                 if (!CLIEngine.GetConfirmation($"Do you wish to publish the OAPP Template to the default publish folder defined in the STARDNA as DefaultOAPPTemplatesPublishedPath : {publishPath}?"))
                 {
+                    Console.WriteLine("");
+
                     if (CLIEngine.GetConfirmation($"Do you wish to publish the OAPP Template to: {Path.Combine(oappTemplatePath, "Published")}?"))
                         publishPath = Path.Combine(oappTemplatePath, "Published");
                     else
+                    {
+                        Console.WriteLine("");
                         publishPath = CLIEngine.GetValidFolder("Where do you wish to publish the OAPP Template?", true);
+                    }
                 }
+
+                publishPath = new DirectoryInfo(publishPath).FullName;
 
                 Console.WriteLine("");
                 CLIEngine.ShowWorkingMessage("Publishing OAPP Template...");
@@ -307,7 +319,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             Console.WriteLine("");
 
             if (!CLIEngine.GetConfirmation($"Do you wish to install the OAPP Template to the default install folder defined in the STARDNA as DefaultOAPPTemplatesInstalledPath : {installPath}?"))
+            {
+                Console.WriteLine("");
                 installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the OAPP Template?", true);
+            }
+
+            installPath = new DirectoryInfo(installPath).FullName;
 
             if (!string.IsNullOrEmpty(idOrName))
             {
