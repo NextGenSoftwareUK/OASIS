@@ -135,27 +135,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
         public static async Task PublishOAPPTemplateAsync(string oappTemplatePath = "", ProviderType providerType = ProviderType.Default)
-        //public static async Task PublishOAPPAsync(string oappPath = "", ProviderType providerType = ProviderType.Default)
         {
             bool generateOAPPSource = false;
             bool uploadOAPPSource = false;
             bool generateOAPP = true;
-            //bool uploadOAPP = true;
             bool uploadOAPPToCloud = false;
             bool generateOAPPSelfContained = false;
-            //bool uploadOAPPSelfContained = false;
             bool uploadOAPPSelfContainedToCloud = false;
             bool generateOAPPSelfContainedFull = false;
-            //bool uploadOAPPSelfContainedFull = false;
             bool uploadOAPPSelfContainedFullToCloud = false;
             bool makeOAPPSourcePublic = false;
-            ProviderType OAPPBinaryProviderType = providerType; //ProviderType.IPFSOASIS;
-            ProviderType OAPPSelfContainedBinaryProviderType = ProviderType.IPFSOASIS; //ProviderType.IPFSOASIS;
-            ProviderType OAPPSelfContainedFullBinaryProviderType = ProviderType.IPFSOASIS; //ProviderType.IPFSOASIS;
+            ProviderType OAPPBinaryProviderType = providerType;  
+            ProviderType OAPPSelfContainedBinaryProviderType = ProviderType.IPFSOASIS;
+            ProviderType OAPPSelfContainedFullBinaryProviderType = ProviderType.IPFSOASIS;
             string launchTarget = "";
             string publishPath = "";
             string launchTargetQuestion = "";
-            // bool publishDotNot = false;
 
             if (string.IsNullOrEmpty(oappTemplatePath))
             {
@@ -174,13 +169,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     case OAPPTemplateType.WPF:
                     case OAPPTemplateType.WinForms:
                         launchTarget = $"{OAPPTemplateDNAResult.Result.Name}.exe"; //TODO: For this line to work need to remove the namespace question so it just uses the OAPPName as the namespace. //TODO: Eventually this will be set in the OAPPTemplate and/or can also be set when I add the command line dotnet publish integration.
-                        //launchTarget = $"bin\\Release\\net8.0\\{OAPPDNAResult.Result.OAPPName}.exe"; //TODO: For this line to work need to remove the namespace question so it just uses the OAPPName as the namespace. //TODO: Eventually this will be set in the OAPPTemplate and/or can also be set when I add the command line dotnet publish integration.
                         break;
 
                     case OAPPTemplateType.Blazor:
                     case OAPPTemplateType.MAUI:
                     case OAPPTemplateType.WebMVC:
-                        //launchTarget = $"bin\\Release\\net8.0\\index.html"; 
                         launchTarget = $"index.html";
                         break;
                 }
@@ -197,25 +190,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
                 else
                     launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, oappTemplatePath);
-
-                //if (CLIEngine.GetConfirmation("Do you wish to upload/publish the .oapptemplate file to STARNET?"))
-                //{
-                //    if (CLIEngine.GetConfirmation("Do you wish to upload/publish the .oapptemplate file to cloud storage?"))
-                //        uploadOAPPToCloud = true;
-
-                //    object OAPPBinaryProviderTypeObject = CLIEngine.GetValidInputForEnum("Do you wish to upload/publish the .oapptemplate file to The OASIS? If so what provider do you wish to upload to? If you do not wish to then enter 'None'.", typeof(ProviderType));
-
-                //    if (OAPPBinaryProviderTypeObject != null)
-                //    {
-                //        if (OAPPBinaryProviderTypeObject.ToString() == "exit")
-                //            return;
-                //        else
-                //            OAPPBinaryProviderType = (ProviderType)OAPPBinaryProviderTypeObject;
-                //    }
-                //}
-
-                //if (!uploadOAPPToCloud && OAPPBinaryProviderType == ProviderType.None)
-                //    CLIEngine.ShowMessage("Since you did not select to upload to the cloud or OASIS storage the oapptemplate will NOT be published to STARNET.");
 
                 Console.WriteLine("");
                 bool registerOnSTARNET = CLIEngine.GetConfirmation("Do you wish to publish to STARNET? If you select 'Y' to this question then your OAPP Template will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .oapptemplate install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.");
@@ -246,7 +220,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     publishPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPTemplatesPublishedPath);
 
-                //Console.WriteLine("");
                 if (!CLIEngine.GetConfirmation($"Do you wish to publish the OAPP Template to the default publish folder defined in the STARDNA as DefaultOAPPTemplatesPublishedPath : {publishPath}?"))
                 {
                     Console.WriteLine("");
@@ -273,7 +246,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
                 {
-                    //CLIEngine.ShowSuccessMessage("OAPP Template Successfully Published.");
                     ShowOAPPTemplate(publishResult.Result);
 
                     if (CLIEngine.GetConfirmation("Do you wish to install the OAPP Template now?"))
@@ -309,7 +281,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             OASISResult<IInstalledOAPPTemplate> installResult = new OASISResult<IInstalledOAPPTemplate>();
             string installPath = "";
-            bool nestedInstall = false;
+
+            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged += OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
+            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged += OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
 
             if (Path.IsPathRooted(STAR.STARDNA.DefaultOAPPTemplatesInstalledPath))
                 installPath = STAR.STARDNA.DefaultOAPPTemplatesInstalledPath;
@@ -329,28 +303,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (!string.IsNullOrEmpty(idOrName))
             {
                 Console.WriteLine("");
-                OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "install", providerType, false);
+                OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateForProviderAsync(idOrName, "install", providerType, false);
 
                 if (result != null && result.Result != null && !result.IsError)
-                {
-                    STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged += OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
-                    STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged += OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
-                    //CLIEngine.ShowWorkingMessage("Installing OAPP Template...");
-                    //Console.WriteLine("");
-
-                    //string publishPath = "";
-
-                    //if (Path.IsPathRooted(STAR.STARDNA.DefaultOAPPTemplatesPublishedPath))
-                    //    publishPath = STAR.STARDNA.DefaultOAPPTemplatesPublishedPath;
-                    //else
-                    //    publishPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPTemplatesPublishedPath);
-
-                    //installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result.Id, publishPath, installPath, providerType);
-                    installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result.Id, installPath, true, providerType);
-                    STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged -= OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
-                    STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged -= OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
-                }
-                
+                    installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, installPath, true, providerType);
 
                 //ProviderType largeFileProviderType = ProviderType.IPFSOASIS;
                 //object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to install the OAPP Template from? (The default is IPFSOASIS)", typeof(ProviderType));
@@ -388,8 +344,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     Console.WriteLine("");
                     string oappPath = CLIEngine.GetValidFile("What is the full path to the .oapptemplate file?");
 
-                    //CLIEngine.ShowWorkingMessage("Installing OAPP Template...");
-                    //Console.WriteLine("");
+                    if (oappPath == "exit")
+                        return installResult;
+                    
                     installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappPath, installPath, true, providerType);
                 }
                 else
@@ -400,15 +357,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (oappTemplatesResult != null && oappTemplatesResult.Result != null && !oappTemplatesResult.IsError && oappTemplatesResult.Result.Count() > 0)
                     {
-                        OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync("", "install", providerType);
+                        OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateForProviderAsync("", "install", providerType, false);
 
                         if (result != null && result.Result != null && !result.IsError)
-                        {
-                            //CLIEngine.ShowWorkingMessage("Installing OAPP Template...");
-                            //Console.WriteLine("");
-                            nestedInstall = true;
-                            installResult = await InstallOAPPTemplateAsync(result.Result.Id.ToString());
-                        }
+                            installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, installPath, true, providerType);
                         else
                         {
                             installResult.Message = result.Message;
@@ -427,20 +379,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (!installResult.IsError && installResult.Result != null)
                 {
-                    if (!nestedInstall)
-                    {
-                        //CLIEngine.ShowSuccessMessage("OAPP Template Successfully Installed.");
-                        ShowInstalledOAPPTemplate(installResult.Result);
+                    ShowInstalledOAPPTemplate(installResult.Result);
 
-                        if (CLIEngine.GetConfirmation("Do you wish to open the folder to the OAPP Template now?"))
-                            STAR.OASISAPI.OAPPTemplates.OpenOAPPTemplateFolder(STAR.BeamedInAvatar.Id, installResult.Result);
-                    }
+                    if (CLIEngine.GetConfirmation("Do you wish to open the folder to the OAPP Template now?"))
+                        STAR.OASISAPI.OAPPTemplates.OpenOAPPTemplateFolder(STAR.BeamedInAvatar.Id, installResult.Result);
                 }
                 else
                     CLIEngine.ShowErrorMessage($"Error installing OAPP Template. Reason: {installResult.Message}");
             }
             else
                 CLIEngine.ShowErrorMessage($"Error installing OAPP Template. Reason: Unknown error occured!");
+
+            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged -= OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
+            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged -= OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
 
             Console.WriteLine("");
             return installResult;
@@ -741,6 +692,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"Unknown error occured loading OAPP Templates.");
         }
 
+        private static async Task<OASISResult<IOAPPTemplate>> LoadOAPPTemplateForProviderAsync(string idOrName, string operationName, ProviderType providerType, bool addSpace = true)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            ProviderType largeFileProviderType = ProviderType.IPFSOASIS;
+
+            if (!CLIEngine.GetConfirmation("Do you wish to download from the cloud or from the OASIS? Press 'Y' for the cloud or N' for the OASIS."))
+            {
+                Console.WriteLine("");
+                object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What OASIS provider do you wish to install the OAPP Template from? (The default is IPFSOASIS)", typeof(ProviderType));
+
+                if (largeProviderTypeObject != null)
+                {
+                    largeFileProviderType = (ProviderType)largeProviderTypeObject;
+                    result = await LoadOAPPTemplateAsync(idOrName, operationName, largeFileProviderType, addSpace);
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, "Error occured in LoadOAPPTemplateForProviderAsync, reason: largeProviderTypeObject is null!");
+            }
+            else
+            {
+                Console.WriteLine("");
+                result = await LoadOAPPTemplateAsync(idOrName, operationName, providerType, addSpace);
+            }
+
+            return result;
+        }
+
         private static async Task<OASISResult<IOAPPTemplate>> LoadOAPPTemplateAsync(string idOrName, string operationName, ProviderType providerType = ProviderType.Default, bool addSpace = true)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
@@ -751,6 +729,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (addSpace)
                 Console.WriteLine("");
+
+            
 
             CLIEngine.ShowWorkingMessage("Loading OAPP Template...");
 
