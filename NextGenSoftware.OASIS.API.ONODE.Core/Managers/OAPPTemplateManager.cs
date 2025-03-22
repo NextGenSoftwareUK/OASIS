@@ -23,6 +23,10 @@ using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.CLI.Engine;
 using PinataNET;
 using PinataNET.Models;
+using Pinata.Client;
+using System.Net.Http;
+using System.Net.Mime;
+using SharpCompress.Common;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -539,6 +543,83 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                         OnOAPPTemplateUploadStatusChanged?.Invoke(this, new OAPPTemplateUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPTemplateUploadStatus.Uploading });
                                         CLIEngine.DisposeProgressBar(false);
                                         Console.WriteLine("");
+
+                                        //HttpClient client = new HttpClient();
+                                        //string pinataApiKey = "33e4469830a51af0171b";
+                                        //string pinataSecretApiKey = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs";
+                                        //string pinataUrl = "https://api.pinata.cloud/pinning/pinFileToIPFS";
+                                        //string filePath = OAPPTemplateDNA.OAPPTemplatePublishedPath;
+
+                                        //using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                                        //using (var content = new MultipartFormDataContent())
+                                        //{
+                                        //    content.Add(new StreamContent(fileStream), "file", Path.GetFileName(filePath));
+                                        //    client.DefaultRequestHeaders.Add("pinata_api_key", pinataApiKey);
+                                        //    client.DefaultRequestHeaders.Add("pinata_secret_api_key", pinataSecretApiKey);
+
+                                        //    var response = await client.PostAsync(pinataUrl, content);
+                                        //    response.EnsureSuccessStatusCode();
+
+                                        //    var responseBody = await response.Content.ReadAsStringAsync();
+                                        //    //return responseBody;
+                                        //}
+
+
+             //                           var config = new Config
+             //                           {
+             //                               ApiKey = "33e4469830a51af0171b",
+             //                               ApiSecret = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs"
+             //                           };
+
+             //                           Pinata.Client.PinataClient pinClient = new Pinata.Client.PinataClient(config);
+
+             //                           //var html = @"
+             //                           //    <html>
+             //                           //       <head>
+             //                           //          <title>Hello IPFS!</title>
+             //                           //       </head>
+             //                           //       <body>
+             //                           //          <h1>Hello World</h1>
+             //                           //       </body>
+             //                           //    </html>
+             //                           //    ";
+
+             //                           var metadata = new PinataMetadata // optional
+             //                           {
+             //                               KeyValues =
+             //{
+             //   {"Author", "David Ellams"}
+             //}
+             //                           };
+
+             //                           var options = new PinataOptions(); // optional
+
+             //                           options.CustomPinPolicy.AddOrUpdateRegion("NYC1", desiredReplicationCount: 1);
+
+             //                           //var response = await client.Pinning.PinFileToIpfsAsync()
+
+             //                           byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
+             //                           using (var content = new MultipartFormDataContent())
+             //                           {
+             //                               var fileContent = new ByteArrayContent(fileBytes);
+             //                               content.Add(fileContent, "file", Path.GetFileName(filePath));
+             //                           }
+
+             //                           var response = await pinClient.Pinning.PinFileToIpfsAsync(content =>
+             //                           {
+             //                               //var file = new StringContent(, Encoding.UTF8, MediaTypeNames.Application.Zip);
+             //                               var file = new StreamContent(fileStream), "file", Path.GetFileName(filePath));
+
+             //                               content.AddPinataFile(file, "index.html");
+             //                           },
+             //                              metadata,
+             //                              options);
+
+             //                           if (response.IsSuccess)
+             //                           {
+             //                               //File uploaded to Pinata Cloud and can be accessed on IPFS!
+             //                               var hash = response.IpfsHash; // QmR9HwzakHVr67HFzzgJHoRjwzTTt4wtD6KU4NFe2ArYuj
+             //                           }
 
                                         //var pinataClient = new PinataClient("33e4469830a51af0171b");
                                         //PinFileResponse pinFileResponse = await pinataClient.PinFileToIPFSAsync(OAPPTemplateDNA.OAPPTemplatePublishedPath);
