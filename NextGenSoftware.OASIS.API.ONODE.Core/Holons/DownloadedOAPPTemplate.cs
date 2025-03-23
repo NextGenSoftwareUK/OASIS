@@ -8,13 +8,13 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
-    public class InstalledOAPPTemplate : Holon, IInstalledOAPPTemplate //TODO: Do we want to use Holon? What was the reason again?! ;-) Think so can be used with Data API and HolonManager?
+    public class DownloadedOAPPTemplate : Holon, IDownloadedOAPPTemplate //TODO: Do we want to use Holon? What was the reason again?! ;-) Think so can be used with Data API and HolonManager?
     {
         private IOAPPTemplateDNA _OAPPTemplateDNA;
 
-        public InstalledOAPPTemplate()
+        public DownloadedOAPPTemplate()
         {
-            this.HolonType = HolonType.InstalledOAPPTemplate;
+            this.HolonType = HolonType.DownloadedOAPPTemplate;
         }
 
         //[CustomOASISProperty]
@@ -22,8 +22,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 
         // [CustomOASISProperty(StoreAsJsonString = true)] //TODO: Get this working later on so we dont need to do the manual code below.
         //public IOAPPDNA OAPPDNA { get; set; }
-
-        public IDownloadedOAPPTemplate DownloadedOAPPTemplate { get; set; }
 
         public IOAPPTemplateDNA OAPPTemplateDNA
         {
@@ -42,15 +40,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         }
 
         [CustomOASISProperty]
-        public string InstalledPath { get; set; }
+        public string DownloadedPath { get; set; }
 
         [CustomOASISProperty]
-        public DateTime InstalledOn { get; set; }
+        public DateTime DownloadedOn { get; set; }
 
         [CustomOASISProperty]
-        public Guid InstalledBy { get; set; }
+        public Guid DownloadedBy { get; set; }
 
         [CustomOASISProperty]
-        public string InstalledByAvatarUsername { get; set; }
+        public string DownloadedByAvatarUsername { get; set; }
     }
 }

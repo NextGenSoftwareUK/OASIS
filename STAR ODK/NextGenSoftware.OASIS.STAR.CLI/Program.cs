@@ -786,7 +786,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             string subCommandPlural = "",
             Func<object, ProviderType, Task> createPredicate = null, 
             Func<string, object, ProviderType, Task> updatePredicate = null, 
-            Func<string, bool, ProviderType, Task> deletePredicate = null, 
+            Func<string, bool, ProviderType, Task> deletePredicate = null,
+            Func<string, ProviderType, Task> downloadPredicate = null,
             Func<string, ProviderType, Task> installPredicate = null,
             Func<string, ProviderType, Task> uninstallPredicate = null,
             Func<string, ProviderType, Task> publishPredicate = null,
@@ -871,6 +872,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 if (deletePredicate != null)
                                     await deletePredicate(id, softDelete, providerType);
+                                else
+                                    CLIEngine.ShowMessage("Coming Soon...");
+                            }
+                            else
+                                CLIEngine.ShowMessage("Command not supported.");
+                        }
+                        break;
+
+                    case "download":
+                        {
+                            if (isOAPPOrHappOrRuntime)
+                            {
+                                if (downloadPredicate != null)
+                                    await downloadPredicate(id, providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
@@ -4421,10 +4436,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    oapp create                                                                         Shortcut to the light sub-command.");
                 Console.WriteLine("    oapp update                                   {id/name}                             Update an existing OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp delete                                   {id/name}                             Delete an existing OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp install                                  {id/name}                             Install a OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp uninstall                                {id/name}                             Uninstall a OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp publish                                  {id/name}                             Shortcut to the seed sub-command.");
                 Console.WriteLine("    oapp unpublish                                {id/name}                             Shortcut to the un-seed sub-command.");
+                Console.WriteLine("    oapp download                                 {id/name}                             Download a OAPP for the given {id} or {name}.");
+                Console.WriteLine("    oapp install                                  {id/name}                             Install/download a OAPP for the given {id} or {name}.");
+                Console.WriteLine("    oapp uninstall                                {id/name}                             Uninstall a OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp show                                     {id/name}                             Shows a OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp list                                     [all]                                 List all OAPPs (contains zomes and holons) that have been generated.");
                 Console.WriteLine("    oapp list installed                                                                 List all OAPP's installed for the currently beamed in avatar.");
@@ -4432,10 +4448,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    oapp template create                                                                Creates a OAPP template.");
                 Console.WriteLine("    oapp template update                         {id/name}                              Updates a OAPP template for the given {id} or {name}.");
                 Console.WriteLine("    oapp template delete                         {id/name}                              Deletes a OAPP template for the given {id} or {name}.");
-                Console.WriteLine("    oapp template install                        {id/name}                              Installs a OAPP template for the given {id} or {name}.");
-                Console.WriteLine("    oapp template uninstall                      {id/name}                              Uninstalls a OAPP template for the given {id} or {name}.");
                 Console.WriteLine("    oapp template publish                        {id/name}                              Publishes a OAPP template to the STARNET store for the given {id} or {name}.");
                 Console.WriteLine("    oapp template unpublish                      {id/name}                              Unpublishes a OAPP template from the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    oapp template download                       {id/name}                              Downloads a OAPP template for the given {id} or {name}.");
+                Console.WriteLine("    oapp template install                        {id/name}                              Installs/downloads a OAPP template for the given {id} or {name}.");
+                Console.WriteLine("    oapp template uninstall                      {id/name}                              Uninstalls a OAPP template for the given {id} or {name}.");
                 Console.WriteLine("    oapp template show                           {id/name}                              Shows a OAPP template for the given {id} or {name}.");
                 Console.WriteLine("    oapp template list                           [all]                                  List all OAPP template's that have been created.");
                 Console.WriteLine("    oapp template list installed                                                        List all OAPP template's installed for the currently beamed in avatar.");
@@ -4445,6 +4462,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    happ delete                                  {id/name}                              Delete an existing hApp for the given {id} or {name}.");
                 Console.WriteLine("    happ publish                                 {id/name}                              Shortcut to the seed sub-command.");
                 Console.WriteLine("    happ unpublish                               {id/name}                              Shortcut to the un-seed sub-command.");
+                Console.WriteLine("    happ download                                {id/name}                              Downloads a hApp for the given {id} or {name}.");
+                Console.WriteLine("    happ install                                 {id/name}                              Installs/downloads a hApp for the given {id} or {name}.");
+                Console.WriteLine("    happ uninstall                               {id/name}                              Uninstalls a hApp for the given {id} or {name}.");
                 Console.WriteLine("    happ show                                    {id/name}                              Shows a hApp for the given {id} or {name}.");
                 Console.WriteLine("    happ list                        [all]                                  List all hApp's (contains zomes) that have been generated.");
                 Console.WriteLine("    happ list installed                                                     List all hApp's installed for the currently beamed in avatar.");
@@ -4454,6 +4474,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    runtime delete                   {id/name}                              Delete an existing runtime for the given {id} or {name}.");
                 Console.WriteLine("    runtime publish                  {id/name}                              Publish a runtime.");
                 Console.WriteLine("    runtime unpublish                {id/name}                              Unpublish a runtime.");
+                Console.WriteLine("    runtime download                 {id/name}                              Downloads a runtime for the given {id} or {name}.");
+                Console.WriteLine("    runtime install                  {id/name}                              Installs/downloads a runtime for the given {id} or {name}.");
+                Console.WriteLine("    runtime uninstall                {id/name}                              Uninstalls a runtime for the given {id} or {name}.");
                 Console.WriteLine("    runtime show                     {id/name}                              Shows a runtime for the given {id} or {name}.");
                 Console.WriteLine("    runtime list                     [all]                                  List all runtime's that have been generated.");
                 Console.WriteLine("    runtime list installed                                                  List all runtime's installed for the currently beamed in avatar.");

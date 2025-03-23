@@ -72,12 +72,15 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultPlanetId { get; set; }
         public string DefaultOAPPsSourcePath { get; set; } = "OAPPs\\Source"; //Use to be the Genesis folder above. Not sure what sounds better? Source or Genesis?
         public string DefaultOAPPsPublishedPath { get; set; } = "OAPPs\\Published";
+        public string DefaultOAPPsDownloadedPath { get; set; } = "OAPPs\\Downloaded";
         public string DefaultOAPPsInstalledPath { get; set; } = "OAPPs\\Installed";
         public string DefaultOAPPTemplatesSourcePath { get; set; } = "OAPPTemplates\\Source";
         public string DefaultOAPPTemplatesPublishedPath { get; set; } = "OAPPTemplates\\Published";
+        public string DefaultOAPPTemplatesDownloadedPath { get; set; } = "OAPPTemplates\\Downloaded";
         public string DefaultOAPPTemplatesInstalledPath { get; set; } = "OAPPTemplates\\Installed";
         public string DefaultRuntimesSourcePath { get; set; } = "Runtimes\\Source";
         public string DefaultRuntimesPublishedPath { get; set; } = "Runtimes\\Published";
+        public string DefaultRuntimesDownloadedPath { get; set; } = "Runtimes\\Downloaded";
         public string DefaultRuntimesInstalledPath { get; set; } = "Runtimes\\Installed\\Other";
         public string DefaultRuntimesInstalledOASISPath { get; set; } = "Runtimes\\OASIS";
         public string DefaultRuntimesInstalledSTARPath { get; set; } = "Runtimes\\STAR";
