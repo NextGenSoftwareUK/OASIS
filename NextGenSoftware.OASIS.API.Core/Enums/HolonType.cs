@@ -56,6 +56,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         OAPPTemplate,
         InstalledOAPP,
         InstalledOAPPTemplate,
+        DownloadedOAPPTemplate,
         GeoHotSpot,
         Runtime,
         InstalledRuntime,

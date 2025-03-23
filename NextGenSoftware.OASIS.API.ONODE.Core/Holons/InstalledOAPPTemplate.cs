@@ -23,6 +23,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         // [CustomOASISProperty(StoreAsJsonString = true)] //TODO: Get this working later on so we dont need to do the manual code below.
         //public IOAPPDNA OAPPDNA { get; set; }
 
+        public IDownloadedOAPPTemplate DownloadedOAPPTemplate { get; set; }
+
         public IOAPPTemplateDNA OAPPTemplateDNA
         {
             get

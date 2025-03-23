@@ -58,15 +58,18 @@
     "DefaultPlanetId": "",
     "DefaultOAPPsSourcePath": "OAPPs\\Source", //Can be releative to BasePath above or absolute.
     "DefaultOAPPsPublishedPath": "OAPPs\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultOAPPsDownloadedPath": "OAPPs\\Downloaded", //Can be releative to BasePath above or absolute.
     "DefaultOAPPsInstalledPath": "OAPPs\\Installed", //Can be releative to BasePath above or absolute.
     "DefaultOAPPTemplatesSourcePath": "OAPPTemplates\\Source", //Can be releative to BasePath above or absolute.
     "DefaultOAPPTemplatesPublishedPath": "OAPPTemplates\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultOAPPTemplatesDownloadedPath": "OAPPTemplates\\Downloaded", //Can be releative to BasePath above or absolute.
     "DefaultOAPPTemplatesInstalledPath": "OAPPTemplates\\Installed", //Can be releative to BasePath above or absolute.
     "DefaultRuntimesSourcePath": "Runtimes\\Source", //Can be releative to BasePath above or absolute.": null,
     "DefaultRuntimePublishedPath": "Runtimes\\Published", //Can be releative to BasePath above or absolute.": null,
+    "DefaultRuntimeDownloadedPath": "Runtimes\\Downloaded", //Can be releative to BasePath above or absolute.": null,
     "DefaultRuntimeInstalledPath": "Runtimes\\Installed\\Other", //Can be releative to BasePath above or absolute.
     //"DefaultInstalledOASISRuntimePath": "Runtimes\\Installed\\OASIS Runtimes", //Can be releative to BasePath above or absolute.
     //"DefaultInstalledSTARRuntimePath": "Runtimes\\Installed\\STAR Runtimes" //Can be releative to BasePath above or absolute.
-    "DefaultRuntimeInstalledOASISPath": "Runtimes\\OASIS", //TEMP TILL I CAN CHANGE THE FOLDER STRUCTURE TO ABOVE...
-    "DefaultRuntimeInstalledSTARPath": "Runtimes\\STAR" //TEMP TILL I CAN CHANGE THE FOLDER STRUCTURE TO ABOVE...
+    "DefaultRuntimeInstalledOASISPath": "Runtimes\\Installed\\OASIS", //TEMP TILL I CAN CHANGE THE FOLDER STRUCTURE TO ABOVE...
+    "DefaultRuntimeInstalledSTARPath": "Runtimes\\Installed\\STAR" //TEMP TILL I CAN CHANGE THE FOLDER STRUCTURE TO ABOVE...
 }
