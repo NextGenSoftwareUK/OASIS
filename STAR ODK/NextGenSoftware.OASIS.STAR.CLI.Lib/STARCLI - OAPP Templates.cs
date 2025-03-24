@@ -343,19 +343,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateForProviderAsync(idOrName, operation, providerType, false);
 
                 if (result != null && result.Result != null && !result.IsError)
-                {
-                    if (install)
-                        installResult = await STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, providerType);
-                    else
-                    {
-                        installResult.Result.DownloadedOAPPTemplate = await STAR.OASISAPI.OAPPTemplates.DownloadOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, providerType);
-                    }
-                }
+                    installResult = await InstallOAPPTemplateAsync(result.Result, downloadPath, installPath, install, providerType);
             }
             else
             {
                 Console.WriteLine("");
-                if (CLIEngine.GetConfirmation("Do you wish to install the OAPP Template from a local .oapptemplate file or from STARNET? Press 'Y' for local .oapptemplate file or 'N' for STARNET."))
+                if (install && CLIEngine.GetConfirmation("Do you wish to install the OAPP Template from a local .oapptemplate file or from STARNET? Press 'Y' for local .oapptemplate file or 'N' for STARNET."))
                 {
                     Console.WriteLine("");
                     string oappPath = CLIEngine.GetValidFile("What is the full path to the .oapptemplate file?");
@@ -376,7 +369,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateForProviderAsync("", operation, providerType, false);
 
                         if (result != null && result.Result != null && !result.IsError)
-                            installResult = await STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, providerType);
+                            installResult = await InstallOAPPTemplateAsync(result.Result, downloadPath, installPath, install, providerType);
                         else
                         {
                             installResult.Message = result.Message;
@@ -628,6 +621,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Version:                                    ", oappTemplateDNA.Version));
             CLIEngine.ShowMessage(string.Concat($"Versions:                                   ", oappTemplateDNA.Versions));
             CLIEngine.ShowMessage(string.Concat($"Downloads:                                  ", oappTemplateDNA.Downloads));
+            CLIEngine.ShowMessage(string.Concat($"Installs:                                   ", oappTemplateDNA.Installs));
             //CLIEngine.ShowMessage(string.Concat($"STAR ODK Version:                                     ", oappTemplateDNA.STARODKVersion));
             //CLIEngine.ShowMessage(string.Concat($"OASIS Version:                                        ", oappTemplateDNA.OASISVersion));
             //CLIEngine.ShowMessage(string.Concat($"COSMIC Version:                                       ", oappTemplateDNA.COSMICVersion));
@@ -640,6 +634,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public static void ShowInstalledOAPPTemplate(IInstalledOAPPTemplate oappTemplate)
         {
             ShowOAPPTemplate(oappTemplate.OAPPTemplateDNA, false);
+            CLIEngine.ShowMessage(string.Concat($"Downloaded On:                              ", oappTemplate.DownloadedOAPPTemplate != null && oappTemplate.DownloadedOAPPTemplate.DownloadedOn != DateTime.MinValue ? oappTemplate.DownloadedOAPPTemplate.DownloadedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Downloaded By:                              ", oappTemplate.DownloadedOAPPTemplate != null && oappTemplate.DownloadedOAPPTemplate.DownloadedBy != Guid.Empty ? string.Concat(oappTemplate.InstalledByAvatarUsername, " (", oappTemplate.InstalledBy.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Downloaded Path:                            ", oappTemplate.DownloadedOAPPTemplate != null ? oappTemplate.DownloadedOAPPTemplate.DownloadedPath : "None"));
             CLIEngine.ShowMessage(string.Concat($"Installed On:                               ", oappTemplate.InstalledOn != DateTime.MinValue ? oappTemplate.InstalledOn.ToString() : "None"));
             CLIEngine.ShowMessage(string.Concat($"Installed By:                               ", oappTemplate.InstalledBy != Guid.Empty ? string.Concat(oappTemplate.InstalledByAvatarUsername, " (", oappTemplate.InstalledBy.ToString(), ")") : "None"));
             CLIEngine.ShowMessage(string.Concat($"Installed Path:                             ", oappTemplate.InstalledPath));
@@ -878,6 +875,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
                 else
                     CLIEngine.ShowErrorMessage($"An error occured calling STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplate. Reason: {allOAPPsTemplatesResult.Message}");
+            }
+
+            return result;
+        }
+
+        private static async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(IOAPPTemplate oappTemplate, string downloadPath, string installPath, bool install = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
+
+            if (install)
+                result = await STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappTemplate, installPath, downloadPath, true, providerType);
+            else
+            {
+                OASISResult<IDownloadedOAPPTemplate> downloadResult = await STAR.OASISAPI.OAPPTemplates.DownloadOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappTemplate, downloadPath, providerType);
+
+                if (downloadResult != null && downloadResult.Result != null && !downloadResult.IsError)
+                    result.Result.DownloadedOAPPTemplate = downloadResult.Result;
+                else
+                {
+                    result.Message = downloadResult.Message;
+                    result.IsError = true;
+                }
             }
 
             return result;

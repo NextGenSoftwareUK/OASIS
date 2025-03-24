@@ -36,5 +36,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 
         public int Versions { get; set; }
         public int Downloads { get; set; }
+        public int Installs { get; set; }
     }
 }

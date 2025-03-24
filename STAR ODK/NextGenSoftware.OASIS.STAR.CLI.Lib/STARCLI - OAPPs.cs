@@ -128,7 +128,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                         if (CLIEngine.GetConfirmation($"The selected OAPP Template is not currently installed. Do you wish to install it now?"))
                                         {
                                             //STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, OAPPTemplateId, providerType);
-                                            OASISResult<IInstalledOAPPTemplate> installResult = await InstallOAPPTemplateAsync(OAPPTemplateId.ToString(), providerType);
+                                            OASISResult<IInstalledOAPPTemplate> installResult = await DownloadAndInstallOAPPTemplateAsync(OAPPTemplateId.ToString(), true, providerType);
 
                                             if (installResult.Result != null && !installResult.IsError)
                                                 templateInstalled = true;
@@ -755,7 +755,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the OAPP. Reason: {result.Message}");
         }
 
-        public static async Task InstallOAPPAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public static async Task InstallOAPPAsync(string idOrName = "", bool install = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPP> installResult = null;
             string installPath = "";

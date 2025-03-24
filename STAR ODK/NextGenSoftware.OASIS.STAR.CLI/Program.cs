@@ -562,7 +562,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                 case "template":
                                                     {
                                                         //await ShowOAPPTemplateSubCommandsAsync(inputArgs);
-                                                        await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.CreateOAPPTemplateAsync, STARCLI.EditOAPPTemplateAsync, STARCLI.DeleteOAPPTemplateAsync, STARCLI.InstallOAPPTemplateAsync, STARCLI.UnInstallOAPPTemplateAsync, STARCLI.PublishOAPPTemplateAsync, STARCLI.UnPublishOAPPTemplateAsync, STARCLI.ShowOAPPTemplateAsync, STARCLI.ListOAPPTemplatesCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPTemplatesAsync, STARCLI.ListOAPPTemplatesInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPTemplatesAsync, ProviderType.Default, true);
+                                                        await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.CreateOAPPTemplateAsync, STARCLI.EditOAPPTemplateAsync, STARCLI.DeleteOAPPTemplateAsync, STARCLI.DownloadAndInstallOAPPTemplateAsync, STARCLI.UnInstallOAPPTemplateAsync, STARCLI.PublishOAPPTemplateAsync, STARCLI.UnPublishOAPPTemplateAsync, STARCLI.ShowOAPPTemplateAsync, STARCLI.ListOAPPTemplatesCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPTemplatesAsync, STARCLI.ListOAPPTemplatesInstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPTemplatesAsync, ProviderType.Default, true);
                                                     }
                                                     break;
                                             }
@@ -787,8 +787,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<object, ProviderType, Task> createPredicate = null, 
             Func<string, object, ProviderType, Task> updatePredicate = null, 
             Func<string, bool, ProviderType, Task> deletePredicate = null,
-            Func<string, ProviderType, Task> downloadPredicate = null,
-            Func<string, ProviderType, Task> installPredicate = null,
+            //Func<string, ProviderType, Task> downloadPredicate = null,
+            //Func<string, ProviderType, Task> installPredicate = null,
+            Func<string, bool, ProviderType, Task> downloadAndInstallPredicate = null,
             Func<string, ProviderType, Task> uninstallPredicate = null,
             Func<string, ProviderType, Task> publishPredicate = null,
             Func<string, ProviderType, Task> unpublishPredicate = null,
@@ -884,10 +885,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         {
                             if (isOAPPOrHappOrRuntime)
                             {
-                                if (downloadPredicate != null)
-                                    await downloadPredicate(id, providerType);
+                                if (downloadAndInstallPredicate != null)
+                                    await downloadAndInstallPredicate(id, false, providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
+
+                                //if (downloadPredicate != null)
+                                //    await downloadPredicate(id, providerType);
+                                //else
+                                //    CLIEngine.ShowMessage("Coming Soon...");
                             }
                             else
                                 CLIEngine.ShowMessage("Command not supported.");
@@ -898,8 +904,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         {
                             if (isOAPPOrHappOrRuntime)
                             {
-                                if (installPredicate != null)
-                                    await installPredicate(id, providerType);
+                                if (downloadAndInstallPredicate != null)
+                                    await downloadAndInstallPredicate(id, true, providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
@@ -1035,7 +1041,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                 if (isOAPPOrHappOrRuntime)
                 {
-                    CLIEngine.ShowMessage(string.Concat("    install".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Install a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    download".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Download a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    install".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Install/download a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                     CLIEngine.ShowMessage(string.Concat("    uninstall".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Uninstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 }
 
