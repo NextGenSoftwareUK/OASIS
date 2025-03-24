@@ -35,5 +35,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 
         int Versions { get; set; }
         int Downloads { get; set; }
+        int Installs { get; set; }
     }
 }

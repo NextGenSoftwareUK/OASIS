@@ -1038,7 +1038,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         }
 
         //public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, string fullPathToPublishedOAPPTemplateFile, string fullInstallPath, bool createOAPPTemplateDirectory = true, string OAPPName = "", ProviderType providerType = ProviderType.Default)
-        public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, string fullPathToPublishedOAPPTemplateFile, string fullInstallPath, bool createOAPPTemplateDirectory = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, string fullPathToPublishedOAPPTemplateFile, string fullInstallPath, bool createOAPPTemplateDirectory = true, DownloadedOAPPTemplate downloadedOAPPTemplate = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.InstallOAPPTemplateAsync. Reason: ";
@@ -1095,6 +1095,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                             {
                                 result.Result = installedOAPPTemplate;
+
+                                if (downloadedOAPPTemplate == null)
+                                {
+                                    //Load Downloaded OAPP Template here
+                                }
+
+                                result.Result.DownloadedOAPPTemplate = downloadedOAPPTemplate;
+
                                 OAPPTemplateDNA.Downloads++;
                                 oappResult.Result.OAPPTemplateDNA = OAPPTemplateDNA;
 
@@ -1198,7 +1206,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                             {
                                 result.Result = installedOAPPTemplate;
-                                OAPPTemplateDNA.Downloads++;
+                                //OAPPTemplateDNA.Downloads++;
+                                OAPPTemplateDNA.Installs++;
                                 oappResult.Result.OAPPTemplateDNA = OAPPTemplateDNA;
 
                                 OASISResult<IOAPPTemplate> oappSaveResult = SaveOAPPTemplate(oappResult.Result, avatarId, providerType);
@@ -1296,13 +1305,53 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         fileStream.Close();
                     }
 
-                    result.Result = new DownloadedOAPPTemplate()
+                    OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
+
+                    if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
                     {
-                        OAPPTemplateDNA = OAPPTemplate.OAPPTemplateDNA,
-                        DownloadedBy = avatarId,
-                        DownloadedOn = DateTime.Now,
-                        DownloadedPath = fullDownloadPath
-                    };
+                        DownloadedOAPPTemplate downloadedOAPPTemplate = new DownloadedOAPPTemplate()
+                        {
+                            OAPPTemplateDNA = OAPPTemplate.OAPPTemplateDNA,
+                            DownloadedBy = avatarId,
+                            DownloadedByAvatarUsername = avatarResult.Result.Username,
+                            DownloadedOn = DateTime.Now,
+                            DownloadedPath = fullDownloadPath
+                        };
+
+                        OASISResult<IHolon> saveResult = await downloadedOAPPTemplate.SaveAsync();
+
+                        if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                        {
+                            result.Result = downloadedOAPPTemplate;
+                            OAPPTemplate.OAPPTemplateDNA.Downloads++;
+                            OASISResult<IOAPPTemplate> oappSaveResult = await SaveOAPPTemplateAsync(OAPPTemplate, avatarId, providerType);
+
+                            if (oappSaveResult != null && !oappSaveResult.IsError && oappSaveResult.Result != null)
+                            {
+                                //if (OAPPTemplateDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
+                                //    OASISErrorHandling.HandleWarning(ref result, $"The STAR ODK Version {OAPPTemplateDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                //if (OAPPTemplateDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
+                                //    OASISErrorHandling.HandleWarning(ref result, $"The OASIS Version {OAPPTemplateDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                //if (OAPPTemplateDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
+                                //    OASISErrorHandling.HandleWarning(ref result, $"The COSMIC Version {OAPPTemplateDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                if (result.InnerMessages.Count > 0)
+                                    result.Message = $"OAPP Template successfully downloaded but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                                else
+                                    result.Message = "OAPP Template Successfully Downloaded";
+
+                                //OnOAPPTemplateInstallStatusChanged?.Invoke(this, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNAResult.Result, Status = Enums.OAPPTemplateInstallStatus.Installed });
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPTemplateAsync method. Reason: {oappSaveResult.Message}");
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync method on downloadedOAPPTemplate. Reason: {saveResult.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync method. Reason: {avatarResult.Message}");
                 }
                 catch (Exception ex)
                 {
@@ -1355,11 +1404,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     OASISResult<IDownloadedOAPPTemplate> downloadResult = await DownloadOAPPTemplateAsync(avatarId, OAPPTemplate, fullDownloadPath, providerType);
 
                     if (downloadResult != null && downloadResult.Result != null && !downloadResult.IsError)
-                        result = await InstallOAPPTemplateAsync(avatarId, fullDownloadPath, fullInstallPath, createOAPPTemplateDirectory, providerType);
+                        result = await InstallOAPPTemplateAsync(avatarId, fullDownloadPath, fullInstallPath, createOAPPTemplateDirectory, downloadResult.Result, providerType);
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured downloading the OAPP Template with the DownloadOAPPTemplateAsync method, reason: {downloadResult.Message}");
 
-                    result.Result.DownloadedOAPPTemplate = downloadResult.Result;
+                    //result.Result.DownloadedOAPPTemplate = downloadResult.Result;
                 }
             }
             catch (Exception ex)
@@ -1442,7 +1491,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<IOAPPTemplate> OAPPTemplateResult = await LoadOAPPTemplateAsync(OAPPTemplateId, providerType);
 
             if (OAPPTemplateResult != null && !OAPPTemplateResult.IsError && OAPPTemplateResult.Result != null)
-                result = await InstallOAPPTemplateAsync(avatarId, OAPPTemplateResult.Result, fullInstallPath, fullDownloadPath, createOAPPTemplateDirectory, providerType);
+                result = await DownloadAndInstallOAPPTemplateAsync(avatarId, OAPPTemplateResult.Result, fullInstallPath, fullDownloadPath, createOAPPTemplateDirectory, providerType);
             else
             {
                 OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPTemplateManager.InstallOAPPTemplateAsync loading the OAPP Template with the LoadOAPPTemplateAsync method, reason: {result.Message}");
@@ -1695,7 +1744,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 try
                 {
-                    Process.Start("explorer.exe", OAPPTemplate.InstalledPath);
+                    if (!string.IsNullOrEmpty(OAPPTemplate.InstalledPath))
+                        Process.Start("explorer.exe", OAPPTemplate.InstalledPath);
+
+                    else if (OAPPTemplate.DownloadedOAPPTemplate != null && !string.IsNullOrEmpty(OAPPTemplate.DownloadedOAPPTemplate.DownloadedPath))
+                        Process.Start("explorer.exe", OAPPTemplate.DownloadedOAPPTemplate.DownloadedPath);
                 }
                 catch (Exception e)
                 {

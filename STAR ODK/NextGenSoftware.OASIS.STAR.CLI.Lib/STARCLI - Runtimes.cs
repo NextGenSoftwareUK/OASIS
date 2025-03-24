@@ -259,7 +259,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task<OASISResult<IInstalledRuntime>> InstallRuntimeAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IInstalledRuntime>> InstallRuntimeAsync(string idOrName = "", bool install = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledRuntime> installResult = new OASISResult<IInstalledRuntime>();
             string installPath = "";
