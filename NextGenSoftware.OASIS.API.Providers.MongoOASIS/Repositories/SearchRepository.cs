@@ -102,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                         if (searchTextGroup.SearchHolons)
                         {
-                            if (searchTextGroup.HolonSearchParams.Name)
+                            if (searchTextGroup.HolonSearchParams.Name || searchTextGroup.HolonSearchParams.SearchAllFields)
                             {
                                 holonFilter = Builders<Holon>.Filter.Regex("Name", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
                                 holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
