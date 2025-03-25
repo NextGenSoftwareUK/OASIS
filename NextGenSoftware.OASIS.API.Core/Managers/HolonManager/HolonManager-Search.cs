@@ -89,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T>>> SearchHolonsAsync<T>(string searchTerm, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon
+        public async Task<OASISResult<IEnumerable<T>>> SearchHolonsAsync<T>(string searchTerm, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
             OASISResult<ISearchResults> searchResults = await SearchManager.Instance.SearchAsync(new SearchParams()
@@ -110,7 +110,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             });
 
             if (searchResults != null && !searchResults.IsError && searchResults.Result != null)
-                result.Result = Mapper.Convert<IHolon, T>(searchResults.Result.SearchResultHolons);
+            {
+                //result.Result = Mapper.Convert<IHolon, T>(searchResults.Result.SearchResultHolons);
+
+                List<T> results = new List<T>();
+                foreach (IHolon holon in searchResults.Result.SearchResultHolons)
+                {
+                    //results.Add((T)holon);
+
+                    T holonResult = new T();
+                    holonResult = (T)Mapper.MapBaseHolonProperties(holon, holonResult);
+                    results.Add(holonResult);
+                }
+
+                result.Result = results;
+            }
 
             return result;
         }
