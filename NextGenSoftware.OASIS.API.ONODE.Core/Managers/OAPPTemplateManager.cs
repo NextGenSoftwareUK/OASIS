@@ -27,6 +27,7 @@ using Pinata.Client;
 using System.Net.Http;
 using System.Net.Mime;
 using SharpCompress.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -92,6 +93,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     Description = description
                 };
 
+                OAPPTemplate.MetaData["OAPPTemplateId"] = OAPPTemplate.Id.ToString();
+                //OAPPTemplate.MetaData["Version"] = "1.0.0";
+                //OAPPTemplate.MetaData["Versions"] = 1;
                 OAPPTemplate.MetaData["OAPPTemplateType"] = Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType);
                 OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
@@ -271,7 +275,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> LoadAllOAPPTemplatesAsync(OAPPTemplateType OAPPTemplateType = OAPPTemplateType.All, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> LoadAllOAPPTemplatesAsync(OAPPTemplateType OAPPTemplateType = OAPPTemplateType.All, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
             OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = null;
@@ -279,10 +283,43 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             if (OAPPTemplateType == OAPPTemplateType.All)
                 loadHolonsResult = await Data.LoadAllHolonsAsync<OAPPTemplate>(HolonType.OAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
             else
-                loadHolonsResult = await Data.LoadHolonsForParentByMetaDataAsync<OAPPTemplate>("OAPPTemplateType", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType));
+                //TODO: Need to upgrade HolonManager to be able to query for multiple metadata keys at once as well as retreive the latest version.
+                loadHolonsResult = await Data.LoadHolonsForParentByMetaDataAsync<OAPPTemplate>("OAPPTemplateType", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0);
+
+            //0 means we want the latest version.
+            if (version == 0)
+            {
+                Dictionary<string, IOAPPTemplate> latestVersions = new Dictionary<string, IOAPPTemplate>();
+                string metaDataId = "";
+
+                foreach (IOAPPTemplate oappTemplate in loadHolonsResult.Result)
+                {
+                    metaDataId = oappTemplate.MetaData["OAPPTemplateId"].ToString();
+
+                    if ((latestVersions.ContainsKey(metaDataId) &&
+                        //metaDataId == latestVersions[metaDataId].MetaData["OAPPTemplateId"] && 
+                        oappTemplate.OAPPTemplateDNA.CreatedOn > latestVersions[metaDataId].OAPPTemplateDNA.CreatedOn)
+                        || !latestVersions.ContainsKey(metaDataId))
+                            latestVersions[metaDataId] = oappTemplate;
+                }
+
+                result.Result = latestVersions.Values.ToList();
+            }
+            else
+            {
+                List<IOAPPTemplate> filteredList = new List<IOAPPTemplate>();
+
+                foreach (IOAPPTemplate oappTemplate in loadHolonsResult.Result)
+                {
+                    if (oappTemplate.MetaData["Versions"].ToString() == version.ToString())
+                        filteredList.Add(oappTemplate);
+                }
+
+                result.Result = filteredList;
+            }
 
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-            result.Result = loadHolonsResult.Result;
+            //result.Result = loadHolonsResult.Result;
             return result;
         }
 
@@ -467,236 +504,249 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     if (loadAvatarResult != null && loadAvatarResult.Result != null && !loadAvatarResult.IsError)
                     {
-                        string publishedOAPPTemplateFileName = string.Concat(OAPPTemplateDNA.Name, ".oapptemplate");
-
-                        if (string.IsNullOrEmpty(fullPathToPublishTo))
-                            fullPathToPublishTo = Path.Combine(fullPathToOAPPTemplate, "Published");
-
-                        if (!Directory.Exists(fullPathToPublishTo))
-                            Directory.CreateDirectory(fullPathToPublishTo);
-
-                        OAPPTemplateDNA.PublishedOn = DateTime.Now;
-                        OAPPTemplateDNA.PublishedByAvatarId = avatarId;
-                        OAPPTemplateDNA.PublishedByAvatarUsername = loadAvatarResult.Result.Username;
-                        OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && (oappBinaryProviderType != ProviderType.None || uploadOAPPTemplateToCloud);
-
-                        if (generateOAPPTemplateBinary)
-                        {
-                            OAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(fullPathToPublishTo, publishedOAPPTemplateFileName);
-                            OAPPTemplateDNA.OAPPTemplatePublishedToCloud = registerOnSTARNET && uploadOAPPTemplateToCloud;
-                            OAPPTemplateDNA.OAPPTemplatePublishedProviderType = oappBinaryProviderType;
-                        }
-
-                        OAPPTemplateDNA.Versions++;
-                        
-                        //OAPPTemplateDNA.Version
-
-                        WriteOAPPTemplateDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
-                        OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNA, Status = Enums.OAPPTemplatePublishStatus.Compressing });
-
-                        if (generateOAPPTemplateBinary)
-                        {
-                            if (File.Exists(OAPPTemplateDNA.OAPPTemplatePublishedPath))
-                                File.Delete(OAPPTemplateDNA.OAPPTemplatePublishedPath);
-
-                            tempPath = Path.GetTempPath();
-                            tempPath = Path.Combine(tempPath, readOAPPTemplateDNAResult.Result.Name);
-
-                            ZipFile.CreateFromDirectory(fullPathToOAPPTemplate, tempPath);
-                            File.Move(tempPath, readOAPPTemplateDNAResult.Result.OAPPTemplatePublishedPath);
-                        }
-
-                        //TODO: Currently the filesize will NOT be in the compressed .oapptemplate file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPTemplateDNA inside it...
-                        if (!string.IsNullOrEmpty(OAPPTemplateDNA.OAPPTemplatePublishedPath) && File.Exists(OAPPTemplateDNA.OAPPTemplatePublishedPath))
-                            OAPPTemplateDNA.OAPPTemplateFileSize = new FileInfo(OAPPTemplateDNA.OAPPTemplatePublishedPath).Length;
-
-                        WriteOAPPTemplateDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
-
                         OASISResult<IOAPPTemplate> loadOAPPTemplateResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id);
 
                         if (loadOAPPTemplateResult != null && loadOAPPTemplateResult.Result != null && !loadOAPPTemplateResult.IsError)
                         {
-                            loadOAPPTemplateResult.Result.OAPPTemplateDNA = OAPPTemplateDNA;
+                            OASISResult<bool> validateVersionResult = ValidateVersion(OAPPTemplateDNA.Version, loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version);
 
-                            if (registerOnSTARNET)
+                            if (validateVersionResult != null && validateVersionResult.Result && !validateVersionResult.IsError)
                             {
-                                if (uploadOAPPTemplateToCloud)
+                                OAPPTemplateDNA.Versions++;
+                                string publishedOAPPTemplateFileName = string.Concat(OAPPTemplateDNA.Name, ".oapptemplate");
+
+                                if (string.IsNullOrEmpty(fullPathToPublishTo))
+                                    fullPathToPublishTo = Path.Combine(fullPathToOAPPTemplate, "Published");
+
+                                if (!Directory.Exists(fullPathToPublishTo))
+                                    Directory.CreateDirectory(fullPathToPublishTo);
+
+                                OAPPTemplateDNA.PublishedOn = DateTime.Now;
+                                OAPPTemplateDNA.PublishedByAvatarId = avatarId;
+                                OAPPTemplateDNA.PublishedByAvatarUsername = loadAvatarResult.Result.Username;
+                                OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && (oappBinaryProviderType != ProviderType.None || uploadOAPPTemplateToCloud);
+
+                                if (generateOAPPTemplateBinary)
                                 {
-                                    try
+                                    OAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(fullPathToPublishTo, publishedOAPPTemplateFileName);
+                                    OAPPTemplateDNA.OAPPTemplatePublishedToCloud = registerOnSTARNET && uploadOAPPTemplateToCloud;
+                                    OAPPTemplateDNA.OAPPTemplatePublishedProviderType = oappBinaryProviderType;
+                                }
+
+                                WriteOAPPTemplateDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
+                                OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNA, Status = Enums.OAPPTemplatePublishStatus.Compressing });
+
+                                if (generateOAPPTemplateBinary)
+                                {
+                                    if (File.Exists(OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                                        File.Delete(OAPPTemplateDNA.OAPPTemplatePublishedPath);
+
+                                    tempPath = Path.GetTempPath();
+                                    tempPath = Path.Combine(tempPath, readOAPPTemplateDNAResult.Result.Name);
+
+                                    ZipFile.CreateFromDirectory(fullPathToOAPPTemplate, tempPath);
+                                    File.Move(tempPath, readOAPPTemplateDNAResult.Result.OAPPTemplatePublishedPath);
+                                }
+
+                                //TODO: Currently the filesize will NOT be in the compressed .oapptemplate file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPTemplateDNA inside it...
+                                if (!string.IsNullOrEmpty(OAPPTemplateDNA.OAPPTemplatePublishedPath) && File.Exists(OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                                    OAPPTemplateDNA.OAPPTemplateFileSize = new FileInfo(OAPPTemplateDNA.OAPPTemplatePublishedPath).Length;
+
+                                WriteOAPPTemplateDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
+                                loadOAPPTemplateResult.Result.OAPPTemplateDNA = OAPPTemplateDNA;
+
+                                if (registerOnSTARNET)
+                                {
+                                    if (uploadOAPPTemplateToCloud)
                                     {
-                                        OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = readOAPPTemplateDNAResult.Result, Status = Enums.OAPPTemplatePublishStatus.Uploading });
-                                        StorageClient storage = await StorageClient.CreateAsync();
-                                        //var bucket = storage.CreateBucket("oasis", "oapptemplates");
-
-                                        // set minimum chunksize just to see progress updating
-                                        var uploadObjectOptions = new UploadObjectOptions
+                                        try
                                         {
-                                            ChunkSize = UploadObjectOptions.MinimumChunkSize
-                                        };
+                                            OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = readOAPPTemplateDNAResult.Result, Status = Enums.OAPPTemplatePublishStatus.Uploading });
+                                            StorageClient storage = await StorageClient.CreateAsync();
+                                            //var bucket = storage.CreateBucket("oasis", "oapptemplates");
 
-                                        var progressReporter = new Progress<Google.Apis.Upload.IUploadProgress>(OnUploadProgress);
-                                        using (var fileStream = File.OpenRead(OAPPTemplateDNA.OAPPTemplatePublishedPath))
-                                        {
-                                            _fileLength = fileStream.Length;
-                                            _progress = 0;
+                                            // set minimum chunksize just to see progress updating
+                                            var uploadObjectOptions = new UploadObjectOptions
+                                            {
+                                                ChunkSize = UploadObjectOptions.MinimumChunkSize
+                                            };
 
-                                            await storage.UploadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME, publishedOAPPTemplateFileName, "", fileStream, uploadObjectOptions, progress: progressReporter);
+                                            var progressReporter = new Progress<Google.Apis.Upload.IUploadProgress>(OnUploadProgress);
+                                            using (var fileStream = File.OpenRead(OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                                            {
+                                                _fileLength = fileStream.Length;
+                                                _progress = 0;
+
+                                                await storage.UploadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME, publishedOAPPTemplateFileName, "", fileStream, uploadObjectOptions, progress: progressReporter);
+                                            }
+
+                                            _progress = 100;
+                                            OnOAPPTemplateUploadStatusChanged?.Invoke(this, new OAPPTemplateUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPTemplateUploadStatus.Uploading });
+                                            CLIEngine.DisposeProgressBar(false);
+                                            Console.WriteLine("");
+
+                                            //HttpClient client = new HttpClient();
+                                            //string pinataApiKey = "33e4469830a51af0171b";
+                                            //string pinataSecretApiKey = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs";
+                                            //string pinataUrl = "https://api.pinata.cloud/pinning/pinFileToIPFS";
+                                            //string filePath = OAPPTemplateDNA.OAPPTemplatePublishedPath;
+
+                                            //using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                                            //using (var content = new MultipartFormDataContent())
+                                            //{
+                                            //    content.Add(new StreamContent(fileStream), "file", Path.GetFileName(filePath));
+                                            //    client.DefaultRequestHeaders.Add("pinata_api_key", pinataApiKey);
+                                            //    client.DefaultRequestHeaders.Add("pinata_secret_api_key", pinataSecretApiKey);
+
+                                            //    var response = await client.PostAsync(pinataUrl, content);
+                                            //    response.EnsureSuccessStatusCode();
+
+                                            //    var responseBody = await response.Content.ReadAsStringAsync();
+                                            //    //return responseBody;
+                                            //}
+
+
+                                            //                           var config = new Config
+                                            //                           {
+                                            //                               ApiKey = "33e4469830a51af0171b",
+                                            //                               ApiSecret = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs"
+                                            //                           };
+
+                                            //                           Pinata.Client.PinataClient pinClient = new Pinata.Client.PinataClient(config);
+
+                                            //                           //var html = @"
+                                            //                           //    <html>
+                                            //                           //       <head>
+                                            //                           //          <title>Hello IPFS!</title>
+                                            //                           //       </head>
+                                            //                           //       <body>
+                                            //                           //          <h1>Hello World</h1>
+                                            //                           //       </body>
+                                            //                           //    </html>
+                                            //                           //    ";
+
+                                            //                           var metadata = new PinataMetadata // optional
+                                            //                           {
+                                            //                               KeyValues =
+                                            //{
+                                            //   {"Author", "David Ellams"}
+                                            //}
+                                            //                           };
+
+                                            //                           var options = new PinataOptions(); // optional
+
+                                            //                           options.CustomPinPolicy.AddOrUpdateRegion("NYC1", desiredReplicationCount: 1);
+
+                                            //                           //var response = await client.Pinning.PinFileToIpfsAsync()
+
+                                            //                           byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
+                                            //                           using (var content = new MultipartFormDataContent())
+                                            //                           {
+                                            //                               var fileContent = new ByteArrayContent(fileBytes);
+                                            //                               content.Add(fileContent, "file", Path.GetFileName(filePath));
+                                            //                           }
+
+                                            //                           var response = await pinClient.Pinning.PinFileToIpfsAsync(content =>
+                                            //                           {
+                                            //                               //var file = new StringContent(, Encoding.UTF8, MediaTypeNames.Application.Zip);
+                                            //                               var file = new StreamContent(fileStream), "file", Path.GetFileName(filePath));
+
+                                            //                               content.AddPinataFile(file, "index.html");
+                                            //                           },
+                                            //                              metadata,
+                                            //                              options);
+
+                                            //                           if (response.IsSuccess)
+                                            //                           {
+                                            //                               //File uploaded to Pinata Cloud and can be accessed on IPFS!
+                                            //                               var hash = response.IpfsHash; // QmR9HwzakHVr67HFzzgJHoRjwzTTt4wtD6KU4NFe2ArYuj
+                                            //                           }
+
+                                            //var pinataClient = new PinataClient("33e4469830a51af0171b");
+                                            //PinFileResponse pinFileResponse = await pinataClient.PinFileToIPFSAsync(OAPPTemplateDNA.OAPPTemplatePublishedPath);
+
+                                            //if (pinFileResponse != null && !string.IsNullOrEmpty(pinFileResponse.IpfsHash))
+                                            //{
+                                            //    OAPPTemplateDNA.PinataIPFSHash = pinFileResponse.IpfsHash;
+                                            //    OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = true;
+                                            //    OAPPTemplateDNA.OAPPTemplatePublishedToPinata = true;
+                                            //}
+                                            //else
+                                            //{
+                                            //    OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the OAPPTemplate to Pinata.");
+                                            //    OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
+                                            //}
                                         }
+                                        catch (Exception ex)
+                                        {
+                                            CLIEngine.DisposeProgressBar(false);
+                                            Console.WriteLine("");
 
-                                        _progress = 100;
-                                        OnOAPPTemplateUploadStatusChanged?.Invoke(this, new OAPPTemplateUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPTemplateUploadStatus.Uploading });
-                                        CLIEngine.DisposeProgressBar(false);
-                                        Console.WriteLine("");
-
-                                        //HttpClient client = new HttpClient();
-                                        //string pinataApiKey = "33e4469830a51af0171b";
-                                        //string pinataSecretApiKey = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs";
-                                        //string pinataUrl = "https://api.pinata.cloud/pinning/pinFileToIPFS";
-                                        //string filePath = OAPPTemplateDNA.OAPPTemplatePublishedPath;
-
-                                        //using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-                                        //using (var content = new MultipartFormDataContent())
-                                        //{
-                                        //    content.Add(new StreamContent(fileStream), "file", Path.GetFileName(filePath));
-                                        //    client.DefaultRequestHeaders.Add("pinata_api_key", pinataApiKey);
-                                        //    client.DefaultRequestHeaders.Add("pinata_secret_api_key", pinataSecretApiKey);
-
-                                        //    var response = await client.PostAsync(pinataUrl, content);
-                                        //    response.EnsureSuccessStatusCode();
-
-                                        //    var responseBody = await response.Content.ReadAsStringAsync();
-                                        //    //return responseBody;
-                                        //}
-
-
-             //                           var config = new Config
-             //                           {
-             //                               ApiKey = "33e4469830a51af0171b",
-             //                               ApiSecret = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs"
-             //                           };
-
-             //                           Pinata.Client.PinataClient pinClient = new Pinata.Client.PinataClient(config);
-
-             //                           //var html = @"
-             //                           //    <html>
-             //                           //       <head>
-             //                           //          <title>Hello IPFS!</title>
-             //                           //       </head>
-             //                           //       <body>
-             //                           //          <h1>Hello World</h1>
-             //                           //       </body>
-             //                           //    </html>
-             //                           //    ";
-
-             //                           var metadata = new PinataMetadata // optional
-             //                           {
-             //                               KeyValues =
-             //{
-             //   {"Author", "David Ellams"}
-             //}
-             //                           };
-
-             //                           var options = new PinataOptions(); // optional
-
-             //                           options.CustomPinPolicy.AddOrUpdateRegion("NYC1", desiredReplicationCount: 1);
-
-             //                           //var response = await client.Pinning.PinFileToIpfsAsync()
-
-             //                           byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
-             //                           using (var content = new MultipartFormDataContent())
-             //                           {
-             //                               var fileContent = new ByteArrayContent(fileBytes);
-             //                               content.Add(fileContent, "file", Path.GetFileName(filePath));
-             //                           }
-
-             //                           var response = await pinClient.Pinning.PinFileToIpfsAsync(content =>
-             //                           {
-             //                               //var file = new StringContent(, Encoding.UTF8, MediaTypeNames.Application.Zip);
-             //                               var file = new StreamContent(fileStream), "file", Path.GetFileName(filePath));
-
-             //                               content.AddPinataFile(file, "index.html");
-             //                           },
-             //                              metadata,
-             //                              options);
-
-             //                           if (response.IsSuccess)
-             //                           {
-             //                               //File uploaded to Pinata Cloud and can be accessed on IPFS!
-             //                               var hash = response.IpfsHash; // QmR9HwzakHVr67HFzzgJHoRjwzTTt4wtD6KU4NFe2ArYuj
-             //                           }
-
-                                        //var pinataClient = new PinataClient("33e4469830a51af0171b");
-                                        //PinFileResponse pinFileResponse = await pinataClient.PinFileToIPFSAsync(OAPPTemplateDNA.OAPPTemplatePublishedPath);
-
-                                        //if (pinFileResponse != null && !string.IsNullOrEmpty(pinFileResponse.IpfsHash))
-                                        //{
-                                        //    OAPPTemplateDNA.PinataIPFSHash = pinFileResponse.IpfsHash;
-                                        //    OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = true;
-                                        //    OAPPTemplateDNA.OAPPTemplatePublishedToPinata = true;
-                                        //}
-                                        //else
-                                        //{
-                                        //    OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the OAPPTemplate to Pinata.");
-                                        //    OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
-                                        //}
+                                            OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the OAPPTemplate to cloud storage. Reason: {ex}");
+                                            OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
+                                            OAPPTemplateDNA.OAPPTemplatePublishedToCloud = false;
+                                        }
                                     }
-                                    catch (Exception ex)
-                                    {
-                                        CLIEngine.DisposeProgressBar(false);
-                                        Console.WriteLine("");
 
-                                        OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the OAPPTemplate to cloud storage. Reason: {ex}");
-                                        OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
-                                        OAPPTemplateDNA.OAPPTemplatePublishedToCloud = false;
+                                    if (oappBinaryProviderType != ProviderType.None)
+                                    {
+                                        loadOAPPTemplateResult.Result.PublishedOAPPTemplate = File.ReadAllBytes(OAPPTemplateDNA.OAPPTemplatePublishedPath);
+
+                                        //TODO: We could use HoloOASIS and other large file storage providers in future...
+                                        OASISResult<IOAPPTemplate> saveLargeOAPPTemplateResult = await SaveOAPPTemplateAsync(loadOAPPTemplateResult.Result, avatarId, oappBinaryProviderType);
+
+                                        if (saveLargeOAPPTemplateResult != null && !saveLargeOAPPTemplateResult.IsError && saveLargeOAPPTemplateResult.Result != null)
+                                        {
+                                            result.Result = readOAPPTemplateDNAResult.Result;
+                                            result.IsSaved = true;
+                                        }
+                                        else
+                                        {
+                                            OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPPTemplate binary to STARNET using the {oappBinaryProviderType} provider. Reason: {saveLargeOAPPTemplateResult.Message}");
+                                            OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && uploadOAPPTemplateToCloud;
+                                            OAPPTemplateDNA.OAPPTemplatePublishedProviderType = ProviderType.None;
+                                        }
                                     }
                                 }
 
-                                if (oappBinaryProviderType != ProviderType.None)
+                                //If the ID has not been set then store the original id now.
+                                if (!loadOAPPTemplateResult.Result.MetaData.ContainsKey("OAPPTemplateId"))
+                                    loadOAPPTemplateResult.Result.MetaData["OAPPTemplateId"] = loadOAPPTemplateResult.Result.Id;
+
+                                loadOAPPTemplateResult.Result.MetaData["Version"] = loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version;
+                                loadOAPPTemplateResult.Result.MetaData["Versions"] = loadOAPPTemplateResult.Result.OAPPTemplateDNA.Versions;
+
+                                //Generate a new id so it creates a new version.
+                                loadOAPPTemplateResult.Result.Id = Guid.NewGuid();
+
+                                OASISResult<IOAPPTemplate> saveOAPPTemplateResult = await SaveOAPPTemplateAsync(loadOAPPTemplateResult.Result, avatarId, providerType);
+
+                                if (saveOAPPTemplateResult != null && !saveOAPPTemplateResult.IsError && saveOAPPTemplateResult.Result != null)
                                 {
-                                    loadOAPPTemplateResult.Result.PublishedOAPPTemplate = File.ReadAllBytes(OAPPTemplateDNA.OAPPTemplatePublishedPath);
+                                    result.Result = readOAPPTemplateDNAResult.Result;
+                                    result.IsSaved = true;
 
-                                    //TODO: We could use HoloOASIS and other large file storage providers in future...
-                                    OASISResult<IOAPPTemplate> saveLargeOAPPTemplateResult = await SaveOAPPTemplateAsync(loadOAPPTemplateResult.Result, avatarId, oappBinaryProviderType);
+                                    if (readOAPPTemplateDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
+                                        OASISErrorHandling.HandleWarning(ref result, $" The STAR ODK Version {readOAPPTemplateDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
-                                    if (saveLargeOAPPTemplateResult != null && !saveLargeOAPPTemplateResult.IsError && saveLargeOAPPTemplateResult.Result != null)
-                                    {
-                                        result.Result = readOAPPTemplateDNAResult.Result;
-                                        result.IsSaved = true;
-                                    }
+                                    if (readOAPPTemplateDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
+                                        OASISErrorHandling.HandleWarning(ref result, $" The OASIS Version {readOAPPTemplateDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                    if (readOAPPTemplateDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
+                                        OASISErrorHandling.HandleWarning(ref result, $" The COSMIC Version {readOAPPTemplateDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                    if (result.IsWarning)
+                                        result.Message = $"OAPP Template successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
                                     else
-                                    {
-                                        OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPPTemplate binary to STARNET using the {oappBinaryProviderType} provider. Reason: {saveLargeOAPPTemplateResult.Message}");
-                                        OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && uploadOAPPTemplateToCloud;
-                                        OAPPTemplateDNA.OAPPTemplatePublishedProviderType = ProviderType.None;
-                                    }
+                                        result.Message = "OAPP Template Successfully Published";
+
+                                    OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNA, Status = Enums.OAPPTemplatePublishStatus.Published });
                                 }
-                            }
-
-                            OASISResult<IOAPPTemplate> saveOAPPTemplateResult = await SaveOAPPTemplateAsync(loadOAPPTemplateResult.Result, avatarId, providerType);
-
-                            if (saveOAPPTemplateResult != null && !saveOAPPTemplateResult.IsError && saveOAPPTemplateResult.Result != null)
-                            {
-                                result.Result = readOAPPTemplateDNAResult.Result;
-                                result.IsSaved = true;
-
-                                if (readOAPPTemplateDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
-                                    OASISErrorHandling.HandleWarning(ref result, $" The STAR ODK Version {readOAPPTemplateDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                                if (readOAPPTemplateDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
-                                    OASISErrorHandling.HandleWarning(ref result, $" The OASIS Version {readOAPPTemplateDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                                if (readOAPPTemplateDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
-                                    OASISErrorHandling.HandleWarning(ref result, $" The COSMIC Version {readOAPPTemplateDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                                if (result.IsWarning)
-                                    result.Message = $"OAPP Template successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
                                 else
-                                    result.Message = "OAPP Template Successfully Published";
-
-                                OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNA, Status = Enums.OAPPTemplatePublishStatus.Published });
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPTemplateAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPTemplateResult.Message}");
                             }
                             else
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPTemplateAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPTemplateResult.Message}");
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling ValidateResult. Reason: {validateVersionResult.Message}");
                         }
                         else
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadOAPPTemplateAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadOAPPTemplateResult.Message}");
@@ -1905,6 +1955,47 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             return result;
         }
+
+        private OASISResult<bool> ValidateVersion(string dnaVersion, string storedVersion)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            int dnaVersionInt = 0;
+            int stotedVersionInt = 0;
+
+            //TODO: Maybe add check to make sure the DNA has not been tampered with?
+
+            if (!StringHelper.IsValidVersion(dnaVersion))
+            {
+                OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA {dnaVersion} is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder.");
+                return result;
+            }
+
+            if (dnaVersion == storedVersion)
+            {
+                OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA {dnaVersion} is the same as the previous version {storedVersion}. Please make sure you increment the version in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder.");
+                return result;
+            }
+
+            if (!int.TryParse(dnaVersion, out dnaVersionInt))
+            {
+                OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA {dnaVersion} is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder.");
+                return result;
+            }
+
+            //Should hopefully never occur! ;-)
+            if (!int.TryParse(storedVersion, out stotedVersionInt))
+                OASISErrorHandling.HandleWarning(ref result, $"The version stored in the OASIS {storedVersion} is not valid!");
+
+            if (dnaVersionInt <= stotedVersionInt)
+            {
+                OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA {dnaVersion} is less than the previous version {storedVersion}. Please make sure you increment the version in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder.");
+                return result;
+            }
+
+            result.Result = true;
+            return result;
+        }
+
         private void OnUploadProgress(Google.Apis.Upload.IUploadProgress progress)
         {
             switch (progress.Status)

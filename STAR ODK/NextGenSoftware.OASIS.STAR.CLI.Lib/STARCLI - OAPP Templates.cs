@@ -564,7 +564,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task<OASISResult<IEnumerable<IOAPPTemplate>>> ListAllOAPPTemplatesAsync(ProviderType providerType = ProviderType.Default)
         {
-            return ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(OAPPTemplateType.All, providerType));
+            return ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(OAPPTemplateType.All, 0, providerType));
         }
 
         public static OASISResult<IEnumerable<IOAPPTemplate>> ListAllOAPPTemplates(ProviderType providerType = ProviderType.Default)
