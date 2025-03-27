@@ -284,7 +284,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 loadHolonsResult = await Data.LoadAllHolonsAsync<OAPPTemplate>(HolonType.OAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
             else
                 //TODO: Need to upgrade HolonManager to be able to query for multiple metadata keys at once as well as retreive the latest version.
-                loadHolonsResult = await Data.LoadHolonsForParentByMetaDataAsync<OAPPTemplate>("OAPPTemplateType", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0);
+                loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<OAPPTemplate>("OAPPTemplateType", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0);
 
             //0 means we want the latest version.
             if (version == 0)
@@ -484,6 +484,74 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
         #endregion*/
+
+        public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> LoadOAPPTemplateVersionsAsync(Guid OAPPTemplateId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
+
+            //TODO: Currently we pass in 0 for version (which means the OASIS will return the latest version) but we need to be able to query for all versions (-1)
+            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<OAPPTemplate>("OAPPTemplateId", OAPPTemplateId.ToString(), HolonType.OAPPTemplate, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IOAPPTemplate>> LoadOAPPTemplateVersions(Guid OAPPTemplateId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
+
+            //TODO: Currently we pass in 0 for version (which means the OASIS will return the latest version) but we need to be able to query for all versions (-1)
+            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = Data.LoadHolonsByMetaData<OAPPTemplate>("OAPPTemplateId", OAPPTemplateId.ToString(), HolonType.OAPPTemplate, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
+            result.Result = loadHolonsResult.Result;
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPTemplate>> LoadOAPPTemplateVersionAsync(Guid OAPPTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<OAPPTemplate> loadHolonResult = await Data.LoadHolonByMetaDataAsync<OAPPTemplate>(new Dictionary<string, string>()
+            {
+                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
+                 { "Version", version }
+            }, true, true, 0, true, 0, false, HolonType.All, providerType);
+
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonResult, result); //Copy any possible warnings etc.
+            if (loadHolonResult != null && !loadHolonResult.IsError && loadHolonResult.Result != null)
+            {
+                if (loadHolonResult.Result.OAPPTemplateDNA.Version == version)
+                    result.Result = loadHolonResult.Result;
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPTemplateManager.LoadOAPPTemplateVersion. Reason: The version {version} does not exist for OAPPTemplateId {OAPPTemplateId}.");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPTemplateManager.LoadOAPPTemplateVersion. Reason: {loadHolonResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPPTemplate> LoadOAPPTemplateVersion(Guid OAPPTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<OAPPTemplate> loadHolonResult = Data.LoadHolonByMetaData<OAPPTemplate>(new Dictionary<string, string>()
+            {
+                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
+                 { "Version", version }
+            }, true, true, 0, true, false, HolonType.All, 0, providerType);
+
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonResult, result); //Copy any possible warnings etc.
+            if (loadHolonResult != null && !loadHolonResult.IsError && loadHolonResult.Result != null)
+            {
+                if (loadHolonResult.Result.OAPPTemplateDNA.Version == version)
+                    result.Result = loadHolonResult.Result;
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPTemplateManager.LoadOAPPTemplateVersion. Reason: The version {version} does not exist for OAPPTemplateId {OAPPTemplateId}.");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPTemplateManager.LoadOAPPTemplateVersion. Reason: {loadHolonResult.Message}");
+
+            return result;
+        }
 
         public async Task<OASISResult<IOAPPTemplateDNA>> PublishOAPPTemplateAsync(string fullPathToOAPPTemplate, string launchTarget, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPTemplateBinary = true, bool uploadOAPPTemplateToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
         {
@@ -1323,10 +1391,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                                 if (downloadedOAPPTemplate == null)
                                 {
-                                    OASISResult<DownloadedOAPPTemplate> downloadedOAPPTemplateResult = await Data.LoadHolonByMetaDataAsync<DownloadedOAPPTemplate>("OAPPTemplateId", OAPPTemplateDNAResult.Result.Id.ToString(), false, false, 0, true, 0, false, HolonType.All, providerType);
+                                    //OASISResult<DownloadedOAPPTemplate> downloadedOAPPTemplateResult = await Data.LoadHolonsByMetaDataAsync<DownloadedOAPPTemplate>("OAPPTemplateId", OAPPTemplateDNAResult.Result.Id.ToString(), false, false, 0, true, 0, false, HolonType.All, providerType);
+                                    OASISResult<IEnumerable<DownloadedOAPPTemplate>> downloadedOAPPTemplateResult = await Data.LoadHolonsByMetaDataAsync<DownloadedOAPPTemplate>("OAPPTemplateId", OAPPTemplateDNAResult.Result.Id.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType); 
 
-                                    if (downloadedOAPPTemplateResult != null && !downloadedOAPPTemplateResult.IsError && downloadedOAPPTemplateResult.Result != null)
-                                        downloadedOAPPTemplate = downloadedOAPPTemplateResult.Result;
+                                    if (downloadedOAPPTemplateResult != null && !downloadedOAPPTemplateResult.IsError && downloadedOAPPTemplateResult.Result != null && downloadedOAPPTemplateResult.Result.Count() == 1)
+                                        downloadedOAPPTemplate = downloadedOAPPTemplateResult.Result.FirstOrDefault();
                                     else
                                         OASISErrorHandling.HandleWarning(ref result, $"The OAPP Template was installed but the DownloadedOAPPTemplate could not be found. Reason: {downloadedOAPPTemplateResult.Message}");
                                 }

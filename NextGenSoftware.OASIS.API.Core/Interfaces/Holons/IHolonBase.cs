@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         DateTime CreatedDate { get; set; }
         EnumValue<OASISType> CreatedOASISType { get; set; }
         EnumValue<ProviderType> CreatedProviderType { get; set; }
-        string CustomKey { get; set; }
+        //string CustomKey { get; set; } //Replaced by MetaKeys.
         IAvatar DeletedByAvatar { get; set; }
         Guid DeletedByAvatarId { get; set; }
         //string DeletedByAvatarUsername { get; set; }
