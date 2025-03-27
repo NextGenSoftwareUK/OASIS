@@ -871,16 +871,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 else
                                     CLIEngine.ShowErrorMessage("Invalid number entered. Please try again.");
 
-                                //idOrName = CLIEngine.GetValidInput($"What is the GUID/ID to the OAPP Template you wish to {operationName}?");
-
-                                //if (Guid.TryParse(idOrName, out id))
-                                //    result = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(id, providerType);
-                                //else
-                                //    CLIEngine.ShowErrorMessage("Invalid GUID/ID entered. Please try again.");
-
-                                //if (idOrName == "exit")
-                                //    return result;
-
                             } while (result.Result == null || result.IsError);
                         }
                         else if (searchResults.Result.Count() == 1)
@@ -889,9 +879,30 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             idOrName = "";
                             CLIEngine.ShowWarningMessage("No OAPP Template Found!");
+                        }
 
-                            //result.IsError = true;
-                            //result.Message = "No OAPP Template Found!";
+                        if (result.Result.OAPPTemplateDNA.Versions > 1)
+                        {
+                            if (CLIEngine.GetConfirmation($"{result.Result.OAPPTemplateDNA.Versions} versions were found. Do you wish to {operationName} the latest version ({result.Result.OAPPTemplateDNA.Version})?"))
+                            {
+
+                            }
+                            else
+                            {
+                                OASISResult<IEnumerable<OAPPTemplate>> versionsResult =  await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateVersionsAsync()
+                                ListOAPPTemplates(searchResults, true);
+
+                                //int version = CLIEngine.GetValidInputForInt("What version do you wish to install?");
+                                //if (version > 0 && version <= result.Result.OAPPTemplateDNA.Versions)
+                                //{
+                                //    CLIEngine.ShowWorkingMessage("Loading OAPP Template Version...");
+                                //    result.Result.OAPPTemplateDNA = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateVersionAsync(result.Result.OAPPTemplateDNA.Id, version, providerType);
+                                //}
+                                //else
+                                //    CLIEngine.ShowErrorMessage("Invalid version entered. Please try again.");
+
+                                CLIEngine.ShowWorkingMessage("Loading OAPP Template Versions...");
+                            result.Result.OAPPTemplateVersions = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateVersionsAsync(result.Result.OAPPTemplateDNA.Id, providerType);
                         }
                     }
                     else
