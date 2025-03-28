@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
-    public class InstalledOAPPTemplate : Holon, IInstalledOAPPTemplate //TODO: Do we want to use Holon? What was the reason again?! ;-) Think so can be used with Data API and HolonManager?
+    public class InstalledOAPPTemplate : OAPPTemplate, IInstalledOAPPTemplate //: Holon, IInstalledOAPPTemplate //TODO: Do we want to use Holon? What was the reason again?! ;-) Think so can be used with Data API and HolonManager?
     {
         private IOAPPTemplateDNA _OAPPTemplateDNA;
 
@@ -25,21 +25,21 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 
         public IDownloadedOAPPTemplate DownloadedOAPPTemplate { get; set; }
 
-        public IOAPPTemplateDNA OAPPTemplateDNA
-        {
-            get
-            {
-                if (_OAPPTemplateDNA == null && MetaData["OAPPTEMPLATEDNAJSON"] != null && !string.IsNullOrEmpty(MetaData["OAPPTEMPLATEDNAJSON"].ToString()))
-                    _OAPPTemplateDNA = JsonSerializer.Deserialize<OAPPTemplateDNA>(MetaData["OAPPTEMPLATEDNAJSON"].ToString());
+        //public IOAPPTemplateDNA OAPPTemplateDNA
+        //{
+        //    get
+        //    {
+        //        if (_OAPPTemplateDNA == null && MetaData["OAPPTEMPLATEDNAJSON"] != null && !string.IsNullOrEmpty(MetaData["OAPPTEMPLATEDNAJSON"].ToString()))
+        //            _OAPPTemplateDNA = JsonSerializer.Deserialize<OAPPTemplateDNA>(MetaData["OAPPTEMPLATEDNAJSON"].ToString());
 
-                return _OAPPTemplateDNA;
-            }
-            set
-            {
-                _OAPPTemplateDNA = value;
-                MetaData["OAPPTEMPLATEDNAJSON"] = JsonSerializer.Serialize(OAPPTemplateDNA);
-            }
-        }
+        //        return _OAPPTemplateDNA;
+        //    }
+        //    set
+        //    {
+        //        _OAPPTemplateDNA = value;
+        //        MetaData["OAPPTEMPLATEDNAJSON"] = JsonSerializer.Serialize(OAPPTemplateDNA);
+        //    }
+        //}
 
         [CustomOASISProperty]
         public string InstalledPath { get; set; }
