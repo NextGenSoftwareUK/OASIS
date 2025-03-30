@@ -1281,7 +1281,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowMessage($"The following OAPP Template's were found for '{searchTerm}':");
 
                     foreach (IOAPPTemplate oappTemplate in oappTemplateResults.Result)
-                        ShowOAPPTemplate(oappTemplate.OAPPTemplateDNA);
+                        ShowOAPPTemplate(oappTemplate);
 
                     if (CLIEngine.GetConfirmation("Do you wish to use any of these OAPP Templates?"))
                         OAPPTemplateId = CLIEngine.GetValidInputForGuid($"Which OAPP Template do you wish to use? Please enter the GUID/ID of the OAPP Template.");
@@ -1289,7 +1289,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else if (oappTemplateResults.Result.Count() == 1)
                 {
                     CLIEngine.ShowMessage($"The following OAPP Template was found for '{searchTerm}':");
-                    ShowOAPPTemplate(oappTemplateResults.Result.FirstOrDefault().OAPPTemplateDNA);
+                    ShowOAPPTemplate(oappTemplateResults.Result.FirstOrDefault());
 
                     if (CLIEngine.GetConfirmation("Do you wish to use this OAPP Template?"))
                         OAPPTemplateId = oappTemplateResults.Result.FirstOrDefault().OAPPTemplateDNA.Id;

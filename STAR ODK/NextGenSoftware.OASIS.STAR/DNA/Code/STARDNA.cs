@@ -84,5 +84,8 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultRuntimesInstalledPath { get; set; } = "Runtimes\\Installed\\Other";
         public string DefaultRuntimesInstalledOASISPath { get; set; } = "Runtimes\\OASIS";
         public string DefaultRuntimesInstalledSTARPath { get; set; } = "Runtimes\\STAR";
+        public bool DetailedCOSMICOutputEnabled { get; set; } = false;
+        public bool DetailedSTARStatusOutputEnabled { get; set; } = false;
+        public bool DetailedLoggingEnabled { get; set; } = false;
     }
 }

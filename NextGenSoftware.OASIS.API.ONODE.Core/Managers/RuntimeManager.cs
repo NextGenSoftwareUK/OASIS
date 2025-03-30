@@ -909,7 +909,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IEnumerable<IRuntime>>> LoadAllRuntimesForRuntimeTypeAsync(RuntimeType runtimeType, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IRuntime>> result = new OASISResult<IEnumerable<IRuntime>>();
-            OASISResult<IEnumerable<Runtime>> loadHolonsResult = Data.LoadHolonsForParentByMetaData<Runtime>("RuntimeType", Enum.GetName(typeof(RuntimeType), runtimeType));
+            OASISResult<IEnumerable<Runtime>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<Runtime>("RuntimeType", Enum.GetName(typeof(RuntimeType), runtimeType));
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
@@ -918,7 +918,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IEnumerable<IRuntime>> LoadAllRuntimesForRuntimeType(RuntimeType runtimeType, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IRuntime>> result = new OASISResult<IEnumerable<IRuntime>>();
-            OASISResult<IEnumerable<Runtime>> loadHolonsResult = Data.LoadHolonsForParentByMetaData<Runtime>("RuntimeType", Enum.GetName(typeof(RuntimeType), runtimeType));
+            OASISResult<IEnumerable<Runtime>> loadHolonsResult = Data.LoadHolonsByMetaData<Runtime>("RuntimeType", Enum.GetName(typeof(RuntimeType), runtimeType));
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;

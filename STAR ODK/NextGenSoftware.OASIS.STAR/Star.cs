@@ -364,6 +364,10 @@ namespace NextGenSoftware.OASIS.STAR
             }
 
             ValidateSTARDNA(STARDNA);
+
+            IsDetailedCOSMICOutputsEnabled = STARDNA.DetailedCOSMICOutputEnabled;
+            IsDetailedStatusUpdatesEnabled = STARDNA.DetailedSTARStatusOutputEnabled;
+            
             Status = StarStatus.BootingOASIS;
             OASISResult<bool> oasisResult = BootOASIS(OASISDNAPath);
 

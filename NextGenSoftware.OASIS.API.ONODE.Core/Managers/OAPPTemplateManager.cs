@@ -28,6 +28,7 @@ using System.Net.Http;
 using System.Net.Mime;
 using SharpCompress.Common;
 using NextGenSoftware.Utilities;
+using System.Diagnostics.Eventing.Reader;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -66,7 +67,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public event OAPPTemplateDownloadStatusChanged OnOAPPTemplateDownloadStatusChanged;
 
 
-        //public async Task<OASISResult<IOAPPTemplateDNA>> CreateOAPPTemplateAsync(string name, string description, OAPPTemplateType OAPPTemplateType, Guid avatarId, string fullPathToOAPPTemplate, string fullPathToOASISRuntime, string fullpathToSTARODKRuntime, ProviderType providerType = ProviderType.Default)
         public async Task<OASISResult<IOAPPTemplate>> CreateOAPPTemplateAsync(string name, string description, OAPPTemplateType OAPPTemplateType, Guid avatarId, string fullPathToOAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
@@ -74,17 +74,20 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                //if (!Directory.Exists(fullPathToOASISRuntime))
-                //{
-                //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The fullPathToOASISRuntime param passed in was not found!");
-                //    return result;
-                //}
-
-                //if (!Directory.Exists(fullpathToSTARODKRuntime))
-                //{
-                //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The fullpathToSTARODKRuntime param passed in was not found!");
-                //    return result;
-                //}
+                if (Directory.Exists(fullPathToOAPPTemplate))
+                {
+                    if (CLIEngine.GetConfirmation($"The directory {fullPathToOAPPTemplate} already exists! Would you like to delete it?"))
+                    {
+                        Console.WriteLine("");
+                        Directory.Delete(fullPathToOAPPTemplate, true);
+                    }
+                    else
+                    {
+                        Console.WriteLine("");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToOAPPTemplate} already exists! Please either delete it or choose a different name.");
+                        return result;
+                    }
+                }
 
                 OAPPTemplate OAPPTemplate = new OAPPTemplate()
                 {
@@ -94,8 +97,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 };
 
                 OAPPTemplate.MetaData["OAPPTemplateId"] = OAPPTemplate.Id.ToString();
-                //OAPPTemplate.MetaData["Version"] = "1.0.0";
-                //OAPPTemplate.MetaData["Versions"] = 1;
                 OAPPTemplate.MetaData["OAPPTemplateType"] = Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType);
                 OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
@@ -127,27 +128,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                         if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
                         {
-                            //if (Directory.Exists(fullPathToOASISRuntime))
-                            //{
-                            //    DirectoryInfo directoryInfo = new DirectoryInfo(fullPathToOASISRuntime);
-
-                            //    if (directoryInfo != null)
-                            //    {
-                            //        Directory.CreateDirectory(Path.Combine(fullPathToOAPPTemplate, directoryInfo.Name));
-                            //        DirectoryHelper.CopyFilesRecursively(fullPathToOASISRuntime, Path.Combine(fullPathToOAPPTemplate, directoryInfo.Name));
-                            //    }
-                            //}
-                            //else
-                            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The fullPathToOASISRuntime param passed in was not found!");
-
-                            //directoryInfo = new DirectoryInfo(fullpathToSTARODKRuntime);
-
-                            //if (directoryInfo != null)
-                            //{
-                            //    Directory.CreateDirectory(Path.Combine(fullPathToOAPPTemplate, directoryInfo.Name));
-                            //    DirectoryHelper.CopyFilesRecursively(fullpathToSTARODKRuntime, Path.Combine(fullPathToOAPPTemplate, directoryInfo.Name));
-                            //}
-
                             result.Result = saveHolonResult.Result;
                             result.Message = $"Successfully created the OAPP Template on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPTemplateType {Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)}.";
                         }
@@ -175,6 +155,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
+                if (Directory.Exists(fullPathToOAPPTemplate))
+                {
+                    if (CLIEngine.GetConfirmation($"{errorMessage} The directory {fullPathToOAPPTemplate} already exists! Would you like to delete it?"))
+                        Directory.Delete(fullPathToOAPPTemplate);
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToOAPPTemplate} already exists! Please either delete it or choose a different name.");
+                        return result;
+                    }
+                }
+
                 OAPPTemplate OAPPTemplate = new OAPPTemplate()
                 {
                     Id = Guid.NewGuid(),
@@ -578,7 +569,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                         if (loadOAPPTemplateResult != null && loadOAPPTemplateResult.Result != null && !loadOAPPTemplateResult.IsError)
                         {
-                            OASISResult<bool> validateVersionResult = ValidateVersion(OAPPTemplateDNA.Version, loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version);
+                            OASISResult<bool> validateVersionResult = ValidateVersion(OAPPTemplateDNA.Version, loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version, fullPathToOAPPTemplate);
 
                             if (validateVersionResult != null && validateVersionResult.Result && !validateVersionResult.IsError)
                             {
@@ -613,6 +604,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                                     tempPath = Path.GetTempPath();
                                     tempPath = Path.Combine(tempPath, readOAPPTemplateDNAResult.Result.Name);
+
+                                    if (Directory.Exists(tempPath))
+                                        Directory.Delete(tempPath, true);
 
                                     ZipFile.CreateFromDirectory(fullPathToOAPPTemplate, tempPath);
                                     File.Move(tempPath, readOAPPTemplateDNAResult.Result.OAPPTemplatePublishedPath);
@@ -837,8 +831,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     Directory.Delete(tempPath);
             }
 
-            if (result.IsError)
-                OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNA, Status = Enums.OAPPTemplatePublishStatus.Error, ErrorMessage = result.Message });
+            //if (result.IsError)
+            //    OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNA, Status = Enums.OAPPTemplatePublishStatus.Error, ErrorMessage = result.Message });
 
             return result;
         }
@@ -2029,7 +2023,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        private OASISResult<bool> ValidateVersion(string dnaVersion, string storedVersion)
+        private OASISResult<bool> ValidateVersion(string dnaVersion, string storedVersion, string fullPathToOAPPTemplateFolder)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             int dnaVersionInt = 0;
@@ -2039,29 +2033,29 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             if (!StringHelper.IsValidVersion(dnaVersion))
             {
-                OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA {dnaVersion} is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder.");
+                OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA ({dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder ({fullPathToOAPPTemplateFolder}).");
                 return result;
             }
 
-            if (dnaVersion == storedVersion)
+            if (dnaVersion == storedVersion && dnaVersion != "1.0.0")
             {
-                OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA {dnaVersion} is the same as the previous version {storedVersion}. Please make sure you increment the version in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder.");
+                OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA ({dnaVersion}) is the same as the previous version ({storedVersion}). Please make sure you increment the version in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder ({fullPathToOAPPTemplateFolder}).");
                 return result;
             }
 
-            if (!int.TryParse(dnaVersion, out dnaVersionInt))
+            if (!int.TryParse(dnaVersion.Replace(".", ""), out dnaVersionInt))
             {
-                OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA {dnaVersion} is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder.");
+                OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA ({dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder ({fullPathToOAPPTemplateFolder}).");
                 return result;
             }
 
             //Should hopefully never occur! ;-)
-            if (!int.TryParse(storedVersion, out stotedVersionInt))
-                OASISErrorHandling.HandleWarning(ref result, $"The version stored in the OASIS {storedVersion} is not valid!");
+            if (!int.TryParse(storedVersion.Replace(".", ""), out stotedVersionInt))
+                OASISErrorHandling.HandleWarning(ref result, $"The version stored in the OASIS ({storedVersion}) is not valid!");
 
-            if (dnaVersionInt <= stotedVersionInt)
+            if (dnaVersionInt <= stotedVersionInt && dnaVersionInt > 100)
             {
-                OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA {dnaVersion} is less than the previous version {storedVersion}. Please make sure you increment the version in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder.");
+                OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA ({dnaVersion}) is less than the previous version ({storedVersion}). Please make sure you increment the version in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder.");
                 return result;
             }
 

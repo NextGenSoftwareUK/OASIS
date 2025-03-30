@@ -71,5 +71,8 @@
     //"DefaultInstalledOASISRuntimePath": "Runtimes\\Installed\\OASIS Runtimes", //Can be releative to BasePath above or absolute.
     //"DefaultInstalledSTARRuntimePath": "Runtimes\\Installed\\STAR Runtimes" //Can be releative to BasePath above or absolute.
     "DefaultRuntimeInstalledOASISPath": "Runtimes\\Installed\\OASIS", //TEMP TILL I CAN CHANGE THE FOLDER STRUCTURE TO ABOVE...
-    "DefaultRuntimeInstalledSTARPath": "Runtimes\\Installed\\STAR" //TEMP TILL I CAN CHANGE THE FOLDER STRUCTURE TO ABOVE...
+    "DefaultRuntimeInstalledSTARPath": "Runtimes\\Installed\\STAR", //TEMP TILL I CAN CHANGE THE FOLDER STRUCTURE TO ABOVE...
+    "DetailedCOSMICOutputEnabled": false,
+    "DetailedSTARStatusOutputEnabled": false,
+    "DetailedLoggingEnabled": false
 }

@@ -265,7 +265,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                OASISResult<IEnumerable<Quest>> loadHolonsResult = await Data.LoadHolonsForParentByMetaDataAsync<Quest>("ParentMissionId", missionId.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+                OASISResult<IEnumerable<Quest>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<Quest>("ParentMissionId", missionId.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
 
                 if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
                 {
@@ -290,7 +290,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                OASISResult<IEnumerable<Quest>> loadHolonsResult = Data.LoadHolonsForParentByMetaData<Quest>("ParentMissionId", missionId.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+                OASISResult<IEnumerable<Quest>> loadHolonsResult = Data.LoadHolonsByMetaData<Quest>("ParentMissionId", missionId.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
 
                 if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
                 {

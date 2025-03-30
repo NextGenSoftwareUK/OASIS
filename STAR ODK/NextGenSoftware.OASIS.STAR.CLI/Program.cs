@@ -88,13 +88,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 STAR.OnOASISBootError += STAR_OnOASISBootError;
                 STAR.OnDefaultCeletialBodyInit += STAR_OnDefaultCeletialBodyInit;
 
-                STAR.IsDetailedCOSMICOutputsEnabled = CLIEngine.GetConfirmation("Do you wish to enable detailed COSMIC outputs?");
-                Console.WriteLine("");
+                //STAR.IsDetailedCOSMICOutputsEnabled = CLIEngine.GetConfirmation("Do you wish to enable detailed COSMIC outputs?");
+                //Console.WriteLine("");
                 //CLIEngine.ShowMessage("");
 
-                STAR.IsDetailedStatusUpdatesEnabled = CLIEngine.GetConfirmation("Do you wish to enable detailed STAR ODK Status outputs?");
-
-                Console.WriteLine("");
+                //STAR.IsDetailedStatusUpdatesEnabled = CLIEngine.GetConfirmation("Do you wish to enable detailed STAR ODK Status outputs?");
+                //Console.WriteLine("");
                 
                // CLIEngine.ShowMessage("Uploading...");
                // Console.WriteLine("");

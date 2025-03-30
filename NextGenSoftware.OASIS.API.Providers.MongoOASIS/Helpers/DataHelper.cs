@@ -159,7 +159,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.IsBeamedIn = avatarResult.Result.IsBeamedIn;
             result.Result.Version = avatarResult.Result.Version;
             result.Result.IsActive = avatarResult.Result.IsActive;
-            result.Result.CustomKey = avatarResult.Result.CustomKey;
+            //result.Result.CustomKey = avatarResult.Result.CustomKey;
 
             if (mapChildren)
                 result.Result.Children = avatarResult.Result.Children;
@@ -184,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.ProviderUniqueStorageKey = avatar.Result.ProviderUniqueStorageKey;
 
             //Just in case this has not been set yet or has been lost/corrupted somehow! ;-)
-            result.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = avatar.Result.Id;
+            oasisAvatar.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = avatar.Result.Id;
 
             oasisAvatar.ProviderMetaData = avatar.Result.ProviderMetaData;
             oasisAvatar.PreviousVersionId = avatar.Result.PreviousVersionId;
@@ -286,7 +286,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.ChildIdListCache = avatar.Result.ChildIdListCache;
 
             //oasisAvatar.Children = avatar.Result.Children;
-            oasisAvatar.CustomKey = avatar.Result.CustomKey;
+            //oasisAvatar.CustomKey = avatar.Result.CustomKey;
             //oasisAvatar.Nodes = avatar.Result.Nodes;
 
             if (avatar.Result.Nodes != null)
@@ -374,7 +374,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.IsBeamedIn = avatar.IsBeamedIn;
             mongoAvatar.Version = avatar.Version;
             mongoAvatar.IsActive = avatar.IsActive;
-            mongoAvatar.CustomKey = avatar.CustomKey;
+            //mongoAvatar.CustomKey = avatar.CustomKey;
 
             if (mapChildren)
                 mongoAvatar.Children = avatar.Children;
@@ -549,7 +549,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.ParentMoonId = avatar.ParentMoonId;
             mongoAvatar.ParentMoon = avatar.ParentMoon;
             //mongoAvatar.Children = avatar.Children;
-            mongoAvatar.CustomKey = avatar.CustomKey;
+            //mongoAvatar.CustomKey = avatar.CustomKey;
             // mongoAvatar.Nodes = avatar.Nodes;
 
             if (mapChildren)
@@ -641,7 +641,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.ParentPlanet = holon.Result.ParentPlanet;
             result.Result.ParentMoonId = holon.Result.ParentMoonId;
             result.Result.ParentMoon = holon.Result.ParentMoon;
-            result.Result.CustomKey = holon.Result.CustomKey;
+            //result.Result.CustomKey = holon.Result.CustomKey;
 
             if (mapChildren)
                 result.Result.Children = holon.Result.Children;
@@ -737,7 +737,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.AllChildIdListCache = holon.AllChildIdListCache;
             mongoHolon.ChildIdListCache = holon.ChildIdListCache;
 
-            mongoHolon.CustomKey = holon.CustomKey;
+            //mongoHolon.CustomKey = holon.CustomKey;
             //mongoHolon.Nodes = holon.Nodes;
 
             if (holon.Nodes != null)
