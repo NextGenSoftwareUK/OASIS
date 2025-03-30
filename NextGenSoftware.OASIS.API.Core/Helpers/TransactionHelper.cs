@@ -18,7 +18,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 transactionResult.IsError = true;
 
             if (automaticallyHandleError && transactionResult.IsError)
-                OASISErrorHandling.HandleError(ref transactionResult, $"{errorMessage} {transactionResult.Result.TransactionResult}", null, onlyLogToInnerMessages, includeStackTrace, throwException, addToInnerMessages, incrementErrorCount, detailedMessage, onlyLogToInnerMessages);
+                OASISErrorHandling.HandleError(ref transactionResult, $"{errorMessage} {transactionResult.Result.TransactionResult}");
+            //OASISErrorHandling.HandleError(ref transactionResult, $"{errorMessage} {transactionResult.Result.TransactionResult}", null, true, true, onlyLogToInnerMessages, includeStackTrace, throwException, addToInnerMessages, incrementErrorCount, detailedMessage, onlyLogToInnerMessages);
 
             return transactionResult.IsError;
         }
@@ -35,7 +36,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 transactionResult.IsError = true;
 
             if (automaticallyHandleError && transactionResult.IsError)
-                OASISErrorHandling.HandleError(ref transactionResult, $"{errorMessage} {transactionResult.Result.TransactionResult}", null, onlyLogToInnerMessages, includeStackTrace, throwException, addToInnerMessages, incrementErrorCount, detailedMessage, onlyLogToInnerMessages);
+                OASISErrorHandling.HandleError(ref transactionResult, $"{errorMessage} {transactionResult.Result.TransactionResult}");
+                //OASISErrorHandling.HandleError(ref transactionResult, $"{errorMessage} {transactionResult.Result.TransactionResult}", null, true, true, onlyLogToInnerMessages, includeStackTrace, throwException, addToInnerMessages, incrementErrorCount, detailedMessage, onlyLogToInnerMessages);
 
             return transactionResult.IsError;
         }

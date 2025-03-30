@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.Common
 
         //WARNING: ONLY set includeStackTrace to true for debug/dev mode due to performance overhead. This param should never be needed because the ShowStackTrace flag will be used for Dev/Debug mode. 
 
-        public static void HandleError<T1, T2>(ref OASISResult<T1> result, string errorMessage, bool log = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true, Exception ex = null, string detailedMessage = "", bool onlyLogToInnerMessages = false, OASISResult<T2> innerResult = null)
+        public static void HandleError<T1, T2>(ref OASISResult<T1> result, string errorMessage, bool logToFile = true, bool logToConsole = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true, Exception ex = null, string detailedMessage = "", bool onlyLogToInnerMessages = false, OASISResult<T2> innerResult = null)
         {
             if (innerResult != null)
             {
@@ -55,17 +55,17 @@ namespace NextGenSoftware.OASIS.Common
                 result.WarningCount += innerResult.WarningCount;
             }
 
-            HandleError(ref result, errorMessage, ex, log, includeStackTrace, throwException, addToInnerMessages, incrementErrorCount, detailedMessage, onlyLogToInnerMessages);
+            HandleError(ref result, errorMessage, ex, logToFile, logToConsole, includeStackTrace, throwException, addToInnerMessages, incrementErrorCount, detailedMessage, onlyLogToInnerMessages);
         }
 
 
-        public static void HandleError(string errorMessage, Exception ex = null, bool log = true, bool includeStackTrace = false, bool throwException = false)
+        public static void HandleError(string errorMessage, Exception ex = null, bool logToFile = true, bool logToConsole = true, bool includeStackTrace = false, bool throwException = false)
         {
             //NOTE: If you are throwing an exception then you do not need to show an additional stack trace here because the exception has it already! ;-)
             if (includeStackTrace || ShowStackTrace)
                 errorMessage = string.Concat(errorMessage, "StackTrace:\n", Environment.StackTrace);
 
-            if (log || LogAllErrors)
+            if (logToFile || logToConsole || LogAllErrors)
                 LoggingManager.Log($"\n{errorMessage}", LogType.Error);
 
             OnError?.Invoke(null, new OASISErrorEventArgs { Reason = errorMessage, Exception = ex });
@@ -91,13 +91,13 @@ namespace NextGenSoftware.OASIS.Common
             }
         }
 
-        public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, Exception ex = null, bool log = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true, string detailedMessage = "", bool onlyLogToInnerMessages = false)
+        public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, Exception ex = null, bool logToFile = true, bool logToConsole = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true, string detailedMessage = "", bool onlyLogToInnerMessages = false)
         {
             ////NOTE: If you are throwing an exception then you do not need to show an additional stack trace here because the exception has it already! ;-)
             //if (includeStackTrace || ShowStackTrace)
             //    errorMessage = string.Concat(errorMessage, "StackTrace:\n", Environment.StackTrace);
 
-            HandleError(errorMessage, ex, log, includeStackTrace, throwException);
+            HandleError(errorMessage, ex, logToFile, logToConsole, includeStackTrace, throwException);
 
             result.IsSaved = false;
             result.IsLoaded = false;
@@ -158,12 +158,12 @@ namespace NextGenSoftware.OASIS.Common
 
         public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, bool onlyLogToInnerMessages)
         {
-            HandleError(ref result, errorMessage, null, true, false, false, false, true, "", onlyLogToInnerMessages);
+            HandleError(ref result, errorMessage, null, true, true, false, false, false, true, "", onlyLogToInnerMessages);
         }
 
         public static void HandleError<T1, T2>(ref OASISResult<T1> result, string errorMessage, bool onlyLogToInnerMessages, OASISResult<T2> innerResult)
         {
-            HandleError(ref result, errorMessage, true, false, false, false, true, null, "", onlyLogToInnerMessages, innerResult);
+            HandleError(ref result, errorMessage, true, true, false, false, false, true, null, "", onlyLogToInnerMessages, innerResult);
         }
 
         //public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, Exception ex, bool onlyLogToInnerMessages = false)
@@ -173,32 +173,32 @@ namespace NextGenSoftware.OASIS.Common
 
         public static void HandleError<T1, T2>(ref OASISResult<T1> result, string errorMessage, Exception ex, bool onlyLogToInnerMessages = false, OASISResult<T2> innerResult = null)
         {
-            HandleError(ref result, errorMessage, true, false, false, false, true, ex, "", onlyLogToInnerMessages, innerResult);
+            HandleError(ref result, errorMessage, true, true, false, false, false, true, ex, "", onlyLogToInnerMessages, innerResult);
         }
 
         public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, string detailedMessage, bool onlyLogToInnerMessages = false)
         {
-            HandleError(ref result, errorMessage, null, true, false, false, false, true, detailedMessage, onlyLogToInnerMessages);
+            HandleError(ref result, errorMessage, null, true, true, false, false, false, true, detailedMessage, onlyLogToInnerMessages);
         }
 
         public static void HandleError<T1, T2>(ref OASISResult<T1> result, string errorMessage, string detailedMessage, OASISResult<T2> innerResult = null)
         {
-            HandleError(ref result, errorMessage, true, false, false, false, true, null, detailedMessage, false, innerResult);
+            HandleError(ref result, errorMessage, true, true, false, false, false, true, null, detailedMessage, false, innerResult);
         }
 
         public static void HandleError<T1, T2>(ref OASISResult<T1> result, string errorMessage, string detailedMessage, bool onlyLogToInnerMessages = false, OASISResult<T2> innerResult = null)
         {
-            HandleError(ref result, errorMessage, true, false, false, false, true, null, detailedMessage, onlyLogToInnerMessages, innerResult);
+            HandleError(ref result, errorMessage, true, true, false, false, false, true, null, detailedMessage, onlyLogToInnerMessages, innerResult);
         }
 
         public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, string detailedMessage, Exception ex, bool onlyLogToInnerMessages = false)
         {
-            HandleError(ref result, errorMessage, ex, true, false, false, false, true, detailedMessage, onlyLogToInnerMessages);
+            HandleError(ref result, errorMessage, ex, true, true, false, false, false, true, detailedMessage, onlyLogToInnerMessages);
         }
 
         public static void HandleError<T1, T2>(ref OASISResult<T1> result, string errorMessage, string detailedMessage, Exception ex, bool onlyLogToInnerMessages = false, OASISResult<T2> innerResult = null)
         {
-            HandleError(ref result, errorMessage, true, false, false, false, true, ex, detailedMessage, onlyLogToInnerMessages, innerResult);
+            HandleError(ref result, errorMessage, true, true, false, false, false, true, ex, detailedMessage, onlyLogToInnerMessages, innerResult);
         }
 
         //public static bool CheckForTransactionErrors(ref OASISResult<ITransactionRespone> transactionResult, bool automaticallyHandleError = true, string errorMessage = "Error occured during the transaction. Reason: ", string detailedMessage = "", bool log = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true, bool onlyLogToInnerMessages = false)

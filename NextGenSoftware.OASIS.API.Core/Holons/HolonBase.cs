@@ -320,8 +320,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (Original.CreatedOASISType != CreatedOASISType)
                     return true;
 
-                if (Original.CustomKey != CustomKey)
-                    return true;
+                //if (Original.CustomKey != CustomKey)
+                //    return true;
 
                 if (Original.InstanceSavedOnProviderType != InstanceSavedOnProviderType)
                     return true;
@@ -1942,7 +1942,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             this.CreatedDate = holon.CreatedDate;
             this.CreatedOASISType = holon.CreatedOASISType;
             this.CreatedProviderType = holon.CreatedProviderType;
-            this.CustomKey = holon.CustomKey;
+            //this.CustomKey = holon.CustomKey;
             this.DeletedByAvatar = holon.DeletedByAvatar;
             this.DeletedByAvatarId = holon.DeletedByAvatarId;
             this.DeletedDate = holon.DeletedDate;

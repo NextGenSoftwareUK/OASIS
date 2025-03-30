@@ -172,7 +172,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             Console.WriteLine(string.Concat(" Active: ", holon.IsActive ? "True" : "False"));
             Console.WriteLine(string.Concat(" Version: ", holon.Version));
             Console.WriteLine(string.Concat(" Version Id: ", holon.VersionId));
-            Console.WriteLine(string.Concat(" Custom Key: ", holon.CustomKey));
+            //Console.WriteLine(string.Concat(" Custom Key: ", holon.CustomKey));
             Console.WriteLine(string.Concat(" Dimension Level: ", Enum.GetName(typeof(DimensionLevel), holon.DimensionLevel)));
             Console.WriteLine(string.Concat(" Sub-Dimension Level: ", Enum.GetName(typeof(SubDimensionLevel), holon.SubDimensionLevel)));
 

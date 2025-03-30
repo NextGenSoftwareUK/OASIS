@@ -176,66 +176,66 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
-        public async Task<Holon> GetHolonByMetaDataAsync(string metaKey, string metaValue)
-        {
-            try
-            {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.MetaData[metaKey].ToString() == metaValue);
-                return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
-            }
-            catch
-            {
-                throw;
-            }
-        }
+        //public async Task<Holon> GetHolonByMetaDataAsync(string metaKey, string metaValue)
+        //{
+        //    try
+        //    {
+        //        FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.MetaData[metaKey].ToString() == metaValue);
+        //        return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
+        //    }
+        //    catch
+        //    {
+        //        throw;
+        //    }
+        //}
 
-        public Holon GetHolonByMetaData(string metaKey, string metaValue)
-        {
-            try
-            {
-                var documents = _dbContext.Holon.Find(Builders<Holon>.Filter.Empty).ToList();
-                Holon matchedHolon = null;
+        //public Holon GetHolonByMetaData(string metaKey, string metaValue)
+        //{
+        //    try
+        //    {
+        //        var documents = _dbContext.Holon.Find(Builders<Holon>.Filter.Empty).ToList();
+        //        Holon matchedHolon = null;
 
-                foreach (Holon holon in documents)
-                {
-                    if (holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey].ToString() == metaValue)
-                    {
-                        matchedHolon = holon;
-                        break;
-                    }
-                }
+        //        foreach (Holon holon in documents)
+        //        {
+        //            if (holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey].ToString() == metaValue)
+        //            {
+        //                matchedHolon = holon;
+        //                break;
+        //            }
+        //        }
 
-                return matchedHolon;
+        //        return matchedHolon;
 
-                //FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.MetaData[metaKey].ToString() == metaValue);
+        //        //FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.MetaData[metaKey].ToString() == metaValue);
 
-                //var filter = Builders<Holon>.Filter.Lte("MetaData.NFTMintWalletAddress", metaValue);
-                //var filter = Builders<Holon>.Filter.AnyEq("MetaData", new BsonDocument { { "NFTMintWalletAddress", metaValue } });
-                //var filter = Builders<Holon>.Filter.ElemMatch<BsonValue>("MetaData", new BsonDocument { { "NFTMintWalletAddress", metaValue }});
-                //var result = _dbContext.Holon.Find(filter).ToList();
+        //        //var filter = Builders<Holon>.Filter.Lte("MetaData.NFTMintWalletAddress", metaValue);
+        //        //var filter = Builders<Holon>.Filter.AnyEq("MetaData", new BsonDocument { { "NFTMintWalletAddress", metaValue } });
+        //        //var filter = Builders<Holon>.Filter.ElemMatch<BsonValue>("MetaData", new BsonDocument { { "NFTMintWalletAddress", metaValue }});
+        //        //var result = _dbContext.Holon.Find(filter).ToList();
 
 
 
-                //var c = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue).FirstOrDefault();
-                //var e = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"])
-                //_dbContext.Holon.Find( { $text: { $search: "On" } } );
+        //        //var c = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue).FirstOrDefault();
+        //        //var e = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"])
+        //        //_dbContext.Holon.Find( { $text: { $search: "On" } } );
 
-                //var c = _dbContext.Holon.Find(x => x.MetaData[metaKey].ToString() == metaKey).FirstOrDefault();
-                //var c = _dbContext.Holon.Find(x => x.MetaData[metaKey].ToString() == metaValue).FirstOrDefault();
-                //var d = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue);
-                //var e = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue).FirstOrDefault();
+        //        //var c = _dbContext.Holon.Find(x => x.MetaData[metaKey].ToString() == metaKey).FirstOrDefault();
+        //        //var c = _dbContext.Holon.Find(x => x.MetaData[metaKey].ToString() == metaValue).FirstOrDefault();
+        //        //var d = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue);
+        //        //var e = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue).FirstOrDefault();
 
-                //var c = _dbContext.Holon.Find({"comments.user": "AaravSingh" }).FirstOrDefault();
-                //var c = _dbContext.Holon.Find({"comments.user": "AaravSingh" }).FirstOrDefault();
+        //        //var c = _dbContext.Holon.Find({"comments.user": "AaravSingh" }).FirstOrDefault();
+        //        //var c = _dbContext.Holon.Find({"comments.user": "AaravSingh" }).FirstOrDefault();
 
-                //return _dbContext.Holon.Find(filter).FirstOrDefault();
-                return null;
-            }
-            catch
-            {
-                throw;
-            }
-        }
+        //        //return _dbContext.Holon.Find(filter).FirstOrDefault();
+        //        return null;
+        //    }
+        //    catch
+        //    {
+        //        throw;
+        //    }
+        //}
 
         //public async Task<Holon> GetHolonByCustomKeyAsync(string customKey)
         //{
@@ -419,14 +419,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 //TODO: Need to write a query to load by meta data so is more efficent! :)
                 //result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).Result.ToListAsync();
-                var documents = _dbContext.Holon.FindAsync(Builders<Holon>.Filter.Empty).Result.ToListAsync();
+                var documents = await _dbContext.Holon.FindAsync(Builders<Holon>.Filter.Empty).Result.ToListAsync();
                 //var documents = await _dbContext.Holon.FindAsync(_ => true).ToList();
 
                 //var documents2 = _dbContext.Holon.AsQueryable().ToList();
 
                 List<Holon> matchedHolons = new List<Holon>();
 
-                foreach (Holon holon in documents.Result)
+                foreach (Holon holon in documents)
                 {
                     if (holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey] != null && holon.MetaData[metaKey].ToString() == metaValue)
                         matchedHolons.Add(holon);
@@ -446,22 +446,39 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public IEnumerable<Holon> GetHolonsByMetaData(string metaKey, string metaValue, HolonType holonType)
+        public OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(string metaKey, string metaValue, HolonType holonType)
         {
+            OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
+
             try
             {
-                //return _dbContext.Holon.Find(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).ToList();
-                FilterDefinition<Holon> filter = BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType);
-                
-                if (filter != null)
-                    return _dbContext.Holon.Find(filter).ToList();
-                else 
-                    return new List<Holon>();
+                //TODO: Need to write a query to load by meta data so is more efficent! :)
+                //result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).Result.ToListAsync();
+                var documents = _dbContext.Holon.FindAsync(Builders<Holon>.Filter.Empty).Result.ToList();
+                //var documents = await _dbContext.Holon.FindAsync(_ => true).ToList();
+
+                //var documents2 = _dbContext.Holon.AsQueryable().ToList();
+
+                List<Holon> matchedHolons = new List<Holon>();
+
+                foreach (Holon holon in documents)
+                {
+                    if (holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey] != null && holon.MetaData[metaKey].ToString() == metaValue)
+                        matchedHolons.Add(holon);
+                }
+
+                result.Result = matchedHolons;
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                string errorMessage = string.Concat("Unknown error occured in GetHolonsByMetaDataAsync method. metaKey: ", metaKey, ", metaValue:, ", metaValue, "holonType: ", Enum.GetName(typeof(HolonType), holonType), ". Error details: ", ex.ToString());
+                result.IsError = true;
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+                result.Exception = ex;
             }
+
+            return result;
         }
 
         public async Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, HolonType holonType)
@@ -821,16 +838,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         //        return null;
         //}
 
-        private FilterDefinition<Holon> BuildFilterForGetHolonsForParentByMetaData(string metaKey, string metaValue, HolonType holonType)
-        {
-            FilterDefinition<Holon> filter = null;
-            Holon holon = GetHolonByMetaData(metaKey, metaValue);
+        //private FilterDefinition<Holon> BuildFilterForGetHolonsForParentByMetaData(string metaKey, string metaValue, HolonType holonType)
+        //{
+        //    FilterDefinition<Holon> filter = null;
+        //    Holon holon = GetHolonByMetaData(metaKey, metaValue);
 
-            if (holon != null)
-                return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
-            else
-                return null;
-        }
+        //    if (holon != null)
+        //        return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
+        //    else
+        //        return null;
+        //}
 
         private FilterDefinition<Holon> BuildFilterForGetHolonsForParent(Guid id, HolonType holonType)
         {
