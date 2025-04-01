@@ -27,15 +27,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         {
             get
             {
-                if (_OAPPTemplateDNA == null && MetaData["OAPPTEMPLATEDNAJSON"] != null && !string.IsNullOrEmpty(MetaData["OAPPTEMPLATEDNAJSON"].ToString()))
-                    _OAPPTemplateDNA = JsonSerializer.Deserialize<OAPPTemplateDNA>(MetaData["OAPPTEMPLATEDNAJSON"].ToString());
+                if (_OAPPTemplateDNA == null && MetaData["OAPPTemplateDNAJSON"] != null && !string.IsNullOrEmpty(MetaData["OAPPTemplateDNAJSON"].ToString()))
+                    _OAPPTemplateDNA = JsonSerializer.Deserialize<OAPPTemplateDNA>(MetaData["OAPPTemplateDNAJSON"].ToString());
 
                 return _OAPPTemplateDNA;
             }
             set
             {
                 _OAPPTemplateDNA = value;
-                MetaData["OAPPTEMPLATEDNAJSON"] = JsonSerializer.Serialize(OAPPTemplateDNA);
+                MetaData["OAPPTemplateDNAJSON"] = JsonSerializer.Serialize(OAPPTemplateDNA);
             }
         }
 

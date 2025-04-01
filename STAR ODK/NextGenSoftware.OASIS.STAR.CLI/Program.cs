@@ -803,8 +803,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             bool showCreate = true,
             bool showUpdate = true,
             bool showDelete = true)
-            //string deleteName = "delete")
         {
+            string subCommandParam = "";
+            string subCommandParam2 = "";
+
             if (string.IsNullOrEmpty(subCommand))
                 subCommand = inputArgs[0];
 
@@ -818,18 +820,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 if (inputArgs[1] == "template" && inputArgs.Length > 3)
                     id = inputArgs[3];
 
-                //Guid id = Guid.Empty;
+                if (inputArgs.Length > 1 && !string.IsNullOrEmpty(inputArgs[1]))
+                    subCommandParam = inputArgs[1].ToLower();
 
-                //if (inputArgs.Length > 2)
-                //{
-                //    if (!Guid.TryParse(inputArgs[2], out id))
-                //        CLIEngine.ShowErrorMessage($"The id ({inputArgs[2]}) passed in is not a valid GUID!");
-                //}
-
-                string subCommandParam = inputArgs[1].ToLower();
+                if (inputArgs.Length > 2 && !string.IsNullOrEmpty(inputArgs[2]))
+                    subCommandParam2 = inputArgs[2].ToLower();
 
                 if (subCommand.ToUpper() == "OAPP TEMPLATE")
-                    subCommandParam = inputArgs[2].ToLower();
+                {
+                    if (inputArgs.Length > 2 && !string.IsNullOrEmpty(inputArgs[2]))
+                        subCommandParam = inputArgs[2].ToLower();
+
+                    if (inputArgs.Length > 3 && !string.IsNullOrEmpty(inputArgs[3]))
+                        subCommandParam2 = inputArgs[3].ToLower();
+                }
 
                 switch (subCommandParam)
                 {
@@ -956,46 +960,73 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "list":
                         {
-                            if (inputArgs.Length > 2 && inputArgs[2] != null && inputArgs[2].ToLower() == "all")
+                            switch (subCommandParam2)
                             {
-                                if (listAllPredicate != null)
-                                    await listAllPredicate(providerType);
-                                else
-                                    CLIEngine.ShowMessage("Coming Soon...");
+                                case "all":
+                                    {
+                                        if (listAllPredicate != null)
+                                            await listAllPredicate(providerType);
+                                        else
+                                            CLIEngine.ShowMessage("Coming Soon...");
+                                    }break;
+
+                                case "installed":
+                                    {
+                                        if (isOAPPOrHappOrRuntime)
+                                        {
+                                            if (listInstalledPredicate != null)
+                                                await listInstalledPredicate(providerType);
+                                            else
+                                                CLIEngine.ShowMessage("Coming Soon...");
+                                        }
+                                        else
+                                            CLIEngine.ShowMessage("Command not supported.");
+                                    }
+                                    break;
+
+                                default:
+                                    {
+                                        if (listForBeamedInAvatarPredicate != null)
+                                            await listForBeamedInAvatarPredicate(providerType);
+                                        else
+                                            CLIEngine.ShowMessage("Coming Soon...");
+                                    }
+                                    break;
                             }
-                            else if (inputArgs.Length > 2 && inputArgs[2] != null && inputArgs[2].ToLower() == "installed")
-                            {
-                                if (isOAPPOrHappOrRuntime)
-                                {
-                                    if (listInstalledPredicate != null)
-                                        await listInstalledPredicate(providerType);
-                                    else
-                                        CLIEngine.ShowMessage("Coming Soon...");
-                                }
-                                else
-                                    CLIEngine.ShowMessage("Command not supported.");
-                            }
-                            else
-                            {
-                                if (listForBeamedInAvatarPredicate != null)
-                                    await listForBeamedInAvatarPredicate(providerType);
-                                else
-                                    CLIEngine.ShowMessage("Coming Soon...");
-                            }
+
+                            //if (subCommandParam2 == "all")
+                            //{
+                            //    if (listAllPredicate != null)
+                            //        await listAllPredicate(providerType);
+                            //    else
+                            //        CLIEngine.ShowMessage("Coming Soon...");
+                            //}
+                            //else if (inputArgs.Length > 2 && inputArgs[2] != null && inputArgs[2].ToLower() == "installed")
+                            //{
+                            //    if (isOAPPOrHappOrRuntime)
+                            //    {
+                            //        if (listInstalledPredicate != null)
+                            //            await listInstalledPredicate(providerType);
+                            //        else
+                            //            CLIEngine.ShowMessage("Coming Soon...");
+                            //    }
+                            //    else
+                            //        CLIEngine.ShowMessage("Command not supported.");
+                            //}
+                            //else
+                            //{
+                            //    if (listForBeamedInAvatarPredicate != null)
+                            //        await listForBeamedInAvatarPredicate(providerType);
+                            //    else
+                            //        CLIEngine.ShowMessage("Coming Soon...");
+                            //}
                         }
                         break;
 
                     case "search":
                         {
                             if (searchPredicate != null)
-                            {
-                                string searchTerm = "";
-
-                                if (inputArgs.Length > 2)
-                                    searchTerm = inputArgs[2];
-
-                                await searchPredicate(searchTerm, providerType);
-                            }
+                                await searchPredicate(subCommandParam2, providerType);
                             else
                                 CLIEngine.ShowMessage("Coming Soon...");
                         }
