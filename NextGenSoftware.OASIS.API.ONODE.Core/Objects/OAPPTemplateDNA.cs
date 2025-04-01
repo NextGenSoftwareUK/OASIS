@@ -7,6 +7,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
     public class OAPPTemplateDNA : IOAPPTemplateDNA
     {
         public Guid Id { get; set; }
+        //public Guid VersionId { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public Guid CreatedByAvatarId { get; set; }

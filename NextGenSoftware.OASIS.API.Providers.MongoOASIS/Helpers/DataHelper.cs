@@ -333,7 +333,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.ProviderUsername = avatar.ProviderUsername;
             //mongoAvatar.ProviderWalletAddress = avatar.ProviderWalletAddress;
             mongoAvatar.ProviderMetaData = avatar.ProviderMetaData;
-            mongoAvatar.PreviousVersionId = avatar.PreviousVersionId;
             mongoAvatar.PreviousVersionProviderUniqueStorageKey = avatar.PreviousVersionProviderUniqueStorageKey;
             mongoAvatar.Name = avatar.Name;
             mongoAvatar.Description = avatar.Description;
@@ -373,6 +372,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.LastBeamedOut = avatar.LastBeamedOut;
             mongoAvatar.IsBeamedIn = avatar.IsBeamedIn;
             mongoAvatar.Version = avatar.Version;
+            mongoAvatar.PreviousVersionId = avatar.PreviousVersionId;
+            mongoAvatar.VersionId = avatar.VersionId;
             mongoAvatar.IsActive = avatar.IsActive;
             //mongoAvatar.CustomKey = avatar.CustomKey;
 
@@ -479,6 +480,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.ModifiedDate = avatar.ModifiedDate;
             mongoAvatar.DeletedDate = avatar.DeletedDate;
             mongoAvatar.Version = avatar.Version;
+            mongoAvatar.PreviousVersionId = avatar.PreviousVersionId;
+            mongoAvatar.VersionId = avatar.VersionId;
             mongoAvatar.IsActive = avatar.IsActive;
 
             //AvatarDetail Properties
@@ -666,6 +669,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.ModifiedDate = holon.Result.ModifiedDate;
             result.Result.DeletedDate = holon.Result.DeletedDate;
             result.Result.Version = holon.Result.Version;
+            result.Result.VersionId = holon.Result.VersionId;
+            result.Result.PreviousVersionId = holon.Result.PreviousVersionId;
             result.Result.IsActive = holon.Result.IsActive;
             return result;
         }
@@ -757,6 +762,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.ModifiedDate = holon.ModifiedDate;
             mongoHolon.DeletedDate = holon.DeletedDate;
             mongoHolon.Version = holon.Version;
+            mongoHolon.VersionId = holon.VersionId;
+            mongoHolon.PreviousVersionId = holon.PreviousVersionId;
             mongoHolon.IsActive = holon.IsActive;
 
             return mongoHolon;
