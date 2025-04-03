@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -106,6 +107,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             {
                                 holonFilter = Builders<Holon>.Filter.Regex("Name", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
                                 holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+
+                                if (searchTextGroup.HolonType != Core.Enums.HolonType.All)
+                                    holons = holons.Where(x => x.HolonType == searchTextGroup.HolonType).ToList();
                             }
 
                             //TODO: Add remaining properties...

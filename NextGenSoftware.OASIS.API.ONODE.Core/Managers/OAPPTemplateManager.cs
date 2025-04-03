@@ -253,18 +253,31 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IOAPPTemplate>> LoadOAPPTemplateAsync(Guid OAPPTemplateId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<OAPPTemplate> loadResult = await LoadHolonAsync<OAPPTemplate>(OAPPTemplateId, providerType, "OAPPTemplateManager.LoadOAPPTemplateAsync");
-            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
-            result.Result = loadResult.Result;
+            //OASISResult<OAPPTemplate> loadResult = await LoadHolonAsync<OAPPTemplate>(OAPPTemplateId, providerType, "OAPPTemplateManager.LoadOAPPTemplateAsync");
+            OASISResult<IEnumerable<OAPPTemplate>> loadResult = await Data.LoadHolonsByMetaDataAsync<OAPPTemplate>("OAPPTemplateId", OAPPTemplateId.ToString(), HolonType.OAPPTemplate, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+            OASISResult<IEnumerable<IOAPPTemplate>> filterdResult = FilterResults(loadResult, 0);
+
+            if (filterdResult != null && filterdResult.Result != null && !filterdResult.IsError)
+                result.Result = filterdResult.Result.FirstOrDefault();
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadOAPPTemplateAsync loading the OAPP Template with Id {OAPPTemplateId} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {filterdResult.Message}");
+
             return result;
         }
 
         public OASISResult<IOAPPTemplate> LoadOAPPTemplate(Guid OAPPTemplateId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<OAPPTemplate> loadResult = LoadHolon<OAPPTemplate>(OAPPTemplateId, providerType, "OAPPTemplateManager.LoadOAPPTemplate");
-            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
-            result.Result = loadResult.Result;
+            //OASISResult<OAPPTemplate> loadResult = LoadHolon<OAPPTemplate>(OAPPTemplateId, providerType, "OAPPTemplateManager.LoadOAPPTemplate");
+
+            OASISResult<IEnumerable<OAPPTemplate>> loadResult = Data.LoadHolonsByMetaData<OAPPTemplate>("OAPPTemplateId", OAPPTemplateId.ToString(), HolonType.OAPPTemplate, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+            OASISResult<IEnumerable<IOAPPTemplate>> filterdResult = FilterResults(loadResult, 0);
+
+            if (filterdResult != null && filterdResult.Result != null && !filterdResult.IsError)
+                result.Result = filterdResult.Result.FirstOrDefault();
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadOAPPTemplate loading the OAPP Template with Id {OAPPTemplateId} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {filterdResult.Message}");
+
             return result;
         }
 
@@ -279,7 +292,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 //TODO: Need to upgrade HolonManager to be able to query for multiple metadata keys at once as well as retreive the latest version.
                 loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<OAPPTemplate>("OAPPTemplateType", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0);
 
-            return FilterResults(result, version);
+            return FilterResults(loadHolonsResult, version);
         }
 
         public OASISResult<IEnumerable<IOAPPTemplate>> LoadAllOAPPTemplates(OAPPTemplateType OAPPTemplateType = OAPPTemplateType.All, int version = 0, ProviderType providerType = ProviderType.Default)
@@ -292,35 +305,35 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             else
                 loadHolonsResult = Data.LoadHolonsByMetaData<OAPPTemplate>("OAPPTemplateType", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType));
 
-            return FilterResults(result, version);
+            return FilterResults(loadHolonsResult, version);
         }
 
         public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> LoadAllOAPPTemplatesForAvatarAsync(Guid avatarId, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
             OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = await LoadAllHolonsForAvatarAsync<OAPPTemplate>(avatarId, providerType, "OAPPTemplateManager.LoadAllOAPPTemplatesForAvatarAsync", HolonType.OAPPTemplate);
-            return FilterResults(result, version);
+            return FilterResults(loadHolonsResult, version);
         }
 
         public OASISResult<IEnumerable<IOAPPTemplate>> LoadAllOAPPTemplatesForAvatar(Guid avatarId, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
             OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = LoadAllHolonsForAvatar<OAPPTemplate>(avatarId, providerType, "OAPPTemplateManager.LoadAllOAPPTemplatesForAvatarAsync", HolonType.OAPPTemplate);
-            return FilterResults(result, version);
+            return FilterResults(loadHolonsResult, version);
         }
 
         public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> SearchOAPPTemplatesAsync(string searchTerm, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
             OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = await SearchHolonsAsync<OAPPTemplate>(searchTerm, providerType, "OAPPTemplateManager.SearchOAPPTemplatesAsync", HolonType.OAPPTemplate);
-            return FilterResults(result, version);
+            return FilterResults(loadHolonsResult, version);
         }
 
         public OASISResult<IEnumerable<IOAPPTemplate>> SearchOAPPTemplates(string searchTerm, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
             OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = SearchHolons<OAPPTemplate>(searchTerm, providerType, "OAPPTemplateManager.SearchOAPPTemplates", HolonType.OAPPTemplate);
-            return FilterResults(result, version);
+            return FilterResults(loadHolonsResult, version);
         }
         public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(Guid oappTemplateId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
@@ -463,7 +476,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                  { "OAPPTemplateId", OAPPTemplateId.ToString() },
                  { "Version", version }
-            }, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonResult, result); //Copy any possible warnings etc.
             if (loadHolonResult != null && !loadHolonResult.IsError && loadHolonResult.Result != null)
@@ -486,7 +499,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                  { "OAPPTemplateId", OAPPTemplateId.ToString() },
                  { "Version", version }
-            }, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonResult, result); //Copy any possible warnings etc.
             if (loadHolonResult != null && !loadHolonResult.IsError && loadHolonResult.Result != null)
@@ -1203,7 +1216,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         };
 
                         downloadedOAPPTemplate.MetaData["OAPPTemplateId"] = OAPPTemplate.OAPPTemplateDNA.Id.ToString();
-                        OASISResult<IHolon> saveResult = await downloadedOAPPTemplate.SaveAsync();
+                        OASISResult<DownloadedOAPPTemplate> saveResult = await downloadedOAPPTemplate.SaveAsync<DownloadedOAPPTemplate>();
 
                         if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                         {
@@ -1367,10 +1380,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 InstalledByAvatarUsername = avatarResult.Result.Username,
                                 InstalledOn = DateTime.Now,
                                 InstalledPath = fullInstallPath,
-                                DownloadedOAPPTemplate = downloadedOAPPTemplate
+                                DownloadedOAPPTemplate = downloadedOAPPTemplate,
                             };
 
-                            OASISResult<IHolon> saveResult = await installedOAPPTemplate.SaveAsync();
+                            OASISResult<InstalledOAPPTemplate> saveResult = await installedOAPPTemplate.SaveAsync<InstalledOAPPTemplate>();
 
                             if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                             {
@@ -1998,40 +2011,49 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        private OASISResult<IEnumerable<IOAPPTemplate>> FilterResults(OASISResult<IEnumerable<IOAPPTemplate>> results, int version)
+        private OASISResult<IEnumerable<IOAPPTemplate>> FilterResults(OASISResult<IEnumerable<OAPPTemplate>> results, int version)
         {
             OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
 
             //0 means we want the latest version.
-            if (version == 0)
+            if (results.Result != null && !result.IsError)
             {
-                Dictionary<string, IOAPPTemplate> latestVersions = new Dictionary<string, IOAPPTemplate>();
-                string metaDataId = "";
-
-                foreach (IOAPPTemplate oappTemplate in results.Result)
+                if (version == 0)
                 {
-                    metaDataId = oappTemplate.MetaData["OAPPTemplateId"].ToString();
+                    Dictionary<string, IOAPPTemplate> latestVersions = new Dictionary<string, IOAPPTemplate>();
+                    string metaDataId = "";
+                    int latestVersion = 0;
+                    int currentVersion = 0;
 
-                    if ((latestVersions.ContainsKey(metaDataId) &&
-                        //metaDataId == latestVersions[metaDataId].MetaData["OAPPTemplateId"] && 
-                        oappTemplate.OAPPTemplateDNA.CreatedOn > latestVersions[metaDataId].OAPPTemplateDNA.CreatedOn)
-                        || !latestVersions.ContainsKey(metaDataId))
-                        latestVersions[metaDataId] = oappTemplate;
+                    foreach (IOAPPTemplate oappTemplate in results.Result)
+                    {
+                        if (oappTemplate.MetaData != null && oappTemplate.MetaData.ContainsKey("OAPPTemplateId") && oappTemplate.MetaData["OAPPTemplateId"] != null)
+                            metaDataId = oappTemplate.MetaData["OAPPTemplateId"].ToString();
+
+                        latestVersion = latestVersions.ContainsKey(metaDataId) ? Convert.ToInt32(latestVersions[metaDataId].OAPPTemplateDNA.Version.Replace(".", "")) : 0;
+                        currentVersion = Convert.ToInt32(oappTemplate.OAPPTemplateDNA.Version.Replace(".", ""));
+
+                        if ((latestVersions.ContainsKey(metaDataId) &&
+                            currentVersion > latestVersion)
+                            //oappTemplate.OAPPTemplateDNA.CreatedOn > latestVersions[metaDataId].OAPPTemplateDNA.CreatedOn)
+                            || !latestVersions.ContainsKey(metaDataId))
+                            latestVersions[metaDataId] = oappTemplate;
+                    }
+
+                    result.Result = latestVersions.Values.ToList();
                 }
-
-                result.Result = latestVersions.Values.ToList();
-            }
-            else
-            {
-                List<IOAPPTemplate> filteredList = new List<IOAPPTemplate>();
-
-                foreach (IOAPPTemplate oappTemplate in results.Result)
+                else
                 {
-                    if (oappTemplate.MetaData["Versions"].ToString() == version.ToString())
-                        filteredList.Add(oappTemplate);
-                }
+                    List<IOAPPTemplate> filteredList = new List<IOAPPTemplate>();
 
-                result.Result = filteredList;
+                    foreach (IOAPPTemplate oappTemplate in results.Result)
+                    {
+                        if (oappTemplate.MetaData["Versions"].ToString() == version.ToString())
+                            filteredList.Add(oappTemplate);
+                    }
+
+                    result.Result = filteredList;
+                }
             }
 
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(results, result);

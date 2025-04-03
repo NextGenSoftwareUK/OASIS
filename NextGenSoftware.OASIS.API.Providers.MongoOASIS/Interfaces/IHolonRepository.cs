@@ -32,8 +32,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         //Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentByCustomKeyAsync(string customKey, HolonType holonType);
         OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(string metaKey, string metaValue, HolonType holonType);
         Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType holonType);
-        OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, HolonType holonType);
-        Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, HolonType holonType);
+        OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType);
+        Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType);
         Holon GetHolon(Guid id);
         Task<Holon> GetHolonAsync(Guid id);
         Holon GetHolon(string providerKey);

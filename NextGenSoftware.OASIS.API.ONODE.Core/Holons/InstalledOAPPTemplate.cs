@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
     public class InstalledOAPPTemplate : OAPPTemplate, IInstalledOAPPTemplate //: Holon, IInstalledOAPPTemplate //TODO: Do we want to use Holon? What was the reason again?! ;-) Think so can be used with Data API and HolonManager?
     {
-        private IOAPPTemplateDNA _OAPPTemplateDNA;
+        //private IDownloadedOAPPTemplate _DownloadedOAPPTemplate;
 
         public InstalledOAPPTemplate()
         {
@@ -23,23 +23,38 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         // [CustomOASISProperty(StoreAsJsonString = true)] //TODO: Get this working later on so we dont need to do the manual code below.
         //public IOAPPDNA OAPPDNA { get; set; }
 
-        public IDownloadedOAPPTemplate DownloadedOAPPTemplate { get; set; }
+        //public IDownloadedOAPPTemplate DownloadedOAPPTemplate { get; set; }
 
-        //public IOAPPTemplateDNA OAPPTemplateDNA
+        //public IDownloadedOAPPTemplate DownloadedOAPPTemplate
         //{
         //    get
         //    {
-        //        if (_OAPPTemplateDNA == null && MetaData["OAPPTEMPLATEDNAJSON"] != null && !string.IsNullOrEmpty(MetaData["OAPPTEMPLATEDNAJSON"].ToString()))
-        //            _OAPPTemplateDNA = JsonSerializer.Deserialize<OAPPTemplateDNA>(MetaData["OAPPTEMPLATEDNAJSON"].ToString());
+        //        if (_DownloadedOAPPTemplate == null && MetaData["DownloadedOAPPTempateJSON"] != null && !string.IsNullOrEmpty(MetaData["DownloadedOAPPTempateJSON"].ToString()))
+        //            _DownloadedOAPPTemplate = JsonSerializer.Deserialize<IDownloadedOAPPTemplate>(MetaData["DownloadedOAPPTempateJSON"].ToString());
 
-        //        return _OAPPTemplateDNA;
+        //        return _DownloadedOAPPTemplate;
         //    }
         //    set
         //    {
-        //        _OAPPTemplateDNA = value;
-        //        MetaData["OAPPTEMPLATEDNAJSON"] = JsonSerializer.Serialize(OAPPTemplateDNA);
+        //        _DownloadedOAPPTemplate = value;
+        //        MetaData["DownloadedOAPPTempateJSON"] = JsonSerializer.Serialize(value);
         //    }
         //}
+
+        [CustomOASISProperty]
+        public Guid DownloadedOAPPTemplateId { get; set; }
+
+        [CustomOASISProperty]
+        public string DownloadedPath { get; set; }
+
+        [CustomOASISProperty]
+        public DateTime DownloadedOn { get; set; }
+
+        [CustomOASISProperty]
+        public Guid DownloadedBy { get; set; }
+
+        [CustomOASISProperty]
+        public string DownloadedByAvatarUsername { get; set; }
 
         [CustomOASISProperty]
         public string InstalledPath { get; set; }

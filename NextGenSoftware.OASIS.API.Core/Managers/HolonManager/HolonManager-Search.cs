@@ -98,6 +98,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     new SearchTextGroup()
                     {
+                        HolonType = holonType,
                         SearchQuery = searchTerm,
                         SearchAvatars = false,
                         SearchHolons = true,

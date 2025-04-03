@@ -623,6 +623,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         //else if (propInfo.Attributes.)
                         //    propInfo.SetValue(holon, holon.MetaData[key]);
+
+                        else if (propInfo.PropertyType == typeof(string))
+                            propInfo.SetValue(holon, holon.MetaData[key].ToString());
                     }
                 }
                 catch (Exception ex)
