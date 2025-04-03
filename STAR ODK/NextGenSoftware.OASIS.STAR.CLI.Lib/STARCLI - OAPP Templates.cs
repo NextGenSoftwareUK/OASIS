@@ -553,14 +553,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the OAPP Template. Reason: {result.Message}");
         }
 
+        //public static async Task<OASISResult<IEnumerable<IOAPPTemplate>>> ListAllOAPPTemplatesAsync(int version = 0, ProviderType providerType = ProviderType.Default)
         public static async Task<OASISResult<IEnumerable<IOAPPTemplate>>> ListAllOAPPTemplatesAsync(ProviderType providerType = ProviderType.Default)
         {
             return ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(OAPPTemplateType.All, 0, providerType));
         }
 
-        public static OASISResult<IEnumerable<IOAPPTemplate>> ListAllOAPPTemplates(ProviderType providerType = ProviderType.Default)
+        public static OASISResult<IEnumerable<IOAPPTemplate>> ListAllOAPPTemplates(int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return  ListOAPPTemplates(STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplates(OAPPTemplateType.All, providerType));
+            return  ListOAPPTemplates(STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplates(OAPPTemplateType.All, version, providerType));
         }
 
         public static async Task ListOAPPTemplatesCreatedByBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
@@ -586,9 +587,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
+        //public static async Task SearchOAPPTemplatesAsync(string searchTerm, int version = 0, ProviderType providerType = ProviderType.Default)
         public static async Task SearchOAPPTemplatesAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
         {
-            ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(searchTerm, providerType));
+            ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(searchTerm, 0, providerType));
         }
 
         public static async Task ShowOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
@@ -643,7 +645,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Downloaded On:                              ", oappTemplate.DownloadedOAPPTemplate != null && oappTemplate.DownloadedOAPPTemplate.DownloadedOn != DateTime.MinValue ? oappTemplate.DownloadedOAPPTemplate.DownloadedOn.ToString() : "None"));
             CLIEngine.ShowMessage(string.Concat($"Downloaded By:                              ", oappTemplate.DownloadedOAPPTemplate != null && oappTemplate.DownloadedOAPPTemplate.DownloadedBy != Guid.Empty ? string.Concat(oappTemplate.DownloadedOAPPTemplate.DownloadedByAvatarUsername, " (", oappTemplate.DownloadedOAPPTemplate.DownloadedBy.ToString(), ")") : "None"));
             CLIEngine.ShowMessage(string.Concat($"Downloaded Path:                            ", oappTemplate.DownloadedOAPPTemplate != null ? oappTemplate.DownloadedOAPPTemplate.DownloadedPath : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Installed On:                               ", oappTemplate.InstalledOn != DateTime.MinValue ? oappTemplate.DownloadedOAPPTemplate.DownloadedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Installed On:                               ", oappTemplate.InstalledOn != DateTime.MinValue ? oappTemplate.InstalledOn.ToString() : "None"));
             CLIEngine.ShowMessage(string.Concat($"Installed By:                               ", oappTemplate.InstalledBy != Guid.Empty ? string.Concat(oappTemplate.InstalledByAvatarUsername, " (", oappTemplate.InstalledBy.ToString(), ")") : "None"));
             CLIEngine.ShowMessage(string.Concat($"Installed Path:                             ", !string.IsNullOrEmpty(oappTemplate.InstalledPath) ? oappTemplate.InstalledPath : "None"));
             CLIEngine.ShowDivider();
@@ -828,7 +830,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             do
             {
                 if (string.IsNullOrEmpty(idOrName))
+                {
+                    if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the OAPP Template you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
+                        ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(OAPPTemplateType.All, 0, providerType));
+                    else
+                        Console.WriteLine("");
+
                     idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the OAPP Template you wish to {operationName}?");
+                }
 
                 if (addSpace)
                     Console.WriteLine("");
@@ -841,7 +850,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage("Searching OAPP Templates...");
-                    OASISResult<IEnumerable<IOAPPTemplate>> searchResults = await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(idOrName, providerType);
+                    OASISResult<IEnumerable<IOAPPTemplate>> searchResults = await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(idOrName, 0, providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -931,7 +940,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 result = STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplate(id, providerType);
             else
             {
-                OASISResult<IEnumerable<IOAPPTemplate>> searchResults = STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplates(idOrName, providerType);
+                OASISResult<IEnumerable<IOAPPTemplate>> searchResults = STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplates(idOrName, 0, providerType);
 
                 OASISResult<IEnumerable<IOAPPTemplate>> allOAPPsTemplatesResult = STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplates();
 

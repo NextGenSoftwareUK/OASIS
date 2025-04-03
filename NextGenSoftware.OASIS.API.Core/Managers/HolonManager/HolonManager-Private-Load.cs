@@ -1104,7 +1104,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IEnumerable<IHolon>> LoadHolonsForProviderTypeByMetaData(Dictionary<string, string> metaKeyValuePairs, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<IHolon>> result = null)
+        private OASISResult<IEnumerable<IHolon>> LoadHolonsForProviderTypeByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<IHolon>> result = null)
         {
             try
             {
@@ -1122,7 +1122,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = providerResult.Result.LoadHolonsByMetaData(metaKeyValuePairs, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
+                    result = providerResult.Result.LoadHolonsByMetaData(metaKeyValuePairs, metaKeyValuePairMatchMode, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
                     result.IsLoaded = true;
                 }
             }
@@ -1142,7 +1142,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IEnumerable<T>> LoadHolonsForProviderTypeByMetaData<T>(Dictionary<string, string> metaKeyValuePairs, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<T>> result = null) where T : IHolon, new()
+        private OASISResult<IEnumerable<T>> LoadHolonsForProviderTypeByMetaData<T>(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<T>> result = null) where T : IHolon, new()
         {
             string errorMessage = string.Concat("An error occured attempting to load the holons with metaKeyValuePairs and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider.");
 
@@ -1163,7 +1163,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     //T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IEnumerable<IHolon>> holonResult = providerResult.Result.LoadHolonsByMetaData(metaKeyValuePairs, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
+                    OASISResult<IEnumerable<IHolon>> holonResult = providerResult.Result.LoadHolonsByMetaData(metaKeyValuePairs, metaKeyValuePairMatchMode, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
@@ -1190,7 +1190,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForProviderTypeByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<IHolon>> result = null)
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForProviderTypeByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<IHolon>> result = null)
         {
             try
             {
@@ -1208,7 +1208,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = await providerResult.Result.LoadHolonsByMetaDataAsync(metaKeyValuePairs, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
+                    result = await providerResult.Result.LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
                     result.IsLoaded = true;
                 }
             }
@@ -1228,7 +1228,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IEnumerable<T>>> LoadHolonsForProviderTypeByMetaDataAsync<T>(Dictionary<string, string> metaKeyValuePairs, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<T>> result = null) where T : IHolon, new()
+        private async Task<OASISResult<IEnumerable<T>>> LoadHolonsForProviderTypeByMetaDataAsync<T>(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<T>> result = null) where T : IHolon, new()
         {
             try
             {
@@ -1247,7 +1247,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     //T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IEnumerable<IHolon>> loadHolonsResult = await providerResult.Result.LoadHolonsByMetaDataAsync(metaKeyValuePairs, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
+                    OASISResult<IEnumerable<IHolon>> loadHolonsResult = await providerResult.Result.LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
 
                     if (!loadHolonsResult.IsError && loadHolonsResult.Result != null)
                     {

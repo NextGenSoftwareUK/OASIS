@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.Utilities;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
@@ -432,7 +433,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         matchedHolons.Add(holon);
                 }
 
-                result.Result = matchedHolons;
+                if (holonType != HolonType.All)
+                    result.Result = matchedHolons.Where(x => x.HolonType == holonType);
+                else
+                    result.Result = matchedHolons;
             }
             catch (Exception ex)
             {
@@ -467,7 +471,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         matchedHolons.Add(holon);
                 }
 
-                result.Result = matchedHolons;
+                if (holonType != HolonType.All)
+                    result.Result = matchedHolons.Where(x => x.HolonType == holonType);
+                else
+                    result.Result = matchedHolons;
             }
             catch (Exception ex)
             {
@@ -481,7 +488,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, HolonType holonType)
+        public async Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType)
         {
             OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
 
@@ -493,17 +500,30 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 //var documents = await _dbContext.Holon.FindAsync(_ => true).ToList();
 
                 List<Holon> matchedHolons = new List<Holon>();
+                int matchedKeys = 0;
 
                 foreach (Holon holon in documents)
                 {
+                    matchedKeys = 0;
                     foreach (KeyValuePair<string, string> metaKeyValuePair in metaKeyValuePairs)
                     {
                         if (holon.MetaData.ContainsKey(metaKeyValuePair.Key) && holon.MetaData[metaKeyValuePair.Key] != null && holon.MetaData[metaKeyValuePair.Key].ToString() == metaKeyValuePair.Value)
-                            matchedHolons.Add(holon);
+                        {
+                            if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any)
+                                matchedHolons.Add(holon);
+                            else
+                                matchedKeys++;
+                        }
                     }
+
+                    if (matchedKeys == metaKeyValuePairs.Count)
+                        matchedHolons.Add(holon);
                 }
 
-                result.Result = matchedHolons;
+                if (holonType != HolonType.All)
+                    result.Result = matchedHolons.Where(x => x.HolonType == holonType);
+                else
+                    result.Result = matchedHolons;
             }
             catch (Exception ex)
             {
@@ -514,10 +534,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 result.Exception = ex;
             }
 
-            return result;
+            return result; 
         }
 
-        public OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, HolonType holonType)
+        public OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType)
         {
             OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
 
@@ -529,17 +549,30 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 //var documents = await _dbContext.Holon.FindAsync(_ => true).ToList();
 
                 List<Holon> matchedHolons = new List<Holon>();
+                int matchedKeys = 0;
 
                 foreach (Holon holon in documents)
                 {
+                    matchedKeys = 0;
                     foreach (KeyValuePair<string, string> metaKeyValuePair in metaKeyValuePairs)
                     {
                         if (holon.MetaData.ContainsKey(metaKeyValuePair.Key) && holon.MetaData[metaKeyValuePair.Key] != null && holon.MetaData[metaKeyValuePair.Key].ToString() == metaKeyValuePair.Value)
-                            matchedHolons.Add(holon);
+                        {
+                            if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any)
+                                matchedHolons.Add(holon);
+                            else
+                                matchedKeys++;
+                        }
                     }
+
+                    if (matchedKeys == metaKeyValuePairs.Count)
+                        matchedHolons.Add(holon);
                 }
 
-                result.Result = matchedHolons;
+                if (holonType != HolonType.All)
+                    result.Result = matchedHolons.Where(x => x.HolonType == holonType);
+                else
+                    result.Result = matchedHolons;
             }
             catch (Exception ex)
             {
