@@ -35,8 +35,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         public string COSMICVersion { get; set; }
         public string DotNetVersion { get; set; }
 
-        public int Versions { get; set; }
+        public int VersionSequence { get; set; }
         public int Downloads { get; set; }
         public int Installs { get; set; }
+        public int TotalDownloads { get; set; }
+        public int TotalInstalls { get; set; }
+        public int NumberOfVersions { get; set; }
     }
 }
