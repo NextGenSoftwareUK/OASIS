@@ -33,8 +33,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         string COSMICVersion { get; set; }
         string DotNetVersion { get; set; }
 
-        int Versions { get; set; }
-        int Downloads { get; set; }
-        int Installs { get; set; }
+        public int VersionSequence { get; set; }
+        public int Downloads { get; set; }
+        public int Installs { get; set; }
+        public int TotalDownloads { get; set; }
+        public int TotalInstalls { get; set; }
+        public int NumberOfVersions { get; set; }
     }
 }

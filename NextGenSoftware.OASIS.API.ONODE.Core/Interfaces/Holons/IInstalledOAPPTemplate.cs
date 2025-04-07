@@ -19,5 +19,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons
         public DateTime InstalledOn { get; set; }
         public Guid InstalledBy { get; set; }
         public string InstalledByAvatarUsername { get; set; }
+        public DateTime UninstalledOn { get; set; }
+        public Guid UninstalledBy { get; set; }
+        public string UninstalledByAvatarUsername { get; set; }
     }
 }
