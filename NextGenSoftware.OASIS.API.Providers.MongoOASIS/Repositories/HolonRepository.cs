@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.Utilities;
 using System.Linq;
+using NLog.Filters;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
@@ -496,8 +497,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 //TODO: Need to write a query to load by meta data so is more efficent! :)
                 //result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).Result.ToListAsync();
-                var documents = await _dbContext.Holon.FindAsync(Builders<Holon>.Filter.Empty).Result.ToListAsync();
-                //var documents = await _dbContext.Holon.FindAsync(_ => true).ToList();
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType);
+                var documents = _dbContext.Holon.Find(filter).ToList();
 
                 List<Holon> matchedHolons = new List<Holon>();
                 int matchedKeys = 0;
@@ -516,14 +517,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         }
                     }
 
-                    if (matchedKeys == metaKeyValuePairs.Count)
+                    if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All && matchedKeys == metaKeyValuePairs.Count)
                         matchedHolons.Add(holon);
                 }
 
-                if (holonType != HolonType.All)
-                    result.Result = matchedHolons.Where(x => x.HolonType == holonType);
-                else
-                    result.Result = matchedHolons;
+                //if (holonType != HolonType.All)
+                //    result.Result = matchedHolons.Where(x => x.HolonType == holonType).ToList();
+                //else
+                //    result.Result = matchedHolons;
             }
             catch (Exception ex)
             {
@@ -545,8 +546,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 //TODO: Need to write a query to load by meta data so is more efficent! :)
                 //result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).Result.ToListAsync();
-                var documents = _dbContext.Holon.Find(Builders<Holon>.Filter.Empty).ToList();
-                //var documents = await _dbContext.Holon.FindAsync(_ => true).ToList();
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType);
+                var documents = _dbContext.Holon.Find(filter).ToList();
 
                 List<Holon> matchedHolons = new List<Holon>();
                 int matchedKeys = 0;
@@ -565,14 +566,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         }
                     }
 
-                    if (matchedKeys == metaKeyValuePairs.Count)
+                    if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All && matchedKeys == metaKeyValuePairs.Count)
                         matchedHolons.Add(holon);
                 }
 
-                if (holonType != HolonType.All)
-                    result.Result = matchedHolons.Where(x => x.HolonType == holonType);
-                else
-                    result.Result = matchedHolons;
+                //if (holonType != HolonType.All)
+                //    result.Result = matchedHolons.Where(x => x.HolonType == holonType).ToList();
+                //else
+                //    result.Result = matchedHolons;
             }
             catch (Exception ex)
             {

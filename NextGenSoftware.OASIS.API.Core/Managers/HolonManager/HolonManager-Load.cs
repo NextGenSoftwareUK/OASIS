@@ -1075,12 +1075,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //    return result;
         //}
 
-        public OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISResult<IEnumerable<IHolon>> holonsResult = LoadHolonsByMetaData(metaKey, metaValue, HolonType.All, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
+            OASISResult<IEnumerable<IHolon>> holonsResult = LoadHolonsByMetaData(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
 
-            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null && holonsResult.Result.Count() > 0)
+            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
                 if (holonsResult.Result.Count() > 1)
                     OASISErrorHandling.HandleWarning(ref result, $"The holon with metaKey {metaKey} and metaValue {metaValue} loaded but more than one holon was found. Returning the first one.");
@@ -1093,12 +1093,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<T> LoadHolonByMetaData<T>(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public OASISResult<T> LoadHolonByMetaData<T>(string metaKey, string metaValue, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             OASISResult<T> result = new OASISResult<T>();
-            OASISResult<IEnumerable<T>> holonsResult = LoadHolonsByMetaData<T>(metaKey, metaValue, HolonType.All, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
+            OASISResult<IEnumerable<T>> holonsResult = LoadHolonsByMetaData<T>(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
 
-            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null && holonsResult.Result.Count() > 0)
+            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
                 if (holonsResult.Result.Count() > 1)
                     OASISErrorHandling.HandleWarning(ref result, $"The holon with metaKey {metaKey} and metaValue {metaValue} loaded but more than one holon was found. Returning the first one.");
@@ -1111,12 +1111,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISResult<IEnumerable<IHolon>> holonsResult = await LoadHolonsByMetaDataAsync(metaKey, metaValue, HolonType.All, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
+            OASISResult<IEnumerable<IHolon>> holonsResult = await LoadHolonsByMetaDataAsync(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
 
-            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null && holonsResult.Result.Count() > 0)
+            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
                 if (holonsResult.Result.Count() > 1)
                     OASISErrorHandling.HandleWarning(ref result, $"The holon with metaKey {metaKey} and metaValue {metaValue} loaded but more than one holon was found. Returning the first one.");
@@ -1129,12 +1129,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<T>> LoadHolonByMetaDataAsync<T>(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public async Task<OASISResult<T>> LoadHolonByMetaDataAsync<T>(string metaKey, string metaValue, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             OASISResult<T> result = new OASISResult<T>();
-            OASISResult<IEnumerable<T>> holonsResult = await LoadHolonsByMetaDataAsync<T>(metaKey, metaValue, HolonType.All, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
+            OASISResult<IEnumerable<T>> holonsResult = await LoadHolonsByMetaDataAsync<T>(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
 
-            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null && holonsResult.Result.Count() > 0)
+            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
                 if (holonsResult.Result.Count() > 1)
                     OASISErrorHandling.HandleWarning(ref result, $"The holon with metaKey {metaKey} and metaValue {metaValue} loaded but more than one holon was found. Returning the first one.");
@@ -1147,12 +1147,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IHolon> LoadHolonByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IHolon> LoadHolonByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISResult<IEnumerable<IHolon>> holonsResult = LoadHolonsByMetaData(metaKeyValuePairs, metaKeyValuePairMatchMode, HolonType.All, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
+            OASISResult<IEnumerable<IHolon>> holonsResult = LoadHolonsByMetaData(metaKeyValuePairs, metaKeyValuePairMatchMode, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
 
-            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null && holonsResult.Result.Count() > 0)
+            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
                 if (holonsResult.Result.Count() > 1)
                     OASISErrorHandling.HandleWarning(ref result, $"The holon loaded but more than one holon was found. Returning the first one.");
@@ -1165,12 +1165,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<T> LoadHolonByMetaData<T>(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public OASISResult<T> LoadHolonByMetaData<T>(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             OASISResult<T> result = new OASISResult<T>();
-            OASISResult<IEnumerable<T>> holonsResult = LoadHolonsByMetaData<T>(metaKeyValuePairs, metaKeyValuePairMatchMode, HolonType.All, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
+            OASISResult<IEnumerable<T>> holonsResult = LoadHolonsByMetaData<T>(metaKeyValuePairs, metaKeyValuePairMatchMode, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
 
-            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null && holonsResult.Result.Count() > 0)
+            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
                 if (holonsResult.Result.Count() > 1)
                     OASISErrorHandling.HandleWarning(ref result, $"The holon loaded but more than one holon was found. Returning the first one.");
@@ -1183,12 +1183,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISResult<IEnumerable<IHolon>> holonsResult = await LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, HolonType.All, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
+            OASISResult<IEnumerable<IHolon>> holonsResult = await LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
 
-            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null && holonsResult.Result.Count() > 0)
+            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
                 if (holonsResult.Result.Count() > 1)
                     OASISErrorHandling.HandleWarning(ref result, $"The holon loaded but more than one holon was found. Returning the first one.");
@@ -1201,12 +1201,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<T>> LoadHolonByMetaDataAsync<T>(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public async Task<OASISResult<T>> LoadHolonByMetaDataAsync<T>(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             OASISResult<T> result = new OASISResult<T>();
-            OASISResult<IEnumerable<T>> holonsResult = await LoadHolonsByMetaDataAsync<T>(metaKeyValuePairs, metaKeyValuePairMatchMode, HolonType.All, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
+            OASISResult<IEnumerable<T>> holonsResult = await LoadHolonsByMetaDataAsync<T>(metaKeyValuePairs, metaKeyValuePairMatchMode, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, childHolonType, version, providerType);
 
-            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null && holonsResult.Result.Count() > 0)
+            if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
                 if (holonsResult.Result.Count() > 1)
                     OASISErrorHandling.HandleWarning(ref result, $"The holon loaded but more than one holon was found. Returning the first one.");

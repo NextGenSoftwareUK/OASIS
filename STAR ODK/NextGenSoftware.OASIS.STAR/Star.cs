@@ -2627,7 +2627,7 @@ namespace NextGenSoftware.OASIS.STAR
 
                 Directory.CreateDirectory(OAPPFolder);
 
-                OASISResult<IInstalledOAPPTemplate> installedOAPPTemplateResult = await OASISAPI.OAPPTemplates.LoadInstalledOAPPTemplateAsync(BeamedInAvatar.Id, OAPPTemplateId, providerType);
+                OASISResult<IInstalledOAPPTemplate> installedOAPPTemplateResult = await OASISAPI.OAPPTemplates.LoadInstalledOAPPTemplateAsync(BeamedInAvatar.Id, OAPPTemplateId, 0, providerType);
 
                 if (installedOAPPTemplateResult != null && installedOAPPTemplateResult.Result != null && !installedOAPPTemplateResult.IsError)
                     CopyFolder(genesisNameSpace, new DirectoryInfo(installedOAPPTemplateResult.Result.InstalledPath), new DirectoryInfo(OAPPFolder));

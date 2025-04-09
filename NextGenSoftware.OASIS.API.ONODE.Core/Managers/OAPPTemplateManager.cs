@@ -102,6 +102,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 OAPPTemplate.MetaData["OAPPTemplateType"] = Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType);
                 OAPPTemplate.MetaData["Version"] = "1.0.0";
                 OAPPTemplate.MetaData["VersionSequence"] = 1;
+                OAPPTemplate.MetaData["Active"] = "1";
+
                 OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
                 if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
@@ -454,7 +456,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
 
             //TODO: Currently we pass in 0 for version (which means the OASIS will return the latest version) but we need to be able to query for all versions (-1)
-            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<OAPPTemplate>("OAPPTemplateId", OAPPTemplateId.ToString(), HolonType.OAPPTemplate, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
+            //OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<OAPPTemplate>("OAPPTemplateId", OAPPTemplateId.ToString(), HolonType.OAPPTemplate, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
+            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<OAPPTemplate>(new Dictionary<string, string>() 
+            { 
+                { "OAPPTemplateId", OAPPTemplateId.ToString() },
+                { "Active", "1" }
+            }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
+
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
@@ -465,7 +473,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
 
             //TODO: Currently we pass in 0 for version (which means the OASIS will return the latest version) but we need to be able to query for all versions (-1)
-            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = Data.LoadHolonsByMetaData<OAPPTemplate>("OAPPTemplateId", OAPPTemplateId.ToString(), HolonType.OAPPTemplate, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
+            //OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = Data.LoadHolonsByMetaData<OAPPTemplate>("OAPPTemplateId", OAPPTemplateId.ToString(), HolonType.OAPPTemplate, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
+            OASISResult<IEnumerable<OAPPTemplate>> loadHolonsResult = Data.LoadHolonsByMetaData<OAPPTemplate>(new Dictionary<string, string>()
+            {
+                { "OAPPTemplateId", OAPPTemplateId.ToString() },
+                { "Active", "1" }
+            }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
+
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
@@ -477,8 +491,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<OAPPTemplate> loadHolonResult = await Data.LoadHolonByMetaDataAsync<OAPPTemplate>(new Dictionary<string, string>()
             {
                  { "OAPPTemplateId", OAPPTemplateId.ToString() },
-                 { "Version", version }
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType);
+                 { "Version", version },
+                 { "Active", "1" }
+            }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonResult, result); //Copy any possible warnings etc.
             if (loadHolonResult != null && !loadHolonResult.IsError && loadHolonResult.Result != null)
@@ -500,8 +515,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<OAPPTemplate> loadHolonResult = Data.LoadHolonByMetaData<OAPPTemplate>(new Dictionary<string, string>()
             {
                  { "OAPPTemplateId", OAPPTemplateId.ToString() },
-                 { "Version", version }
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All, 0, providerType);
+                 { "Version", version },
+                 { "Active", "1" }
+            }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonResult, result); //Copy any possible warnings etc.
             if (loadHolonResult != null && !loadHolonResult.IsError && loadHolonResult.Result != null)
@@ -1304,7 +1320,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> DownloadAndInstallOAPPTemplateAsync(Guid avatarId, IOAPPTemplate OAPPTemplate, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> DownloadAndInstallOAPPTemplateAsync(Guid avatarId, IOAPPTemplate OAPPTemplate, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.DownloadAndInstallOAPPTemplateAsync. Reason: ";
@@ -1325,7 +1341,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 if (OAPPTemplate.PublishedOAPPTemplate != null)
                 {
                     await File.WriteAllBytesAsync(fullDownloadPath, OAPPTemplate.PublishedOAPPTemplate);
-                    result = await InstallOAPPTemplateAsync(avatarId, fullDownloadPath, fullInstallPath, createOAPPTemplateDirectory, null, providerType);
+                    result = await InstallOAPPTemplateAsync(avatarId, fullDownloadPath, fullInstallPath, createOAPPTemplateDirectory, null, reInstall, providerType);
                 }
                 else
                 {
@@ -1333,7 +1349,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     fullDownloadPath = Path.Combine(fullDownloadPath, string.Concat(OAPPTemplate.Name, "_v", OAPPTemplate.OAPPTemplateDNA.Version, ".oapptemplate"));
 
                     if (downloadResult != null && downloadResult.Result != null && !downloadResult.IsError)
-                        result = await InstallOAPPTemplateAsync(avatarId, fullDownloadPath, fullInstallPath, createOAPPTemplateDirectory, downloadResult.Result, providerType);
+                        result = await InstallOAPPTemplateAsync(avatarId, fullDownloadPath, fullInstallPath, createOAPPTemplateDirectory, downloadResult.Result, reInstall, providerType);
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured downloading the OAPP Template with the DownloadOAPPTemplateAsync method, reason: {downloadResult.Message}");
                 }
@@ -1354,12 +1370,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, string fullPathToPublishedOAPPTemplateFile, string fullInstallPath, bool createOAPPTemplateDirectory = true, IDownloadedOAPPTemplate downloadedOAPPTemplate = null, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, string fullPathToPublishedOAPPTemplateFile, string fullInstallPath, bool createOAPPTemplateDirectory = true, IDownloadedOAPPTemplate downloadedOAPPTemplate = null, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.InstallOAPPTemplateAsync. Reason: ";
             IOAPPTemplateDNA OAPPTemplateDNA = null;
             string tempPath = "";
+            InstalledOAPPTemplate installedOAPPTemplate = null;
+            int totalInstalls = 0;
 
             try
             {
@@ -1399,8 +1417,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                         if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
                         {
-                            OAPPTemplateDNA.Installs++;
-
                             if (downloadedOAPPTemplate == null)
                             {
                                 //OASISResult<DownloadedOAPPTemplate> downloadedOAPPTemplateResult = await Data.LoadHolonsByMetaDataAsync<DownloadedOAPPTemplate>("OAPPTemplateId", OAPPTemplateDNAResult.Result.Id.ToString(), false, false, 0, true, 0, false, HolonType.All, providerType);
@@ -1412,109 +1428,88 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     OASISErrorHandling.HandleWarning(ref result, $"The OAPP Template was installed but the DownloadedOAPPTemplate could not be found. Reason: {downloadedOAPPTemplateResult.Message}");
                             }
 
-                            InstalledOAPPTemplate installedOAPPTemplate = new InstalledOAPPTemplate()
+                            if (!reInstall)
                             {
-                                Name = string.Concat(OAPPTemplateDNA.Name, " Installed Holon"),
-                                Description = string.Concat(OAPPTemplateDNA.Description, " Installed Holon"),
-                                //OAPPTemplateId = OAPPTemplateDNAResult.Result.OAPPTemplateId,
-                                OAPPTemplateDNA = OAPPTemplateDNA,
-                                InstalledBy = avatarId,
-                                InstalledByAvatarUsername = avatarResult.Result.Username,
-                                InstalledOn = DateTime.Now,
-                                InstalledPath = fullInstallPath,
-                                //DownloadedOAPPTemplate = downloadedOAPPTemplate,
-                                DownloadedBy = downloadedOAPPTemplate.DownloadedBy,
-                                DownloadedByAvatarUsername = downloadedOAPPTemplate.DownloadedByAvatarUsername,
-                                DownloadedOn = downloadedOAPPTemplate.DownloadedOn,
-                                DownloadedPath = downloadedOAPPTemplate.DownloadedPath,
-                                DownloadedOAPPTemplateId = downloadedOAPPTemplate.Id
-                            };
+                                //If it's a re-install then it doesnt count as an install so we dont need to update the counts.
+                                OAPPTemplateDNA.Installs++;
 
-                            int totalInstalls = 0;
-                            OASISResult<IEnumerable<IOAPPTemplate>> templatesResult = await LoadOAPPTemplateVersionsAsync(OAPPTemplateDNA.Id, providerType);
-
-                            if (templatesResult != null && templatesResult.Result != null && !templatesResult.IsError)
-                            {
-                                //Update total installs for all versions.
-                                foreach (IOAPPTemplate template in templatesResult.Result)
-                                    totalInstalls += template.OAPPTemplateDNA.Installs;
-
-                                //Need to add this install (because its not saved yet).
-                                totalInstalls++;
-
-                                foreach (IOAPPTemplate template in templatesResult.Result)
+                                installedOAPPTemplate = new InstalledOAPPTemplate()
                                 {
-                                    template.OAPPTemplateDNA.TotalInstalls = totalInstalls;
-                                    OASISResult<IOAPPTemplate> templateSaveResult = await SaveOAPPTemplateAsync(template, avatarId, providerType);
+                                    Name = string.Concat(OAPPTemplateDNA.Name, " Installed Holon"),
+                                    Description = string.Concat(OAPPTemplateDNA.Description, " Installed Holon"),
+                                    //OAPPTemplateId = OAPPTemplateDNAResult.Result.OAPPTemplateId,
+                                    OAPPTemplateDNA = OAPPTemplateDNA,
+                                    InstalledBy = avatarId,
+                                    InstalledByAvatarUsername = avatarResult.Result.Username,
+                                    InstalledOn = DateTime.Now,
+                                    InstalledPath = fullInstallPath,
+                                    //DownloadedOAPPTemplate = downloadedOAPPTemplate,
+                                    DownloadedBy = downloadedOAPPTemplate.DownloadedBy,
+                                    DownloadedByAvatarUsername = downloadedOAPPTemplate.DownloadedByAvatarUsername,
+                                    DownloadedOn = downloadedOAPPTemplate.DownloadedOn,
+                                    DownloadedPath = downloadedOAPPTemplate.DownloadedPath,
+                                    DownloadedOAPPTemplateId = downloadedOAPPTemplate.Id,
+                                    Active = "1"
+                                };
 
-                                    if (!(templateSaveResult != null && templateSaveResult.Result != null && !templateSaveResult.IsError))
-                                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the TotalInstalls for OAPP Template with Id {template.Id} for provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {templateSaveResult.Message}");
-                                }
-
-                                OAPPTemplateDNA.TotalInstalls = totalInstalls;
-                                installedOAPPTemplate.OAPPTemplateDNA.TotalInstalls = totalInstalls;
+                                await UpdateInstallCountsAsync(installedOAPPTemplate, OAPPTemplateDNA, avatarId, result, errorMessage, providerType);
                             }
                             else
-                                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the total installs for all OAPP Template versions caused by an error in LoadOAPPTemplateVersionsAsync. Reason: {templatesResult.Message}");
-
-
-
-                            OASISResult<IEnumerable<IInstalledOAPPTemplate>> installedTemplatesResult = await ListInstalledOAPPTemplatesAsync(avatarId, providerType);
-
-                            if (installedTemplatesResult != null && installedTemplatesResult.Result != null && !installedTemplatesResult.IsError)
                             {
-                                foreach (IInstalledOAPPTemplate template in installedTemplatesResult.Result)
+                                OASISResult<IInstalledOAPPTemplate> installedOAPPTemplateResult = await LoadInstalledOAPPTemplateAsync(avatarId, OAPPTemplateDNAResult.Result.Id, OAPPTemplateDNAResult.Result.VersionSequence, providerType);
+
+                                if (installedOAPPTemplateResult != null && installedOAPPTemplateResult.Result != null && !installedOAPPTemplateResult.IsError)
                                 {
-                                    template.OAPPTemplateDNA.TotalInstalls = totalInstalls;
-                                    //OASISResult<IInstalledOAPPTemplate> templateSaveResult = await SaveInstalledOAPPTemplateAsync(template, avatarId, providerType);
-                                    OASISResult<IOAPPTemplate> templateSaveResult = await SaveOAPPTemplateAsync(template, avatarId, providerType);
-
-                                    if (!(templateSaveResult != null && templateSaveResult.Result != null && !templateSaveResult.IsError))
-                                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the TotalInstalls for Installed OAPP Template with Id {template.Id} for provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {templateSaveResult.Message}");
-                                }
-                            }
-                            else
-                                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the total installs for all Installed OAPP Template versions caused by an error in ListInstalledOAPPTemplatesAsync. Reason: {templatesResult.Message}");
-
-
-
-                            OASISResult<IOAPPTemplate> saveResult = await SaveOAPPTemplateAsync(installedOAPPTemplate, avatarId, providerType);
-
-                            if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
-                            {
-                                //result.Result = installedOAPPTemplate;
-                                //result.Result.DownloadedOAPPTemplate = downloadedOAPPTemplate;
-                                oappTemplateLoadResult.Result.OAPPTemplateDNA = OAPPTemplateDNA;
-
-                                OASISResult<IOAPPTemplate> oappSaveResult = await SaveOAPPTemplateAsync(oappTemplateLoadResult.Result, avatarId, providerType);
-
-                                if (oappSaveResult != null && !oappSaveResult.IsError && oappSaveResult.Result != null)
-                                {
-                                    if (OAPPTemplateDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
-                                        OASISErrorHandling.HandleWarning(ref result, $"The STAR ODK Version {OAPPTemplateDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                                    if (OAPPTemplateDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
-                                        OASISErrorHandling.HandleWarning(ref result, $"The OASIS Version {OAPPTemplateDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                                    if (OAPPTemplateDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
-                                        OASISErrorHandling.HandleWarning(ref result, $"The COSMIC Version {OAPPTemplateDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                                    if (result.InnerMessages.Count > 0)
-                                        result.Message = $"OAPP Template successfully installed but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
-                                    else
-                                        result.Message = "OAPP Template Successfully Installed";
-
-                                    result.Result = installedOAPPTemplate;
-                                    OnOAPPTemplateInstallStatusChanged?.Invoke(this, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNAResult.Result, Status = Enums.OAPPTemplateInstallStatus.Installed });
+                                    installedOAPPTemplate = (InstalledOAPPTemplate)installedOAPPTemplateResult.Result;
+                                    installedOAPPTemplate.Active = "1";
+                                    installedOAPPTemplate.UninstalledBy = Guid.Empty;
+                                    installedOAPPTemplate.UninstalledByAvatarUsername = "";
+                                    installedOAPPTemplate.UninstalledOn = DateTime.MinValue;
                                 }
                                 else
-                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPTemplateAsync method. Reason: {oappSaveResult.Message}");
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured re-installing OAPP Template calling LoadInstalledOAPPTemplateAsync. Reason: {installedOAPPTemplateResult.Message}");
+                            }
+
+                            if (!result.IsError)
+                            {
+                                OASISResult<IOAPPTemplate> saveResult = await SaveOAPPTemplateAsync(installedOAPPTemplate, avatarId, providerType);
+
+                                if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                                {
+                                    //result.Result = installedOAPPTemplate;
+                                    //result.Result.DownloadedOAPPTemplate = downloadedOAPPTemplate;
+                                    oappTemplateLoadResult.Result.OAPPTemplateDNA = OAPPTemplateDNA;
+
+                                    OASISResult<IOAPPTemplate> oappSaveResult = await SaveOAPPTemplateAsync(oappTemplateLoadResult.Result, avatarId, providerType);
+
+                                    if (oappSaveResult != null && !oappSaveResult.IsError && oappSaveResult.Result != null)
+                                    {
+                                        if (OAPPTemplateDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
+                                            OASISErrorHandling.HandleWarning(ref result, $"The STAR ODK Version {OAPPTemplateDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                        if (OAPPTemplateDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
+                                            OASISErrorHandling.HandleWarning(ref result, $"The OASIS Version {OAPPTemplateDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                        if (OAPPTemplateDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
+                                            OASISErrorHandling.HandleWarning(ref result, $"The COSMIC Version {OAPPTemplateDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                        if (result.InnerMessages.Count > 0)
+                                            result.Message = $"OAPP Template successfully installed but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                                        else
+                                            result.Message = "OAPP Template Successfully Installed";
+
+                                        result.Result = installedOAPPTemplate;
+                                        OnOAPPTemplateInstallStatusChanged?.Invoke(this, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNAResult.Result, Status = Enums.OAPPTemplateInstallStatus.Installed });
+                                    }
+                                    else
+                                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPTemplateAsync method. Reason: {oappSaveResult.Message}");
+                                }
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync method. Reason: {saveResult.Message}");
                             }
                             else
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync method. Reason: {saveResult.Message}");
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync method. Reason: {avatarResult.Message}");
                         }
-                        else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync method. Reason: {avatarResult.Message}");
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadOAPPTemplateAsync method. Reason: {oappTemplateLoadResult.Message}");
@@ -1693,13 +1688,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             OASISResult<IOAPPTemplate> OAPPTemplateResult = await LoadOAPPTemplateAsync(OAPPTemplateId, providerType);
 
             if (OAPPTemplateResult != null && !OAPPTemplateResult.IsError && OAPPTemplateResult.Result != null)
-                result = await DownloadAndInstallOAPPTemplateAsync(avatarId, OAPPTemplateResult.Result, fullInstallPath, fullDownloadPath, createOAPPTemplateDirectory, providerType);
+                result = await DownloadAndInstallOAPPTemplateAsync(avatarId, OAPPTemplateResult.Result, fullInstallPath, fullDownloadPath, createOAPPTemplateDirectory, reInstall, providerType);
             else
             {
                 OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPTemplateManager.InstallOAPPTemplateAsync loading the OAPP Template with the LoadOAPPTemplateAsync method, reason: {result.Message}");
@@ -1725,17 +1720,73 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(IInstalledOAPPTemplate installedOAPPTemplate, Guid avatarId, string errorMessage, ProviderType providerType)
+        {
+            OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
+            OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType, 0);
+
+            if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+            {
+                installedOAPPTemplate.UninstalledBy = avatarId;
+                installedOAPPTemplate.UninstalledOn = DateTime.Now;
+                installedOAPPTemplate.UninstalledByAvatarUsername = avatarResult.Result.Username;
+                installedOAPPTemplate.MetaData["Active"] = "0";
+
+                OASISResult<InstalledOAPPTemplate> saveIntalledOAPPTemplateResult = await installedOAPPTemplate.SaveAsync<InstalledOAPPTemplate>();
+
+                if (saveIntalledOAPPTemplateResult != null && !saveIntalledOAPPTemplateResult.IsError && saveIntalledOAPPTemplateResult.Result != null)
+                {
+                    result.Message = "OAPP Template Uninstalled";
+                    result.Result = saveIntalledOAPPTemplateResult.Result;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync. Reason: {saveIntalledOAPPTemplateResult.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync. Reason: {avatarResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(IInstalledOAPPTemplate installedOAPPTemplate, Guid avatarId, string errorMessage, ProviderType providerType)
+        {
+            OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
+            OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(avatarId, false, true, providerType, 0);
+
+            if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+            {
+                installedOAPPTemplate.UninstalledBy = avatarId;
+                installedOAPPTemplate.UninstalledOn = DateTime.Now;
+                installedOAPPTemplate.UninstalledByAvatarUsername = avatarResult.Result.Username;
+                installedOAPPTemplate.MetaData["Active"] = "0";
+
+                OASISResult<InstalledOAPPTemplate> saveIntalledOAPPTemplateResult = installedOAPPTemplate.Save<InstalledOAPPTemplate>();
+
+                if (saveIntalledOAPPTemplateResult != null && !saveIntalledOAPPTemplateResult.IsError && saveIntalledOAPPTemplateResult.Result != null)
+                {
+                    result.Message = "OAPP Template Uninstalled";
+                    result.Result = saveIntalledOAPPTemplateResult.Result;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync. Reason: {saveIntalledOAPPTemplateResult.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync. Reason: {avatarResult.Message}");
+
+            return result;
+        }
+
         public async Task<OASISResult<IInstalledOAPPTemplate>> UnInstallOAPPTemplateAsync(Guid OAPPTemplateId, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.UnInstallOAPPTemplateAsync. Reason: ";
 
-            return await = UninstallOAPPTemplateAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
+            return await UninstallOAPPTemplateAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
                 { "VersionSequene", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
         }
 
         public OASISResult<IInstalledOAPPTemplate> UnInstallOAPPTemplate(Guid OAPPTemplateId, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
@@ -1748,7 +1799,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
                 { "VersionSequene", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All, 0, providerType), avatarId, errorMessage, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType), avatarId, errorMessage, providerType);
         }
 
         public async Task<OASISResult<IInstalledOAPPTemplate>> UnInstallOAPPTemplateAsync(Guid OAPPTemplateId, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
@@ -1756,25 +1807,25 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.UnInstallOAPPTemplateAsync. Reason: ";
 
-            return await = UninstallOAPPTemplateAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
+            return await UninstallOAPPTemplateAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> UnInstallOAPPTemplate(Guid OAPPTemplateId, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> UnInstallOAPPTemplate(Guid OAPPTemplateId, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.UnInstallOAPPTemplateAsync. Reason: ";
 
-            return await = UninstallOAPPTemplateAsync(Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
+            return UninstallOAPPTemplate(Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All, 0, providerType), avatarId, errorMessage, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType), avatarId, errorMessage, providerType);
         }
 
         public async Task<OASISResult<IInstalledOAPPTemplate>> UnInstallOAPPTemplateAsync(string OAPPTemplateName, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
@@ -1782,12 +1833,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.UnInstallOAPPTemplateAsync. Reason: ";
 
-            return await = UninstallOAPPTemplateAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
+            return await UninstallOAPPTemplateAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateName", OAPPTemplateName },
                 { "VersionSequence", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
         }
 
         public OASISResult<IInstalledOAPPTemplate> UnInstallOAPPTemplate(string OAPPTemplateName, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
@@ -1800,7 +1851,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 { "OAPPTemplateName", OAPPTemplateName },
                 { "VersionSequene", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All), avatarId, errorMessage, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All), avatarId, errorMessage, providerType);
         }
 
         public async Task<OASISResult<IInstalledOAPPTemplate>> UnInstallOAPPTemplateAsync(string OAPPTemplateName, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
@@ -1813,7 +1864,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 { "OAPPTemplateName", OAPPTemplateName },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
         }
 
         public OASISResult<IInstalledOAPPTemplate> UnInstallOAPPTemplate(string OAPPTemplateName, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
@@ -1826,7 +1877,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 { "OAPPTemplateName", OAPPTemplateName },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All), avatarId, errorMessage, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All), avatarId, errorMessage, providerType);
         }
 
         public async Task<OASISResult<IEnumerable<IInstalledOAPPTemplate>>> ListInstalledOAPPTemplatesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
@@ -1905,12 +1956,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
-                { "VersionSequene", versionSequence.ToString() }
+                { "VersionSequene", versionSequence.ToString() },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType);
 
-            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
-                result.Result = true;
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError)
+            {
+                if (installedOAPPTemplatesResult.Result != null)
+                    result.Result = true;
+            }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplatesResult.Message}");
 
@@ -1925,9 +1980,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
-                { "VersionSequene", versionSequence.ToString() }
+                { "VersionSequene", versionSequence.ToString() },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
                 result.Result = true;
@@ -1945,12 +2001,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
-                { "Version", version }
+                { "Version", version },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.InstalledOAPPTemplate, providerType);
 
-            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
-                result.Result = true;
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError)
+            {
+                if (installedOAPPTemplatesResult.Result != null)
+                    result.Result = true;
+            }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplatesResult.Message}");
 
@@ -1965,14 +2025,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
-                { "Version", version.ToString() }
+                { "Version", version.ToString() },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
 
-            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
-                result.Result = true;
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError)
+            {
+                if (installedOAPPTemplatesResult.Result != null)
+                    result.Result = true;
+            }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplatesResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaData. Reason: {installedOAPPTemplatesResult.Message}");
 
             return result;
         }
@@ -1985,12 +2049,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateName", OAPPTemplateName},
-                { "Version", versionSequence.ToString() }
+                { "Version", versionSequence.ToString() },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType);
 
-            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
-                result.Result = true;
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError)
+            {
+                if (installedOAPPTemplatesResult.Result != null)
+                    result.Result = true;
+            }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplatesResult.Message}");
 
@@ -2005,12 +2073,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateName.ToString() },
-                { "VersionSequene", versionSequence.ToString() }
+                { "VersionSequene", versionSequence.ToString() },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
 
-            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
-                result.Result = true;
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError)
+            {
+                if (installedOAPPTemplatesResult.Result != null)
+                    result.Result = true;
+            }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaData. Reason: {installedOAPPTemplatesResult.Message}");
 
@@ -2025,12 +2097,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateName", OAPPTemplateName},
-                { "Version", version.ToString() }
+                { "Version", version.ToString() },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType);
 
-            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
-                result.Result = true;
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError)
+            {
+                if (installedOAPPTemplatesResult.Result != null)
+                    result.Result = true;
+            }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplatesResult.Message}");
 
@@ -2045,28 +2121,33 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateName.ToString() },
-                { "Version", version }
+                { "Version", version },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
 
-            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
-                result.Result = true;
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError)
+            {
+                if (installedOAPPTemplatesResult.Result != null)
+                    result.Result = true;
+            }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaData. Reason: {installedOAPPTemplatesResult.Message}");
 
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
-                { "VersionSequene", versionSequence.ToString() }
+                { "VersionSequene", versionSequence.ToString() },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
                 result.Result = installedOAPPTemplatesResult.Result;
@@ -2076,16 +2157,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplate. Reason: ";
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
-                { "VersionSequene", versionSequence.ToString() }
+                { "VersionSequene", versionSequence.ToString() },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
                 result.Result = installedOAPPTemplatesResult.Result;
@@ -2095,16 +2177,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, string OAPPTemplateName, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, string OAPPTemplateName, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateName", OAPPTemplateName },
-                { "VersionSequene", versionSequence.ToString() }
+                { "VersionSequene", versionSequence.ToString() },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType);
             if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
                 result.Result = installedOAPPTemplatesResult.Result;
             else
@@ -2113,16 +2196,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, string OAPPTemplateName, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, string OAPPTemplateName, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplate. Reason: ";
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateName },
-                { "VersionSequene", versionSequence.ToString() }
+                { "VersionSequene", versionSequence.ToString() },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
                 result.Result = installedOAPPTemplatesResult.Result;
@@ -2139,9 +2223,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
-                { "Version", version}
+                { "Version", version},
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
                 result.Result = installedOAPPTemplatesResult.Result;
@@ -2158,9 +2243,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateId.ToString() },
-                { "Version", version }
+                { "Version", version },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
                 result.Result = installedOAPPTemplatesResult.Result;
@@ -2177,9 +2263,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateName", OAPPTemplateName },
-                { "Version", version }
+                { "Version", version },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType);
+            
             if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
                 result.Result = installedOAPPTemplatesResult.Result;
             else
@@ -2195,9 +2283,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
                 { "OAPPTemplateId", OAPPTemplateName },
-                { "Version", version }
+                { "Version", version },
+                { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
                 result.Result = installedOAPPTemplatesResult.Result;
@@ -2400,33 +2489,66 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        private async Task<OASISResult<IInstalledOAPPTemplate>> UpdateInstallCountsAsync(InstalledOAPPTemplate installedOAPPTemplate, IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, OASISResult<IInstalledOAPPTemplate> result, string errorMessage, ProviderType providerType = ProviderType.Default)
+        {
+            int totalInstalls = 0;
+
+            //If it's a re-install then it doesnt count as an install so we dont need to update the counts.
+            OASISResult<IEnumerable<IOAPPTemplate>> templatesResult = await LoadOAPPTemplateVersionsAsync(OAPPTemplateDNA.Id, providerType);
+
+            if (templatesResult != null && templatesResult.Result != null && !templatesResult.IsError)
+            {
+                //Update total installs for all versions.
+                foreach (IOAPPTemplate template in templatesResult.Result)
+                    totalInstalls += template.OAPPTemplateDNA.Installs;
+
+                //Need to add this install (because its not saved yet).
+                totalInstalls++;
+
+                foreach (IOAPPTemplate template in templatesResult.Result)
+                {
+                    template.OAPPTemplateDNA.TotalInstalls = totalInstalls;
+                    OASISResult<IOAPPTemplate> templateSaveResult = await SaveOAPPTemplateAsync(template, avatarId, providerType);
+
+                    if (!(templateSaveResult != null && templateSaveResult.Result != null && !templateSaveResult.IsError))
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the TotalInstalls for OAPP Template with Id {template.Id} for provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {templateSaveResult.Message}");
+                }
+
+                OAPPTemplateDNA.TotalInstalls = totalInstalls;
+                installedOAPPTemplate.OAPPTemplateDNA.TotalInstalls = totalInstalls;
+            }
+            else
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the total installs for all OAPP Template versions caused by an error in LoadOAPPTemplateVersionsAsync. Reason: {templatesResult.Message}");
+
+
+            OASISResult<IEnumerable<IInstalledOAPPTemplate>> installedTemplatesResult = await ListInstalledOAPPTemplatesAsync(avatarId, providerType);
+
+            if (installedTemplatesResult != null && installedTemplatesResult.Result != null && !installedTemplatesResult.IsError)
+            {
+                foreach (IInstalledOAPPTemplate template in installedTemplatesResult.Result)
+                {
+                    //If it's a re-install then it doesnt count as an install so we dont need to update the counts.
+                    template.OAPPTemplateDNA.TotalInstalls = totalInstalls;
+
+                    //OASISResult<IInstalledOAPPTemplate> templateSaveResult = await SaveInstalledOAPPTemplateAsync(template, avatarId, providerType);
+                    OASISResult<IOAPPTemplate> templateSaveResult = await SaveOAPPTemplateAsync(template, avatarId, providerType);
+
+                    if (!(templateSaveResult != null && templateSaveResult.Result != null && !templateSaveResult.IsError))
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the TotalInstalls for Installed OAPP Template with Id {template.Id} for provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {templateSaveResult.Message}");
+                }
+            }
+            else
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the total installs for all Installed OAPP Template versions caused by an error in ListInstalledOAPPTemplatesAsync. Reason: {templatesResult.Message}");
+
+            return result;
+        }
+
         private async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(OASISResult<InstalledOAPPTemplate> installedOAPPTemplateResult, Guid avatarId, string errorMessage, ProviderType providerType)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
 
             if (installedOAPPTemplateResult != null && !installedOAPPTemplateResult.IsError && installedOAPPTemplateResult.Result != null)
-            {
-                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType, 0);
-
-                if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
-                {
-                    installedOAPPTemplateResult.Result.UninstalledBy = avatarId;
-                    installedOAPPTemplateResult.Result.UninstalledOn = DateTime.Now;
-                    installedOAPPTemplateResult.Result.UninstalledByAvatarUsername = avatarResult.Result.Username;
-
-                    OASISResult<InstalledOAPPTemplate> saveIntalledOAPPTemplateResult = await installedOAPPTemplateResult.Result.SaveAsync<InstalledOAPPTemplate>();
-
-                    if (saveIntalledOAPPTemplateResult != null && !saveIntalledOAPPTemplateResult.IsError && saveIntalledOAPPTemplateResult.Result != null)
-                    {
-                        result.Message = "OAPP Template Uninstalled";
-                        result.Result = saveIntalledOAPPTemplateResult.Result;
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync. Reason: {installedOAPPTemplateResult.Message}");
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync. Reason: {avatarResult.Message}");
-            }
+                result = await UninstallOAPPTemplateAsync(installedOAPPTemplateResult.Result, avatarId, errorMessage, providerType); 
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplateResult.Message}");
 
@@ -2438,30 +2560,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
 
             if (installedOAPPTemplateResult != null && !installedOAPPTemplateResult.IsError && installedOAPPTemplateResult.Result != null)
-            {
-                OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(avatarId, false, true, providerType, 0);
-
-                if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
-                {
-                    installedOAPPTemplateResult.Result.UninstalledBy = avatarId;
-                    installedOAPPTemplateResult.Result.UninstalledOn = DateTime.Now;
-                    installedOAPPTemplateResult.Result.UninstalledByAvatarUsername = avatarResult.Result.Username;
-
-                    OASISResult<InstalledOAPPTemplate> saveIntalledOAPPTemplateResult = installedOAPPTemplateResult.Result.Save<InstalledOAPPTemplate>();
-
-                    if (saveIntalledOAPPTemplateResult != null && !saveIntalledOAPPTemplateResult.IsError && saveIntalledOAPPTemplateResult.Result != null)
-                    {
-                        result.Message = "OAPP Template Uninstalled";
-                        result.Result = saveIntalledOAPPTemplateResult.Result;
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync. Reason: {installedOAPPTemplateResult.Message}");
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync. Reason: {avatarResult.Message}");
-            }
+                result = UninstallOAPPTemplate(installedOAPPTemplateResult.Result, avatarId, errorMessage, providerType);
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplateResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaData. Reason: {installedOAPPTemplateResult.Message}");
 
             return result;
         }

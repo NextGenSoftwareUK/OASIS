@@ -76,5 +76,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 
         [CustomOASISProperty]
         public string UninstalledByAvatarUsername { get; set; }
+
+        [CustomOASISProperty]
+        public string Active { get; set; }
     }
 }
