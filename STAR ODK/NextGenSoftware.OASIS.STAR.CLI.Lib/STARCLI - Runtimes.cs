@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.STAR.OASISAPIManager;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -259,7 +260,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task<OASISResult<IInstalledRuntime>> InstallRuntimeAsync(string idOrName = "", bool install = true, ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IInstalledRuntime>> InstallRuntimeAsync(string idOrName = "", InstallMode installMode = InstallMode.DownloadAndInstall, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledRuntime> installResult = new OASISResult<IInstalledRuntime>();
             string installPath = "";

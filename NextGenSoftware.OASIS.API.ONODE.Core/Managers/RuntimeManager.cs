@@ -1510,7 +1510,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (!Directory.Exists(runtimePath))
                 {
-                    OASISResult<Runtime> runtimeResult = await Data.LoadHolonByMetaDataAsync<Runtime>("RuntimeName", runtimeName, false, false, 0, true, 0, false, HolonType.All, providerType);
+                    OASISResult<Runtime> runtimeResult = await Data.LoadHolonByMetaDataAsync<Runtime>("RuntimeName", runtimeName, HolonType.Runtime, false, false, 0, true, 0, false, HolonType.All, providerType);
 
                     if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
                         result = await InstallRuntimeAsync(avatarId, runtimeResult.Result, runtimePath, providerType);
@@ -1547,7 +1547,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (!Directory.Exists(runtimePath))
                 {
-                    OASISResult<Runtime> runtimeResult = Data.LoadHolonByMetaData<Runtime>("RuntimeName", runtimeName, false, false, 0, true, false, HolonType.All, 0, providerType);
+                    OASISResult<Runtime> runtimeResult = Data.LoadHolonByMetaData<Runtime>("RuntimeName", runtimeName, HolonType.Runtime, false, false, 0, true, false, HolonType.All, 0, providerType);
 
                     if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
                         result = InstallRuntime(avatarId, runtimeResult.Result, runtimePath, providerType);
