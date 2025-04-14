@@ -521,6 +521,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         matchedHolons.Add(holon);
                 }
 
+                result.Result = matchedHolons;
+
                 //if (holonType != HolonType.All)
                 //    result.Result = matchedHolons.Where(x => x.HolonType == holonType).ToList();
                 //else
@@ -569,6 +571,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All && matchedKeys == metaKeyValuePairs.Count)
                         matchedHolons.Add(holon);
                 }
+
+                result.Result = matchedHolons;
 
                 //if (holonType != HolonType.All)
                 //    result.Result = matchedHolons.Where(x => x.HolonType == holonType).ToList();

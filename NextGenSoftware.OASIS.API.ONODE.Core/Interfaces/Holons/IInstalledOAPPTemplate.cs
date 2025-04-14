@@ -23,5 +23,6 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons
         public Guid UninstalledBy { get; set; }
         public string UninstalledByAvatarUsername { get; set; }
         public string Active { get; set; }
+        //public string OAPPTemplateVersion { get; set; }
     }
 }
