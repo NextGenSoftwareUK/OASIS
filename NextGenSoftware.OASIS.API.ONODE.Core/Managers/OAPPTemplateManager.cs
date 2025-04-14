@@ -103,6 +103,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 OAPPTemplate.MetaData["Version"] = "1.0.0";
                 OAPPTemplate.MetaData["VersionSequence"] = 1;
                 OAPPTemplate.MetaData["Active"] = "1";
+                //OAPPTemplate.MetaData["LatestVersion"] = "1";
 
                 OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
@@ -265,6 +266,20 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 result.Result = filterdResult.Result.FirstOrDefault();
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in LoadOAPPTemplateAsync loading the OAPP Template with Id {OAPPTemplateId} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {filterdResult.Message}");
+
+
+            //OASISResult<OAPPTemplate> OAPPTemplatesResult = Data.LoadHolonByMetaData<OAPPTemplate>(new Dictionary<string, string>()
+            //{
+            //    { "OAPPTemplateId", OAPPTemplateId.ToString() },
+            //    { "LatestVersion", "1" },
+            //    { "Active", "1" }
+
+            //}, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType);
+
+            //if (OAPPTemplatesResult != null && !OAPPTemplatesResult.IsError && OAPPTemplatesResult.Result != null)
+            //    result.Result = OAPPTemplatesResult.Result;
+            //else
+            //    OASISErrorHandling.HandleError(ref result, $"Error occured in LoadOAPPTemplateAsync loading the OAPP Template with Id {OAPPTemplateId} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {filterdResult.Message}");
 
             return result;
         }
@@ -558,13 +573,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         OASISResult<IOAPPTemplate> loadOAPPTemplateResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id);
 
                         if (loadOAPPTemplateResult != null && loadOAPPTemplateResult.Result != null && !loadOAPPTemplateResult.IsError)
-                        {
-                            //TODO: Maybe add check to make sure the DNA has not been tampered with?
-
+                        {                     
                             OASISResult<bool> validateVersionResult = ValidateVersion(OAPPTemplateDNA.Version, loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version, fullPathToOAPPTemplate, OAPPTemplateDNA.PublishedOn == DateTime.MinValue);
 
                             if (validateVersionResult != null && validateVersionResult.Result && !validateVersionResult.IsError)
                             {
+                                //TODO: Maybe add check to make sure the DNA has not been tampered with?
+                                loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version = OAPPTemplateDNA.Version; //Set the new version set in the DNA (JSON file).
+                                OAPPTemplateDNA = loadOAPPTemplateResult.Result.OAPPTemplateDNA; //Make sure it has not been tampered with by using the stored version.
                                 OAPPTemplateDNA.VersionSequence++;
                                 OAPPTemplateDNA.NumberOfVersions++;
 
@@ -596,14 +612,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     if (File.Exists(OAPPTemplateDNA.OAPPTemplatePublishedPath))
                                         File.Delete(OAPPTemplateDNA.OAPPTemplatePublishedPath);
 
-                                    tempPath = Path.GetTempPath();
-                                    tempPath = Path.Combine(tempPath, readOAPPTemplateDNAResult.Result.Name);
+                                    ZipFile.CreateFromDirectory(fullPathToOAPPTemplate, OAPPTemplateDNA.OAPPTemplatePublishedPath);
 
-                                    if (Directory.Exists(tempPath))
-                                        Directory.Delete(tempPath, true);
+                                    //tempPath = Path.GetTempPath();
+                                    //tempPath = Path.Combine(tempPath, readOAPPTemplateDNAResult.Result.Name);
 
-                                    ZipFile.CreateFromDirectory(fullPathToOAPPTemplate, tempPath);
-                                    File.Move(tempPath, readOAPPTemplateDNAResult.Result.OAPPTemplatePublishedPath);
+                                    //if (Directory.Exists(tempPath))
+                                    //    Directory.Delete(tempPath, true);
+
+                                    //ZipFile.CreateFromDirectory(fullPathToOAPPTemplate, tempPath);
+                                    //File.Move(tempPath, OAPPTemplateDNA.OAPPTemplatePublishedPath);
                                 }
 
                                 //TODO: Currently the filesize will NOT be in the compressed .oapptemplate file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPTemplateDNA inside it...
@@ -786,6 +804,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     loadOAPPTemplateResult.Result.ModifiedDate = DateTime.MinValue;
                                     loadOAPPTemplateResult.Result.CreatedByAvatarId = Guid.Empty;
                                     loadOAPPTemplateResult.Result.ModifiedByAvatarId = Guid.Empty;
+                                    loadOAPPTemplateResult.Result.OAPPTemplateDNA.Downloads = 0;
+                                    loadOAPPTemplateResult.Result.OAPPTemplateDNA.Installs = 0;
                                 }
 
                                 OASISResult<IOAPPTemplate> saveOAPPTemplateResult = await SaveOAPPTemplateAsync(loadOAPPTemplateResult.Result, avatarId, providerType);
@@ -1424,8 +1444,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     DownloadedPath = downloadedOAPPTemplate.DownloadedPath,
                                     DownloadedOAPPTemplateId = downloadedOAPPTemplate.Id,
                                     Active = "1"
+                                    //OAPPTemplateVersion = OAPPTemplateDNA.Version
                                 };
 
+                                installedOAPPTemplate.MetaData["Version"] = OAPPTemplateDNA.Version;
+                                installedOAPPTemplate.MetaData["OAPPTemplateId"] = OAPPTemplateDNA.Id;
+                                
                                 await UpdateInstallCountsAsync(installedOAPPTemplate, OAPPTemplateDNA, avatarId, result, errorMessage, providerType);
                             }
                             else
@@ -1697,27 +1721,40 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(IInstalledOAPPTemplate installedOAPPTemplate, Guid avatarId, string errorMessage, ProviderType providerType)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
-            OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType, 0);
 
-            if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+            try
             {
-                installedOAPPTemplate.UninstalledBy = avatarId;
-                installedOAPPTemplate.UninstalledOn = DateTime.Now;
-                installedOAPPTemplate.UninstalledByAvatarUsername = avatarResult.Result.Username;
-                installedOAPPTemplate.MetaData["Active"] = "0";
+                Directory.Delete(installedOAPPTemplate.InstalledPath, true);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to delete the OAPP Template folder ({installedOAPPTemplate.InstalledPath}) Reason: {ex.Message}");
+            }
 
-                OASISResult<InstalledOAPPTemplate> saveIntalledOAPPTemplateResult = await installedOAPPTemplate.SaveAsync<InstalledOAPPTemplate>();
+            if (!result.IsError)
+            {
+                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType, 0);
 
-                if (saveIntalledOAPPTemplateResult != null && !saveIntalledOAPPTemplateResult.IsError && saveIntalledOAPPTemplateResult.Result != null)
+                if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
                 {
-                    result.Message = "OAPP Template Uninstalled";
-                    result.Result = saveIntalledOAPPTemplateResult.Result;
+                    installedOAPPTemplate.UninstalledBy = avatarId;
+                    installedOAPPTemplate.UninstalledOn = DateTime.Now;
+                    installedOAPPTemplate.UninstalledByAvatarUsername = avatarResult.Result.Username;
+                    installedOAPPTemplate.MetaData["Active"] = "0";
+
+                    OASISResult<InstalledOAPPTemplate> saveIntalledOAPPTemplateResult = await installedOAPPTemplate.SaveAsync<InstalledOAPPTemplate>();
+
+                    if (saveIntalledOAPPTemplateResult != null && !saveIntalledOAPPTemplateResult.IsError && saveIntalledOAPPTemplateResult.Result != null)
+                    {
+                        result.Message = "OAPP Template Uninstalled";
+                        result.Result = saveIntalledOAPPTemplateResult.Result;
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync. Reason: {saveIntalledOAPPTemplateResult.Message}");
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync. Reason: {saveIntalledOAPPTemplateResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync. Reason: {avatarResult.Message}");
             }
-            else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync. Reason: {avatarResult.Message}");
 
             return result;
         }
@@ -1725,27 +1762,40 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(IInstalledOAPPTemplate installedOAPPTemplate, Guid avatarId, string errorMessage, ProviderType providerType)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
-            OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(avatarId, false, true, providerType, 0);
 
-            if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+            try
             {
-                installedOAPPTemplate.UninstalledBy = avatarId;
-                installedOAPPTemplate.UninstalledOn = DateTime.Now;
-                installedOAPPTemplate.UninstalledByAvatarUsername = avatarResult.Result.Username;
-                installedOAPPTemplate.MetaData["Active"] = "0";
+                Directory.Delete(installedOAPPTemplate.InstalledPath, true);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to delete the OAPP Template folder ({installedOAPPTemplate.InstalledPath}) Reason: {ex.Message}");
+            }
 
-                OASISResult<InstalledOAPPTemplate> saveIntalledOAPPTemplateResult = installedOAPPTemplate.Save<InstalledOAPPTemplate>();
+            if (!result.IsError)
+            {
+                OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(avatarId, false, true, providerType, 0);
 
-                if (saveIntalledOAPPTemplateResult != null && !saveIntalledOAPPTemplateResult.IsError && saveIntalledOAPPTemplateResult.Result != null)
+                if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
                 {
-                    result.Message = "OAPP Template Uninstalled";
-                    result.Result = saveIntalledOAPPTemplateResult.Result;
+                    installedOAPPTemplate.UninstalledBy = avatarId;
+                    installedOAPPTemplate.UninstalledOn = DateTime.Now;
+                    installedOAPPTemplate.UninstalledByAvatarUsername = avatarResult.Result.Username;
+                    installedOAPPTemplate.MetaData["Active"] = "0";
+
+                    OASISResult<InstalledOAPPTemplate> saveIntalledOAPPTemplateResult = installedOAPPTemplate.Save<InstalledOAPPTemplate>();
+
+                    if (saveIntalledOAPPTemplateResult != null && !saveIntalledOAPPTemplateResult.IsError && saveIntalledOAPPTemplateResult.Result != null)
+                    {
+                        result.Message = "OAPP Template Uninstalled";
+                        result.Result = saveIntalledOAPPTemplateResult.Result;
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling Save. Reason: {saveIntalledOAPPTemplateResult.Message}");
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync. Reason: {saveIntalledOAPPTemplateResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatar. Reason: {avatarResult.Message}");
             }
-            else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync. Reason: {avatarResult.Message}");
 
             return result;
         }

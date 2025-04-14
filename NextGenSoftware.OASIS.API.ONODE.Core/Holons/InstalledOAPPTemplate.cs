@@ -79,5 +79,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 
         [CustomOASISProperty]
         public string Active { get; set; }
+
+        //[CustomOASISProperty]
+        //public string OAPPTemplateVersion { get; set; }
     }
 }
