@@ -1002,8 +1002,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                         //else
                                         //    CLIEngine.ShowErrorMessage($"An error occured loading the OAPP Template Version. Reason: {versionLoadResult.Message}");
                                     }
-                                    else
                                         CLIEngine.ShowErrorMessage("Invalid version entered. Please try again.");
+
+                                    if (version == 0)
+                                        break;
 
                                 } while (!versionSelected);
                             }
@@ -1016,42 +1018,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
 
-                OASISResult<bool> oappInstalledResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, result.Result.Id, result.Result.OAPPTemplateDNA.Version, providerType);
-
-                if (oappInstalledResult != null && !oappInstalledResult.IsError)
-                {
-                    if (oappInstalledResult.Result)
-                    {
-                        CLIEngine.ShowWarningMessage($"You have already installed this version ({result.Result.OAPPTemplateDNA.Version}).");
-
-                        if (CLIEngine.GetConfirmation("Would you like to uninstall and re-install now?"))
-                        {
-                            Console.WriteLine("");
-                            CLIEngine.ShowWorkingMessage("Uninstalling OAPP Template...");
-                            OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UnInstallOAPPTemplateAsync(result.Result.Id, result.Result.OAPPTemplateDNA.Version, STAR.BeamedInAvatar.Id, providerType);
-
-                            if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
-                                CLIEngine.ShowSuccessMessage("OAPP Template Successfully Uninstalled.");
-                            else
-                            {
-                                CLIEngine.ShowErrorMessage($"Error occured uninstalling the OAPP Template! Reason: {uninstallResult.Message}");
-                                result.Result = null;
-                            }
-                        }
-                        else
-                        {
-                            result.Result = null;
-                            Console.WriteLine("");
-                        }
-                    }
-                }
-                else
-                {
-                    CLIEngine.ShowErrorMessage($"Error occured checking if the OAPP Template is already installed! Reason: {oappInstalledResult.Message}");
-                    result.Result = null;
-                }
-
-
                 if (idOrName == "exit")
                     break;
 
@@ -1059,7 +1025,53 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     //ShowOAPPTemplate(result.Result);
 
-                    if (!CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this OAPP Template?"))
+                    if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this OAPP Template?"))
+                    {
+                        if (result != null && result.Result != null && result.Result.MetaData != null && result.Result.MetaData.ContainsKey("OAPPTemplateId") && result.Result.MetaData["OAPPTemplateId"] != null && Guid.TryParse(result.Result.MetaData["OAPPTemplateId"].ToString(), out id))
+                        {
+                            OASISResult<bool> oappInstalledResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, id, result.Result.OAPPTemplateDNA.Version, providerType);
+
+                            if (oappInstalledResult != null && !oappInstalledResult.IsError)
+                            {
+                                if (oappInstalledResult.Result)
+                                {
+                                    Console.WriteLine("");
+                                    CLIEngine.ShowWarningMessage($"You have already installed this version ({result.Result.OAPPTemplateDNA.Version}).");
+
+                                    if (CLIEngine.GetConfirmation("Would you like to uninstall and re-install now?"))
+                                    {
+                                        Console.WriteLine("");
+                                        CLIEngine.ShowWorkingMessage("Uninstalling OAPP Template...");
+                                        OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UnInstallOAPPTemplateAsync(id, result.Result.OAPPTemplateDNA.Version, STAR.BeamedInAvatar.Id, providerType);
+
+                                        if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
+                                            CLIEngine.ShowSuccessMessage("OAPP Template Successfully Uninstalled.");
+                                        else
+                                        {
+                                            CLIEngine.ShowErrorMessage($"Error occured uninstalling the OAPP Template! Reason: {uninstallResult.Message}");
+                                            result.Result = null;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        result.Result = null;
+                                        Console.WriteLine("");
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                CLIEngine.ShowErrorMessage($"Error occured checking if the OAPP Template is already installed! Reason: {oappInstalledResult.Message}");
+                                result.Result = null;
+                            }
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Error occured checking if the OAPP Template is already installed! Reason: OAPPTemplateId was not found in the metadata!");
+                            result.Result = null;
+                        }
+                    }
+                    else
                         result.Result = null;
 
                     Console.WriteLine("");
@@ -1119,32 +1131,37 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             OASISResult<IInstalledOAPPTemplate> installResult = new OASISResult<IInstalledOAPPTemplate>();
             bool continueInstall = false;
-            OASISResult<bool> installedResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, OAPPTemplate.Id, OAPPTemplate.OAPPTemplateDNA.Version, providerType);
+            Guid id = Guid.Empty;
 
-            if (installedResult != null && !installedResult.IsError)
+            if (OAPPTemplate != null && OAPPTemplate.MetaData != null && OAPPTemplate.MetaData.ContainsKey("OAPPTemplateId") && OAPPTemplate.MetaData["OAPPTemplateId"] != null && Guid.TryParse(OAPPTemplate.MetaData["OAPPTemplateId"].ToString(), out id))
             {
-                if (installedResult.Result)
-                {
-                    string errorMessage = "The OAPP Template is already installed! Please uninstall before attempting to re-install.";
-                    CLIEngine.ShowErrorMessage(errorMessage);
+                OASISResult<bool> installedResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, id, OAPPTemplate.OAPPTemplateDNA.Version, providerType);
 
-                    if (CLIEngine.GetConfirmation("Do you wish to uninstall the OAPP Template now? Press 'Y' for Yes or 'N' for No."))
+                if (installedResult != null && !installedResult.IsError)
+                {
+                    if (installedResult.Result)
                     {
-                        await UnInstallOAPPTemplateAsync(OAPPTemplate.Id.ToString(), providerType);
-                        continueInstall = true;
+                        string errorMessage = "The OAPP Template is already installed! Please uninstall before attempting to re-install.";
+                        CLIEngine.ShowErrorMessage(errorMessage);
+
+                        if (CLIEngine.GetConfirmation("Do you wish to uninstall the OAPP Template now? Press 'Y' for Yes or 'N' for No."))
+                        {
+                            await UnInstallOAPPTemplateAsync(OAPPTemplate.Id.ToString(), providerType);
+                            continueInstall = true;
+                        }
+                        else
+                        {
+                            Console.WriteLine("");
+                            installedResult.Message = errorMessage;
+                            installedResult.IsError = true;
+                        }
                     }
                     else
-                    {
-                        Console.WriteLine("");
-                        installedResult.Message = errorMessage;
-                        installedResult.IsError = true;
-                    }
+                        continueInstall = true;
                 }
                 else
-                    continueInstall = true;
+                    CLIEngine.ShowErrorMessage($"Error checking if the OAPP Template is already installed!");
             }
-            else
-                CLIEngine.ShowErrorMessage($"Error checking if the OAPP Template is already installed!");
 
             if (continueInstall)
                 installResult = await InstallOAPPTemplateAsync(OAPPTemplate, downloadPath, installPath, installMode, providerType);

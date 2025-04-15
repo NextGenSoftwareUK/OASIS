@@ -1082,13 +1082,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
-                if (holonsResult.Result.Count() > 1)
-                    OASISErrorHandling.HandleWarning(ref result, $"The holon with metaKey {metaKey} and metaValue {metaValue} loaded but more than one holon was found. Returning the first one.");
+                //if (holonsResult.Result.Count() > 1)
+                //    OASISErrorHandling.HandleWarning(ref result, $"The holon with metaKey {metaKey} and metaValue {metaValue} loaded but more than one holon was found. Returning the first one.");
 
                 result.Result = holonsResult.Result.FirstOrDefault();
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonByMetaData. Reason: The holon with metaKey {metaKey} and metaValue {metaValue} failed to load. Reason: {holonsResult.Message}");
+
+            if (result.Result == null)
+            {
+                result.Message = "No holon found";
+                result.IsWarning = true;
+            }
+            else
+                result.IsLoaded = true;
 
             return result;
         }
@@ -1100,13 +1108,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
-                if (holonsResult.Result.Count() > 1)
-                    OASISErrorHandling.HandleWarning(ref result, $"The holon with metaKey {metaKey} and metaValue {metaValue} loaded but more than one holon was found. Returning the first one.");
+                //if (holonsResult.Result.Count() > 1)
+                //    OASISErrorHandling.HandleWarning(ref result, $"The holon with metaKey {metaKey} and metaValue {metaValue} loaded but more than one holon was found. Returning the first one.");
 
                 result.Result = holonsResult.Result.FirstOrDefault();
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonByMetaData. Reason: The holon with metaKey {metaKey} and metaValue {metaValue} failed to load. Reason: {holonsResult.Message}");
+
+            if (result.Result == null)
+            {
+                result.Message = "No holon found";
+                result.IsWarning = true;
+            }
+            else
+                result.IsLoaded = true;
 
             return result;
         }
@@ -1118,13 +1134,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
-                if (holonsResult.Result.Count() > 1)
-                    OASISErrorHandling.HandleWarning(ref result, $"The holon with metaKey {metaKey} and metaValue {metaValue} loaded but more than one holon was found. Returning the first one.");
+                //if (holonsResult.Result.Count() > 1)
+                //    OASISErrorHandling.HandleWarning(ref result, $"The holon with metaKey {metaKey} and metaValue {metaValue} loaded but more than one holon was found. Returning the first one.");
 
                 result.Result = holonsResult.Result.FirstOrDefault();
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonByMetaDataAsync. Reason: The holon with metaKey {metaKey} and metaValue {metaValue} failed to load. Reason: {holonsResult.Message}");
+
+            if (result.Result == null)
+            {
+                result.Message = "No holon found";
+                result.IsWarning = true;
+            }
+            else
+                result.IsLoaded = true;
 
             return result;
         }
@@ -1136,13 +1160,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
-                if (holonsResult.Result.Count() > 1)
-                    OASISErrorHandling.HandleWarning(ref result, $"The holon with metaKey {metaKey} and metaValue {metaValue} loaded but more than one holon was found. Returning the first one.");
+                //if (holonsResult.Result.Count() > 1)
+                //    OASISErrorHandling.HandleWarning(ref result, $"The holon with metaKey {metaKey} and metaValue {metaValue} loaded but more than one holon was found. Returning the first one.");
 
                 result.Result = holonsResult.Result.FirstOrDefault();
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonByMetaDataAsync. Reason: The holon with metaKey {metaKey} and metaValue {metaValue} failed to load. Reason: {holonsResult.Message}");
+
+            if (result.Result == null)
+            {
+                result.Message = "No holon found";
+                result.IsWarning = true;
+            }
+            else
+                result.IsLoaded = true;
 
             return result;
         }
@@ -1154,13 +1186,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
-                if (holonsResult.Result.Count() > 1)
-                    OASISErrorHandling.HandleWarning(ref result, $"The holon loaded but more than one holon was found. Returning the first one.");
+                //if (holonsResult.Result.Count() > 1)
+                //    OASISErrorHandling.HandleWarning(ref result, $"The holon loaded but more than one holon was found. Returning the first one.");
 
                 result.Result = holonsResult.Result.FirstOrDefault();
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonByMetaData. Reason: The holon failed to load. Reason: {holonsResult.Message}");
+
+            if (result.Result == null)
+            {
+                result.Message = "No holon found";
+                result.IsWarning = true;
+            }
+            else
+                result.IsLoaded = true;
 
             return result;
         }
@@ -1172,13 +1212,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
-                if (holonsResult.Result.Count() > 1)
-                    OASISErrorHandling.HandleWarning(ref result, $"The holon loaded but more than one holon was found. Returning the first one.");
+                //if (holonsResult.Result.Count() > 1)
+                //    OASISErrorHandling.HandleWarning(ref result, $"The holon loaded but more than one holon was found. Returning the first one.");
 
                 result.Result = holonsResult.Result.FirstOrDefault();
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonByMetaData. Reason: The holon failed to load. Reason: {holonsResult.Message}");
+
+            if (result.Result == null)
+            {
+                result.Message = "No holon found";
+                result.IsWarning = true;
+            }
+            else
+                result.IsLoaded = true;
 
             return result;
         }
@@ -1190,13 +1238,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
-                if (holonsResult.Result.Count() > 1)
-                    OASISErrorHandling.HandleWarning(ref result, $"The holon loaded but more than one holon was found. Returning the first one.");
+                //if (holonsResult.Result.Count() > 1)
+                //    OASISErrorHandling.HandleWarning(ref result, $"The holon loaded but more than one holon was found. Returning the first one.");
 
                 result.Result = holonsResult.Result.FirstOrDefault();
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonByMetaDataAsync. Reason: The holon failed to load. Reason: {holonsResult.Message}");
+
+            if (result.Result == null)
+            {
+                result.Message = "No holon found";
+                result.IsWarning = true;
+            }
+            else
+                result.IsLoaded = true;
 
             return result;
         }
@@ -1208,13 +1264,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
             {
-                if (holonsResult.Result.Count() > 1)
-                    OASISErrorHandling.HandleWarning(ref result, $"The holon loaded but more than one holon was found. Returning the first one.");
+                //if (holonsResult.Result.Count() > 1)
+                //    OASISErrorHandling.HandleWarning(ref result, $"The holon loaded but more than one holon was found. Returning the first one.");
 
                 result.Result = holonsResult.Result.FirstOrDefault();
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in LoadHolonByMetaDataAsync. Reason: The holon failed to load. Reason: {holonsResult.Message}");
+
+            if (result.Result == null)
+            {
+                result.Message = "No holon found";
+                result.IsWarning = true;
+            }
+            else
+                result.IsLoaded = true;
 
             return result;
         }

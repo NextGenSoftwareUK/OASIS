@@ -600,26 +600,26 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 //TODO: Cant remember why I was doing this?! lol
                 if (holon.Id == null)
                 {
-                    Holon originalHolon = await GetHolonAsync(holon.HolonId);
+                    //Holon originalHolon = await GetHolonAsync(holon.HolonId);
 
-                    if (originalHolon != null)
-                    {
-                        holon.Id = originalHolon.Id;
-                        holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
-                        holon.CreatedDate = originalHolon.CreatedDate;
-                        holon.HolonType = originalHolon.HolonType;
-                        holon.ParentZome = originalHolon.ParentZome;
-                        holon.ParentZomeId = originalHolon.ParentZomeId;
-                        holon.ParentMoon = originalHolon.ParentMoon;
-                        holon.ParentPlanet = originalHolon.ParentPlanet;
-                        holon.ParentMoonId = originalHolon.ParentMoonId;
-                        holon.ParentPlanetId = originalHolon.ParentPlanetId;
-                        holon.Children = originalHolon.Children;
-                        holon.DeletedByAvatarId = originalHolon.DeletedByAvatarId;
-                        holon.DeletedDate = originalHolon.DeletedDate;
-
-                        //TODO: Needs more thought!
-                    }
+                    //if (originalHolon != null)
+                    //{
+                    //    holon.Id = originalHolon.Id;
+                    //    holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
+                    //    holon.CreatedDate = originalHolon.CreatedDate;
+                    //    holon.HolonType = originalHolon.HolonType;
+                    //    holon.ParentZome = originalHolon.ParentZome;
+                    //    holon.ParentZomeId = originalHolon.ParentZomeId;
+                    //    holon.ParentMoon = originalHolon.ParentMoon;
+                    //    holon.ParentPlanet = originalHolon.ParentPlanet;
+                    //    holon.ParentMoonId = originalHolon.ParentMoonId;
+                    //    holon.ParentPlanetId = originalHolon.ParentPlanetId;
+                    //    holon.Children = originalHolon.Children;
+                    //    holon.DeletedByAvatarId = originalHolon.DeletedByAvatarId;
+                    //    holon.DeletedDate = originalHolon.DeletedDate;
+                    //    holon.MetaData = originalHolon.MetaData;
+                    //    //TODO: Needs more thought!
+                    //}
                 }
 
                 await _dbContext.Holon.ReplaceOneAsync(filter: g => g.HolonId == holon.HolonId, replacement: holon);
