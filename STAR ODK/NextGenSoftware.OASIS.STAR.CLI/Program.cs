@@ -562,7 +562,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                 case "template":
                                                     {
                                                         //await ShowOAPPTemplateSubCommandsAsync(inputArgs);
-                                                        await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.CreateOAPPTemplateAsync, STARCLI.EditOAPPTemplateAsync, STARCLI.DeleteOAPPTemplateAsync, STARCLI.DownloadAndInstallOAPPTemplateAsync, STARCLI.UnInstallOAPPTemplateAsync, STARCLI.PublishOAPPTemplateAsync, STARCLI.UnPublishOAPPTemplateAsync, STARCLI.ShowOAPPTemplateAsync, STARCLI.ListOAPPTemplatesCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPTemplatesAsync, STARCLI.ListOAPPTemplatesInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUninstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPTemplatesAsync, ProviderType.Default, true);
+                                                        //await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.CreateOAPPTemplateAsync, STARCLI.EditOAPPTemplateAsync, STARCLI.DeleteOAPPTemplateAsync, STARCLI.DownloadAndInstallOAPPTemplateAsync, STARCLI.UninstallOAPPTemplateAsync, STARCLI.ReinstallOAPPTemplateAsync, STARCLI.PublishOAPPTemplateAsync, STARCLI.UnpublishOAPPTemplateAsync, STARCLI.RepublishOAPPTemplateAsync, STARCLI.ActivateOAPPTemplateAsync, STARCLI.DeactivateOAPPTemplateAsync, STARCLI.ShowOAPPTemplateAsync, STARCLI.ListOAPPTemplatesCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPTemplatesAsync, STARCLI.ListOAPPTemplatesInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUninstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUnpublishedForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesDeactivatedForBeamedInAvatarAsync, STARCLI.SearchOAPPTemplatesAsync, ProviderType.Default, true);
+                                                        await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.CreateOAPPTemplateAsync, STARCLI.EditOAPPTemplateAsync, STARCLI.DeleteOAPPTemplateAsync, STARCLI.DownloadAndInstallOAPPTemplateAsync, STARCLI.UninstallOAPPTemplateAsync, STARCLI.PublishOAPPTemplateAsync, STARCLI.UnpublishOAPPTemplateAsync, STARCLI.RepublishOAPPTemplateAsync, STARCLI.ActivateOAPPTemplateAsync, STARCLI.DeactivateOAPPTemplateAsync, STARCLI.ShowOAPPTemplateAsync, STARCLI.ListOAPPTemplatesCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPTemplatesAsync, STARCLI.ListOAPPTemplatesInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUninstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUnpublishedForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesDeactivatedForBeamedInAvatarAsync, STARCLI.SearchOAPPTemplatesAsync, ProviderType.Default, true);
                                                     }
                                                     break;
                                             }
@@ -787,17 +788,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<object, ProviderType, Task> createPredicate = null, 
             Func<string, object, ProviderType, Task> updatePredicate = null, 
             Func<string, bool, ProviderType, Task> deletePredicate = null,
-        //Func<string, ProviderType, Task> downloadPredicate = null,
-        //Func<string, ProviderType, Task> installPredicate = null,
             Func<string, InstallMode, ProviderType, Task> downloadAndInstallPredicate = null,
             Func<string, ProviderType, Task> uninstallPredicate = null,
+            //Func<string, ProviderType, Task> reinstallPredicate = null,
             Func<string, ProviderType, Task> publishPredicate = null,
             Func<string, ProviderType, Task> unpublishPredicate = null,
+            Func<string, ProviderType, Task> republishPredicate = null,
+            Func<string, ProviderType, Task> activatePredicate = null,
+            Func<string, ProviderType, Task> deactivatePredicate = null,
             Func<string, ProviderType, Task> showPredicate = null,
             Func<ProviderType, Task> listForBeamedInAvatarPredicate = null,
             Func<ProviderType, Task> listAllPredicate = null,
             Func<ProviderType, Task> listInstalledPredicate = null,
             Func<ProviderType, Task> listUninstalledPredicate = null,
+            Func<ProviderType, Task> listUnpublishedPredicate = null,
+            Func<ProviderType, Task> listDeactivatedPredicate = null,
             Func<string, ProviderType, Task> searchPredicate = null, 
             ProviderType providerType = ProviderType.Default,
             bool isOAPPOrHappOrRuntime = false,
@@ -933,6 +938,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         }
                         break;
 
+                    //case "reinstall":
+                    //    {
+                    //        if (isOAPPOrHappOrRuntime)
+                    //        {
+                    //            if (reinstallPredicate != null)
+                    //                await reinstallPredicate(id, providerType);
+                    //            else
+                    //                CLIEngine.ShowMessage("Coming Soon...");
+                    //        }
+                    //        else
+                    //            CLIEngine.ShowMessage("Command not supported.");
+                    //    }
+                    //    break;
+
                     case "publish":
                         {
                             if (publishPredicate != null)
@@ -946,6 +965,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         {
                             if (unpublishPredicate != null)
                                 await unpublishPredicate(id, providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "republish":
+                        {
+                            if (republishPredicate != null)
+                                await republishPredicate(id, providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "activate":
+                        {
+                            if (activatePredicate != null)
+                                await activatePredicate(id, providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "deactivate":
+                        {
+                            if (deactivatePredicate != null)
+                                await deactivatePredicate(id, providerType);
                             else
                                 CLIEngine.ShowMessage("Coming Soon...");
                         }
@@ -1000,6 +1046,24 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     }
                                     break;
 
+                                case "unpublished":
+                                    {
+                                        if (listUnpublishedPredicate != null)
+                                            await listUnpublishedPredicate(providerType);
+                                        else
+                                            CLIEngine.ShowMessage("Coming Soon...");
+                                    }
+                                    break;
+
+                                case "deactivated":
+                                    {
+                                        if (listDeactivatedPredicate != null)
+                                            await listDeactivatedPredicate(providerType);
+                                        else
+                                            CLIEngine.ShowMessage("Coming Soon...");
+                                    }
+                                    break;
+
                                 default:
                                     {
                                         if (listForBeamedInAvatarPredicate != null)
@@ -1009,33 +1073,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     }
                                     break;
                             }
-
-                            //if (subCommandParam2 == "all")
-                            //{
-                            //    if (listAllPredicate != null)
-                            //        await listAllPredicate(providerType);
-                            //    else
-                            //        CLIEngine.ShowMessage("Coming Soon...");
-                            //}
-                            //else if (inputArgs.Length > 2 && inputArgs[2] != null && inputArgs[2].ToLower() == "installed")
-                            //{
-                            //    if (isOAPPOrHappOrRuntime)
-                            //    {
-                            //        if (listInstalledPredicate != null)
-                            //            await listInstalledPredicate(providerType);
-                            //        else
-                            //            CLIEngine.ShowMessage("Coming Soon...");
-                            //    }
-                            //    else
-                            //        CLIEngine.ShowMessage("Command not supported.");
-                            //}
-                            //else
-                            //{
-                            //    if (listForBeamedInAvatarPredicate != null)
-                            //        await listForBeamedInAvatarPredicate(providerType);
-                            //    else
-                            //        CLIEngine.ShowMessage("Coming Soon...");
-                            //}
                         }
                         break;
 
@@ -1065,13 +1102,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                 int commandSpace = 15;
                 int paramSpace = 9;
-                //int paramSpace = 2;
-                //string commandSpace = " ";
                 string paramDivider = "  ";
 
                 if (isOAPPOrHappOrRuntime)
                 {
-                    //commandSpace = "           ";
                     commandSpace = 20;
                     paramDivider = "                   ";
                 }
@@ -1090,6 +1124,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     CLIEngine.ShowMessage(string.Concat("    download".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Download a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                     CLIEngine.ShowMessage(string.Concat("    install".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Install/download a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                     CLIEngine.ShowMessage(string.Concat("    uninstall".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Uninstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                    //CLIEngine.ShowMessage(string.Concat("    reinstall".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Reinstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 }
 
                 if (isOAPPOrHappOrRuntime)
@@ -1103,10 +1138,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Publish a ", subCommand, " to STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
 
                 CLIEngine.ShowMessage(string.Concat("    unpublish".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Unpublish a ", subCommand, " from STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    republish".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Republish a ", subCommand, " to STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    activate".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Activate (show) a ", subCommand, " on the STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    deactivate".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Deactivate (hide) a ", subCommand, " on the STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "[all]".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " that have been created. If {all} is omitted it will list only your ", subCommandPlural, "'s otherwise it will list all published ", subCommandPlural, "'s as well as yours."), ConsoleColor.Green, false);
 
                 if (isOAPPOrHappOrRuntime)
+                {
                     CLIEngine.ShowMessage(string.Concat("    list installed".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, "' installed for the currently beamed in avatar."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    list uninstalled".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, "' uninstalled for the currently beamed in avatar (allows reinstalling)."), ConsoleColor.Green, false);
+                }
+
+                CLIEngine.ShowMessage(string.Concat("    list unpublished".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, "' unpublished for the currently beamed in avatar (allows republishing)."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    list deactivated".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, "' deactivated for the currently beamed in avatar (allows reactivating)."), ConsoleColor.Green, false);
 
                 CLIEngine.ShowMessage(string.Concat("    search".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Searches the ", subCommandPlural, " for the given search critera."), ConsoleColor.Green, false);
                 
@@ -4438,6 +4482,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    dim                                          {id/name}                              Deactivate a published OAPP for the given {id} or {name} within the STARNET store."); //TODO: Dev next.
                 Console.WriteLine("    seed                                         {id/name}                              Deploy/Publish a OAPP for the given {id} or {name} to the STARNET Store.");
                 Console.WriteLine("    unseed                                       {id/name}                              Undeploy/Unpublish a OAPP for the given {id} or {name} from the STARNET Store.");
+                Console.WriteLine("    reseed                                       {id/name}                              Redeploy/Republish a OAPP for the given {id} or {name} to the STARNET Store.");
                 Console.WriteLine("    dust                                         {id/name}                              Delete a OAPP for the given {id} or {name} (this will also remove it from STARNET if it has already been published)."); //TODO: Dev next.
                 Console.WriteLine("    radiate                                      {id/name}                              Highlight the OAPP for the given {id} or {name} in the STARNET Store. *Admin/Wizards Only*");
                 Console.WriteLine("    emit                                         {id/name}                              Show how much light the OAPP is emitting into the solar system for the given {id} or {name}");
@@ -4491,52 +4536,76 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    oapp delete                                   {id/name}                             Delete an existing OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp publish                                  {id/name}                             Shortcut to the seed sub-command.");
                 Console.WriteLine("    oapp unpublish                                {id/name}                             Shortcut to the un-seed sub-command.");
+                Console.WriteLine("    oapp republish                                {id/name}                             Shortcut to the re-seed sub-command.");
+                Console.WriteLine("    oapp activate                                 {id/name}                             Activate a OAPP for the given {id} or {name}.");
+                Console.WriteLine("    oapp deactivate                               {id/name}                             Deactivate a OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp download                                 {id/name}                             Download a OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp install                                  {id/name}                             Install/download a OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp uninstall                                {id/name}                             Uninstall a OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp reinstall                                {id/name}                             Reinstall a OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp show                                     {id/name}                             Shows a OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp list                                     [all]                                 List all OAPPs (contains zomes and holons) that have been generated.");
                 Console.WriteLine("    oapp list installed                                                                 List all OAPP's installed for the currently beamed in avatar.");
                 Console.WriteLine("    oapp list uninstalled                                                               List all OAPP's uninstalled for the currently beamed in avatar (and allow re-install).");
+                Console.WriteLine("    oapp list unpublished                                                               List all OAPP's unpublished for the currently beamed in avatar (and allow republish).");
+                Console.WriteLine("    oapp list deactivated                                                               List all OAPP's deactivated for the currently beamed in avatar (and allow reactivate).");
                 Console.WriteLine("    oapp search                                   [all]                                 Searches the OAPP's for the given search critera.");
                 Console.WriteLine("    oapp template create                                                                Creates a OAPP template.");
                 Console.WriteLine("    oapp template update                         {id/name}                              Updates a OAPP template for the given {id} or {name}.");
                 Console.WriteLine("    oapp template delete                         {id/name}                              Deletes a OAPP template for the given {id} or {name}.");
                 Console.WriteLine("    oapp template publish                        {id/name}                              Publishes a OAPP template to the STARNET store for the given {id} or {name}.");
                 Console.WriteLine("    oapp template unpublish                      {id/name}                              Unpublishes a OAPP template from the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    oapp template republish                      {id/name}                              Republishes a OAPP template to the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    oapp template activate                       {id/name}                              Activate a OAPP for the given {id} or {name}.");
+                Console.WriteLine("    oapp template deactivate                     {id/name}                              Deactivate a OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp template download                       {id/name}                              Downloads a OAPP template for the given {id} or {name}.");
                 Console.WriteLine("    oapp template install                        {id/name}                              Installs/downloads a OAPP template for the given {id} or {name}.");
                 Console.WriteLine("    oapp template uninstall                      {id/name}                              Uninstalls a OAPP template for the given {id} or {name}.");
+                //Console.WriteLine("    oapp template reinstall                      {id/name}                              Reinstalls a OAPP template for the given {id} or {name}.");
                 Console.WriteLine("    oapp template show                           {id/name}                              Shows a OAPP template for the given {id} or {name}.");
                 Console.WriteLine("    oapp template list                           [all]                                  List all OAPP template's that have been created.");
                 Console.WriteLine("    oapp template list installed                                                        List all OAPP template's installed for the currently beamed in avatar.");
-                Console.WriteLine("    oapp template list uninstalled                                                      List all OAPP template's uninstalled for the currently beamed in avatar (and allow re-install).");
+                Console.WriteLine("    oapp template list uninstalled                                                      List all OAPP template's uninstalled for the currently beamed in avatar (and allow reinstalling).");
+                Console.WriteLine("    oapp template list unpublished                                                      List all OAPP template's unpublished for the currently beamed in avatar (and allow republishing.");
+                Console.WriteLine("    oapp template list deactivated                                                      List all OAPP template's deactivated for the currently beamed in avatar (and allow reactivating).");
                 Console.WriteLine("    oapp template search                         [all]                                  Searches the OAPP template's for the given search critera.");
                 Console.WriteLine("    happ create                                                                         Shortcut to the light sub-command.");
                 Console.WriteLine("    happ update                                  {id/name}                              Update an existing hApp for the given {id} or {name}.");
                 Console.WriteLine("    happ delete                                  {id/name}                              Delete an existing hApp for the given {id} or {name}.");
-                Console.WriteLine("    happ publish                                 {id/name}                              Shortcut to the seed sub-command.");
-                Console.WriteLine("    happ unpublish                               {id/name}                              Shortcut to the un-seed sub-command.");
+                Console.WriteLine("    happ publish                                 {id/name}                              Publishes a hApp to the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    happ unpublish                               {id/name}                              Unpublishes a hApp from the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    happ republish                               {id/name}                              Republishes a hApp to the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    happ activate                                {id/name}                              Activates a hApp on the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    happ deactivate                              {id/name}                              Decctivates a hApp on the STARNET store for the given {id} or {name}.");
                 Console.WriteLine("    happ download                                {id/name}                              Downloads a hApp for the given {id} or {name}.");
                 Console.WriteLine("    happ install                                 {id/name}                              Installs/downloads a hApp for the given {id} or {name}.");
                 Console.WriteLine("    happ uninstall                               {id/name}                              Uninstalls a hApp for the given {id} or {name}.");
+                //Console.WriteLine("    happ reinstall                               {id/name}                              Reinstalls a hApp for the given {id} or {name}.");
                 Console.WriteLine("    happ show                                    {id/name}                              Shows a hApp for the given {id} or {name}.");
                 Console.WriteLine("    happ list                                    [all]                                  List all hApp's (contains zomes) that have been generated.");
                 Console.WriteLine("    happ list installed                                                                 List all hApp's installed for the currently beamed in avatar.");
-                Console.WriteLine("    happ list uninstalled                                                               List all hApp's uninstalled for the currently beamed in avatar (and allow re-install).");
+                Console.WriteLine("    happ list uninstalled                                                               List all hApp's uninstalled for the currently beamed in avatar (and allow reinstalling).");
+                Console.WriteLine("    happ list unpublished                                                               List all hApp's unpublished for the currently beamed in avatar (and allow republishing).");
+                Console.WriteLine("    happ list deactivated                                                               List all hApp's deactivated for the currently beamed in avatar (and allow reactivating).");
                 Console.WriteLine("    happ search                                  [all]                                  Searches the hApp's for the given search critera.");
                 Console.WriteLine("    runtime create                                                                      Create a new runtime (currently supports OASIS & STAR but more to follow). Only admin's can create & publish OASIS/STAR runtime's.");
                 Console.WriteLine("    runtime update                               {id/name}                              Update an existing runtime for the given {id} or {name}.");
                 Console.WriteLine("    runtime delete                               {id/name}                              Delete an existing runtime for the given {id} or {name}.");
                 Console.WriteLine("    runtime publish                              {id/name}                              Publish a runtime.");
                 Console.WriteLine("    runtime unpublish                            {id/name}                              Unpublish a runtime.");
+                Console.WriteLine("    runtime republish                            {id/name}                              Republish a runtime.");
+                Console.WriteLine("    runtime activate                             {id/name}                              Activates a runtime on the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    runtime deactivate                           {id/name}                              Decctivates a runtime on the STARNET store for the given {id} or {name}.");
                 Console.WriteLine("    runtime download                             {id/name}                              Downloads a runtime for the given {id} or {name}.");
                 Console.WriteLine("    runtime install                              {id/name}                              Installs/downloads a runtime for the given {id} or {name}.");
                 Console.WriteLine("    runtime uninstall                            {id/name}                              Uninstalls a runtime for the given {id} or {name}.");
+                //Console.WriteLine("    runtime reinstall                            {id/name}                              Reinstalls a runtime for the given {id} or {name}.");
                 Console.WriteLine("    runtime show                                 {id/name}                              Shows a runtime for the given {id} or {name}.");
                 Console.WriteLine("    runtime list                                 [all]                                  List all runtime's that have been generated.");
                 Console.WriteLine("    runtime list installed                                                              List all runtime's installed for the currently beamed in avatar.");
-                Console.WriteLine("    runtime list uninstalled                                                            List all runtime's uninstalled for the currently beamed in avatar (and allow re-install).");
+                Console.WriteLine("    runtime list uninstalled                                                            List all runtime's uninstalled for the currently beamed in avatar (and allow reinstalling).");
+                Console.WriteLine("    runtime list unpublished                                                            List all runtime's unpublished for the currently beamed in avatar (and allow republishing).");
+                Console.WriteLine("    runtime list deactivated                                                            List all runtime's deactivated for the currently beamed in avatar (and allow reactivating).");
                 Console.WriteLine("    runtime search                               [all]                                  Searches the runtime's for the given search critera.");
                 Console.WriteLine("    celestialspace create                                                               Creates a celestial space.");
                 Console.WriteLine("    celestialspace update                        {id/name}                              Update an existing celestial space for the given {id} or {name}.");
