@@ -1068,81 +1068,24 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> UnPublishOAPPTemplateAsync(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+
+        public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> oappResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, providerType);
-            string errorMessage = "Error occured in UnPublishOAPPTemplateAsync. Reason: ";
-
-            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
-            {
-                oappResult.Result.OAPPTemplateDNA.PublishedOn = DateTime.MinValue;
-                oappResult.Result.OAPPTemplateDNA.PublishedByAvatarId = Guid.Empty;
-                oappResult.Result.OAPPTemplateDNA.PublishedByAvatarUsername = "";
-
-                oappResult = await SaveOAPPTemplateAsync(oappResult.Result, avatarId, providerType);
-
-                if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
-                {
-                    OAPPTemplateDNA.PublishedOn = DateTime.MinValue;
-                    OAPPTemplateDNA.PublishedByAvatarId = Guid.Empty;
-                    result.Message = "OAPP Template Unpublised";
-                    result.Result = oappResult.Result;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplateAsync method, reason: {oappResult.Message}");
-            }
-            else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP Template with the LoadOAPPTemplateAsync method, reason: {oappResult.Message}");
-
-            return result;
-        }
-
-        public OASISResult<IOAPPTemplate> UnPublishOAPPTemplate(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNA.Id, providerType);
-            string errorMessage = "Error occured in UnPublishOAPPTemplate. Reason: ";
-
-            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
-            {
-                oappResult.Result.OAPPTemplateDNA.PublishedOn = DateTime.MinValue;
-                oappResult.Result.OAPPTemplateDNA.PublishedByAvatarId = Guid.Empty;
-                oappResult.Result.OAPPTemplateDNA.PublishedByAvatarUsername = "";
-
-                oappResult = SaveOAPPTemplate(oappResult.Result, avatarId, providerType);
-
-                if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
-                {
-                    OAPPTemplateDNA.PublishedOn = DateTime.MinValue;
-                    OAPPTemplateDNA.PublishedByAvatarId = Guid.Empty;
-                    result.Message = "OAPP Template Unpublised";
-                    result.Result = oappResult.Result;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplate method, reason: {oappResult.Message}");
-            }
-            else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP Template with the LoadOAPPTemplate method, reason: {oappResult.Message}");
-
-            return result;
-        }
-
-        public async Task<OASISResult<IOAPPTemplate>> UnPublishOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            string errorMessage = "Error occured in UnPublishOAPPTemplateAsync. Reason: ";
+            string errorMessage = "Error occured in UnpublishOAPPTemplateAsync. Reason: ";
 
             OAPPTemplate.OAPPTemplateDNA.PublishedOn = DateTime.MinValue;
             OAPPTemplate.OAPPTemplateDNA.PublishedByAvatarId = Guid.Empty;
             OAPPTemplate.OAPPTemplateDNA.PublishedByAvatarUsername = "";
+            OAPPTemplate.OAPPTemplateDNA.IsActive = false;
+            OAPPTemplate.MetaData["Active"] = "0";
 
             OASISResult<IOAPPTemplate> oappResult = await SaveOAPPTemplateAsync(OAPPTemplate, avatarId, providerType);
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
             { 
                 result.Result = oappResult.Result; //ConvertOAPPTemplateToOAPPTemplateDNA(OAPPTemplate);
-                result.Message = "OAPPTemplate Unpublised";
+                result.Message = "OAPPTemplate Unpublished";
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplateAsync method, reason: {oappResult.Message}");
@@ -1150,21 +1093,23 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IOAPPTemplate> UnPublishOAPPTemplate(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            string errorMessage = "Error occured in UnPublishOAPPTemplate. Reason: ";
+            string errorMessage = "Error occured in UnpublishOAPPTemplate. Reason: ";
 
             OAPPTemplate.OAPPTemplateDNA.PublishedOn = DateTime.MinValue;
             OAPPTemplate.OAPPTemplateDNA.PublishedByAvatarId = Guid.Empty;
             OAPPTemplate.OAPPTemplateDNA.PublishedByAvatarUsername = "";
+            OAPPTemplate.OAPPTemplateDNA.IsActive = false;
+            OAPPTemplate.MetaData["Active"] = "0";
 
             OASISResult<IOAPPTemplate> oappResult = SaveOAPPTemplate(OAPPTemplate, avatarId, providerType);
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
             {
                 result.Result = oappResult.Result; //ConvertOAPPTemplateToOAPPTemplateDNA(OAPPTemplate);
-                result.Message = "OAPP Template Unpublised";
+                result.Message = "OAPP Template Unpublished";
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplate method, reason: {oappResult.Message}");
@@ -1172,28 +1117,378 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> UnPublishOAPPTemplateAsync(Guid OAPPTemplateId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(Guid OAPPTemplateId, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
             OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(OAPPTemplateId, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
-                result = await UnPublishOAPPTemplateAsync(loadResult.Result, avatarId, providerType);
+                result = await UnpublishOAPPTemplateAsync(loadResult.Result, avatarId, providerType);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in UnPublishOAPPTemplateAsync loading the OAPPTemplate with the LoadOAPPTemplateAsync method, reason: {loadResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in UnpublishOAPPTemplateAsync loading the OAPPTemplate with the LoadOAPPTemplateAsync method, reason: {loadResult.Message}");
 
             return result;
         }
 
-        public OASISResult<IOAPPTemplate> UnPublishOAPPTemplate(Guid OAPPTemplateId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(Guid OAPPTemplateId, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
             OASISResult<IOAPPTemplate> loadResult = LoadOAPPTemplate(OAPPTemplateId, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
-                result = UnPublishOAPPTemplate(loadResult.Result, avatarId, providerType);
+                result = UnpublishOAPPTemplate(loadResult.Result, avatarId, providerType);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in UnPublishOAPPTemplate loading the OAPPTemplate with the LoadOAPPTemplate method, reason: {loadResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in UnpublishOAPPTemplate loading the OAPPTemplate with the LoadOAPPTemplate method, reason: {loadResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> oappResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, providerType);
+            string errorMessage = "Error occured in UnpublishOAPPTemplateAsync. Reason: ";
+
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                result = await UnpublishOAPPTemplateAsync(oappResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP Template with the LoadOAPPTemplateAsync method, reason: {oappResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNA.Id, providerType);
+            string errorMessage = "Error occured in UnpublishOAPPTemplate. Reason: ";
+
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                result = UnpublishOAPPTemplate(oappResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP Template with the LoadOAPPTemplate method, reason: {oappResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            string errorMessage = "Error occured in RepublishOAPPTemplateAsync. Reason: ";
+
+            OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
+
+            if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+            {
+                OAPPTemplate.OAPPTemplateDNA.PublishedOn = DateTime.Now;
+                OAPPTemplate.OAPPTemplateDNA.PublishedByAvatarId = avatarId;
+                OAPPTemplate.OAPPTemplateDNA.PublishedByAvatarUsername = avatarResult.Result.Username;
+                OAPPTemplate.OAPPTemplateDNA.IsActive = true;
+                OAPPTemplate.MetaData["Active"] = "1";
+
+                OASISResult<IOAPPTemplate> oappResult = await SaveOAPPTemplateAsync(OAPPTemplate, avatarId, providerType);
+
+                if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                {
+                    result.Result = oappResult.Result; //ConvertOAPPTemplateToOAPPTemplateDNA(OAPPTemplate);
+                    result.Message = "OAPPTemplate Republished";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplateAsync method, reason: {oappResult.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the Avatar with the LoadAvatar method, reason: {avatarResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            string errorMessage = "Error occured in RepublishOAPPTemplate. Reason: ";
+
+            OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(avatarId, false, true, providerType);
+
+            if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+            {
+                OAPPTemplate.OAPPTemplateDNA.PublishedOn = DateTime.Now;
+                OAPPTemplate.OAPPTemplateDNA.PublishedByAvatarId = avatarId;
+                OAPPTemplate.OAPPTemplateDNA.PublishedByAvatarUsername = avatarResult.Result.Username;
+                OAPPTemplate.OAPPTemplateDNA.IsActive = true;
+                OAPPTemplate.MetaData["Active"] = "1";
+
+                OASISResult<IOAPPTemplate> oappResult = SaveOAPPTemplate(OAPPTemplate, avatarId, providerType);
+
+                if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                {
+                    result.Result = oappResult.Result; //ConvertOAPPTemplateToOAPPTemplateDNA(OAPPTemplate);
+                    result.Message = "OAPP Template Republished";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplate method, reason: {oappResult.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the Avatar with the LoadAvatar method, reason: {avatarResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> oappResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, providerType);
+            string errorMessage = "Error occured in RepublishOAPPTemplateAsync. Reason: ";
+
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                result = await RepublishOAPPTemplateAsync(oappResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP Template with the LoadOAPPTemplateAsync method, reason: {oappResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNA.Id, providerType);
+            string errorMessage = "Error occured in RepublishOAPPTemplate. Reason: ";
+
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                result = RepublishOAPPTemplate(oappResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP Template with the LoadOAPPTemplate method, reason: {oappResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(Guid OAPPTemplateId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(OAPPTemplateId, providerType);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+                result = await RepublishOAPPTemplateAsync(loadResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in RepublishOAPPTemplateAsync loading the OAPPTemplate with the LoadOAPPTemplateAsync method, reason: {loadResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(Guid OAPPTemplateId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> loadResult = LoadOAPPTemplate(OAPPTemplateId, providerType);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+                result = RepublishOAPPTemplate(loadResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in RepublishOAPPTemplate loading the OAPPTemplate with the LoadOAPPTemplate method, reason: {loadResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            string errorMessage = "Error occured in DeactivateOAPPTemplateAsync. Reason: ";
+
+            OAPPTemplate.OAPPTemplateDNA.IsActive = false;
+            OAPPTemplate.MetaData["Active"] = "0";
+
+            OASISResult<IOAPPTemplate> oappResult = await SaveOAPPTemplateAsync(OAPPTemplate, avatarId, providerType);
+
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+            {
+                result.Result = oappResult.Result; //ConvertOAPPTemplateToOAPPTemplateDNA(OAPPTemplate);
+                result.Message = "OAPPTemplate Deactivateed";
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplateAsync method, reason: {oappResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            string errorMessage = "Error occured in DeactivateOAPPTemplate. Reason: ";
+
+            OAPPTemplate.OAPPTemplateDNA.IsActive = false;
+            OAPPTemplate.MetaData["Active"] = "0";
+
+            OASISResult<IOAPPTemplate> oappResult = SaveOAPPTemplate(OAPPTemplate, avatarId, providerType);
+
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+            {
+                result.Result = oappResult.Result; //ConvertOAPPTemplateToOAPPTemplateDNA(OAPPTemplate);
+                result.Message = "OAPP Template Deactivateed";
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplate method, reason: {oappResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(Guid OAPPTemplateId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(OAPPTemplateId, providerType);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+                result = await DeactivateOAPPTemplateAsync(loadResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in DeactivateOAPPTemplateAsync loading the OAPPTemplate with the LoadOAPPTemplateAsync method, reason: {loadResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(Guid OAPPTemplateId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> loadResult = LoadOAPPTemplate(OAPPTemplateId, providerType);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+                result = DeactivateOAPPTemplate(loadResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in DeactivateOAPPTemplate loading the OAPPTemplate with the LoadOAPPTemplate method, reason: {loadResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> oappResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, providerType);
+            string errorMessage = "Error occured in DeactivateOAPPTemplateAsync. Reason: ";
+
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                result = await DeactivateOAPPTemplateAsync(oappResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP Template with the LoadOAPPTemplateAsync method, reason: {oappResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNA.Id, providerType);
+            string errorMessage = "Error occured in DeactivateOAPPTemplate. Reason: ";
+
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                result = DeactivateOAPPTemplate(oappResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP Template with the LoadOAPPTemplate method, reason: {oappResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            string errorMessage = "Error occured in ActivateOAPPTemplateAsync. Reason: ";
+
+            OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
+
+            if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+            {
+                OAPPTemplate.OAPPTemplateDNA.IsActive = true;
+                OAPPTemplate.MetaData["Active"] = "1";
+
+                OASISResult<IOAPPTemplate> oappResult = await SaveOAPPTemplateAsync(OAPPTemplate, avatarId, providerType);
+
+                if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                {
+                    result.Result = oappResult.Result; //ConvertOAPPTemplateToOAPPTemplateDNA(OAPPTemplate);
+                    result.Message = "OAPPTemplate Activateed";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplateAsync method, reason: {oappResult.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the Avatar with the LoadAvatar method, reason: {avatarResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            string errorMessage = "Error occured in ActivateOAPPTemplate. Reason: ";
+
+            OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(avatarId, false, true, providerType);
+
+            if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+            {
+                OAPPTemplate.OAPPTemplateDNA.IsActive = true;
+                OAPPTemplate.MetaData["Active"] = "1";
+
+                OASISResult<IOAPPTemplate> oappResult = SaveOAPPTemplate(OAPPTemplate, avatarId, providerType);
+
+                if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                {
+                    result.Result = oappResult.Result; //ConvertOAPPTemplateToOAPPTemplateDNA(OAPPTemplate);
+                    result.Message = "OAPP Template Activateed";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with the SaveOAPPTemplate method, reason: {oappResult.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the Avatar with the LoadAvatar method, reason: {avatarResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> oappResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, providerType);
+            string errorMessage = "Error occured in ActivateOAPPTemplateAsync. Reason: ";
+
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                result = await ActivateOAPPTemplateAsync(oappResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP Template with the LoadOAPPTemplateAsync method, reason: {oappResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNA.Id, providerType);
+            string errorMessage = "Error occured in ActivateOAPPTemplate. Reason: ";
+
+            if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
+                result = ActivateOAPPTemplate(oappResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP Template with the LoadOAPPTemplate method, reason: {oappResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(Guid OAPPTemplateId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(OAPPTemplateId, providerType);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+                result = await ActivateOAPPTemplateAsync(loadResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateOAPPTemplateAsync loading the OAPPTemplate with the LoadOAPPTemplateAsync method, reason: {loadResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(Guid OAPPTemplateId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> loadResult = LoadOAPPTemplate(OAPPTemplateId, providerType);
+
+            if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+                result = ActivateOAPPTemplate(loadResult.Result, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateOAPPTemplate loading the OAPPTemplate with the LoadOAPPTemplate method, reason: {loadResult.Message}");
 
             return result;
         }
@@ -1800,10 +2095,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> UnInstallOAPPTemplateAsync(Guid OAPPTemplateId, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(Guid OAPPTemplateId, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
-            string errorMessage = "Error occured in OAPPTemplateManager.UnInstallOAPPTemplateAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPTemplateManager.UninstallOAPPTemplateAsync. Reason: ";
 
             return await UninstallOAPPTemplateAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
@@ -1813,10 +2108,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
         }
 
-        public OASISResult<IInstalledOAPPTemplate> UnInstallOAPPTemplate(Guid OAPPTemplateId, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(Guid OAPPTemplateId, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
-            string errorMessage = "Error occured in OAPPTemplateManager.UnInstallOAPPTemplate. Reason: ";
+            string errorMessage = "Error occured in OAPPTemplateManager.UninstallOAPPTemplate. Reason: ";
 
             return UninstallOAPPTemplate(Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
@@ -1826,10 +2121,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType), avatarId, errorMessage, providerType);
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> UnInstallOAPPTemplateAsync(Guid OAPPTemplateId, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(Guid OAPPTemplateId, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
-            string errorMessage = "Error occured in OAPPTemplateManager.UnInstallOAPPTemplateAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPTemplateManager.UninstallOAPPTemplateAsync. Reason: ";
 
             return await UninstallOAPPTemplateAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
@@ -1839,10 +2134,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
         }
 
-        public OASISResult<IInstalledOAPPTemplate> UnInstallOAPPTemplate(Guid OAPPTemplateId, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(Guid OAPPTemplateId, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
-            string errorMessage = "Error occured in OAPPTemplateManager.UnInstallOAPPTemplateAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPTemplateManager.UninstallOAPPTemplateAsync. Reason: ";
 
             return UninstallOAPPTemplate(Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
@@ -1852,10 +2147,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All, 0, providerType), avatarId, errorMessage, providerType);
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> UnInstallOAPPTemplateAsync(string OAPPTemplateName, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(string OAPPTemplateName, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
-            string errorMessage = "Error occured in OAPPTemplateManager.UnInstallOAPPTemplateAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPTemplateManager.UninstallOAPPTemplateAsync. Reason: ";
 
             return await UninstallOAPPTemplateAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
@@ -1865,10 +2160,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
         }
 
-        public OASISResult<IInstalledOAPPTemplate> UnInstallOAPPTemplate(string OAPPTemplateName, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(string OAPPTemplateName, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
-            string errorMessage = "Error occured in OAPPTemplateManager.UnInstallOAPPTemplate. Reason: ";
+            string errorMessage = "Error occured in OAPPTemplateManager.UninstallOAPPTemplate. Reason: ";
 
             return UninstallOAPPTemplate(Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
@@ -1878,10 +2173,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, false, HolonType.All), avatarId, errorMessage, providerType);
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> UnInstallOAPPTemplateAsync(string OAPPTemplateName, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(string OAPPTemplateName, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
-            string errorMessage = "Error occured in OAPPTemplateManager.UnInstallOAPPTemplate. Reason: ";
+            string errorMessage = "Error occured in OAPPTemplateManager.UninstallOAPPTemplate. Reason: ";
 
             return UninstallOAPPTemplate(await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
@@ -1891,10 +2186,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
         }
 
-        public OASISResult<IInstalledOAPPTemplate> UnInstallOAPPTemplate(string OAPPTemplateName, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(string OAPPTemplateName, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
-            string errorMessage = "Error occured in OAPPTemplateManager.UnInstallOAPPTemplate. Reason: ";
+            string errorMessage = "Error occured in OAPPTemplateManager.UninstallOAPPTemplate. Reason: ";
 
             return UninstallOAPPTemplate(Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
@@ -1968,6 +2263,74 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParent. Reason: {installedOAPPTemplatesResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> ListUnpublishedOAPPTemplatesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
+            OASISResult<IEnumerable<OAPPTemplate>> unpublishedOAPPTemplatesResult = await Data.LoadHolonsForParentAsync<OAPPTemplate>(avatarId, HolonType.OAPPTemplate, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+            string errorMessage = "Error occured in OAPPTemplateManager.ListUnpublishedOAPPTemplatesAsync. Reason: ";
+
+            if (unpublishedOAPPTemplatesResult != null && !unpublishedOAPPTemplatesResult.IsError && unpublishedOAPPTemplatesResult.Result != null)
+            {
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<OAPPTemplate>, IEnumerable<IOAPPTemplate>>(unpublishedOAPPTemplatesResult);
+                result.Result = Mapper.Convert<OAPPTemplate, IOAPPTemplate>(unpublishedOAPPTemplatesResult.Result.Where(x => x.OAPPTemplateDNA.PublishedOn == DateTime.MinValue && x.OAPPTemplateDNA.OAPPTemplateFileSize > 0));
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParentAsync. Reason: {unpublishedOAPPTemplatesResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IOAPPTemplate>> ListUnpublishedOAPPTemplates(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
+            OASISResult<IEnumerable<OAPPTemplate>> unpublishedOAPPTemplatesResult = Data.LoadHolonsForParent<OAPPTemplate>(avatarId, HolonType.OAPPTemplate, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+            string errorMessage = "Error occured in OAPPTemplateManager.ListUnpublishedOAPPTemplates. Reason: ";
+
+            if (unpublishedOAPPTemplatesResult != null && !unpublishedOAPPTemplatesResult.IsError && unpublishedOAPPTemplatesResult.Result != null)
+            {
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<OAPPTemplate>, IEnumerable<IOAPPTemplate>>(unpublishedOAPPTemplatesResult);
+                result.Result = Mapper.Convert<OAPPTemplate, IOAPPTemplate>(unpublishedOAPPTemplatesResult.Result.Where(x => x.OAPPTemplateDNA.PublishedOn == DateTime.MinValue && x.OAPPTemplateDNA.OAPPTemplateFileSize > 0));
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParent. Reason: {unpublishedOAPPTemplatesResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> ListDeactivatedOAPPTemplatesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
+            OASISResult<IEnumerable<OAPPTemplate>> deactivatedOAPPTemplatesResult = await Data.LoadHolonsForParentAsync<OAPPTemplate>(avatarId, HolonType.InstalledOAPPTemplate, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+            string errorMessage = "Error occured in OAPPTemplateManager.ListDeactivatedOAPPTemplatesAsync. Reason: ";
+
+            if (deactivatedOAPPTemplatesResult != null && !deactivatedOAPPTemplatesResult.IsError && deactivatedOAPPTemplatesResult.Result != null)
+            {
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<OAPPTemplate>, IEnumerable<IOAPPTemplate>>(deactivatedOAPPTemplatesResult);
+                result.Result = Mapper.Convert<OAPPTemplate, IOAPPTemplate>(deactivatedOAPPTemplatesResult.Result.Where(x => x.OAPPTemplateDNA.IsActive != true));
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParentAsync. Reason: {deactivatedOAPPTemplatesResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IOAPPTemplate>> ListDeactivatedOAPPTemplates(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
+            OASISResult<IEnumerable<OAPPTemplate>> deactivatedOAPPTemplatesResult = Data.LoadHolonsForParent<OAPPTemplate>(avatarId, HolonType.OAPPTemplate, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+            string errorMessage = "Error occured in OAPPTemplateManager.ListDeactivatedOAPPTemplates. Reason: ";
+
+            if (deactivatedOAPPTemplatesResult != null && !deactivatedOAPPTemplatesResult.IsError && deactivatedOAPPTemplatesResult.Result != null)
+            {
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<OAPPTemplate>, IEnumerable<IOAPPTemplate>>(deactivatedOAPPTemplatesResult);
+                result.Result = Mapper.Convert<OAPPTemplate, IOAPPTemplate>(deactivatedOAPPTemplatesResult.Result.Where(x => x.OAPPTemplateDNA.IsActive != true));
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParent. Reason: {deactivatedOAPPTemplatesResult.Message}");
 
             return result;
         }
