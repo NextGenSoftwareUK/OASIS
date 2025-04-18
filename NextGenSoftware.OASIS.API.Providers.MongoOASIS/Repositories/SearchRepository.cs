@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
@@ -105,11 +107,42 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         {
                             if (searchTextGroup.HolonSearchParams.Name || searchTextGroup.HolonSearchParams.SearchAllFields)
                             {
-                                holonFilter = Builders<Holon>.Filter.Regex("Name", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
-                                holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                //var collection = _dbContext.MongoDB.GetCollection<BsonDocument>("Holon");
+                                var collection = _dbContext.MongoDB.GetCollection<Holon>("Holon");
+                                // public IMongoCollection<Holon> Holon => MongoDB.GetCollection<Holon>("Holon");
 
-                                if (searchTextGroup.HolonType != Core.Enums.HolonType.All)
-                                    holons = holons.Where(x => x.HolonType == searchTextGroup.HolonType).ToList();
+                                // Perform a case-insensitive search using LINQ
+                                var query = from doc in collection.AsQueryable<Holon>()
+                                            where doc.Name.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
+                                            where doc.HolonType == searchTextGroup.HolonType
+                                            select doc;
+
+                                holons.AddRange(query.ToList());
+
+                                //holonFilter = Builders<Holon>.Filter.Regex("Name", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
+                                //holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+
+                                //if (searchTextGroup.HolonType != Core.Enums.HolonType.All)
+                                //    holons = holons.Where(x => x.HolonType == searchTextGroup.HolonType).ToList();
+                            }
+
+                            if (searchTextGroup.HolonSearchParams.Description || searchTextGroup.HolonSearchParams.SearchAllFields)
+                            {
+                                var collection = _dbContext.MongoDB.GetCollection<Holon>("Holon");
+
+                                // Perform a case-insensitive search using LINQ
+                                var query = from doc in collection.AsQueryable<Holon>()
+                                            where doc.Description.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
+                                            where doc.HolonType == searchTextGroup.HolonType
+                                            select doc;
+
+                                holons.AddRange(query.ToList());
+
+                                //holonFilter = Builders<Holon>.Filter.Regex("Name", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
+                                //holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+
+                                //if (searchTextGroup.HolonType != Core.Enums.HolonType.All)
+                                //    holons = holons.Where(x => x.HolonType == searchTextGroup.HolonType).ToList();
                             }
 
                             //TODO: Add remaining properties...
@@ -310,8 +343,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
 
                 result.Result = new SearchResults();
-                result.Result.SearchResultHolons = (List<IHolon>)DataHelper.ConvertMongoEntitysToOASISHolons(holons);
-                result.Result.SearchResultAvatars = (List<IAvatar>)DataHelper.ConvertMongoEntitysToOASISAvatars(avatars);
+                result.Result.SearchResultHolons = (List<IHolon>)DataHelper.ConvertMongoEntitysToOASISHolons(holons.Distinct());
+                result.Result.SearchResultAvatars = (List<IAvatar>)DataHelper.ConvertMongoEntitysToOASISAvatars(avatars.Distinct());
             }
             catch
             {

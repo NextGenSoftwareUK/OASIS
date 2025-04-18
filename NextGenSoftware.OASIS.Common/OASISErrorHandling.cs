@@ -1,4 +1,5 @@
-﻿using NextGenSoftware.ErrorHandling;
+﻿using System.ComponentModel.Design;
+using NextGenSoftware.ErrorHandling;
 using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.Common
@@ -347,6 +348,25 @@ namespace NextGenSoftware.OASIS.Common
         public static void HandleWarning<T1, T2>(ref OASISResult<T1> result, string errorMessage, string detailedMessage, Exception ex, bool onlyLogToInnerMessages = false, OASISResult<T2> innerResult = null)
         {
             HandleWarning(ref result, errorMessage, true, false, false, true, true, ex, detailedMessage, onlyLogToInnerMessages, innerResult);
+        }
+
+        public static string ProcessMessage<T>(OASISResult<T> result, string noResultErrorMessage = "No result returned.", string successMessage = "Operation Successful")
+        {
+            if (result != null)
+            {
+                if (!string.IsNullOrEmpty(result.Message))
+                    return result.Message;
+
+                else if (result.Result == null)
+                    return noResultErrorMessage;
+
+                else if (!result.IsError)
+                    return successMessage;
+                else
+                    return "Unknown error occured";
+            }
+            else
+                return "Unknown error occured";
         }
     }
 }

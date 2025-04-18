@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.STAR.OASISAPIManager;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
+using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -555,7 +556,223 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowDivider();
         }
 
-        
+        public static async Task RepublishRuntimeAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "republish", providerType);
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                OASISResult<IOAPPTemplate> unpublishResult = await STAR.OASISAPI.OAPPTemplates.RepublishOAPPTemplateAsync(result.Result, STAR.BeamedInAvatar.Id, providerType);
+
+                if (unpublishResult != null && !unpublishResult.IsError && unpublishResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("OAPP Template Successfully Republished.");
+                    ShowOAPPTemplate(result.Result);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"An error occured unpublishing the OAPP Template. Reason: {unpublishResult.Message}");
+            }
+        }
+
+        public static async Task ActivateRuntimeAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "activate", providerType);
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                OASISResult<IOAPPTemplate> unpublishResult = await STAR.OASISAPI.OAPPTemplates.UnpublishOAPPTemplateAsync(result.Result, STAR.BeamedInAvatar.Id, providerType);
+
+                if (unpublishResult != null && !unpublishResult.IsError && unpublishResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("OAPP Template Successfully Activated.");
+                    ShowOAPPTemplate(result.Result);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"An error occured activating the OAPP Template. Reason: {unpublishResult.Message}");
+            }
+        }
+
+        public static async Task DeactivateRuntimeAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "deactivate", providerType);
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                OASISResult<IOAPPTemplate> unpublishResult = await STAR.OASISAPI.OAPPTemplates.RepublishOAPPTemplateAsync(result.Result, STAR.BeamedInAvatar.Id, providerType);
+
+                if (unpublishResult != null && !unpublishResult.IsError && unpublishResult.Result != null)
+                {
+                    CLIEngine.ShowSuccessMessage("OAPP Template Successfully Deactivated.");
+                    ShowOAPPTemplate(result.Result);
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"An error occured deactivating the OAPP Template. Reason: {unpublishResult.Message}");
+            }
+        }
+
+        public static async Task<OASISResult<IEnumerable<IInstalledOAPPTemplate>>> ListRuntimesUninstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IInstalledOAPPTemplate>> result = new OASISResult<IEnumerable<IInstalledOAPPTemplate>>();
+
+            if (STAR.BeamedInAvatar != null)
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowWorkingMessage("Loading Uninstalled OAPP Templates...");
+                result = await STAR.OASISAPI.OAPPTemplates.ListUnInstalledOAPPTemplatesAsync(STAR.BeamedInAvatar.AvatarId);
+                ListInstalledOAPPTemplates(result, true, true);
+
+                if (result != null && !result.IsError && result.Result != null && result.Result.Count() > 0 && CLIEngine.GetConfirmation("Would you like to re-install any of the above?"))
+                {
+                    int number = 0;
+
+                    do
+                    {
+                        Console.WriteLine("");
+                        number = CLIEngine.GetValidInputForInt("What number do you wish to re-install? (It will be downloaded and installed to the previous paths)");
+
+                        if (number < 0 || number > result.Result.Count())
+                            CLIEngine.ShowErrorMessage($"Invalid number, it needs to be between 1 and {result.Result.Count()}");
+                    }
+                    while (number < 0 || number > result.Result.Count());
+
+                    if (number > 0)
+                    {
+                        IInstalledOAPPTemplate template = result.Result.ElementAt(number - 1);
+                        Guid id = Guid.Empty;
+
+                        //if (template != null && template.MetaData != null && template.MetaData.ContainsKey("OAPPTemplateId") && template.MetaData.ContainsKey("OAPPTemplateId") != null && Guid.TryParse(template.MetaData.ContainsKey("OAPPTemplateId").ToString(), out id))
+                        if (template != null)
+                        {
+                            OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, id, template.InstalledPath, template.DownloadedPath, true, true, providerType);
+                            //OASISResult<IInstalledOAPPTemplate> installResult = await DownloadAndInstallOAPPTemplateAsync(result.Result.ElementAt(number - 1).Id.ToString(), InstallMode.DownloadAndReInstall, providerType);
+
+                            if (installResult != null && !installResult.IsError && installResult.Result != null)
+                            {
+                                ShowInstalledOAPPTemplate(installResult.Result);
+                                CLIEngine.ShowSuccessMessage("OAPP Template Successfully Re-Installed");
+                            }
+                            else
+                                CLIEngine.ShowErrorMessage($"An error occured re-installing the OAPP Template. Reason: {installResult.Message}");
+                        }
+                        else
+                            CLIEngine.ShowErrorMessage($"An error occured re-installing the OAPP Template. Reason: OAPPTemplateId not found in the metadata!");
+                    }
+                }
+                else
+                    Console.WriteLine("");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, "No Avatar Is Beamed In. Please Beam In First!");
+
+            return result;
+        }
+
+        public static async Task<OASISResult<IEnumerable<IOAPPTemplate>>> ListRuntimesUnpublishedForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
+
+            if (STAR.BeamedInAvatar != null)
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowWorkingMessage("Loading Unpublished OAPP Templates...");
+                result = await STAR.OASISAPI.OAPPTemplates.ListUnpublishedOAPPTemplatesAsync(STAR.BeamedInAvatar.AvatarId);
+                ListOAPPTemplates(result, true);
+
+                if (result != null && !result.IsError && result.Result != null && result.Result.Count() > 0 && CLIEngine.GetConfirmation("Would you like to republish any of the above?"))
+                {
+                    int number = 0;
+
+                    do
+                    {
+                        Console.WriteLine("");
+                        number = CLIEngine.GetValidInputForInt("What number do you wish to republish?");
+
+                        if (number < 0 || number > result.Result.Count())
+                            CLIEngine.ShowErrorMessage($"Invalid number, it needs to be between 1 and {result.Result.Count()}");
+                    }
+                    while (number < 0 || number > result.Result.Count());
+
+                    if (number > 0)
+                    {
+                        IOAPPTemplate template = result.Result.ElementAt(number - 1);
+                        Guid id = Guid.Empty;
+
+                        if (template != null)
+                        {
+                            OASISResult<IOAPPTemplate> republishResult = await STAR.OASISAPI.OAPPTemplates.RepublishOAPPTemplateAsync(template, STAR.BeamedInAvatar.Id, providerType);
+
+                            if (republishResult != null && !republishResult.IsError && republishResult.Result != null)
+                            {
+                                ShowOAPPTemplate(republishResult.Result);
+                                CLIEngine.ShowSuccessMessage("OAPP Template Successfully Republished");
+                            }
+                            else
+                                CLIEngine.ShowErrorMessage($"An error occured republishing the OAPP Template. Reason: {republishResult.Message}");
+                        }
+                    }
+                }
+                else
+                    Console.WriteLine("");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, "No Avatar Is Beamed In. Please Beam In First!");
+
+            return result;
+        }
+
+        public static async Task<OASISResult<IEnumerable<IOAPPTemplate>>> ListRuntimesDeactivatedForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
+
+            if (STAR.BeamedInAvatar != null)
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowWorkingMessage("Loading Deactivated OAPP Templates...");
+                result = await STAR.OASISAPI.OAPPTemplates.ListDeactivatedOAPPTemplatesAsync(STAR.BeamedInAvatar.AvatarId);
+                ListOAPPTemplates(result, true);
+
+                if (result != null && !result.IsError && result.Result != null && result.Result.Count() > 0 && CLIEngine.GetConfirmation("Would you like to reactivate any of the above?"))
+                {
+                    int number = 0;
+
+                    do
+                    {
+                        Console.WriteLine("");
+                        number = CLIEngine.GetValidInputForInt("What number do you wish to reactivate?");
+
+                        if (number < 0 || number > result.Result.Count())
+                            CLIEngine.ShowErrorMessage($"Invalid number, it needs to be between 1 and {result.Result.Count()}");
+                    }
+                    while (number < 0 || number > result.Result.Count());
+
+                    if (number > 0)
+                    {
+                        IOAPPTemplate template = result.Result.ElementAt(number - 1);
+                        Guid id = Guid.Empty;
+
+                        if (template != null)
+                        {
+                            OASISResult<IOAPPTemplate> activateResult = await STAR.OASISAPI.OAPPTemplates.ActivateOAPPTemplateAsync(template, STAR.BeamedInAvatar.Id, providerType);
+
+                            if (activateResult != null && !activateResult.IsError && activateResult.Result != null)
+                            {
+                                ShowOAPPTemplate(activateResult.Result);
+                                CLIEngine.ShowSuccessMessage("OAPP Template Successfully Reactivated");
+                            }
+                            else
+                                CLIEngine.ShowErrorMessage($"An error occured reactivating the OAPP Template. Reason: {activateResult.Message}");
+                        }
+                    }
+                }
+                else
+                    Console.WriteLine("");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, "No Avatar Is Beamed In. Please Beam In First!");
+
+            return result;
+        }
+
         private static OASISResult<IEnumerable<IRuntime>> ListRuntimes(OASISResult<IEnumerable<IRuntime>> runtimes)
         {
             if (runtimes != null)

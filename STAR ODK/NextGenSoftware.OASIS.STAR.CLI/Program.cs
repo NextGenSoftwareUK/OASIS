@@ -580,7 +580,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                             showSubCommand = true;
 
                                         if (showSubCommand)
-                                            await ShowSubCommandAsync(inputArgs, "OAPP", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUninstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true);
+                                            await ShowSubCommandAsync(inputArgs, "OAPP", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.RepublishOAPPAsync, STARCLI.ActivateOAPPAsync, STARCLI.DeactivateOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPsUninstalledForBeamedInAvatarAsync, STARCLI.ListOAPPsUnpublishedForBeamedInAvatarAsync, STARCLI.ListOAPPsDeactivatedForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true);
 
                                         break;
                                     }
@@ -608,12 +608,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                             }
                                         }
 
-                                        await ShowSubCommandAsync(inputArgs, "hApp", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUninstalledForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true, true);
+                                        await ShowSubCommandAsync(inputArgs, "hApp", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.RepublishOAPPAsync, STARCLI.ActivateOAPPAsync, STARCLI.DeactivateOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUninstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUnpublishedForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesDeactivatedForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true, true);
                                         break;
                                     }
 
                                 case "runtime":  
-                                    await ShowSubCommandAsync(inputArgs, "runtime", "", STARCLI.CreateRuntimeAsync, STARCLI.EditRuntimeAsync, STARCLI.DeleteRuntimeAsync, STARCLI.InstallRuntimeAsync, STARCLI.UnInstallRuntimeAsync, null, STARCLI.UnPublishRuntimeAsync, STARCLI.ShowRuntimeAsync, STARCLI.ListRuntimesCreatedByBeamedInAvatarAsync, STARCLI.ListAllRuntimesAsync, STARCLI.ListRuntimesInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUninstalledForBeamedInAvatarAsync, STARCLI.SearchRuntimesAsync, ProviderType.Default, true, true);
+                                    await ShowSubCommandAsync(inputArgs, "runtime", "", STARCLI.CreateRuntimeAsync, STARCLI.EditRuntimeAsync, STARCLI.DeleteRuntimeAsync, STARCLI.InstallRuntimeAsync, STARCLI.UnInstallRuntimeAsync, null, STARCLI.UnPublishRuntimeAsync, STARCLI.RepublishRuntimeAsync, STARCLI.ActivateRuntimeAsync, STARCLI.DeactivateRuntimeAsync, STARCLI.ShowRuntimeAsync, STARCLI.ListRuntimesCreatedByBeamedInAvatarAsync, STARCLI.ListAllRuntimesAsync, STARCLI.ListRuntimesInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUninstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUnpublishedForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesDeactivatedForBeamedInAvatarAsync, STARCLI.SearchRuntimesAsync, ProviderType.Default, true, true);
                                     break;
 
                                 case "celestialspace":
@@ -629,7 +629,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 case "holon":
-                                    await ShowSubCommandAsync(inputArgs, "", "", STARCLI.CreateHolonAsync, STARCLI.UpdateHolonAsync, STARCLI.DeleteHolonAsync, null, null, null, null, STARCLI.ShowHolonAsync, STARCLI.ListAllHolonsForForBeamedInAvatar, STARCLI.ListAllHolonsAsync, null, null, null, ProviderType.Default);
+                                    await ShowSubCommandAsync(inputArgs, "", "", STARCLI.CreateHolonAsync, STARCLI.UpdateHolonAsync, STARCLI.DeleteHolonAsync, null, null, null, null, null, null, null, STARCLI.ShowHolonAsync, STARCLI.ListAllHolonsForForBeamedInAvatar, STARCLI.ListAllHolonsAsync, null, null, null, null, null, ProviderType.Default);
                                     break;
 
                                 case "chapter":
