@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         ProviderType OAPPTemplatePublishedProviderType { get; set; }
         long OAPPTemplateFileSize { get; set; }
 
-        bool IsActive { get; set; }
+        //bool IsActive { get; set; }
         string Version { get; set; }
         string STARODKVersion { get; set; }
         string OASISVersion { get; set; }
