@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         public ProviderType OAPPTemplatePublishedProviderType { get; set; }
         public long OAPPTemplateFileSize { get; set; }
 
-        public bool IsActive { get; set; }
+        //public bool IsActive { get; set; }
         public string Version { get; set; }
         public string STARODKVersion { get; set; }
         public string OASISVersion { get; set; }
