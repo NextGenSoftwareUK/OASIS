@@ -995,7 +995,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //TODO: Soon this will be like a sub-menu listing the STARNET commands (install, uninstall, list, publish, unpublish etc) and change the cursor to STARNET: rather than STAR:. They can then type exit to go back to the main STAR menu.
         }
 
-        public static async Task<OASISResult<IEnumerable<IOAPP>>> ListAllOAPPsAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IEnumerable<IOAPP>>> ListAllOAPPsAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
         {
             return ListOAPPs(await STAR.OASISAPI.OAPPs.ListAllOAPPsAsync(providerType));
         }
@@ -1005,7 +1005,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return ListOAPPs(STAR.OASISAPI.OAPPs.ListAllOAPPs(providerType));
         }
 
-        public static async Task ListOAPPsCreatedByBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task ListOAPPsCreatedByBeamedInAvatarAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
         {
             if (STAR.BeamedInAvatar != null)
                 ListOAPPs(await STAR.OASISAPI.OAPPs.ListOAPPsCreatedByAvatarAsync(STAR.BeamedInAvatar.AvatarId));

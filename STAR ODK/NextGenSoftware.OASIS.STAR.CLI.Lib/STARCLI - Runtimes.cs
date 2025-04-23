@@ -464,7 +464,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the Runtime. Reason: {result.Message}");
         }
 
-        public static async Task<OASISResult<IEnumerable<IRuntime>>> ListAllRuntimesAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IEnumerable<IRuntime>>> ListAllRuntimesAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
         {
             return ListRuntimes(await STAR.OASISAPI.Runtimes.LoadAllRuntimesAsync(providerType));
         }
@@ -474,7 +474,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return ListRuntimes(STAR.OASISAPI.Runtimes.LoadAllRuntimes(providerType));
         }
 
-        public static async Task ListRuntimesCreatedByBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task ListRuntimesCreatedByBeamedInAvatarAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
         {
             if (STAR.BeamedInAvatar != null)
                 ListRuntimes(await STAR.OASISAPI.Runtimes.LoadAllRuntimesForAvatarAsync(STAR.BeamedInAvatar.AvatarId));
@@ -638,12 +638,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (number > 0)
                     {
                         IInstalledOAPPTemplate template = result.Result.ElementAt(number - 1);
-                        Guid id = Guid.Empty;
+                        //Guid id = Guid.Empty;
 
                         //if (template != null && template.MetaData != null && template.MetaData.ContainsKey("OAPPTemplateId") && template.MetaData.ContainsKey("OAPPTemplateId") != null && Guid.TryParse(template.MetaData.ContainsKey("OAPPTemplateId").ToString(), out id))
                         if (template != null)
                         {
-                            OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, id, template.InstalledPath, template.DownloadedPath, true, true, providerType);
+                            OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, template.OAPPTemplateDNA.Id, template.OAPPTemplateDNA.VersionSequence, template.InstalledPath, template.DownloadedPath, true, true, providerType);
                             //OASISResult<IInstalledOAPPTemplate> installResult = await DownloadAndInstallOAPPTemplateAsync(result.Result.ElementAt(number - 1).Id.ToString(), InstallMode.DownloadAndReInstall, providerType);
 
                             if (installResult != null && !installResult.IsError && installResult.Result != null)
@@ -695,7 +695,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (number > 0)
                     {
                         IOAPPTemplate template = result.Result.ElementAt(number - 1);
-                        Guid id = Guid.Empty;
+                        //Guid id = Guid.Empty;
 
                         if (template != null)
                         {
@@ -748,7 +748,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (number > 0)
                     {
                         IOAPPTemplate template = result.Result.ElementAt(number - 1);
-                        Guid id = Guid.Empty;
+                        //Guid id = Guid.Empty;
 
                         if (template != null)
                         {
