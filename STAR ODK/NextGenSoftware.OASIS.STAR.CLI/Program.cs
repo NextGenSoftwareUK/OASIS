@@ -797,8 +797,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<string, ProviderType, Task> activatePredicate = null,
             Func<string, ProviderType, Task> deactivatePredicate = null,
             Func<string, ProviderType, Task> showPredicate = null,
-            Func<ProviderType, Task> listForBeamedInAvatarPredicate = null,
-            Func<ProviderType, Task> listAllPredicate = null,
+            Func<bool, ProviderType, Task> listForBeamedInAvatarPredicate = null,
+            Func<bool, ProviderType, Task> listAllPredicate = null,
             Func<ProviderType, Task> listInstalledPredicate = null,
             Func<ProviderType, Task> listUninstalledPredicate = null,
             Func<ProviderType, Task> listUnpublishedPredicate = null,
@@ -813,6 +813,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         {
             string subCommandParam = "";
             string subCommandParam2 = "";
+            string subCommandParam3 = "";
+            bool showAllVersions = false;
+            bool showForAllAvatars = false;
 
             if (string.IsNullOrEmpty(subCommand))
                 subCommand = inputArgs[0];
@@ -833,6 +836,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 if (inputArgs.Length > 2 && !string.IsNullOrEmpty(inputArgs[2]))
                     subCommandParam2 = inputArgs[2].ToLower();
 
+                if (inputArgs.Length > 3 && !string.IsNullOrEmpty(inputArgs[3]))
+                    subCommandParam3 = inputArgs[3].ToLower();
+
                 if (subCommand.ToUpper() == "OAPP TEMPLATE")
                 {
                     if (inputArgs.Length > 2 && !string.IsNullOrEmpty(inputArgs[2]))
@@ -840,7 +846,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     if (inputArgs.Length > 3 && !string.IsNullOrEmpty(inputArgs[3]))
                         subCommandParam2 = inputArgs[3].ToLower();
+
+                    if (inputArgs.Length > 4 && !string.IsNullOrEmpty(inputArgs[4]))
+                        subCommandParam3 = inputArgs[4].ToLower();
                 }
+
+                if (subCommandParam2.ToLower() == "allversions" || subCommandParam3.ToLower() == "allversions")
+                    showAllVersions = true;
+
+                if (subCommandParam2.ToLower() == "forallavatars" || subCommandParam3.ToLower() == "forallavatars")
+                    showForAllAvatars = true;
 
                 switch (subCommandParam)
                 {
@@ -1008,15 +1023,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "list":
                         {
-                            switch (subCommandParam2)
+                            switch (subCommandParam2.ToLower())
                             {
-                                case "all":
-                                    {
-                                        if (listAllPredicate != null)
-                                            await listAllPredicate(providerType);
-                                        else
-                                            CLIEngine.ShowMessage("Coming Soon...");
-                                    }break;
+                                //case "all":
+                                //    {
+                                //        bool showAllVersions = false;
+                                //        bool.TryParse(subCommandParam3, out showAllVersions);
+
+                                //        if (listAllPredicate != null)
+                                //            await listAllPredicate(showAllVersions, providerType);
+                                //        else
+                                //            CLIEngine.ShowMessage("Coming Soon...");
+                                //    }break;
 
                                 case "installed":
                                     {
@@ -1066,10 +1084,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 default:
                                     {
-                                        if (listForBeamedInAvatarPredicate != null)
-                                            await listForBeamedInAvatarPredicate(providerType);
+                                        if (showForAllAvatars)
+                                        {
+                                            if (listAllPredicate != null)
+                                                await listAllPredicate(showAllVersions, providerType);
+                                            else
+                                                CLIEngine.ShowMessage("Coming Soon...");
+                                        }
                                         else
-                                            CLIEngine.ShowMessage("Coming Soon...");
+                                        {
+                                            if (listForBeamedInAvatarPredicate != null)
+                                                await listForBeamedInAvatarPredicate(showAllVersions, providerType);
+                                            else
+                                                CLIEngine.ShowMessage("Coming Soon...");
+                                        }
                                     }
                                     break;
                             }
@@ -1141,7 +1169,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage(string.Concat("    republish".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Republish a ", subCommand, " to STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    activate".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Activate (show) a ", subCommand, " on the STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    deactivate".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Deactivate (hide) a ", subCommand, " on the STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "[all]".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " that have been created. If {all} is omitted it will list only your ", subCommandPlural, "'s otherwise it will list all published ", subCommandPlural, "'s as well as yours."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "[allVersions] [forAllAvatars]".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " that have been created. If [allVersions] is omitted it wiill list the current version, otherwise will list all versions. If [forAllAvatars] is omitted it will list only your ", subCommandPlural, "'s otherwise it will list all published ", subCommandPlural, "'s as well as yours."), ConsoleColor.Green, false);
 
                 if (isOAPPOrHappOrRuntime)
                 {
@@ -4544,12 +4572,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    oapp uninstall                                {id/name}                             Uninstall a OAPP for the given {id} or {name}.");
                 //Console.WriteLine("    oapp reinstall                                {id/name}                             Reinstall a OAPP for the given {id} or {name}.");
                 Console.WriteLine("    oapp show                                     {id/name}                             Shows a OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp list                                     [all]                                 List all OAPPs (contains zomes and holons) that have been generated.");
+                Console.WriteLine("    oapp list                                     [allVersions] [forAllAvatars]         List all OAPPs (contains zomes and holons) that have been generated.");
                 Console.WriteLine("    oapp list installed                                                                 List all OAPP's installed for the currently beamed in avatar.");
                 Console.WriteLine("    oapp list uninstalled                                                               List all OAPP's uninstalled for the currently beamed in avatar (and allow re-install).");
                 Console.WriteLine("    oapp list unpublished                                                               List all OAPP's unpublished for the currently beamed in avatar (and allow republish).");
                 Console.WriteLine("    oapp list deactivated                                                               List all OAPP's deactivated for the currently beamed in avatar (and allow reactivate).");
-                Console.WriteLine("    oapp search                                   [all]                                 Searches the OAPP's for the given search critera.");
+                Console.WriteLine("    oapp search                                  [allVersions] [forAllAvatars]          Searches the OAPP's for the given search critera.");
                 Console.WriteLine("    oapp template create                                                                Creates a OAPP template.");
                 Console.WriteLine("    oapp template update                         {id/name}                              Updates a OAPP template for the given {id} or {name}.");
                 Console.WriteLine("    oapp template delete                         {id/name}                              Deletes a OAPP template for the given {id} or {name}.");
@@ -4563,12 +4591,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    oapp template uninstall                      {id/name}                              Uninstalls a OAPP template for the given {id} or {name}.");
                 //Console.WriteLine("    oapp template reinstall                      {id/name}                              Reinstalls a OAPP template for the given {id} or {name}.");
                 Console.WriteLine("    oapp template show                           {id/name}                              Shows a OAPP template for the given {id} or {name}.");
-                Console.WriteLine("    oapp template list                           [all]                                  List all OAPP template's that have been created.");
+                Console.WriteLine("    oapp template list                           [allVersions] [forAllAvatars]          List all OAPP template's that have been created.");
                 Console.WriteLine("    oapp template list installed                                                        List all OAPP template's installed for the currently beamed in avatar.");
                 Console.WriteLine("    oapp template list uninstalled                                                      List all OAPP template's uninstalled for the currently beamed in avatar (and allow reinstalling).");
                 Console.WriteLine("    oapp template list unpublished                                                      List all OAPP template's unpublished for the currently beamed in avatar (and allow republishing.");
                 Console.WriteLine("    oapp template list deactivated                                                      List all OAPP template's deactivated for the currently beamed in avatar (and allow reactivating).");
-                Console.WriteLine("    oapp template search                         [all]                                  Searches the OAPP template's for the given search critera.");
+                Console.WriteLine("    oapp template search                         [allVersions] [forAllAvatars]          Searches the OAPP template's for the given search critera.");
                 Console.WriteLine("    happ create                                                                         Shortcut to the light sub-command.");
                 Console.WriteLine("    happ update                                  {id/name}                              Update an existing hApp for the given {id} or {name}.");
                 Console.WriteLine("    happ delete                                  {id/name}                              Delete an existing hApp for the given {id} or {name}.");
@@ -4582,12 +4610,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    happ uninstall                               {id/name}                              Uninstalls a hApp for the given {id} or {name}.");
                 //Console.WriteLine("    happ reinstall                               {id/name}                              Reinstalls a hApp for the given {id} or {name}.");
                 Console.WriteLine("    happ show                                    {id/name}                              Shows a hApp for the given {id} or {name}.");
-                Console.WriteLine("    happ list                                    [all]                                  List all hApp's (contains zomes) that have been generated.");
+                Console.WriteLine("    happ list                                    [allVersions] [forAllAvatars]          List all hApp's (contains zomes) that have been generated.");
                 Console.WriteLine("    happ list installed                                                                 List all hApp's installed for the currently beamed in avatar.");
                 Console.WriteLine("    happ list uninstalled                                                               List all hApp's uninstalled for the currently beamed in avatar (and allow reinstalling).");
                 Console.WriteLine("    happ list unpublished                                                               List all hApp's unpublished for the currently beamed in avatar (and allow republishing).");
                 Console.WriteLine("    happ list deactivated                                                               List all hApp's deactivated for the currently beamed in avatar (and allow reactivating).");
-                Console.WriteLine("    happ search                                  [all]                                  Searches the hApp's for the given search critera.");
+                Console.WriteLine("    happ search                                  [allVersions] [forAllAvatars]          Searches the hApp's for the given search critera.");
                 Console.WriteLine("    runtime create                                                                      Create a new runtime (currently supports OASIS & STAR but more to follow). Only admin's can create & publish OASIS/STAR runtime's.");
                 Console.WriteLine("    runtime update                               {id/name}                              Update an existing runtime for the given {id} or {name}.");
                 Console.WriteLine("    runtime delete                               {id/name}                              Delete an existing runtime for the given {id} or {name}.");
@@ -4601,28 +4629,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    runtime uninstall                            {id/name}                              Uninstalls a runtime for the given {id} or {name}.");
                 //Console.WriteLine("    runtime reinstall                            {id/name}                              Reinstalls a runtime for the given {id} or {name}.");
                 Console.WriteLine("    runtime show                                 {id/name}                              Shows a runtime for the given {id} or {name}.");
-                Console.WriteLine("    runtime list                                 [all]                                  List all runtime's that have been generated.");
+                Console.WriteLine("    runtime list                                 [allVersions] [forAllAvatars]          List all runtime's that have been generated.");
                 Console.WriteLine("    runtime list installed                                                              List all runtime's installed for the currently beamed in avatar.");
                 Console.WriteLine("    runtime list uninstalled                                                            List all runtime's uninstalled for the currently beamed in avatar (and allow reinstalling).");
                 Console.WriteLine("    runtime list unpublished                                                            List all runtime's unpublished for the currently beamed in avatar (and allow republishing).");
                 Console.WriteLine("    runtime list deactivated                                                            List all runtime's deactivated for the currently beamed in avatar (and allow reactivating).");
-                Console.WriteLine("    runtime search                               [all]                                  Searches the runtime's for the given search critera.");
+                Console.WriteLine("    runtime search                               [allVersions] [forAllAvatars]          Searches the runtime's for the given search critera.");
                 Console.WriteLine("    celestialspace create                                                               Creates a celestial space.");
                 Console.WriteLine("    celestialspace update                        {id/name}                              Update an existing celestial space for the given {id} or {name}.");
                 Console.WriteLine("    celestialspace delete                        {id/name}                              Delete an existing celestial space for the given {id} or {name}.");
                 Console.WriteLine("    celestialspace publish                       {id/name}                              Publishes a celestial space for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
                 Console.WriteLine("    celestialspace unpublish                     {id/name}                              Unpublishes a celestial space for the given {id} or {name} from the STARNET store.");
                 Console.WriteLine("    celestialspace show                          {id/name}                              Shows a celestial space for the given {id} or {name}.");
-                Console.WriteLine("    celestialspace list                          [all]                                  List all celestial spaces that have been generated.");
-                Console.WriteLine("    celestialspace search                        [all]                                  Searches the celestial spaces for the given search critera.");
+                Console.WriteLine("    celestialspace list                          [allVersions] [forAllAvatars]          List all celestial spaces that have been generated.");
+                Console.WriteLine("    celestialspace search                        [allVersions] [forAllAvatars]          Searches the celestial spaces for the given search critera.");
                 Console.WriteLine("    celestialbody create                                                                Creates a celestial body.");
                 Console.WriteLine("    celestialbody update                         {id/name}                              Update an existing celestial body for the given {id} or {name}.");
                 Console.WriteLine("    celestialbody delete                         {id/name}                              Delete an existing celestial body for the given {id} or {name}.");
                 Console.WriteLine("    celestialbody publish                        {id/name}                              Publishes a celestial body for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
                 Console.WriteLine("    celestialbody unpublish                      {id/name}                              Unpublishes a celestial body for the given {id} or {name} from the STARNET store.");
                 Console.WriteLine("    celestialbody show                           {id/name}                              Shows a celestial body for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody list                           [all]                                  List all celestial bodies that have been generated.");
-                Console.WriteLine("    celestialbody search                         [all]                                  Searches the celestial bodies for the given search critera.");
+                Console.WriteLine("    celestialbody list                           [allVersions] [forAllAvatars]          List all celestial bodies that have been generated.");
+                Console.WriteLine("    celestialbody search                         [allVersions] [forAllAvatars]          Searches the celestial bodies for the given search critera.");
                 Console.WriteLine("    zome create                                                                         Create a zome (module).");
                 Console.WriteLine("    zome update                                  {id/name}                              Update an existing zome for the given {id} or {name}");
                 Console.WriteLine("                                                                                        (can upload a zome.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
@@ -4630,8 +4658,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    zome publish                                 {id/name}                              Publishes a zome for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
                 Console.WriteLine("    zome unpublish                               {id/name}                              Unpublishes a zome for the given {id} or {name} from the STARNET store.");
                 Console.WriteLine("    zome show                                    {id/name}                              Shows a zome for the given {id} or {name}.");
-                Console.WriteLine("    zome list                                    [all]                                  List all zomes (modules that contain holons) that have been generated.");
-                Console.WriteLine("    zome search                                  [all]                                  Searches the zomes (modules) for the given search critera. If [all] is omitted it will search only your zomes otherwise it will search all public/shared zomes.");
+                Console.WriteLine("    zome list                                    [allVersions] [forAllAvatars]          List all zomes (modules that contain holons) that have been generated.");
+                Console.WriteLine("    zome search                                  [allVersions] [forAllAvatars]          Searches the zomes (modules) for the given search critera. If [all] is omitted it will search only your zomes otherwise it will search all public/shared zomes.");
                 //Console.WriteLine("    holon = Shows more info on how to use this command and optionally lauches the Save Holon Wizard.");
                 Console.WriteLine("    holon create                                 json={holonJSONFile}                   Creates/Saves a holon from the given {holonJSONFile}.");
                 Console.WriteLine("    holon create wiz                                                                    Starts the Create Holon Wizard.");
@@ -4641,32 +4669,32 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    holon publish                                {id/name}                              Publishes a holon for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
                 Console.WriteLine("    holon unpublish                              {id/name}                              Unpublishes a holon for the given {id} or {name} from the STARNET store.");
                 Console.WriteLine("    holon show                                   {id/name}                              Shows a holon for the given {id} or {name}.");
-                Console.WriteLine("    holon list                                   [all]                                  List all holons (OASIS Data Objects) that have been generated.");
-                Console.WriteLine("    holon search                                 [all]                                  Searches the holons for the given search critera.");
+                Console.WriteLine("    holon list                                   [allVersions] [forAllAvatars]          List all holons (OASIS Data Objects) that have been generated.");
+                Console.WriteLine("    holon search                                 [allVersions] [forAllAvatars]          Searches the holons for the given search critera.");
                 Console.WriteLine("    chapter create                                                                      Creates a chapter that can be linked to a mission. Quests can be added to the chapter. Chapters are used to group quests together (optional).");
                 Console.WriteLine("    chapter update                               {id/name}                              Updates a chapter for the given {id} or {name}.");
                 Console.WriteLine("    chapter delete                               {id/name}                              Deletes a chapter for the given {id} or {name}.");
                 Console.WriteLine("    chapter publish                              {id/name}                              Publishes a chapter to the STARNET store for the given {id} or {name} so others can use in their own missions.");
                 Console.WriteLine("    chapter unpublish                            {id/name}                              Unpublishes a chapter from the STARNET store for the given {id} or {name}.");
                 Console.WriteLine("    chapter show                                 {id/name}                              Shows the chapter for the given {id} or {name}.");
-                Console.WriteLine("    chapter list                                 [all]                                  List chapters that have been created.");
-                Console.WriteLine("    chapter search                               [all]                                  Search chapters that have been created.");
+                Console.WriteLine("    chapter list                                 [allVersions] [forAllAvatars]          List chapters that have been created.");
+                Console.WriteLine("    chapter search                               [allVersions] [forAllAvatars]          Search chapters that have been created.");
                 Console.WriteLine("    mission create                                                                      Creates a mission that chapters & quests can be added to.");
                 Console.WriteLine("    mission update                               {id/name}                              Updates a mission for the given {id} or {name}.");
                 Console.WriteLine("    mission delete                               {id/name}                              Deletes an mission for the given {id} or {name}.");
                 Console.WriteLine("    mission publish                              {id/name}                              Publishes a mission  for the given {id} or {name} to the STARNET store so others can find and play in Our World/AR World, One World & any other OASIS OAPP.");
                 Console.WriteLine("    mission unpublish                            {id/name}                              Unpublishes a mission from the STARNET store for the given {id} or {name}.");
                 Console.WriteLine("    mission show                                 {id/name}                              Shows the mission for the given {id} or {name}.");
-                Console.WriteLine("    missions list                                [all]                                  List all mission's that have been created.");
-                Console.WriteLine("    missions search                              [all]                                  Search all mission's that have been created.");
+                Console.WriteLine("    missions list                                [allVersions] [forAllAvatars]          List all mission's that have been created.");
+                Console.WriteLine("    missions search                              [allVersions] [forAllAvatars]          Search all mission's that have been created.");
                 Console.WriteLine("    quest create                                                                        Creates a quest that can be linked to a mission. Geo-nfts, geo-hotspots & rewards can be linked to the quest.");
                 Console.WriteLine("    quest update                                 {id/name}                              Updates a quest for the given {id} or {name}.");
                 Console.WriteLine("    quest delete                                 {id/name}                              Deletes a quest for the given {id} or {name}.");
                 Console.WriteLine("    quest publish                                {id/name}                              Publishes a quest to the STARNET store so others can use in their own quests as sub-quests or in missions/chapters.");
                 Console.WriteLine("    quest unpublish                              {id/name}                              Unpublishes a quest from the STARNET store for the given {id} or {name}.");
                 Console.WriteLine("    quest show                                   {id/name}                              Shows the quest for the given {id} or {name}.");
-                Console.WriteLine("    quest list                                   [all]                                  List all quests that have been created.");
-                Console.WriteLine("    quest search                                 [all]                                  Search all quests that have been created.");
+                Console.WriteLine("    quest list                                   [allVersions] [forAllAvatars]          List all quests that have been created.");
+                Console.WriteLine("    quest search                                 [allVersions] [forAllAvatars]          Search all quests that have been created.");
                 Console.WriteLine("    nft mint                                                                            Mints a OASIS NFT for the currently beamed in avatar.");
                 Console.WriteLine("    nft update                                   {id/name}                              Updates a nft for the given {id} or {name}.");
                 Console.WriteLine("    nft burn                                     {id/name}                              Burn's a nft for the given {id} or {name}.");
@@ -4674,8 +4702,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    nft publish                                  {id/name}                              Publishes a OASIS NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.");
                 Console.WriteLine("    nft unpublish                                {id/name}                              Unpublishes a OASIS NFT for the given {id} or {name} from the STARNET store.");
                 Console.WriteLine("    nft show                                     {id/name}                              Shows the NFT for the given {id} or {name}.");
-                Console.WriteLine("    nft list                                     [all]                                  Shows the NFT's that belong to the currently beamed in avatar.");
-                Console.WriteLine("    nft search                                   [all]                                  Search for NFT's that match certain criteria and belong to the currently beamed in avatar.");
+                Console.WriteLine("    nft list                                     [allVersions] [forAllAvatars]          Shows the NFT's that belong to the currently beamed in avatar.");
+                Console.WriteLine("    nft search                                   [allVersions] [forAllAvatars]          Search for NFT's that match certain criteria and belong to the currently beamed in avatar.");
                 Console.WriteLine("    geonft mint                                                                         Mints a OASIS Geo-NFT and places in Our World/AR World for the currently beamed in avatar.");
                 Console.WriteLine("    geonft update                                {id/name}                              Updates a geo-nft for the given {id} or {name}.");
                 Console.WriteLine("    geonft burn                                  {id/name}                              Burn's a geo-nft for the given {id} or {name}.");
@@ -4684,8 +4712,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    geonft publish                               {id/name}                              Publishes a geo-nft for the given {id} or {name} to the STARNET store so others can use in their own quests etc.");
                 Console.WriteLine("    geonft unpublish                             {id/name}                              Unpublishes a geo-nft for the given {id} or {name} from the STARNET store.");
                 Console.WriteLine("    geonft show                                  {id/name}                              Shows the Geo-NFT for the given {id} or {name}");
-                Console.WriteLine("    geonft list                                  [all]                                  List all geo-nft's that have been created. If [all] is omitted it will list only your geo-nft's otherwise it will list all published geo-nft's as well as yours.");
-                Console.WriteLine("    geonft search                                [all]                                  Search for Geo-NFT's that match certain criteria and belong to the currently beamed in avatar.");
+                Console.WriteLine("    geonft list                                  [allVersions] [forAllAvatars]          List all geo-nft's that have been created. If [all] is omitted it will list only your geo-nft's otherwise it will list all published geo-nft's as well as yours.");
+                Console.WriteLine("    geonft search                                [allVersions] [forAllAvatars]          Search for Geo-NFT's that match certain criteria and belong to the currently beamed in avatar.");
                 Console.WriteLine("                                                                                        If [all] is used then it will also include any shared/public/published geo-nft's");
                 Console.WriteLine("    geohotspot create                                                                   Creates a geo-hotspot that chapters & quests can be added to.");
                 Console.WriteLine("    geohotspot update                            {id/name}                              Updates a geo-hotspot for the given {id} or {name}.");
@@ -4693,8 +4721,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    geohotspot publish                           {id/name}                              Publishes a geo-hotspot for the given {id} or {name} to the STARNET store so others can use in their own quests.");
                 Console.WriteLine("    geohotspot unpublish                         {id/name}                              Unpublishes a geo-hotspot from the STARNET store.");
                 Console.WriteLine("    geohotspot show                              {id/name}                              Shows the geo-hotspot for the given {id} or {name}.");
-                Console.WriteLine("    geohotspots list                             [all]                                  List all geo-hotspot's that have been created.");
-                Console.WriteLine("    geohotspots search                           [all]                                  Search all geo-hotspot's that have been created.");
+                Console.WriteLine("    geohotspots list                             [allVersions] [forAllAvatars]          List all geo-hotspot's that have been created.");
+                Console.WriteLine("    geohotspots search                           [allVersions] [forAllAvatars]          Search all geo-hotspot's that have been created.");
                 Console.WriteLine("    inventoryitem create                                                                Creates an inventory item that can be granted as a reward");
                 Console.WriteLine("                                                                                        (will be placed in the avatar's inventory) for completing quests, collecting geo-nft's, triggering geo-hotspots etc.");
                 Console.WriteLine("    inventoryitem update                         {id/name}                              Updates a inventory item for the given {id} or {name}.");
@@ -4702,8 +4730,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    inventoryitem publish                        {id/name}                              Publishes an inventory item for the given {id} or {name} to the STARNET store so others can use in their own quests, geo-hotspots, geo-nfts, etc.");
                 Console.WriteLine("    inventoryitem unpublish                      {id/name}                              Unpublishes an inventory item  for the given {id} or {name} from the STARNET store.");
                 Console.WriteLine("    inventoryitem show                           {id/name}                              Shows the inventory item for the given {id} or {name}.");
-                Console.WriteLine("    inventoryitem list                           [all]                                  List all inventory item's that have been created.");
-                Console.WriteLine("    inventoryitem search                         [all]                                  Search all inventory item's that have been created.");
+                Console.WriteLine("    inventoryitem list                           [allVersions] [forAllAvatars]          List all inventory item's that have been created.");
+                Console.WriteLine("    inventoryitem search                         [allVersions] [forAllAvatars]          Search all inventory item's that have been created.");
                 //Console.WriteLine("    inventoryitem activate = Activates an inventory item that has been published to the STARNET store so is visible to others.");
                 //Console.WriteLine("    inventoryitem deactivate = Deactivates an inventory item that has been published to the STARNET store so is invisible to others.");
                 Console.WriteLine("    seeds balance                                {telosAccountName/avatarId}            Get's the balance of your SEEDS account.");
@@ -4756,7 +4784,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    oland load                                   {id}                                   Load a OLAND for the given {id}.");
                 Console.WriteLine("    oland save                                                                          Save a OLAND.");
                 Console.WriteLine("    oland delete                                 {id}                                   Deletes a OLAND for the given {id}.");
-                Console.WriteLine("    oland list                                   [all]                                  If [all] is omitted it will list all OLAND for the given beamed in avatar, otherwise it will list all OLAND for all avatars.");
+                Console.WriteLine("    oland list                                   [allVersions] [forAllAvatars]          If [all] is omitted it will list all OLAND for the given beamed in avatar, otherwise it will list all OLAND for all avatars.");
                 Console.WriteLine("    onode start                                                                         Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).");
                 Console.WriteLine("    onode stop                                                                          Stops a OASIS Node (ONODE).");
                 Console.WriteLine("    onode status                                                                        Shows stats for this ONODE.");
