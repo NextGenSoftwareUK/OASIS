@@ -112,9 +112,46 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 ShowOAPPTemplate(loadResult.Result);
 
-                //TODO: Comeback to this.
-                loadResult.Result.Name = CLIEngine.GetValidInput("What is the name of the OAPP Template?");
-                loadResult.Result.Description = CLIEngine.GetValidInput("What is the description of the OAPP Template?");
+                if (CLIEngine.GetConfirmation("Do you wish to edit the OAPP Template Name?"))
+                {
+                    Console.WriteLine("");
+                    loadResult.Result.Name = CLIEngine.GetValidInput("What is the new name of the OAPP Template?");
+                    loadResult.Result.OAPPTemplateDNA.Name = loadResult.Result.Name;
+                }
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the OAPP Template Description?"))
+                {
+                    Console.WriteLine("");
+                    loadResult.Result.Description = CLIEngine.GetValidInput("What is the new description of the OAPP Template?");
+                    loadResult.Result.OAPPTemplateDNA.Description = loadResult.Result.Description;
+                }
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the OAPP Template Type?"))
+                {
+                    Console.WriteLine("");
+                    object value = CLIEngine.GetValidInputForEnum("What is the new type of the OAPP Template?", typeof(OAPPTemplateType));
+
+                    if (value != null)
+                    {
+                        if (value.ToString() == "exit")
+                            return;
+
+                        loadResult.Result.OAPPTemplateDNA.OAPPTemplateType = (OAPPTemplateType)value;
+                    }
+                }
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the launch target?"))
+                {
+                    Console.WriteLine("");
+                    loadResult.Result.OAPPTemplateDNA.LaunchTarget = CLIEngine.GetValidInput("What is the new launch target of the OAPP Template?");
+                }
+
+                if (loadResult.Result.OAPPTemplateDNA.PublishedOn != DateTime.MinValue && CLIEngine.GetConfirmation($"Do you wish to upload any changes you have made in the Source folder ({loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath})? The version number will remain the same ({loadResult.Result.OAPPTemplateDNA.Version})."))
+                {
+                    await PublishOAPPTemplateAsync(loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath, providerType);
+                    //await STAR.OASISAPI.OAPPTemplates.PublishOAPPTemplateAsync(loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath, loadResult.Result.OAPPTemplateDNA.LaunchTarget, STAR.BeamedInAvatar.Id, loadResult.Result.OAPPTemplateDNA.OAPPTemplatePublishedPath, true, true, true, providerType, ProviderType.None);
+                }
+
 
                 OASISResult<IOAPPTemplate> result = await STAR.OASISAPI.OAPPTemplates.SaveOAPPTemplateAsync(loadResult.Result, STAR.BeamedInAvatar.Id, providerType);
                 CLIEngine.ShowWorkingMessage("Saving OAPP Template...");
@@ -139,18 +176,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 ShowOAPPTemplate(result.Result);
 
-                if (CLIEngine.GetConfirmation("Are you sure you wish to delete the OAPP Template?"))
+                if (CLIEngine.GetConfirmation("Are you sure you wish to delete the OAPP Template? This will also delete the OAPP Template from the Source and Published folders and remove it from the STARNET Store (if you have already published it)"))
                 {
-                    CLIEngine.ShowWorkingMessage("Deleting OAPP Template...");
-                    result = await STAR.OASISAPI.OAPPTemplates.DeleteOAPPTemplateAsync(result.Result, true, providerType);
-
-                    if (result != null && !result.IsError && result.Result != null)
+                    if (CLIEngine.GetConfirmation("ARE YOU SURE YOU WITH TO PERMANENTLY DELETE THE OAPP TEMPLATE? IT WILL NOT BE POSSIBLE TO RECOVER AFTRWARDS!", ConsoleColor.Red))
                     {
-                        CLIEngine.ShowSuccessMessage("OAPP Template Successfully Deleted.");
-                        ShowOAPPTemplate(result.Result);
+                        CLIEngine.ShowWorkingMessage("Deleting OAPP Template...");
+                        result = await STAR.OASISAPI.OAPPTemplates.DeleteOAPPTemplateAsync(result.Result, true, providerType);
+
+                        if (result != null && !result.IsError && result.Result != null)
+                        {
+                            CLIEngine.ShowSuccessMessage("OAPP Template Successfully Deleted.");
+                            ShowOAPPTemplate(result.Result);
+                        }
+                        else
+                            CLIEngine.ShowErrorMessage($"An error occured deleting the OAPP Template. Reason: {result.Message}");
                     }
-                    else
-                        CLIEngine.ShowErrorMessage($"An error occured deleting the OAPP Template. Reason: {result.Message}");
                 }
             }
             else
