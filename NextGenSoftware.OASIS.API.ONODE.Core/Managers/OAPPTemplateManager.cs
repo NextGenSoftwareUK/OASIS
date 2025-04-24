@@ -361,6 +361,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(Guid oappTemplateId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> oappTemplateResult = await LoadOAPPTemplateAsync(oappTemplateId, providerType: providerType);
+
+            if (oappTemplateResult != null && oappTemplateResult.Result != null && !oappTemplateResult.IsError)
+            {
+                if (Directory.Exists(oappTemplateResult.Result.OAPPTemplateDNA.OAPPTemplatePath))
+                    Directory.Delete(oappTemplateResult.Result.OAPPTemplateDNA.OAPPTemplatePath, true);
+
+                if (Directory.Exists(oappTemplateResult.Result.OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                    Directory.Delete(oappTemplateResult.Result.OAPPTemplateDNA.OAPPTemplatePublishedPath, true);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in DeleteOAPPTemplateAsync loading the OAPP Template with Id {oappTemplateId} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {oappTemplateResult.Message}");
+
             OASISResult<OAPPTemplate> loadHolonsResult = await DeleteHolonAsync<OAPPTemplate>(oappTemplateId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
@@ -370,6 +383,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IOAPPTemplate> DeleteOAPPTemplate(Guid oappTemplateId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            OASISResult<IOAPPTemplate> oappTemplateResult = LoadOAPPTemplate(oappTemplateId, providerType: providerType);
+
+            if (oappTemplateResult != null && oappTemplateResult.Result != null && !oappTemplateResult.IsError)
+            {
+                if (Directory.Exists(oappTemplateResult.Result.OAPPTemplateDNA.OAPPTemplatePath))
+                    Directory.Delete(oappTemplateResult.Result.OAPPTemplateDNA.OAPPTemplatePath, true);
+
+                if (Directory.Exists(oappTemplateResult.Result.OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                    Directory.Delete(oappTemplateResult.Result.OAPPTemplateDNA.OAPPTemplatePublishedPath, true);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in DeleteOAPPTemplate loading the OAPP Template with Id {oappTemplateId} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {oappTemplateResult.Message}");
+
             OASISResult<OAPPTemplate> loadHolonsResult = DeleteHolon<OAPPTemplate>(oappTemplateId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplate");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
@@ -379,6 +405,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(IOAPPTemplate oappTemplate, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+
+            if (Directory.Exists(oappTemplate.OAPPTemplateDNA.OAPPTemplatePath))
+                Directory.Delete(oappTemplate.OAPPTemplateDNA.OAPPTemplatePath, true);
+
+            if (Directory.Exists(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                Directory.Delete(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath, true);
+
+            //TODO: Do we also want to delete the download and install holons? For now we wont.
             OASISResult<OAPPTemplate> loadHolonsResult = await DeleteHolonAsync<OAPPTemplate>(oappTemplate.Id, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
@@ -553,7 +587,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         }
 
         //public async Task<OASISResult<IOAPPTemplateDNA>> PublishOAPPTemplateAsync(string fullPathToOAPPTemplate, string launchTarget, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPTemplateBinary = true, bool uploadOAPPTemplateToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
-        public async Task<OASISResult<IOAPPTemplate>> PublishOAPPTemplateAsync(string fullPathToOAPPTemplate, string launchTarget, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPTemplateBinary = true, bool uploadOAPPTemplateToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
+        public async Task<OASISResult<IOAPPTemplate>> PublishOAPPTemplateAsync(string fullPathToOAPPTemplate, string launchTarget, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPTemplateBinary = true, bool uploadOAPPTemplateToCloud = false, bool edit = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
             //OASISResult<IOAPPTemplateDNA> result = new OASISResult<IOAPPTemplateDNA>();
@@ -578,7 +612,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                         if (loadOAPPTemplateResult != null && loadOAPPTemplateResult.Result != null && !loadOAPPTemplateResult.IsError)
                         {                     
-                            OASISResult<bool> validateVersionResult = ValidateVersion(OAPPTemplateDNA.Version, loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version, fullPathToOAPPTemplate, OAPPTemplateDNA.PublishedOn == DateTime.MinValue);
+                            OASISResult<bool> validateVersionResult = ValidateVersion(OAPPTemplateDNA.Version, loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version, fullPathToOAPPTemplate, OAPPTemplateDNA.PublishedOn == DateTime.MinValue, edit);
 
                             if (validateVersionResult != null && validateVersionResult.Result && !validateVersionResult.IsError)
                             {
@@ -587,6 +621,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 OAPPTemplateDNA = loadOAPPTemplateResult.Result.OAPPTemplateDNA; //Make sure it has not been tampered with by using the stored version.
                                 OAPPTemplateDNA.VersionSequence++;
                                 OAPPTemplateDNA.NumberOfVersions++;
+                                OAPPTemplateDNA.LaunchTarget = launchTarget;
 
                                 string publishedOAPPTemplateFileName = string.Concat(OAPPTemplateDNA.Name, "_v", OAPPTemplateDNA.Version, ".oapptemplate");
 
@@ -3137,7 +3172,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        private OASISResult<bool> ValidateVersion(string dnaVersion, string storedVersion, string fullPathToOAPPTemplateFolder, bool firstPublish)
+        private OASISResult<bool> ValidateVersion(string dnaVersion, string storedVersion, string fullPathToOAPPTemplateFolder, bool firstPublish, bool edit)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             int dnaVersionInt = 0;
@@ -3145,32 +3180,40 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             if (!firstPublish)
             {
-                if (!StringHelper.IsValidVersion(dnaVersion))
+                if (edit && dnaVersion != storedVersion)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA ({dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder ({fullPathToOAPPTemplateFolder}).");
+                    OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA ({dnaVersion}) is not the same as the version you are attempting to edit ({storedVersion}). They must be the same if you wish to upload new files for version {storedVersion}. Please edit the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder ({fullPathToOAPPTemplateFolder}).");
                     return result;
                 }
-
-                if (dnaVersion == storedVersion)
+                else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA ({dnaVersion}) is the same as the previous version ({storedVersion}). Please make sure you increment the version in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder ({fullPathToOAPPTemplateFolder}).");
-                    return result;
-                }
+                    if (!StringHelper.IsValidVersion(dnaVersion))
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA ({dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder ({fullPathToOAPPTemplateFolder}).");
+                        return result;
+                    }
 
-                if (!int.TryParse(dnaVersion.Replace(".", ""), out dnaVersionInt))
-                {
-                    OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA ({dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder ({fullPathToOAPPTemplateFolder}).");
-                    return result;
-                }
+                    if (dnaVersion == storedVersion)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA ({dnaVersion}) is the same as the previous version ({storedVersion}). Please make sure you increment the version in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder ({fullPathToOAPPTemplateFolder}).");
+                        return result;
+                    }
 
-                //Should hopefully never occur! ;-)
-                if (!int.TryParse(storedVersion.Replace(".", ""), out stotedVersionInt))
-                    OASISErrorHandling.HandleWarning(ref result, $"The version stored in the OASIS ({storedVersion}) is not valid!");
+                    if (!int.TryParse(dnaVersion.Replace(".", ""), out dnaVersionInt))
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA ({dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder ({fullPathToOAPPTemplateFolder}).");
+                        return result;
+                    }
 
-                if (dnaVersionInt <= stotedVersionInt)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA ({dnaVersion}) is less than the previous version ({storedVersion}). Please make sure you increment the version in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder.");
-                    return result;
+                    //Should hopefully never occur! ;-)
+                    if (!int.TryParse(storedVersion.Replace(".", ""), out stotedVersionInt))
+                        OASISErrorHandling.HandleWarning(ref result, $"The version stored in the OASIS ({storedVersion}) is not valid!");
+
+                    if (dnaVersionInt <= stotedVersionInt)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"The version in the OAPPTemplateDNA ({dnaVersion}) is less than the previous version ({storedVersion}). Please make sure you increment the version in the OAPPTemplateDNA.json file found in the root of your OAPPTemplate folder.");
+                        return result;
+                    }
                 }
             }
 

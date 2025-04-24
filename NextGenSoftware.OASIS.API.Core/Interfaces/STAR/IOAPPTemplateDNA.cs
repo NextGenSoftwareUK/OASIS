@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         DateTime CreatedOn { get; set; }
 
         OAPPTemplateType OAPPTemplateType { get; set; }
-        string OAPPTemplatePath { get; set; }
+        string OAPPTemplatePath { get; set; } //Source  Path
         string OAPPTemplatePublishedPath { get; set; }
 
         Guid PublishedByAvatarId { get; set; }
@@ -24,6 +24,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         bool OAPPTemplatePublishedToPinata { get; set; }
         string PinataIPFSHash { get; set; }
         ProviderType OAPPTemplatePublishedProviderType { get; set; }
+        string LaunchTarget { get; set; }
         long OAPPTemplateFileSize { get; set; }
 
         //bool IsActive { get; set; }
