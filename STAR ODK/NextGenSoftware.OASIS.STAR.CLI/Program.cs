@@ -791,7 +791,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<string, InstallMode, ProviderType, Task> downloadAndInstallPredicate = null,
             Func<string, ProviderType, Task> uninstallPredicate = null,
             //Func<string, ProviderType, Task> reinstallPredicate = null,
-            Func<string, ProviderType, Task> publishPredicate = null,
+            Func<string, bool, ProviderType, Task> publishPredicate = null,
             Func<string, ProviderType, Task> unpublishPredicate = null,
             Func<string, ProviderType, Task> republishPredicate = null,
             Func<string, ProviderType, Task> activatePredicate = null,
@@ -970,7 +970,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "publish":
                         {
                             if (publishPredicate != null)
-                                await publishPredicate(id, providerType);
+                                await publishPredicate(id, false, providerType);
                             else
                                 CLIEngine.ShowMessage("Coming Soon...");
                         }
@@ -1128,15 +1128,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage($"{subCommand.ToUpper()} SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
 
-                int commandSpace = 15;
-                int paramSpace = 9;
+                int commandSpace = 22;
+                int paramSpace = 30; //9;
                 string paramDivider = "  ";
 
-                if (isOAPPOrHappOrRuntime)
-                {
-                    commandSpace = 20;
-                    paramDivider = "                   ";
-                }
+                //if (isOAPPOrHappOrRuntime)
+                //{
+                //    commandSpace = 22;
+                //    paramDivider = "                   ";
+                //}
 
                 if (showCreate)
                     CLIEngine.ShowMessage(string.Concat("    create".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Create a ", subCommand, "."), ConsoleColor.Green, false);
@@ -1158,9 +1158,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 if (isOAPPOrHappOrRuntime)
                 {
                     if (ishApp)
-                        CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{hAppPath} [publishDotNet]  Publish a ", subCommand, " for the given {hAppPath}. If the flag [publishDotNet] is specefied it will first do a dotnet publish before publishing to STARNET."), ConsoleColor.Green, false);
+                        CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), ("{hAppPath} [publishDotNet]".PadRight(paramSpace)), paramDivider, "Publish a ", subCommand, " for the given {hAppPath}."), ConsoleColor.Green, false);
                     else
-                        CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{oappPath} [publishDotNet]  Publish a ", subCommand, " for the given {oappPath}. If the flag [publishDotNet] is specefied it will first do a dotnet publish before publishing to STARNET."), ConsoleColor.Green, false);
+                        CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{oappPath} [publishDotNet]".PadRight(paramSpace), paramDivider, "Publish a ", subCommand, " for the given {oappPath}."), ConsoleColor.Green, false);
+                    //if (ishApp)
+                    //    CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{hAppPath} [publishDotNet]      Publish a ", subCommand, " for the given {hAppPath}."), ConsoleColor.Green, false);
+                    //else
+                    //    CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{oappPath} [publishDotNet]      Publish a ", subCommand, " for the given {oappPath}."), ConsoleColor.Green, false);
                 }
                 else
                     CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Publish a ", subCommand, " to STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
@@ -1169,7 +1173,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage(string.Concat("    republish".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Republish a ", subCommand, " to STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    activate".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Activate (show) a ", subCommand, " on the STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    deactivate".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Deactivate (hide) a ", subCommand, " on the STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "[allVersions] [forAllAvatars]".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " that have been created. If [allVersions] is omitted it wiill list the current version, otherwise will list all versions. If [forAllAvatars] is omitted it will list only your ", subCommandPlural, "'s otherwise it will list all published ", subCommandPlural, "'s as well as yours."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "[allVersions] [forAllAvatars]".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " that have been created."), ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "[allVersions] [forAllAvatars]   List all ", subCommandPlural, " that have been created."), ConsoleColor.Green, false);
 
                 if (isOAPPOrHappOrRuntime)
                 {
@@ -1185,6 +1190,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 if (subCommand.ToUpper() == "OAPP")
                     CLIEngine.ShowMessage(string.Concat("    template".PadRight(commandSpace), "".PadRight(paramSpace), paramDivider, "Shows the OAPP Template Subcommand menu."), ConsoleColor.Green, false);
 
+
+                CLIEngine.ShowMessage($"NOTES:", ConsoleColor.Green);
+                CLIEngine.ShowMessage($"For the publish command, if the flag [publishDotNet] is specified it will first do a dotnet publish before publishing to STARNET.", ConsoleColor.Green);
+                CLIEngine.ShowMessage($"For the list command, if [allVersions] is omitted it will list the current version, otherwise it will list all versions. If [forAllAvatars] is omitted it will list only your {subCommandPlural}'s otherwise it will list all published {subCommandPlural}'s as well as yours.", ConsoleColor.Green);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -1267,14 +1276,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "list":
                         {
-                            //STARCLI.ListAvat
-                            CLIEngine.ShowMessage("Coming soon...");
+                            if (inputArgs.Length > 2 && inputArgs[2] == "detailed")
+                                await STARCLI.ListAvatarDetailsAsync();
+                            else
+                                await STARCLI.ListAvatarsAsync();
                         }
                         break;
 
                     case "search":
                         {
-                            CLIEngine.ShowMessage("Coming soon...");
+                            await STARCLI.SearchAvatarsAsync();
+                        }
+                        break;
+
+                    case "forgotpassword":
+                        {
+                            await STARCLI.ForgotPasswordAsync();
+                        }
+                        break;
+
+                    case "resetpassword":
+                        {
+                            await STARCLI.ResetPasswordAsync();
                         }
                         break;
 
@@ -1294,8 +1317,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("    show me                      Display the currently beamed in avatar details (if any).", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    show          {id/username}  Shows the details for the avatar for the given {id} or {username}.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    edit                         Edit the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    list                         Lists all avatars.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    search                       Seach avatars that match the given seach parameters (public fields only such as level, karma, username & any fields the player has set to public).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list          [detailed]     Lists all avatars. If [detailed] is included it will list detailed stats also.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    search                       Search avatars that match the given seach parameters.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    forgotpassword               Send a Forgot Password email to your email account containing a Reset Token.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    resetpassword                Allows you to reset your password using the Reset Token received in your email from the forgotpassword sub-command.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage($"NOTES:", ConsoleColor.Green);
+                CLIEngine.ShowMessage($"For the search command, public fields only such as level, karma, username & any fields the player has set to public.", ConsoleColor.Green);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -4530,8 +4557,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    avatar show me                                                                      Display the currently beamed in avatar details (if any).");
                 Console.WriteLine("    avatar show                                  {id/username}                          Shows the details for the avatar for the given {id} or {username}.");
                 Console.WriteLine("    avatar edit                                                                         Edit the currently beamed in avatar.");
-                Console.WriteLine("    avatar list                                                                         Loads all avatars.");
+                Console.WriteLine("    avatar list                                  [detailed]                             Lists all avatars. If [detailed] is included it will list detailed stats also.");
                 Console.WriteLine("    avatar search                                                                       Seach avatars that match the given seach parameters (public fields only such as level, karma, username & any fields the player has set to public).");
+                Console.WriteLine("    avatar forgotpassword                                                               Send a Forgot Password email to your email account containing a Reset Token.");
+                Console.WriteLine("    avatar resetpassword                                                                Allows you to reset your password using the Reset Token received in your email from the forgotpassword sub-command.");
                 Console.WriteLine("    karma list                                                                          Display the karma thresholds.");
                 Console.WriteLine("    keys link privateKey                          [walletId] [privateKey]               Links a private key to the given wallet for the currently beamed in avatar.");
                 Console.WriteLine("    keys link publicKey                           [walletId] [publicKey]                Links a public key to the given wallet for the currently beamed in avatar.");

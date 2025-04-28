@@ -20,7 +20,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             try
             {
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
-                int removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
+                int removeQty = 0;
+
+                if (avatar.RefreshTokens != null)
+                    removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
 
                 result = await SaveAvatarForProviderAsync(avatar, result, SaveMode.FirstSaveAttempt, providerType);
                 previousProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;

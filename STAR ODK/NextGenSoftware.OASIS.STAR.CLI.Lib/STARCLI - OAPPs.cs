@@ -950,7 +950,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             switch (autoLoadHolons)
             {
                 case AutoLoadHolons.OAPPs:
-                    await ListAllOAPPsAsync(providerType);
+                    await ListAllOAPPsAsync(providerType: providerType);
                     break;
             }
 
@@ -1357,7 +1357,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         //if (template != null && template.MetaData != null && template.MetaData.ContainsKey("OAPPTemplateId") && template.MetaData.ContainsKey("OAPPTemplateId") != null && Guid.TryParse(template.MetaData.ContainsKey("OAPPTemplateId").ToString(), out id))
                         if (template != null)
                         {
-                            OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, id, template.InstalledPath, template.DownloadedPath, true, true, providerType);
+                            OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, template.OAPPTemplateDNA.Id, template.OAPPTemplateDNA.VersionSequence, template.InstalledPath, template.DownloadedPath, true, true, providerType);
                             //OASISResult<IInstalledOAPPTemplate> installResult = await DownloadAndInstallOAPPTemplateAsync(result.Result.ElementAt(number - 1).Id.ToString(), InstallMode.DownloadAndReInstall, providerType);
 
                             if (installResult != null && !installResult.IsError && installResult.Result != null)

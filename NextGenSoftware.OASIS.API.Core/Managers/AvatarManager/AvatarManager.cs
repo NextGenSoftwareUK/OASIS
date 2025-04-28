@@ -425,7 +425,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //public async Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model)
-        public async Task<OASISResult<string>> ForgotPassword(string email)
+        public async Task<OASISResult<string>> ForgotPasswordAsync(string email)
         {
             var response = new OASISResult<string>();
 
@@ -465,6 +465,169 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return response;
         }
 
+        public OASISResult<string> ForgotPassword(string email)
+        {
+            var response = new OASISResult<string>();
+
+            try
+            {
+                OASISResult<IAvatar> avatarResult = LoadAvatarByEmail(email, false, false);
+
+                // always return ok response to prevent email enumeration
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Error occured loading avatar in ForgotPassword, avatar not found. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    return response;
+                }
+
+                // create reset token that expires after 1 day
+                avatarResult.Result.ResetToken = RandomTokenString();
+                avatarResult.Result.ResetTokenExpires = DateTime.UtcNow.AddDays(24);
+
+                var saveAvatar = SaveAvatar(avatarResult.Result);
+
+                if (saveAvatar.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"An error occured saving the avatar in ForgotPassword method in AvatarService. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
+                    return response;
+                }
+
+                // send email
+                SendPasswordResetEmail(avatarResult.Result);
+                response.Message = "Please check your email for password reset instructions";
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                OASISErrorHandling.HandleError(ref response, $"An error occured in ForgotPassword method in AvatarService. Reason: {e.Message}");
+            }
+
+            return response;
+        }
+
+        public async Task<OASISResult<string>> ResetPasswordAsync(string token, string oldPassword, string newPassword)
+        {
+            var response = new OASISResult<string>();
+
+            try
+            {
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync(false, false);
+
+                if (!avatarsResult.IsError && avatarsResult.Result != null)
+                {
+                    //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
+                    var avatar = avatarsResult.Result.FirstOrDefault(x =>
+                        x.ResetToken == token &&
+                        x.ResetTokenExpires > DateTime.UtcNow);
+
+                    if (avatar == null)
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar Not Found");
+                        return response;
+                    }
+
+                    int salt = 12;
+                    string passwordHash = BCrypt.Net.BCrypt.HashPassword(oldPassword, salt);
+
+                    if (!BCrypt.Net.BCrypt.Verify(avatar.Password, passwordHash))
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
+                        return response;
+                    }
+
+                    // update password and remove reset token
+                    avatar.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+                    avatar.PasswordReset = DateTime.UtcNow;
+                    avatar.ResetToken = null;
+                    avatar.ResetTokenExpires = null;
+
+                    var saveAvatarResult = await SaveAvatarAsync(avatar);
+
+                    if (saveAvatarResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                        return response;
+                    }
+
+                    response.Message = "Password reset successful, you can now login";
+                    response.Result = response.Message;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                response.IsSaved = false;
+                OASISErrorHandling.HandleError(ref response, e.Message);
+            }
+
+            return response;
+        }
+
+        public OASISResult<string> ResetPassword(string token, string oldPassword, string newPassword)
+        {
+            var response = new OASISResult<string>();
+
+            try
+            {
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false, false);
+
+                if (!avatarsResult.IsError && avatarsResult.Result != null)
+                {
+                    //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
+                    var avatar = avatarsResult.Result.FirstOrDefault(x =>
+                        x.ResetToken == token &&
+                        x.ResetTokenExpires > DateTime.UtcNow);
+
+                    if (avatar == null)
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar Not Found");
+                        return response;
+                    }
+
+                    int salt = 12;
+                    string passwordHash = BCrypt.Net.BCrypt.HashPassword(oldPassword, salt);
+
+                    if (!BCrypt.Net.BCrypt.Verify(avatar.Password, passwordHash))
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
+                        return response;
+                    }
+
+                    // update password and remove reset token
+                    avatar.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+                    avatar.PasswordReset = DateTime.UtcNow;
+                    avatar.ResetToken = null;
+                    avatar.ResetTokenExpires = null;
+
+                    var saveAvatarResult = SaveAvatar(avatar);
+
+                    if (saveAvatarResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                        return response;
+                    }
+
+                    response.Message = "Password reset successful, you can now login";
+                    response.Result = response.Message;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                response.IsSaved = false;
+                OASISErrorHandling.HandleError(ref response, e.Message);
+            }
+
+            return response;
+        }
         public string RandomTokenString()
         {
             using var rngCryptoServiceProvider = new System.Security.Cryptography.RNGCryptoServiceProvider();
