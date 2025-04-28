@@ -4,8 +4,6 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -213,6 +211,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage("", false);
             CLIEngine.ShowMessage($"Avatar {avatar.Username} Beamed In On {avatar.LastBeamedIn} And Last Beamed Out On {avatar.LastBeamedOut}.");
             Console.WriteLine("");
+
+            //TODO: May need to hide their real name if the user is not Admin(Wizard).
             Console.WriteLine(string.Concat(" Name: ", avatar.FullName));
             Console.WriteLine(string.Concat(" Created: ", avatar.CreatedDate));
             Console.WriteLine(string.Concat(" Karma: ", avatarDetail.Karma));
@@ -358,7 +358,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //        CLIEngine.ShowErrorMessage(errorMessage);
         //}
 
-        public static void ShowAvatar(IAvatar avatar, IAvatarDetail avatarDetail)
+        public static void ShowAvatar(IAvatar avatar, IAvatarDetail avatarDetail, bool listMode = false)
         {
             if (avatar != null)
             {
@@ -376,11 +376,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowMessage(String.Concat("Avatar Is Verified: ", avatar.IsVerified ? "True" : "False"));
                 CLIEngine.ShowMessage($"Avatar Version: {avatar.Version}");
 
-                if (CLIEngine.GetConfirmation($"Do you wish to view more detailed information?"))
+                if (!listMode && avatarDetail != null && CLIEngine.GetConfirmation($"Do you wish to view more detailed information?"))
+                    ShowAvatarStats(avatar, avatarDetail);
+
+                if (listMode && avatarDetail != null)
                     ShowAvatarStats(avatar, avatarDetail);
             }
             else
-                CLIEngine.ShowErrorMessage("Error Loading Avatar.");
+                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
         }
 
         public static async Task ShowAvatar(Guid id = new Guid())
@@ -435,17 +438,66 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             await ShowAvatar("");
         }
 
-        public static async Task SearchAvatarsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+
+        public static async Task<OASISResult<bool>> ForgotPasswordAsync()
         {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string email = CLIEngine.GetValidInput("Enter your email:");
+            ErrorHandling.HandleResponseWithDefaultErrorMessage(result, await STAR.OASISAPI.Avatar.ForgotPasswordAsync(email), "ForgotPasswordAsync", "Successfully Sent Forgot Password Email, Please Check Your Email.");
+            return result;
+        }
+
+        public static async Task<OASISResult<bool>> ResetPasswordAsync()
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string token = CLIEngine.GetValidInput("What is the token you received in the Forgotten Password email you received?");
+            string oldPassword = CLIEngine.ReadPassword("Enter your old password:");
+            string newPassword = CLIEngine.GetValidPassword("Enter your new password:");
+            ErrorHandling.HandleResponseWithDefaultErrorMessage(result, await STAR.OASISAPI.Avatar.ResetPasswordAsync(token, oldPassword, newPassword), "ResetPasswordAsync", "Successfully Reset Password");
+            return result;
+        }
+        public static async Task SearchAvatarsAsync(string searchTerm = "", ProviderType providerType = ProviderType.Default)
+        {
+            if (string.IsNullOrEmpty(searchTerm))
+            {
+                Console.WriteLine("");
+                searchTerm = CLIEngine.GetValidInput("What is the name of the Avatar you wish to search for?");
+            }
+
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage("Searching Avatars...");
             ListAvatars(await STAR.OASISAPI.Avatar.SearchAvatarsAsync(searchTerm, providerType));
         }
 
-        public static void SearchAvatars(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public static void SearchAvatars(string searchTerm = "", ProviderType providerType = ProviderType.Default)
         {
+            if (string.IsNullOrEmpty(searchTerm))
+            {
+                Console.WriteLine("");
+                searchTerm = CLIEngine.GetValidInput("What is the name of the Avatar you wish to search for?");
+            }
+
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage("Searching Avatars...");
             ListAvatars(STAR.OASISAPI.Avatar.SearchAvatars(searchTerm, providerType));
         }
 
-        private static void ListAvatars(OASISResult<IEnumerable<IAvatar>> avatarsResult)
+        public static async Task<OASISResult<IEnumerable<IAvatar>>> ListAvatarsAsync(ProviderType providerType = ProviderType.Default)
+        {
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage("Listing Avatars...");
+            return await ListAvatars(await STAR.OASISAPI.Avatar.LoadAllAvatarsAsync(providerType: providerType));
+        }
+
+        public static async Task ListAvatarDetailsAsync(ProviderType providerType = ProviderType.Default)
+        {
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage("Listing Avatar Details...");
+            OASISResult<IEnumerable<IAvatar>> avatarResults = await STAR.OASISAPI.Avatar.LoadAllAvatarsAsync(providerType: providerType);
+            OASISResult<IEnumerable<IAvatarDetail>> avatarDetailResults = await STAR.OASISAPI.Avatar.LoadAllAvatarDetailsAsync(providerType: providerType);
+        }
+
+        private static async Task<OASISResult<IEnumerable<IAvatar>>> ListAvatars(OASISResult<IEnumerable<IAvatar>> avatarsResult, OASISResult<IEnumerable<IAvatarDetail>> avatarDetailsResult = null)
         {
             if (avatarsResult != null)
             {
@@ -462,8 +514,56 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         CLIEngine.ShowDivider();
 
-                        foreach (IOASISGeoSpatialNFT geoNFT in avatarsResult.Result)
-                            ShowGeoNFT(geoNFT);
+                        Dictionary<Guid, IAvatarDetail> avatarDetails = new Dictionary<Guid, IAvatarDetail>();
+                        if (avatarDetailsResult != null && avatarDetailsResult.Result != null && !avatarDetailsResult.IsError)
+                        {
+                            foreach (IAvatarDetail avatarDetail in avatarDetailsResult.Result)
+                            {
+                                if (!avatarDetails.ContainsKey(avatarDetail.Id))
+                                    avatarDetails.Add(avatarDetail.Id, avatarDetail);
+                            }
+                        }
+
+                        foreach (IAvatar avatar in avatarsResult.Result)
+                        {
+                            ShowAvatar(avatar, avatarDetails[avatar.Id], true);
+                            CLIEngine.ShowDivider();
+                        }
+                    }
+                    else
+                        CLIEngine.ShowWarningMessage("No Avatar's Found.");
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error occured loading Avatar's. Reason: {avatarsResult.Message}");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading Avatar's.");
+
+            return avatarsResult;
+        }
+
+        private static void ListAvatarDetails(OASISResult<IEnumerable<IAvatarDetail>> avatarsResult)
+        {
+            if (avatarsResult != null)
+            {
+                if (!avatarsResult.IsError)
+                {
+                    if (avatarsResult.Result != null && avatarsResult.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
+
+                        if (avatarsResult.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{avatarsResult.Result.Count()} Avatar Found:");
+                        else
+                            CLIEngine.ShowMessage($"{avatarsResult.Result.Count()} Avatar's' Found:");
+
+                        CLIEngine.ShowDivider();
+
+                        foreach (IAvatarDetail avatar in avatarsResult.Result)
+                        {
+                            ShowAvatar(null, avatar, true);
+                            CLIEngine.ShowDivider();
+                        }
                     }
                     else
                         CLIEngine.ShowWarningMessage("No Avatar's Found.");

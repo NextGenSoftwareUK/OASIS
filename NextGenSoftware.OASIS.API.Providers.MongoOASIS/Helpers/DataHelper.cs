@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
@@ -219,16 +220,51 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.FavouriteColour = avatar.Result.FavouriteColour;
             oasisAvatar.STARCLIColour = avatar.Result.STARCLIColour;
             oasisAvatar.Skills = avatar.Result.Skills;
-            oasisAvatar.Spells = avatar.Result.Spells;
+            //oasisAvatar.Spells = avatar.Result.Spells;
+
+            if (avatar.Result.Spells != null)
+            {
+                foreach (var item in avatar.Result.Spells)
+                    oasisAvatar.Spells.Add((Spell)item);
+            }
+
             oasisAvatar.Stats = avatar.Result.Stats;
             oasisAvatar.SuperPowers = avatar.Result.SuperPowers;
-            oasisAvatar.GeneKeys = avatar.Result.GeneKeys;
+            //oasisAvatar.GeneKeys = avatar.Result.GeneKeys;
+
+            if (avatar.Result.GeneKeys != null)
+            {
+                foreach (var item in avatar.Result.GeneKeys)
+                    oasisAvatar.GeneKeys.Add((GeneKey)item);
+            }
+  
             oasisAvatar.HumanDesign = avatar.Result.HumanDesign;
-            oasisAvatar.Gifts = avatar.Result.Gifts;
+            //oasisAvatar.Gifts = avatar.Result.Gifts;
+
+            if (avatar.Result.Gifts != null)
+            {
+                foreach (var item in avatar.Result.Gifts)
+                    oasisAvatar.Gifts.Add((AvatarGift)item);
+            }
+
             oasisAvatar.Chakras = avatar.Result.Chakras;
             oasisAvatar.Aura = avatar.Result.Aura;
-            oasisAvatar.Achievements = avatar.Result.Achievements;
-            oasisAvatar.Inventory = avatar.Result.Inventory;
+            //oasisAvatar.Achievements = avatar.Result.Achievements;
+
+            if (avatar.Result.Achievements != null)
+            {
+                foreach (var item in avatar.Result.Achievements)
+                    oasisAvatar.Achievements.Add((Achievement)item);
+            }
+
+            //oasisAvatar.Inventory = avatar.Result.Inventory;
+
+            if (avatar.Result.Achievements != null)
+            {
+                foreach (var item in avatar.Result.Inventory)
+                    oasisAvatar.Inventory.Add((InventoryItem)item);
+            }
+
             oasisAvatar.Address = avatar.Result.Address;
             // oasisAvatar.AvatarType = avatar.Result.AvatarType;
             oasisAvatar.Country = avatar.Result.Country;
@@ -242,7 +278,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.Postcode = avatar.Result.Postcode;
             oasisAvatar.Town = avatar.Result.Town;
             oasisAvatar.Karma = avatar.Result.Karma;
-            oasisAvatar.KarmaAkashicRecords = avatar.Result.KarmaAkashicRecords;
+            //oasisAvatar.KarmaAkashicRecords = avatar.Result.KarmaAkashicRecords;
+
+            if (avatar.Result.KarmaAkashicRecords != null)
+            {
+                foreach (var item in avatar.Result.KarmaAkashicRecords)
+                    oasisAvatar.KarmaAkashicRecords.Add((KarmaAkashicRecord)item);
+            }
+
             oasisAvatar.ParentHolonId = avatar.Result.ParentHolonId;
             oasisAvatar.ParentHolon = avatar.Result.ParentHolon;
             oasisAvatar.ParentZomeId = avatar.Result.ParentZomeId;
@@ -492,17 +535,52 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             //mongoAvatar.ProviderWalletAddress = avatar.ProviderWalletAddress;
             mongoAvatar.FavouriteColour = avatar.FavouriteColour;
             mongoAvatar.STARCLIColour = avatar.STARCLIColour;
-            mongoAvatar.Skills = avatar.Skills;
-            mongoAvatar.Spells = avatar.Spells;
-            mongoAvatar.Stats = avatar.Stats;
-            mongoAvatar.SuperPowers = avatar.SuperPowers;
-            mongoAvatar.GeneKeys = avatar.GeneKeys;
-            mongoAvatar.HumanDesign = avatar.HumanDesign;
-            mongoAvatar.Gifts = avatar.Gifts;
-            mongoAvatar.Chakras = avatar.Chakras;
-            mongoAvatar.Aura = avatar.Aura;
-            mongoAvatar.Achievements = avatar.Achievements;
-            mongoAvatar.Inventory = avatar.Inventory;
+            mongoAvatar.Skills = (AvatarSkills)avatar.Skills;
+            //mongoAvatar.Spells = avatar.Spells;
+
+            if (avatar.Spells != null)
+            {
+                foreach (var item in avatar.Spells)
+                    mongoAvatar.Spells.Add((Spell)item);
+            }
+
+            mongoAvatar.Stats = (AvatarStats)avatar.Stats;
+            mongoAvatar.SuperPowers = (AvatarSuperPowers)avatar.SuperPowers;
+            //mongoAvatar.GeneKeys = avatar.GeneKeys;
+
+            if (avatar.GeneKeys != null)
+            {
+                foreach (var item in avatar.GeneKeys)
+                    mongoAvatar.GeneKeys.Add((GeneKey)item);
+            }
+
+            mongoAvatar.HumanDesign = (HumanDesign)avatar.HumanDesign;
+            //mongoAvatar.Gifts = avatar.Gifts;
+
+            if (avatar.Gifts != null)
+            {
+                foreach (var item in avatar.Gifts)
+                    mongoAvatar.Gifts.Add((AvatarGift)item);
+            }
+
+            mongoAvatar.Chakras = (AvatarChakras)avatar.Chakras;
+            mongoAvatar.Aura = (AvatarAura)avatar.Aura;
+            //mongoAvatar.Achievements = avatar.Achievements;
+
+            if (avatar.Achievements != null)
+            {
+                foreach (var item in avatar.Achievements)
+                    mongoAvatar.Achievements.Add((Achievement)item);
+            }
+
+            //mongoAvatar.Inventory = avatar.Inventory;
+
+            if (avatar.Inventory != null)
+            {
+                foreach (var item in avatar.Inventory)
+                    mongoAvatar.Inventory.Add((InventoryItem)item);
+            }
+
             mongoAvatar.Address = avatar.Address;
             mongoAvatar.Country = avatar.Country;
             mongoAvatar.County = avatar.County;
@@ -514,7 +592,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.Mobile = avatar.Mobile;
             mongoAvatar.Postcode = avatar.Postcode;
             mongoAvatar.Town = avatar.Town;
-            mongoAvatar.KarmaAkashicRecords = avatar.KarmaAkashicRecords;
+            //mongoAvatar.KarmaAkashicRecords = avatar.KarmaAkashicRecords;
+
+            if (avatar.KarmaAkashicRecords != null)
+            {
+                foreach (var item in avatar.KarmaAkashicRecords)
+                    mongoAvatar.KarmaAkashicRecords.Add((KarmaAkashicRecord)item);
+            }
+
             mongoAvatar.MetaData = avatar.MetaData;
             mongoAvatar.ParentHolonId = avatar.ParentHolonId;
             mongoAvatar.ParentHolon = avatar.ParentHolon;

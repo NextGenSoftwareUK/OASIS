@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task ListAllHolonsForForBeamedInAvatar(ProviderType providerType = ProviderType.Default)
+        public static async Task ListAllHolonsForForBeamedInAvatar(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IHolon>> holonsResult = await STAR.OASISAPI.Data.LoadHolonsForParentAsync(STAR.BeamedInAvatar.Id, HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
 
@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"Error occured loading holons. Reason: {holonsResult.Message}");
         }
 
-        public static async Task ListAllHolonsAsync(ProviderType providerType = ProviderType.Default)
+        public static async Task ListAllHolonsAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IHolon>> holonsResult = await STAR.OASISAPI.Data.LoadAllHolonsAsync(HolonType.All, true, true, 0, true, false, HolonType.All, 0, providerType);
 

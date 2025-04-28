@@ -619,10 +619,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 //TODO: Maybe add check to make sure the DNA has not been tampered with?
                                 loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version = OAPPTemplateDNA.Version; //Set the new version set in the DNA (JSON file).
                                 OAPPTemplateDNA = loadOAPPTemplateResult.Result.OAPPTemplateDNA; //Make sure it has not been tampered with by using the stored version.
-                                OAPPTemplateDNA.VersionSequence++;
-                                OAPPTemplateDNA.NumberOfVersions++;
-                                OAPPTemplateDNA.LaunchTarget = launchTarget;
 
+                                if (!edit)
+                                {
+                                    OAPPTemplateDNA.VersionSequence++;
+                                    OAPPTemplateDNA.NumberOfVersions++;
+                                }
+                                
+                                OAPPTemplateDNA.LaunchTarget = launchTarget;
+                               
                                 string publishedOAPPTemplateFileName = string.Concat(OAPPTemplateDNA.Name, "_v", OAPPTemplateDNA.Version, ".oapptemplate");
 
                                 if (string.IsNullOrEmpty(fullPathToPublishTo))
@@ -631,9 +636,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 if (!Directory.Exists(fullPathToPublishTo))
                                     Directory.CreateDirectory(fullPathToPublishTo);
 
-                                OAPPTemplateDNA.PublishedOn = DateTime.Now;
-                                OAPPTemplateDNA.PublishedByAvatarId = avatarId;
-                                OAPPTemplateDNA.PublishedByAvatarUsername = loadAvatarResult.Result.Username;
+                                if (!edit)
+                                {
+                                    OAPPTemplateDNA.PublishedOn = DateTime.Now;
+                                    OAPPTemplateDNA.PublishedByAvatarId = avatarId;
+                                    OAPPTemplateDNA.PublishedByAvatarUsername = loadAvatarResult.Result.Username;
+                                }
+                                else
+                                {
+                                    OAPPTemplateDNA.ModifiedOn = DateTime.Now;
+                                    OAPPTemplateDNA.ModifiedByAvatarId = avatarId;
+                                    OAPPTemplateDNA.ModifiedByAvatarUsername = loadAvatarResult.Result.Username;
+                                }
+
                                 OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && (oappBinaryProviderType != ProviderType.None || uploadOAPPTemplateToCloud);
 
                                 if (generateOAPPTemplateBinary)
@@ -827,7 +842,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 }
 
                                 //If its not the first version.
-                                if (OAPPTemplateDNA.Version != "1.0.0")
+                                if (OAPPTemplateDNA.Version != "1.0.0" && !edit)
                                 {
                                     //If the ID has not been set then store the original id now.
                                     if (!loadOAPPTemplateResult.Result.MetaData.ContainsKey("OAPPTemplateId"))
@@ -2749,7 +2764,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplate. Reason: ";
             OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
             {
-                { "OAPPTemplateId", OAPPTemplateName },
+                { "OAPPTemplateName", OAPPTemplateName },
                 { "Version", version },
                 { "Active", active == true ? "1" : "0" }
 

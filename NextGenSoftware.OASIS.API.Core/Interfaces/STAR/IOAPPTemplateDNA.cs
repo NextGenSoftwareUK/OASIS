@@ -19,6 +19,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         Guid PublishedByAvatarId { get; set; }
         string PublishedByAvatarUsername { get; set; }
         DateTime PublishedOn { get; set; }
+
+        Guid ModifiedByAvatarId { get; set; }
+        string ModifiedByAvatarUsername { get; set; }
+        DateTime ModifiedOn { get; set; }
+
         bool OAPPTemplatePublishedOnSTARNET { get; set; }
         bool OAPPTemplatePublishedToCloud { get; set; }
         bool OAPPTemplatePublishedToPinata { get; set; }

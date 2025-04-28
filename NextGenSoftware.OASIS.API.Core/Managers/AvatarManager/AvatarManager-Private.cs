@@ -1129,10 +1129,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.Message = "Avatar has not been verified. Please check your email.";
                 }
 
-                if (!BC.Verify(password, result.Result.Password))
+                if (result.Result.Password != null)
+                {
+                    if (!BC.Verify(password, result.Result.Password))
+                    {
+                        result.IsError = true;
+                        result.Message = "Email or password is incorrect";
+                    }
+                }
+                else
                 {
                     result.IsError = true;
-                    result.Message = "Email or password is incorrect";
+                    result.Message = "Avatar is corrupt, please re-set password or create new avatar.";
                 }
             }
 
