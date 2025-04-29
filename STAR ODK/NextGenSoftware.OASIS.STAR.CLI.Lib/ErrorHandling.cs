@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (string.IsNullOrEmpty(successMessage))
                 {
                     if (string.IsNullOrEmpty(result.Message))
-                        successMessage = $"Successfully completed operation.";
+                        successMessage = $"Successfully Completed Operation.";
                     else
                         successMessage = result.Message;
                 }

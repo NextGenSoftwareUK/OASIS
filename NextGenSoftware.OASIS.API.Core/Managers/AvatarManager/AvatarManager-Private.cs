@@ -143,9 +143,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 return result;
             }
 
-            result.Result = new Avatar() { Id = Guid.NewGuid(), IsNewHolon = true, FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), CreatedOASISType = new EnumValue<OASISType>(createdOASISType) };
+            result.Result = new Avatar() 
+            { 
+                Id = Guid.NewGuid(), 
+                IsNewHolon = true, FirstName = firstName, 
+                LastName = lastName, Password = password, 
+                Title = avatarTitle, Email = email, 
+                AvatarType = new EnumValue<AvatarType>(avatarType), 
+                CreatedOASISType = new EnumValue<OASISType>(createdOASISType),
+                CreatedDate = DateTime.Now
+            };
             //result.Result.Username = result.Result.Email; //Default the username to their email (they can change this later in Avatar Profile screen).
 
+            result.Result.CreatedByAvatarId = result.Result.Id;
 
             OASISResult<bool> checkIfUsernameExistsResult = CheckIfUsernameIsAlreadyInUse(email);
 
@@ -195,7 +205,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private OASISResult<IAvatarDetail> PrepareToRegisterAvatarDetail(Guid avatarId, string username, string email, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            IAvatarDetail avatarDetail = new AvatarDetail() { Id = avatarId, IsNewHolon = true, Email = email, Username = username, CreatedOASISType = new EnumValue<OASISType>(createdOASISType), STARCLIColour = cliColour, FavouriteColour = favColour };
+            IAvatarDetail avatarDetail = new AvatarDetail() 
+            { 
+                Id = avatarId, IsNewHolon = true, 
+                Email = email, Username = username, 
+                CreatedOASISType = new EnumValue<OASISType>(createdOASISType), 
+                STARCLIColour = cliColour, 
+                FavouriteColour = favColour,
+                CreatedDate = DateTime.Now,
+                CreatedByAvatarId = avatarId
+            };
 
             // TODO: Temp! Remove later!
             if (email == "davidellams@hotmail.com")
@@ -1011,40 +1030,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return avatar;
         }
 
-        private IAvatarDetail PrepareAvatarDetailForSaving(IAvatarDetail avatar)
-        {
-            //if (string.IsNullOrEmpty(avatar.Username))
-            //    avatar.Username = avatar.Email;
-
-            if (avatar.Id == Guid.Empty)
-            {
-                avatar.Id = Guid.NewGuid();
-                avatar.IsNewHolon = true;
-            }
-            else if (avatar.CreatedDate != DateTime.MinValue)
-                avatar.IsNewHolon = false;
-
-            // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
-            // Providers could always override this behaviour if they choose...
-            if (!avatar.IsNewHolon)
-            {
-                avatar.ModifiedDate = DateTime.Now;
-
-                if (LoggedInAvatar != null)
-                    avatar.ModifiedByAvatarId = LoggedInAvatar.Id;
-            }
-            else
-            {
-                avatar.IsActive = true;
-                avatar.CreatedDate = DateTime.Now;
-
-                if (LoggedInAvatar != null)
-                    avatar.CreatedByAvatarId = LoggedInAvatar.Id;
-            }
-
-            return avatar;
-        }
-
         private string GenerateJWTToken(IAvatar account)
         {
             //TODO: Replace exception with OASISResult ASAP.
@@ -1139,8 +1124,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else
                 {
+                    result.Result.Password = BC.HashPassword("changemenow!");
+                    OASISResult<IAvatar> saveResult = SaveAvatar(result.Result);
                     result.IsError = true;
-                    result.Message = "Avatar is corrupt, please re-set password or create new avatar.";
+
+                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                        result.Message = "Avatar is corrupt, the password has been re-set to 'changemenow!', please change your password once you login!";
+                    else
+                        result.Message = "Avatar is corrupt, please re-set password or create new avatar.";
                 }
             }
 
