@@ -1322,7 +1322,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("    forgotpassword               Send a Forgot Password email to your email account containing a Reset Token.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    resetpassword                Allows you to reset your password using the Reset Token received in your email from the forgotpassword sub-command.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage($"NOTES:", ConsoleColor.Green);
-                CLIEngine.ShowMessage($"For the search command, public fields only such as level, karma, username & any fields the player has set to public.", ConsoleColor.Green);
+                CLIEngine.ShowMessage($"For the search command, only public fields are returned such as level, karma, username & any fields the player has set to public.", ConsoleColor.Green);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }

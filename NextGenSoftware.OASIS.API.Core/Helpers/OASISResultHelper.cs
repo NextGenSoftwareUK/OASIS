@@ -37,14 +37,17 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 return (parentResult, result.Result);
             else
             {
-                OASISErrorHandling.HandleError(ref parentResult, string.Format(errorMessage, result.Message));
+                //OASISErrorHandling.HandleError(ref parentResult, string.Format(errorMessage, result.Message));
+                OASISErrorHandling.HandleError(ref parentResult, string.Concat(errorMessage, result.Message));
+
                 return (parentResult, default(T2));
             }
         }
 
         public static (OASISResult<T1>, T2) UnWrapOASISResultWithDefaultErrorMessage<T1, T2>(OASISResult<T1> parentResult, OASISResult<T2> result, string methodName)
         {
-            return UnWrapOASISResult(parentResult, result, $"Error occured in {methodName}. Reason:{0}");
+            //return UnWrapOASISResult(parentResult, result, $"Error occured in {methodName}. Reason:{0}");
+            return UnWrapOASISResult(parentResult, result, $"Error occured in {methodName}. Reason: ");
         }
 
         public static OASISResult<T2> CopyOASISResultOnlyWithNoInnerResult<T1, T2>(OASISResult<T1> fromResult, OASISResult<T2> toResult, bool copyMessage = true)

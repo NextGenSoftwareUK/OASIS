@@ -130,6 +130,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         var jwtToken = GenerateJWTToken(result.Result);
                         var refreshToken = generateRefreshToken(ipAddress);
 
+                        if (result.Result.RefreshTokens == null)
+                            result.Result.RefreshTokens = new List<RefreshToken>();
+
                         result.Result.RefreshTokens.Add(refreshToken);
                         result.Result.JwtToken = jwtToken;
                         result.Result.RefreshToken = refreshToken.Token;
@@ -141,7 +144,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
                         {
-                            result.Result = HideAuthDetails(saveAvatarResult.Result);
+                            result.Result = HideAuthDetails(saveAvatarResult.Result, false, true, false, false);
                             result.IsSaved = true;
                             result.Message = "Avatar Successfully Authenticated.";
                         }
@@ -222,6 +225,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         var jwtToken = GenerateJWTToken(result.Result);
                         var refreshToken = generateRefreshToken(ipAddress);
 
+                        if (result.Result.RefreshTokens == null)
+                            result.Result.RefreshTokens = new List<RefreshToken>();
+
                         result.Result.RefreshTokens.Add(refreshToken);
                         result.Result.JwtToken = jwtToken;
                         result.Result.RefreshToken = refreshToken.Token;
@@ -233,7 +239,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
                         {
-                            result.Result = HideAuthDetails(saveAvatarResult.Result);
+                            result.Result = HideAuthDetails(saveAvatarResult.Result, false, true, false, false);
                             result.IsSaved = true;
                             result.Message = "Avatar Successfully Authenticated.";
                         }
@@ -425,13 +431,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //public async Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model)
-        public async Task<OASISResult<string>> ForgotPasswordAsync(string email)
+        public async Task<OASISResult<string>> ForgotPasswordAsync(string email, ProviderType providerType = ProviderType.Default)
         {
             var response = new OASISResult<string>();
 
             try
             {
-                OASISResult<IAvatar> avatarResult = await LoadAvatarByEmailAsync(email, false, false);
+                OASISResult<IAvatar> avatarResult = await LoadAvatarByEmailAsync(email, false, false, providerType);
 
                 // always return ok response to prevent email enumeration
                 if (avatarResult.IsError || avatarResult.Result == null)
@@ -444,7 +450,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatarResult.Result.ResetToken = RandomTokenString();
                 avatarResult.Result.ResetTokenExpires = DateTime.UtcNow.AddDays(24);
 
-                var saveAvatar = SaveAvatar(avatarResult.Result);
+                var saveAvatar = SaveAvatar(avatarResult.Result, providerType: providerType);
 
                 if (saveAvatar.IsError)
                 {
@@ -455,6 +461,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // send email
                 SendPasswordResetEmail(avatarResult.Result);
                 response.Message = "Please check your email for password reset instructions";
+                response.Result = response.Message;
             }
             catch (Exception e)
             {
@@ -465,13 +472,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return response;
         }
 
-        public OASISResult<string> ForgotPassword(string email)
+        public OASISResult<string> ForgotPassword(string email, ProviderType providerType = ProviderType.Default)
         {
             var response = new OASISResult<string>();
 
             try
             {
-                OASISResult<IAvatar> avatarResult = LoadAvatarByEmail(email, false, false);
+                OASISResult<IAvatar> avatarResult = LoadAvatarByEmail(email, false, false, providerType);
 
                 // always return ok response to prevent email enumeration
                 if (avatarResult.IsError || avatarResult.Result == null)
@@ -484,7 +491,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatarResult.Result.ResetToken = RandomTokenString();
                 avatarResult.Result.ResetTokenExpires = DateTime.UtcNow.AddDays(24);
 
-                var saveAvatar = SaveAvatar(avatarResult.Result);
+                var saveAvatar = SaveAvatar(avatarResult.Result, providerType: providerType);
 
                 if (saveAvatar.IsError)
                 {
@@ -495,6 +502,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // send email
                 SendPasswordResetEmail(avatarResult.Result);
                 response.Message = "Please check your email for password reset instructions";
+                response.Result = response.Message;
             }
             catch (Exception e)
             {
@@ -505,13 +513,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return response;
         }
 
-        public async Task<OASISResult<string>> ResetPasswordAsync(string token, string oldPassword, string newPassword)
+        public async Task<OASISResult<string>> ResetPasswordAsync(string token, string oldPassword, string newPassword, ProviderType providerType = ProviderType.Default)
         {
             var response = new OASISResult<string>();
 
             try
             {
-                OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync(false, false);
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync(false, false, false, providerType);
 
                 if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {
@@ -522,14 +530,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (avatar == null)
                     {
-                        OASISErrorHandling.HandleError(ref response, "Avatar Not Found");
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found, token is invalid.");
                         return response;
                     }
 
-                    int salt = 12;
-                    string passwordHash = BCrypt.Net.BCrypt.HashPassword(oldPassword, salt);
-
-                    if (!BCrypt.Net.BCrypt.Verify(avatar.Password, passwordHash))
+                    if (!BCrypt.Net.BCrypt.Verify(oldPassword, avatar.Password))
                     {
                         OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
                         return response;
@@ -541,13 +546,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     avatar.ResetToken = null;
                     avatar.ResetTokenExpires = null;
 
-                    var saveAvatarResult = await SaveAvatarAsync(avatar);
+                    var saveAvatarResult = await SaveAvatarAsync(avatar, providerType: providerType);
 
                     if (saveAvatarResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
                         return response;
                     }
+
+                    if (_loggedInAvatar.Id == avatar.Id)
+                        _loggedInAvatar = avatar;
 
                     response.Message = "Password reset successful, you can now login";
                     response.Result = response.Message;
@@ -567,13 +575,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return response;
         }
 
-        public OASISResult<string> ResetPassword(string token, string oldPassword, string newPassword)
+        public OASISResult<string> ResetPassword(string token, string oldPassword, string newPassword, ProviderType providerType = ProviderType.Default)
         {
             var response = new OASISResult<string>();
 
             try
             {
-                OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false, false);
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false, false, false, providerType);
 
                 if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {
@@ -584,14 +592,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (avatar == null)
                     {
-                        OASISErrorHandling.HandleError(ref response, "Avatar Not Found");
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found, token is invalid.");
                         return response;
                     }
 
-                    int salt = 12;
-                    string passwordHash = BCrypt.Net.BCrypt.HashPassword(oldPassword, salt);
-
-                    if (!BCrypt.Net.BCrypt.Verify(avatar.Password, passwordHash))
+                    if (!BCrypt.Net.BCrypt.Verify(oldPassword, avatar.Password))
                     {
                         OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
                         return response;
@@ -603,7 +608,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     avatar.ResetToken = null;
                     avatar.ResetTokenExpires = null;
 
-                    var saveAvatarResult = SaveAvatar(avatar);
+                    var saveAvatarResult = SaveAvatar(avatar, providerType: providerType);
 
                     if (saveAvatarResult.IsError)
                     {
@@ -790,7 +795,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public IAvatar HideAuthDetails(IAvatar avatar, bool hidePassword = true, bool hidePrivateKeys = true, bool hideVerificationToken = true, bool hideRefreshTokens = true)
+        //public IAvatar HideAuthDetails(IAvatar avatar, bool hidePassword = true, bool hidePrivateKeys = true, bool hideVerificationToken = true, bool hideRefreshTokens = true)
+        public IAvatar HideAuthDetails(IAvatar avatar, bool hidePassword = false, bool hidePrivateKeys = true, bool hideVerificationToken = false, bool hideRefreshTokens = false)
         {
             if (OASISDNA.OASIS.Security.HideVerificationToken || hideVerificationToken)
                 avatar.VerificationToken = null;
