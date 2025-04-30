@@ -10,6 +10,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -1034,24 +1037,60 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<IEnumerable<IAvatar>>> SearchAvatarsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
-            OASISResult<IEnumerable<IHolon>> searchResults = await HolonManager.Instance.SearchHolonsAsync(searchTerm, HolonType.Avatar, true, true, 0, true, false, HolonType.All, 0, providerType);
+            //OASISResult<IEnumerable<IHolon>> searchResults = await HolonManager.Instance.SearchHolonsAsync(searchTerm, HolonType.Avatar, true, true, 0, true, false, HolonType.All, 0, providerType);
+            OASISResult<ISearchResults> searchResults = await SearchManager.Instance.SearchAsync(new SearchParams()
+            {
+                SearchGroups = new List<ISearchGroupBase>()
+                            {
+                                new SearchTextGroup()
+                                {
+                                    HolonType = HolonType.Avatar,
+                                    SearchQuery = searchTerm,
+                                    SearchAvatars = true,
+                                    AvatarSerachParams = new SearchAvatarParams()
+                                    {
+                                        SearchAllFields = true
+                                    }
+                                }
+                            }
+            });
 
-            //result = OASISResultHelper.CopyResult<IEnumerable<IAvatar>, IEnumerable<IHolon>>(searchResults, result);
+            if (searchResults != null && !searchResults.IsError && searchResults.Result != null)
+                result.Result = searchResults.Result.SearchResultAvatars;
+
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(searchResults, result);
-            //result.Result = Mapper.Convert<IHolon, IAvatar>(searchResults.Result);
-            result.Result = Mapper.ConvertIHolonsToIAvatars(searchResults.Result);
+            //result.Result = Mapper.ConvertIHolonsToIAvatars(searchResults.Result);
+
             return result;
         }
 
         public OASISResult<IEnumerable<IAvatar>> SearchAvatars(string searchTerm, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
-            OASISResult<IEnumerable<IHolon>> searchResults = HolonManager.Instance.SearchHolons(searchTerm, HolonType.Avatar, true, true, 0, true, false, HolonType.All, 0, providerType);
+            //OASISResult<IEnumerable<IHolon>> searchResults = await HolonManager.Instance.SearchHolonsAsync(searchTerm, HolonType.Avatar, true, true, 0, true, false, HolonType.All, 0, providerType);
+            OASISResult<ISearchResults> searchResults = SearchManager.Instance.Search(new SearchParams()
+            {
+                SearchGroups = new List<ISearchGroupBase>()
+                            {
+                                new SearchTextGroup()
+                                {
+                                    HolonType = HolonType.Avatar,
+                                    SearchQuery = searchTerm,
+                                    SearchAvatars = true,
+                                    AvatarSerachParams = new SearchAvatarParams()
+                                    {
+                                        SearchAllFields = true
+                                    }
+                                }
+                            }
+            });
 
-            //result = OASISResultHelper.CopyResult<IEnumerable<IAvatar>, IEnumerable<IHolon>>(searchResults, result);
+            if (searchResults != null && !searchResults.IsError && searchResults.Result != null)
+                result.Result = searchResults.Result.SearchResultAvatars;
+
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(searchResults, result);
-            //result.Result = Mapper.Convert<IHolon, IAvatar>(searchResults.Result);
-            result.Result = Mapper.ConvertIHolonsToIAvatars(searchResults.Result);
+            //result.Result = Mapper.ConvertIHolonsToIAvatars(searchResults.Result);
+
             return result;
         }
 
