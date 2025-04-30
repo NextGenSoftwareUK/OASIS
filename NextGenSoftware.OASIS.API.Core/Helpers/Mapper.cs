@@ -50,6 +50,16 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return avatars;
         }
 
+        public static IEnumerable<IHolon> ConvertIAvatarsToIHolons(IEnumerable<IAvatar> avatars)
+        {
+            List<IHolon> holons = new List<IHolon>();
+
+            foreach (IAvatar avatar in avatars)
+                holons.Add(ConvertIAvatarToIHolon(avatar));
+
+            return holons;
+        }
+
         public static IEnumerable<T> Convert<T>(IEnumerable<IHolon> sourceHolons) where T : IHolon
         {
             if (sourceHolons != null)
@@ -144,8 +154,19 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         {
             if (holon != null)
             {
-                IAvatar celestialBody = (IAvatar)holon;
-                return celestialBody;
+                IAvatar avatar = (IAvatar)holon;
+                return avatar;
+            }
+
+            return null;
+        }
+
+        public static IHolon ConvertIAvatarToIHolon(IAvatar avatar)
+        {
+            if (avatar != null)
+            {
+                IHolon holon = (IHolon)avatar;
+                return holon;
             }
 
             return null;

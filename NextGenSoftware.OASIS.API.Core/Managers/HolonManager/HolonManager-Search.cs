@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -40,25 +41,102 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<IEnumerable<IHolon>>> SearchHolonsAsync(string searchTerm, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISResult<ISearchResults> searchResults = await SearchManager.Instance.SearchAsync(new SearchParams() 
-            { 
-                SearchGroups = new List<ISearchGroupBase>() 
-                { 
-                    new SearchTextGroup() 
-                    { 
-                        SearchQuery = searchTerm, 
-                        SearchAvatars = false, 
-                        SearchHolons = true, 
-                        HolonSearchParams = new SearchHolonParams() 
-                        { 
-                            SearchAllFields = true 
-                        } 
-                    } 
-                } 
+            //OASISResult<ISearchResults> searchResults = null;
+
+            OASISResult<ISearchResults> searchResults = await SearchManager.Instance.SearchAsync(new SearchParams()
+            {
+                SearchGroups = new List<ISearchGroupBase>()
+                            {
+                                new SearchTextGroup()
+                                {
+                                    HolonType = holonType,
+                                    SearchQuery = searchTerm,
+                                    SearchHolons = true,
+                                    HolonSearchParams = new SearchHolonParams()
+                                    {
+                                        SearchAllFields = true
+                                    }
+                                }
+                            }
             });
 
             if (searchResults != null && !searchResults.IsError && searchResults.Result != null)
                 result.Result = searchResults.Result.SearchResultHolons;
+
+            //switch (holonType)
+            //{
+            //    case HolonType.Avatar:
+            //        {
+            //            searchResults = await SearchManager.Instance.SearchAsync(new SearchParams()
+            //            {
+            //                SearchGroups = new List<ISearchGroupBase>()
+            //                {
+            //                    new SearchTextGroup()
+            //                    {
+            //                        HolonType = holonType,
+            //                        SearchQuery = searchTerm,
+            //                        SearchAvatars = true,
+            //                        AvatarSerachParams = new SearchAvatarParams()
+            //                        {
+            //                            SearchAllFields = true
+            //                        }
+            //                    }
+            //                }
+            //            });
+
+            //            if (searchResults != null && !searchResults.IsError && searchResults.Result != null)
+            //                result.Result = Mapper.ConvertIAvatarsToIHolons(searchResults.Result.SearchResultAvatars);
+            //        }
+            //        break;
+
+            //    case HolonType.AvatarDetail:
+            //        {
+            //            searchResults = await SearchManager.Instance.SearchAsync(new SearchParams()
+            //            {
+            //                SearchGroups = new List<ISearchGroupBase>()
+            //                {
+            //                    new SearchTextGroup()
+            //                    {
+            //                        HolonType = holonType,
+            //                        SearchQuery = searchTerm,
+            //                        SearchAvatars = true,
+            //                        AvatarSerachParams = new SearchAvatarParams()
+            //                        {
+            //                            SearchAllFields = true
+            //                        }
+            //                    }
+            //                }
+            //            });
+
+            //            if (searchResults != null && !searchResults.IsError && searchResults.Result != null)
+            //                result.Result = Mapper.ConvertIAvatarsToIHolons(searchResults.Result.SearchResultAvatars);
+            //        }
+            //        break;
+
+            //    default:
+            //        {
+            //            searchResults = await SearchManager.Instance.SearchAsync(new SearchParams()
+            //            {
+            //                SearchGroups = new List<ISearchGroupBase>()
+            //                {
+            //                    new SearchTextGroup()
+            //                    {
+            //                        HolonType = holonType,
+            //                        SearchQuery = searchTerm,
+            //                        SearchHolons = true,
+            //                        HolonSearchParams = new SearchHolonParams()
+            //                        {
+            //                            SearchAllFields = true
+            //                        }
+            //                    }
+            //                }
+            //            });
+
+            //            if (searchResults != null && !searchResults.IsError && searchResults.Result != null)
+            //                result.Result = searchResults.Result.SearchResultHolons;
+            //        }
+            //        break;
+            //}
 
             return result;
         }

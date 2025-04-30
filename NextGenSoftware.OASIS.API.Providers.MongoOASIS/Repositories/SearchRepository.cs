@@ -74,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     {
                         if (searchTextGroup.SearchAvatars)
                         {
-                            if (searchTextGroup.AvatarSerachParams.FirstName)
+                            if (searchTextGroup.AvatarSerachParams.FirstName || searchTextGroup.AvatarSerachParams.SearchAllFields)
                             {
                                 avatarFilter = Builders<Avatar>.Filter.Regex("FirstName", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
                                 //IEnumerable<IAvatar> avatars = await _dbContext.Avatar.Find(avatarFilter).ToEnumerable<IAvatar>();
@@ -82,19 +82,43 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
                             }
 
-                            if (searchTextGroup.AvatarSerachParams.LastName)
+                            if (searchTextGroup.AvatarSerachParams.LastName || searchTextGroup.AvatarSerachParams.SearchAllFields)
                             {
                                 avatarFilter = Builders<Avatar>.Filter.Regex("LastName", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
                                 avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
                             }
 
-                            if (searchTextGroup.AvatarSerachParams.Username)
+                            if (searchTextGroup.AvatarSerachParams.Username || searchTextGroup.AvatarSerachParams.SearchAllFields)
                             {
-                                avatarFilter = Builders<Avatar>.Filter.Regex("Username", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
-                                avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                //avatarFilter = Builders<Avatar>.Filter.Regex("Username", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
+                                //avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+
+                                var collection = _dbContext.MongoDB.GetCollection<Avatar>("Avatar");
+                                //var query = null;
+
+                                // Perform a case-insensitive search using LINQ
+                                if (searchTextGroup.HolonType == HolonType.All)
+                                {
+                                    var query = from doc in collection.AsQueryable<Avatar>()
+                                                where doc.Username.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
+                                                select doc;
+
+                                    avatars.AddRange(query.ToList());
+                                }
+                                else
+                                {
+                                    var query = from doc in collection.AsQueryable<Avatar>()
+                                                where doc.Username.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
+                                                where doc.HolonType == searchTextGroup.HolonType
+                                                select doc;
+                                    
+                                    avatars.AddRange(query.ToList());
+                                }
+
+                                //avatars.AddRange(query.ToList());
                             }
 
-                            if (searchTextGroup.AvatarSerachParams.Email)
+                            if (searchTextGroup.AvatarSerachParams.Email || searchTextGroup.AvatarSerachParams.SearchAllFields)
                             {
                                 avatarFilter = Builders<Avatar>.Filter.Regex("Email", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
                                 avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
@@ -342,9 +366,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     }
                 }
 
+                //Make sure results are unique.
+                holons = holons
+                .GroupBy(p => new { p.Id })
+                .Select(g => g.First())
+                .ToList();
+
+                avatars = avatars
+               .GroupBy(p => new { p.Id })
+               .Select(g => g.First())
+               .ToList();
+
                 result.Result = new SearchResults();
-                result.Result.SearchResultHolons = (List<IHolon>)DataHelper.ConvertMongoEntitysToOASISHolons(holons.Distinct());
-                result.Result.SearchResultAvatars = (List<IAvatar>)DataHelper.ConvertMongoEntitysToOASISAvatars(avatars.Distinct());
+                //result.Result.SearchResultHolons = (List<IHolon>)DataHelper.ConvertMongoEntitysToOASISHolons(holons.Distinct());
+                //result.Result.SearchResultAvatars = (List<IAvatar>)DataHelper.ConvertMongoEntitysToOASISAvatars(avatars.Distinct());
+                result.Result.SearchResultHolons = (List<IHolon>)DataHelper.ConvertMongoEntitysToOASISHolons(holons);
+                result.Result.SearchResultAvatars = (List<IAvatar>)DataHelper.ConvertMongoEntitysToOASISAvatars(avatars);
             }
             catch
             {
