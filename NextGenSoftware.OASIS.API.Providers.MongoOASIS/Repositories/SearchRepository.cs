@@ -111,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                                 where doc.Username.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
                                                 where doc.HolonType == searchTextGroup.HolonType
                                                 select doc;
-                                    
+
                                     avatars.AddRange(query.ToList());
                                 }
 
@@ -175,7 +175,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                     ISearchDateGroup searchDateGroup = searchGroup as ISearchDateGroup;
 
-                    if (searchDateGroup != null) 
+                    if (searchDateGroup != null)
                     {
                         if (searchDateGroup.PreviousSearchGroupOperator == Core.Enums.SearchParamGroupOperator.Or)
                         {
@@ -271,7 +271,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                     ISearchNumberGroup searchNumberGroup = searchGroup as ISearchNumberGroup;
 
-                    if (searchNumberGroup != null) 
+                    if (searchNumberGroup != null)
                     {
                         if (searchNumberGroup.PreviousSearchGroupOperator == Core.Enums.SearchParamGroupOperator.Or)
                         {
@@ -376,6 +376,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                .GroupBy(p => new { p.Id })
                .Select(g => g.First())
                .ToList();
+
+                if (searchParams.SearchOnlyForCurrentAvatar)
+                {
+                    avatars = avatars.Where(x => x.CreatedByAvatarId == searchParams.AvatarId.ToString()).ToList();
+                    holons = holons.Where(x => x.CreatedByAvatarId == searchParams.AvatarId.ToString()).ToList();
+                }
 
                 result.Result = new SearchResults();
                 //result.Result.SearchResultHolons = (List<IHolon>)DataHelper.ConvertMongoEntitysToOASISHolons(holons.Distinct());

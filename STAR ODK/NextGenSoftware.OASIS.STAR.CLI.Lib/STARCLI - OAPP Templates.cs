@@ -111,7 +111,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
             {
-                ShowOAPPTemplate(loadResult.Result);
+                //ShowOAPPTemplate(loadResult.Result);
 
                 if (CLIEngine.GetConfirmation("Do you wish to edit the OAPP Template Name?"))
                 {
@@ -120,6 +120,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     loadResult.Result.OAPPTemplateDNA.Name = loadResult.Result.Name;
                     changesMade = true;
                 }
+                else
+                    Console.WriteLine("");
 
                 if (CLIEngine.GetConfirmation("Do you wish to edit the OAPP Template Description?"))
                 {
@@ -128,6 +130,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     loadResult.Result.OAPPTemplateDNA.Description = loadResult.Result.Description;
                     changesMade = true;
                 }
+                else
+                    Console.WriteLine("");
 
                 if (CLIEngine.GetConfirmation("Do you wish to edit the OAPP Template Type?"))
                 {
@@ -143,6 +147,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         changesMade = true;
                     }
                 }
+                else
+                    Console.WriteLine("");
 
                 if (CLIEngine.GetConfirmation("Do you wish to edit the launch target?"))
                 {
@@ -150,16 +156,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     loadResult.Result.OAPPTemplateDNA.LaunchTarget = CLIEngine.GetValidInput("What is the new launch target of the OAPP Template?");
                     changesMade = true;
                 }
+                else
+                    Console.WriteLine("");
 
                 if (changesMade)
                 {
                     OASISResult<IOAPPTemplate> result = await STAR.OASISAPI.OAPPTemplates.SaveOAPPTemplateAsync(loadResult.Result, STAR.BeamedInAvatar.Id, providerType);
+                    Console.WriteLine("");
                     CLIEngine.ShowWorkingMessage("Saving OAPP Template...");
 
                     if (result != null && !result.IsError && result.Result != null)
                     {
-                        CLIEngine.ShowSuccessMessage("OAPP Template Successfully Updated.");
-                        ShowOAPPTemplate(result.Result);
+                        (result, bool saveResult) = ErrorHandling.HandleResponse(result, await STAR.OASISAPI.OAPPTemplates.WriteOAPPTemplateDNAAsync(result.Result.OAPPTemplateDNA, result.Result.OAPPTemplateDNA.OAPPTemplatePath), "Error occured saving the OAPPTemplateDNA. Reason: ", "OAPP Template Successfully Updated.");
+                        
+                        if (saveResult)
+                            ShowOAPPTemplate(result.Result);
                     }
                     else
                         CLIEngine.ShowErrorMessage($"An error occured updating the OAPP Template. Reason: {result.Message}");
@@ -1076,12 +1087,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage("Searching OAPP Templates...");
-            ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(searchTerm, false, 0, providerType));
+            ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(searchTerm, STAR.BeamedInAvatar.Id, false, false, 0, providerType));
         }
 
         public static async Task ShowOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "view", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "view", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
                 ShowOAPPTemplate(result.Result);
@@ -1262,7 +1273,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"Unknown error occured loading OAPP Templates.");
         }
 
-        private static async Task<OASISResult<IOAPPTemplate>> LoadOAPPTemplateForProviderAsync(string idOrName, string operationName, ProviderType providerType, bool addSpace = true, bool simpleWizard = true)
+        private static async Task<OASISResult<IOAPPTemplate>> LoadOAPPTemplateForProviderAsync(string idOrName, string operationName, bool showOnlyForCurrentAvatar, ProviderType providerType, bool addSpace = true, bool simpleWizard = true)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
             ProviderType largeFileProviderType = ProviderType.IPFSOASIS;
@@ -1277,7 +1288,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (largeProviderTypeObject != null)
                     {
                         largeFileProviderType = (ProviderType)largeProviderTypeObject;
-                        result = await LoadOAPPTemplateAsync(idOrName, operationName, largeFileProviderType, addSpace);
+                        result = await LoadOAPPTemplateAsync(idOrName, operationName, showOnlyForCurrentAvatar, largeFileProviderType, addSpace);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, "Error occured in LoadOAPPTemplateForProviderAsync, reason: largeProviderTypeObject is null!");
@@ -1285,16 +1296,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     Console.WriteLine("");
-                    result = await LoadOAPPTemplateAsync(idOrName, operationName, providerType, addSpace);
+                    result = await LoadOAPPTemplateAsync(idOrName, operationName, showOnlyForCurrentAvatar, providerType, addSpace);
                 }
             }
             else
-                result = await LoadOAPPTemplateAsync(idOrName, operationName, providerType, addSpace);
+                result = await LoadOAPPTemplateAsync(idOrName, operationName, showOnlyForCurrentAvatar, providerType, addSpace);
 
             return result;
         }
 
-        private static OASISResult<IOAPPTemplate> LoadOAPPTemplateForProvider(string idOrName, string operationName, ProviderType providerType, bool addSpace = true, bool simpleWizard = true)
+        private static OASISResult<IOAPPTemplate> LoadOAPPTemplateForProvider(string idOrName, string operationName, bool showOnlyForCurrentAvatar, ProviderType providerType, bool addSpace = true, bool simpleWizard = true)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
             ProviderType largeFileProviderType = ProviderType.IPFSOASIS;
@@ -1309,7 +1320,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (largeProviderTypeObject != null)
                     {
                         largeFileProviderType = (ProviderType)largeProviderTypeObject;
-                        result = LoadOAPPTemplate(idOrName, operationName, largeFileProviderType, addSpace);
+                        result = LoadOAPPTemplate(idOrName, operationName, showOnlyForCurrentAvatar, largeFileProviderType, addSpace);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, "Error occured in LoadOAPPTemplateForProvider, reason: largeProviderTypeObject is null!");
@@ -1317,16 +1328,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     Console.WriteLine("");
-                    result = LoadOAPPTemplate(idOrName, operationName, providerType, addSpace);
+                    result = LoadOAPPTemplate(idOrName, operationName, showOnlyForCurrentAvatar, providerType, addSpace);
                 }
             }
             else
-                result = LoadOAPPTemplate(idOrName, operationName, providerType, addSpace);
+                result = LoadOAPPTemplate(idOrName, operationName, showOnlyForCurrentAvatar, providerType, addSpace);
 
             return result;
         }
 
-        private static async Task<OASISResult<IOAPPTemplate>> LoadOAPPTemplateAsync(string idOrName, string operationName, ProviderType providerType = ProviderType.Default, bool addSpace = true)
+        private static async Task<OASISResult<IOAPPTemplate>> LoadOAPPTemplateAsync(string idOrName, string operationName, bool showOnlyForCurrentAvatar, ProviderType providerType = ProviderType.Default, bool addSpace = true)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
             Guid id = Guid.Empty;
@@ -1340,7 +1351,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage("Loading OAPP Templates...");
-                        ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(OAPPTemplateType.All, false, 0, providerType));
+                        
+                        if (showOnlyForCurrentAvatar)
+                            ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesForAvatarAsync(STAR.BeamedInAvatar.AvatarId));
+                        else
+                            ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(OAPPTemplateType.All, false, 0, providerType));
                     }
                     else
                         Console.WriteLine("");
@@ -1358,11 +1373,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     CLIEngine.ShowWorkingMessage("Loading OAPP Template...");
                     result = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(id, 0, providerType);
+
+                    if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.OAPPTemplateDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
+                    {
+                        CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this OAPP Template. It was created by another avatar.");
+                        result.Result = null;
+                    }
                 }
                 else
                 {
                     CLIEngine.ShowWorkingMessage("Searching OAPP Templates...");
-                    OASISResult<IEnumerable<IOAPPTemplate>> searchResults = await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(idOrName, false, 0, providerType);
+                    OASISResult<IEnumerable<IOAPPTemplate>> searchResults = await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, false, 0, providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -1405,7 +1426,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             Console.WriteLine("");
                             CLIEngine.ShowWorkingMessage("Loading OAPP Template Versions...");
                             OASISResult<IEnumerable<IOAPPTemplate>> versionsResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateVersionsAsync(result.Result.OAPPTemplateDNA.Id, providerType);
-                            //ListOAPPTemplates(versionsResult, true);
                             ListOAPPTemplates(versionsResult);
 
                             if (operationName != "view" && versionsResult != null && versionsResult.Result != null && !versionsResult.IsError && versionsResult.Result.Count() > 0)
@@ -1420,17 +1440,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                     {
                                         versionSelected = true;
                                         result.Result = versionsResult.Result.ElementAt(version - 1);
-                                        
-                                        //CLIEngine.ShowWorkingMessage("Loading OAPP Template Version...");
-                                        //OASISResult<IOAPPTemplate> versionLoadResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateVersionAsync(result.Result.OAPPTemplateDNA.Id, template.OAPPTemplateDNA.Version, providerType);
-
-                                        //if (versionLoadResult != null && versionLoadResult.Result != null && !versionLoadResult.IsError)
-                                        //{
-                                        //    result.Result = versionLoadResult.Result;
-                                        //    versionSelected = true;
-                                        //}
-                                        //else
-                                        //    CLIEngine.ShowErrorMessage($"An error occured loading the OAPP Template Version. Reason: {versionLoadResult.Message}");
                                     }
                                     else
                                         CLIEngine.ShowErrorMessage("Invalid version entered. Please try again.");
@@ -1460,7 +1469,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             if (result != null && result.Result != null)
                             {
-                                //OASISResult<bool> oappInstalledResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, id, result.Result.OAPPTemplateDNA.Version, providerType);
                                 OASISResult<bool> oappInstalledResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, result.Result.OAPPTemplateDNA.Id, result.Result.OAPPTemplateDNA.Version, providerType);
 
                                 if (oappInstalledResult != null && !oappInstalledResult.IsError)
@@ -1526,235 +1534,202 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private static OASISResult<IOAPPTemplate> LoadOAPPTemplate(string idOrName, string operationName, ProviderType providerType = ProviderType.Default, bool addSpace = true)
+        private static OASISResult<IOAPPTemplate> LoadOAPPTemplate(string idOrName, string operationName, bool showOnlyForCurrentAvatar, ProviderType providerType = ProviderType.Default, bool addSpace = true)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
             Guid id = Guid.Empty;
+            bool reInstall = false;
 
-            if (string.IsNullOrEmpty(idOrName))
-                idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name to the OAPP Template you wish to {operationName}?");
-
-            if (addSpace)
-                Console.WriteLine("");
-
-            CLIEngine.ShowWorkingMessage("Loading OAPP Template...");
-
-            if (Guid.TryParse(idOrName, out id))
-                result = STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplate(id, 0, providerType);
-            else
+            do
             {
-                OASISResult<IEnumerable<IOAPPTemplate>> searchResults = STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplates(idOrName, false, 0, providerType);
-
-                OASISResult<IEnumerable<IOAPPTemplate>> allOAPPsTemplatesResult = STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplates();
-
-                if (allOAPPsTemplatesResult != null && allOAPPsTemplatesResult.Result != null && !allOAPPsTemplatesResult.IsError)
+                if (string.IsNullOrEmpty(idOrName))
                 {
-                    result.Result = allOAPPsTemplatesResult.Result.FirstOrDefault(x => x.Name == idOrName); //TODO: In future will use Where instead so user can select which OAPP Template they want... (if more than one matches the given name).
-
-                    if (result.Result == null)
+                    if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the OAPP Template you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
                     {
-                        result.IsError = true;
-                        result.Message = "No OAPP Template Was Found!";
+                        Console.WriteLine("");
+                        CLIEngine.ShowWorkingMessage("Loading OAPP Templates...");
+
+                        if (showOnlyForCurrentAvatar)
+                            ListOAPPTemplates(STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesForAvatar(STAR.BeamedInAvatar.AvatarId));
+                        else
+                            ListOAPPTemplates(STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplates(OAPPTemplateType.All, false, 0, providerType));
+                    }
+                    else
+                        Console.WriteLine("");
+
+                    idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the OAPP Template you wish to {operationName}?");
+
+                    if (idOrName == "exit")
+                        break;
+                }
+
+                if (addSpace)
+                    Console.WriteLine("");
+
+                if (Guid.TryParse(idOrName, out id))
+                {
+                    CLIEngine.ShowWorkingMessage("Loading OAPP Template...");
+                    result = STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplate(id, 0, providerType);
+
+                    if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.OAPPTemplateDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
+                    {
+                        CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this OAPP Template. It was created by another avatar.");
+                        result.Result = null;
                     }
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"An error occured calling STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplate. Reason: {allOAPPsTemplatesResult.Message}");
+                {
+                    CLIEngine.ShowWorkingMessage("Searching OAPP Templates...");
+                    OASISResult<IEnumerable<IOAPPTemplate>> searchResults = STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplates(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, false, 0, providerType);
+
+                    if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
+                    {
+                        if (searchResults.Result.Count() > 1)
+                        {
+                            ListOAPPTemplates(searchResults, true);
+
+                            do
+                            {
+                                int number = CLIEngine.GetValidInputForInt($"What is the number of the OAPP Template you wish to {operationName}?");
+
+                                if (number > 0 && number <= searchResults.Result.Count())
+                                    result.Result = searchResults.Result.ElementAt(number - 1);
+                                else
+                                    CLIEngine.ShowErrorMessage("Invalid number entered. Please try again.");
+
+                            } while (result.Result == null || result.IsError);
+                        }
+                        else if (searchResults.Result.Count() == 1)
+                            result.Result = searchResults.Result.FirstOrDefault();
+                        else
+                        {
+                            idOrName = "";
+                            CLIEngine.ShowWarningMessage("No OAPP Template Found!");
+                        }
+                    }
+                    else
+                        CLIEngine.ShowErrorMessage($"An error occured calling STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync. Reason: {searchResults.Message}");
+                }
+
+                if (result.Result != null && result.Result.OAPPTemplateDNA != null)
+                {
+                    ShowOAPPTemplate(result.Result);
+
+                    if (result.Result.OAPPTemplateDNA.NumberOfVersions > 1)
+                    {
+                        if ((operationName == "view" && CLIEngine.GetConfirmation($"{result.Result.OAPPTemplateDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
+                            (!CLIEngine.GetConfirmation($"{result.Result.OAPPTemplateDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.OAPPTemplateDNA.Version})?")))
+                        {
+                            Console.WriteLine("");
+                            CLIEngine.ShowWorkingMessage("Loading OAPP Template Versions...");
+                            OASISResult<IEnumerable<IOAPPTemplate>> versionsResult = STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateVersions(result.Result.OAPPTemplateDNA.Id, providerType);
+                            ListOAPPTemplates(versionsResult);
+
+                            if (operationName != "view" && versionsResult != null && versionsResult.Result != null && !versionsResult.IsError && versionsResult.Result.Count() > 0)
+                            {
+                                bool versionSelected = false;
+
+                                do
+                                {
+                                    int version = CLIEngine.GetValidInputForInt($"Which version do you wish to {operationName}? (Enter the Version Sequence that corresponds to the relevant template)");
+
+                                    if (version > 0 && version <= versionsResult.Result.Count())
+                                    {
+                                        versionSelected = true;
+                                        result.Result = versionsResult.Result.ElementAt(version - 1);
+                                    }
+                                    else
+                                        CLIEngine.ShowErrorMessage("Invalid version entered. Please try again.");
+
+                                    if (version == 0)
+                                        break;
+
+                                } while (!versionSelected);
+                            }
+                        }
+                        else
+                            Console.WriteLine("");
+
+                        if (operationName != "view")
+                            ShowOAPPTemplate(result.Result);
+                    }
+                }
+
+                if (idOrName == "exit")
+                    break;
+
+                if (result.Result != null && operationName != "view")
+                {
+                    if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this OAPP Template?"))
+                    {
+                        if (operationName == "install")
+                        {
+                            if (result != null && result.Result != null)
+                            {
+                                OASISResult<bool> oappInstalledResult = STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalled(STAR.BeamedInAvatar.Id, result.Result.OAPPTemplateDNA.Id, result.Result.OAPPTemplateDNA.Version, providerType);
+
+                                if (oappInstalledResult != null && !oappInstalledResult.IsError)
+                                {
+                                    if (oappInstalledResult.Result)
+                                    {
+                                        Console.WriteLine("");
+                                        CLIEngine.ShowWarningMessage($"You have already installed this version ({result.Result.OAPPTemplateDNA.Version}).");
+
+                                        if (CLIEngine.GetConfirmation("Would you like to uninstall and re-install now?"))
+                                        {
+                                            Console.WriteLine("");
+                                            CLIEngine.ShowWorkingMessage("Uninstalling OAPP Template...");
+                                            OASISResult<IInstalledOAPPTemplate> uninstallResult = STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplate(result.Result.OAPPTemplateDNA.Id, result.Result.OAPPTemplateDNA.Version, STAR.BeamedInAvatar.Id, providerType);
+
+                                            if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
+                                            {
+                                                CLIEngine.ShowSuccessMessage("OAPP Template Successfully Uninstalled.");
+                                                result.MetaData["Reinstall"] = "1";
+                                            }
+                                            else
+                                            {
+                                                CLIEngine.ShowErrorMessage($"Error occured uninstalling the OAPP Template! Reason: {uninstallResult.Message}");
+                                                result.Result = null;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            result.Result = null;
+                                            Console.WriteLine("");
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    CLIEngine.ShowErrorMessage($"Error occured checking if the OAPP Template is already installed! Reason: {oappInstalledResult.Message}");
+                                    result.Result = null;
+                                }
+                            }
+                            else
+                            {
+                                CLIEngine.ShowErrorMessage($"Error occured checking if the OAPP Template is already installed! Reason: OAPPTemplateId was not found in the metadata!");
+                                result.Result = null;
+                            }
+                        }
+
+                    }
+                    else
+                        result.Result = null;
+
+                    Console.WriteLine("");
+                }
+
+            }
+            while (result.Result == null || result.IsError);
+
+            if (idOrName == "exit")
+            {
+                result.IsError = true;
+                result.Message = "User Exited";
             }
 
             return result;
         }
-
-        //private static async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(string idOrName, string operationName, ProviderType providerType = ProviderType.Default, bool addSpace = true)
-        //{
-        //    OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
-        //    Guid id = Guid.Empty;
-
-        //    do
-        //    {
-        //        if (string.IsNullOrEmpty(idOrName))
-        //        {
-        //            if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the OAPP Template you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
-        //            {
-        //                Console.WriteLine("");
-        //                CLIEngine.ShowWorkingMessage("Loading OAPP Templates...");
-        //                ListInstalledOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.Li(OAPPTemplateType.All, 0, providerType));
-        //            }
-        //            else
-        //                Console.WriteLine("");
-
-        //            idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the OAPP Template you wish to {operationName}?");
-
-        //            if (idOrName == "exit")
-        //                break;
-        //        }
-
-        //        if (addSpace)
-        //            Console.WriteLine("");
-
-        //        if (Guid.TryParse(idOrName, out id))
-        //        {
-        //            CLIEngine.ShowWorkingMessage("Loading OAPP Template...");
-        //            result = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(id, providerType);
-        //        }
-        //        else
-        //        {
-        //            CLIEngine.ShowWorkingMessage("Searching OAPP Templates...");
-        //            OASISResult<IEnumerable<IOAPPTemplate>> searchResults = await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(idOrName, 0, providerType);
-
-        //            if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
-        //            {
-        //                if (searchResults.Result.Count() > 1)
-        //                {
-        //                    ListOAPPTemplates(searchResults, true);
-
-        //                    do
-        //                    {
-        //                        int number = CLIEngine.GetValidInputForInt($"What is the number of the OAPP Template you wish to {operationName}?");
-
-        //                        if (number > 0 && number <= searchResults.Result.Count())
-        //                            result.Result = searchResults.Result.ElementAt(number - 1);
-        //                        else
-        //                            CLIEngine.ShowErrorMessage("Invalid number entered. Please try again.");
-
-        //                    } while (result.Result == null || result.IsError);
-        //                }
-        //                else if (searchResults.Result.Count() == 1)
-        //                    result.Result = searchResults.Result.FirstOrDefault();
-        //                else
-        //                {
-        //                    idOrName = "";
-        //                    CLIEngine.ShowWarningMessage("No OAPP Template Found!");
-        //                }
-        //            }
-        //            else
-        //                CLIEngine.ShowErrorMessage($"An error occured calling STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync. Reason: {searchResults.Message}");
-        //        }
-
-        //        if (result.Result != null && result.Result.OAPPTemplateDNA != null)
-        //        {
-        //            ShowOAPPTemplate(result.Result);
-
-        //            if (result.Result.OAPPTemplateDNA.NumberOfVersions > 1)
-        //            {
-        //                if ((operationName == "view" && CLIEngine.GetConfirmation($"{result.Result.OAPPTemplateDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
-        //                    (!CLIEngine.GetConfirmation($"{result.Result.OAPPTemplateDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.OAPPTemplateDNA.Version})?")))
-        //                {
-        //                    Console.WriteLine("");
-        //                    CLIEngine.ShowWorkingMessage("Loading OAPP Template Versions...");
-        //                    OASISResult<IEnumerable<IOAPPTemplate>> versionsResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateVersionsAsync(result.Result.OAPPTemplateDNA.Id, providerType);
-        //                    //ListOAPPTemplates(versionsResult, true);
-        //                    ListOAPPTemplates(versionsResult);
-
-        //                    if (operationName != "view" && versionsResult != null && versionsResult.Result != null && !versionsResult.IsError && versionsResult.Result.Count() > 0)
-        //                    {
-        //                        bool versionSelected = false;
-
-        //                        do
-        //                        {
-        //                            int version = CLIEngine.GetValidInputForInt($"Which version do you wish to {operationName}? (Enter the Version Sequence that corresponds to the relevant template)");
-
-        //                            if (version > 0 && version <= versionsResult.Result.Count())
-        //                            {
-        //                                versionSelected = true;
-        //                                result.Result = versionsResult.Result.ElementAt(version - 1);
-
-        //                                //CLIEngine.ShowWorkingMessage("Loading OAPP Template Version...");
-        //                                //OASISResult<IOAPPTemplate> versionLoadResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateVersionAsync(result.Result.OAPPTemplateDNA.Id, template.OAPPTemplateDNA.Version, providerType);
-
-        //                                //if (versionLoadResult != null && versionLoadResult.Result != null && !versionLoadResult.IsError)
-        //                                //{
-        //                                //    result.Result = versionLoadResult.Result;
-        //                                //    versionSelected = true;
-        //                                //}
-        //                                //else
-        //                                //    CLIEngine.ShowErrorMessage($"An error occured loading the OAPP Template Version. Reason: {versionLoadResult.Message}");
-        //                            }
-        //                            CLIEngine.ShowErrorMessage("Invalid version entered. Please try again.");
-
-        //                            if (version == 0)
-        //                                break;
-
-        //                        } while (!versionSelected);
-        //                    }
-        //                }
-        //                else
-        //                    Console.WriteLine("");
-
-        //                if (operationName != "view")
-        //                    ShowOAPPTemplate(result.Result);
-        //            }
-        //        }
-
-        //        if (idOrName == "exit")
-        //            break;
-
-        //        if (result.Result != null && operationName != "view")
-        //        {
-        //            //ShowOAPPTemplate(result.Result);
-
-        //            if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this OAPP Template?"))
-        //            {
-        //                if (result != null && result.Result != null && result.Result.MetaData != null && result.Result.MetaData.ContainsKey("OAPPTemplateId") && result.Result.MetaData["OAPPTemplateId"] != null && Guid.TryParse(result.Result.MetaData["OAPPTemplateId"].ToString(), out id))
-        //                {
-        //                    OASISResult<bool> oappInstalledResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, id, result.Result.OAPPTemplateDNA.Version, providerType);
-
-        //                    if (oappInstalledResult != null && !oappInstalledResult.IsError)
-        //                    {
-        //                        if (oappInstalledResult.Result)
-        //                        {
-        //                            Console.WriteLine("");
-        //                            CLIEngine.ShowWarningMessage($"You have already installed this version ({result.Result.OAPPTemplateDNA.Version}).");
-
-        //                            if (CLIEngine.GetConfirmation("Would you like to uninstall and re-install now?"))
-        //                            {
-        //                                Console.WriteLine("");
-        //                                CLIEngine.ShowWorkingMessage("Uninstalling OAPP Template...");
-        //                                OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync(id, result.Result.OAPPTemplateDNA.Version, STAR.BeamedInAvatar.Id, providerType);
-
-        //                                if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
-        //                                    CLIEngine.ShowSuccessMessage("OAPP Template Successfully Uninstalled.");
-        //                                else
-        //                                {
-        //                                    CLIEngine.ShowErrorMessage($"Error occured uninstalling the OAPP Template! Reason: {uninstallResult.Message}");
-        //                                    result.Result = null;
-        //                                }
-        //                            }
-        //                            else
-        //                            {
-        //                                result.Result = null;
-        //                                Console.WriteLine("");
-        //                            }
-        //                        }
-        //                    }
-        //                    else
-        //                    {
-        //                        CLIEngine.ShowErrorMessage($"Error occured checking if the OAPP Template is already installed! Reason: {oappInstalledResult.Message}");
-        //                        result.Result = null;
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    CLIEngine.ShowErrorMessage($"Error occured checking if the OAPP Template is already installed! Reason: OAPPTemplateId was not found in the metadata!");
-        //                    result.Result = null;
-        //                }
-        //            }
-        //            else
-        //                result.Result = null;
-
-        //            Console.WriteLine("");
-        //        }
-
-        //    }
-        //    while (result.Result == null || result.IsError);
-
-        //    if (idOrName == "exit")
-        //    {
-        //        result.IsError = true;
-        //        result.Message = "User Exited";
-        //    }
-
-        //    return result;
-        //}
 
         private static async Task<OASISResult<IInstalledOAPPTemplate>> CheckIfInstalledAndInstallOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, string downloadPath, string installPath, InstallMode installMode, ProviderType providerType = ProviderType.Default)
         {
@@ -1844,16 +1819,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             switch (e.Status)
             {
-                //case OAPPPublishStatus.DotNetPublishing:
-                //    CLIEngine.ShowWorkingMessage($"Dotnet Publishing...");
-                //    break;
-
                 case OAPPTemplatePublishStatus.Uploading:
                     CLIEngine.ShowMessage("Uploading...");
                     Console.WriteLine("");
-                    //CLIEngine.ShowWorkingMessage("Uploading... 0%");
-                    //CLIEngine.BeginWorkingMessage("Uploading... 0%");
-                    //CLIEngine.ShowProgressBar(0);
                     break;
 
                 case OAPPTemplatePublishStatus.Published:
