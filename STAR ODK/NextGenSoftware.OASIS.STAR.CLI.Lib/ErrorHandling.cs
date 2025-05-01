@@ -6,17 +6,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public static class ErrorHandling
     {
-        public static void HandleResponse<T1, T2>(OASISResult<T1> parentResult, OASISResult<T2> result, string errorMessage, string successMessage = "")
+        public static (OASISResult<T1>, T2) HandleResponse<T1, T2>(OASISResult<T1> parentResult, OASISResult<T2> result, string errorMessage, string successMessage = "")
         {
-            //(parentResult, result.Result) = OASISResultHelper.UnWrapOASISResultWithDefaultErrorMessage(parentResult, result, methodName);
-            OASISResultHelper.UnWrapOASISResult(parentResult, result, errorMessage);
             ProcessSuccessMessage(result, successMessage);
+            //(parentResult, result.Result) = OASISResultHelper.UnWrapOASISResultWithDefaultErrorMessage(parentResult, result, methodName);
+            return OASISResultHelper.UnWrapOASISResult(parentResult, result, errorMessage);
+            
         }
 
-        public static void HandleResponseWithDefaultErrorMessage<T1, T2>(OASISResult<T1> parentResult, OASISResult<T2> result, string methodName, string successMessage = "")
+        public static (OASISResult<T1>, T2) HandleResponseWithDefaultErrorMessage<T1, T2>(OASISResult<T1> parentResult, OASISResult<T2> result, string methodName, string successMessage = "")
         {
-            OASISResultHelper.UnWrapOASISResultWithDefaultErrorMessage(parentResult, result, methodName);
             ProcessSuccessMessage(result, successMessage);
+            return OASISResultHelper.UnWrapOASISResultWithDefaultErrorMessage(parentResult, result, methodName);
         }
 
         private static void ProcessSuccessMessage<T>(OASISResult<T> result, string successMessage = "")

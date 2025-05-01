@@ -176,7 +176,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     CLIEngine.ShowMessage("", false);
 
-                CLIEngine.ShowMessage("Please login below:");
+                CLIEngine.ShowMessage("Please beam in below:");
                 //string username = GetValidEmail("Username? ", false);
                 string username = GetValidUsername("Username? ", false);
                 string password = CLIEngine.ReadPassword("Password? ");
@@ -216,7 +216,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 CLIEngine.ShowErrorMessage(verifyEmailResult.Message);
                             else
                             {
-                                CLIEngine.ShowSuccessMessage("Verification successful, you can now login");
+                                CLIEngine.ShowSuccessMessage("Verification successful, you can now beam in.");
                                 validToken = true;
                             }
                         }
