@@ -110,19 +110,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<IInventoryItem>> SearchInventoryItems(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IInventoryItem>> SearchInventoryItems(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IInventoryItem>> result = new OASISResult<IEnumerable<IInventoryItem>>();
-            OASISResult<IEnumerable<InventoryItem>> loadHolonsResult = SearchHolons<InventoryItem>(searchTerm, providerType, "InventoryItemManager.SearchInventoryItems", HolonType.InventoryItem);
+            OASISResult<IEnumerable<InventoryItem>> loadHolonsResult = SearchHolons<InventoryItem>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "InventoryItemManager.SearchInventoryItems", HolonType.InventoryItem);
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IInventoryItem>>> SearchInventoryItemsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IInventoryItem>>> SearchInventoryItemsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IInventoryItem>> result = new OASISResult<IEnumerable<IInventoryItem>>();
-            OASISResult<IEnumerable<InventoryItem>> loadHolonsResult = await SearchHolonsAsync<InventoryItem>(searchTerm, providerType, "InventoryItemManager.SearchInventoryItemsAsync", HolonType.InventoryItem);
+            OASISResult<IEnumerable<InventoryItem>> loadHolonsResult = await SearchHolonsAsync<InventoryItem>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "InventoryItemManager.SearchInventoryItemsAsync", HolonType.InventoryItem);
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;

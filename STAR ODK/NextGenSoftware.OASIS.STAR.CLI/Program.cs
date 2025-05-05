@@ -537,9 +537,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 case "oapp":
                                     {
-                                        //await ShowOAPPSubCommandsAsync(inputArgs);
-
-                                        
                                         if (inputArgs.Length > 1)
                                         {
                                             switch (inputArgs[1].ToLower())
@@ -560,11 +557,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                     break;
 
                                                 case "template":
-                                                    {
-                                                        //await ShowOAPPTemplateSubCommandsAsync(inputArgs);
-                                                        //await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.CreateOAPPTemplateAsync, STARCLI.EditOAPPTemplateAsync, STARCLI.DeleteOAPPTemplateAsync, STARCLI.DownloadAndInstallOAPPTemplateAsync, STARCLI.UninstallOAPPTemplateAsync, STARCLI.ReinstallOAPPTemplateAsync, STARCLI.PublishOAPPTemplateAsync, STARCLI.UnpublishOAPPTemplateAsync, STARCLI.RepublishOAPPTemplateAsync, STARCLI.ActivateOAPPTemplateAsync, STARCLI.DeactivateOAPPTemplateAsync, STARCLI.ShowOAPPTemplateAsync, STARCLI.ListOAPPTemplatesCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPTemplatesAsync, STARCLI.ListOAPPTemplatesInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUninstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUnpublishedForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesDeactivatedForBeamedInAvatarAsync, STARCLI.SearchOAPPTemplatesAsync, ProviderType.Default, true);
-                                                        await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.CreateOAPPTemplateAsync, STARCLI.EditOAPPTemplateAsync, STARCLI.DeleteOAPPTemplateAsync, STARCLI.DownloadAndInstallOAPPTemplateAsync, STARCLI.UninstallOAPPTemplateAsync, STARCLI.PublishOAPPTemplateAsync, STARCLI.UnpublishOAPPTemplateAsync, STARCLI.RepublishOAPPTemplateAsync, STARCLI.ActivateOAPPTemplateAsync, STARCLI.DeactivateOAPPTemplateAsync, STARCLI.ShowOAPPTemplateAsync, STARCLI.ListOAPPTemplatesCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPTemplatesAsync, STARCLI.ListOAPPTemplatesInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUninstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUnpublishedForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesDeactivatedForBeamedInAvatarAsync, STARCLI.SearchOAPPTemplatesAsync, ProviderType.Default, true);
-                                                    }
+                                                    await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.CreateOAPPTemplateAsync, STARCLI.EditOAPPTemplateAsync, STARCLI.DeleteOAPPTemplateAsync, STARCLI.DownloadAndInstallOAPPTemplateAsync, STARCLI.UninstallOAPPTemplateAsync, STARCLI.PublishOAPPTemplateAsync, STARCLI.UnpublishOAPPTemplateAsync, STARCLI.RepublishOAPPTemplateAsync, STARCLI.ActivateOAPPTemplateAsync, STARCLI.DeactivateOAPPTemplateAsync, STARCLI.ShowOAPPTemplateAsync, STARCLI.ListOAPPTemplatesCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPTemplatesAsync, STARCLI.ListOAPPTemplatesInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUninstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUnpublishedForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesDeactivatedForBeamedInAvatarAsync, STARCLI.SearchOAPPTemplatesAsync, ProviderType.Default, true);
                                                     break;
                                             }
                                         }
@@ -803,7 +796,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<ProviderType, Task> listUninstalledPredicate = null,
             Func<ProviderType, Task> listUnpublishedPredicate = null,
             Func<ProviderType, Task> listDeactivatedPredicate = null,
-            Func<string, ProviderType, Task> searchPredicate = null, 
+            Func<string, bool, bool, ProviderType, Task> searchPredicate = null, 
             ProviderType providerType = ProviderType.Default,
             bool isOAPPOrHappOrRuntime = false,
             bool ishApp = false,
@@ -1107,7 +1100,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "search":
                         {
                             if (searchPredicate != null)
-                                await searchPredicate(subCommandParam2, providerType);
+                                await searchPredicate(subCommandParam3, showAllVersions, showForAllAvatars, providerType);
                             else
                                 CLIEngine.ShowMessage("Coming Soon...");
                         }
@@ -1129,7 +1122,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
 
                 int commandSpace = 22;
-                int paramSpace = 30; //9;
+                int paramSpace = 30; //40; //9;
                 string paramDivider = "  ";
 
                 //if (isOAPPOrHappOrRuntime)
@@ -1173,7 +1166,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage(string.Concat("    republish".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Republish a ", subCommand, " to STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    activate".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Activate (show) a ", subCommand, " on the STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    deactivate".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Deactivate (hide) a ", subCommand, " on the STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "[allVersions] [forAllAvatars]".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " that have been created."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " that have been created."), ConsoleColor.Green, false);
                 //CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "[allVersions] [forAllAvatars]   List all ", subCommandPlural, " that have been created."), ConsoleColor.Green, false);
 
                 if (isOAPPOrHappOrRuntime)
@@ -1193,7 +1186,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                 CLIEngine.ShowMessage($"NOTES:", ConsoleColor.Green);
                 CLIEngine.ShowMessage($"For the publish command, if the flag [publishDotNet] is specified it will first do a dotnet publish before publishing to STARNET.", ConsoleColor.Green);
-                CLIEngine.ShowMessage($"For the list command, if [allVersions] is omitted it will list the current version, otherwise it will list all versions. If [forAllAvatars] is omitted it will list only your {subCommandPlural}'s otherwise it will list all published {subCommandPlural}'s as well as yours.", ConsoleColor.Green);
+                CLIEngine.ShowMessage($"For the list & search command, if [allVersions] is omitted it will list the current version, otherwise it will list all versions. If [forAllAvatars] is omitted it will list only your {subCommandPlural}'s otherwise it will list all published {subCommandPlural}'s as well as yours.", ConsoleColor.Green);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }

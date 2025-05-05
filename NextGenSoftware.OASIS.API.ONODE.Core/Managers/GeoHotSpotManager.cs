@@ -115,19 +115,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<IGeoHotSpot>> SearchGeoHotSpots(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IGeoHotSpot>> SearchGeoHotSpots(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IGeoHotSpot>> result = new OASISResult<IEnumerable<IGeoHotSpot>>();
-            OASISResult<IEnumerable<GeoHotSpot>> loadHolonsResult = SearchHolons<GeoHotSpot>(searchTerm, providerType, "GeoHotSpotManager.SearchGeoHotSpots", HolonType.GeoHotSpot);
+            OASISResult<IEnumerable<GeoHotSpot>> loadHolonsResult = SearchHolons<GeoHotSpot>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "GeoHotSpotManager.SearchGeoHotSpots", HolonType.GeoHotSpot);
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IGeoHotSpot>>> SearchGeoHotSpotsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IGeoHotSpot>>> SearchGeoHotSpotsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IGeoHotSpot>> result = new OASISResult<IEnumerable<IGeoHotSpot>>();
-            OASISResult<IEnumerable<GeoHotSpot>> loadHolonsResult = await SearchHolonsAsync<GeoHotSpot>(searchTerm, providerType, "GeoHotSpotManager.SearchGeoHotSpotsAsync", HolonType.GeoHotSpot);
+            OASISResult<IEnumerable<GeoHotSpot>> loadHolonsResult = await SearchHolonsAsync<GeoHotSpot>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "GeoHotSpotManager.SearchGeoHotSpotsAsync", HolonType.GeoHotSpot);
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;

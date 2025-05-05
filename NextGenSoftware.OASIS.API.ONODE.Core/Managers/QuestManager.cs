@@ -308,19 +308,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<IQuest>> SearchQuests(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IQuest>> SearchQuests(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IQuest>> result = new OASISResult<IEnumerable<IQuest>>();
-            OASISResult<IEnumerable<Quest>> loadHolonsResult = SearchHolons<Quest>(searchTerm, providerType, "QuestManager.SearchQuests", HolonType.Quest);
+            OASISResult<IEnumerable<Quest>> loadHolonsResult = SearchHolons<Quest>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "QuestManager.SearchQuests", HolonType.Quest);
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IQuest>>> SearchQuestsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IQuest>>> SearchQuestsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IQuest>> result = new OASISResult<IEnumerable<IQuest>>();
-            OASISResult<IEnumerable<Quest>> loadHolonsResult = await SearchHolonsAsync<Quest>(searchTerm, providerType, "QuestManager.SearchQuestsAsync", HolonType.Quest);
+            OASISResult<IEnumerable<Quest>> loadHolonsResult = await SearchHolonsAsync<Quest>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "QuestManager.SearchQuestsAsync", HolonType.Quest);
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;

@@ -79,9 +79,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public static async Task SearchInventoryItemsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public static async Task SearchInventoryItemsAsync(string searchTerm, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
-            ListInventoryItems(await STAR.OASISAPI.Inventory.SearchInventoryItemsAsync(searchTerm, providerType));
+            ListInventoryItems(await STAR.OASISAPI.Inventory.SearchInventoryItemsAsync(searchTerm, STAR.BeamedInAvatar.Id, searchOnlyForCurrentAvatar, providerType));
         }
 
         public static async Task<OASISResult<IInventoryItem>> ShowInventoryItem(Guid inventoryItemId, ProviderType providerType = ProviderType.Default)

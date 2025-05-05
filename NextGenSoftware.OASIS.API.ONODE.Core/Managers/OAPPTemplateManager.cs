@@ -28,6 +28,7 @@ using NextGenSoftware.OASIS.API.ONode.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using Nethereum.Web3.Accounts;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
@@ -436,7 +437,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             if (oappTemplate.OAPPTemplateDNA.CreatedByAvatarId != avatarId)
             {
-                OASISErrorHandling.HandleError(ref result, $"Permission Denied. You did not create this OAPP Template. Error occured in DeleteOAPPTemplateAsync loading the OAPP Template with Id {oappTemplateId} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: The OAPP Template was not created by the Avatar with Id {avatarId}.");
+                OASISErrorHandling.HandleError(ref result, $"Permission Denied. You did not create this OAPP Template. Error occured in DeleteOAPPTemplateAsync loading the OAPP Template with Id {oappTemplate.OAPPTemplateDNA.Id} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: The OAPP Template was not created by the Avatar with Id {avatarId}.");
                 return result;
             }
 
@@ -459,7 +460,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             if (oappTemplate.OAPPTemplateDNA.CreatedByAvatarId != avatarId)
             {
-                OASISErrorHandling.HandleError(ref result, $"Permission Denied. You did not create this OAPP Template. Error occured in DeleteOAPPTemplateAsync loading the OAPP Template with Id {oappTemplateId} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: The OAPP Template was not created by the Avatar with Id {avatarId}.");
+                OASISErrorHandling.HandleError(ref result, $"Permission Denied. You did not create this OAPP Template. Error occured in DeleteOAPPTemplateAsync loading the OAPP Template with Id {oappTemplate.OAPPTemplateDNA.Id} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: The OAPP Template was not created by the Avatar with Id {avatarId}.");
                 return result;
             }
 
@@ -633,11 +634,307 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        //public async Task<OASISResult<IOAPPTemplateDNA>> PublishOAPPTemplateAsync(string fullPathToOAPPTemplate, string launchTarget, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPTemplateBinary = true, bool uploadOAPPTemplateToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
-        public async Task<OASISResult<IOAPPTemplate>> PublishOAPPTemplateAsync(string fullPathToOAPPTemplate, string launchTarget, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPTemplateBinary = true, bool uploadOAPPTemplateToCloud = false, bool edit = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
+        public async Task<OASISResult<IOAPPTemplate>> EditOAPPTemplateAsync(Guid OAPPTemplateId, IOAPPTemplateDNA newOAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            //OASISResult<IOAPPTemplateDNA> result = new OASISResult<IOAPPTemplateDNA>();
+            OASISResult<IOAPPTemplate> oappTemplateResult = await LoadOAPPTemplateAsync(OAPPTemplateId, avatarId, providerType: providerType);
+
+            if (oappTemplateResult != null && oappTemplateResult.Result != null && !oappTemplateResult.IsError)
+                await EditOAPPTemplateAsync(oappTemplateResult.Result, newOAPPTemplateDNA, avatarId, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPTemplateManager.EditOAPPTemplateAsync. Reason: {oappTemplateResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPTemplate>> EditOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, IOAPPTemplateDNA newOAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            string errorMessage = "Error occured in OAPPTemplateManager.EditOAPPTemplateAsync. Reason: ";
+            string oldPath = "";
+            string newPath = "";
+            string oldPublishedPath = "";
+            string oldDownloadedPath = "";
+            string oldInstalledPath = "";
+
+            if (OAPPTemplate.Name != newOAPPTemplateDNA.Name)
+            {
+                oldPath = OAPPTemplate.OAPPTemplateDNA.OAPPTemplatePath;
+                newPath = Path.Combine(new DirectoryInfo(OAPPTemplate.OAPPTemplateDNA.OAPPTemplatePath).Parent.FullName, newOAPPTemplateDNA.Name);
+                newOAPPTemplateDNA.OAPPTemplatePath = newPath;
+
+                if (!string.IsNullOrEmpty(OAPPTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                {
+                    oldPublishedPath = OAPPTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath;
+                    newOAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(new DirectoryInfo(OAPPTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath).FullName, newOAPPTemplateDNA.Name);
+                }
+            }
+
+            OAPPTemplate.OAPPTemplateDNA = newOAPPTemplateDNA;
+            OAPPTemplate.Name = newOAPPTemplateDNA.Name;
+            OAPPTemplate.Description = newOAPPTemplateDNA.Description;
+
+            OASISResult<IOAPPTemplate> saveResult = await SaveOAPPTemplateAsync(OAPPTemplate, avatarId, providerType: providerType);
+
+            if (saveResult != null && !saveResult.IsError && saveResult.Result != null)
+            {
+                if (!string.IsNullOrEmpty(newPath) && !string.IsNullOrEmpty(oldPath))
+                {
+                    try
+                    {
+                        if (Directory.Exists(oldPath))
+                            Directory.Move(oldPath, newPath);
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template folder from {oldPath} to {newPath}. Reason: {e}.");
+                        CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                    }
+
+                    if (!string.IsNullOrEmpty(newOAPPTemplateDNA.OAPPTemplatePublishedPath))
+                    {
+                        try
+                        {
+                            if (!string.IsNullOrEmpty(oldPublishedPath) && File.Exists(oldPublishedPath))
+                                File.Move(oldPublishedPath, newOAPPTemplateDNA.OAPPTemplatePublishedPath);
+                        }
+                        catch (Exception e)
+                        {
+                            OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template published file from {oldPublishedPath} to {newOAPPTemplateDNA.OAPPTemplatePublishedPath}. Reason: {e}.");
+                            CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                        }
+                    }
+                }
+
+                OASISResult<IEnumerable<IOAPPTemplate>> templatesResult = await LoadOAPPTemplateVersionsAsync(newOAPPTemplateDNA.Id, providerType);
+
+                if (templatesResult != null && templatesResult.Result != null && !templatesResult.IsError)
+                {
+                    foreach (IOAPPTemplate template in templatesResult.Result)
+                    {
+                        template.OAPPTemplateDNA = newOAPPTemplateDNA;
+                        template.Name = newOAPPTemplateDNA.Name;
+                        template.Description = newOAPPTemplateDNA.Description;
+
+                        oldPath = template.OAPPTemplateDNA.OAPPTemplatePath;
+                        newPath = Path.Combine(new DirectoryInfo(oldPath).Parent.FullName, newOAPPTemplateDNA.Name);
+                        template.OAPPTemplateDNA.OAPPTemplatePath = newPath;
+
+                        if (!string.IsNullOrEmpty(template.OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                        {
+                            oldPublishedPath = template.OAPPTemplateDNA.OAPPTemplatePublishedPath;
+                            template.OAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(new DirectoryInfo(oldPublishedPath).FullName, newOAPPTemplateDNA.Name);
+                        }
+
+                        OASISResult<IOAPPTemplate> templateSaveResult = await SaveOAPPTemplateAsync(template, avatarId, providerType);
+
+                        if (templateSaveResult != null && templateSaveResult.Result != null && !templateSaveResult.IsError)
+                        {
+                            if (!string.IsNullOrEmpty(newPath))
+                            {
+                                try
+                                {
+                                    if (Directory.Exists(oldPath))
+                                        Directory.Move(oldPath, newPath);
+                                }
+                                catch (Exception e)
+                                {
+                                    OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template folder from {oldPath} to {newPath}. Reason: {e}.");
+                                    CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                                }
+                            }
+
+                            if (!string.IsNullOrEmpty(oldPublishedPath))
+                            {
+                                try
+                                {
+                                    if (File.Exists(oldPublishedPath))
+                                        File.Move(oldPublishedPath, template.OAPPTemplateDNA.OAPPTemplatePublishedPath);
+                                }
+                                catch (Exception e)
+                                {
+                                    OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template published file from {oldPublishedPath} to {newOAPPTemplateDNA.OAPPTemplatePublishedPath}. Reason: {e}.");
+                                    CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                                }
+                            }
+                        }
+                        else
+                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured calling SaveOAPPTemplateAsync updating the OAPPTemplateDNA for OAPP Template with Id {template.Id} for provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {templateSaveResult.Message}");
+                    }
+                }
+                else
+                    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the OAPPTemplateDNA for all OAPP Template versions caused by an error in LoadOAPPTemplateVersionsAsync. Reason: {templatesResult.Message}");
+
+
+                OASISResult<IEnumerable<IInstalledOAPPTemplate>> installedTemplatesResult = await ListInstalledOAPPTemplatesAsync(avatarId, providerType);
+
+                if (installedTemplatesResult != null && installedTemplatesResult.Result != null && !installedTemplatesResult.IsError)
+                {
+                    foreach (IInstalledOAPPTemplate template in installedTemplatesResult.Result)
+                    {
+                        template.OAPPTemplateDNA = newOAPPTemplateDNA;
+                        template.Name = newOAPPTemplateDNA.Name;
+                        template.Description = newOAPPTemplateDNA.Description;
+
+                        oldPath = template.OAPPTemplateDNA.OAPPTemplatePath;
+                        newPath = Path.Combine(new DirectoryInfo(oldPath).Parent.FullName, newOAPPTemplateDNA.Name);
+                        template.OAPPTemplateDNA.OAPPTemplatePath = newPath;
+
+                        if (!string.IsNullOrEmpty(template.OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                        {
+                            oldPublishedPath = template.OAPPTemplateDNA.OAPPTemplatePublishedPath;
+                            template.OAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(new DirectoryInfo(oldPublishedPath).FullName, newOAPPTemplateDNA.Name);
+                        }
+
+                        if (!string.IsNullOrEmpty(template.DownloadedPath))
+                        {
+                            oldDownloadedPath = template.DownloadedPath;
+                            template.DownloadedPath = Path.Combine(new DirectoryInfo(oldDownloadedPath).FullName, newOAPPTemplateDNA.Name);
+                        }
+
+                        if (!string.IsNullOrEmpty(template.InstalledPath))
+                        {
+                            oldInstalledPath = template.InstalledPath;
+                            template.InstalledPath = Path.Combine(new DirectoryInfo(oldDownloadedPath).FullName, newOAPPTemplateDNA.Name);
+                        }
+
+                        OASISResult<IOAPPTemplate> templateSaveResult = await SaveOAPPTemplateAsync(template, avatarId, providerType);
+
+                        if (templateSaveResult != null && templateSaveResult.Result != null && !templateSaveResult.IsError)
+                        {
+                            if (!string.IsNullOrEmpty(newPath))
+                            {
+                                try
+                                {
+                                    if (Directory.Exists(oldPath))
+                                        Directory.Move(oldPath, newPath);
+                                }
+                                catch (Exception e)
+                                {
+                                    OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template folder from {oldPath} to {newPath}. Reason: {e}.");
+                                    CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                                }
+                            }
+
+                            if (!string.IsNullOrEmpty(oldPublishedPath))
+                            {
+                                try
+                                {
+                                    if (File.Exists(oldPublishedPath))
+                                        File.Move(oldPublishedPath, template.OAPPTemplateDNA.OAPPTemplatePublishedPath);
+                                }
+                                catch (Exception e)
+                                {
+                                    OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template published file from {oldPublishedPath} to {newOAPPTemplateDNA.OAPPTemplatePublishedPath}. Reason: {e}.");
+                                    CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                                }
+                            }
+
+                            if (!string.IsNullOrEmpty(oldDownloadedPath))
+                            {
+                                try
+                                {
+                                    if (File.Exists(oldDownloadedPath))
+                                        File.Move(oldDownloadedPath, template.DownloadedPath);
+                                }
+                                catch (Exception e)
+                                {
+                                    OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template downloaded file from {oldDownloadedPath} to {template.DownloadedPath}. Reason: {e}.");
+                                    CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                                }
+                            }
+
+                            if (!string.IsNullOrEmpty(oldInstalledPath))
+                            {
+                                try
+                                {
+                                    if (Directory.Exists(oldInstalledPath))
+                                        Directory.Move(oldInstalledPath, template.InstalledPath);
+                                }
+                                catch (Exception e)
+                                {
+                                    OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template installed folder from {oldInstalledPath} to {template.InstalledPath}. Reason: {e}.");
+                                    CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                                }
+                            }
+                        }
+                        else
+                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the OAPPTemplateDNA for Installed OAPP Template with Id {template.Id} for provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {templateSaveResult.Message}");
+                    }
+                }
+                else
+                    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the OAPPTemplateDNA for all Installed OAPP Template versions caused by an error in ListInstalledOAPPTemplatesAsync. Reason: {templatesResult.Message}");
+
+
+                result.Result = saveResult.Result;
+                result.IsSaved = true;
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template with Id {newOAPPTemplateDNA.Id} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveResult.Message}");
+
+            return result;
+        }
+
+        private async Task UpdateOAPPTemplateAsync(IOAPPTemplate template, IOAPPTemplateDNA newOAPPTemplateDNA, Guid avatarId, OASISResult<IOAPPTemplate> result, string errorMessage, ProviderType providerType)
+        {
+            string oldPath = "";
+            string newPath = "";
+            string oldPublishedPath = "";
+
+            template.OAPPTemplateDNA = newOAPPTemplateDNA;
+            template.Name = newOAPPTemplateDNA.Name;
+            template.Description = newOAPPTemplateDNA.Description;
+
+            oldPath = template.OAPPTemplateDNA.OAPPTemplatePath;
+            newPath = Path.Combine(new DirectoryInfo(oldPath).Parent.FullName, newOAPPTemplateDNA.Name);
+            template.OAPPTemplateDNA.OAPPTemplatePath = newPath;
+
+            if (!string.IsNullOrEmpty(template.OAPPTemplateDNA.OAPPTemplatePublishedPath))
+            {
+                oldPublishedPath = template.OAPPTemplateDNA.OAPPTemplatePublishedPath;
+                template.OAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(new DirectoryInfo(oldPublishedPath).FullName, newOAPPTemplateDNA.Name);
+            }
+
+            OASISResult<IOAPPTemplate> templateSaveResult = await SaveOAPPTemplateAsync(template, avatarId, providerType);
+
+            if (templateSaveResult != null && templateSaveResult.Result != null && !templateSaveResult.IsError)
+            {
+                if (!string.IsNullOrEmpty(newPath))
+                {
+                    try
+                    {
+                        if (Directory.Exists(oldPath))
+                            Directory.Move(oldPath, newPath);
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} An error occured attempting to rename the OAPP Template folder from {oldPath} to {newPath}. Reason: {e}.");
+                        CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(oldPublishedPath))
+                {
+                    try
+                    {
+                        if (File.Exists(oldPublishedPath))
+                            File.Move(oldPublishedPath, template.OAPPTemplateDNA.OAPPTemplatePublishedPath);
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} An error occured attempting to rename the OAPP Template published file from {oldPublishedPath} to {newOAPPTemplateDNA.OAPPTemplatePublishedPath}. Reason: {e}.");
+                        CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                    }
+                }
+            }
+            else
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured calling SaveOAPPTemplateAsync updating the OAPPTemplateDNA for OAPP Template with Id {template.Id} for provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {templateSaveResult.Message}");
+        }
+
+        //public async Task<OASISResult<IOAPPTemplateDNA>> PublishOAPPTemplateAsync(string fullPathToOAPPTemplate, string launchTarget, Guid avatarId, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPTemplateBinary = true, bool uploadOAPPTemplateToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
+        public async Task<OASISResult<IOAPPTemplate>> PublishOAPPTemplateAsync(Guid avatarId, string fullPathToOAPPTemplate, string launchTarget, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPTemplateBinary = true, bool uploadOAPPTemplateToCloud = false, bool edit = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.PublishOAPPTemplateAsync. Reason: ";
             IOAPPTemplateDNA OAPPTemplateDNA = null;
             string tempPath = "";
@@ -655,7 +952,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     if (loadAvatarResult != null && loadAvatarResult.Result != null && !loadAvatarResult.IsError)
                     {
                         //Load latest version.
-                        OASISResult<IOAPPTemplate> loadOAPPTemplateResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id);
+                        OASISResult<IOAPPTemplate> loadOAPPTemplateResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, avatarId);
 
                         if (loadOAPPTemplateResult != null && loadOAPPTemplateResult.Result != null && !loadOAPPTemplateResult.IsError)
                         {                     
@@ -1068,7 +1365,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                         WriteOAPPTemplateDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
 
-                        OASISResult<IOAPPTemplate> loadOAPPTemplateResult = LoadOAPPTemplate(OAPPTemplateDNA.Id);
+                        OASISResult<IOAPPTemplate> loadOAPPTemplateResult = LoadOAPPTemplate(avatarId, OAPPTemplateDNA.Id);
 
                         if (loadOAPPTemplateResult != null && loadOAPPTemplateResult.Result != null && !loadOAPPTemplateResult.IsError)
                         {
@@ -1223,7 +1520,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(OAPPTemplateId, version, providerType);
+            OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(OAPPTemplateId, avatarId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await UnpublishOAPPTemplateAsync(loadResult.Result, avatarId, providerType);
@@ -1236,7 +1533,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> loadResult = LoadOAPPTemplate(OAPPTemplateId, version, providerType);
+            OASISResult<IOAPPTemplate> loadResult = LoadOAPPTemplate(OAPPTemplateId, avatarId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = UnpublishOAPPTemplate(loadResult.Result, avatarId, providerType);
@@ -1249,7 +1546,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> oappResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, OAPPTemplateDNA.VersionSequence, providerType);
+            OASISResult<IOAPPTemplate> oappResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, avatarId, OAPPTemplateDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in UnpublishOAPPTemplateAsync. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
@@ -1263,7 +1560,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNA.Id, OAPPTemplateDNA.VersionSequence, providerType);
+            OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNA.Id, avatarId, OAPPTemplateDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in UnpublishOAPPTemplate. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
@@ -1339,7 +1636,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> oappResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, OAPPTemplateDNA.VersionSequence, providerType);
+            OASISResult<IOAPPTemplate> oappResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, avatarId, OAPPTemplateDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in RepublishOAPPTemplateAsync. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
@@ -1353,7 +1650,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNA.Id, OAPPTemplateDNA.VersionSequence, providerType);
+            OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNA.Id, avatarId, OAPPTemplateDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in RepublishOAPPTemplate. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
@@ -1367,7 +1664,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(OAPPTemplateId, version, providerType);
+            OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(OAPPTemplateId, avatarId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await RepublishOAPPTemplateAsync(loadResult.Result, avatarId, providerType);
@@ -1380,7 +1677,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> loadResult = LoadOAPPTemplate(OAPPTemplateId, version, providerType);
+            OASISResult<IOAPPTemplate> loadResult = LoadOAPPTemplate(OAPPTemplateId, avatarId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = RepublishOAPPTemplate(loadResult.Result, avatarId, providerType);
@@ -1435,7 +1732,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(OAPPTemplateId, version, providerType);
+            OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(OAPPTemplateId, avatarId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await DeactivateOAPPTemplateAsync(loadResult.Result, avatarId, providerType);
@@ -1448,7 +1745,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> loadResult = LoadOAPPTemplate(OAPPTemplateId, version, providerType);
+            OASISResult<IOAPPTemplate> loadResult = LoadOAPPTemplate(OAPPTemplateId, avatarId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = DeactivateOAPPTemplate(loadResult.Result, avatarId, providerType);
@@ -1461,7 +1758,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> oappResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, OAPPTemplateDNA.VersionSequence, providerType);
+            OASISResult<IOAPPTemplate> oappResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, avatarId, OAPPTemplateDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in DeactivateOAPPTemplateAsync. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
@@ -1475,7 +1772,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNA.Id, OAPPTemplateDNA.VersionSequence, providerType);
+            OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNA.Id, avatarId, OAPPTemplateDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in DeactivateOAPPTemplate. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
@@ -1545,7 +1842,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> oappResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, OAPPTemplateDNA.VersionSequence, providerType);
+            OASISResult<IOAPPTemplate> oappResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, avatarId, OAPPTemplateDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in ActivateOAPPTemplateAsync. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
@@ -1559,7 +1856,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNA.Id, OAPPTemplateDNA.VersionSequence, providerType);
+            OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNA.Id, avatarId, OAPPTemplateDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in ActivateOAPPTemplate. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
@@ -1573,7 +1870,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(OAPPTemplateId, version, providerType);
+            OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(OAPPTemplateId, avatarId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await ActivateOAPPTemplateAsync(loadResult.Result, avatarId, providerType);
@@ -1586,7 +1883,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> loadResult = LoadOAPPTemplate(OAPPTemplateId, version, providerType);
+            OASISResult<IOAPPTemplate> loadResult = LoadOAPPTemplate(OAPPTemplateId, avatarId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = ActivateOAPPTemplate(loadResult.Result, avatarId, providerType);
@@ -1813,7 +2110,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     //Load the OAPPTemplate from the OASIS to make sure the OAPPTemplateDNA is valid (and has not been tampered with).
 
                     //TODO: Check if this works ok? What if they tamper with the VersionSequence in the DNA file?!
-                    OASISResult<IOAPPTemplate> oappTemplateLoadResult = await LoadOAPPTemplateAsync(OAPPTemplateDNAResult.Result.Id, OAPPTemplateDNAResult.Result.VersionSequence, providerType);
+                    OASISResult<IOAPPTemplate> oappTemplateLoadResult = await LoadOAPPTemplateAsync(OAPPTemplateDNAResult.Result.Id, avatarId, OAPPTemplateDNAResult.Result.VersionSequence, providerType);
                     //OASISResult<IOAPPTemplate> oappTemplateLoadResult = await LoadOAPPTemplateAsync(OAPPTemplateDNAResult.Result.Id, false, 0, providerType);
 
                     if (oappTemplateLoadResult != null && oappTemplateLoadResult.Result != null && !oappTemplateLoadResult.IsError)
@@ -1976,7 +2273,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 if (OAPPTemplateDNAResult != null && OAPPTemplateDNAResult.Result != null && !OAPPTemplateDNAResult.IsError)
                 {
                     //Load the OAPPTemplate from the OASIS to make sure the OAPPTemplateDNA is valid (and has not been tampered with).
-                    OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNAResult.Result.Id, OAPPTemplateDNAResult.Result.VersionSequence, providerType);
+                    OASISResult<IOAPPTemplate> oappResult = LoadOAPPTemplate(OAPPTemplateDNAResult.Result.Id, avatarId, OAPPTemplateDNAResult.Result.VersionSequence, providerType);
 
                     if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
                     {
@@ -2123,7 +2420,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, int version, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
-            OASISResult<IOAPPTemplate> OAPPTemplateResult = await LoadOAPPTemplateAsync(OAPPTemplateId, version, providerType);
+            OASISResult<IOAPPTemplate> OAPPTemplateResult = await LoadOAPPTemplateAsync(OAPPTemplateId, avatarId, version, providerType);
 
             if (OAPPTemplateResult != null && !OAPPTemplateResult.IsError && OAPPTemplateResult.Result != null)
                 result = await DownloadAndInstallOAPPTemplateAsync(avatarId, OAPPTemplateResult.Result, fullInstallPath, fullDownloadPath, createOAPPTemplateDirectory, reInstall, providerType);
@@ -2139,7 +2436,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public OASISResult<IInstalledOAPPTemplate> InstallOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, int version, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
-            OASISResult<IOAPPTemplate> OAPPTemplateResult = LoadOAPPTemplate(OAPPTemplateId, version, providerType);
+            OASISResult<IOAPPTemplate> OAPPTemplateResult = LoadOAPPTemplate(OAPPTemplateId, avatarId, version, providerType);
 
             if (OAPPTemplateResult != null && !OAPPTemplateResult.IsError && OAPPTemplateResult.Result != null)
                 result = InstallOAPPTemplate(avatarId, OAPPTemplateResult.Result, fullInstallPath, fullDownloadPath, createOAPPTemplateDirectory, providerType);

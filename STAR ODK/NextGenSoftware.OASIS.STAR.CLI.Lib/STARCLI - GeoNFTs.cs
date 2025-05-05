@@ -149,14 +149,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             ListNFTs(nftsResult);
         }
 
-        public static async Task SearchNFTsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public static async Task SearchNFTsAsync(string searchTerm, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
-            ListNFTs(await STAR.OASISAPI.NFTs.SearchNFTsAsync(searchTerm, providerType));
+            ListNFTs(await STAR.OASISAPI.NFTs.SearchNFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, searchOnlyForCurrentAvatar, providerType));
         }
 
-        public static async Task SearchGeoNFTsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public static async Task SearchGeoNFTsAsync(string searchTerm, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
-            ListGeoNFTs(await STAR.OASISAPI.NFTs.SearchGeoNFTsAsync(searchTerm, providerType));
+            ListGeoNFTs(await STAR.OASISAPI.NFTs.SearchGeoNFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, searchOnlyForCurrentAvatar, providerType));
         }
 
         public static async Task ShowNFTAsync(Guid id = new Guid(), ProviderType providerType = ProviderType.Default)

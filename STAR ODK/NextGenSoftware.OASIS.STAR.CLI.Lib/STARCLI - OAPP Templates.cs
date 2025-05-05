@@ -106,8 +106,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task EditOAPPTemplateAsync(string idOrName = "", object editParams = null, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(idOrName, "edit", providerType);
+            OASISResult<IOAPPTemplate> loadResult = await LoadOAPPTemplateAsync(idOrName, "edit", true, providerType);
             bool changesMade = false;
+            //string oldPath = "";
+            //string newPath = "";
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
             {
@@ -118,6 +120,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     Console.WriteLine("");
                     loadResult.Result.Name = CLIEngine.GetValidInput("What is the new name of the OAPP Template?");
                     loadResult.Result.OAPPTemplateDNA.Name = loadResult.Result.Name;
+
+                    //oldPath = loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath;
+                    //newPath = Path.Combine(new DirectoryInfo(loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath).Parent.FullName, loadResult.Result.OAPPTemplateDNA.Name);
+                    //loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath = newPath;
                     changesMade = true;
                 }
                 else
@@ -161,14 +167,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (changesMade)
                 {
-                    OASISResult<IOAPPTemplate> result = await STAR.OASISAPI.OAPPTemplates.SaveOAPPTemplateAsync(loadResult.Result, STAR.BeamedInAvatar.Id, providerType);
+                    //if (!string.IsNullOrEmpty(newPath))
+                    //{
+                    //    try
+                    //    {
+                    //        Directory.Move(oldPath, newPath);
+                    //    }
+                    //    catch (Exception e)
+                    //    {
+                    //        OASISErrorHandling.HandleError($"An error occured attempting to rename the OAPP Template folder from {oldPath} to {newPath}. Reason: {e}.");
+                    //        CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                    //    }
+                    //}
+
+                    OASISResult<IOAPPTemplate> result = await STAR.OASISAPI.OAPPTemplates.EditOAPPTemplateAsync(loadResult.Result, loadResult.Result.OAPPTemplateDNA, STAR.BeamedInAvatar.Id, providerType);
                     Console.WriteLine("");
                     CLIEngine.ShowWorkingMessage("Saving OAPP Template...");
 
                     if (result != null && !result.IsError && result.Result != null)
                     {
                         (result, bool saveResult) = ErrorHandling.HandleResponse(result, await STAR.OASISAPI.OAPPTemplates.WriteOAPPTemplateDNAAsync(result.Result.OAPPTemplateDNA, result.Result.OAPPTemplateDNA.OAPPTemplatePath), "Error occured saving the OAPPTemplateDNA. Reason: ", "OAPP Template Successfully Updated.");
-                        
+
                         if (saveResult)
                             ShowOAPPTemplate(result.Result);
                     }
@@ -177,10 +196,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
 
                 if (loadResult.Result.OAPPTemplateDNA.PublishedOn != DateTime.MinValue && CLIEngine.GetConfirmation($"Do you wish to upload any changes you have made in the Source folder ({loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath})? The version number will remain the same ({loadResult.Result.OAPPTemplateDNA.Version})."))
-                {
                     await PublishOAPPTemplateAsync(loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath, true, providerType);
-                    //await STAR.OASISAPI.OAPPTemplates.PublishOAPPTemplateAsync(loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath, loadResult.Result.OAPPTemplateDNA.LaunchTarget, STAR.BeamedInAvatar.Id, loadResult.Result.OAPPTemplateDNA.OAPPTemplatePublishedPath, true, true, true, providerType, ProviderType.None);
-                }
+                else
+                    Console.WriteLine("");
             }
             else
                 CLIEngine.ShowErrorMessage($"An error occured loading the OAPP Template. Reason: {loadResult.Message}");
@@ -188,7 +206,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task DeleteOAPPTemplateAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "delete", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "delete", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -199,7 +217,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (CLIEngine.GetConfirmation("ARE YOU SURE YOU WITH TO PERMANENTLY DELETE THE OAPP TEMPLATE? IT WILL NOT BE POSSIBLE TO RECOVER AFTRWARDS!", ConsoleColor.Red))
                     {
                         CLIEngine.ShowWorkingMessage("Deleting OAPP Template...");
-                        result = await STAR.OASISAPI.OAPPTemplates.DeleteOAPPTemplateAsync(result.Result, true, providerType);
+                        result = await STAR.OASISAPI.OAPPTemplates.DeleteOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, true, providerType);
 
                         if (result != null && !result.IsError && result.Result != null)
                         {
@@ -243,7 +261,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (OAPPTemplateDNAResult != null && OAPPTemplateDNAResult.Result != null && !OAPPTemplateDNAResult.IsError)
             {
-                OASISResult<IOAPPTemplate> OAPPTemplateResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(OAPPTemplateDNAResult.Result.Id, 0, providerType);
+                OASISResult<IOAPPTemplate> OAPPTemplateResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(OAPPTemplateDNAResult.Result.Id, STAR.BeamedInAvatar.Id, 0, providerType);
 
                 if (OAPPTemplateResult != null && OAPPTemplateResult.Result != null && !OAPPTemplateResult.IsError)
                 {
@@ -339,7 +357,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplatePublishStatusChanged += OAPPTemplates_OnOAPPTemplatePublishStatusChanged;
                     //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateUploadStatusChanged += OAPPTemplates_OnOAPPTemplateUploadStatusChanged;
-                    OASISResult<IOAPPTemplate> publishResult = await STAR.OASISAPI.OAPPTemplates.PublishOAPPTemplateAsync(oappTemplatePath, launchTarget, STAR.BeamedInAvatar.Id, publishPath, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, edit, providerType, OAPPBinaryProviderType);
+                    OASISResult<IOAPPTemplate> publishResult = await STAR.OASISAPI.OAPPTemplates.PublishOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappTemplatePath, launchTarget, publishPath, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, edit, providerType, OAPPBinaryProviderType);
                     //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateUploadStatusChanged -= OAPPTemplates_OnOAPPTemplateUploadStatusChanged;
                     //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplatePublishStatusChanged -= OAPPTemplates_OnOAPPTemplatePublishStatusChanged;
 
@@ -374,7 +392,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task UnpublishOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "unpublish", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "unpublish", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -392,7 +410,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task RepublishOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "republish", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "republish", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -410,7 +428,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task ActivateOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "activate", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "activate", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -433,7 +451,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task DeactivateOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "deactivate", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "deactivate", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -516,7 +534,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (!string.IsNullOrEmpty(idOrName))
             {
                 Console.WriteLine("");
-                OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateForProviderAsync(idOrName, operation, providerType, false);
+                OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateForProviderAsync(idOrName, operation, false, providerType, false);
 
                 if (result != null && result.Result != null && !result.IsError)
                 {
@@ -541,7 +559,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (oappTemplateDNAResult != null && oappTemplateDNAResult.Result != null && !oappTemplateDNAResult.IsError)
                     {
-                        OASISResult<IOAPPTemplate> oappTemplateResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(oappTemplateDNAResult.Result.Id, 0, providerType);
+                        OASISResult<IOAPPTemplate> oappTemplateResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(oappTemplateDNAResult.Result.Id, STAR.BeamedInAvatar.Id, 0, providerType);
 
                         if (oappTemplateResult != null && oappTemplateResult.Result != null && !oappTemplateResult.IsError)
                         {
@@ -561,7 +579,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     Console.WriteLine("");
-                    OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateForProviderAsync("", operation, providerType, false);
+                    OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateForProviderAsync("", operation, false, providerType, false);
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
@@ -642,7 +660,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (!string.IsNullOrEmpty(idOrName))
             {
                 Console.WriteLine("");
-                OASISResult<IOAPPTemplate> result = LoadOAPPTemplateForProvider(idOrName, "install", providerType, false);
+                OASISResult<IOAPPTemplate> result = LoadOAPPTemplateForProvider(idOrName, "install", false, providerType, false);
 
                 if (result != null && result.Result != null && !result.IsError)
                     installResult = STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, providerType);
@@ -668,7 +686,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (oappTemplatesResult != null && oappTemplatesResult.Result != null && !oappTemplatesResult.IsError && oappTemplatesResult.Result.Count() > 0)
                     {
-                        OASISResult<IOAPPTemplate> result = LoadOAPPTemplateForProvider("", "install", providerType, false);
+                        OASISResult<IOAPPTemplate> result = LoadOAPPTemplateForProvider("", "install", false, providerType, false);
 
                         if (result != null && result.Result != null && !result.IsError)
                             installResult = STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, providerType);
@@ -710,7 +728,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task UninstallOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "uninstall", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "uninstall", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -735,7 +753,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static void UninstallOAPPTemplate(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = LoadOAPPTemplate(idOrName, "uninstall", providerType);
+            OASISResult<IOAPPTemplate> result = LoadOAPPTemplate(idOrName, "uninstall", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -873,14 +891,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage("Loading OAPP Templates...");
-            return ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(OAPPTemplateType.All, showAllVersions, 0, providerType));
+            return ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(STAR.BeamedInAvatar.Id, OAPPTemplateType.All, showAllVersions, 0, providerType));
         }
 
         public static OASISResult<IEnumerable<IOAPPTemplate>> ListAllOAPPTemplates(bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage("Loading OAPP Templates...");
-            return  ListOAPPTemplates(STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplates(OAPPTemplateType.All, showAllVersions, version, providerType));
+            return  ListOAPPTemplates(STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplates(STAR.BeamedInAvatar.Id, OAPPTemplateType.All, showAllVersions, version, providerType));
         }
 
         public static async Task ListOAPPTemplatesCreatedByBeamedInAvatarAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
@@ -1077,17 +1095,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public static async Task SearchOAPPTemplatesAsync(string searchTerm = "", ProviderType providerType = ProviderType.Default)
-        {
-            if (string.IsNullOrEmpty(searchTerm))
-            {
-                Console.WriteLine("");
+        public static async Task SearchOAPPTemplatesAsync(string searchTerm = "", bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
+        {            
+            if (string.IsNullOrEmpty(searchTerm) || searchTerm == "forallavatars" || searchTerm == "forallavatars")
+            { 
+                //Console.WriteLine("");
                 searchTerm = CLIEngine.GetValidInput("What is the name of the OAPP Template you wish to search for?");
             }
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage("Searching OAPP Templates...");
-            ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(searchTerm, STAR.BeamedInAvatar.Id, false, false, 0, providerType));
+            ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, showAllVersions, 0, providerType));
         }
 
         public static async Task ShowOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
@@ -1355,7 +1373,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (showOnlyForCurrentAvatar)
                             ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesForAvatarAsync(STAR.BeamedInAvatar.AvatarId));
                         else
-                            ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(OAPPTemplateType.All, false, 0, providerType));
+                            ListOAPPTemplates(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(STAR.BeamedInAvatar.AvatarId, OAPPTemplateType.All, false, 0, providerType));
                     }
                     else
                         Console.WriteLine("");
@@ -1372,7 +1390,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (Guid.TryParse(idOrName, out id))
                 {
                     CLIEngine.ShowWorkingMessage("Loading OAPP Template...");
-                    result = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(id, 0, providerType);
+                    result = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(id, STAR.BeamedInAvatar.AvatarId, 0, providerType);
 
                     if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.OAPPTemplateDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
                     {
@@ -1552,7 +1570,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (showOnlyForCurrentAvatar)
                             ListOAPPTemplates(STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesForAvatar(STAR.BeamedInAvatar.AvatarId));
                         else
-                            ListOAPPTemplates(STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplates(OAPPTemplateType.All, false, 0, providerType));
+                            ListOAPPTemplates(STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplates(STAR.BeamedInAvatar.AvatarId, OAPPTemplateType.All, false, 0, providerType));
                     }
                     else
                         Console.WriteLine("");
@@ -1569,7 +1587,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (Guid.TryParse(idOrName, out id))
                 {
                     CLIEngine.ShowWorkingMessage("Loading OAPP Template...");
-                    result = STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplate(id, 0, providerType);
+                    result = STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplate(id, STAR.BeamedInAvatar.Id, 0, providerType);
 
                     if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.OAPPTemplateDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
                     {
