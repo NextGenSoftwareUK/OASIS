@@ -1036,5 +1036,21 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Also added the new NFT methods above to the OASIS Provider Template.
 - Removed MongoDB.Bson ref from NextGenSoftware.OASIS.API.Providers.MongoDBOASIS project file which was causing a version conflict in the other projects.
 
-WOW! Even though I have been 95% focused on HoloNET the past year, I have done a LOT more on OASIS API than I realised! The change history length for the past year for v2.4.0 (the latest version about to release tomorrow) is roughly the same length as the past 3 years! :)
+----------------------------------------------------------------------------------------------------------------------------
+## 3.3.3 (17/04/25)
+
+Way too many changes to list here, there were numerous internal releases between v3.0.0 and v3.3.3, some of these changes are listed below:
+
+- ArbitrumOASIS Provider added.
+- PolygonOASIS Provider added.
+- Rootstock Provider added.
+- Data API upgrade/overhaul.
+- GeoNFT API upgraded.
+- Various performance improvements.
+- NFT API upgraded.
+- Upgraded to .NET 8 which comes with various improvements, performance enhacements and other fixes etc.
+- Numerous bug fixes.
+- Misc improvements.
+
+Going forward we are likely to keep the changelog more brief and will summarise the changes rather than list the full changelog! ;-)
 ----------------------------------------------------------------------------------------------------------------------------
