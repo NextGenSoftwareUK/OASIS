@@ -107,13 +107,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                         return;
 
                                     CLIEngine.ShowWorkingMessage("Searching STARNET...");
-                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(OAPPTemplateName), OAPPTemplateName);
+                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(OAPPTemplateName, STAR.BeamedInAvatar.Id, false, false, 0, providerType), OAPPTemplateName);
                                 }
                                 else
                                 {
                                     Console.WriteLine("");
                                     CLIEngine.ShowWorkingMessage("Searching STARNET...");
-                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(OAPPTemplateType), string.Concat("type ", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)));
+                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.OASISAPI.OAPPTemplates.LoadAllOAPPTemplatesAsync(STAR.BeamedInAvatar.Id, OAPPTemplateType), string.Concat("type ", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)));
                                 }
                             }
 
@@ -1029,9 +1029,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public static async Task SearchOAPPsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public static async Task SearchOAPPsAsync(string searchTerm, bool showAllVersions, bool showForAllAvatars, ProviderType providerType = ProviderType.Default)
         {
-            ListOAPPs(await STAR.OASISAPI.OAPPs.SearchOAPPsAsync(searchTerm, providerType));
+            ListOAPPs(await STAR.OASISAPI.OAPPs.SearchOAPPsAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType));
         }
 
         public static async Task LoadCelestialBodyAsync<T>(T celestialBody, string name, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
@@ -1272,7 +1272,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task RepublishOAPPAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "republish", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "republish", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1290,7 +1290,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task ActivateOAPPAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "activate", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "activate", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1308,7 +1308,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task DeactivateOAPPAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "deactivate", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "deactivate", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {

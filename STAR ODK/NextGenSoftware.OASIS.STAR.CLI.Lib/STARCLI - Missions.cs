@@ -69,9 +69,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public static async Task SearchMissionsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public static async Task SearchMissionsAsync(string searchTerm, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
-            ListMissions(await STAR.OASISAPI.Missions.SearchMissionsAsync(searchTerm, providerType));
+            ListMissions(await STAR.OASISAPI.Missions.SearchMissionsAsync(searchTerm, STAR.BeamedInAvatar.Id, searchOnlyForCurrentAvatar, providerType));
         }
 
         public static async Task<OASISResult<IMission>> ShowMission(Guid missionId, ProviderType providerType = ProviderType.Default)

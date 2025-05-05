@@ -165,9 +165,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public static async Task SearchQuestsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public static async Task SearchQuestsAsync(string searchTerm, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
-            ListQuests(await STAR.OASISAPI.Quests.SearchQuestsAsync(searchTerm, providerType));
+            ListQuests(await STAR.OASISAPI.Quests.SearchQuestsAsync(searchTerm, STAR.BeamedInAvatar.Id, searchOnlyForCurrentAvatar, providerType));
         }
 
         public static async Task<OASISResult<IQuest>> ShowQuest(Guid questId, ProviderType providerType = ProviderType.Default)

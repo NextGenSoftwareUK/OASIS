@@ -498,9 +498,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public static async Task SearchRuntimesAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public static async Task SearchRuntimesAsync(string searchTerm, bool showAllVersions, bool showForAllAvatars, ProviderType providerType = ProviderType.Default)
         {
-            ListRuntimes(await STAR.OASISAPI.Runtimes.SearchRuntimesAsync(searchTerm, providerType));
+            ListRuntimes(await STAR.OASISAPI.Runtimes.SearchRuntimesAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType));
         }
 
         public static async Task ShowRuntimeAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
@@ -558,7 +558,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task RepublishRuntimeAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "republish", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "republish", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -576,7 +576,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task ActivateRuntimeAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "activate", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "activate", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -594,7 +594,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task DeactivateRuntimeAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "deactivate", providerType);
+            OASISResult<IOAPPTemplate> result = await LoadOAPPTemplateAsync(idOrName, "deactivate", true, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {

@@ -942,19 +942,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IRuntime>>> SearchRuntimesAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IRuntime>>> SearchRuntimesAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IRuntime>> result = new OASISResult<IEnumerable<IRuntime>>();
-            OASISResult<IEnumerable<Runtime>> loadHolonsResult = await SearchHolonsAsync<Runtime>(searchTerm, providerType, "RuntimeManager.SearchRuntimesAsync", HolonType.Runtime);
+            OASISResult<IEnumerable<Runtime>> loadHolonsResult = await SearchHolonsAsync<Runtime>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "RuntimeManager.SearchRuntimesAsync", HolonType.Runtime);
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
         }
 
-        public OASISResult<IEnumerable<IRuntime>> SearchRuntimes(string searchTerm, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IRuntime>> SearchRuntimes(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IRuntime>> result = new OASISResult<IEnumerable<IRuntime>>();
-            OASISResult<IEnumerable<Runtime>> loadHolonsResult = SearchHolons<Runtime>(searchTerm, providerType, "RuntimeManager.SearchRuntimes", HolonType.Runtime);
+            OASISResult<IEnumerable<Runtime>> loadHolonsResult = SearchHolons<Runtime>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "RuntimeManager.SearchRuntimes", HolonType.Runtime);
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
