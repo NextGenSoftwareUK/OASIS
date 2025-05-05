@@ -1053,4 +1053,5 @@ Way too many changes to list here, there were numerous internal releases between
 - Misc improvements.
 
 Going forward we are likely to keep the changelog more brief and will summarise the changes rather than list the full changelog! ;-)
+
 ----------------------------------------------------------------------------------------------------------------------------
