@@ -294,7 +294,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<string>> ForgotPassword(ForgotPasswordRequest model)
         {
             //return HttpResponseHelper.FormatResponse(await Program.AvatarManager.ForgotPassword(model, Request.Headers["origin"]));
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.ForgotPassword(model.Email));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.ForgotPasswordAsync(model.Email));
         }
 
         /// <summary>
@@ -351,7 +351,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [HttpPost("reset-password")]
         public async Task<OASISHttpResponseMessage<string>> ResetPassword(ResetPasswordRequest model)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.ResetPassword(model));
+            return HttpResponseHelper.FormatResponse(await AvatarManager.Instance.ResetPasswordAsync(model.Token, model.OldPassword, model.NewPassword));
         }
 
         /// <summary>
@@ -1440,7 +1440,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
             return await GetLoggedInAvatar();
         }
 
-        
+
 
         ///// <summary>
         /////     Link's a given Avatar to a Providers Public Key (private/public key pairs or username, accountname, unique id, agentId, hash, etc).

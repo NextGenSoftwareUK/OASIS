@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces
         Task<OASISResult<bool>> VerifyEmail(string token);
         //Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model, string origin);
         Task<OASISResult<string>> ValidateResetToken(ValidateResetTokenRequest model);
-        Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model);
+        //Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model);
         //Task<OASISResult<IEnumerable<IAvatar>>> GetAll();
         Task<OASISResult<AvatarPortrait>> GetAvatarPortraitById(Guid id);
         Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByUsername(string userName);
