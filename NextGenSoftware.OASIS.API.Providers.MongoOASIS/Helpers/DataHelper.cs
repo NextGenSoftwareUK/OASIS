@@ -658,6 +658,96 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             return mongoAvatar;
         }
 
+        public static IHolon ConvertMongoEntityToOASISHolon(Holon holon, bool mapChildren = true)
+        {
+            Core.Holons.Holon oasisHolon = new Core.Holons.Holon();
+            oasisHolon.IsNewHolon = false; //TODO: Not sure if best to default all new Holons to have this set to true or not?
+            oasisHolon.Id = holon.HolonId;
+            oasisHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
+
+            //Just in case this has not been set yet or has been lost/corrupted somehow! ;-)
+            oasisHolon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
+
+            oasisHolon.PreviousVersionId = holon.PreviousVersionId;
+            oasisHolon.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey;
+            oasisHolon.MetaData = holon.MetaData;
+            oasisHolon.ProviderMetaData = holon.ProviderMetaData;
+            oasisHolon.Name = holon.Name;
+            oasisHolon.Description = holon.Description;
+            oasisHolon.HolonType = holon.HolonType;
+            oasisHolon.CreatedOASISType = holon.CreatedOASISType;
+            // oasisHolon.CreatedProviderType = new EnumValue<ProviderType>(holon.CreatedProviderType);
+            oasisHolon.CreatedProviderType = holon.CreatedProviderType;
+            //oasisHolon.CreatedProviderType.Value = Core.Enums.ProviderType.MongoDBOASIS;
+            oasisHolon.CreatedProviderType = holon.CreatedProviderType;
+            oasisHolon.IsChanged = holon.IsChanged;
+            oasisHolon.ParentHolonId = holon.ParentHolonId;
+            oasisHolon.ParentHolon = holon.ParentHolon;
+            oasisHolon.ParentZomeId = holon.ParentZomeId;
+            oasisHolon.ParentZome = holon.ParentZome;
+            oasisHolon.ParentCelestialBody = holon.ParentCelestialBody;
+            oasisHolon.ParentCelestialBodyId = holon.ParentCelestialBodyId;
+            oasisHolon.ParentCelestialSpace = holon.ParentCelestialSpace;
+            oasisHolon.ParentCelestialSpaceId = holon.ParentCelestialSpaceId;
+            oasisHolon.ParentOmniverse = holon.ParentOmniverse;
+            oasisHolon.ParentOmniverseId = holon.ParentOmniverseId;
+            oasisHolon.ParentDimension = holon.ParentDimension;
+            oasisHolon.ParentDimensionId = holon.ParentDimensionId;
+            oasisHolon.ParentMultiverse = holon.ParentMultiverse;
+            oasisHolon.ParentMultiverseId = holon.ParentMultiverseId;
+            oasisHolon.ParentUniverse = holon.ParentUniverse;
+            oasisHolon.ParentUniverseId = holon.ParentUniverseId;
+            oasisHolon.ParentGalaxyCluster = holon.ParentGalaxyCluster;
+            oasisHolon.ParentGalaxyClusterId = holon.ParentGalaxyClusterId;
+            oasisHolon.ParentGalaxy = holon.ParentGalaxy;
+            oasisHolon.ParentGalaxyId = holon.ParentGalaxyId;
+            oasisHolon.ParentSolarSystem = holon.ParentSolarSystem;
+            oasisHolon.ParentSolarSystemId = holon.ParentSolarSystemId;
+            oasisHolon.ParentGreatGrandSuperStar = holon.ParentGreatGrandSuperStar;
+            oasisHolon.ParentGreatGrandSuperStarId = holon.ParentGreatGrandSuperStarId;
+            oasisHolon.ParentGreatGrandSuperStar = holon.ParentGreatGrandSuperStar;
+            oasisHolon.ParentGrandSuperStarId = holon.ParentGrandSuperStarId;
+            oasisHolon.ParentGrandSuperStar = holon.ParentGrandSuperStar;
+            oasisHolon.ParentSuperStarId = holon.ParentSuperStarId;
+            oasisHolon.ParentSuperStar = holon.ParentSuperStar;
+            oasisHolon.ParentStarId = holon.ParentStarId;
+            oasisHolon.ParentStar = holon.ParentStar;
+            oasisHolon.ParentPlanetId = holon.ParentPlanetId;
+            oasisHolon.ParentPlanet = holon.ParentPlanet;
+            oasisHolon.ParentMoonId = holon.ParentMoonId;
+            oasisHolon.ParentMoon = holon.ParentMoon;
+            //oasisHolon.CustomKey = holon.CustomKey;
+
+            if (mapChildren)
+                oasisHolon.Children = holon.Children;
+
+            oasisHolon.AllChildIdListCache = holon.AllChildIdListCache;
+            oasisHolon.ChildIdListCache = holon.ChildIdListCache;
+
+            //oasisHolon.Nodes = holon.Nodes;
+
+            if (holon.Nodes != null)
+            {
+                oasisHolon.Nodes = new System.Collections.ObjectModel.ObservableCollection<INode>();
+                foreach (INode node in holon.Nodes)
+                    oasisHolon.Nodes.Add(node);
+            }
+
+            oasisHolon.CreatedByAvatarId = Guid.Parse(holon.CreatedByAvatarId);
+            oasisHolon.CreatedDate = holon.CreatedDate;
+            oasisHolon.DeletedByAvatarId = Guid.Parse(holon.DeletedByAvatarId);
+            oasisHolon.DeletedDate = holon.DeletedDate;
+            oasisHolon.ModifiedByAvatarId = Guid.Parse(holon.ModifiedByAvatarId);
+            oasisHolon.ModifiedDate = holon.ModifiedDate;
+            oasisHolon.DeletedDate = holon.DeletedDate;
+            oasisHolon.Version = holon.Version;
+            oasisHolon.VersionId = holon.VersionId;
+            oasisHolon.PreviousVersionId = holon.PreviousVersionId;
+            oasisHolon.IsActive = holon.IsActive;
+
+            return oasisHolon;
+        }
+
         public static OASISResult<IHolon> ConvertMongoEntityToOASISHolon(OASISResult<Holon> holon, bool mapChildren = true)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
@@ -673,90 +763,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                 return result;
             }
 
-            result.Result = new Core.Holons.Holon();
-            result.Result.IsNewHolon = false; //TODO: Not sure if best to default all new Holons to have this set to true or not?
-            result.Result.Id = holon.Result.HolonId;
-            result.Result.ProviderUniqueStorageKey = holon.Result.ProviderUniqueStorageKey;
-
-            //Just in case this has not been set yet or has been lost/corrupted somehow! ;-)
-            result.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Result.Id;
-
-            result.Result.PreviousVersionId = holon.Result.PreviousVersionId;
-            result.Result.PreviousVersionProviderUniqueStorageKey = holon.Result.PreviousVersionProviderUniqueStorageKey;
-            result.Result.MetaData = holon.Result.MetaData;
-            result.Result.ProviderMetaData = holon.Result.ProviderMetaData;
-            result.Result.Name = holon.Result.Name;
-            result.Result.Description = holon.Result.Description;
-            result.Result.HolonType = holon.Result.HolonType;
-            result.Result.CreatedOASISType = holon.Result.CreatedOASISType;
-            // oasisHolon.CreatedProviderType = new EnumValue<ProviderType>(holon.CreatedProviderType);
-            result.Result.CreatedProviderType = holon.Result.CreatedProviderType;
-            //oasisHolon.CreatedProviderType.Value = Core.Enums.ProviderType.MongoDBOASIS;
-            result.Result.CreatedProviderType = holon.Result.CreatedProviderType;
-            result.Result.IsChanged = holon.Result.IsChanged;
-            result.Result.ParentHolonId = holon.Result.ParentHolonId;
-            result.Result.ParentHolon = holon.Result.ParentHolon;
-            result.Result.ParentZomeId = holon.Result.ParentZomeId;
-            result.Result.ParentZome = holon.Result.ParentZome;
-            result.Result.ParentCelestialBody = holon.Result.ParentCelestialBody;
-            result.Result.ParentCelestialBodyId = holon.Result.ParentCelestialBodyId;
-            result.Result.ParentCelestialSpace = holon.Result.ParentCelestialSpace;
-            result.Result.ParentCelestialSpaceId = holon.Result.ParentCelestialSpaceId;
-            result.Result.ParentOmniverse = holon.Result.ParentOmniverse;
-            result.Result.ParentOmniverseId = holon.Result.ParentOmniverseId;
-            result.Result.ParentDimension = holon.Result.ParentDimension;
-            result.Result.ParentDimensionId = holon.Result.ParentDimensionId;
-            result.Result.ParentMultiverse = holon.Result.ParentMultiverse;
-            result.Result.ParentMultiverseId = holon.Result.ParentMultiverseId;
-            result.Result.ParentUniverse = holon.Result.ParentUniverse;
-            result.Result.ParentUniverseId = holon.Result.ParentUniverseId;
-            result.Result.ParentGalaxyCluster = holon.Result.ParentGalaxyCluster;
-            result.Result.ParentGalaxyClusterId = holon.Result.ParentGalaxyClusterId;
-            result.Result.ParentGalaxy = holon.Result.ParentGalaxy;
-            result.Result.ParentGalaxyId = holon.Result.ParentGalaxyId;
-            result.Result.ParentSolarSystem = holon.Result.ParentSolarSystem;
-            result.Result.ParentSolarSystemId = holon.Result.ParentSolarSystemId;
-            result.Result.ParentGreatGrandSuperStar = holon.Result.ParentGreatGrandSuperStar;
-            result.Result.ParentGreatGrandSuperStarId = holon.Result.ParentGreatGrandSuperStarId;
-            result.Result.ParentGreatGrandSuperStar = holon.Result.ParentGreatGrandSuperStar;
-            result.Result.ParentGrandSuperStarId = holon.Result.ParentGrandSuperStarId;
-            result.Result.ParentGrandSuperStar = holon.Result.ParentGrandSuperStar;
-            result.Result.ParentSuperStarId = holon.Result.ParentSuperStarId;
-            result.Result.ParentSuperStar = holon.Result.ParentSuperStar;
-            result.Result.ParentStarId = holon.Result.ParentStarId;
-            result.Result.ParentStar = holon.Result.ParentStar;
-            result.Result.ParentPlanetId = holon.Result.ParentPlanetId;
-            result.Result.ParentPlanet = holon.Result.ParentPlanet;
-            result.Result.ParentMoonId = holon.Result.ParentMoonId;
-            result.Result.ParentMoon = holon.Result.ParentMoon;
-            //result.Result.CustomKey = holon.Result.CustomKey;
-
-            if (mapChildren)
-                result.Result.Children = holon.Result.Children;
-
-            result.Result.AllChildIdListCache = holon.Result.AllChildIdListCache;
-            result.Result.ChildIdListCache = holon.Result.ChildIdListCache;
-
-            //result.Result.Nodes = holon.Result.Nodes;
-
-            if (holon.Result.Nodes != null)
-            {
-                result.Result.Nodes = new System.Collections.ObjectModel.ObservableCollection<INode>();
-                foreach (INode node in holon.Result.Nodes)
-                    result.Result.Nodes.Add(node);
-            }
-
-            result.Result.CreatedByAvatarId = Guid.Parse(holon.Result.CreatedByAvatarId);
-            result.Result.CreatedDate = holon.Result.CreatedDate;
-            result.Result.DeletedByAvatarId = Guid.Parse(holon.Result.DeletedByAvatarId);
-            result.Result.DeletedDate = holon.Result.DeletedDate;
-            result.Result.ModifiedByAvatarId = Guid.Parse(holon.Result.ModifiedByAvatarId);
-            result.Result.ModifiedDate = holon.Result.ModifiedDate;
-            result.Result.DeletedDate = holon.Result.DeletedDate;
-            result.Result.Version = holon.Result.Version;
-            result.Result.VersionId = holon.Result.VersionId;
-            result.Result.PreviousVersionId = holon.Result.PreviousVersionId;
-            result.Result.IsActive = holon.Result.IsActive;
+            result.Result = ConvertMongoEntityToOASISHolon(holon.Result, mapChildren);
             return result;
         }
 

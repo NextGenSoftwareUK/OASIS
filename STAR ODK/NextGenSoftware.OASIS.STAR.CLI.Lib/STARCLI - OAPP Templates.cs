@@ -118,8 +118,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation("Do you wish to edit the OAPP Template Name?"))
                 {
                     Console.WriteLine("");
-                    loadResult.Result.Name = CLIEngine.GetValidInput("What is the new name of the OAPP Template?");
-                    loadResult.Result.OAPPTemplateDNA.Name = loadResult.Result.Name;
+                    loadResult.Result.OAPPTemplateDNA.Name = CLIEngine.GetValidInput("What is the new name of the OAPP Template?");
+                    //loadResult.Result.OAPPTemplateDNA.Name = loadResult.Result.Name;
 
                     //oldPath = loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath;
                     //newPath = Path.Combine(new DirectoryInfo(loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath).Parent.FullName, loadResult.Result.OAPPTemplateDNA.Name);
@@ -132,8 +132,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation("Do you wish to edit the OAPP Template Description?"))
                 {
                     Console.WriteLine("");
-                    loadResult.Result.Description = CLIEngine.GetValidInput("What is the new description of the OAPP Template?");
-                    loadResult.Result.OAPPTemplateDNA.Description = loadResult.Result.Description;
+                    loadResult.Result.OAPPTemplateDNA.Description = CLIEngine.GetValidInput("What is the new description of the OAPP Template?");
+                    //loadResult.Result.OAPPTemplateDNA.Description = loadResult.Result.Description;
                     changesMade = true;
                 }
                 else
@@ -201,7 +201,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     Console.WriteLine("");
             }
             else
+            {
+                Console.WriteLine("");
                 CLIEngine.ShowErrorMessage($"An error occured loading the OAPP Template. Reason: {loadResult.Message}");
+            }
         }
 
         public static async Task DeleteOAPPTemplateAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
@@ -210,14 +213,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                ShowOAPPTemplate(result.Result);
+                //ShowOAPPTemplate(result.Result);
 
-                if (CLIEngine.GetConfirmation("Are you sure you wish to delete the OAPP Template? This will also delete the OAPP Template from the Source and Published folders and remove it from the STARNET Store (if you have already published it)"))
+                if (CLIEngine.GetConfirmation("Are you sure you wish to delete this OAPP Template? This will also delete the OAPP Template from the Source and Published folders and remove it from the STARNET Store (if you have already published it)"))
                 {
+                    Console.WriteLine("");
+                    bool deleteDownload = CLIEngine.GetConfirmation("Do you wish to also delete the correponding downloaded OAPP Template? (if there is any)");
+
+                    Console.WriteLine("");
+                    bool deleteInstall = CLIEngine.GetConfirmation("Do you wish to also delete the correponding installed OAPP Template? (if there is any). This is different to uninstalling because uninstalled OAPP Templates are still visible with the 'list uninstalled' sub-command and have the option to re-install. Whereas once it is deleted it is gone forever!");
+
+                    Console.WriteLine("");
                     if (CLIEngine.GetConfirmation("ARE YOU SURE YOU WITH TO PERMANENTLY DELETE THE OAPP TEMPLATE? IT WILL NOT BE POSSIBLE TO RECOVER AFTRWARDS!", ConsoleColor.Red))
                     {
+                        Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage("Deleting OAPP Template...");
-                        result = await STAR.OASISAPI.OAPPTemplates.DeleteOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, true, providerType);
+                        result = await STAR.OASISAPI.OAPPTemplates.DeleteOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, result.Result.OAPPTemplateDNA.VersionSequence, true, deleteDownload, deleteInstall, providerType);
 
                         if (result != null && !result.IsError && result.Result != null)
                         {
@@ -384,7 +395,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"The OAPPTemplate could not be found for id {OAPPTemplateDNAResult.Result.Id} found in the OAPPTemplateDNA.json file. It could be corrupt or the id could be wrong, please check and try again, or create a new OAPP Template.");
+                    CLIEngine.ShowErrorMessage($"The OAPPTemplate could not be found for id {OAPPTemplateDNAResult.Result.Id} found in the OAPPTemplateDNA.json file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new OAPP Template.");
             }
             else
                 CLIEngine.ShowErrorMessage("The OAPPTemplateDNA.json file could not be found! Please ensure it is in the folder you specified.");
@@ -1198,7 +1209,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Installs:                                   ", oappTemplate.OAPPTemplateDNA.Installs));
             CLIEngine.ShowMessage(string.Concat($"Total Downloads:                            ", oappTemplate.OAPPTemplateDNA.TotalDownloads));
             CLIEngine.ShowMessage(string.Concat($"Total Installs:                             ", oappTemplate.OAPPTemplateDNA.TotalInstalls));
-            CLIEngine.ShowMessage(string.Concat($"Active:                                     ", oappTemplate.MetaData != null && oappTemplate.MetaData.ContainsKey("Active") && oappTemplate.MetaData["Active"] != null && oappTemplate.MetaData["Active"] == "1" ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"Active:                                     ", oappTemplate.MetaData != null && oappTemplate.MetaData.ContainsKey("Active") && oappTemplate.MetaData["Active"] != null && oappTemplate.MetaData["Active"].ToString() == "1" ? "True" : "False"));
 
             if (showDetailedInfo)
             {
@@ -1535,7 +1546,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     }
                     else
+                    {
+                        Console.WriteLine("");
                         result.Result = null;
+
+                        if (!CLIEngine.GetConfirmation("Do you wish to search for another OAPP Template?"))
+                        {
+                            idOrName = "exit";
+                            break;
+                        }
+                    }
 
                     Console.WriteLine("");
                 }
@@ -1732,7 +1752,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     }
                     else
-                        result.Result = null;
+                    {
+                        if (CLIEngine.GetConfirmation("Do you wish to search for another OAPP Template?"))
+                            result.Result = null;
+                        else
+                            break;
+                    }
 
                     Console.WriteLine("");
                 }
