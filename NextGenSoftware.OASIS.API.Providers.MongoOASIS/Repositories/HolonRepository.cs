@@ -684,10 +684,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
+                Holon holon = await GetHolonAsync(id);
+
                 if (softDelete)
                 {
-                    Holon holon = await GetHolonAsync(id);
-                    result.Result = await SoftDeleteAsync(holon);
+                    result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(await SoftDeleteAsync(holon));
 
                     if (result.Result != null)
                     {
@@ -701,11 +702,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     await _dbContext.Holon.DeleteOneAsync(data);
                     result.IsDeleted = true;
                     result.DeletedCount = 1;
+                    result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In HolonRepository.DeleteAsync. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.DeleteAsync. Reason: {e}");
             }
 
             return result;
@@ -717,10 +719,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
+                Holon holon = GetHolon(id);
+
                 if (softDelete)
                 {
-                    Holon holon = GetHolon(id);
-                    result.Result = SoftDelete(holon);
+                    result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(SoftDelete(holon));
 
                     if (result.Result != null)
                     {
@@ -734,11 +737,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     _dbContext.Holon.DeleteOne(data);
                     result.IsDeleted = true;
                     result.DeletedCount = 1;
+                    result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In HolonRepository.Delete. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.Delete. Reason: {e}");
             }
 
             return result;
@@ -750,10 +754,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
+                Holon holon = await GetHolonAsync(providerKey);
+
                 if (softDelete)
                 {
-                    Holon holon = await GetHolonAsync(providerKey);
-                    result.Result = await SoftDeleteAsync(holon);
+                    result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(await SoftDeleteAsync(holon));
 
                     if (result.Result != null)
                     {
@@ -767,11 +772,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     await _dbContext.Holon.DeleteOneAsync(data);
                     result.IsDeleted = true;
                     result.DeletedCount = 1;
+                    result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In HolonRepository.DeleteAsync. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.DeleteAsync. Reason: {e}");
             }
 
             return result;
@@ -783,10 +789,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
+                Holon holon = GetHolon(providerKey);
+
                 if (softDelete)
                 {
-                    Holon holon = GetHolon(providerKey);
-                    result.Result = SoftDelete(holon);
+                    result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(SoftDelete(holon));
 
                     if (result.Result != null)
                     {
@@ -800,18 +807,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     _dbContext.Holon.DeleteOne(data);
                     result.IsDeleted = true;
                     result.DeletedCount = 1;
+                    result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
                 }
             }
-            catch
+            catch (Exception e)
             {
-                throw;
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.Delete. Reason: {e}");
             }
 
             return result;
         }
 
-        private async Task<IHolon> SoftDeleteAsync(Holon holon)
+        private async Task<OASISResult<Holon>> SoftDeleteAsync(Holon holon)
         {
+            OASISResult<Holon> result = new OASISResult<Holon>();
+
             try
             {
                 if (holon != null)
@@ -821,19 +831,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                     holon.DeletedDate = DateTime.Now;
                     await _dbContext.Holon.ReplaceOneAsync(filter: g => g.Id == holon.Id, replacement: holon);
-                    return (IHolon)holon;
+                    //return (IHolon)holon;
+                    result.Result = holon;
                 }
                 else
                     return null;
             }
-            catch
+            catch (Exception e)
             {
-                throw;
+                OASISErrorHandling.HandleError(ref result, $"Error occured in MongoDBOASIS Provider.HolonReoisitory.SoftDeleteAsync. Reason: {e}");
             }
+
+            return result;
         }
 
-        private IHolon SoftDelete(Holon holon)
+        private OASISResult<Holon> SoftDelete(Holon holon)
         {
+            OASISResult<Holon> result = new OASISResult<Holon>();
+
             try
             {
                 if (holon != null)
@@ -842,16 +857,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
                     holon.DeletedDate = DateTime.Now;
-                    _dbContext.Holon.ReplaceOne(filter: g => g.Id == holon.Id, replacement: holon);
-                    return (IHolon)holon;
+                     _dbContext.Holon.ReplaceOne(filter: g => g.Id == holon.Id, replacement: holon);
+                    result.Result = holon;
                 }
                 else
                     return null;
             }
-            catch
+            catch (Exception e)
             {
-                throw;
+                OASISErrorHandling.HandleError(ref result, $"Error occured in MongoDBOASIS Provider.HolonReoisitory.SoftDelete. Reason: {e}");
             }
+
+            return result;
         }
 
         private FilterDefinition<Holon> BuildFilterForGetHolonsForParent(string providerKey, HolonType holonType)

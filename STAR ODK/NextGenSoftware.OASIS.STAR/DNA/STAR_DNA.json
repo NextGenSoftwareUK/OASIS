@@ -1,6 +1,6 @@
 {
     //TODO: If BasePath is blank then all other paths below are absolute otherwise they are relative.
-    "BasePath": "C:\\Users\\David\\OneDrive\\Documents\\GitHub\\OASIS\\STAR ODK",
+    "BasePath": "C:\\Source\\OASIS\\STAR ODK",
     //"OASISBaseRuntimesPath": "Runtimes\\OASIS Runtimes",
     //"STARBaseRuntimesPath": "Runtimes\\STAR Runtimes",
     //"OASISRunTimePath": "Runtimes\\OASIS Runtime\\OASIS Runtime (With Holochain Conductors Embedded) v3.3.1",

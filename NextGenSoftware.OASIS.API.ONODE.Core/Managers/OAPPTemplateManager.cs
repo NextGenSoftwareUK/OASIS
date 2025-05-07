@@ -375,31 +375,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(Guid avatarId, Guid oappTemplateId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(Guid avatarId, Guid oappTemplateId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            OASISResult<IOAPPTemplate> oappTemplateResult = await LoadOAPPTemplateAsync(avatarId, oappTemplateId, providerType: providerType);
+            string errorMessage = "Error occured in DeleteOAPPTemplateAsync. Reason: ";
+            OASISResult<IOAPPTemplate> oappTemplateResult = await LoadOAPPTemplateAsync(avatarId, oappTemplateId, version, providerType);
 
             if (oappTemplateResult != null && oappTemplateResult.Result != null && !oappTemplateResult.IsError)
             {
-                if (oappTemplateResult.Result.OAPPTemplateDNA.CreatedByAvatarId != avatarId)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Permission Denied. You did not create this OAPP Template. Error occured in DeleteOAPPTemplateAsync loading the OAPP Template with Id {oappTemplateId} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: The OAPP Template was not created by the Avatar with Id {avatarId}.");
-                    return result;
-                }
-
-                if (Directory.Exists(oappTemplateResult.Result.OAPPTemplateDNA.OAPPTemplatePath))
-                    Directory.Delete(oappTemplateResult.Result.OAPPTemplateDNA.OAPPTemplatePath, true);
-
-                if (Directory.Exists(oappTemplateResult.Result.OAPPTemplateDNA.OAPPTemplatePublishedPath))
-                    Directory.Delete(oappTemplateResult.Result.OAPPTemplateDNA.OAPPTemplatePublishedPath, true);
+                result = await DeleteOAPPTemplateAsync(avatarId, oappTemplateResult.Result, version, softDelete, deleteDownload, deleteInstall, providerType);
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in DeleteOAPPTemplateAsync loading the OAPP Template with Id {oappTemplateId} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {oappTemplateResult.Message}");
-
-            OASISResult<OAPPTemplate> loadHolonsResult = await DeleteHolonAsync<OAPPTemplate>(oappTemplateId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
-            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-            result.Result = loadHolonsResult.Result;
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the OAPP Template with Id {oappTemplateId} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {oappTemplateResult.Message}");
+ 
             return result;
         }
 
@@ -431,26 +419,87 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(Guid avatarId, IOAPPTemplate oappTemplate, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(Guid avatarId, IOAPPTemplate oappTemplate, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
+            string errorMessage = "Error occured in DeleteOAPPTemplateAsync. Reason: ";
 
             if (oappTemplate.OAPPTemplateDNA.CreatedByAvatarId != avatarId)
             {
-                OASISErrorHandling.HandleError(ref result, $"Permission Denied. You did not create this OAPP Template. Error occured in DeleteOAPPTemplateAsync loading the OAPP Template with Id {oappTemplate.OAPPTemplateDNA.Id} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: The OAPP Template was not created by the Avatar with Id {avatarId}.");
+                OASISErrorHandling.HandleError(ref result, $"Permission Denied. You did not create this OAPP Template. Error occured in DeleteOAPPTemplateAsync loading the OAPP Template with Id {oappTemplate.OAPPTemplateDNA.CreatedByAvatarId} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: The OAPP Template was not created by the Avatar with Id {avatarId}.");
                 return result;
             }
 
-            if (Directory.Exists(oappTemplate.OAPPTemplateDNA.OAPPTemplatePath))
-                Directory.Delete(oappTemplate.OAPPTemplateDNA.OAPPTemplatePath, true);
+            try
+            {
+                if (!string.IsNullOrEmpty(oappTemplate.OAPPTemplateDNA.OAPPTemplatePath) && Directory.Exists(oappTemplate.OAPPTemplateDNA.OAPPTemplatePath))
+                    Directory.Delete(oappTemplate.OAPPTemplateDNA.OAPPTemplatePath, true);
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured attempting to delete the OAPPTemplate folder {oappTemplate.OAPPTemplateDNA.OAPPTemplatePath}. PLEASE DELETE MANUALLY! Reason: {e}");
+            }
 
-            if (Directory.Exists(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath))
-                Directory.Delete(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath, true);
+            try
+            {
+                if (!string.IsNullOrEmpty(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath) && Directory.Exists(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                    File.Delete(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath);
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured attempting to delete the OAPPTemplate Published folder {oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath}. PLEASE DELETE MANUALLY! Reason: {e}");
+            }
 
-            //TODO: Do we also want to delete the download and install holons? For now we wont.
-            OASISResult<OAPPTemplate> loadHolonsResult = await DeleteHolonAsync<OAPPTemplate>(oappTemplate.Id, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
-            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-            result.Result = loadHolonsResult.Result;
+            if (deleteDownload || deleteInstall)
+            {
+                OASISResult<IInstalledOAPPTemplate> installedOAPPTemplateResult = await LoadInstalledOAPPTemplateAsync(avatarId, oappTemplate.OAPPTemplateDNA.Id, version, providerType);
+
+                if (installedOAPPTemplateResult != null && installedOAPPTemplateResult.Result != null && !installedOAPPTemplateResult.IsError)
+                {
+                    try
+                    {
+                        if (deleteDownload && !string.IsNullOrEmpty(installedOAPPTemplateResult.Result.DownloadedPath) && Directory.Exists(installedOAPPTemplateResult.Result.DownloadedPath))
+                            File.Delete(installedOAPPTemplateResult.Result.DownloadedPath);
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured attempting to delete the OAPPTemplate Download folder {installedOAPPTemplateResult.Result.DownloadedPath}. PLEASE DELETE MANUALLY! Reason: {e}");
+                    }
+
+                    try
+                    {
+                        if (deleteInstall && !string.IsNullOrEmpty(installedOAPPTemplateResult.Result.InstalledPath) && Directory.Exists(installedOAPPTemplateResult.Result.InstalledPath))
+                            Directory.Delete(installedOAPPTemplateResult.Result.InstalledPath, true);
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured attempting to delete the OAPPTemplate Installed folder {installedOAPPTemplateResult.Result.InstalledPath}. PLEASE DELETE MANUALLY! Reason: {e}");
+                    }
+
+                    if (deleteInstall)
+                    {
+                        OASISResult<OAPPTemplate> deleteInstalledOAPPTemplateHolonResult = await DeleteHolonAsync<OAPPTemplate>(installedOAPPTemplateResult.Result.Id, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
+
+                        if (!(deleteInstalledOAPPTemplateHolonResult != null && deleteInstalledOAPPTemplateHolonResult.Result != null && !deleteInstalledOAPPTemplateHolonResult.IsError))
+                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting the Installed OAPPTemplate holon with id {installedOAPPTemplateResult.Result.Id} calling DeleteHolonAsync. Reason: {deleteInstalledOAPPTemplateHolonResult.Message}");
+                    }
+
+                    if (deleteDownload)
+                    {
+                        OASISResult<OAPPTemplate> deleteDownloadedOAPPTemplateHolonResult = await DeleteHolonAsync<OAPPTemplate>(installedOAPPTemplateResult.Result.DownloadedOAPPTemplateHolonId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
+
+                        if (!(deleteDownloadedOAPPTemplateHolonResult != null && deleteDownloadedOAPPTemplateHolonResult.Result != null && !deleteDownloadedOAPPTemplateHolonResult.IsError))
+                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting the Downloaded OAPPTemplate holon with id {installedOAPPTemplateResult.Result.DownloadedOAPPTemplateHolonId} calling DeleteHolonAsync. Reason: {deleteDownloadedOAPPTemplateHolonResult.Message}");
+                    }
+                }
+            }
+
+            OASISResult<OAPPTemplate> deleteHolonResult = await DeleteHolonAsync<OAPPTemplate>(oappTemplate.Id, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
+
+            if (!(deleteHolonResult != null && deleteHolonResult.Result != null && !deleteHolonResult.IsError))
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured deleting the OAPPTemplate holon with id {oappTemplate.Id} calling DeleteHolonAsync. Reason: {deleteHolonResult.Message}");
+
+            result.Result = deleteHolonResult.Result;
             return result;
         }
 
@@ -656,17 +705,25 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             string oldPublishedPath = "";
             string oldDownloadedPath = "";
             string oldInstalledPath = "";
+            string oldName = "";
+            string launchTarget = "";
 
             if (OAPPTemplate.Name != newOAPPTemplateDNA.Name)
             {
+                oldName = OAPPTemplate.Name;
                 oldPath = OAPPTemplate.OAPPTemplateDNA.OAPPTemplatePath;
                 newPath = Path.Combine(new DirectoryInfo(OAPPTemplate.OAPPTemplateDNA.OAPPTemplatePath).Parent.FullName, newOAPPTemplateDNA.Name);
                 newOAPPTemplateDNA.OAPPTemplatePath = newPath;
+                newOAPPTemplateDNA.LaunchTarget = newOAPPTemplateDNA.LaunchTarget.Replace(OAPPTemplate.Name, newOAPPTemplateDNA.Name);
+                launchTarget = newOAPPTemplateDNA.LaunchTarget;
+
+                OAPPTemplate.MetaData["OAPPTemplateName"] = newOAPPTemplateDNA.Name;
 
                 if (!string.IsNullOrEmpty(OAPPTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath))
                 {
                     oldPublishedPath = OAPPTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath;
-                    newOAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(new DirectoryInfo(OAPPTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath).FullName, newOAPPTemplateDNA.Name);
+                    //newOAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(new DirectoryInfo(oldPublishedPath).Parent.FullName, newOAPPTemplateDNA.Name);
+                    newOAPPTemplateDNA.OAPPTemplatePublishedPath = oldPublishedPath.Replace(oldName, newOAPPTemplateDNA.Name);
                 }
             }
 
@@ -674,89 +731,98 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OAPPTemplate.Name = newOAPPTemplateDNA.Name;
             OAPPTemplate.Description = newOAPPTemplateDNA.Description;
 
+            if (!string.IsNullOrEmpty(newPath) && !string.IsNullOrEmpty(oldPath))
+            {
+                try
+                {
+                    if (Directory.Exists(oldPath))
+                        Directory.Move(oldPath, newPath);
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template folder from {oldPath} to {newPath}. Reason: {e}.");
+                    CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                }
+
+                if (!string.IsNullOrEmpty(newOAPPTemplateDNA.OAPPTemplatePublishedPath))
+                {
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(oldPublishedPath) && File.Exists(oldPublishedPath))
+                            File.Move(oldPublishedPath, newOAPPTemplateDNA.OAPPTemplatePublishedPath);
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template published file from {oldPublishedPath} to {newOAPPTemplateDNA.OAPPTemplatePublishedPath}. Reason: {e}.");
+                        CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                    }
+                }
+            }
+
             OASISResult<IOAPPTemplate> saveResult = await SaveOAPPTemplateAsync(OAPPTemplate, avatarId, providerType: providerType);
 
             if (saveResult != null && !saveResult.IsError && saveResult.Result != null)
             {
-                if (!string.IsNullOrEmpty(newPath) && !string.IsNullOrEmpty(oldPath))
-                {
-                    try
-                    {
-                        if (Directory.Exists(oldPath))
-                            Directory.Move(oldPath, newPath);
-                    }
-                    catch (Exception e)
-                    {
-                        OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template folder from {oldPath} to {newPath}. Reason: {e}.");
-                        CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
-                    }
-
-                    if (!string.IsNullOrEmpty(newOAPPTemplateDNA.OAPPTemplatePublishedPath))
-                    {
-                        try
-                        {
-                            if (!string.IsNullOrEmpty(oldPublishedPath) && File.Exists(oldPublishedPath))
-                                File.Move(oldPublishedPath, newOAPPTemplateDNA.OAPPTemplatePublishedPath);
-                        }
-                        catch (Exception e)
-                        {
-                            OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template published file from {oldPublishedPath} to {newOAPPTemplateDNA.OAPPTemplatePublishedPath}. Reason: {e}.");
-                            CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
-                        }
-                    }
-                }
-
                 OASISResult<IEnumerable<IOAPPTemplate>> templatesResult = await LoadOAPPTemplateVersionsAsync(newOAPPTemplateDNA.Id, providerType);
 
                 if (templatesResult != null && templatesResult.Result != null && !templatesResult.IsError)
                 {
                     foreach (IOAPPTemplate template in templatesResult.Result)
                     {
+                        //No need to update the version we already updated above.
+                        if (template.OAPPTemplateDNA.Version == OAPPTemplate.OAPPTemplateDNA.Version)
+                            continue;
+
                         template.OAPPTemplateDNA = newOAPPTemplateDNA;
                         template.Name = newOAPPTemplateDNA.Name;
                         template.Description = newOAPPTemplateDNA.Description;
+                        template.MetaData["OAPPTemplateName"] = newOAPPTemplateDNA.Name;
 
                         oldPath = template.OAPPTemplateDNA.OAPPTemplatePath;
                         newPath = Path.Combine(new DirectoryInfo(oldPath).Parent.FullName, newOAPPTemplateDNA.Name);
                         template.OAPPTemplateDNA.OAPPTemplatePath = newPath;
+                        template.OAPPTemplateDNA.LaunchTarget = launchTarget;
 
                         if (!string.IsNullOrEmpty(template.OAPPTemplateDNA.OAPPTemplatePublishedPath))
                         {
                             oldPublishedPath = template.OAPPTemplateDNA.OAPPTemplatePublishedPath;
-                            template.OAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(new DirectoryInfo(oldPublishedPath).FullName, newOAPPTemplateDNA.Name);
+                            //template.OAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(new DirectoryInfo(oldPublishedPath).FullName, newOAPPTemplateDNA.Name);
+                            newOAPPTemplateDNA.OAPPTemplatePublishedPath = oldPublishedPath.Replace(oldName, newOAPPTemplateDNA.Name);
+                        }
+
+                        if (!string.IsNullOrEmpty(newPath))
+                        {
+                            try
+                            {
+                                if (Directory.Exists(oldPath))
+                                    Directory.Move(oldPath, newPath);
+                            }
+                            catch (Exception e)
+                            {
+                                OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template folder from {oldPath} to {newPath}. Reason: {e}.");
+                                CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                            }
+                        }
+
+                        if (!string.IsNullOrEmpty(oldPublishedPath))
+                        {
+                            try
+                            {
+                                if (File.Exists(oldPublishedPath))
+                                    File.Move(oldPublishedPath, template.OAPPTemplateDNA.OAPPTemplatePublishedPath);
+                            }
+                            catch (Exception e)
+                            {
+                                OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template published file from {oldPublishedPath} to {newOAPPTemplateDNA.OAPPTemplatePublishedPath}. Reason: {e}.");
+                                CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                            }
                         }
 
                         OASISResult<IOAPPTemplate> templateSaveResult = await SaveOAPPTemplateAsync(template, avatarId, providerType);
 
                         if (templateSaveResult != null && templateSaveResult.Result != null && !templateSaveResult.IsError)
                         {
-                            if (!string.IsNullOrEmpty(newPath))
-                            {
-                                try
-                                {
-                                    if (Directory.Exists(oldPath))
-                                        Directory.Move(oldPath, newPath);
-                                }
-                                catch (Exception e)
-                                {
-                                    OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template folder from {oldPath} to {newPath}. Reason: {e}.");
-                                    CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
-                                }
-                            }
-
-                            if (!string.IsNullOrEmpty(oldPublishedPath))
-                            {
-                                try
-                                {
-                                    if (File.Exists(oldPublishedPath))
-                                        File.Move(oldPublishedPath, template.OAPPTemplateDNA.OAPPTemplatePublishedPath);
-                                }
-                                catch (Exception e)
-                                {
-                                    OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template published file from {oldPublishedPath} to {newOAPPTemplateDNA.OAPPTemplatePublishedPath}. Reason: {e}.");
-                                    CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
-                                }
-                            }
+                           
                         }
                         else
                             OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured calling SaveOAPPTemplateAsync updating the OAPPTemplateDNA for OAPP Template with Id {template.Id} for provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {templateSaveResult.Message}");
@@ -773,63 +839,67 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     foreach (IInstalledOAPPTemplate template in installedTemplatesResult.Result)
                     {
                         template.OAPPTemplateDNA = newOAPPTemplateDNA;
-                        template.Name = newOAPPTemplateDNA.Name;
-                        template.Description = newOAPPTemplateDNA.Description;
+                        template.Name = template.Name.Replace(oldName, newOAPPTemplateDNA.Name);
+                        template.Description = template.Description.Replace(oldName, newOAPPTemplateDNA.Name);
+                        template.MetaData["OAPPTemplateName"] = newOAPPTemplateDNA.Name;
 
                         oldPath = template.OAPPTemplateDNA.OAPPTemplatePath;
                         newPath = Path.Combine(new DirectoryInfo(oldPath).Parent.FullName, newOAPPTemplateDNA.Name);
                         template.OAPPTemplateDNA.OAPPTemplatePath = newPath;
+                        template.OAPPTemplateDNA.LaunchTarget = launchTarget;
 
                         if (!string.IsNullOrEmpty(template.OAPPTemplateDNA.OAPPTemplatePublishedPath))
                         {
                             oldPublishedPath = template.OAPPTemplateDNA.OAPPTemplatePublishedPath;
-                            template.OAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(new DirectoryInfo(oldPublishedPath).FullName, newOAPPTemplateDNA.Name);
+                            template.OAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(new DirectoryInfo(oldPublishedPath).Parent.FullName, string.Concat(newOAPPTemplateDNA.Name, "_v", template.OAPPTemplateDNA.Version, ".oapptemplate"));
+                            //template.OAPPTemplateDNA.OAPPTemplatePublishedPath = oldPublishedPath.Replace(oldName, newOAPPTemplateDNA.Name);
                         }
 
                         if (!string.IsNullOrEmpty(template.DownloadedPath))
                         {
                             oldDownloadedPath = template.DownloadedPath;
-                            template.DownloadedPath = Path.Combine(new DirectoryInfo(oldDownloadedPath).FullName, newOAPPTemplateDNA.Name);
+                            //template.DownloadedPath = Path.Combine(new DirectoryInfo(oldDownloadedPath).FullName, newOAPPTemplateDNA.Name);
+                            template.DownloadedPath = oldDownloadedPath.Replace(oldName, newOAPPTemplateDNA.Name);
                         }
 
                         if (!string.IsNullOrEmpty(template.InstalledPath))
                         {
                             oldInstalledPath = template.InstalledPath;
-                            template.InstalledPath = Path.Combine(new DirectoryInfo(oldDownloadedPath).FullName, newOAPPTemplateDNA.Name);
+                            template.InstalledPath = Path.Combine(new DirectoryInfo(oldInstalledPath).Parent.FullName, newOAPPTemplateDNA.Name);
+                        }
+
+                        if (!string.IsNullOrEmpty(newPath))
+                        {
+                            try
+                            {
+                                if (Directory.Exists(oldPath) && oldPath != newPath)
+                                    Directory.Move(oldPath, newPath);
+                            }
+                            catch (Exception e)
+                            {
+                                OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template folder from {oldPath} to {newPath}. Reason: {e}.");
+                                CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                            }
+                        }
+
+                        if (!string.IsNullOrEmpty(oldPublishedPath))
+                        {
+                            try
+                            {
+                                if (File.Exists(oldPublishedPath) && oldPublishedPath != template.OAPPTemplateDNA.OAPPTemplatePublishedPath)
+                                    File.Move(oldPublishedPath, template.OAPPTemplateDNA.OAPPTemplatePublishedPath);
+                            }
+                            catch (Exception e)
+                            {
+                                OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template published file from {oldPublishedPath} to {newOAPPTemplateDNA.OAPPTemplatePublishedPath}. Reason: {e}.");
+                                CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
+                            }
                         }
 
                         OASISResult<IOAPPTemplate> templateSaveResult = await SaveOAPPTemplateAsync(template, avatarId, providerType);
 
                         if (templateSaveResult != null && templateSaveResult.Result != null && !templateSaveResult.IsError)
                         {
-                            if (!string.IsNullOrEmpty(newPath))
-                            {
-                                try
-                                {
-                                    if (Directory.Exists(oldPath))
-                                        Directory.Move(oldPath, newPath);
-                                }
-                                catch (Exception e)
-                                {
-                                    OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template folder from {oldPath} to {newPath}. Reason: {e}.");
-                                    CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
-                                }
-                            }
-
-                            if (!string.IsNullOrEmpty(oldPublishedPath))
-                            {
-                                try
-                                {
-                                    if (File.Exists(oldPublishedPath))
-                                        File.Move(oldPublishedPath, template.OAPPTemplateDNA.OAPPTemplatePublishedPath);
-                                }
-                                catch (Exception e)
-                                {
-                                    OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the OAPP Template published file from {oldPublishedPath} to {newOAPPTemplateDNA.OAPPTemplatePublishedPath}. Reason: {e}.");
-                                    CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
-                                }
-                            }
-
                             if (!string.IsNullOrEmpty(oldDownloadedPath))
                             {
                                 try
@@ -955,302 +1025,307 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         OASISResult<IOAPPTemplate> loadOAPPTemplateResult = await LoadOAPPTemplateAsync(OAPPTemplateDNA.Id, avatarId);
 
                         if (loadOAPPTemplateResult != null && loadOAPPTemplateResult.Result != null && !loadOAPPTemplateResult.IsError)
-                        {                     
-                            OASISResult<bool> validateVersionResult = ValidateVersion(OAPPTemplateDNA.Version, loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version, fullPathToOAPPTemplate, OAPPTemplateDNA.PublishedOn == DateTime.MinValue, edit);
-
-                            if (validateVersionResult != null && validateVersionResult.Result && !validateVersionResult.IsError)
+                        {
+                            if (loadOAPPTemplateResult.Result.OAPPTemplateDNA.CreatedByAvatarId == avatarId)
                             {
-                                //TODO: Maybe add check to make sure the DNA has not been tampered with?
-                                loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version = OAPPTemplateDNA.Version; //Set the new version set in the DNA (JSON file).
-                                OAPPTemplateDNA = loadOAPPTemplateResult.Result.OAPPTemplateDNA; //Make sure it has not been tampered with by using the stored version.
+                                OASISResult<bool> validateVersionResult = ValidateVersion(OAPPTemplateDNA.Version, loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version, fullPathToOAPPTemplate, OAPPTemplateDNA.PublishedOn == DateTime.MinValue, edit);
 
-                                if (!edit)
+                                if (validateVersionResult != null && validateVersionResult.Result && !validateVersionResult.IsError)
                                 {
-                                    OAPPTemplateDNA.VersionSequence++;
-                                    OAPPTemplateDNA.NumberOfVersions++;
-                                }
-                                
-                                OAPPTemplateDNA.LaunchTarget = launchTarget;
-                               
-                                string publishedOAPPTemplateFileName = string.Concat(OAPPTemplateDNA.Name, "_v", OAPPTemplateDNA.Version, ".oapptemplate");
+                                    //TODO: Maybe add check to make sure the DNA has not been tampered with?
+                                    loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version = OAPPTemplateDNA.Version; //Set the new version set in the DNA (JSON file).
+                                    OAPPTemplateDNA = loadOAPPTemplateResult.Result.OAPPTemplateDNA; //Make sure it has not been tampered with by using the stored version.
 
-                                if (string.IsNullOrEmpty(fullPathToPublishTo))
-                                    fullPathToPublishTo = Path.Combine(fullPathToOAPPTemplate, "Published");
-
-                                if (!Directory.Exists(fullPathToPublishTo))
-                                    Directory.CreateDirectory(fullPathToPublishTo);
-
-                                if (!edit)
-                                {
-                                    OAPPTemplateDNA.PublishedOn = DateTime.Now;
-                                    OAPPTemplateDNA.PublishedByAvatarId = avatarId;
-                                    OAPPTemplateDNA.PublishedByAvatarUsername = loadAvatarResult.Result.Username;
-                                }
-                                else
-                                {
-                                    OAPPTemplateDNA.ModifiedOn = DateTime.Now;
-                                    OAPPTemplateDNA.ModifiedByAvatarId = avatarId;
-                                    OAPPTemplateDNA.ModifiedByAvatarUsername = loadAvatarResult.Result.Username;
-                                }
-
-                                OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && (oappBinaryProviderType != ProviderType.None || uploadOAPPTemplateToCloud);
-
-                                if (generateOAPPTemplateBinary)
-                                {
-                                    OAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(fullPathToPublishTo, publishedOAPPTemplateFileName);
-                                    OAPPTemplateDNA.OAPPTemplatePublishedToCloud = registerOnSTARNET && uploadOAPPTemplateToCloud;
-                                    OAPPTemplateDNA.OAPPTemplatePublishedProviderType = oappBinaryProviderType;
-                                }
-
-                                WriteOAPPTemplateDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
-                                OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNA, Status = Enums.OAPPTemplatePublishStatus.Compressing });
-
-                                if (generateOAPPTemplateBinary)
-                                {
-                                    if (File.Exists(OAPPTemplateDNA.OAPPTemplatePublishedPath))
-                                        File.Delete(OAPPTemplateDNA.OAPPTemplatePublishedPath);
-
-                                    ZipFile.CreateFromDirectory(fullPathToOAPPTemplate, OAPPTemplateDNA.OAPPTemplatePublishedPath);
-
-                                    //tempPath = Path.GetTempPath();
-                                    //tempPath = Path.Combine(tempPath, readOAPPTemplateDNAResult.Result.Name);
-
-                                    //if (Directory.Exists(tempPath))
-                                    //    Directory.Delete(tempPath, true);
-
-                                    //ZipFile.CreateFromDirectory(fullPathToOAPPTemplate, tempPath);
-                                    //File.Move(tempPath, OAPPTemplateDNA.OAPPTemplatePublishedPath);
-                                }
-
-                                //TODO: Currently the filesize will NOT be in the compressed .oapptemplate file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPTemplateDNA inside it...
-                                if (!string.IsNullOrEmpty(OAPPTemplateDNA.OAPPTemplatePublishedPath) && File.Exists(OAPPTemplateDNA.OAPPTemplatePublishedPath))
-                                    OAPPTemplateDNA.OAPPTemplateFileSize = new FileInfo(OAPPTemplateDNA.OAPPTemplatePublishedPath).Length;
-
-                                WriteOAPPTemplateDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
-                                loadOAPPTemplateResult.Result.OAPPTemplateDNA = OAPPTemplateDNA;
-
-                                if (registerOnSTARNET)
-                                {
-                                    if (uploadOAPPTemplateToCloud)
+                                    if (!edit)
                                     {
-                                        try
-                                        {
-                                            OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = readOAPPTemplateDNAResult.Result, Status = Enums.OAPPTemplatePublishStatus.Uploading });
-                                            StorageClient storage = await StorageClient.CreateAsync();
-                                            //var bucket = storage.CreateBucket("oasis", "oapptemplates");
-
-                                            // set minimum chunksize just to see progress updating
-                                            var uploadObjectOptions = new UploadObjectOptions
-                                            {
-                                                ChunkSize = UploadObjectOptions.MinimumChunkSize
-                                            };
-
-                                            var progressReporter = new Progress<Google.Apis.Upload.IUploadProgress>(OnUploadProgress);
-                                            using (var fileStream = File.OpenRead(OAPPTemplateDNA.OAPPTemplatePublishedPath))
-                                            {
-                                                _fileLength = fileStream.Length;
-                                                _progress = 0;
-
-                                                await storage.UploadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME, publishedOAPPTemplateFileName, "", fileStream, uploadObjectOptions, progress: progressReporter);
-                                            }
-
-                                            _progress = 100;
-                                            OnOAPPTemplateUploadStatusChanged?.Invoke(this, new OAPPTemplateUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPTemplateUploadStatus.Uploading });
-                                            CLIEngine.DisposeProgressBar(false);
-                                            Console.WriteLine("");
-
-                                            //HttpClient client = new HttpClient();
-                                            //string pinataApiKey = "33e4469830a51af0171b";
-                                            //string pinataSecretApiKey = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs";
-                                            //string pinataUrl = "https://api.pinata.cloud/pinning/pinFileToIPFS";
-                                            //string filePath = OAPPTemplateDNA.OAPPTemplatePublishedPath;
-
-                                            //using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-                                            //using (var content = new MultipartFormDataContent())
-                                            //{
-                                            //    content.Add(new StreamContent(fileStream), "file", Path.GetFileName(filePath));
-                                            //    client.DefaultRequestHeaders.Add("pinata_api_key", pinataApiKey);
-                                            //    client.DefaultRequestHeaders.Add("pinata_secret_api_key", pinataSecretApiKey);
-
-                                            //    var response = await client.PostAsync(pinataUrl, content);
-                                            //    response.EnsureSuccessStatusCode();
-
-                                            //    var responseBody = await response.Content.ReadAsStringAsync();
-                                            //    //return responseBody;
-                                            //}
-
-
-                                            //                           var config = new Config
-                                            //                           {
-                                            //                               ApiKey = "33e4469830a51af0171b",
-                                            //                               ApiSecret = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs"
-                                            //                           };
-
-                                            //                           Pinata.Client.PinataClient pinClient = new Pinata.Client.PinataClient(config);
-
-                                            //                           //var html = @"
-                                            //                           //    <html>
-                                            //                           //       <head>
-                                            //                           //          <title>Hello IPFS!</title>
-                                            //                           //       </head>
-                                            //                           //       <body>
-                                            //                           //          <h1>Hello World</h1>
-                                            //                           //       </body>
-                                            //                           //    </html>
-                                            //                           //    ";
-
-                                            //                           var metadata = new PinataMetadata // optional
-                                            //                           {
-                                            //                               KeyValues =
-                                            //{
-                                            //   {"Author", "David Ellams"}
-                                            //}
-                                            //                           };
-
-                                            //                           var options = new PinataOptions(); // optional
-
-                                            //                           options.CustomPinPolicy.AddOrUpdateRegion("NYC1", desiredReplicationCount: 1);
-
-                                            //                           //var response = await client.Pinning.PinFileToIpfsAsync()
-
-                                            //                           byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
-                                            //                           using (var content = new MultipartFormDataContent())
-                                            //                           {
-                                            //                               var fileContent = new ByteArrayContent(fileBytes);
-                                            //                               content.Add(fileContent, "file", Path.GetFileName(filePath));
-                                            //                           }
-
-                                            //                           var response = await pinClient.Pinning.PinFileToIpfsAsync(content =>
-                                            //                           {
-                                            //                               //var file = new StringContent(, Encoding.UTF8, MediaTypeNames.Application.Zip);
-                                            //                               var file = new StreamContent(fileStream), "file", Path.GetFileName(filePath));
-
-                                            //                               content.AddPinataFile(file, "index.html");
-                                            //                           },
-                                            //                              metadata,
-                                            //                              options);
-
-                                            //                           if (response.IsSuccess)
-                                            //                           {
-                                            //                               //File uploaded to Pinata Cloud and can be accessed on IPFS!
-                                            //                               var hash = response.IpfsHash; // QmR9HwzakHVr67HFzzgJHoRjwzTTt4wtD6KU4NFe2ArYuj
-                                            //                           }
-
-                                            //var pinataClient = new PinataClient("33e4469830a51af0171b");
-                                            //PinFileResponse pinFileResponse = await pinataClient.PinFileToIPFSAsync(OAPPTemplateDNA.OAPPTemplatePublishedPath);
-
-                                            //if (pinFileResponse != null && !string.IsNullOrEmpty(pinFileResponse.IpfsHash))
-                                            //{
-                                            //    OAPPTemplateDNA.PinataIPFSHash = pinFileResponse.IpfsHash;
-                                            //    OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = true;
-                                            //    OAPPTemplateDNA.OAPPTemplatePublishedToPinata = true;
-                                            //}
-                                            //else
-                                            //{
-                                            //    OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the OAPPTemplate to Pinata.");
-                                            //    OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
-                                            //}
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            CLIEngine.DisposeProgressBar(false);
-                                            Console.WriteLine("");
-
-                                            OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the OAPPTemplate to cloud storage. Reason: {ex}");
-                                            OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
-                                            OAPPTemplateDNA.OAPPTemplatePublishedToCloud = false;
-                                        }
+                                        OAPPTemplateDNA.VersionSequence++;
+                                        OAPPTemplateDNA.NumberOfVersions++;
                                     }
 
-                                    if (oappBinaryProviderType != ProviderType.None)
+                                    OAPPTemplateDNA.LaunchTarget = launchTarget;
+
+                                    string publishedOAPPTemplateFileName = string.Concat(OAPPTemplateDNA.Name, "_v", OAPPTemplateDNA.Version, ".oapptemplate");
+
+                                    if (string.IsNullOrEmpty(fullPathToPublishTo))
+                                        fullPathToPublishTo = Path.Combine(fullPathToOAPPTemplate, "Published");
+
+                                    if (!Directory.Exists(fullPathToPublishTo))
+                                        Directory.CreateDirectory(fullPathToPublishTo);
+
+                                    if (!edit)
                                     {
-                                        loadOAPPTemplateResult.Result.PublishedOAPPTemplate = File.ReadAllBytes(OAPPTemplateDNA.OAPPTemplatePublishedPath);
+                                        OAPPTemplateDNA.PublishedOn = DateTime.Now;
+                                        OAPPTemplateDNA.PublishedByAvatarId = avatarId;
+                                        OAPPTemplateDNA.PublishedByAvatarUsername = loadAvatarResult.Result.Username;
+                                    }
+                                    else
+                                    {
+                                        OAPPTemplateDNA.ModifiedOn = DateTime.Now;
+                                        OAPPTemplateDNA.ModifiedByAvatarId = avatarId;
+                                        OAPPTemplateDNA.ModifiedByAvatarUsername = loadAvatarResult.Result.Username;
+                                    }
 
-                                        //TODO: We could use HoloOASIS and other large file storage providers in future...
-                                        OASISResult<IOAPPTemplate> saveLargeOAPPTemplateResult = await SaveOAPPTemplateAsync(loadOAPPTemplateResult.Result, avatarId, oappBinaryProviderType);
+                                    OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && (oappBinaryProviderType != ProviderType.None || uploadOAPPTemplateToCloud);
 
-                                        if (saveLargeOAPPTemplateResult != null && !saveLargeOAPPTemplateResult.IsError && saveLargeOAPPTemplateResult.Result != null)
+                                    if (generateOAPPTemplateBinary)
+                                    {
+                                        OAPPTemplateDNA.OAPPTemplatePublishedPath = Path.Combine(fullPathToPublishTo, publishedOAPPTemplateFileName);
+                                        OAPPTemplateDNA.OAPPTemplatePublishedToCloud = registerOnSTARNET && uploadOAPPTemplateToCloud;
+                                        OAPPTemplateDNA.OAPPTemplatePublishedProviderType = oappBinaryProviderType;
+                                    }
+
+                                    WriteOAPPTemplateDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
+                                    OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNA, Status = Enums.OAPPTemplatePublishStatus.Compressing });
+
+                                    if (generateOAPPTemplateBinary)
+                                    {
+                                        if (File.Exists(OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                                            File.Delete(OAPPTemplateDNA.OAPPTemplatePublishedPath);
+
+                                        ZipFile.CreateFromDirectory(fullPathToOAPPTemplate, OAPPTemplateDNA.OAPPTemplatePublishedPath);
+
+                                        //tempPath = Path.GetTempPath();
+                                        //tempPath = Path.Combine(tempPath, readOAPPTemplateDNAResult.Result.Name);
+
+                                        //if (Directory.Exists(tempPath))
+                                        //    Directory.Delete(tempPath, true);
+
+                                        //ZipFile.CreateFromDirectory(fullPathToOAPPTemplate, tempPath);
+                                        //File.Move(tempPath, OAPPTemplateDNA.OAPPTemplatePublishedPath);
+                                    }
+
+                                    //TODO: Currently the filesize will NOT be in the compressed .oapptemplate file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPTemplateDNA inside it...
+                                    if (!string.IsNullOrEmpty(OAPPTemplateDNA.OAPPTemplatePublishedPath) && File.Exists(OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                                        OAPPTemplateDNA.OAPPTemplateFileSize = new FileInfo(OAPPTemplateDNA.OAPPTemplatePublishedPath).Length;
+
+                                    WriteOAPPTemplateDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
+                                    loadOAPPTemplateResult.Result.OAPPTemplateDNA = OAPPTemplateDNA;
+
+                                    if (registerOnSTARNET)
+                                    {
+                                        if (uploadOAPPTemplateToCloud)
                                         {
-                                            result.Result = saveLargeOAPPTemplateResult.Result;
-                                            result.IsSaved = true;
+                                            try
+                                            {
+                                                OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = readOAPPTemplateDNAResult.Result, Status = Enums.OAPPTemplatePublishStatus.Uploading });
+                                                StorageClient storage = await StorageClient.CreateAsync();
+                                                //var bucket = storage.CreateBucket("oasis", "oapptemplates");
+
+                                                // set minimum chunksize just to see progress updating
+                                                var uploadObjectOptions = new UploadObjectOptions
+                                                {
+                                                    ChunkSize = UploadObjectOptions.MinimumChunkSize
+                                                };
+
+                                                var progressReporter = new Progress<Google.Apis.Upload.IUploadProgress>(OnUploadProgress);
+                                                using (var fileStream = File.OpenRead(OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                                                {
+                                                    _fileLength = fileStream.Length;
+                                                    _progress = 0;
+
+                                                    await storage.UploadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME, publishedOAPPTemplateFileName, "", fileStream, uploadObjectOptions, progress: progressReporter);
+                                                }
+
+                                                _progress = 100;
+                                                OnOAPPTemplateUploadStatusChanged?.Invoke(this, new OAPPTemplateUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPTemplateUploadStatus.Uploading });
+                                                CLIEngine.DisposeProgressBar(false);
+                                                Console.WriteLine("");
+
+                                                //HttpClient client = new HttpClient();
+                                                //string pinataApiKey = "33e4469830a51af0171b";
+                                                //string pinataSecretApiKey = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs";
+                                                //string pinataUrl = "https://api.pinata.cloud/pinning/pinFileToIPFS";
+                                                //string filePath = OAPPTemplateDNA.OAPPTemplatePublishedPath;
+
+                                                //using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                                                //using (var content = new MultipartFormDataContent())
+                                                //{
+                                                //    content.Add(new StreamContent(fileStream), "file", Path.GetFileName(filePath));
+                                                //    client.DefaultRequestHeaders.Add("pinata_api_key", pinataApiKey);
+                                                //    client.DefaultRequestHeaders.Add("pinata_secret_api_key", pinataSecretApiKey);
+
+                                                //    var response = await client.PostAsync(pinataUrl, content);
+                                                //    response.EnsureSuccessStatusCode();
+
+                                                //    var responseBody = await response.Content.ReadAsStringAsync();
+                                                //    //return responseBody;
+                                                //}
+
+
+                                                //                           var config = new Config
+                                                //                           {
+                                                //                               ApiKey = "33e4469830a51af0171b",
+                                                //                               ApiSecret = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs"
+                                                //                           };
+
+                                                //                           Pinata.Client.PinataClient pinClient = new Pinata.Client.PinataClient(config);
+
+                                                //                           //var html = @"
+                                                //                           //    <html>
+                                                //                           //       <head>
+                                                //                           //          <title>Hello IPFS!</title>
+                                                //                           //       </head>
+                                                //                           //       <body>
+                                                //                           //          <h1>Hello World</h1>
+                                                //                           //       </body>
+                                                //                           //    </html>
+                                                //                           //    ";
+
+                                                //                           var metadata = new PinataMetadata // optional
+                                                //                           {
+                                                //                               KeyValues =
+                                                //{
+                                                //   {"Author", "David Ellams"}
+                                                //}
+                                                //                           };
+
+                                                //                           var options = new PinataOptions(); // optional
+
+                                                //                           options.CustomPinPolicy.AddOrUpdateRegion("NYC1", desiredReplicationCount: 1);
+
+                                                //                           //var response = await client.Pinning.PinFileToIpfsAsync()
+
+                                                //                           byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
+                                                //                           using (var content = new MultipartFormDataContent())
+                                                //                           {
+                                                //                               var fileContent = new ByteArrayContent(fileBytes);
+                                                //                               content.Add(fileContent, "file", Path.GetFileName(filePath));
+                                                //                           }
+
+                                                //                           var response = await pinClient.Pinning.PinFileToIpfsAsync(content =>
+                                                //                           {
+                                                //                               //var file = new StringContent(, Encoding.UTF8, MediaTypeNames.Application.Zip);
+                                                //                               var file = new StreamContent(fileStream), "file", Path.GetFileName(filePath));
+
+                                                //                               content.AddPinataFile(file, "index.html");
+                                                //                           },
+                                                //                              metadata,
+                                                //                              options);
+
+                                                //                           if (response.IsSuccess)
+                                                //                           {
+                                                //                               //File uploaded to Pinata Cloud and can be accessed on IPFS!
+                                                //                               var hash = response.IpfsHash; // QmR9HwzakHVr67HFzzgJHoRjwzTTt4wtD6KU4NFe2ArYuj
+                                                //                           }
+
+                                                //var pinataClient = new PinataClient("33e4469830a51af0171b");
+                                                //PinFileResponse pinFileResponse = await pinataClient.PinFileToIPFSAsync(OAPPTemplateDNA.OAPPTemplatePublishedPath);
+
+                                                //if (pinFileResponse != null && !string.IsNullOrEmpty(pinFileResponse.IpfsHash))
+                                                //{
+                                                //    OAPPTemplateDNA.PinataIPFSHash = pinFileResponse.IpfsHash;
+                                                //    OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = true;
+                                                //    OAPPTemplateDNA.OAPPTemplatePublishedToPinata = true;
+                                                //}
+                                                //else
+                                                //{
+                                                //    OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the OAPPTemplate to Pinata.");
+                                                //    OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
+                                                //}
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                CLIEngine.DisposeProgressBar(false);
+                                                Console.WriteLine("");
+
+                                                OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the OAPPTemplate to cloud storage. Reason: {ex}");
+                                                OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
+                                                OAPPTemplateDNA.OAPPTemplatePublishedToCloud = false;
+                                            }
+                                        }
+
+                                        if (oappBinaryProviderType != ProviderType.None)
+                                        {
+                                            loadOAPPTemplateResult.Result.PublishedOAPPTemplate = File.ReadAllBytes(OAPPTemplateDNA.OAPPTemplatePublishedPath);
+
+                                            //TODO: We could use HoloOASIS and other large file storage providers in future...
+                                            OASISResult<IOAPPTemplate> saveLargeOAPPTemplateResult = await SaveOAPPTemplateAsync(loadOAPPTemplateResult.Result, avatarId, oappBinaryProviderType);
+
+                                            if (saveLargeOAPPTemplateResult != null && !saveLargeOAPPTemplateResult.IsError && saveLargeOAPPTemplateResult.Result != null)
+                                            {
+                                                result.Result = saveLargeOAPPTemplateResult.Result;
+                                                result.IsSaved = true;
+                                            }
+                                            else
+                                            {
+                                                OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPPTemplate binary to STARNET using the {oappBinaryProviderType} provider. Reason: {saveLargeOAPPTemplateResult.Message}");
+                                                OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && uploadOAPPTemplateToCloud;
+                                                OAPPTemplateDNA.OAPPTemplatePublishedProviderType = ProviderType.None;
+                                            }
                                         }
                                         else
-                                        {
-                                            OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published OAPPTemplate binary to STARNET using the {oappBinaryProviderType} provider. Reason: {saveLargeOAPPTemplateResult.Message}");
-                                            OAPPTemplateDNA.OAPPTemplatePublishedOnSTARNET = registerOnSTARNET && uploadOAPPTemplateToCloud;
                                             OAPPTemplateDNA.OAPPTemplatePublishedProviderType = ProviderType.None;
-                                        }
+                                    }
+
+                                    //If its not the first version.
+                                    if (OAPPTemplateDNA.Version != "1.0.0" && !edit)
+                                    {
+                                        //If the ID has not been set then store the original id now.
+                                        if (!loadOAPPTemplateResult.Result.MetaData.ContainsKey("OAPPTemplateId"))
+                                            loadOAPPTemplateResult.Result.MetaData["OAPPTemplateId"] = loadOAPPTemplateResult.Result.Id;
+
+                                        loadOAPPTemplateResult.Result.MetaData["Version"] = loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version;
+                                        loadOAPPTemplateResult.Result.MetaData["VersionSequence"] = loadOAPPTemplateResult.Result.OAPPTemplateDNA.VersionSequence;
+
+                                        //Blank fields so it creates a new version.
+                                        loadOAPPTemplateResult.Result.Id = Guid.Empty;
+                                        loadOAPPTemplateResult.Result.ProviderUniqueStorageKey.Clear();
+                                        loadOAPPTemplateResult.Result.CreatedDate = DateTime.MinValue;
+                                        loadOAPPTemplateResult.Result.ModifiedDate = DateTime.MinValue;
+                                        loadOAPPTemplateResult.Result.CreatedByAvatarId = Guid.Empty;
+                                        loadOAPPTemplateResult.Result.ModifiedByAvatarId = Guid.Empty;
+                                        loadOAPPTemplateResult.Result.OAPPTemplateDNA.Downloads = 0;
+                                        loadOAPPTemplateResult.Result.OAPPTemplateDNA.Installs = 0;
+                                    }
+
+                                    OASISResult<IOAPPTemplate> saveOAPPTemplateResult = await SaveOAPPTemplateAsync(loadOAPPTemplateResult.Result, avatarId, providerType);
+
+                                    if (saveOAPPTemplateResult != null && !saveOAPPTemplateResult.IsError && saveOAPPTemplateResult.Result != null)
+                                    {
+                                        result = await UpdateNumberOfVersionCountsAsync(saveOAPPTemplateResult, avatarId, errorMessage, providerType);
+
+                                        //OASISResult<IEnumerable<IOAPPTemplate>> templatesResult = await LoadOAPPTemplateVersionsAsync(OAPPTemplateDNA.Id, providerType);
+
+                                        //if (templatesResult != null && templatesResult.Result != null && !templatesResult.IsError)
+                                        //{
+                                        //    //Update all versions with the total number of versions.
+                                        //    foreach (IOAPPTemplate template in templatesResult.Result)
+                                        //    {
+                                        //        template.OAPPTemplateDNA.NumberOfVersions = OAPPTemplateDNA.NumberOfVersions;
+                                        //        OASISResult<IOAPPTemplate> templateSaveResult = await SaveOAPPTemplateAsync(template, avatarId, providerType);
+
+                                        //        if (!(templateSaveResult != null && templateSaveResult.Result != null && !templateSaveResult.IsError))
+                                        //            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the NumberOfVersions for OAPP Template with Id {template.Id} for provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {templateSaveResult.Message}");
+                                        //    }
+                                        //}
+
+                                        //result.Result = saveOAPPTemplateResult.Result;
+                                        result.IsSaved = true;
+
+                                        if (readOAPPTemplateDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
+                                            OASISErrorHandling.HandleWarning(ref result, $" The STAR ODK Version {readOAPPTemplateDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                        if (readOAPPTemplateDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
+                                            OASISErrorHandling.HandleWarning(ref result, $" The OASIS Version {readOAPPTemplateDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                        if (readOAPPTemplateDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
+                                            OASISErrorHandling.HandleWarning(ref result, $" The COSMIC Version {readOAPPTemplateDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+
+                                        if (result.IsWarning)
+                                            result.Message = $"OAPP Template successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                                        else
+                                            result.Message = "OAPP Template Successfully Published";
+
+                                        OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNA, Status = Enums.OAPPTemplatePublishStatus.Published });
                                     }
                                     else
-                                        OAPPTemplateDNA.OAPPTemplatePublishedProviderType = ProviderType.None;
-                                }
-
-                                //If its not the first version.
-                                if (OAPPTemplateDNA.Version != "1.0.0" && !edit)
-                                {
-                                    //If the ID has not been set then store the original id now.
-                                    if (!loadOAPPTemplateResult.Result.MetaData.ContainsKey("OAPPTemplateId"))
-                                        loadOAPPTemplateResult.Result.MetaData["OAPPTemplateId"] = loadOAPPTemplateResult.Result.Id;
-
-                                    loadOAPPTemplateResult.Result.MetaData["Version"] = loadOAPPTemplateResult.Result.OAPPTemplateDNA.Version;
-                                    loadOAPPTemplateResult.Result.MetaData["VersionSequence"] = loadOAPPTemplateResult.Result.OAPPTemplateDNA.VersionSequence;
-
-                                    //Blank fields so it creates a new version.
-                                    loadOAPPTemplateResult.Result.Id = Guid.Empty;
-                                    loadOAPPTemplateResult.Result.ProviderUniqueStorageKey.Clear();
-                                    loadOAPPTemplateResult.Result.CreatedDate = DateTime.MinValue;
-                                    loadOAPPTemplateResult.Result.ModifiedDate = DateTime.MinValue;
-                                    loadOAPPTemplateResult.Result.CreatedByAvatarId = Guid.Empty;
-                                    loadOAPPTemplateResult.Result.ModifiedByAvatarId = Guid.Empty;
-                                    loadOAPPTemplateResult.Result.OAPPTemplateDNA.Downloads = 0;
-                                    loadOAPPTemplateResult.Result.OAPPTemplateDNA.Installs = 0;
-                                }
-
-                                OASISResult<IOAPPTemplate> saveOAPPTemplateResult = await SaveOAPPTemplateAsync(loadOAPPTemplateResult.Result, avatarId, providerType);
-
-                                if (saveOAPPTemplateResult != null && !saveOAPPTemplateResult.IsError && saveOAPPTemplateResult.Result != null)
-                                {
-                                    result = await UpdateNumberOfVersionCountsAsync(saveOAPPTemplateResult, avatarId, errorMessage, providerType);
-                                    
-                                    //OASISResult<IEnumerable<IOAPPTemplate>> templatesResult = await LoadOAPPTemplateVersionsAsync(OAPPTemplateDNA.Id, providerType);
-
-                                    //if (templatesResult != null && templatesResult.Result != null && !templatesResult.IsError)
-                                    //{
-                                    //    //Update all versions with the total number of versions.
-                                    //    foreach (IOAPPTemplate template in templatesResult.Result)
-                                    //    {
-                                    //        template.OAPPTemplateDNA.NumberOfVersions = OAPPTemplateDNA.NumberOfVersions;
-                                    //        OASISResult<IOAPPTemplate> templateSaveResult = await SaveOAPPTemplateAsync(template, avatarId, providerType);
-
-                                    //        if (!(templateSaveResult != null && templateSaveResult.Result != null && !templateSaveResult.IsError))
-                                    //            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the NumberOfVersions for OAPP Template with Id {template.Id} for provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {templateSaveResult.Message}");
-                                    //    }
-                                    //}
-
-                                    //result.Result = saveOAPPTemplateResult.Result;
-                                    result.IsSaved = true;
-
-                                    if (readOAPPTemplateDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
-                                        OASISErrorHandling.HandleWarning(ref result, $" The STAR ODK Version {readOAPPTemplateDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                                    if (readOAPPTemplateDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
-                                        OASISErrorHandling.HandleWarning(ref result, $" The OASIS Version {readOAPPTemplateDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                                    if (readOAPPTemplateDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
-                                        OASISErrorHandling.HandleWarning(ref result, $" The COSMIC Version {readOAPPTemplateDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                                    if (result.IsWarning)
-                                        result.Message = $"OAPP Template successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
-                                    else
-                                        result.Message = "OAPP Template Successfully Published";
-
-                                    OnOAPPTemplatePublishStatusChanged?.Invoke(this, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = OAPPTemplateDNA, Status = Enums.OAPPTemplatePublishStatus.Published });
+                                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPTemplateAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPTemplateResult.Message}");
                                 }
                                 else
-                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPTemplateAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPTemplateResult.Message}");
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling ValidateResult. Reason: {validateVersionResult.Message}");
                             }
                             else
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling ValidateResult. Reason: {validateVersionResult.Message}");
+                                OASISErrorHandling.HandleError(ref result, $"Permission Denied! The OAPP Template with id {OAPPTemplateDNA.Id} was created by a different avatar with id {OAPPTemplateDNA.CreatedByAvatarId}. The current avatar has an id of {avatarId}.");
                         }
                         else
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadOAPPTemplateAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadOAPPTemplateResult.Message}");
@@ -2164,7 +2239,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     DownloadedByAvatarUsername = downloadedOAPPTemplate.DownloadedByAvatarUsername,
                                     DownloadedOn = downloadedOAPPTemplate.DownloadedOn,
                                     DownloadedPath = downloadedOAPPTemplate.DownloadedPath,
-                                    DownloadedOAPPTemplateId = downloadedOAPPTemplate.Id,
+                                    DownloadedOAPPTemplateHolonId = downloadedOAPPTemplate.Id,
                                     Active = "1",
                                     //OAPPTemplateVersion = OAPPTemplateDNA.Version
                                 };
@@ -2963,7 +3038,159 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, int versionSequence = 0, bool active = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
+            string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
+            OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
+            {
+                { "OAPPTemplateId", OAPPTemplateId.ToString() },
+                { "VersionSequence", versionSequence.ToString() }
+
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType);
+
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
+                result.Result = installedOAPPTemplatesResult.Result;
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplatesResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
+            string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
+            OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
+            {
+                { "OAPPTemplateId", OAPPTemplateId.ToString() },
+                { "VersionSequence", versionSequence.ToString() }
+
+            }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, version: versionSequence, providerType: providerType);
+
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
+                result.Result = installedOAPPTemplatesResult.Result;
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplatesResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, string OAPPTemplateName, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
+            string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
+            OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
+            {
+                { "OAPPTemplateName", OAPPTemplateName },
+                { "VersionSequence", versionSequence.ToString() }
+
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType);
+
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
+                result.Result = installedOAPPTemplatesResult.Result;
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplatesResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, string OAPPTemplateName, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
+            string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
+            OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
+            {
+                { "OAPPTemplateName", OAPPTemplateName },
+                { "VersionSequence", versionSequence.ToString() }
+
+            }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, version: versionSequence, providerType: providerType);
+
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
+                result.Result = installedOAPPTemplatesResult.Result;
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplatesResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
+            string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
+            OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
+            {
+                { "OAPPTemplateId", OAPPTemplateId.ToString() },
+                { "Version", version }
+
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType);
+
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
+                result.Result = installedOAPPTemplatesResult.Result;
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplatesResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
+            string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
+            OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
+            {
+                { "OAPPTemplateId", OAPPTemplateId.ToString() },
+                { "Version", version }
+
+            }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
+
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
+                result.Result = installedOAPPTemplatesResult.Result;
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplatesResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, string OAPPTemplateName, string version, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
+            string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
+            OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
+            {
+                { "OAPPTemplateName", OAPPTemplateName },
+                { "Version", version }
+
+            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, true, true, 0, true, 0, false, HolonType.All, providerType);
+
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
+                result.Result = installedOAPPTemplatesResult.Result;
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplatesResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, string OAPPTemplateName, string version, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
+            string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
+            OASISResult<InstalledOAPPTemplate> installedOAPPTemplatesResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
+            {
+                { "OAPPTemplateName", OAPPTemplateName },
+                { "Version", version }
+
+            }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
+
+            if (installedOAPPTemplatesResult != null && !installedOAPPTemplatesResult.IsError && installedOAPPTemplatesResult.Result != null)
+                result.Result = installedOAPPTemplatesResult.Result;
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPTemplatesResult.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
@@ -2983,7 +3210,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, int versionSequence = 0, bool active = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplate. Reason: ";
@@ -3003,7 +3230,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, string OAPPTemplateName, int versionSequence = 0, bool active = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, string OAPPTemplateName, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
@@ -3022,7 +3249,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, string OAPPTemplateName, int versionSequence = 0, bool active = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, string OAPPTemplateName, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplate. Reason: ";
@@ -3042,7 +3269,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, string version, bool active = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
@@ -3062,7 +3289,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, string version, bool active = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplate. Reason: ";
@@ -3082,7 +3309,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, string OAPPTemplateName, string version, bool active = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> LoadInstalledOAPPTemplateAsync(Guid avatarId, string OAPPTemplateName, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplateAsync. Reason: ";
@@ -3102,7 +3329,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, string OAPPTemplateName, string version, bool active = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> LoadInstalledOAPPTemplate(Guid avatarId, string OAPPTemplateName, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             string errorMessage = "Error occured in OAPPTemplateManager.LoadInstalledOAPPTemplate. Reason: ";

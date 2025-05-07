@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         //}
 
         [CustomOASISProperty]
-        public Guid DownloadedOAPPTemplateId { get; set; }
+        public Guid DownloadedOAPPTemplateHolonId { get; set; }
 
         [CustomOASISProperty]
         public string DownloadedPath { get; set; }
