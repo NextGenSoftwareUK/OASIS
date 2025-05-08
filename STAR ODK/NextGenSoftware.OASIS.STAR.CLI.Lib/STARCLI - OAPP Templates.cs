@@ -233,7 +233,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (result != null && !result.IsError && result.Result != null)
                         {
                             CLIEngine.ShowSuccessMessage("OAPP Template Successfully Deleted.");
-                            ShowOAPPTemplate(result.Result);
+                            //ShowOAPPTemplate(result.Result);
                         }
                         else
                             CLIEngine.ShowErrorMessage($"An error occured deleting the OAPP Template. Reason: {result.Message}");
