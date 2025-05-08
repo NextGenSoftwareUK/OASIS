@@ -442,7 +442,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                if (!string.IsNullOrEmpty(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath) && Directory.Exists(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath))
+                if (!string.IsNullOrEmpty(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath) && File.Exists(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath))
                     File.Delete(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath);
             }
             catch (Exception e)
@@ -458,7 +458,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 {
                     try
                     {
-                        if (deleteDownload && !string.IsNullOrEmpty(installedOAPPTemplateResult.Result.DownloadedPath) && Directory.Exists(installedOAPPTemplateResult.Result.DownloadedPath))
+                        if (deleteDownload && !string.IsNullOrEmpty(installedOAPPTemplateResult.Result.DownloadedPath) && File.Exists(installedOAPPTemplateResult.Result.DownloadedPath))
                             File.Delete(installedOAPPTemplateResult.Result.DownloadedPath);
                     }
                     catch (Exception e)

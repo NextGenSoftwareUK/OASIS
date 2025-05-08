@@ -234,11 +234,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                //result = await Data.DeleteHolonAsync<T>(missionId, softDelete, providerType);
-                OASISResult<T> deleteResult = await Data.DeleteHolonAsync<T>(holonId, softDelete, providerType);
+                OASISResult<IHolon> deleteResult = await Data.DeleteHolonAsync(holonId, softDelete, providerType);
+                //OASISResult<T> deleteResult = await Data.DeleteHolonAsync<T>(holonId, softDelete, providerType); //TODO: Need to implement generic versions asap!
                 result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(deleteResult, result);
-                result.Result = (T)deleteResult.Result;
+                //result.Result = (T)deleteResult.Result;
                 //result.Result = Mapper.MapBaseHolonProperties(deleteResult.Result, result.Result);
+
+                //result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(deleteResult.Result, result.Result);
+                result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(deleteResult.Result);
 
             }
             catch (Exception ex)
