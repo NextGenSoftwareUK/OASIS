@@ -47,7 +47,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (CLIEngine.GetConfirmation("Have you already created the inventory item to be rewarded?"))
                     {
                         Guid inventoryItemId = CLIEngine.GetValidInputForGuid("What is the ID/GUID of the inventory item?");
-                        inventoryItemResult = await STAR.OASISAPI.Inventory.LoadInventoryItemAsync(inventoryItemId, providerType);
+                        inventoryItemResult = await STAR.OASISAPI.Inventory.LoadInventoryItemAsync(inventoryItemId, STAR.BeamedInAvatar.Id, providerType);
                     }
                     else if (CLIEngine.GetConfirmation("Would you like to create the inventory item now?"))
                         inventoryItemResult = await CreateInventoryItemAsync(providerType);

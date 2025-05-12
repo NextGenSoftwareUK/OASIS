@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInventoryItem>> LoadInventoryItemAsync(Guid inventoryItemId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInventoryItem>> LoadInventoryItemAsync(Guid inventoryItemId, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInventoryItem> result = new OASISResult<IInventoryItem>();
             OASISResult<InventoryItem> loadResult = await LoadHolonAsync<InventoryItem>(inventoryItemId, providerType, "InventoryManager.LoadInventoryItemAsync");
@@ -47,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInventoryItem> LoadInventoryItem(Guid inventoryItemId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInventoryItem> LoadInventoryItem(Guid inventoryItemId, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInventoryItem> result = new OASISResult<IInventoryItem>();
             OASISResult<InventoryItem> loadResult = LoadHolon<InventoryItem>(inventoryItemId, providerType, "InventoryManager.LoadInventoryItem");
@@ -92,19 +92,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInventoryItem>> DeleteInventoryItemAsync(Guid inventoryId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInventoryItem>> DeleteInventoryItemAsync(Guid inventoryId, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInventoryItem> result = new OASISResult<IInventoryItem>();
-            OASISResult<InventoryItem> loadHolonsResult = await DeleteHolonAsync<InventoryItem>(inventoryId, softDelete, providerType, "InventoryManager.DeleteInventoryItemAsync");
+            OASISResult<InventoryItem> loadHolonsResult = await DeleteHolonAsync<InventoryItem>(inventoryId, avatarId, softDelete, providerType, "InventoryManager.DeleteInventoryItemAsync");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
         }
 
-        public OASISResult<IInventoryItem> DeleteInventoryItem(Guid inventoryId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInventoryItem> DeleteInventoryItem(Guid inventoryId, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInventoryItem> result = new OASISResult<IInventoryItem>();
-            OASISResult<InventoryItem> loadHolonsResult = DeleteHolon<InventoryItem>(inventoryId, softDelete, providerType, "InventoryManager.DeleteInventoryItem");
+            OASISResult<InventoryItem> loadHolonsResult = DeleteHolon<InventoryItem>(inventoryId, avatarId, softDelete, providerType, "InventoryManager.DeleteInventoryItem");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;

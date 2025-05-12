@@ -534,7 +534,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public async Task<OASISResult<IZome>> RemoveZomeAsync(IZome zome, bool deleteZome = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IZome>> RemoveZomeAsync(IZome zome, Guid avatarId, bool deleteZome = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IZome> result = new OASISResult<IZome>();
             string errorMessage = string.Concat("Error in CelestialBodyCore.RemoveZomeAsync calling zome.SaveAsync method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Reason:");
@@ -545,7 +545,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                 if (deleteZome)
                 {
-                    OASISResult<IHolon> deleteResult = await zome.DeleteAsync(softDelete, providerType);
+                    OASISResult<IHolon> deleteResult = await zome.DeleteAsync(avatarId, softDelete, providerType);
 
                     if (deleteResult != null && deleteResult.IsError)
                     {
@@ -567,7 +567,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public OASISResult<IZome> RemoveZome(IZome zome, bool deleteZome = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IZome> RemoveZome(IZome zome, Guid avatarId, bool deleteZome = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IZome> result = new OASISResult<IZome>();
             string errorMessage = string.Concat("Error in CelestialBodyCore.RemoveZome calling zome.Save method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Reason:");
@@ -578,7 +578,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                 if (deleteZome)
                 {
-                    OASISResult<IHolon> deleteResult = zome.Delete(softDelete, providerType);
+                    OASISResult<IHolon> deleteResult = zome.Delete(avatarId, softDelete, providerType);
 
                     if (deleteResult != null && deleteResult.IsError)
                     {
@@ -600,7 +600,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public async Task<OASISResult<T>> RemoveZomeAsync<T>(IZome zome, bool deleteZome = true, bool softDelete = true, ProviderType providerType = ProviderType.Default) where T : IZome, new()
+        public async Task<OASISResult<T>> RemoveZomeAsync<T>(IZome zome, Guid avatarId, bool deleteZome = true, bool softDelete = true, ProviderType providerType = ProviderType.Default) where T : IZome, new()
         {
             OASISResult<T> result = new OASISResult<T>();
             string errorMessage = string.Concat("Error in CelestialBodyCore.RemoveZomeAsync<T> calling zome.SaveAsync<T> method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Reason:");
@@ -611,7 +611,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                 if (deleteZome)
                 {
-                    OASISResult<IHolon> deleteResult = await zome.DeleteAsync(softDelete, providerType);
+                    OASISResult<IHolon> deleteResult = await zome.DeleteAsync(avatarId, softDelete, providerType);
 
                     if (deleteResult != null && deleteResult.IsError)
                     {
@@ -633,7 +633,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public OASISResult<T> RemoveZome<T>(IZome zome, bool deleteZome = true, bool softDelete = true, ProviderType providerType = ProviderType.Default) where T : IZome, new()
+        public OASISResult<T> RemoveZome<T>(IZome zome, Guid avatarId, bool deleteZome = true, bool softDelete = true, ProviderType providerType = ProviderType.Default) where T : IZome, new()
         {
             OASISResult<T> result = new OASISResult<T>();
             string errorMessage = string.Concat("Error in CelestialBodyCore.RemoveZome<T> calling zome.Save<T> method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Reason:");
@@ -642,7 +642,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             {
                 if (deleteZome)
                 {
-                    OASISResult<IHolon> deleteResult = zome.Delete(softDelete, providerType);
+                    OASISResult<IHolon> deleteResult = zome.Delete(avatarId, softDelete, providerType);
 
                     if (deleteResult != null && deleteResult.IsError)
                     {

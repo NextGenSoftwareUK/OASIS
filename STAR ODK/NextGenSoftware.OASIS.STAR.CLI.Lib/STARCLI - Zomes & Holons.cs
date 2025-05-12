@@ -361,7 +361,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             { 
                 if (CLIEngine.GetConfirmation($"Are you sure you wish to delete the holon with name {result.Result.Name}, id {result.Result.Id} and type {Enum.GetName(typeof(HolonType), result.Result.HolonType)}?"))
                 {
-                    OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.DeleteHolonAsync(result.Result.Id, true, providerType);
+                    OASISResult<IHolon> holonResult = await STAR.OASISAPI.Data.DeleteHolonAsync(STAR.BeamedInAvatar.Id, result.Result.Id, true, providerType);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                         STARCLI.ShowHolonProperties(holonResult.Result);

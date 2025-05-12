@@ -152,7 +152,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation("Are you sure you wish to delete the Runtime?"))
                 {
                     CLIEngine.ShowWorkingMessage("Deleting Runtime...");
-                    result = await STAR.OASISAPI.Runtimes.DeleteRuntimeAsync(result.Result, true, providerType);
+                    result = await STAR.OASISAPI.Runtimes.DeleteRuntimeAsync(result.Result, STAR.BeamedInAvatar.Id, true, providerType);
 
                     if (result != null && !result.IsError && result.Result != null)
                     {

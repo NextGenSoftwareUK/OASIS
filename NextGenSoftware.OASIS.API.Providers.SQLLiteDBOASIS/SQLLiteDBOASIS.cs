@@ -141,27 +141,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            var result = _holonRepository.DeleteHolon(id, softDelete);
+            var result = _holonRepository.DeleteHolon(id);
             return result;
         }
 
-        public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            var result = _holonRepository.DeleteHolon(providerKey, softDelete);
+            var result = _holonRepository.DeleteHolon(providerKey);
             return result;
         }
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            var result = _holonRepository.DeleteHolonAsync(id, softDelete);
+            var result = _holonRepository.DeleteHolonAsync(id);
             return result;
         }
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            var result = _holonRepository.DeleteHolonAsync(providerKey, softDelete);
+            var result = _holonRepository.DeleteHolonAsync(providerKey);
             return result;
         }
 

@@ -97,19 +97,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IGeoHotSpot>> DeleteGeoHotSpotAsync(Guid geoHotSpotId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IGeoHotSpot>> DeleteGeoHotSpotAsync(Guid geoHotSpotId, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
-            OASISResult<GeoHotSpot> loadHolonsResult = await DeleteHolonAsync<GeoHotSpot>(geoHotSpotId, softDelete, providerType, "GeoHotSpotManager.DeleteGeoHotSpotAsync");
+            OASISResult<GeoHotSpot> loadHolonsResult = await DeleteHolonAsync<GeoHotSpot>(geoHotSpotId, avatarId, softDelete, providerType, "GeoHotSpotManager.DeleteGeoHotSpotAsync");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
         }
 
-        public OASISResult<IGeoHotSpot> DeleteGeoHotSpot(Guid geoHotSpotId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IGeoHotSpot> DeleteGeoHotSpot(Guid geoHotSpotId, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IGeoHotSpot> result = new OASISResult<IGeoHotSpot>();
-            OASISResult<GeoHotSpot> loadHolonsResult = DeleteHolon<GeoHotSpot>(geoHotSpotId, softDelete, providerType, "GeoHotSpotManager.DeleteGeoHotSpot");
+            OASISResult<GeoHotSpot> loadHolonsResult = DeleteHolon<GeoHotSpot>(geoHotSpotId, avatarId, softDelete, providerType, "GeoHotSpotManager.DeleteGeoHotSpot");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;

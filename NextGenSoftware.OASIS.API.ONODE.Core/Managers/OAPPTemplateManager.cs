@@ -413,7 +413,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in DeleteOAPPTemplate loading the OAPP Template with Id {oappTemplateId} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {oappTemplateResult.Message}");
 
-            OASISResult<OAPPTemplate> loadHolonsResult = DeleteHolon<OAPPTemplate>(oappTemplateId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplate");
+            OASISResult<OAPPTemplate> loadHolonsResult = DeleteHolon<OAPPTemplate>(oappTemplateId, avatarId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplate");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
@@ -478,7 +478,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     if (deleteInstall)
                     {
-                        OASISResult<OAPPTemplate> deleteInstalledOAPPTemplateHolonResult = await DeleteHolonAsync<OAPPTemplate>(installedOAPPTemplateResult.Result.Id, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
+                        OASISResult<OAPPTemplate> deleteInstalledOAPPTemplateHolonResult = await DeleteHolonAsync<OAPPTemplate>(installedOAPPTemplateResult.Result.Id, avatarId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
 
                         if (!(deleteInstalledOAPPTemplateHolonResult != null && deleteInstalledOAPPTemplateHolonResult.Result != null && !deleteInstalledOAPPTemplateHolonResult.IsError))
                             OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting the Installed OAPPTemplate holon with id {installedOAPPTemplateResult.Result.Id} calling DeleteHolonAsync. Reason: {deleteInstalledOAPPTemplateHolonResult.Message}");
@@ -486,7 +486,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     if (deleteDownload)
                     {
-                        OASISResult<OAPPTemplate> deleteDownloadedOAPPTemplateHolonResult = await DeleteHolonAsync<OAPPTemplate>(installedOAPPTemplateResult.Result.DownloadedOAPPTemplateHolonId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
+                        OASISResult<OAPPTemplate> deleteDownloadedOAPPTemplateHolonResult = await DeleteHolonAsync<OAPPTemplate>(installedOAPPTemplateResult.Result.DownloadedOAPPTemplateHolonId, avatarId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
 
                         if (!(deleteDownloadedOAPPTemplateHolonResult != null && deleteDownloadedOAPPTemplateHolonResult.Result != null && !deleteDownloadedOAPPTemplateHolonResult.IsError))
                             OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting the Downloaded OAPPTemplate holon with id {installedOAPPTemplateResult.Result.DownloadedOAPPTemplateHolonId} calling DeleteHolonAsync. Reason: {deleteDownloadedOAPPTemplateHolonResult.Message}");
@@ -494,7 +494,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 }
             }
 
-            OASISResult<OAPPTemplate> deleteHolonResult = await DeleteHolonAsync<OAPPTemplate>(oappTemplate.Id, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
+            OASISResult<OAPPTemplate> deleteHolonResult = await DeleteHolonAsync<OAPPTemplate>(oappTemplate.Id, avatarId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplateAsync");
 
             if (!(deleteHolonResult != null && deleteHolonResult.Result != null && !deleteHolonResult.IsError))
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured deleting the OAPPTemplate holon with id {oappTemplate.Id} calling DeleteHolonAsync. Reason: {deleteHolonResult.Message}");
@@ -519,7 +519,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             if (Directory.Exists(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath))
                 Directory.Delete(oappTemplate.OAPPTemplateDNA.OAPPTemplatePublishedPath, true);
 
-            OASISResult<OAPPTemplate> loadHolonsResult = DeleteHolon<OAPPTemplate>(oappTemplate.Id, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplate");
+            OASISResult<OAPPTemplate> loadHolonsResult = DeleteHolon<OAPPTemplate>(oappTemplate.Id, avatarId, softDelete, providerType, "OAPPTemplateManager.DeleteOAPPTemplate");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;

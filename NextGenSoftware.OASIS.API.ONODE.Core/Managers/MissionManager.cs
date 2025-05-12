@@ -93,19 +93,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IMission>> DeleteMissionAsync(Guid inventoryId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IMission>> DeleteMissionAsync(Guid inventoryId, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IMission> result = new OASISResult<IMission>();
-            OASISResult<Mission> loadHolonsResult = await DeleteHolonAsync<Mission>(inventoryId, softDelete, providerType, "MissionManager.DeleteMissionAsync");
+            OASISResult<Mission> loadHolonsResult = await DeleteHolonAsync<Mission>(inventoryId, avatarId, softDelete, providerType, "MissionManager.DeleteMissionAsync");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
         }
 
-        public OASISResult<IMission> DeleteMission(Guid inventoryId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IMission> DeleteMission(Guid inventoryId, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IMission> result = new OASISResult<IMission>();
-            OASISResult<Mission> loadHolonsResult = DeleteHolon<Mission>(inventoryId, softDelete, providerType, "MissionManager.DeleteMission");
+            OASISResult<Mission> loadHolonsResult = DeleteHolon<Mission>(inventoryId, avatarId, softDelete, providerType, "MissionManager.DeleteMission");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;

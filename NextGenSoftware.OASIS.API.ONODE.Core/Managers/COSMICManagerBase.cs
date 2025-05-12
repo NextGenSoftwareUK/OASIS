@@ -227,14 +227,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        protected async Task<OASISResult<T>> DeleteHolonAsync<T>(Guid holonId, bool softDelete = true, ProviderType providerType = ProviderType.Default, string methodName = "COSMICManager.DeleteHolonAsync") where T : IHolon, new()
+        protected async Task<OASISResult<T>> DeleteHolonAsync<T>(Guid holonId, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default, string methodName = "COSMICManager.DeleteHolonAsync") where T : IHolon, new()
         {
             OASISResult<T> result = new OASISResult<T>();
             string errorMessage = $"Error occured in {methodName}. Reason:";
 
             try
             {
-                OASISResult<IHolon> deleteResult = await Data.DeleteHolonAsync(holonId, softDelete, providerType);
+                OASISResult<IHolon> deleteResult = await Data.DeleteHolonAsync(holonId, avatarId, softDelete, providerType);
                 //OASISResult<T> deleteResult = await Data.DeleteHolonAsync<T>(holonId, softDelete, providerType); //TODO: Need to implement generic versions asap!
                 result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(deleteResult, result);
                 //result.Result = (T)deleteResult.Result;
@@ -252,7 +252,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        protected OASISResult<T> DeleteHolon<T>(Guid holonId, bool softDelete = true, ProviderType providerType = ProviderType.Default, string methodName = "COSMICManager.DeleteHolon") where T : IHolon, new()
+        protected OASISResult<T> DeleteHolon<T>(Guid holonId, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default, string methodName = "COSMICManager.DeleteHolon") where T : IHolon, new()
         {
             OASISResult<T> result = new OASISResult<T>();
             string errorMessage = $"Error occured in {methodName}. Reason:";
@@ -260,7 +260,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             try
             {
                 //result = await Data.DeleteHolonAsync<T>(missionId, softDelete, providerType);
-                OASISResult<IHolon> deleteResult = Data.DeleteHolon(holonId, softDelete, providerType);
+                OASISResult<IHolon> deleteResult = Data.DeleteHolon(holonId, avatarId, softDelete, providerType);
                 result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(deleteResult, result);
                 result.Result = (T)deleteResult.Result;
             }

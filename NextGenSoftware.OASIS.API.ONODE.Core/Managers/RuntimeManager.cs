@@ -979,37 +979,37 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         }
 
 
-        public async Task<OASISResult<IRuntime>> DeleteRuntimeAsync(Guid RuntimeId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> DeleteRuntimeAsync(Guid RuntimeId, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IRuntime> result = new OASISResult<IRuntime>();
-            OASISResult<Runtime> loadHolonsResult = await DeleteHolonAsync<Runtime>(RuntimeId, softDelete, providerType, "RuntimeManager.DeleteRuntimeAsync");
+            OASISResult<Runtime> loadHolonsResult = await DeleteHolonAsync<Runtime>(RuntimeId, avatarId, softDelete, providerType, "RuntimeManager.DeleteRuntimeAsync");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
         }
 
-        public OASISResult<IRuntime> DeleteRuntime(Guid RuntimeId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> DeleteRuntime(Guid RuntimeId, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IRuntime> result = new OASISResult<IRuntime>();
-            OASISResult<Runtime> loadHolonsResult = DeleteHolon<Runtime>(RuntimeId, softDelete, providerType, "RuntimeManager.DeleteRuntime");
+            OASISResult<Runtime> loadHolonsResult = DeleteHolon<Runtime>(RuntimeId, avatarId, softDelete, providerType, "RuntimeManager.DeleteRuntime");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
         }
 
-        public async Task<OASISResult<IRuntime>> DeleteRuntimeAsync(IRuntime Runtime, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> DeleteRuntimeAsync(IRuntime Runtime, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IRuntime> result = new OASISResult<IRuntime>();
-            OASISResult<Runtime> loadHolonsResult = await DeleteHolonAsync<Runtime>(Runtime.Id, softDelete, providerType, "RuntimeManager.DeleteRuntimeAsync");
+            OASISResult<Runtime> loadHolonsResult = await DeleteHolonAsync<Runtime>(Runtime.Id, avatarId, softDelete, providerType, "RuntimeManager.DeleteRuntimeAsync");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
         }
 
-        public OASISResult<IRuntime> DeleteRuntime(IRuntime Runtime, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> DeleteRuntime(IRuntime Runtime, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IRuntime> result = new OASISResult<IRuntime>();
-            OASISResult<Runtime> loadHolonsResult = DeleteHolon<Runtime>(Runtime.Id, softDelete, providerType, "RuntimeManager.DeleteRuntime");
+            OASISResult<Runtime> loadHolonsResult = DeleteHolon<Runtime>(Runtime.Id, avatarId, softDelete, providerType, "RuntimeManager.DeleteRuntime");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
             result.Result = loadHolonsResult.Result;
             return result;
@@ -1938,7 +1938,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (installedRuntime != null)
                 {
-                    OASISResult<IHolon> holonResult = await installedRuntime.DeleteAsync(false, providerType);
+                    OASISResult<IHolon> holonResult = await installedRuntime.DeleteAsync(avatarId, false, providerType);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
@@ -1969,7 +1969,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (installedRuntime != null)
                 {
-                    OASISResult<IHolon> holonResult = installedRuntime.Delete(false, providerType);
+                    OASISResult<IHolon> holonResult = installedRuntime.Delete(avatarId, false, providerType);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {

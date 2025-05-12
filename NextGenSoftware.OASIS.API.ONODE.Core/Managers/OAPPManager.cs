@@ -482,34 +482,34 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPP>> DeleteOAPPAsync(Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> DeleteOAPPAsync(Guid OAPPId, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = await LoadOAPPAsync(OAPPId, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
-                result = await DeleteOAPPAsync(result.Result);
+                result = await DeleteOAPPAsync(result.Result, avatarId);
             else
                 OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.DeleteOAPPAsync loading the OAPP. Reason: {result.Message}");
 
             return result;
         }
 
-        public async Task<OASISResult<IOAPP>> DeleteOAPP(Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> DeleteOAPP(Guid OAPPId, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = LoadOAPP(OAPPId, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
-                result = DeleteOAPP(result.Result);
+                result = DeleteOAPP(result.Result, avatarId);
             else
                 OASISErrorHandling.HandleError(ref result, $"An error occured in OAPPManager.DeleteOAPP loading the OAPP. Reason: {result.Message}");
 
             return result;
         }
 
-        public async Task<OASISResult<IOAPP>> DeleteOAPPAsync(IOAPP OAPP, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> DeleteOAPPAsync(IOAPP OAPP, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
-            OASISResult<IHolon> deleteResult = await OAPP.DeleteAsync(true, providerType);
+            OASISResult<IHolon> deleteResult = await OAPP.DeleteAsync(avatarId, true, providerType);
 
             if (deleteResult != null && !deleteResult.IsError && deleteResult.Result != null)
             {
@@ -522,10 +522,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IOAPP> DeleteOAPP(IOAPP OAPP, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPP> DeleteOAPP(IOAPP OAPP, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
-            OASISResult<IHolon> deleteResult = OAPP.Delete(true, providerType);
+            OASISResult<IHolon> deleteResult = OAPP.Delete(avatarId, true, providerType);
 
             if (deleteResult != null && !deleteResult.IsError && deleteResult.Result != null)
             {
@@ -1604,7 +1604,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (installedOAPP != null)
                 {
-                    OASISResult<IHolon> holonResult = await installedOAPP.DeleteAsync(false, providerType);
+                    OASISResult<IHolon> holonResult = await installedOAPP.DeleteAsync(avatarId, false, providerType);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
@@ -1635,7 +1635,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (installedOAPP != null)
                 {
-                    OASISResult<IHolon> holonResult = installedOAPP.Delete(false, providerType);
+                    OASISResult<IHolon> holonResult = installedOAPP.Delete(avatarId, false, providerType);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
