@@ -537,15 +537,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IChapter>> DeleteChapterAsync(Guid chapterId, bool softDelete = true, bool deleteSubChapters = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IChapter>> DeleteChapterAsync(Guid chapterId, Guid avatarId, bool softDelete = true, bool deleteSubChapters = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IChapter> result = new OASISResult<IChapter>();
             string errorMessage = "Error occured in ChapterManager.DeleteChapterAsync. Reason:";
 
             try
             {
-                OASISResult<IHolon> deleteResult = await Data.DeleteHolonAsync(chapterId, softDelete, providerType);
-
+                OASISResult<IHolon> deleteResult = await Data.DeleteHolonAsync(chapterId, avatarId, softDelete, providerType);
                 //TODO:Delete sub-chapters, hotspots and nfts etc
 
                 if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
@@ -564,7 +563,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IChapter> DeleteChapter(Guid chapterId, bool softDelete = true, bool deleteSubChapters = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IChapter> DeleteChapter(Guid chapterId, Guid avatarId, bool softDelete = true, bool deleteSubChapters = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IChapter> result = new OASISResult<IChapter>();
             string errorMessage = "Error occured in ChapterManager.DeleteChapter. Reason:";
@@ -572,7 +571,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             try
             {
                 //TODO:Delete sub-chapters, hotspots and nfts etc
-                OASISResult<IHolon> deleteResult = Data.DeleteHolon(chapterId, softDelete, providerType);
+                OASISResult<IHolon> deleteResult = Data.DeleteHolon(chapterId, avatarId, softDelete, providerType);
 
                 if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
                 {

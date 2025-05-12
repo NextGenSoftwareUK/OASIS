@@ -553,9 +553,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            return DeleteHolonAsync(providerKey, softDelete).Result;
+            return DeleteHolonAsync(providerKey).Result;
         }
 
         public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
@@ -563,17 +563,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
             var result = new OASISResult<IHolon>();
 

@@ -15,10 +15,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         Task<OASISResult<Holon>> AddAsync(Holon holon);
         OASISResult<Holon> Update(Holon holon);
         Task<OASISResult<Holon>> UpdateAsync(Holon holon);
-        OASISResult<IHolon> Delete(Guid id, bool softDelete = true);
-        Task<OASISResult<IHolon>> DeleteAsync(Guid id, bool softDelete = true);
-        OASISResult<IHolon> Delete(string providerKey, bool softDelete = true);
-        Task<OASISResult<IHolon>> DeleteAsync(string providerKey, bool softDelete = true);
+        //OASISResult<IHolon> Delete(Guid id, bool softDelete = true);
+        //Task<OASISResult<IHolon>> DeleteAsync(Guid id, bool softDelete = true);
+        //OASISResult<IHolon> Delete(string providerKey, bool softDelete = true);
+        //Task<OASISResult<IHolon>> DeleteAsync(string providerKey, bool softDelete = true);
+        OASISResult<IHolon> Delete(Guid id);
+        Task<OASISResult<IHolon>> DeleteAsync(Guid id);
+        OASISResult<IHolon> Delete(string providerKey);
+        Task<OASISResult<IHolon>> DeleteAsync(string providerKey);
         IEnumerable<Holon> GetAllHolons(HolonType holonType = HolonType.All);
         Task<IEnumerable<Holon>> GetAllHolonsAsync(HolonType holonType = HolonType.All);
         IEnumerable<Holon> GetAllHolonsForParent(Guid id, HolonType holonType);

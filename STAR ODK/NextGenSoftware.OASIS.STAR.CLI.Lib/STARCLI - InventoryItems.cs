@@ -86,7 +86,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static async Task<OASISResult<IInventoryItem>> ShowInventoryItem(Guid inventoryItemId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IInventoryItem> result = await STAR.OASISAPI.Inventory.LoadInventoryItemAsync(inventoryItemId, providerType);
+            OASISResult<IInventoryItem> result = await STAR.OASISAPI.Inventory.LoadInventoryItemAsync(inventoryItemId, STAR.BeamedInAvatar.Id, providerType);
 
             if (result != null && result.Result != null && !result.IsError)
                 ShowInventoryItem(result.Result);

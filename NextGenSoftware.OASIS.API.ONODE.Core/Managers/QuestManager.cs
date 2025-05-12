@@ -884,14 +884,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IQuest>> DeleteQuestAsync(Guid questId, bool softDelete = true, bool deleteSubQuests = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IQuest>> DeleteQuestAsync(Guid questId, Guid avatarId, bool softDelete = true, bool deleteSubQuests = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManager.DeleteQuestAsync. Reason:";
 
             try
             {
-                OASISResult<IHolon> deleteResult = await Data.DeleteHolonAsync(questId, softDelete, providerType);
+                OASISResult<IHolon> deleteResult = await Data.DeleteHolonAsync(questId, avatarId, softDelete, providerType);
 
                 //TODO:Delete sub-quests, hotspots and nfts etc
 
@@ -911,7 +911,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IQuest> DeleteQuest(Guid questId, bool softDelete = true, bool deleteSubQuests = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IQuest> DeleteQuest(Guid questId, Guid avatarId, bool softDelete = true, bool deleteSubQuests = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManager.DeleteQuest. Reason:";
@@ -919,7 +919,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             try
             {
                 //TODO:Delete sub-quests, hotspots and nfts etc
-                OASISResult<IHolon> deleteResult = Data.DeleteHolon(questId, softDelete, providerType);
+                OASISResult<IHolon> deleteResult = Data.DeleteHolon(questId, avatarId, softDelete, providerType);
 
                 if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
                 {

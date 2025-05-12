@@ -320,22 +320,22 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
             throw new NotImplementedException();
         }

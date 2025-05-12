@@ -206,17 +206,17 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         throw new NotImplementedException();
     }
 
-    public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
+    public override OASISResult<IHolon> DeleteHolon(Guid id)
     {
         throw new NotImplementedException();
     }
 
-    public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
+    public override OASISResult<IHolon> DeleteHolon(string providerKey)
     {
         throw new NotImplementedException();
     }
 
-    public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
+    public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
     {
         OASISResult<IHolon> result = new();
         string errorMessage = "Error in DeleteHolonAsync method in ArbitrumOASIS while deleting holon. Reason: ";
@@ -267,7 +267,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+    public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
     {
         throw new NotImplementedException();
     }

@@ -1069,7 +1069,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
@@ -1077,12 +1077,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (softDelete)
-                    _holonRepository.DeleteSoft(id).Wait();
-                else
-                    _holonRepository.DeleteHard(id).Wait();
-
-                //result.Result = true;
+                 _holonRepository.DeleteHard(id).Wait();
                 result.IsSaved = true;
                 result.IsError = false;
             }
@@ -1094,7 +1089,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
@@ -1102,12 +1097,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (softDelete)
-                    await _holonRepository.DeleteSoft(id);
-                else
-                    await _holonRepository.DeleteHard(id);
+                //if (softDelete)
+                //    await _holonRepository.DeleteSoft(id);
+                //else
+                //    await _holonRepository.DeleteHard(id);
 
-                //result.Result = true;
+                await _holonRepository.DeleteHard(id);
                 result.IsSaved = true;
                 result.IsError = false;
             }
@@ -1119,12 +1114,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
             throw new NotImplementedException();
         }

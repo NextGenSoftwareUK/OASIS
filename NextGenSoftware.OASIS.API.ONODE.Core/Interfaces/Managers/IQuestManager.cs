@@ -21,8 +21,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         Task<OASISResult<IQuest>> CreateQuestAsync(string name, string description, QuestType questType, Guid avatarId, Guid missionId, ProviderType providerType = ProviderType.Default);
         OASISResult<IQuest> CreateQuestInternal(string name, string description, QuestType questType, Guid avatarId, Guid parentMissionId = default, Guid parentQuestId = default, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IQuest>> CreateQuestInternalAsync(string name, string description, QuestType questType, Guid avatarId, Guid parentMissionId = default, Guid parentQuestId = default, ProviderType providerType = ProviderType.Default);
-        OASISResult<IQuest> DeleteQuest(Guid questId, bool softDelete = true, bool deleteSubQuests = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IQuest>> DeleteQuestAsync(Guid questId, bool softDelete = true, bool deleteSubQuests = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default);
+        OASISResult<IQuest> DeleteQuest(Guid questId, Guid avatarId, bool softDelete = true, bool deleteSubQuests = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IQuest>> DeleteQuestAsync(Guid questId, Guid avatarId, bool softDelete = true, bool deleteSubQuests = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default);
         OASISResult<IQuest> FindNearestQuestOnMap();
         OASISResult<IQuest> GetCurentSubQuestForQuest(Guid questId);
         Task<OASISResult<IQuest>> GetCurentSubQuestForQuestAsync(Guid questId);

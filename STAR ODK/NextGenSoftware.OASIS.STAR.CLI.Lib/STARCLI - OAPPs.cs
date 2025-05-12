@@ -740,7 +740,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation("Are you sure you wish to delete the OAPP?"))
                 {
                     CLIEngine.ShowWorkingMessage("Deleting OAPP...");
-                    result = await STAR.OASISAPI.OAPPs.DeleteOAPPAsync(result.Result, providerType);
+                    result = await STAR.OASISAPI.OAPPs.DeleteOAPPAsync(result.Result, STAR.BeamedInAvatar.Id, providerType);
 
                     if (result != null && !result.IsError && result.Result != null)
                     {
