@@ -199,6 +199,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 results.NumberOfResults++;
             }
 
+            results.SearchResultAvatars = results.SearchResultAvatars.Where(x => x.DeletedDate == DateTime.MinValue).ToList();
+            results.SearchResultHolons = results.SearchResultHolons.Where(x => x.DeletedDate == DateTime.MinValue).ToList();
+
             if (searchOnlyForCurrentAvatar)
             {
                 results.SearchResultAvatars = results.SearchResultAvatars.Where(x => x.CreatedByAvatarId == avatarId).ToList();

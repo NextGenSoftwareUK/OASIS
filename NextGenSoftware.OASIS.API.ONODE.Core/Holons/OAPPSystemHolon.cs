@@ -8,33 +8,33 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
     //public class OAPPTemplate : Holon, IOAPPTemplate //PublishableHolon, IOAPPTemplate
-    public class OAPPTemplate : OAPPSystemHolon, IOAPPTemplate //PublishableHolon, IOAPPTemplate
+    public class OAPPSystemHolon : Holon, IOAPPSystemHolon //PublishableHolon, IOAPPTemplate
     {
-        private IOAPPTemplateDNA _OAPPTemplateDNA;
+        private IOAPPSystemHolonDNA _OAPPSystemHolonDNA;
 
-        public OAPPTemplate()
+        public OAPPSystemHolon()
         {
             this.HolonType = HolonType.OAPPTemplate; 
         }
 
-        public IOAPPTemplateDNA OAPPTemplateDNA
+        public IOAPPSystemHolonDNA OAPPSystemHolonDNA
         {
             get
             {
-                if (_OAPPTemplateDNA == null && MetaData["OAPPTemplateDNAJSON"] != null && !string.IsNullOrEmpty(MetaData["OAPPTemplateDNAJSON"].ToString()))
-                    _OAPPTemplateDNA = JsonSerializer.Deserialize<OAPPTemplateDNA>(MetaData["OAPPTemplateDNAJSON"].ToString());
+                if (_OAPPSystemHolonDNA == null && MetaData["OAPPSystemHolonDNAJSON"] != null && !string.IsNullOrEmpty(MetaData["OAPPSystemHolonDNAJSON"].ToString()))
+                    _OAPPSystemHolonDNA = JsonSerializer.Deserialize<OAPPSystemHolonDNA>(MetaData["OAPPSystemHolonDNAJSON"].ToString());
 
-                return _OAPPTemplateDNA;
+                return _OAPPSystemHolonDNA;
             }
             set
             {
-                _OAPPTemplateDNA = value;
-                MetaData["OAPPTemplateDNAJSON"] = JsonSerializer.Serialize(value);
+                _OAPPSystemHolonDNA = value;
+                MetaData["OAPPSystemHolonDNAJSON"] = JsonSerializer.Serialize(value);
             }
         }
 
         [CustomOASISProperty()]
-        public byte[] PublishedOAPPTemplate { get; set; }
+        public byte[] PublishedOAPSystemItem { get; set; }
 
         //[CustomOASISProperty]
         //public OAPPTemplateType OAPPTemplateType { get; set; }

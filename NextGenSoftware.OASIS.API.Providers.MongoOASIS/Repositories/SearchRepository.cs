@@ -377,6 +377,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                .Select(g => g.First())
                .ToList();
 
+                avatars = avatars.Where(x => x.DeletedDate == DateTime.MinValue).ToList();
+                holons = holons.Where(x => x.DeletedDate == DateTime.MinValue).ToList();
+
                 if (searchParams.SearchOnlyForCurrentAvatar)
                 {
                     avatars = avatars.Where(x => x.CreatedByAvatarId == searchParams.AvatarId.ToString()).ToList();

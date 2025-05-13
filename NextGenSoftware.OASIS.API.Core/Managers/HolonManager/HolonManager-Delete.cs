@@ -37,7 +37,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                             OASISResult<IHolon> saveHolonResult = SaveHolon(loadHolonResult.Result, providerType: providerType);
 
-                            if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
+                            if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                            {
+                                result.Result = saveHolonResult.Result;
+                                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
+                            }
+                            else
                                 OASISErrorHandling.HandleError(ref result, $"Error occured deleting holon with id {id} calling SaveHolon. Reason: {saveHolonResult.Message}");
                         }
                     }
@@ -129,7 +134,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                             OASISResult<IHolon> saveHolonResult = await SaveHolonAsync(loadHolonResult.Result, providerType: providerType);
 
-                            if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
+                            if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                            {
+                                result.Result = saveHolonResult.Result;
+                                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
+                            }
+                            else
                                 OASISErrorHandling.HandleError(ref result, $"Error occured deleting holon with id {id} calling SaveHolon. Reason: {saveHolonResult.Message}");
                         }
                     }
@@ -221,7 +231,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                             OASISResult<T> saveHolonResult = SaveHolon<T>(loadHolonResult.Result, providerType: providerType);
 
-                            if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
+                            if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                            {
+                                result.Result = saveHolonResult.Result;
+                                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
+                            }
+                            else
                                 OASISErrorHandling.HandleError(ref result, $"Error occured deleting holon with id {id} calling SaveHolon. Reason: {saveHolonResult.Message}");
                         }
                     }
@@ -297,7 +312,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
 
-        public OASISResult<T> DeleteHolonAsync<T>(Guid id, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public async Task<OASISResult<T>> DeleteHolonAsync<T>(Guid id, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             OASISResult<T> result = new OASISResult<T>();
 
@@ -323,7 +338,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                             OASISResult<T> saveHolonResult = SaveHolon<T>(loadHolonResult.Result, providerType: providerType);
 
-                            if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
+                            if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                            {
+                                result.Result = saveHolonResult.Result;
+                                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
+                            }
+                            else
                                 OASISErrorHandling.HandleError(ref result, $"Error occured deleting holon with id {id} calling SaveHolon. Reason: {saveHolonResult.Message}");
                         }
                     }
@@ -424,7 +444,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                             OASISResult<IHolon> saveHolonResult = SaveHolon(loadHolonResult.Result, providerType: providerType);
 
-                            if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
+                            if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                            {
+                                result.Result = saveHolonResult.Result;
+                                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
+                            }
+                            else
                                 OASISErrorHandling.HandleError(ref result, $"Error occured deleting holon with providerKey {providerKey} calling SaveHolon. Reason: {saveHolonResult.Message}");
                         }
                     }
@@ -515,7 +540,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                             OASISResult<IHolon> saveHolonResult = await SaveHolonAsync(loadHolonResult.Result, providerType: providerType);
 
-                            if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
+                            if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                            {
+                                result.Result = saveHolonResult.Result;
+                                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
+                            }
+                            else
                                 OASISErrorHandling.HandleError(ref result, $"Error occured deleting holon with providerKey {providerKey} calling SaveHolon. Reason: {saveHolonResult.Message}");
                         }
                     }
@@ -580,8 +610,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-
-
         public OASISResult<T> DeleteHolon<T>(string providerKey, Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             OASISResult<T> result = new OASISResult<T>();
@@ -608,7 +636,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                             OASISResult<T> saveHolonResult = SaveHolon<T>(loadHolonResult.Result, providerType: providerType);
 
-                            if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
+                            if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                            {
+                                result.Result = saveHolonResult.Result;
+                                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
+                            }
+                            else
                                 OASISErrorHandling.HandleError(ref result, $"Error occured deleting holon with providerKey {providerKey} calling SaveHolon. Reason: {saveHolonResult.Message}");
                         }
                     }
@@ -709,7 +742,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                             OASISResult<T> saveHolonResult = await SaveHolonAsync<T>(loadHolonResult.Result, providerType: providerType);
 
-                            if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
+                            if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                            {
+                                result.Result = saveHolonResult.Result;
+                                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
+                            }
+                            else
                                 OASISErrorHandling.HandleError(ref result, $"Error occured deleting holon with providerKey {providerKey} calling SaveHolon. Reason: {saveHolonResult.Message}");
                         }
                     }
