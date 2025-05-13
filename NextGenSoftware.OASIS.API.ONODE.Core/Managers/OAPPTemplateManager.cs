@@ -32,8 +32,9 @@ using Nethereum.Web3.Accounts;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 {
-    public class OAPPTemplateManager : COSMICManagerBase//, IOAPPTemplateManager
+    public class OAPPTemplateManager : OAPPSystemManagerBase//, IOAPPTemplateManager
     {
+        private bool _init = false;
         private int _progress = 0;
         private long _fileLength = 0;
         private const string GOOGLE_CLOUD_BUCKET_NAME = "oasis_oapptemplates";
@@ -66,164 +67,36 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         /// </summary>
         public event OAPPTemplateDownloadStatusChanged OnOAPPTemplateDownloadStatusChanged;
 
+        public void Init()
+        {
+            base.OAPPSystemHolonUIName = "OAPP Template";
+            base.OAPPSystemHolonIdName = "OAPPTemplateManagerId";
+            base.OAPPSystemHolonNameName = "OAPPTemplateManagerName";
+            base.OAPPSystemHolonTypeName = "OAPPTemplateManagerType";
+            _init = true;
+        }
 
         public async Task<OASISResult<IOAPPTemplate>> CreateOAPPTemplateAsync(string name, string description, OAPPTemplateType OAPPTemplateType, Guid avatarId, string fullPathToOAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
+            if (_init)
+                Init(); 
+
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            string errorMessage = "Error occured in OAPPTemplateManager.CreateOAPPTemplateAsync, Reason:";
-
-            try
-            {
-                if (Directory.Exists(fullPathToOAPPTemplate))
-                {
-                    if (CLIEngine.GetConfirmation($"The directory {fullPathToOAPPTemplate} already exists! Would you like to delete it?"))
-                    {
-                        Console.WriteLine("");
-                        Directory.Delete(fullPathToOAPPTemplate, true);
-                    }
-                    else
-                    {
-                        Console.WriteLine("");
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToOAPPTemplate} already exists! Please either delete it or choose a different name.");
-                        return result;
-                    }
-                }
-
-                OAPPTemplate OAPPTemplate = new OAPPTemplate()
-                {
-                    Id = Guid.NewGuid(),
-                    Name = name,
-                    Description = description
-                };
-
-                OAPPTemplate.MetaData["OAPPTemplateId"] = OAPPTemplate.Id.ToString();
-                OAPPTemplate.MetaData["OAPPTemplateName"] = OAPPTemplate.Name;
-                OAPPTemplate.MetaData["OAPPTemplateType"] = Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType);
-                OAPPTemplate.MetaData["Version"] = "1.0.0";
-                OAPPTemplate.MetaData["VersionSequence"] = 1;
-                OAPPTemplate.MetaData["Active"] = "1";
-                OAPPTemplate.MetaData["CreatedByAvatarId"] = avatarId.ToString();
-
-                //OAPPTemplate.MetaData["LatestVersion"] = "1";
-
-                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
-
-                if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
-                {
-                    OAPPTemplateDNA OAPPTemplateDNA = new OAPPTemplateDNA()
-                    {
-                        Id = OAPPTemplate.Id,
-                        Name = name,
-                        Description = description,
-                        OAPPTemplateType = OAPPTemplateType,
-                        CreatedByAvatarId = avatarId,
-                        CreatedByAvatarUsername = avatarResult.Result.Username,
-                        CreatedOn = DateTime.Now,
-                        Version = "1.0.0",
-                        STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion,
-                        OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion,
-                        COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion,
-                        DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion,
-                        OAPPTemplatePath = fullPathToOAPPTemplate
-                    };
-
-                    OASISResult<bool> writeOAPPTemplateDNAResult = await WriteOAPPTemplateDNAAsync(OAPPTemplateDNA, fullPathToOAPPTemplate);
-
-                    if (writeOAPPTemplateDNAResult != null && writeOAPPTemplateDNAResult.Result && !writeOAPPTemplateDNAResult.IsError)
-                    {
-                        OAPPTemplate.OAPPTemplateDNA = OAPPTemplateDNA;
-                        OASISResult<OAPPTemplate> saveHolonResult = await Data.SaveHolonAsync<OAPPTemplate>(OAPPTemplate, avatarId, true, true, 0, true, false, providerType);
-
-                        if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                        {
-                            result.Result = saveHolonResult.Result;
-                            result.Message = $"Successfully created the OAPP Template on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPTemplateType {Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)}.";
-                        }
-                        else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured writing the OAPP Template DNA. Reason: {writeOAPPTemplateDNAResult.Message}");
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {avatarResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {ex}");
-            }
-
+            OASISResult<OAPPTemplate> createOAPPTemplateResult = await base.CreateAsync<OAPPTemplate>(name, description, OAPPTemplateType, avatarId, fullPathToOAPPTemplate, providerType);
+            result.Result = createOAPPTemplateResult.Result;
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createOAPPTemplateResult, result);
             return result;
         }
 
         public OASISResult<IOAPPTemplate> CreateOAPPTemplate(string name, string description, OAPPTemplateType OAPPTemplateType, Guid avatarId, string fullPathToOAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
+            if (_init)
+                Init();
+
             OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>();
-            string errorMessage = "Error occured in OAPPTemplateManager.CreateOAPPTemplate, Reason:";
-
-            try
-            {
-                if (Directory.Exists(fullPathToOAPPTemplate))
-                {
-                    if (CLIEngine.GetConfirmation($"{errorMessage} The directory {fullPathToOAPPTemplate} already exists! Would you like to delete it?"))
-                        Directory.Delete(fullPathToOAPPTemplate);
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToOAPPTemplate} already exists! Please either delete it or choose a different name.");
-                        return result;
-                    }
-                }
-
-                OAPPTemplate OAPPTemplate = new OAPPTemplate()
-                {
-                    Id = Guid.NewGuid(),
-                    Name = name,
-                    Description = description
-                };
-
-                OAPPTemplate.MetaData["OAPPTemplateType"] = Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType);
-                OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(avatarId, false, true, providerType);
-
-                if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
-                {
-                    OAPPTemplateDNA OAPPTemplateDNA = new OAPPTemplateDNA()
-                    {
-                        Id = OAPPTemplate.Id,
-                        Name = name,
-                        Description = description,
-                        OAPPTemplateType = OAPPTemplateType,
-                        CreatedByAvatarId = avatarId,
-                        CreatedByAvatarUsername = avatarResult.Result.Username,
-                        CreatedOn = DateTime.Now,
-                        Version = "1.0.0",
-                        STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion,
-                        OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion,
-                        COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion,
-                        DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion,
-                        OAPPTemplatePath = fullPathToOAPPTemplate
-                    };
-
-                    WriteOAPPTemplateDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
-
-                    OAPPTemplate.OAPPTemplateDNA = OAPPTemplateDNA;
-                    OASISResult<OAPPTemplate> saveHolonResult = Data.SaveHolon<OAPPTemplate>(OAPPTemplate, avatarId, true, true, 0, true, false, providerType);
-
-                    if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                    {
-                        result.Result = saveHolonResult.Result;
-                        result.Message = $"Successfully created the OAPP Template on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for OAPPTemplateType {Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)}.";
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {avatarResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the OAPP Template to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {ex}");
-            }
-
+            OASISResult<OAPPTemplate> createOAPPTemplateResult = base.Create<OAPPTemplate>(name, description, OAPPTemplateType, avatarId, fullPathToOAPPTemplate, providerType);
+            result.Result = createOAPPTemplateResult.Result;
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createOAPPTemplateResult, result);
             return result;
         }
 

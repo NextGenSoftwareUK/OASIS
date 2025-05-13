@@ -7,7 +7,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
-    public class OAPPTemplate : Holon, IOAPPTemplate //PublishableHolon, IOAPPTemplate
+    //public class OAPPTemplate : Holon, IOAPPTemplate //PublishableHolon, IOAPPTemplate
+    public class OAPPTemplate : OAPPSystemHolon, IOAPPTemplate //PublishableHolon, IOAPPTemplate
     {
         private IOAPPTemplateDNA _OAPPTemplateDNA;
 
