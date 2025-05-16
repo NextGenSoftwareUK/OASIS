@@ -1,5 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces
@@ -7,7 +6,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces
     public interface IOAPPSystemHolon : IHolon // : IPublishableHolon
     {
         IOAPPSystemHolonDNA OAPPSystemHolonDNA { get; set; }
-        byte[] PublishedOAPSystemItem { get; set; }
+        byte[] PublishedOAPPSystemHolon { get; set; }
 
        // OAPPTemplateType OAPPTemplateType { get; set; }
        //public string OAPPTemplatePath { get; set; }

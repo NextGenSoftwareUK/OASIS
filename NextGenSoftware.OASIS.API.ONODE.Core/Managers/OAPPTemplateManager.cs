@@ -70,9 +70,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public void Init()
         {
             base.OAPPSystemHolonUIName = "OAPP Template";
-            base.OAPPSystemHolonIdName = "OAPPTemplateManagerId";
-            base.OAPPSystemHolonNameName = "OAPPTemplateManagerName";
-            base.OAPPSystemHolonTypeName = "OAPPTemplateManagerType";
+            base.OAPPSystemHolonIdName = "OAPPTemplateId";
+            base.OAPPSystemHolonNameName = "OAPPTemplateName";
+            base.OAPPSystemHolonTypeName = "OAPPTemplateType";
+            base.OAPPSystemHolonFileExtention = "oapptemplate";
+            base.OAPPSystemHolonGoogleBucket = "oasis_oapptemplates";
+
             _init = true;
         }
 
