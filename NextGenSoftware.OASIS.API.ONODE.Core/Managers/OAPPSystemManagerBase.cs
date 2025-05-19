@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public delegate void OAPPSystemHolonPublishStatusChanged(object sender, OAPPSystemHolonPublishStatusEventArgs e);
         public delegate void OAPPSystemHolonInstallStatusChanged(object sender, OAPPSystemHolonInstallStatusEventArgs e);
         public delegate void OAPPSystemHolonUploadStatusChanged(object sender, OAPPSystemHolonUploadProgressEventArgs e);
-        public delegate void OAPPSystemHolonDownloadStatusChanged(object sender, OAPPSystemHolonDownloadStatusChanged e);
+        public delegate void OAPPSystemHolonDownloadStatusChanged(object sender, OAPPSystemHolonDownloadProgressEventArgs e);
 
         /// <summary>
         /// Fired when there is a change in the OAPP publish status.
@@ -67,12 +67,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public event OAPPSystemHolonDownloadStatusChanged OnOAPPSystemHolonDownloadStatusChanged;
 
         public HolonType HolonType { get; set; } = HolonType.OAPPSystemHolon;
-        public string OAPPSystemHolonUIName { get; set; } = "{OAPPSystemHolonUIName}";
+        public string OAPPSystemHolonUIName { get; set; } = "OAPP System Holon";
         public string OAPPSystemHolonIdName { get; set; } = "OAPPSystemHolonId";
         public string OAPPSystemHolonNameName { get; set; } = "OAPPSystemHolonName";
         public string OAPPSystemHolonTypeName { get; set; } = "OAPPSystemHolonType";
-        public string OAPPSystemHolonFileExtention { get; set; } = "OAPPSystemHolon";
-        public string OAPPSystemHolonGoogleBucket { get; set; } = "oasis_OAPPSystemHolons";
+        public string OAPPSystemHolonFileExtention { get; set; } = "oappsystemholon";
+        public string OAPPSystemHolonGoogleBucket { get; set; } = "oasis_oappsystemholons";
+        public string OAPPSystemHolonDNAFileName { get; set; } = "OAPPSystemHolonDNA.json";
 
         public virtual async Task<OASISResult<T>> CreateAsync<T>(string name, string description, object holonSubType, Guid avatarId, string fullPathToT, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
@@ -348,6 +349,34 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
+        //public async Task<OASISResult<T>> LoadAsync<T>(Guid id, Guid avatarId, HolonType holonType, string version, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
+        //{
+        //    OASISResult<T> result = new OASISResult<T>();
+        //    OASISResult<IEnumerable<T>> loadResult = await Data.LoadHolonsByMetaDataAsync<T>(OAPPSystemHolonIdName, id.ToString(), holonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+        //    OASISResult<IEnumerable<T>> filterdResult = FilterResultsForVersion(avatarId, loadResult, false, version);
+
+        //    if (filterdResult != null && filterdResult.Result != null && !filterdResult.IsError)
+        //        result.Result = filterdResult.Result.FirstOrDefault();
+        //    else
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in LoadAsync<T> loading the {OAPPSystemHolonUIName} with Id {id} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {filterdResult.Message}");
+
+        //    return result;
+        //}
+
+        //public OASISResult<T> Load<T>(Guid id, Guid avatarId, HolonType holonType, string version, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
+        //{
+        //    OASISResult<T> result = new OASISResult<T>();
+        //    OASISResult<IEnumerable<T>> loadResult = Data.LoadHolonsByMetaData<T>(OAPPSystemHolonIdName, id.ToString(), holonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+        //    OASISResult<IEnumerable<T>> filterdResult = FilterResultsForVersion(avatarId, loadResult, false, version);
+
+        //    if (filterdResult != null && filterdResult.Result != null && !filterdResult.IsError)
+        //        result.Result = filterdResult.Result.FirstOrDefault();
+        //    else
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in Load<T> loading the {OAPPSystemHolonUIName} with Id {id} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {filterdResult.Message}");
+
+        //    return result;
+        //}
+
         //public async Task<OASISResult<IEnumerable<T>>> LoadAllAsync<T>(Guid avatarId, HolonType holonType, OAPPSystemHolonType OAPPSystemHolonType = OAPPSystemHolonType.All, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         public async Task<OASISResult<IEnumerable<T>>> LoadAllAsync<T>(Guid avatarId, HolonType holonType, object itemType, bool loadAllTTypes = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
@@ -512,10 +541,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     if (deleteDownload)
                     {
-                        OASISResult<T> deleteDownloadedOAPPSystemHolonHolonResult = await DeleteHolonAsync<T>(installedOAPPSystemHolonResult.Result.DownloadedOAPPSystemHolonHolonId, avatarId, softDelete, providerType, "OAPPSystemManagerBase.DeleteOAPPSystemHolonAsync");
+                        OASISResult<T> deleteDownloadedOAPPSystemHolonHolonResult = await DeleteHolonAsync<T>(installedOAPPSystemHolonResult.Result.DownloadedOAPPSystemHolonId, avatarId, softDelete, providerType, "OAPPSystemManagerBase.DeleteOAPPSystemHolonAsync");
 
                         if (!(deleteDownloadedOAPPSystemHolonHolonResult != null && deleteDownloadedOAPPSystemHolonHolonResult.Result != null && !deleteDownloadedOAPPSystemHolonHolonResult.IsError))
-                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting the Downloaded T holon with id {installedOAPPSystemHolonResult.Result.DownloadedOAPPSystemHolonHolonId} calling DeleteHolonAsync. Reason: {deleteDownloadedOAPPSystemHolonHolonResult.Message}");
+                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting the Downloaded T holon with id {installedOAPPSystemHolonResult.Result.DownloadedOAPPSystemHolonId} calling DeleteHolonAsync. Reason: {deleteDownloadedOAPPSystemHolonHolonResult.Message}");
                     }
                 }
             }
@@ -596,10 +625,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     if (deleteDownload)
                     {
-                        OASISResult<T> deleteDownloadedOAPPSystemHolonHolonResult = DeleteHolon<T>(installedOAPPSystemHolonResult.Result.DownloadedOAPPSystemHolonHolonId, avatarId, softDelete, providerType, "OAPPSystemManagerBase.DeleteOAPPSystemHolonAsync");
+                        OASISResult<T> deleteDownloadedOAPPSystemHolonHolonResult = DeleteHolon<T>(installedOAPPSystemHolonResult.Result.DownloadedOAPPSystemHolonId, avatarId, softDelete, providerType, "OAPPSystemManagerBase.DeleteOAPPSystemHolonAsync");
 
                         if (!(deleteDownloadedOAPPSystemHolonHolonResult != null && deleteDownloadedOAPPSystemHolonHolonResult.Result != null && !deleteDownloadedOAPPSystemHolonHolonResult.IsError))
-                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting the Downloaded {OAPPSystemHolonUIName} holon with id {installedOAPPSystemHolonResult.Result.DownloadedOAPPSystemHolonHolonId} calling DeleteHolonAsync. Reason: {deleteDownloadedOAPPSystemHolonHolonResult.Message}");
+                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting the Downloaded {OAPPSystemHolonUIName} holon with id {installedOAPPSystemHolonResult.Result.DownloadedOAPPSystemHolonId} calling DeleteHolonAsync. Reason: {deleteDownloadedOAPPSystemHolonHolonResult.Message}");
                     }
                 }
             }
@@ -1010,13 +1039,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 }
                                 catch (Exception e)
                                 {
-                                    OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the {OAPPSystemHolonUIName} installed folder from {oldInstalledPath} to {holonVersion.InstalledPath}. Reason: {e}.");
+                                    OASISErrorHandling.HandleWarning(ref result, $"An error occured attempting to rename the {OAPPSystemHolonUIName} installed folder from {oldInstalledPath} to {installedHolon.InstalledPath}. Reason: {e}.");
                                     CLIEngine.ShowErrorMessage("PLEASE RENAME THIS FOLDER MANUALLY, THANK YOU!");
                                 }
                             }
                         }
                         else
-                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the OAPPSystemHolonDNA for Installed {OAPPSystemHolonUIName} with Id {holonVersion.Id} for provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {templateSaveResult.Message}");
+                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the OAPPSystemHolonDNA for Installed {OAPPSystemHolonUIName} with Id {installedHolon.Id} for provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {installedOPPSystemHolonSaveResult.Message}");
                     }
                 }
                 else
@@ -1712,7 +1741,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                                     if (saveOAPPSystemHolonResult != null && !saveOAPPSystemHolonResult.IsError && saveOAPPSystemHolonResult.Result != null)
                                     {
-                                        result = UpdateNumberOfVersionCountsAsync(saveOAPPSystemHolonResult, avatarId, errorMessage, providerType);
+                                        result = UpdateNumberOfVersionCounts(saveOAPPSystemHolonResult, avatarId, holonType, errorMessage, providerType);
                                         result.IsSaved = true;
 
                                         if (readOAPPSystemHolonDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
@@ -1765,23 +1794,23 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPSystemHolon>> UnpublishOAPPSystemHolonAsync(IOAPPSystemHolon T, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T>> UnpublishAsync<T>(T holon, Guid avatarId, ProviderType providerType = ProviderType.Default) where T: IOAPPSystemHolon, new()
         {
-            OASISResult<IOAPPSystemHolon> result = new OASISResult<IOAPPSystemHolon>();
-            string errorMessage = "Error occured in UnpublishOAPPSystemHolonAsync. Reason: ";
+            OASISResult<T> result = new OASISResult<T>();
+            string errorMessage = "Error occured in UnpublishAsync. Reason: ";
 
-            T.OAPPSystemHolonDNA.PublishedOn = DateTime.MinValue;
-            T.OAPPSystemHolonDNA.PublishedByAvatarId = Guid.Empty;
-            T.OAPPSystemHolonDNA.PublishedByAvatarUsername = "";
+            holon.OAPPSystemHolonDNA.PublishedOn = DateTime.MinValue;
+            holon.OAPPSystemHolonDNA.PublishedByAvatarId = Guid.Empty;
+            holon.OAPPSystemHolonDNA.PublishedByAvatarUsername = "";
             //T.OAPPSystemHolonDNA.IsActive = false;
-            T.MetaData["Active"] = "0";
+            holon.MetaData["Active"] = "0";
 
-            OASISResult<IOAPPSystemHolon> oappResult = await SaveOAPPSystemHolonAsync(T, avatarId, providerType);
+            OASISResult<T> oappResult = await SaveAsync<T>(holon, avatarId, providerType);
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
             { 
                 result.Result = oappResult.Result; //ConvertOAPPSystemHolonToOAPPSystemHolonDNA(T);
-                result.Message = "T Unpublished";
+                result.Message = $"{OAPPSystemHolonUIName} Unpublished";
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the {OAPPSystemHolonUIName} with the SaveOAPPSystemHolonAsync method, reason: {oappResult.Message}");
@@ -1789,108 +1818,108 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IOAPPSystemHolon> UnpublishOAPPSystemHolon(IOAPPSystemHolon T, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T> Unpublish<T>(T holon, Guid avatarId, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
-            OASISResult<IOAPPSystemHolon> result = new OASISResult<IOAPPSystemHolon>();
-            string errorMessage = "Error occured in UnpublishOAPPSystemHolon. Reason: ";
+            OASISResult<T> result = new OASISResult<T>();
+            string errorMessage = "Error occured in Unpublish. Reason: ";
 
-            T.OAPPSystemHolonDNA.PublishedOn = DateTime.MinValue;
-            T.OAPPSystemHolonDNA.PublishedByAvatarId = Guid.Empty;
-            T.OAPPSystemHolonDNA.PublishedByAvatarUsername = "";
+            holon.OAPPSystemHolonDNA.PublishedOn = DateTime.MinValue;
+            holon.OAPPSystemHolonDNA.PublishedByAvatarId = Guid.Empty;
+            holon.OAPPSystemHolonDNA.PublishedByAvatarUsername = "";
             //T.OAPPSystemHolonDNA.IsActive = false;
-            T.MetaData["Active"] = "0";
+            holon.MetaData["Active"] = "0";
 
-            OASISResult<IOAPPSystemHolon> oappResult = SaveOAPPSystemHolon(T, avatarId, providerType);
+            OASISResult<T> oappResult = Save<T>(holon, avatarId, providerType);
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
             {
                 result.Result = oappResult.Result; //ConvertOAPPSystemHolonToOAPPSystemHolonDNA(T);
-                result.Message = "{OAPPSystemHolonUIName} Unpublished";
+                result.Message = $"{OAPPSystemHolonUIName} Unpublished";
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the {OAPPSystemHolonUIName} with the SaveOAPPSystemHolon method, reason: {oappResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the {OAPPSystemHolonUIName} with the Save method, reason: {oappResult.Message}");
 
             return result;
         }
 
-        public async Task<OASISResult<IOAPPSystemHolon>> UnpublishOAPPSystemHolonAsync(Guid OAPPSystemHolonId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T>> UnpublishAsync<T>(Guid OAPPSystemHolonId, HolonType holonType, int version, Guid avatarId, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
-            OASISResult<IOAPPSystemHolon> result = new OASISResult<IOAPPSystemHolon>();
-            OASISResult<IOAPPSystemHolon> loadResult = await LoadOAPPSystemHolonAsync(OAPPSystemHolonId, avatarId, version, providerType);
+            OASISResult<T> result = new OASISResult<T>();
+            OASISResult<T> loadResult = await LoadAsync<T>(OAPPSystemHolonId, avatarId, holonType, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
-                result = await UnpublishOAPPSystemHolonAsync(loadResult.Result, avatarId, providerType);
+                result = await UnpublishAsync(loadResult.Result, avatarId, providerType);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in UnpublishOAPPSystemHolonAsync loading the T with the LoadOAPPSystemHolonAsync method, reason: {loadResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in UnpublishAsync loading the {OAPPSystemHolonUIName} with the LoadAsync method, reason: {loadResult.Message}");
 
             return result;
         }
 
-        public OASISResult<IOAPPSystemHolon> UnpublishOAPPSystemHolon(Guid OAPPSystemHolonId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T> Unpublish<T>(Guid OAPPSystemHolonId, HolonType holonType, int version, Guid avatarId, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
-            OASISResult<IOAPPSystemHolon> result = new OASISResult<IOAPPSystemHolon>();
-            OASISResult<IOAPPSystemHolon> loadResult = LoadOAPPSystemHolon(OAPPSystemHolonId, avatarId, version, providerType);
+            OASISResult<T> result = new OASISResult<T>();
+            OASISResult<T> loadResult = Load<T>(OAPPSystemHolonId, avatarId, holonType, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
-                result = UnpublishOAPPSystemHolon(loadResult.Result, avatarId, providerType);
+                result = Unpublish(loadResult.Result, avatarId, providerType);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in UnpublishOAPPSystemHolon loading the T with the LoadOAPPSystemHolon method, reason: {loadResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in UnpublishUnpublish loading the {OAPPSystemHolonUIName} with the Load method, reason: {loadResult.Message}");
 
             return result;
         }
 
-        public async Task<OASISResult<IOAPPSystemHolon>> UnpublishOAPPSystemHolonAsync(IOAPPSystemHolonDNA OAPPSystemHolonDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T>> UnpublishAsync<T>(IOAPPSystemHolonDNA OAPPSystemHolonDNA, Guid avatarId, HolonType holonType, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
-            OASISResult<IOAPPSystemHolon> result = new OASISResult<IOAPPSystemHolon>();
-            OASISResult<IOAPPSystemHolon> oappResult = await LoadOAPPSystemHolonAsync(OAPPSystemHolonDNA.Id, avatarId, OAPPSystemHolonDNA.VersionSequence, providerType);
+            OASISResult<T> result = new OASISResult<T>();
+            OASISResult<T> oappResult = await LoadAsync<T>(OAPPSystemHolonDNA.Id, avatarId, holonType, OAPPSystemHolonDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in UnpublishOAPPSystemHolonAsync. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
-                result = await UnpublishOAPPSystemHolonAsync(oappResult.Result, avatarId, providerType);
+                result = await UnpublishAsync(oappResult.Result, avatarId, providerType);
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the {OAPPSystemHolonUIName} with the LoadOAPPSystemHolonAsync method, reason: {oappResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the {OAPPSystemHolonUIName} with the LoadAsync method, reason: {oappResult.Message}");
 
             return result;
         }
 
-        public OASISResult<IOAPPSystemHolon> UnpublishOAPPSystemHolon(IOAPPSystemHolonDNA OAPPSystemHolonDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T> Unpublish<T>(IOAPPSystemHolonDNA OAPPSystemHolonDNA, Guid avatarId, HolonType holonType, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
-            OASISResult<IOAPPSystemHolon> result = new OASISResult<IOAPPSystemHolon>();
-            OASISResult<IOAPPSystemHolon> oappResult = LoadOAPPSystemHolon(OAPPSystemHolonDNA.Id, avatarId, OAPPSystemHolonDNA.VersionSequence, providerType);
-            string errorMessage = "Error occured in UnpublishOAPPSystemHolon. Reason: ";
+            OASISResult<T> result = new OASISResult<T>();
+            OASISResult<T> oappResult = Load<T>(OAPPSystemHolonDNA.Id, avatarId, holonType, OAPPSystemHolonDNA.VersionSequence, providerType);
+            string errorMessage = "Error occured in Unpublish. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
-                result = UnpublishOAPPSystemHolon(oappResult.Result, avatarId, providerType);
+                result = Unpublish(oappResult.Result, avatarId, providerType);
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the {OAPPSystemHolonUIName} with the LoadOAPPSystemHolon method, reason: {oappResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the {OAPPSystemHolonUIName} with the Load method, reason: {oappResult.Message}");
 
             return result;
         }
 
-        public async Task<OASISResult<IOAPPSystemHolon>> RepublishOAPPSystemHolonAsync(IOAPPSystemHolon T, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T>> RepublishAsync<T>(T holon, Guid avatarId, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
-            OASISResult<IOAPPSystemHolon> result = new OASISResult<IOAPPSystemHolon>();
-            string errorMessage = "Error occured in RepublishOAPPSystemHolonAsync. Reason: ";
+            OASISResult<T> result = new OASISResult<T>();
+            string errorMessage = "Error occured in RepublishAsync. Reason: ";
 
             OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
             if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
             {
-                T.OAPPSystemHolonDNA.PublishedOn = DateTime.Now;
-                T.OAPPSystemHolonDNA.PublishedByAvatarId = avatarId;
-                T.OAPPSystemHolonDNA.PublishedByAvatarUsername = avatarResult.Result.Username;
+                holon.OAPPSystemHolonDNA.PublishedOn = DateTime.Now;
+                holon.OAPPSystemHolonDNA.PublishedByAvatarId = avatarId;
+                holon.OAPPSystemHolonDNA.PublishedByAvatarUsername = avatarResult.Result.Username;
                 //T.OAPPSystemHolonDNA.IsActive = true;
-                T.MetaData["Active"] = "1";
+                holon.MetaData["Active"] = "1";
 
-                OASISResult<IOAPPSystemHolon> oappResult = await SaveOAPPSystemHolonAsync(T, avatarId, providerType);
+                OASISResult<T> oappResult = await SaveAsync(holon, avatarId, providerType);
 
                 if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
                 {
                     result.Result = oappResult.Result; //ConvertOAPPSystemHolonToOAPPSystemHolonDNA(T);
-                    result.Message = "T Republished";
+                    result.Message = $"{OAPPSystemHolonUIName} Republished";
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the {OAPPSystemHolonUIName} with the SaveOAPPSystemHolonAsync method, reason: {oappResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the {OAPPSystemHolonUIName} with the SaveAsync method, reason: {oappResult.Message}");
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the Avatar with the LoadAvatar method, reason: {avatarResult.Message}");
@@ -1898,10 +1927,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IOAPPSystemHolon> RepublishOAPPSystemHolon(IOAPPSystemHolon T, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T> Republish<T>(T holon, Guid avatarId, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
-            OASISResult<IOAPPSystemHolon> result = new OASISResult<IOAPPSystemHolon>();
-            string errorMessage = "Error occured in RepublishOAPPSystemHolon. Reason: ";
+            OASISResult<T> result = new OASISResult<T>();
+            string errorMessage = "Error occured in Republish. Reason: ";
 
             OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(avatarId, false, true, providerType);
 
@@ -1913,15 +1942,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 //T.OAPPSystemHolonDNA.IsActive = true;
                 T.MetaData["Active"] = "1";
 
-                OASISResult<IOAPPSystemHolon> oappResult = SaveOAPPSystemHolon(T, avatarId, providerType);
+                OASISResult<T> oappResult = Save(holon, avatarId, providerType);
 
                 if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
                 {
                     result.Result = oappResult.Result; //ConvertOAPPSystemHolonToOAPPSystemHolonDNA(T);
-                    result.Message = "{OAPPSystemHolonUIName} Republished";
+                    result.Message = $"{OAPPSystemHolonUIName} Republished";
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the {OAPPSystemHolonUIName} with the SaveOAPPSystemHolon method, reason: {oappResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the {OAPPSystemHolonUIName} with the Save method, reason: {oappResult.Message}");
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the Avatar with the LoadAvatar method, reason: {avatarResult.Message}");
@@ -2189,16 +2218,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IDownloadedOAPPSystemHolon>> DownloadOAPPSystemHolonAsync(Guid avatarId, IOAPPSystemHolon T, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IDownloadedOAPPSystemHolon>> DownloadAsync<T>(Guid avatarId, T holon, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
             OASISResult<IDownloadedOAPPSystemHolon> result = new OASISResult<IDownloadedOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.DownloadOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.DownloadAsync. Reason: ";
             DownloadedOAPPSystemHolon downloadedOAPPSystemHolon = null;
 
             try
             {
-                if (!fullDownloadPath.Contains(".OAPPSystemHolon"))
-                    fullDownloadPath = Path.Combine(fullDownloadPath, string.Concat(T.Name, "_v", T.OAPPSystemHolonDNA.Version, ".OAPPSystemHolon"));
+                if (!fullDownloadPath.Contains(string.Concat(".", OAPPSystemHolonFileExtention)))
+                    fullDownloadPath = Path.Combine(fullDownloadPath, string.Concat(holon.Name, "_v", holon.OAPPSystemHolonDNA.Version, ".", OAPPSystemHolonFileExtention));
 
                 if (File.Exists(fullDownloadPath))
                     File.Delete(fullDownloadPath);
@@ -2220,13 +2249,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         _fileLength = fileStream.Length;
 
                         if (_fileLength == 0)
-                            _fileLength = T.OAPPSystemHolonDNA.OAPPSystemHolonFileSize;
+                            _fileLength = holon.OAPPSystemHolonDNA.FileSize;
 
                         _progress = 0;
 
-                        string publishedOAPPSystemHolonFileName = string.Concat(T.Name, "_v", T.OAPPSystemHolonDNA.Version, ".OAPPSystemHolon");
-                        OnOAPPSystemHolonInstallStatusChanged?.Invoke(this, new OAPPSystemHolonInstallStatusEventArgs() { OAPPSystemHolonDNA = T.OAPPSystemHolonDNA, Status = Enums.OAPPSystemHolonInstallStatus.Downloading });
-                        await storage.DownloadObjectAsync(GOOGLE_CLOUD_BUCKET_NAME, publishedOAPPSystemHolonFileName, fileStream, downloadObjectOptions, progress: progressReporter);
+                        string publishedOAPPSystemHolonFileName = string.Concat(holon.Name, "_v", holon.OAPPSystemHolonDNA.Version, ".", OAPPSystemHolonFileExtention);
+                        OnOAPPSystemHolonInstallStatusChanged?.Invoke(this, new OAPPSystemHolonInstallStatusEventArgs() { OAPPSystemHolonDNA = holon.OAPPSystemHolonDNA, Status = Enums.OAPPSystemHolonInstallStatus.Downloading });
+                        await storage.DownloadObjectAsync(OAPPSystemHolonGoogleBucket, publishedOAPPSystemHolonFileName, fileStream, downloadObjectOptions, progress: progressReporter);
 
                         _progress = 100;
                         OnOAPPSystemHolonDownloadStatusChanged?.Invoke(this, new OAPPSystemHolonDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPSystemHolonDownloadStatus.Downloading });
@@ -2241,22 +2270,22 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     {
                         if (!reInstall)
                         {
-                            T.OAPPSystemHolonDNA.Downloads++;
+                            holon.OAPPSystemHolonDNA.Downloads++;
 
                             downloadedOAPPSystemHolon = new DownloadedOAPPSystemHolon()
                             {
-                                Name = string.Concat(T.OAPPSystemHolonDNA.Name, " Downloaded Holon"),
-                                Description = string.Concat(T.OAPPSystemHolonDNA.Description, " Downloaded Holon"),
-                                OAPPSystemHolonDNA = T.OAPPSystemHolonDNA,
+                                Name = string.Concat(holon.OAPPSystemHolonDNA.Name, " Downloaded Holon"),
+                                Description = string.Concat(holon.OAPPSystemHolonDNA.Description, " Downloaded Holon"),
+                                OAPPSystemHolonDNA = holon.OAPPSystemHolonDNA,
                                 DownloadedBy = avatarId,
                                 DownloadedByAvatarUsername = avatarResult.Result.Username,
                                 DownloadedOn = DateTime.Now,
                                 DownloadedPath = fullDownloadPath
                             };
 
-                            await UpdateDownloadCountsAsync(downloadedOAPPSystemHolon, T.OAPPSystemHolonDNA, avatarId, result, errorMessage, providerType);
+                            await UpdateDownloadCountsAsync<T>(holon.HolonType, downloadedOAPPSystemHolon, holon.OAPPSystemHolonDNA, avatarId, result, errorMessage, providerType);
 
-                            downloadedOAPPSystemHolon.MetaData["OAPPSystemHolonId"] = T.OAPPSystemHolonDNA.Id.ToString();
+                            downloadedOAPPSystemHolon.MetaData[OAPPSystemHolonIdName] = holon.OAPPSystemHolonDNA.Id.ToString();
                             downloadedOAPPSystemHolon.MetaData["OAPPSystemHolonDNAJSON"] = JsonSerializer.Serialize(downloadedOAPPSystemHolon.OAPPSystemHolonDNA);
                             OASISResult<DownloadedOAPPSystemHolon> saveResult = await downloadedOAPPSystemHolon.SaveAsync<DownloadedOAPPSystemHolon>();
 
@@ -2265,7 +2294,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         }
                         else
                         {
-                            OASISResult<IEnumerable<DownloadedOAPPSystemHolon>> downloadedOAPPSystemHolonResult = await Data.LoadHolonsByMetaDataAsync<DownloadedOAPPSystemHolon>("OAPPSystemHolonId", T.OAPPSystemHolonDNA.Id.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+                            OASISResult<IEnumerable<DownloadedOAPPSystemHolon>> downloadedOAPPSystemHolonResult = await Data.LoadHolonsByMetaDataAsync<DownloadedOAPPSystemHolon>("OAPPSystemHolonId", holon.OAPPSystemHolonDNA.Id.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
 
                             if (downloadedOAPPSystemHolonResult != null && !downloadedOAPPSystemHolonResult.IsError && downloadedOAPPSystemHolonResult.Result != null)
                             {
@@ -2291,14 +2320,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     if (!result.IsError)
                     {
                         result.Result = downloadedOAPPSystemHolon;
-                        OASISResult<IOAPPSystemHolon> oappSaveResult = await SaveOAPPSystemHolonAsync(T, avatarId, providerType);
+                        OASISResult<T> oappSaveResult = await SaveAsync(holon, avatarId, providerType);
 
                         if (oappSaveResult != null && !oappSaveResult.IsError && oappSaveResult.Result != null)
                         {
                             if (result.InnerMessages.Count > 0)
                                 result.Message = $"{OAPPSystemHolonUIName} successfully downloaded but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
                             else
-                                result.Message = "{OAPPSystemHolonUIName} Successfully Downloaded";
+                                result.Message = $"{OAPPSystemHolonUIName} Successfully Downloaded";
                         }
                         else
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPSystemHolonAsync method. Reason: {oappSaveResult.Message}");
@@ -2327,10 +2356,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> DownloadAndInstallOAPPSystemHolonAsync(Guid avatarId, IOAPPSystemHolon T, string fullInstallPath, string fullDownloadPath = "", bool createOAPPSystemHolonDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> DownloadAndInstallAsync<T>(Guid avatarId, T holon, string fullInstallPath, string fullDownloadPath = "", bool createOAPPSystemHolonDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.DownloadAndInstallOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.DownloadAndInstallAsync. Reason: ";
             bool isFullDownloadPathTemp = false;
 
             try
@@ -2338,7 +2367,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 if (string.IsNullOrEmpty(fullDownloadPath))
                 {
                     string tempPath = Path.GetTempPath();
-                    fullDownloadPath = Path.Combine(tempPath, string.Concat(T.Name, ".OAPPSystemHolon"));
+                    fullDownloadPath = Path.Combine(tempPath, string.Concat(holon.Name, ".", OAPPSystemHolonFileExtention));
                     isFullDownloadPathTemp = true;
                 }
 
@@ -2347,18 +2376,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                 if (T.PublishedOAPPSystemHolon != null)
                 {
-                    await File.WriteAllBytesAsync(fullDownloadPath, T.PublishedOAPPSystemHolon);
-                    result = await InstallOAPPSystemHolonAsync(avatarId, fullDownloadPath, fullInstallPath, createOAPPSystemHolonDirectory, null, reInstall, providerType);
+                    await File.WriteAllBytesAsync(fullDownloadPath, holon.PublishedOAPPSystemHolon);
+                    result = await InstallAsync(avatarId, holon.HolonType, fullDownloadPath, fullInstallPath, createOAPPSystemHolonDirectory, null, reInstall, providerType);
                 }
                 else
                 {
-                    OASISResult<IDownloadedOAPPSystemHolon> downloadResult = await DownloadOAPPSystemHolonAsync(avatarId, T, fullDownloadPath, reInstall, providerType);
+                    OASISResult<IDownloadedOAPPSystemHolon> downloadResult = await DownloadAsync(avatarId, holon, fullDownloadPath, reInstall, providerType);
 
                     if (!fullDownloadPath.Contains(".OAPPSystemHolon"))
-                        fullDownloadPath = Path.Combine(fullDownloadPath, string.Concat(T.Name, "_v", T.OAPPSystemHolonDNA.Version, ".OAPPSystemHolon"));
+                        fullDownloadPath = Path.Combine(fullDownloadPath, string.Concat(holon.Name, "_v", holon.OAPPSystemHolonDNA.Version, ".OAPPSystemHolon"));
 
                     if (downloadResult != null && downloadResult.Result != null && !downloadResult.IsError)
-                        result = await InstallOAPPSystemHolonAsync(avatarId, fullDownloadPath, fullInstallPath, createOAPPSystemHolonDirectory, downloadResult.Result, reInstall, providerType);
+                        result = await InstallAsync(avatarId, holon.HolonType, fullDownloadPath, fullInstallPath, createOAPPSystemHolonDirectory, downloadResult.Result, reInstall, providerType);
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured downloading the {OAPPSystemHolonUIName} with the DownloadOAPPSystemHolonAsync method, reason: {downloadResult.Message}");
                 }
@@ -2379,10 +2408,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> InstallOAPPSystemHolonAsync(Guid avatarId, string fullPathToPublishedOAPPSystemHolonFile, string fullInstallPath, bool createOAPPSystemHolonDirectory = true, IDownloadedOAPPSystemHolon downloadedOAPPSystemHolon = null, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> InstallAsync<T>(Guid avatarId, HolonType holonType, string fullPathToPublishedOAPPSystemHolonFile, string fullInstallPath, bool createOAPPSystemHolonDirectory = true, IDownloadedOAPPSystemHolon downloadedOAPPSystemHolon = null, bool reInstall = false, ProviderType providerType = ProviderType.Default) where T: IOAPPSystemHolon, new()
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.InstallOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.InstallAsync. Reason: ";
             IOAPPSystemHolonDNA OAPPSystemHolonDNA = null;
             string tempPath = "";
             InstalledOAPPSystemHolon installedOAPPSystemHolon = null;
@@ -2391,7 +2420,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             try
             {
                 tempPath = Path.GetTempPath();
-                tempPath = Path.Combine(tempPath, "{OAPPSystemHolonUIName}");
+                tempPath = Path.Combine(tempPath, $"{OAPPSystemHolonUIName}");
 
                 if (Directory.Exists(tempPath))
                     Directory.Delete(tempPath, true);
@@ -2406,7 +2435,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     //Load the T from the OASIS to make sure the OAPPSystemHolonDNA is valid (and has not been tampered with).
 
                     //TODO: Check if this works ok? What if they tamper with the VersionSequence in the DNA file?!
-                    OASISResult<IOAPPSystemHolon> OAPPSystemHolonLoadResult = await LoadOAPPSystemHolonAsync(OAPPSystemHolonDNAResult.Result.Id, avatarId, OAPPSystemHolonDNAResult.Result.VersionSequence, providerType);
+                    OASISResult<T> OAPPSystemHolonLoadResult = await LoadAsync<T>(OAPPSystemHolonDNAResult.Result.Id, avatarId, holonType, OAPPSystemHolonDNAResult.Result.VersionSequence, providerType);
                     //OASISResult<IOAPPSystemHolon> OAPPSystemHolonLoadResult = await LoadOAPPSystemHolonAsync(OAPPSystemHolonDNAResult.Result.Id, false, 0, providerType);
 
                     if (OAPPSystemHolonLoadResult != null && OAPPSystemHolonLoadResult.Result != null && !OAPPSystemHolonLoadResult.IsError)
@@ -2432,7 +2461,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             if (downloadedOAPPSystemHolon == null)
                             {
                                 //OASISResult<DownloadedOAPPSystemHolon> downloadedOAPPSystemHolonResult = await Data.LoadHolonsByMetaDataAsync<DownloadedOAPPSystemHolon>("OAPPSystemHolonId", OAPPSystemHolonDNAResult.Result.Id.ToString(), false, false, 0, true, 0, false, HolonType.All, providerType);
-                                OASISResult<IEnumerable<DownloadedOAPPSystemHolon>> downloadedOAPPSystemHolonResult = await Data.LoadHolonsByMetaDataAsync<DownloadedOAPPSystemHolon>("OAPPSystemHolonId", OAPPSystemHolonDNAResult.Result.Id.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+                                OASISResult<IEnumerable<DownloadedOAPPSystemHolon>> downloadedOAPPSystemHolonResult = await Data.LoadHolonsByMetaDataAsync<DownloadedOAPPSystemHolon>(OAPPSystemHolonIdName, OAPPSystemHolonDNAResult.Result.Id.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
 
                                 if (downloadedOAPPSystemHolonResult != null && !downloadedOAPPSystemHolonResult.IsError && downloadedOAPPSystemHolonResult.Result != null)
                                     downloadedOAPPSystemHolon = downloadedOAPPSystemHolonResult.Result.FirstOrDefault();
@@ -2460,7 +2489,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     DownloadedByAvatarUsername = downloadedOAPPSystemHolon.DownloadedByAvatarUsername,
                                     DownloadedOn = downloadedOAPPSystemHolon.DownloadedOn,
                                     DownloadedPath = downloadedOAPPSystemHolon.DownloadedPath,
-                                    DownloadedOAPPSystemHolonHolonId = downloadedOAPPSystemHolon.Id,
+                                    DownloadedOAPPSystemHolonId = downloadedOAPPSystemHolon.Id,
                                     Active = "1",
                                     //OAPPSystemHolonVersion = OAPPSystemHolonDNA.Version
                                 };
@@ -2469,7 +2498,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 installedOAPPSystemHolon.MetaData["VersionSequence"] = OAPPSystemHolonDNA.VersionSequence;
                                 installedOAPPSystemHolon.MetaData["OAPPSystemHolonId"] = OAPPSystemHolonDNA.Id;
                                 
-                                await UpdateInstallCountsAsync(installedOAPPSystemHolon, OAPPSystemHolonDNA, avatarId, result, errorMessage, providerType);
+                                await UpdateInstallCountsAsync<T>(holonType, installedOAPPSystemHolon, OAPPSystemHolonDNA, avatarId, result, errorMessage, providerType);
                             }
                             else
                             {
@@ -2492,12 +2521,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     installedOAPPSystemHolon.DownloadedPath = downloadedOAPPSystemHolon.DownloadedPath;
                                 }
                                 else
-                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured re-installing {OAPPSystemHolonUIName} calling LoadInstalledOAPPSystemHolonAsync. Reason: {installedOAPPSystemHolonResult.Message}");
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured re-installing {OAPPSystemHolonUIName} calling LoadAsync. Reason: {installedOAPPSystemHolonResult.Message}");
                             }
 
                             if (!result.IsError)
                             {
-                                OASISResult<IOAPPSystemHolon> saveResult = await SaveOAPPSystemHolonAsync(installedOAPPSystemHolon, avatarId, providerType);
+                                OASISResult<InstalledOAPPSystemHolon> saveResult = await SaveAsync<InstalledOAPPSystemHolon>(installedOAPPSystemHolon, avatarId, providerType);
 
                                 if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                                 {
@@ -2505,7 +2534,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     //result.Result.DownloadedOAPPSystemHolon = downloadedOAPPSystemHolon;
                                     OAPPSystemHolonLoadResult.Result.OAPPSystemHolonDNA = OAPPSystemHolonDNA;
 
-                                    OASISResult<IOAPPSystemHolon> oappSaveResult = await SaveOAPPSystemHolonAsync(OAPPSystemHolonLoadResult.Result, avatarId, providerType);
+                                    OASISResult<T> oappSaveResult = await SaveAsync(OAPPSystemHolonLoadResult.Result, avatarId, providerType);
 
                                     if (oappSaveResult != null && !oappSaveResult.IsError && oappSaveResult.Result != null)
                                     {
@@ -2521,13 +2550,13 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                         if (result.InnerMessages.Count > 0)
                                             result.Message = $"{OAPPSystemHolonUIName} successfully installed but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
                                         else
-                                            result.Message = "{OAPPSystemHolonUIName} Successfully Installed";
+                                            result.Message = $"{OAPPSystemHolonUIName} Successfully Installed";
 
                                         result.Result = installedOAPPSystemHolon;
                                         OnOAPPSystemHolonInstallStatusChanged?.Invoke(this, new OAPPSystemHolonInstallStatusEventArgs() { OAPPSystemHolonDNA = OAPPSystemHolonDNAResult.Result, Status = Enums.OAPPSystemHolonInstallStatus.Installed });
                                     }
                                     else
-                                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPSystemHolonAsync method. Reason: {oappSaveResult.Message}");
+                                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync method. Reason: {oappSaveResult.Message}");
                                 }
                                 else
                                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync method. Reason: {saveResult.Message}");
@@ -2556,7 +2585,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> InstallOAPPSystemHolon(Guid avatarId, string fullPathToPublishedOAPPSystemHolonFile, string fullInstallPath, bool createOAPPSystemHolonDirectory = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> Install<T>(Guid avatarId, HolonType holonType, string fullPathToPublishedOAPPSystemHolonFile, string fullInstallPath, bool createOAPPSystemHolonDirectory = true, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
             string errorMessage = "Error occured in OAPPSystemManagerBase.InstallOAPPSystemHolon. Reason: ";
@@ -2569,7 +2598,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 if (OAPPSystemHolonDNAResult != null && OAPPSystemHolonDNAResult.Result != null && !OAPPSystemHolonDNAResult.IsError)
                 {
                     //Load the T from the OASIS to make sure the OAPPSystemHolonDNA is valid (and has not been tampered with).
-                    OASISResult<IOAPPSystemHolon> oappResult = LoadOAPPSystemHolon(OAPPSystemHolonDNAResult.Result.Id, avatarId, OAPPSystemHolonDNAResult.Result.VersionSequence, providerType);
+                    OASISResult<T> oappResult = Load<T>(OAPPSystemHolonDNAResult.Result.Id, avatarId, holonType, OAPPSystemHolonDNAResult.Result.VersionSequence, providerType);
 
                     if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
                     {
@@ -2611,7 +2640,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                 OAPPSystemHolonDNA.Installs++;
                                 oappResult.Result.OAPPSystemHolonDNA = OAPPSystemHolonDNA;
 
-                                OASISResult<IOAPPSystemHolon> oappSaveResult = SaveOAPPSystemHolon(oappResult.Result, avatarId, providerType);
+                                OASISResult<T> oappSaveResult = Save<T>(oappResult.Result, avatarId, providerType);
 
                                 if (oappSaveResult != null && !oappSaveResult.IsError && oappSaveResult.Result != null)
                                 {
@@ -2627,7 +2656,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                                     if (result.InnerMessages.Count > 0)
                                         result.Message = $"{OAPPSystemHolonUIName} successfully installed but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
                                     else
-                                        result.Message = "{OAPPSystemHolonUIName} Successfully Installed";
+                                        result.Message = $"{OAPPSystemHolonUIName} Successfully Installed";
 
                                     OnOAPPSystemHolonInstallStatusChanged?.Invoke(this, new OAPPSystemHolonInstallStatusEventArgs() { OAPPSystemHolonDNA = OAPPSystemHolonDNAResult.Result, Status = Enums.OAPPSystemHolonInstallStatus.Installed });
                                 }
@@ -2655,19 +2684,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> InstallOAPPSystemHolon(Guid avatarId, IOAPPSystemHolon T, string fullInstallPath, string fullDownloadPath = "", bool createOAPPSystemHolonDirectory = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> Install<T>(Guid avatarId, T holon, string fullInstallPath, string fullDownloadPath = "", bool createOAPPSystemHolonDirectory = true, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.InstallOAPPSystemHolon. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.Install. Reason: ";
 
             try
             {
-                string SourcePath = Path.Combine("temp", T.Name, ".OAPPSystemHolon");
+                string SourcePath = Path.Combine("temp", holon.Name, ".", OAPPSystemHolonFileExtention);
 
-                if (T.PublishedOAPPSystemHolon != null)
+                if (holon.PublishedOAPPSystemHolon != null)
                 {
-                    File.WriteAllBytes(SourcePath, T.PublishedOAPPSystemHolon);
-                    result = InstallOAPPSystemHolon(avatarId, SourcePath, fullInstallPath, createOAPPSystemHolonDirectory, providerType);
+                    File.WriteAllBytes(SourcePath, holon.PublishedOAPPSystemHolon);
+                    result = Install<T>(avatarId, holon.HolonType, SourcePath, fullInstallPath, createOAPPSystemHolonDirectory, providerType);
                 }
                 {
                     try
@@ -2686,15 +2715,15 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         _fileLength = fileStream.Length;
                         _progress = 0;
 
-                        OnOAPPSystemHolonInstallStatusChanged?.Invoke(this, new OAPPSystemHolonInstallStatusEventArgs() { OAPPSystemHolonDNA = T.OAPPSystemHolonDNA, Status = Enums.OAPPSystemHolonInstallStatus.Downloading });
-                        storage.DownloadObject(GOOGLE_CLOUD_BUCKET_NAME, string.Concat(T.Name, ".OAPPSystemHolon"), fileStream, downloadObjectOptions, progress: progressReporter);
+                        OnOAPPSystemHolonInstallStatusChanged?.Invoke(this, new OAPPSystemHolonInstallStatusEventArgs() { OAPPSystemHolonDNA = holon.OAPPSystemHolonDNA, Status = Enums.OAPPSystemHolonInstallStatus.Downloading });
+                        storage.DownloadObject(OAPPSystemHolonGoogleBucket, string.Concat(holon.Name, ".", OAPPSystemHolonFileExtention), fileStream, downloadObjectOptions, progress: progressReporter);
 
                         _progress = 100;
                         OnOAPPSystemHolonDownloadStatusChanged?.Invoke(this, new OAPPSystemHolonDownloadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPSystemHolonDownloadStatus.Downloading });
                         CLIEngine.DisposeProgressBar(false);
                         Console.WriteLine("");
 
-                        result = InstallOAPPSystemHolon(avatarId, SourcePath, fullInstallPath, createOAPPSystemHolonDirectory, providerType);
+                        result = Install<T>(avatarId, holon.HolonType, SourcePath, fullInstallPath, createOAPPSystemHolonDirectory, providerType);
                     }
                     catch (Exception ex)
                     {
@@ -2713,39 +2742,39 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> InstallOAPPSystemHolonAsync(Guid avatarId, Guid OAPPSystemHolonId, int version, string fullInstallPath, string fullDownloadPath = "", bool createOAPPSystemHolonDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> InstallAsync<T>(Guid avatarId, Guid OAPPSystemHolonId, HolonType holonType, int version, string fullInstallPath, string fullDownloadPath = "", bool createOAPPSystemHolonDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            OASISResult<IOAPPSystemHolon> OAPPSystemHolonResult = await LoadOAPPSystemHolonAsync(OAPPSystemHolonId, avatarId, version, providerType);
+            OASISResult<T> OAPPSystemHolonResult = await LoadAsync<T>(OAPPSystemHolonId, avatarId, holonType, version, providerType);
 
             if (OAPPSystemHolonResult != null && !OAPPSystemHolonResult.IsError && OAPPSystemHolonResult.Result != null)
-                result = await DownloadAndInstallOAPPSystemHolonAsync(avatarId, OAPPSystemHolonResult.Result, fullInstallPath, fullDownloadPath, createOAPPSystemHolonDirectory, reInstall, providerType);
+                result = await DownloadAndInstallAsync(avatarId, OAPPSystemHolonResult.Result, fullInstallPath, fullDownloadPath, createOAPPSystemHolonDirectory, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPSystemManagerBase.InstallOAPPSystemHolonAsync loading the {OAPPSystemHolonUIName} with the LoadOAPPSystemHolonAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {OAPPSystemHolonId.ToString()}")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPSystemManagerBase.InstallAsync loading the {OAPPSystemHolonUIName} with the LoadAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {OAPPSystemHolonId.ToString()}")}");
                 OnOAPPSystemHolonInstallStatusChanged?.Invoke(this, new OAPPSystemHolonInstallStatusEventArgs() { Status = Enums.OAPPSystemHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> InstallOAPPSystemHolon(Guid avatarId, Guid OAPPSystemHolonId, int version, string fullInstallPath, string fullDownloadPath = "", bool createOAPPSystemHolonDirectory = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> Install<T>(Guid avatarId, Guid OAPPSystemHolonId, HolonType holonType, int version, string fullInstallPath, string fullDownloadPath = "", bool createOAPPSystemHolonDirectory = true, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            OASISResult<IOAPPSystemHolon> OAPPSystemHolonResult = LoadOAPPSystemHolon(OAPPSystemHolonId, avatarId, version, providerType);
+            OASISResult<T> OAPPSystemHolonResult = Load<T>(OAPPSystemHolonId, avatarId, holonType, version, providerType);
 
             if (OAPPSystemHolonResult != null && !OAPPSystemHolonResult.IsError && OAPPSystemHolonResult.Result != null)
-                result = InstallOAPPSystemHolon(avatarId, OAPPSystemHolonResult.Result, fullInstallPath, fullDownloadPath, createOAPPSystemHolonDirectory, providerType);
+                result = Install(avatarId, OAPPSystemHolonResult.Result, fullInstallPath, fullDownloadPath, createOAPPSystemHolonDirectory, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPSystemManagerBase.InstallOAPPSystemHolon loading the {OAPPSystemHolonUIName} with the LoadOAPPSystemHolon method, reason: {result.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPSystemManagerBase.Install loading the {OAPPSystemHolonUIName} with the Load method, reason: {result.Message}");
                 OnOAPPSystemHolonInstallStatusChanged?.Invoke(this, new OAPPSystemHolonInstallStatusEventArgs() { Status = Enums.OAPPSystemHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> UninstallOAPPSystemHolonAsync(IInstalledOAPPSystemHolon installedOAPPSystemHolon, Guid avatarId, string errorMessage, ProviderType providerType)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> UninstallAsync(IInstalledOAPPSystemHolon installedOAPPSystemHolon, Guid avatarId, string errorMessage, ProviderType providerType)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
 
@@ -2773,7 +2802,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     if (saveIntalledOAPPSystemHolonResult != null && !saveIntalledOAPPSystemHolonResult.IsError && saveIntalledOAPPSystemHolonResult.Result != null)
                     {
-                        result.Message = "{OAPPSystemHolonUIName} Uninstalled";
+                        result.Message = $"{OAPPSystemHolonUIName} Uninstalled";
                         result.Result = saveIntalledOAPPSystemHolonResult.Result;
                     }
                     else
@@ -2786,7 +2815,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> UninstallOAPPSystemHolon(IInstalledOAPPSystemHolon installedOAPPSystemHolon, Guid avatarId, string errorMessage, ProviderType providerType)
+        public OASISResult<IInstalledOAPPSystemHolon> Uninstall(IInstalledOAPPSystemHolon installedOAPPSystemHolon, Guid avatarId, string errorMessage, ProviderType providerType)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
 
@@ -2814,7 +2843,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     if (saveIntalledOAPPSystemHolonResult != null && !saveIntalledOAPPSystemHolonResult.IsError && saveIntalledOAPPSystemHolonResult.Result != null)
                     {
-                        result.Message = "{OAPPSystemHolonUIName} Uninstalled";
+                        result.Message = $"{OAPPSystemHolonUIName} Uninstalled";
                         result.Result = saveIntalledOAPPSystemHolonResult.Result;
                     }
                     else
@@ -2827,115 +2856,115 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> UninstallOAPPSystemHolonAsync(Guid OAPPSystemHolonId, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> UninstallAsync(Guid OAPPSystemHolonId, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.UninstallOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.UninstallAsync. Reason: ";
 
-            return await UninstallOAPPSystemHolonAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
+            return await UninstallAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "VersionSequene", versionSequence.ToString() }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> UninstallOAPPSystemHolon(Guid OAPPSystemHolonId, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> Uninstall(Guid OAPPSystemHolonId, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.UninstallOAPPSystemHolon. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.Uninstall. Reason: ";
 
-            return UninstallOAPPSystemHolon(Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
+            return Uninstall(Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "VersionSequene", versionSequence.ToString() }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, false, HolonType.All, 0, providerType), avatarId, errorMessage, providerType);
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> UninstallOAPPSystemHolonAsync(Guid OAPPSystemHolonId, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> UninstallAsync(Guid OAPPSystemHolonId, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.UninstallOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.UninstallAsync. Reason: ";
 
-            return await UninstallOAPPSystemHolonAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
+            return await UninstallAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "Version", version }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> UninstallOAPPSystemHolon(Guid OAPPSystemHolonId, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> Uninstall(Guid OAPPSystemHolonId, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.UninstallOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.Uninstall. Reason: ";
 
-            return UninstallOAPPSystemHolon(Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
+            return Uninstall(Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "Version", version }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, false, HolonType.All, 0, providerType), avatarId, errorMessage, providerType);
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> UninstallOAPPSystemHolonAsync(string OAPPSystemHolonName, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> UninstallAsync(string OAPPSystemHolonName, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.UninstallOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.UninstallAsync. Reason: ";
 
-            return await UninstallOAPPSystemHolonAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
+            return await UninstallAsync(await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonName", OAPPSystemHolonName },
+                { OAPPSystemHolonIdName, OAPPSystemHolonName },
                 { "VersionSequence", versionSequence.ToString() }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> UninstallOAPPSystemHolon(string OAPPSystemHolonName, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> Uninstall(string OAPPSystemHolonName, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.UninstallOAPPSystemHolon. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.Uninstall. Reason: ";
 
-            return UninstallOAPPSystemHolon(Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
+            return Uninstall(Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonName", OAPPSystemHolonName },
+                { OAPPSystemHolonIdName, OAPPSystemHolonName },
                 { "VersionSequene", versionSequence.ToString() }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, false, HolonType.All), avatarId, errorMessage, providerType);
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> UninstallOAPPSystemHolonAsync(string OAPPSystemHolonName, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> UninstallAsync(string OAPPSystemHolonName, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.UninstallOAPPSystemHolon. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.UninstallAsync. Reason: ";
 
-            return UninstallOAPPSystemHolon(await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
+            return Uninstall(await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonName", OAPPSystemHolonName },
+                { OAPPSystemHolonIdName, OAPPSystemHolonName },
                 { "Version", version }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType), avatarId, errorMessage, providerType);
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> UninstallOAPPSystemHolon(string OAPPSystemHolonName, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> Uninstall(string OAPPSystemHolonName, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.UninstallOAPPSystemHolon. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.Uninstall. Reason: ";
 
-            return UninstallOAPPSystemHolon(Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
+            return Uninstall(Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonName", OAPPSystemHolonName },
+                { OAPPSystemHolonIdName, OAPPSystemHolonName },
                 { "Version", version }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, false, HolonType.All), avatarId, errorMessage, providerType);
         }
 
-        public async Task<OASISResult<IEnumerable<IInstalledOAPPSystemHolon>>> ListInstalledOAPPSystemHolonsAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IInstalledOAPPSystemHolon>>> ListInstalledAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> result = new OASISResult<IEnumerable<IInstalledOAPPSystemHolon>>();
             OASISResult<IEnumerable<InstalledOAPPSystemHolon>> installedOAPPSystemHolonsResult = await Data.LoadHolonsForParentAsync<InstalledOAPPSystemHolon>(avatarId, HolonType.InstalledOAPPSystemHolon, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
-            string errorMessage = "Error occured in OAPPSystemManagerBase.ListInstalledOAPPSystemHolonsAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.ListInstalledAsync. Reason: ";
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
             {
@@ -2948,11 +2977,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> ListInstalledOAPPSystemHolons(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> ListInstalled(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> result = new OASISResult<IEnumerable<IInstalledOAPPSystemHolon>>();
             OASISResult<IEnumerable<InstalledOAPPSystemHolon>> installedOAPPSystemHolonsResult = Data.LoadHolonsForParent<InstalledOAPPSystemHolon>(avatarId, HolonType.InstalledOAPPSystemHolon, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
-            string errorMessage = "Error occured in OAPPSystemManagerBase.ListInstalledOAPPSystemHolons. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.ListInstalled. Reason: ";
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
             {
@@ -2965,11 +2994,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IInstalledOAPPSystemHolon>>> ListUnInstalledOAPPSystemHolonsAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IInstalledOAPPSystemHolon>>> ListUninstalledAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> result = new OASISResult<IEnumerable<IInstalledOAPPSystemHolon>>();
             OASISResult<IEnumerable<InstalledOAPPSystemHolon>> installedOAPPSystemHolonsResult = await Data.LoadHolonsForParentAsync<InstalledOAPPSystemHolon>(avatarId, HolonType.InstalledOAPPSystemHolon, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
-            string errorMessage = "Error occured in OAPPSystemManagerBase.ListUnInstalledOAPPSystemHolonsAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.ListUninstalledAsync. Reason: ";
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
             {
@@ -2982,11 +3011,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> ListUnInstalledOAPPSystemHolons(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> ListUninstalled(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> result = new OASISResult<IEnumerable<IInstalledOAPPSystemHolon>>();
             OASISResult<IEnumerable<InstalledOAPPSystemHolon>> installedOAPPSystemHolonsResult = Data.LoadHolonsForParent<InstalledOAPPSystemHolon>(avatarId, HolonType.InstalledOAPPSystemHolon, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
-            string errorMessage = "Error occured in OAPPSystemManagerBase.ListUnInstalledOAPPSystemHolons. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.ListUninstalled. Reason: ";
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
             {
@@ -2999,89 +3028,106 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IOAPPSystemHolon>>> ListUnpublishedOAPPSystemHolonsAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<T>>> ListUnpublishedAsync<T>(Guid avatarId, HolonType holonType, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
-            OASISResult<IEnumerable<IOAPPSystemHolon>> result = new OASISResult<IEnumerable<IOAPPSystemHolon>>();
-            OASISResult<IEnumerable<T>> unpublishedOAPPSystemHolonsResult = await Data.LoadHolonsForParentAsync<T>(avatarId, HolonType.T, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
-            string errorMessage = "Error occured in OAPPSystemManagerBase.ListUnpublishedOAPPSystemHolonsAsync. Reason: ";
-
-            if (unpublishedOAPPSystemHolonsResult != null && !unpublishedOAPPSystemHolonsResult.IsError && unpublishedOAPPSystemHolonsResult.Result != null)
-            {
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, IEnumerable<IOAPPSystemHolon>>(unpublishedOAPPSystemHolonsResult);
-                result.Result = Mapper.Convert<T, IOAPPSystemHolon>(unpublishedOAPPSystemHolonsResult.Result.Where(x => x.OAPPSystemHolonDNA.PublishedOn == DateTime.MinValue && x.OAPPSystemHolonDNA.OAPPSystemHolonFileSize > 0));
-            }
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            string errorMessage = "Error occured in OAPPSystemManagerBase.ListUnpublishedAsync. Reason: ";
+            result = await Data.LoadHolonsForParentAsync<T>(avatarId, holonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+            
+            if (result != null && !result.IsError && result.Result != null)
+                result.Result = result.Result.Where(x => x.OAPPSystemHolonDNA.PublishedOn == DateTime.MinValue && x.OAPPSystemHolonDNA.FileSize > 0);
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParentAsync. Reason: {unpublishedOAPPSystemHolonsResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParentAsync. Reason: {result.Message}");
+
+
+            //OASISResult<IEnumerable<T>> unpublishedOAPPSystemHolonsResult = await Data.LoadHolonsForParentAsync<T>(avatarId, holonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+            //string errorMessage = "Error occured in OAPPSystemManagerBase.ListUnpublishedAsync. Reason: ";
+
+            //if (unpublishedOAPPSystemHolonsResult != null && !unpublishedOAPPSystemHolonsResult.IsError && unpublishedOAPPSystemHolonsResult.Result != null)
+            //{
+            //    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, IEnumerable<T>>(unpublishedOAPPSystemHolonsResult);
+            //    result.Result = Mapper.Convert<T, T>(unpublishedOAPPSystemHolonsResult.Result.Where(x => x.OAPPSystemHolonDNA.PublishedOn == DateTime.MinValue && x.OAPPSystemHolonDNA.FileSize > 0));
+            //}
+            //else
+            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParentAsync. Reason: {unpublishedOAPPSystemHolonsResult.Message}");
 
             return result;
         }
 
-        public OASISResult<IEnumerable<IOAPPSystemHolon>> ListUnpublishedOAPPSystemHolons(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<T>> ListUnpublished<T>(Guid avatarId, HolonType holonType, ProviderType providerType = ProviderType.Default) where T: IOAPPSystemHolon, new()
         {
-            OASISResult<IEnumerable<IOAPPSystemHolon>> result = new OASISResult<IEnumerable<IOAPPSystemHolon>>();
-            OASISResult<IEnumerable<T>> unpublishedOAPPSystemHolonsResult = Data.LoadHolonsForParent<T>(avatarId, HolonType.T, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
-            string errorMessage = "Error occured in OAPPSystemManagerBase.ListUnpublishedOAPPSystemHolons. Reason: ";
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            string errorMessage = "Error occured in OAPPSystemManagerBase.ListUnpublished. Reason: ";
+            result = Data.LoadHolonsForParent<T>(avatarId, holonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
 
-            if (unpublishedOAPPSystemHolonsResult != null && !unpublishedOAPPSystemHolonsResult.IsError && unpublishedOAPPSystemHolonsResult.Result != null)
-            {
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, IEnumerable<IOAPPSystemHolon>>(unpublishedOAPPSystemHolonsResult);
-                result.Result = Mapper.Convert<T, IOAPPSystemHolon>(unpublishedOAPPSystemHolonsResult.Result.Where(x => x.OAPPSystemHolonDNA.PublishedOn == DateTime.MinValue && x.OAPPSystemHolonDNA.OAPPSystemHolonFileSize > 0));
-            }
+            if (result != null && !result.IsError && result.Result != null)
+                result.Result = Mapper.Convert<T, T>(result.Result.Where(x => x.OAPPSystemHolonDNA.PublishedOn == DateTime.MinValue && x.OAPPSystemHolonDNA.FileSize > 0));
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParent. Reason: {unpublishedOAPPSystemHolonsResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParent. Reason: {result.Message}");
+
+            //OASISResult<IEnumerable<T>> unpublishedOAPPSystemHolonsResult = Data.LoadHolonsForParent<T>(avatarId, HolonType.T, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+
+            //if (unpublishedOAPPSystemHolonsResult != null && !unpublishedOAPPSystemHolonsResult.IsError && unpublishedOAPPSystemHolonsResult.Result != null)
+            //{
+            //    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, IEnumerable<T>>(unpublishedOAPPSystemHolonsResult);
+            //    result.Result = Mapper.Convert<T, T>(unpublishedOAPPSystemHolonsResult.Result.Where(x => x.OAPPSystemHolonDNA.PublishedOn == DateTime.MinValue && x.OAPPSystemHolonDNA.FileSize > 0));
+            //}
+            //else
+            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParent. Reason: {unpublishedOAPPSystemHolonsResult.Message}");
 
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IOAPPSystemHolon>>> ListDeactivatedOAPPSystemHolonsAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<T>>> ListDeactivatedAsync<T>(Guid avatarId, HolonType holonType, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
-            OASISResult<IEnumerable<IOAPPSystemHolon>> result = new OASISResult<IEnumerable<IOAPPSystemHolon>>();
-            //OASISResult<IEnumerable<T>> deactivatedOAPPSystemHolonsResult = await Data.LoadHolonsForParentAsync<T>(avatarId, HolonType.InstalledOAPPSystemHolon, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
-            string errorMessage = "Error occured in OAPPSystemManagerBase.ListDeactivatedOAPPSystemHolonsAsync. Reason: ";
-            OASISResult<IEnumerable<T>> deactivatedOAPPSystemHolonsResult = await Data.LoadHolonsByMetaDataAsync<T>("Active", "0", HolonType.T, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            string errorMessage = "Error occured in OAPPSystemManagerBase.ListDeactivatedAsync. Reason: ";
+            result = await Data.LoadHolonsByMetaDataAsync<T>("Active", "0", holonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
 
-            if (deactivatedOAPPSystemHolonsResult != null && !deactivatedOAPPSystemHolonsResult.IsError && deactivatedOAPPSystemHolonsResult.Result != null)
-            {
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, IEnumerable<IOAPPSystemHolon>>(deactivatedOAPPSystemHolonsResult);
-                result.Result = Mapper.Convert<T, IOAPPSystemHolon>(deactivatedOAPPSystemHolonsResult.Result);
-            }
-            else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParentAsync. Reason: {deactivatedOAPPSystemHolonsResult.Message}");
+            //OASISResult<IEnumerable<T>> deactivatedOAPPSystemHolonsResult = await Data.LoadHolonsByMetaDataAsync<T>("Active", "0", holonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+
+            //if (deactivatedOAPPSystemHolonsResult != null && !deactivatedOAPPSystemHolonsResult.IsError && deactivatedOAPPSystemHolonsResult.Result != null)
+            //{
+            //    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, IEnumerable<T>>(deactivatedOAPPSystemHolonsResult);
+            //    result.Result = Mapper.Convert<T, T>(deactivatedOAPPSystemHolonsResult.Result);
+            //}
+            //else
+            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParentAsync. Reason: {deactivatedOAPPSystemHolonsResult.Message}");
 
             return result;
         }
 
-        public OASISResult<IEnumerable<IOAPPSystemHolon>> ListDeactivatedOAPPSystemHolons(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<T>> ListDeactivated<T>(Guid avatarId, HolonType holonType, ProviderType providerType = ProviderType.Default) where T : IOAPPSystemHolon, new()
         {
-            OASISResult<IEnumerable<IOAPPSystemHolon>> result = new OASISResult<IEnumerable<IOAPPSystemHolon>>();
-            //OASISResult<IEnumerable<T>> deactivatedOAPPSystemHolonsResult = Data.LoadHolonsForParent<T>(avatarId, HolonType.T, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
-            string errorMessage = "Error occured in OAPPSystemManagerBase.ListDeactivatedOAPPSystemHolons. Reason: ";
-            OASISResult<IEnumerable<T>> deactivatedOAPPSystemHolonsResult = Data.LoadHolonsByMetaData<T>("Active", "0", HolonType.T, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            string errorMessage = "Error occured in OAPPSystemManagerBase.ListDeactivated. Reason: ";
+            result = Data.LoadHolonsByMetaData<T>("Active", "0", holonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+            //OASISResult<IEnumerable<T>> deactivatedOAPPSystemHolonsResult = Data.LoadHolonsByMetaData<T>("Active", "0", HolonType.T, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
 
-            if (deactivatedOAPPSystemHolonsResult != null && !deactivatedOAPPSystemHolonsResult.IsError && deactivatedOAPPSystemHolonsResult.Result != null)
-            {
-                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, IEnumerable<IOAPPSystemHolon>>(deactivatedOAPPSystemHolonsResult);
-                //result.Result = Mapper.Convert<T, IOAPPSystemHolon>(deactivatedOAPPSystemHolonsResult.Result.Where(x => x.OAPPSystemHolonDNA.IsActive != true));
-                result.Result = Mapper.Convert<T, IOAPPSystemHolon>(deactivatedOAPPSystemHolonsResult.Result);
-            }
-            else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParent. Reason: {deactivatedOAPPSystemHolonsResult.Message}");
+            //if (deactivatedOAPPSystemHolonsResult != null && !deactivatedOAPPSystemHolonsResult.IsError && deactivatedOAPPSystemHolonsResult.Result != null)
+            //{
+            //    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, IEnumerable<T>>(deactivatedOAPPSystemHolonsResult);
+            //    //result.Result = Mapper.Convert<T, IOAPPSystemHolon>(deactivatedOAPPSystemHolonsResult.Result.Where(x => x.OAPPSystemHolonDNA.IsActive != true));
+            //    result.Result = Mapper.Convert<T, T>(deactivatedOAPPSystemHolonsResult.Result);
+            //}
+            //else
+            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonsForParent. Reason: {deactivatedOAPPSystemHolonsResult.Message}");
 
             return result;
         }
 
-        public async Task<OASISResult<bool>> IsOAPPSystemHolonInstalledAsync(Guid avatarId, Guid OAPPSystemHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, Guid OAPPSystemHolonId, int versionSequence, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.IsOAPPSystemHolonInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.IsInstalledAsync. Reason: ";
 
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError)
             {
@@ -3094,18 +3140,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<bool> IsOAPPSystemHolonInstalled(Guid avatarId, Guid OAPPSystemHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<bool> IsInstalled(Guid avatarId, Guid OAPPSystemHolonId, int versionSequence, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.IsOAPPSystemHolonInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.IsInstalled. Reason: ";
 
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = true;
@@ -3115,18 +3161,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<bool>> IsOAPPSystemHolonInstalledAsync(Guid avatarId, Guid OAPPSystemHolonId, string version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, Guid OAPPSystemHolonId, string version, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.IsOAPPSystemHolonInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.IsInstalledAsync. Reason: ";
 
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "Version", version },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.InstalledOAPPSystemHolon, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError)
             {
@@ -3139,18 +3185,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<bool> IsOAPPSystemHolonInstalled(Guid avatarId, Guid OAPPSystemHolonId, string version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<bool> IsInstalled(Guid avatarId, Guid OAPPSystemHolonId, string version, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.IsOAPPSystemHolonInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.IsInstalled. Reason: ";
 
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "Version", version },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError)
             {
@@ -3163,18 +3209,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<bool>> IsOAPPSystemHolonInstalledAsync(Guid avatarId, string OAPPSystemHolonName, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, string name, int versionSequence, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.IsOAPPSystemHolonInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.IsInstalledAsync. Reason: ";
 
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonName", OAPPSystemHolonName},
+                { OAPPSystemHolonNameName, name},
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError)
             {
@@ -3187,18 +3233,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<bool> IsOAPPSystemHolonInstalled(Guid avatarId, string OAPPSystemHolonName, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<bool> IsInstalled(Guid avatarId, string name, int versionSequence, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.IsOAPPSystemHolonInstalled. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.IsInstalled. Reason: ";
 
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonName.ToString() },
+                { OAPPSystemHolonNameName, name },
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError)
             {
@@ -3211,18 +3257,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<bool>> IsOAPPSystemHolonInstalledAsync(Guid avatarId, string OAPPSystemHolonName, string version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, string name, string version, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.IsOAPPSystemHolonInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.IsInstalledAsync. Reason: ";
 
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonName", OAPPSystemHolonName},
+                { OAPPSystemHolonNameName, name},
                 { "Version", version.ToString() },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError)
             {
@@ -3235,18 +3281,18 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<bool> IsOAPPSystemHolonInstalled(Guid avatarId, string OAPPSystemHolonName, string version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<bool> IsInstalled(Guid avatarId, string name, string version, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.IsOAPPSystemHolonInstalled. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.IsInstalled. Reason: ";
 
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonName.ToString() },
+                { OAPPSystemHolonNameName, name },
                 { "Version", version },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError)
             {
@@ -3259,16 +3305,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledOAPPSystemHolonAsync(Guid avatarId, Guid OAPPSystemHolonId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledAsync(Guid avatarId, Guid OAPPSystemHolonId, int versionSequence = 0, , HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "VersionSequence", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3278,16 +3324,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalledOAPPSystemHolon(Guid avatarId, Guid OAPPSystemHolonId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalled(Guid avatarId, Guid OAPPSystemHolonId, int versionSequence = 0, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalled. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "VersionSequence", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.T, version: versionSequence, providerType: providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, version: versionSequence, providerType: providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3297,16 +3343,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledOAPPSystemHolonAsync(Guid avatarId, string OAPPSystemHolonName, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledAsync(Guid avatarId, string name, int versionSequence = 0, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonName", OAPPSystemHolonName },
+                { OAPPSystemHolonNameName, name },
                 { "VersionSequence", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3316,16 +3362,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalledOAPPSystemHolon(Guid avatarId, string OAPPSystemHolonName, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalled(Guid avatarId, string name, int versionSequence = 0, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalled. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonName", OAPPSystemHolonName },
+                { OAPPSystemHolonNameName, name },
                 { "VersionSequence", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.T, version: versionSequence, providerType: providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, version: versionSequence, providerType: providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3335,16 +3381,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledOAPPSystemHolonAsync(Guid avatarId, Guid OAPPSystemHolonId, string version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledAsync(Guid avatarId, Guid OAPPSystemHolonId, string version, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3354,16 +3400,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalledOAPPSystemHolon(Guid avatarId, Guid OAPPSystemHolonId, string version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalled(Guid avatarId, Guid OAPPSystemHolonId, string version, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalled. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.T, providerType: providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, providerType: providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3373,16 +3419,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledOAPPSystemHolonAsync(Guid avatarId, string OAPPSystemHolonName, string version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledAsync(Guid avatarId, string name, string version, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonName", OAPPSystemHolonName },
+                { OAPPSystemHolonNameName, name },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3392,16 +3438,16 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalledOAPPSystemHolon(Guid avatarId, string OAPPSystemHolonName, string version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalled(Guid avatarId, string name, string version, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalled. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonName", OAPPSystemHolonName },
+                { OAPPSystemHolonNameName, name },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.T, providerType: providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, providerType: providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3411,17 +3457,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledOAPPSystemHolonAsync(Guid avatarId, Guid OAPPSystemHolonId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledAsync(Guid avatarId, Guid OAPPSystemHolonId, bool active, int versionSequence = 0, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3431,17 +3477,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalledOAPPSystemHolon(Guid avatarId, Guid OAPPSystemHolonId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalled(Guid avatarId, Guid OAPPSystemHolonId, bool active, int versionSequence = 0, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolon. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalled. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3451,17 +3497,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledOAPPSystemHolonAsync(Guid avatarId, string OAPPSystemHolonName, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledAsync(Guid avatarId, string name, bool active, int versionSequence = 0, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonName", OAPPSystemHolonName },
+                { OAPPSystemHolonNameName, name },
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, 0, false, HolonType.All, providerType);
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
             else
@@ -3470,17 +3516,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalledOAPPSystemHolon(Guid avatarId, string OAPPSystemHolonName, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalled(Guid avatarId, string name, bool active, int versionSequence = 0, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolon. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalled. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonName },
+                { OAPPSystemHolonNameName, name },
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3490,17 +3536,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledOAPPSystemHolonAsync(Guid avatarId, Guid OAPPSystemHolonId, string version, bool active, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledAsync(Guid avatarId, Guid OAPPSystemHolonId, string version, bool active, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "Version", version},
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3510,17 +3556,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalledOAPPSystemHolon(Guid avatarId, Guid OAPPSystemHolonId, string version, bool active, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalled(Guid avatarId, Guid OAPPSystemHolonId, string version, bool active, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolon. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalled. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", OAPPSystemHolonId.ToString() },
+                { OAPPSystemHolonIdName, OAPPSystemHolonId.ToString() },
                 { "Version", version },
-                 { "Active", active == true ? "1" : "0" }
+                { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3530,17 +3576,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledOAPPSystemHolonAsync(Guid avatarId, string OAPPSystemHolonName, string version, bool active, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> LoadInstalledAsync(Guid avatarId, string OAPPSystemHolonName, string version, bool active, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolonAsync. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonName", OAPPSystemHolonName },
+                { OAPPSystemHolonNameName, OAPPSystemHolonName },
                 { "Version", version },
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, 0, false, HolonType.All, providerType);
             
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3550,17 +3596,17 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalledOAPPSystemHolon(Guid avatarId, string OAPPSystemHolonName, string version, bool active, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> LoadInstalled(Guid avatarId, string OAPPSystemHolonName, string version, bool active, HolonType holonType = HolonType.InstalledOAPPSystemHolon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
-            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalledOAPPSystemHolon. Reason: ";
+            string errorMessage = "Error occured in OAPPSystemManagerBase.LoadInstalled. Reason: ";
             OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonsResult = Data.LoadHolonByMetaData<InstalledOAPPSystemHolon>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonName", OAPPSystemHolonName },
+                { OAPPSystemHolonNameName, OAPPSystemHolonName },
                 { "Version", version },
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPSystemHolon, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, holonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
@@ -3570,7 +3616,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> OpenOAPPSystemHolonFolder(Guid avatarId, IInstalledOAPPSystemHolon T)
+        public OASISResult<IInstalledOAPPSystemHolon> OpenOAPPSystemHolonFolder(Guid avatarId, IInstalledOAPPSystemHolon holon)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
             string errorMessage = "An error occured in OAPPSystemManagerBase.OpenOAPPSystemHolonFolder. Reason:";
@@ -3579,12 +3625,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 try
                 {
-                    if (!string.IsNullOrEmpty(T.InstalledPath))
-                        Process.Start("explorer.exe", T.InstalledPath);
+                    if (!string.IsNullOrEmpty(holon.InstalledPath))
+                        Process.Start("explorer.exe", holon.InstalledPath);
 
-                    //else if (T.DownloadedOAPPSystemHolon != null && !string.IsNullOrEmpty(T.DownloadedOAPPSystemHolon.DownloadedPath))
-                    else if (!string.IsNullOrEmpty(T.DownloadedPath))
-                        Process.Start("explorer.exe", new FileInfo(T.DownloadedPath).DirectoryName);
+                    else if (!string.IsNullOrEmpty(holon.DownloadedPath))
+                        Process.Start("explorer.exe", new FileInfo(holon.DownloadedPath).DirectoryName);
                 }
                 catch (Exception e)
                 {
@@ -3597,11 +3642,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> OpenOAPPSystemHolonFolderAsync(Guid avatarId, Guid OAPPSystemHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPSystemHolon>> OpenOAPPSystemHolonFolderAsync(Guid avatarId, Guid OAPPSystemHolonId, HolonType holonType, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
             string errorMessage = "An error occured in OAPPSystemManagerBase.OpenOAPPSystemHolonFolderAsync. Reason:";
-            result = await LoadInstalledOAPPSystemHolonAsync(avatarId, OAPPSystemHolonId, versionSequence);
+            result = await LoadInstalledAsync(avatarId, OAPPSystemHolonId, versionSequence, holonType, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
                 OpenOAPPSystemHolonFolder(avatarId, result.Result);
@@ -3611,11 +3656,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> OpenOAPPSystemHolonFolder(Guid avatarId, Guid OAPPSystemHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> OpenOAPPSystemHolonFolder(Guid avatarId, Guid OAPPSystemHolonId, HolonType holonType, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
             string errorMessage = "An error occured in OAPPSystemManagerBase.OpenOAPPSystemHolonFolder. Reason:";
-            result = LoadInstalledOAPPSystemHolon(avatarId, OAPPSystemHolonId, versionSequence);
+            result = LoadInstalled(avatarId, OAPPSystemHolonId, versionSequence);
 
             if (result != null && !result.IsError && result.Result != null)
                 OpenOAPPSystemHolonFolder(avatarId, result.Result);
@@ -3625,11 +3670,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IInstalledOAPPSystemHolon>> OpenOAPPSystemHolonFolderAsync(Guid avatarId, Guid OAPPSystemHolonId, string version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T>> OpenOAPPSystemHolonFolderAsync<T>(Guid avatarId, Guid OAPPSystemHolonId, HolonType holonType, string version, ProviderType providerType = ProviderType.Default) where T: IInstalledOAPPSystemHolon
         {
-            OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
+            OASISResult<T> result = new OASISResult<T>();
             string errorMessage = "An error occured in OAPPSystemManagerBase.OpenOAPPSystemHolonFolderAsync. Reason:";
-            result = await LoadInstalledOAPPSystemHolonAsync(avatarId, OAPPSystemHolonId, version);
+            result = await LoadAsync<T>(OAPPSystemHolonId, avatarId, holonType, version, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
                 OpenOAPPSystemHolonFolder(avatarId, result.Result);
@@ -3639,11 +3684,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IInstalledOAPPSystemHolon> OpenOAPPSystemHolonFolder(Guid avatarId, Guid OAPPSystemHolonId, string version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPSystemHolon> OpenOAPPSystemHolonFolder(Guid avatarId, Guid OAPPSystemHolonId, string version, HolonType holonType, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
             string errorMessage = "An error occured in OAPPSystemManagerBase.OpenOAPPSystemHolonFolder. Reason:";
-            result = LoadInstalledOAPPSystemHolon(avatarId, OAPPSystemHolonId, version);
+            result = LoadInstalled(avatarId, OAPPSystemHolonId, version, holonType, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
                 OpenOAPPSystemHolonFolder(avatarId, result.Result);
@@ -3700,7 +3745,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 if (!Directory.Exists(fullPathToOAPPSystemHolon))
                     Directory.CreateDirectory(fullPathToOAPPSystemHolon);
 
-                await File.WriteAllTextAsync(Path.Combine(fullPathToOAPPSystemHolon, "OAPPSystemHolonDNA.json"), JsonSerializer.Serialize((OAPPSystemHolonDNA)OAPPSystemHolonDNA, options));
+                await File.WriteAllTextAsync(Path.Combine(fullPathToOAPPSystemHolon, OAPPSystemHolonDNAFileName), JsonSerializer.Serialize((OAPPSystemHolonDNA)OAPPSystemHolonDNA, options));
                 result.Result = true;
             }
             catch (Exception ex)
@@ -3720,7 +3765,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 if (!Directory.Exists(fullPathToOAPPSystemHolon))
                     Directory.CreateDirectory(fullPathToOAPPSystemHolon);
 
-                File.WriteAllText(Path.Combine(fullPathToOAPPSystemHolon, "OAPPSystemHolonDNA.json"), JsonSerializer.Serialize((OAPPSystemHolonDNA)OAPPSystemHolonDNA));
+                File.WriteAllText(Path.Combine(fullPathToOAPPSystemHolon, OAPPSystemHolonDNAFileName), JsonSerializer.Serialize((OAPPSystemHolonDNA)OAPPSystemHolonDNA));
                 result.Result = true;
             }
             catch (Exception ex)
@@ -3737,7 +3782,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                result.Result = JsonSerializer.Deserialize<OAPPSystemHolonDNA>(await File.ReadAllTextAsync(Path.Combine(fullPathToOAPPSystemHolon, "OAPPSystemHolonDNA.json")));
+                result.Result = JsonSerializer.Deserialize<OAPPSystemHolonDNA>(await File.ReadAllTextAsync(Path.Combine(fullPathToOAPPSystemHolon, OAPPSystemHolonDNAFileName)));
             }
             catch (Exception ex)
             {
@@ -3753,7 +3798,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                result.Result = JsonSerializer.Deserialize<OAPPSystemHolonDNA>(File.ReadAllText(Path.Combine(fullPathToOAPPSystemHolon, "OAPPSystemHolonDNA.json")));
+                result.Result = JsonSerializer.Deserialize<OAPPSystemHolonDNA>(File.ReadAllText(Path.Combine(fullPathToOAPPSystemHolon, OAPPSystemHolonDNAFileName)));
             }
             catch (Exception ex)
             {
@@ -3782,7 +3827,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the total installs for all {OAPPSystemHolonUIName} versions caused by an error in LoadOAPPSystemHolonVersionsAsync. Reason: {versionsResult.Message}");
 
 
-            OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> installedversionsResult = await ListInstalledOAPPSystemHolonsAsync(avatarId, providerType);
+            OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> installedversionsResult = await ListInstalledAsync(avatarId, providerType);
 
             if (installedversionsResult != null && installedversionsResult.Result != null && !installedversionsResult.IsError)
             {
@@ -3820,7 +3865,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the total installs for all {OAPPSystemHolonUIName} versions caused by an error in LoadOAPPSystemHolonVersionsAsync. Reason: {versionsResult.Message}");
 
 
-            OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> installedversionsResult = ListInstalledOAPPSystemHolons(avatarId, providerType);
+            OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> installedversionsResult = ListInstalled(avatarId, providerType);
 
             if (installedversionsResult != null && installedversionsResult.Result != null && !installedversionsResult.IsError)
             {
@@ -3869,7 +3914,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the total downloads for all {OAPPSystemHolonUIName} versions caused by an error in LoadOAPPSystemHolonVersionsAsync. Reason: {holonVersionsResult.Message}");
 
 
-            OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> installedholonVersionsResult = await ListInstalledOAPPSystemHolonsAsync(avatarId, providerType);
+            OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> installedholonVersionsResult = await ListInstalledAsync(avatarId, providerType);
 
             if (installedholonVersionsResult != null && installedholonVersionsResult.Result != null && !installedholonVersionsResult.IsError)
             {
@@ -3918,7 +3963,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the total downloads for all {OAPPSystemHolonUIName} versions caused by an error in LoadOAPPSystemHolonVersionsAsync. Reason: {holonVersionsResult.Message}");
 
 
-            OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> installedholonVersionsResult = ListInstalledOAPPSystemHolons(avatarId, providerType);
+            OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> installedholonVersionsResult = ListInstalled(avatarId, providerType);
 
             if (installedholonVersionsResult != null && installedholonVersionsResult.Result != null && !installedholonVersionsResult.IsError)
             {
@@ -3967,7 +4012,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the total installs for all {OAPPSystemHolonUIName} versions caused by an error in LoadOAPPSystemHolonVersionsAsync. Reason: {holonVersionsResult.Message}");
 
 
-            OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> installedholonVersionsResult = await ListInstalledOAPPSystemHolonsAsync(avatarId, providerType);
+            OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> installedholonVersionsResult = await ListInstalledAsync(avatarId, providerType);
 
             if (installedholonVersionsResult != null && installedholonVersionsResult.Result != null && !installedholonVersionsResult.IsError)
             {
@@ -4016,7 +4061,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the total installs for all {OAPPSystemHolonUIName} versions caused by an error in LoadOAPPSystemHolonVersionsAsync. Reason: {holonVersionsResult.Message}");
 
 
-            OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> installedholonVersionsResult = ListInstalledOAPPSystemHolons(avatarId, providerType);
+            OASISResult<IEnumerable<IInstalledOAPPSystemHolon>> installedholonVersionsResult = ListInstalled(avatarId, providerType);
 
             if (installedholonVersionsResult != null && installedholonVersionsResult.Result != null && !installedholonVersionsResult.IsError)
             {
@@ -4035,34 +4080,34 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IInstalledOAPPSystemHolon>> UninstallOAPPSystemHolonAsync(OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonResult, Guid avatarId, string errorMessage, ProviderType providerType)
+        private async Task<OASISResult<IInstalledOAPPSystemHolon>> UninstallAsync(OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonResult, Guid avatarId, string errorMessage, ProviderType providerType)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
 
             if (installedOAPPSystemHolonResult != null && !installedOAPPSystemHolonResult.IsError && installedOAPPSystemHolonResult.Result != null)
-                result = await UninstallOAPPSystemHolonAsync(installedOAPPSystemHolonResult.Result, avatarId, errorMessage, providerType); 
+                result = await UninstallAsync(installedOAPPSystemHolonResult.Result, avatarId, errorMessage, providerType); 
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPSystemHolonResult.Message}");
 
             return result;
         }
 
-        private OASISResult<IInstalledOAPPSystemHolon> UninstallOAPPSystemHolon(OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonResult, Guid avatarId, string errorMessage, ProviderType providerType)
+        private OASISResult<IInstalledOAPPSystemHolon> Uninstall(OASISResult<InstalledOAPPSystemHolon> installedOAPPSystemHolonResult, Guid avatarId, string errorMessage, ProviderType providerType)
         {
             OASISResult<IInstalledOAPPSystemHolon> result = new OASISResult<IInstalledOAPPSystemHolon>();
 
             if (installedOAPPSystemHolonResult != null && !installedOAPPSystemHolonResult.IsError && installedOAPPSystemHolonResult.Result != null)
-                result = UninstallOAPPSystemHolon(installedOAPPSystemHolonResult.Result, avatarId, errorMessage, providerType);
+                result = Uninstall(installedOAPPSystemHolonResult.Result, avatarId, errorMessage, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaData. Reason: {installedOAPPSystemHolonResult.Message}");
 
             return result;
         }
 
-        private OASISResult<IEnumerable<T>> FilterResultsForVersion<T>(Guid avatarId, OASISResult<IEnumerable<T>> results, bool showAllVersions = false, int version = 0)
+        private OASISResult<IEnumerable<T>> FilterResultsForVersion<T>(Guid avatarId, OASISResult<IEnumerable<T>> results, bool showAllVersions = false, int version = 0) where T : IOAPPSystemHolon
         {
-            OASISResult<IEnumerable<IOAPPSystemHolon>> result = new OASISResult<IEnumerable<IOAPPSystemHolon>>();
-            List<IOAPPSystemHolon> templates = new List<IOAPPSystemHolon>();
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            List<T> templates = new List<T>();
 
             if (!showAllVersions)
             {
@@ -4070,12 +4115,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 {
                     if (version == 0) //latest version
                     {
-                        Dictionary<string, IOAPPSystemHolon> latestVersions = new Dictionary<string, IOAPPSystemHolon>();
+                        Dictionary<string, T> latestVersions = new Dictionary<string, T>();
                         string metaDataId = "";
                         int latestVersion = 0;
                         int currentVersion = 0;
 
-                        foreach (IOAPPSystemHolon oappSystemHolon in results.Result)
+                        foreach (T oappSystemHolon in results.Result)
                         {
                             if (oappSystemHolon.MetaData != null && oappSystemHolon.MetaData.ContainsKey("OAPPSystemHolonId") && oappSystemHolon.MetaData["OAPPSystemHolonId"] != null)
                                 metaDataId = oappSystemHolon.MetaData["OAPPSystemHolonId"].ToString();
@@ -4094,9 +4139,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     }
                     else
                     {
-                        List<IOAPPSystemHolon> filteredList = new List<IOAPPSystemHolon>();
+                        List<T> filteredList = new List<T>();
 
-                        foreach (IOAPPSystemHolon oappSystemHolon in results.Result)
+                        foreach (T oappSystemHolon in results.Result)
                         {
                             if (oappSystemHolon.MetaData["VersionSequence"].ToString() == version.ToString())
                                 filteredList.Add(oappSystemHolon);
@@ -4110,7 +4155,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 result.Result = results.Result;
 
             //Filter out any templates that are not created by the avatar or published on STARNET.
-            foreach (IOAPPSystemHolon oappSystemHolon in result.Result)
+            foreach (T oappSystemHolon in result.Result)
             {
                 if (oappSystemHolon.OAPPSystemHolonDNA.CreatedByAvatarId == avatarId)
                     templates.Add(oappSystemHolon);
@@ -4134,26 +4179,26 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 if (edit && dnaVersion != storedVersion)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"The version in the OAPPSystemHolonDNA ({dnaVersion}) is not the same as the version you are attempting to edit ({storedVersion}). They must be the same if you wish to upload new files for version {storedVersion}. Please edit the OAPPSystemHolonDNA.json file found in the root of your T folder ({fullPathToOAPPSystemHolonFolder}).");
+                    OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA ({dnaVersion}) is not the same as the version you are attempting to edit ({storedVersion}). They must be the same if you wish to upload new files for version {storedVersion}. Please edit the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
                     return result;
                 } 
                 else
                 {
                     if (!StringHelper.IsValidVersion(dnaVersion))
                     {
-                        OASISErrorHandling.HandleError(ref result, $"The version in the OAPPSystemHolonDNA ({dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the OAPPSystemHolonDNA.json file found in the root of your T folder ({fullPathToOAPPSystemHolonFolder}).");
+                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA ({dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
                         return result;
                     }
 
                     if (dnaVersion == storedVersion)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"The version in the OAPPSystemHolonDNA ({dnaVersion}) is the same as the previous version ({storedVersion}). Please make sure you increment the version in the OAPPSystemHolonDNA.json file found in the root of your T folder ({fullPathToOAPPSystemHolonFolder}).");
+                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA ({dnaVersion}) is the same as the previous version ({storedVersion}). Please make sure you increment the version in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
                         return result;
                     }
 
                     if (!int.TryParse(dnaVersion.Replace(".", ""), out dnaVersionInt))
                     {
-                        OASISErrorHandling.HandleError(ref result, $"The version in the OAPPSystemHolonDNA ({dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the OAPPSystemHolonDNA.json file found in the root of your T folder ({fullPathToOAPPSystemHolonFolder}).");
+                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA ({dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
                         return result;
                     }
 
@@ -4163,7 +4208,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                     if (dnaVersionInt <= stotedVersionInt)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"The version in the OAPPSystemHolonDNA ({dnaVersion}) is less than the previous version ({storedVersion}). Please make sure you increment the version in the OAPPSystemHolonDNA.json file found in the root of your T folder.");
+                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA ({dnaVersion}) is less than the previous version ({storedVersion}). Please make sure you increment the version in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder.");
                         return result;
                     }
                 }
