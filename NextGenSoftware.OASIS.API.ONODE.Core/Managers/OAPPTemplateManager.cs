@@ -76,6 +76,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             base.OAPPSystemHolonFileExtention = "oapptemplate";
             base.OAPPSystemHolonGoogleBucket = "oasis_oapptemplates";
             base.OAPPSystemHolonDNAFileName = "OAPPTemplateDNA.json";
+            base.OAPPSystemHolonType = HolonType.OAPPTemplate;
 
             _init = true;
         }
