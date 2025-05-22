@@ -1,11 +1,8 @@
 ﻿using System;
-using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons
 {
-    public interface IInstalledOAPPTemplate : IOAPPTemplate //IHolon
+    public interface IInstalledOAPPTemplate : IOAPPTemplate, IInstalledOAPPSystemHolon //IHolon
     {
         //public IDownloadedOAPPTemplate DownloadedOAPPTemplate { get; set; }
         //public IOAPPTemplateDNA OAPPTemplateDNA { get; set; }
