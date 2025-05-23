@@ -286,7 +286,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         }
         
         #region COSMICManagerBase
-        public async Task<OASISResult<T1>> SaveAsync(T1 holon, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> SaveAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
 
@@ -316,7 +316,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<T3>> SaveAsync(T3 holon, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T3>> SaveAsync(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
 
@@ -331,7 +331,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<T3> Save(T3 holon, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T3> Save(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
 
@@ -346,7 +346,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<T1>> LoadAsync(Guid id, Guid avatarId, int version = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> LoadAsync(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<IEnumerable<T1>> loadResult = await Data.LoadHolonsByMetaDataAsync<T1>(OAPPSystemHolonIdName, id.ToString(), OAPPSystemHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
@@ -360,7 +360,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<T1> Load(Guid id, Guid avatarId, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> Load(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<IEnumerable<T1>> loadResult = Data.LoadHolonsByMetaData<T1>(OAPPSystemHolonIdName, id.ToString(), OAPPSystemHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
@@ -428,21 +428,21 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public async Task<OASISResult<IEnumerable<T1>>> SearchAsync(string searchTerm, Guid avatarId, HolonType holonType, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<T1>>> SearchAsync(Guid avatarId, string searchTerm, HolonType holonType, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             OASISResult<IEnumerable<T1>> loadHolonsResult = await SearchHolonsAsync<T1>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "OAPPSystemManagerBase.SearchAsync", holonType);
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public OASISResult<IEnumerable<T1>> Search(string searchTerm, Guid avatarId, HolonType holonType, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<T1>> Search(Guid avatarId, string searchTerm, HolonType holonType, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             OASISResult<IEnumerable<T1>> loadHolonsResult = SearchHolons<T1>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "OAPPSystemManagerBase.Search", holonType);
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public async Task<OASISResult<T1>> DeleteAsync(Guid id, Guid avatarId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> DeleteAsync(Guid avatarId, Guid id, b int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in DeleteAsync. Reason: ";
@@ -1865,7 +1865,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<T1> Unpublish(Guid OAPPSystemHolonId, HolonType holonType, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> Unpublish(Guid OAPPSystemHolonId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> loadResult = Load(OAPPSystemHolonId, avatarId, version, providerType);
@@ -2090,7 +2090,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<T1>> DeactivatAsync(IOAPPSystemHolonDNA OAPPSystemHolonDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> DeactivateAsync(IOAPPSystemHolonDNA OAPPSystemHolonDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> oappResult = await LoadAsync(OAPPSystemHolonDNA.Id, avatarId, OAPPSystemHolonDNA.VersionSequence, providerType);
@@ -3342,11 +3342,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T3>>> ListUnpublishedAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<T1>>> ListUnpublishedAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<T3>> result = new OASISResult<IEnumerable<T3>>();
+            OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             string errorMessage = "Error occured in OAPPSystemManagerBase.ListUnpublishedAsync. Reason: ";
-            result = await Data.LoadHolonsForParentAsync<T3>(avatarId, OAPPSystemHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+            result = await Data.LoadHolonsForParentAsync<T1>(avatarId, OAPPSystemHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
             
             if (result != null && !result.IsError && result.Result != null)
                 result.Result = result.Result.Where(x => x.OAPPSystemHolonDNA.PublishedOn == DateTime.MinValue && x.OAPPSystemHolonDNA.FileSize > 0);
@@ -3356,11 +3356,11 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<T3>> ListUnpublished(Guid avatarId, HolonType holonType, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<T1>> ListUnpublished(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<T3>> result = new OASISResult<IEnumerable<T3>>();
+            OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             string errorMessage = "Error occured in OAPPSystemManagerBase.ListUnpublished. Reason: ";
-            result = Data.LoadHolonsForParent<T3>(avatarId, holonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+            result = Data.LoadHolonsForParent<T1>(avatarId, OAPPSystemHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
                 result.Result = result.Result.Where(x => x.OAPPSystemHolonDNA.PublishedOn == DateTime.MinValue && x.OAPPSystemHolonDNA.FileSize > 0);
@@ -3370,19 +3370,19 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T1>>> ListDeactivatedAsync(Guid avatarId, HolonType holonType, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<T1>>> ListDeactivatedAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             string errorMessage = "Error occured in OAPPSystemManagerBase.ListDeactivatedAsync. Reason: ";
-            result = await Data.LoadHolonsByMetaDataAsync<T1>("Active", "0", holonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+            result = await Data.LoadHolonsByMetaDataAsync<T1>("Active", "0", OAPPSystemHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
             return result;
         }
 
-        public OASISResult<IEnumerable<T1>> ListDeactivated(Guid avatarId, HolonType holonType, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<T1>> ListDeactivated(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             string errorMessage = "Error occured in OAPPSystemManagerBase.ListDeactivated. Reason: ";
-            result = Data.LoadHolonsByMetaData<T1>("Active", "0", holonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+            result = Data.LoadHolonsByMetaData<T1>("Active", "0", OAPPSystemHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
             return result;
         }
 
