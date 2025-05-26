@@ -7,10 +7,10 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
-    //public class OAPPTemplate : Holon, IOAPPTemplate //PublishableHolon, IOAPPTemplate
-    public class OAPPTemplate : OAPPSystemHolon, IOAPPTemplate //PublishableHolon, IOAPPTemplate
+    public class OAPPTemplate : OAPPSystemHolon, IOAPPTemplate
+    //public class OAPPTemplate : Holon, IOAPPTemplate
     {
-        private IOAPPTemplateDNA _OAPPTemplateDNA;
+        //private IOAPPTemplateDNA _OAPPTemplateDNA;
 
         public OAPPTemplate()
         {
@@ -21,46 +21,54 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         {
             get
             {
-                if (_OAPPTemplateDNA == null && MetaData["OAPPTemplateDNAJSON"] != null && !string.IsNullOrEmpty(MetaData["OAPPTemplateDNAJSON"].ToString()))
-                    _OAPPTemplateDNA = JsonSerializer.Deserialize<OAPPTemplateDNA>(MetaData["OAPPTemplateDNAJSON"].ToString());
-
-                return _OAPPTemplateDNA;
+                return (IOAPPTemplateDNA)base.OAPPSystemHolonDNA;
             }
             set
             {
-                _OAPPTemplateDNA = value;
-                MetaData["OAPPTemplateDNAJSON"] = JsonSerializer.Serialize(value);
+               base.OAPPSystemHolonDNA = value;
             }
         }
 
+        //byte[] PublishedOAPPSystemHolon { get; set; }
+
         [CustomOASISProperty()]
-        public byte[] PublishedOAPPTemplate { get; set; }
+        public byte[] PublishedOAPPTemplate
+        {
+            get
+            {
+                return PublishedOAPPSystemHolon;
+            }
+            set
+            {
+                PublishedOAPPSystemHolon = value;
+            }
+        }
 
-        //[CustomOASISProperty]
-        //public OAPPTemplateType OAPPTemplateType { get; set; }
+            //[CustomOASISProperty]
+            //public OAPPTemplateType OAPPTemplateType { get; set; }
 
-        //[CustomOASISProperty]
-        //public string OAPPTemplatePath { get; set; }
+            //[CustomOASISProperty]
+            //public string OAPPTemplatePath { get; set; }
 
-        //[CustomOASISProperty]
-        //public string OAPPTemplatePublishedPath { get; set; }
+            //[CustomOASISProperty]
+            //public string OAPPTemplatePublishedPath { get; set; }
 
-        //[CustomOASISProperty]
-        //public bool OAPPTemplatePublishedOnSTARNET { get; set; }
+            //[CustomOASISProperty]
+            //public bool OAPPTemplatePublishedOnSTARNET { get; set; }
 
-        //[CustomOASISProperty]
-        //public bool OAPPTemplatePublishedToCloud { get; set; }
+            //[CustomOASISProperty]
+            //public bool OAPPTemplatePublishedToCloud { get; set; }
 
-        //[CustomOASISProperty]
-        //public ProviderType OAPPTemplatePublishedProviderType { get; set; }
+            //[CustomOASISProperty]
+            //public ProviderType OAPPTemplatePublishedProviderType { get; set; }
 
-        //[CustomOASISProperty]
-        //public long OAPPTemplateFileSize { get; set; }
+            //[CustomOASISProperty]
+            //public long OAPPTemplateFileSize { get; set; }
 
-        //[CustomOASISProperty]
-        //public int Versions { get; set; }
+            //[CustomOASISProperty]
+            //public int Versions { get; set; }
 
-        //[CustomOASISProperty]
-        //public int Downloads { get; set; }
-    }
+            //[CustomOASISProperty]
+            //public int Downloads { get; set; }
+        }
 }
