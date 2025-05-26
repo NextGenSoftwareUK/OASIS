@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         //string CreatedByAvatarUsername { get; set; }
         //DateTime CreatedOn { get; set; }
 
-        //OAPPTemplateType OAPPTemplateType { get; set; }
+        OAPPTemplateType OAPPTemplateType { get; set; }
         //string OAPPTemplatePath { get; set; } //Source  Path
         //string OAPPTemplatePublishedPath { get; set; }
 

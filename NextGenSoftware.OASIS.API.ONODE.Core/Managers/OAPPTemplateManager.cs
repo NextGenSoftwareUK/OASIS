@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             "OAPPTemplateType", 
             "oapptemplate", 
             "oasis_oapptemplates", 
-            "OAPPTemplateDNA.json") { }
+            "OAPPTemplateDNA.json") { Init(); }
 
         public OAPPTemplateManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA,
             HolonType.OAPPTemplate, 
@@ -39,32 +39,60 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             "OAPPTemplateType", 
             "oapptemplate", 
             "oasis_oapptemplates", 
-            "OAPPTemplateDNA.json") { }
+            "OAPPTemplateDNA.json") { Init(); }
 
-        //public delegate void OAPPTemplatePublishStatusChanged(object sender, OAPPTemplatePublishStatusEventArgs e);
-        //public delegate void OAPPTemplateInstallStatusChanged(object sender, OAPPTemplateInstallStatusEventArgs e);
-        //public delegate void OAPPTemplateUploadStatusChanged(object sender, OAPPTemplateUploadProgressEventArgs e);
-        //public delegate void OAPPTemplateDownloadStatusChanged(object sender, OAPPTemplateDownloadProgressEventArgs e);
+        public delegate void OAPPTemplatePublishStatusChanged(object sender, OAPPTemplatePublishStatusEventArgs e);
+        public delegate void OAPPTemplateInstallStatusChanged(object sender, OAPPTemplateInstallStatusEventArgs e);
+        public delegate void OAPPTemplateUploadStatusChanged(object sender, OAPPTemplateUploadProgressEventArgs e);
+        public delegate void OAPPTemplateDownloadStatusChanged(object sender, OAPPTemplateDownloadProgressEventArgs e);
 
-        ///// <summary>
-        ///// Fired when there is a change in the OAPP Template publish status.
-        ///// </summary>
-        //public event OAPPTemplatePublishStatusChanged OnOAPPTemplatePublishStatusChanged;
+        /// <summary>
+        /// Fired when there is a change in the OAPP Template publish status.
+        /// </summary>
+        public event OAPPTemplatePublishStatusChanged OnOAPPTemplatePublishStatusChanged;
 
-        ///// <summary>
-        ///// Fired when there is a change to the OAPP Template Install status.
-        ///// </summary>
-        //public event OAPPTemplateInstallStatusChanged OnOAPPTemplateInstallStatusChanged;
+        /// <summary>
+        /// Fired when there is a change to the OAPP Template Install status.
+        /// </summary>
+        public event OAPPTemplateInstallStatusChanged OnOAPPTemplateInstallStatusChanged;
 
-        ///// <summary>
-        ///// Fired when there is a change in the OAPP Template upload status.
-        ///// </summary>
-        //public event OAPPTemplateUploadStatusChanged OnOAPPTemplateUploadStatusChanged;
+        /// <summary>
+        /// Fired when there is a change in the OAPP Template upload status.
+        /// </summary>
+        public event OAPPTemplateUploadStatusChanged OnOAPPTemplateUploadStatusChanged;
 
-        ///// <summary>
-        ///// Fired when there is a change in the OAPP Template download status.
-        ///// </summary>
-        //public event OAPPTemplateDownloadStatusChanged OnOAPPTemplateDownloadStatusChanged;
+        /// <summary>
+        /// Fired when there is a change in the OAPP Template download status.
+        /// </summary>
+        public event OAPPTemplateDownloadStatusChanged OnOAPPTemplateDownloadStatusChanged;
+
+        private void Init()
+        {
+            base.OnOAPPSystemHolonDownloadStatusChanged += OAPPTemplateManager_OnOAPPSystemHolonDownloadStatusChanged;
+            base.OnOAPPSystemHolonInstallStatusChanged += OAPPTemplateManager_OnOAPPSystemHolonInstallStatusChanged;
+            base.OnOAPPSystemHolonUploadStatusChanged += OAPPTemplateManager_OnOAPPSystemHolonUploadStatusChanged;
+            base.OnOAPPSystemHolonPublishStatusChanged += OAPPTemplateManager_OnOAPPSystemHolonPublishStatusChanged;
+        }
+
+        private void OAPPTemplateManager_OnOAPPSystemHolonUploadStatusChanged(object sender, OAPPSystemHolonUploadProgressEventArgs e)
+        {
+            OnOAPPTemplateUploadStatusChanged?.Invoke(sender, new OAPPTemplateUploadProgressEventArgs() { OAPPTemplateDNA = (IOAPPTemplateDNA)e.OAPPSystemHolonDNA, Progress = e.Progress, Status = (Enums.OAPPTemplateUploadStatus)e.Status, ErrorMessage = e.ErrorMessage });
+        }
+
+        private void OAPPTemplateManager_OnOAPPSystemHolonInstallStatusChanged(object sender, OAPPSystemHolonInstallStatusEventArgs e)
+        {
+            OnOAPPTemplateInstallStatusChanged?.Invoke(sender, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = (IOAPPTemplateDNA)e.OAPPSystemHolonDNA, Status = (Enums.OAPPTemplateInstallStatus)e.Status, ErrorMessage = e.ErrorMessage });
+        }
+
+        private void OAPPTemplateManager_OnOAPPSystemHolonDownloadStatusChanged(object sender, OAPPSystemHolonDownloadProgressEventArgs e)
+        {
+            OnOAPPTemplateDownloadStatusChanged?.Invoke(sender, new OAPPTemplateDownloadProgressEventArgs() { OAPPTemplateDNA = (IOAPPTemplateDNA)e.OAPPSystemHolonDNA, Progress = e.Progress, Status = (Enums.OAPPTemplateDownloadStatus)e.Status, ErrorMessage = e.ErrorMessage });
+        }
+
+        private void OAPPTemplateManager_OnOAPPSystemHolonPublishStatusChanged(object sender, OAPPSystemHolonPublishStatusEventArgs e)
+        {
+            OnOAPPTemplatePublishStatusChanged?.Invoke(sender, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = (IOAPPTemplateDNA)e.OAPPSystemHolonDNA, Status = (Enums.OAPPTemplatePublishStatus)e.Status, ErrorMessage = e.ErrorMessage });
+        }
 
         public async Task<OASISResult<IOAPPTemplate>> CreateOAPPTemplateAsync(string name, string description, OAPPTemplateType OAPPTemplateType, Guid avatarId, string fullPathToOAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
@@ -117,34 +145,34 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return ProcessResults(base.LoadAllForAvatar(avatarId, showAllVersions, version, providerType));
         }
 
-        public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> SearchOAPPTemplatesAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> SearchOAPPTemplatesAsync(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResults(await base.SearchAsync(searchTerm, avatarId, HolonType.OAPPTemplate, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
+            return ProcessResults(await base.SearchAsync(avatarId, searchTerm, HolonType.OAPPTemplate, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
         }
 
-        public OASISResult<IEnumerable<IOAPPTemplate>> SearchOAPPTemplates(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IOAPPTemplate>> SearchOAPPTemplates(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResults(base.Search(searchTerm, avatarId, HolonType.OAPPTemplate, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
+            return ProcessResults(base.Search(avatarId, searchTerm, HolonType.OAPPTemplate, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(Guid oappTemplateId, Guid avatarId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(Guid avatarId, Guid oappTemplateId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.DeleteAsync(oappTemplateId, avatarId, version, softDelete, deleteDownload, deleteInstall, providerType));
+            return ProcessResult(await base.DeleteAsync(avatarId, oappTemplateId, version, softDelete, deleteDownload, deleteInstall, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> DeleteOAPPTemplate(Guid oappTemplateId, Guid avatarId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> DeleteOAPPTemplate(Guid avatarId, Guid oappTemplateId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Delete(oappTemplateId, avatarId, version, softDelete, deleteDownload, deleteInstall, providerType));
+            return ProcessResult(base.Delete(avatarId, oappTemplateId, version, softDelete, deleteDownload, deleteInstall, providerType));
         }
 
         public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(Guid avatarId, IOAPPTemplate oappTemplate, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.DeleteAsync(oappTemplate, avatarId, version, softDelete, deleteDownload, deleteInstall, providerType));
+            return ProcessResult(await base.DeleteAsync(avatarId, oappTemplate, version, softDelete, deleteDownload, deleteInstall, providerType));
         }
 
         public OASISResult<IOAPPTemplate> DeleteOAPPTemplate(Guid avatarId, IOAPPTemplate oappTemplate, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Delete(oappTemplate, avatarId, version, softDelete, deleteDownload, deleteInstall, providerType));
+            return ProcessResult(base.Delete(avatarId, oappTemplate, version, softDelete, deleteDownload, deleteInstall, providerType));
         }
         #endregion
 
@@ -175,7 +203,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
         public async Task<OASISResult<IOAPPTemplate>> EditOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, IOAPPTemplateDNA newOAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.EditAsync((OAPPTemplate)OAPPTemplate, newOAPPTemplateDNA, avatarId, providerType));
+            return ProcessResult(await base.EditAsync(avatarId, (OAPPTemplate)OAPPTemplate, newOAPPTemplateDNA, providerType));
         }
 
         public async Task<OASISResult<IOAPPTemplate>> PublishOAPPTemplateAsync(Guid avatarId, string fullPathToOAPPTemplate, string launchTarget, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPTemplateBinary = true, bool uploadOAPPTemplateToCloud = false, bool edit = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
@@ -188,124 +216,124 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return ProcessResult(base.Publish(avatarId, fullPathToOAPPTemplate, launchTarget, fullPathToPublishTo, registerOnSTARNET, generateOAPPTemplateBinary, uploadOAPPTemplateToCloud, edit, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(Guid avatarId, IOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.UnpublishAsync((OAPPTemplate)OAPPTemplate, avatarId, providerType));
+            return ProcessResult(await base.UnpublishAsync(avatarId, (OAPPTemplate)OAPPTemplate, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(Guid avatarId, IOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Unpublish((OAPPTemplate)OAPPTemplate, avatarId, providerType));
+            return ProcessResult(base.Unpublish(avatarId, (OAPPTemplate)OAPPTemplate, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, int version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.UnpublishAsync(OAPPTemplateId, version, avatarId, providerType));
+            return ProcessResult(await base.UnpublishAsync(avatarId, OAPPTemplateId, version, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, int version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Unpublish(OAPPTemplateId, version, avatarId, providerType));
+            return ProcessResult(base.Unpublish(avatarId, OAPPTemplateId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA    , ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.UnpublishAsync(OAPPTemplateDNA, avatarId, providerType));
+            return ProcessResult(await base.UnpublishAsync(avatarId, OAPPTemplateDNA, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Unpublish(OAPPTemplateDNA, avatarId, providerType));
+            return ProcessResult(base.Unpublish(avatarId, OAPPTemplateDNA, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(Guid avatarId, IOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.RepublishAsync((OAPPTemplate)OAPPTemplate, avatarId, providerType));
+            return ProcessResult(await base.RepublishAsync(avatarId, (OAPPTemplate)OAPPTemplate, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(Guid avatarId, IOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Republish((OAPPTemplate)OAPPTemplate, avatarId, providerType));
+            return ProcessResult(base.Republish(avatarId, (OAPPTemplate)OAPPTemplate, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.RepublishAsync(OAPPTemplateDNA, avatarId, providerType));
+            return ProcessResult(await base.RepublishAsync(avatarId, OAPPTemplateDNA, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Republish(OAPPTemplateDNA, avatarId, providerType));
+            return ProcessResult(base.Republish(avatarId, OAPPTemplateDNA, providerType));
         }
 
         public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.RepublishAsync(OAPPTemplateId, version, avatarId, providerType));
+            return ProcessResult(await base.RepublishAsync(avatarId, OAPPTemplateId, version, providerType));
         }
 
         public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Republish(OAPPTemplateId, version, avatarId, providerType));
+            return ProcessResult(base.Republish(avatarId, OAPPTemplateId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(Guid avatarId, IOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.DeactivateAsync((OAPPTemplate)OAPPTemplate, avatarId, providerType));
+            return ProcessResult(await base.DeactivateAsync(avatarId, (OAPPTemplate)OAPPTemplate, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(Guid avatarId, IOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Deactivate((OAPPTemplate)OAPPTemplate, avatarId, providerType));
+            return ProcessResult(base.Deactivate(avatarId, (OAPPTemplate)OAPPTemplate, providerType));
         }
 
         public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.DeactivateAsync(OAPPTemplateId, version, avatarId, providerType));
+            return ProcessResult(await base.DeactivateAsync(avatarId, OAPPTemplateId, version, providerType));
         }
 
         public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Deactivate(OAPPTemplateId, version, avatarId, providerType));
+            return ProcessResult(base.Deactivate(avatarId, OAPPTemplateId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.DeactivateAsync(OAPPTemplateDNA, avatarId, providerType));
+            return ProcessResult(await base.DeactivateAsync(avatarId, OAPPTemplateDNA, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Deactivate(OAPPTemplateDNA, avatarId, providerType));
+            return ProcessResult(base.Deactivate(avatarId, OAPPTemplateDNA, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(Guid avatarId, IOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.ActivateAsync((OAPPTemplate)OAPPTemplate, avatarId, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(IOAPPTemplate OAPPTemplate, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(Guid avatarId, IOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Activate((OAPPTemplate)OAPPTemplate, avatarId, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.ActivateAsync(OAPPTemplateDNA, avatarId, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(IOAPPTemplateDNA OAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Activate(OAPPTemplateDNA, avatarId, providerType));
+            return ProcessResult(base.Activate(avatarId, OAPPTemplateDNA, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, int version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.ActivateAsync(OAPPTemplateId, version, avatarId, providerType));
+            return ProcessResult(await base.ActivateAsync(avatarId, OAPPTemplateId, version, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(Guid OAPPTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, int version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Activate(OAPPTemplateId, version, avatarId, providerType));
+            return ProcessResult(base.Activate(avatarId, OAPPTemplateId, version, providerType));
         }
 
         public async Task<OASISResult<IDownloadedOAPPTemplate>> DownloadOAPPTemplateAsync(Guid avatarId, IOAPPTemplate OAPPTemplate, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default)
@@ -350,52 +378,52 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
         public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(IInstalledOAPPTemplate installedOAPPTemplate, Guid avatarId, string errorMessage, ProviderType providerType)
         {
-            return ProcessResult(await base.UninstallAsync((InstalledOAPPTemplate)installedOAPPTemplate, avatarId, errorMessage, providerType));
+            return ProcessResult(await base.UninstallAsync(avatarId, (InstalledOAPPTemplate)installedOAPPTemplate, errorMessage, providerType));
         }
 
-        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(IInstalledOAPPTemplate installedOAPPTemplate, Guid avatarId, string errorMessage, ProviderType providerType)
+        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(Guid avatarId, IInstalledOAPPTemplate installedOAPPTemplate, string errorMessage, ProviderType providerType)
         {
-            return ProcessResult(base.Uninstall((InstalledOAPPTemplate)installedOAPPTemplate, avatarId, errorMessage, providerType));
+            return ProcessResult(base.Uninstall(avatarId, (InstalledOAPPTemplate)installedOAPPTemplate, errorMessage, providerType));
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(Guid OAPPTemplateId, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.UninstallAsync(OAPPTemplateId, versionSequence, avatarId, providerType));
+            return ProcessResult(await base.UninstallAsync(avatarId, OAPPTemplateId, versionSequence, providerType));
         }
 
-        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(Guid OAPPTemplateId, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Uninstall(OAPPTemplateId, versionSequence, avatarId, providerType));
+            return ProcessResult(base.Uninstall(avatarId, OAPPTemplateId, versionSequence, providerType));
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(Guid OAPPTemplateId, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.UninstallAsync(OAPPTemplateId, version, avatarId, providerType));
+            return ProcessResult(await base.UninstallAsync(avatarId, OAPPTemplateId, version, providerType));
         }
 
-        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(Guid OAPPTemplateId, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Uninstall(OAPPTemplateId, version, avatarId, providerType));
+            return ProcessResult(base.Uninstall(avatarId, OAPPTemplateId, version, providerType));
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(string OAPPTemplateName, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(Guid avatarId, string OAPPTemplateName, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.UninstallAsync(OAPPTemplateName, versionSequence, avatarId, providerType));
+            return ProcessResult(await base.UninstallAsync(avatarId, OAPPTemplateName, versionSequence, providerType));
         }
 
-        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(string OAPPTemplateName, int versionSequence, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(Guid avatarId, string OAPPTemplateName, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Uninstall(OAPPTemplateName, versionSequence, avatarId, providerType));
+            return ProcessResult(base.Uninstall(avatarId, OAPPTemplateName, versionSequence, providerType));
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(string OAPPTemplateName, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(Guid avatarId, string OAPPTemplateName, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.UninstallAsync(OAPPTemplateName, version, avatarId, providerType));
+            return ProcessResult(await base.UninstallAsync(avatarId, OAPPTemplateName, version, providerType));
         }
 
-        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(string OAPPTemplateName, string version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(Guid avatarId, string OAPPTemplateName, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Uninstall(OAPPTemplateName, version, avatarId, providerType));
+            return ProcessResult(base.Uninstall(avatarId, OAPPTemplateName, version, providerType));
         }
 
         public async Task<OASISResult<IEnumerable<IInstalledOAPPTemplate>>> ListInstalledOAPPTemplatesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)

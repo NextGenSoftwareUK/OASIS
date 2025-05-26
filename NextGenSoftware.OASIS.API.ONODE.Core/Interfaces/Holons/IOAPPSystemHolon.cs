@@ -5,8 +5,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces
 {
     public interface IOAPPSystemHolon : IHolon // : IPublishableHolon
     {
-        IOAPPSystemHolonDNA OAPPSystemHolonDNA { get; set; }
-        byte[] PublishedOAPPSystemHolon { get; set; }
+        public IOAPPSystemHolonDNA OAPPSystemHolonDNA { get; set; }
+        public byte[] PublishedOAPPSystemHolon { get; set; }
 
        // OAPPTemplateType OAPPTemplateType { get; set; }
        //public string OAPPTemplatePath { get; set; }
