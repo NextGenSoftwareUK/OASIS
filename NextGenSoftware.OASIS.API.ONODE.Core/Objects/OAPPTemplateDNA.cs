@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         //public string CreatedByAvatarUsername { get; set; }
         //public DateTime CreatedOn { get; set; }
 
-        //public OAPPTemplateType OAPPTemplateType { get; set; }
+        public OAPPTemplateType OAPPTemplateType { get; set; }
         //public string OAPPTemplatePath { get; set; }
         //public string OAPPTemplatePublishedPath { get; set; }
 

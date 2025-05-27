@@ -1,14 +1,10 @@
-﻿using System;
-using System.Text.Json;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
-    public class InstalledOAPPTemplate : OAPPTemplate, IInstalledOAPPTemplate //: Holon, IInstalledOAPPTemplate //TODO: Do we want to use Holon? What was the reason again?! ;-) Think so can be used with Data API and HolonManager?
+    //public class InstalledOAPPTemplate : OAPPTemplate, IInstalledOAPPTemplate
+    public class InstalledOAPPTemplate : InstalledOAPPSystemHolon, IInstalledOAPPTemplate
     {
         //private IDownloadedOAPPTemplate _DownloadedOAPPTemplate;
 
@@ -41,46 +37,47 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
         //    }
         //}
 
-        [CustomOASISProperty]
-        public Guid DownloadedOAPPTemplateHolonId { get; set; }
-
-        [CustomOASISProperty]
-        public string DownloadedPath { get; set; }
-
-        [CustomOASISProperty]
-        public DateTime DownloadedOn { get; set; }
-
-        [CustomOASISProperty]
-        public Guid DownloadedBy { get; set; }
-
-        [CustomOASISProperty]
-        public string DownloadedByAvatarUsername { get; set; }
-
-        [CustomOASISProperty]
-        public string InstalledPath { get; set; }
-
-        [CustomOASISProperty]
-        public DateTime InstalledOn { get; set; }
-
-        [CustomOASISProperty]
-        public Guid InstalledBy { get; set; }
-
-        [CustomOASISProperty]
-        public string InstalledByAvatarUsername { get; set; }
-
-        [CustomOASISProperty]
-        public DateTime UninstalledOn { get; set; }
-
-        [CustomOASISProperty]
-        public Guid UninstalledBy { get; set; }
-
-        [CustomOASISProperty]
-        public string UninstalledByAvatarUsername { get; set; }
-
-        [CustomOASISProperty]
-        public string Active { get; set; }
+        //[CustomOASISProperty]
+        //public Guid DownloadedOAPPTemplateHolonId { get; set; }
 
         //[CustomOASISProperty]
-        //public string OAPPTemplateVersion { get; set; }
+        //public Guid DownloadedOAPPSystemHolonId { get; set; } //TODO: Same as above (needed because of the generic interface IInstalledOAPPSystemHolon). Need to find way of renaming or hiding the base generic properties?
+
+        //[CustomOASISProperty]
+        //public string DownloadedPath { get; set; }
+
+        //[CustomOASISProperty]
+        //public DateTime DownloadedOn { get; set; }
+
+        //[CustomOASISProperty]
+        //public Guid DownloadedBy { get; set; }
+
+        //[CustomOASISProperty]
+        //public string DownloadedByAvatarUsername { get; set; }
+
+        //[CustomOASISProperty]
+        //public string InstalledPath { get; set; }
+
+        //[CustomOASISProperty]
+        //public DateTime InstalledOn { get; set; }
+
+        //[CustomOASISProperty]
+        //public Guid InstalledBy { get; set; }
+
+        //[CustomOASISProperty]
+        //public string InstalledByAvatarUsername { get; set; }
+
+        //[CustomOASISProperty]
+        //public DateTime UninstalledOn { get; set; }
+
+        //[CustomOASISProperty]
+        //public Guid UninstalledBy { get; set; }
+
+        //[CustomOASISProperty]
+        //public string UninstalledByAvatarUsername { get; set; }
+
+        //[CustomOASISProperty]
+        //public string Active { get; set; }
+
     }
 }

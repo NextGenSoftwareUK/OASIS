@@ -5,7 +5,8 @@ using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
-    public class InstalledOAPPSystemHolon : OAPPTemplate, IInstalledOAPPSystemHolon
+    //public class InstalledOAPPSystemHolon : OAPPTemplate, IInstalledOAPPSystemHolon
+    public class InstalledOAPPSystemHolon : OAPPSystemHolon, IInstalledOAPPSystemHolon
     {
         public InstalledOAPPSystemHolon()
         {

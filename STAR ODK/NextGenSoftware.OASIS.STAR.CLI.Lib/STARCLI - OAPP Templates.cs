@@ -19,19 +19,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static void Init()
         {
-            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged += OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
-            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged += OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
-            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplatePublishStatusChanged += OAPPTemplates_OnOAPPTemplatePublishStatusChanged;
-            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateUploadStatusChanged += OAPPTemplates_OnOAPPTemplateUploadStatusChanged;
+            STAR.OASISAPI.OAPPTemplates.OnOAPPSystemHolonDownloadStatusChanged += OAPPTemplates_OnOAPPSystemHolonDownloadStatusChanged;
+            STAR.OASISAPI.OAPPTemplates.OnOAPPSystemHolonInstallStatusChanged += OAPPTemplates_OnOAPPSystemHolonInstallStatusChanged;
+            STAR.OASISAPI.OAPPTemplates.OnOAPPSystemHolonPublishStatusChanged += OAPPTemplates_OnOAPPSystemHolonPublishStatusChanged;
+            STAR.OASISAPI.OAPPTemplates.OnOAPPSystemHolonUploadStatusChanged += OAPPTemplates_OnOAPPSystemHolonUploadStatusChanged;
+
+            //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged += OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
+            //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged += OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
+            //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplatePublishStatusChanged += OAPPTemplates_OnOAPPTemplatePublishStatusChanged;
+            //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateUploadStatusChanged += OAPPTemplates_OnOAPPTemplateUploadStatusChanged;
             _init = true;
         }
 
         public static void Dispose()
         {
-            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged -= OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
-            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged -= OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
-            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplatePublishStatusChanged -= OAPPTemplates_OnOAPPTemplatePublishStatusChanged;
-            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateUploadStatusChanged -= OAPPTemplates_OnOAPPTemplateUploadStatusChanged;
+            STAR.OASISAPI.OAPPTemplates.OnOAPPSystemHolonDownloadStatusChanged -= OAPPTemplates_OnOAPPSystemHolonDownloadStatusChanged;
+            STAR.OASISAPI.OAPPTemplates.OnOAPPSystemHolonInstallStatusChanged -= OAPPTemplates_OnOAPPSystemHolonInstallStatusChanged;
+            STAR.OASISAPI.OAPPTemplates.OnOAPPSystemHolonPublishStatusChanged -= OAPPTemplates_OnOAPPSystemHolonPublishStatusChanged;
+            STAR.OASISAPI.OAPPTemplates.OnOAPPSystemHolonUploadStatusChanged -= OAPPTemplates_OnOAPPSystemHolonUploadStatusChanged;
+
+            //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged -= OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
+            //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged -= OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
+            //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplatePublishStatusChanged -= OAPPTemplates_OnOAPPTemplatePublishStatusChanged;
+            //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateUploadStatusChanged -= OAPPTemplates_OnOAPPTemplateUploadStatusChanged;
         }
 
         public static async Task CreateOAPPTemplateAsync(object createParams, ProviderType providerType = ProviderType.Default)
@@ -43,7 +53,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage("This wizard will allow you create an OAPP Template which can be used to create a OAPP from.", false);
             CLIEngine.ShowMessage("The OAPP Template can be created from anything you like such as a website, javascript template, game, app, service, etc in any language, platform or os.");
             CLIEngine.ShowMessage("You simply need to add specefic STAR ODK OAPP Template reserved tags where dynamic data will be injected in from the OAPP meta data.");
-            CLIEngine.ShowMessage("The wizard will create an empty folder with a OAPPTemplateDNA.json file in it. You then simply place any files/folders you need into this folder.");
+            CLIEngine.ShowMessage("The wizard will create an empty folder with a OAPPSystemHolonDNA.json file in it. You then simply place any files/folders you need into this folder.");
             CLIEngine.ShowMessage("Finally you run the sub-command 'oapp template publish' to convert the folder containing the OAPP Template (can contain any number of files and sub-folders) into a OAPP Template file (.oapptemplate).");
             CLIEngine.ShowMessage("You can then share the .oapptemplate file with others from which you can create OAPP's from. You can also optionally choose to upload the .oapptemplate file to the STARNET store so others can search, download and install the OAPP Template. They can then create OAPP's from the template.");
             CLIEngine.ShowDivider();
@@ -118,12 +128,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation("Do you wish to edit the OAPP Template Name?"))
                 {
                     Console.WriteLine("");
-                    loadResult.Result.OAPPTemplateDNA.Name = CLIEngine.GetValidInput("What is the new name of the OAPP Template?");
-                    //loadResult.Result.OAPPTemplateDNA.Name = loadResult.Result.Name;
+                    loadResult.Result.OAPPSystemHolonDNA.Name = CLIEngine.GetValidInput("What is the new name of the OAPP Template?");
+                    //loadResult.Result.OAPPSystemHolonDNA.Name = loadResult.Result.Name;
 
-                    //oldPath = loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath;
-                    //newPath = Path.Combine(new DirectoryInfo(loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath).Parent.FullName, loadResult.Result.OAPPTemplateDNA.Name);
-                    //loadResult.Result.OAPPTemplateDNA.OAPPTemplatePath = newPath;
+                    //oldPath = loadResult.Result.OAPPSystemHolonDNA.OAPPTemplatePath;
+                    //newPath = Path.Combine(new DirectoryInfo(loadResult.Result.OAPPSystemHolonDNA.OAPPTemplatePath).Parent.FullName, loadResult.Result.OAPPSystemHolonDNA.Name);
+                    //loadResult.Result.OAPPSystemHolonDNA.OAPPTemplatePath = newPath;
                     changesMade = true;
                 }
                 else
@@ -132,8 +142,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation("Do you wish to edit the OAPP Template Description?"))
                 {
                     Console.WriteLine("");
-                    loadResult.Result.OAPPTemplateDNA.Description = CLIEngine.GetValidInput("What is the new description of the OAPP Template?");
-                    //loadResult.Result.OAPPTemplateDNA.Description = loadResult.Result.Description;
+                    loadResult.Result.OAPPSystemHolonDNA.Description = CLIEngine.GetValidInput("What is the new description of the OAPP Template?");
+                    //loadResult.Result.OAPPSystemHolonDNA.Description = loadResult.Result.Description;
                     changesMade = true;
                 }
                 else
@@ -149,7 +159,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (value.ToString() == "exit")
                             return;
 
-                        loadResult.Result.OAPPTemplateDNA.OAPPTemplateType = (OAPPTemplateType)value;
+                        //loadResult.Result.OAPPSystemHolonDNA.OAPPTemplateType = (OAPPTemplateType)value;
+                        loadResult.Result.OAPPSystemHolonDNA.OAPPSystemHolonType = (OAPPTemplateType)value;
                         changesMade = true;
                     }
                 }
@@ -159,7 +170,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation("Do you wish to edit the launch target?"))
                 {
                     Console.WriteLine("");
-                    loadResult.Result.OAPPTemplateDNA.LaunchTarget = CLIEngine.GetValidInput("What is the new launch target of the OAPP Template?");
+                    loadResult.Result.OAPPSystemHolonDNA.LaunchTarget = CLIEngine.GetValidInput("What is the new launch target of the OAPP Template?");
                     changesMade = true;
                 }
                 else
@@ -180,13 +191,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     //    }
                     //}
 
-                    OASISResult<IOAPPTemplate> result = await STAR.OASISAPI.OAPPTemplates.EditOAPPTemplateAsync(loadResult.Result, loadResult.Result.OAPPTemplateDNA, STAR.BeamedInAvatar.Id, providerType);
+                    OASISResult<IOAPPTemplate> result = await STAR.OASISAPI.OAPPTemplates.EditOAPPTemplateAsync(loadResult.Result, loadResult.Result.OAPPSystemHolonDNA, STAR.BeamedInAvatar.Id, providerType);
                     Console.WriteLine("");
                     CLIEngine.ShowWorkingMessage("Saving OAPP Template...");
 
                     if (result != null && !result.IsError && result.Result != null)
                     {
-                        (result, bool saveResult) = ErrorHandling.HandleResponse(result, await STAR.OASISAPI.OAPPTemplates.WriteOAPPTemplateDNAAsync(result.Result.OAPPTemplateDNA, result.Result.OAPPTemplateDNA.SourcePath), "Error occured saving the OAPPTemplateDNA. Reason: ", "OAPP Template Successfully Updated.");
+                        (result, bool saveResult) = ErrorHandling.HandleResponse(result, await STAR.OASISAPI.OAPPTemplates.WriteOAPPTemplateDNAAsync(result.Result.OAPPSystemHolonDNA, result.Result.OAPPSystemHolonDNA.SourcePath), "Error occured saving the OAPPSystemHolonDNA. Reason: ", "OAPP Template Successfully Updated.");
 
                         if (saveResult)
                             ShowOAPPTemplate(result.Result);
@@ -195,8 +206,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         CLIEngine.ShowErrorMessage($"An error occured updating the OAPP Template. Reason: {result.Message}");
                 }
 
-                if (loadResult.Result.OAPPTemplateDNA.PublishedOn != DateTime.MinValue && CLIEngine.GetConfirmation($"Do you wish to upload any changes you have made in the Source folder ({loadResult.Result.OAPPTemplateDNA.SourcePath})? The version number will remain the same ({loadResult.Result.OAPPTemplateDNA.Version})."))
-                    await PublishOAPPTemplateAsync(loadResult.Result.OAPPTemplateDNA.SourcePath, true, providerType);
+                if (loadResult.Result.OAPPSystemHolonDNA.PublishedOn != DateTime.MinValue && CLIEngine.GetConfirmation($"Do you wish to upload any changes you have made in the Source folder ({loadResult.Result.OAPPSystemHolonDNA.SourcePath})? The version number will remain the same ({loadResult.Result.OAPPSystemHolonDNA.Version})."))
+                    await PublishOAPPTemplateAsync(loadResult.Result.OAPPSystemHolonDNA.SourcePath, true, providerType);
                 else
                     Console.WriteLine("");
             }
@@ -228,7 +239,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage("Deleting OAPP Template...");
-                        result = await STAR.OASISAPI.OAPPTemplates.DeleteOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, result.Result.OAPPTemplateDNA.VersionSequence, true, deleteDownload, deleteInstall, providerType);
+                        result = await STAR.OASISAPI.OAPPTemplates.DeleteOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, result.Result.OAPPSystemHolonDNA.VersionSequence, true, deleteDownload, deleteInstall, providerType);
 
                         if (result != null && !result.IsError && result.Result != null)
                         {
@@ -268,7 +279,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 oappTemplatePath = CLIEngine.GetValidFolder(OAPPPathQuestion, false);
             }
 
-            OASISResult<IOAPPTemplateDNA> OAPPTemplateDNAResult = await STAR.OASISAPI.OAPPTemplates.ReadOAPPTemplateDNAAsync(oappTemplatePath);
+            //OASISResult<IOAPPTemplateDNA> OAPPTemplateDNAResult = await STAR.OASISAPI.OAPPTemplates.ReadOAPPTemplateDNAAsync(oappTemplatePath);
+            OASISResult<IOAPPSystemHolonDNA> OAPPTemplateDNAResult = await STAR.OASISAPI.OAPPTemplates.ReadOAPPTemplateDNAAsync(oappTemplatePath);
 
             if (OAPPTemplateDNAResult != null && OAPPTemplateDNAResult.Result != null && !OAPPTemplateDNAResult.IsError)
             {
@@ -276,7 +288,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (OAPPTemplateResult != null && OAPPTemplateResult.Result != null && !OAPPTemplateResult.IsError)
                 {
-                    OAPPTemplateResult.Result.OAPPTemplateDNA.Version = OAPPTemplateDNAResult.Result.Version; //Update the version from the JSON file.
+                    OAPPTemplateResult.Result.OAPPSystemHolonDNA.Version = OAPPTemplateDNAResult.Result.Version; //Update the version from the JSON file.
                     ShowOAPPTemplate(OAPPTemplateResult.Result);
                     //ShowOAPPTemplate(OAPPTemplateDNAResult.Result);
 
@@ -288,7 +300,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     Console.WriteLine("");
 
-                    switch (OAPPTemplateDNAResult.Result.OAPPTemplateType)
+                    //switch (OAPPTemplateDNAResult.Result.OAPPTemplateType)
+                    switch (OAPPTemplateDNAResult.Result.OAPPSystemHolonType) //TODO: Will this work?
                     {
                         case OAPPTemplateType.Console:
                         case OAPPTemplateType.WPF:
@@ -377,7 +390,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         ShowOAPPTemplate(publishResult.Result);
 
                         if (CLIEngine.GetConfirmation("Do you wish to install the OAPP Template now?"))
-                            await DownloadAndInstallOAPPTemplateAsync(publishResult.Result.OAPPTemplateDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
+                            await DownloadAndInstallOAPPTemplateAsync(publishResult.Result.OAPPSystemHolonDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
 
                         Console.WriteLine("");
                     }
@@ -385,8 +398,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         if (publishResult.Message.Contains("Please make sure you increment the version"))
                         {
-                            if (CLIEngine.GetConfirmation("Do you wish to open the OAPPTemplateDNA.json file now?"))
-                                Process.Start("explorer.exe", Path.Combine(OAPPTemplateDNAResult.Result.SourcePath, "OAPPTemplateDNA.json"));
+                            if (CLIEngine.GetConfirmation("Do you wish to open the OAPPSystemHolonDNA.json file now?"))
+                                Process.Start("explorer.exe", Path.Combine(OAPPTemplateDNAResult.Result.SourcePath, "OAPPSystemHolonDNA.json"));
                         }
                         else
                             CLIEngine.ShowErrorMessage($"An error occured publishing the OAPP Template. Reason: {publishResult.Message}");
@@ -395,10 +408,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"The OAPPTemplate could not be found for id {OAPPTemplateDNAResult.Result.Id} found in the OAPPTemplateDNA.json file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new OAPP Template.");
+                    CLIEngine.ShowErrorMessage($"The OAPPTemplate could not be found for id {OAPPTemplateDNAResult.Result.Id} found in the OAPPSystemHolonDNA.json file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new OAPP Template.");
             }
             else
-                CLIEngine.ShowErrorMessage("The OAPPTemplateDNA.json file could not be found! Please ensure it is in the folder you specified.");
+                CLIEngine.ShowErrorMessage("The OAPPSystemHolonDNA.json file could not be found! Please ensure it is in the folder you specified.");
         }
 
         public static async Task UnpublishOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
@@ -566,7 +579,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (oappPath == "exit")
                         return installResult;
 
-                    OASISResult<IOAPPTemplateDNA> oappTemplateDNAResult = await STAR.OASISAPI.OAPPTemplates.ReadOAPPTemplateDNAAsync(oappPath);
+                    OASISResult<IOAPPSystemHolonDNA> oappTemplateDNAResult = await STAR.OASISAPI.OAPPTemplates.ReadOAPPTemplateDNAAsync(oappPath);
 
                     if (oappTemplateDNAResult != null && oappTemplateDNAResult.Result != null && !oappTemplateDNAResult.IsError)
                     {
@@ -580,7 +593,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             installResult = await CheckIfInstalledAndInstallOAPPTemplateAsync(oappTemplateResult.Result, downloadPath, installPath, installMode, providerType);
                         }
                         else
-                            CLIEngine.ShowErrorMessage($"The OAPPTemplate could not be found for id {oappTemplateDNAResult.Result.Id} found in the OAPPTemplateDNA.json file. It could be corrupt or the id could be wrong, please check and try again, or create a new OAPP Template.");
+                            CLIEngine.ShowErrorMessage($"The OAPPTemplate could not be found for id {oappTemplateDNAResult.Result.Id} found in the OAPPSystemHolonDNA.json file. It could be corrupt or the id could be wrong, please check and try again, or create a new OAPP Template.");
                     }
                     else
                         CLIEngine.ShowErrorMessage($"The OAPP Template could not be found or is not valid! Please ensure it is in the folder you specified.");
@@ -635,8 +648,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             string downloadPath = "";
             string installPath = "";
 
-            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged += OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
-            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged += OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
+            //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged += OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
+            //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged += OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
 
             if (Path.IsPathRooted(STAR.STARDNA.DefaultOAPPTemplatesDownloadedPath))
                 downloadPath = STAR.STARDNA.DefaultOAPPTemplatesDownloadedPath;
@@ -674,7 +687,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 OASISResult<IOAPPTemplate> result = LoadOAPPTemplateForProvider(idOrName, "install", false, providerType, false);
 
                 if (result != null && result.Result != null && !result.IsError)
-                    installResult = STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, providerType);
+                    installResult = STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, false, providerType);
             }
             else
             {
@@ -687,7 +700,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (oappPath == "exit")
                         return installResult;
 
-                    installResult = STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplate(STAR.BeamedInAvatar.Id, oappPath, installPath, true, providerType);
+                    installResult = STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplate(STAR.BeamedInAvatar.Id, oappPath, installPath, true, null, false, providerType);
                 }
                 else
                 {
@@ -700,7 +713,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         OASISResult<IOAPPTemplate> result = LoadOAPPTemplateForProvider("", "install", false, providerType, false);
 
                         if (result != null && result.Result != null && !result.IsError)
-                            installResult = STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, providerType);
+                            installResult = STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, false, providerType);
                         else
                         {
                             installResult.Message = result.Message;
@@ -730,8 +743,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             else
                 CLIEngine.ShowErrorMessage($"Error installing OAPP Template. Reason: Unknown error occured!");
 
-            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged -= OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
-            STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged -= OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
+            //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateDownloadStatusChanged -= OAPPTemplates_OnOAPPTemplateDownloadStatusChanged;
+            //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateInstallStatusChanged -= OAPPTemplates_OnOAPPTemplateInstallStatusChanged;
 
             Console.WriteLine("");
             return installResult;
@@ -743,7 +756,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result.Id, result.Result.OAPPTemplateDNA.Version, providerType);
+                OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
 
                 if (uninstallResult != null)
                 {
@@ -768,7 +781,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                OASISResult<IInstalledOAPPTemplate> uninstallResult =  STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result.Id, result.Result.OAPPTemplateDNA.Version, providerType);
+                OASISResult<IInstalledOAPPTemplate> uninstallResult =  STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
 
                 if (uninstallResult != null)
                 {
@@ -879,7 +892,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         //    if (result != null && !result.IsError && result.Result != null)
         //    {
-        //        OASISResult<IInstalledOAPPTemplate> uninstallResult = STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplate(result.Result.Id, result.Result.OAPPTemplateDNA.Version, STAR.BeamedInAvatar.Id, providerType);
+        //        OASISResult<IInstalledOAPPTemplate> uninstallResult = STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplate(result.Result.Id, result.Result.OAPPSystemHolonDNA.Version, STAR.BeamedInAvatar.Id, providerType);
 
         //        if (uninstallResult != null)
         //        {
@@ -976,7 +989,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             if (!_init)
                                 Init();
 
-                            OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, template.OAPPTemplateDNA.Id, template.OAPPTemplateDNA.VersionSequence, template.InstalledPath, template.DownloadedPath, false, true, providerType);
+                            //OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, template.OAPPSystemHolonDNA.Id, template.OAPPSystemHolonDNA.VersionSequence, template.InstalledPath, template.DownloadedPath, false, true, providerType);
+                            OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, template, template.InstalledPath, template.DownloadedPath, false, true, providerType);
                             //OASISResult<IInstalledOAPPTemplate> installResult = await DownloadAndInstallOAPPTemplateAsync(result.Result.ElementAt(number - 1).Id.ToString(), InstallMode.DownloadAndReInstall, providerType);
 
                             if (installResult != null && !installResult.IsError && installResult.Result != null)
@@ -1174,7 +1188,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public static void ShowOAPPTemplate(IOAPPTemplate oappTemplate, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false)
         {
-            //ShowOAPPTemplate(oappTemplate.OAPPTemplateDNA, showHeader, showFooter, showNumbers, number, showDetailedInfo);
+            //ShowOAPPTemplate(oappTemplate.OAPPSystemHolonDNA, showHeader, showFooter, showNumbers, number, showDetailedInfo);
 
             if (showHeader)
                 CLIEngine.ShowDivider();
@@ -1182,33 +1196,34 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (showNumbers)
                 CLIEngine.ShowMessage(string.Concat("Number:                                     ", number));
 
-            CLIEngine.ShowMessage(string.Concat($"Id:                                         ", oappTemplate.OAPPTemplateDNA.Id != Guid.Empty ? oappTemplate.OAPPTemplateDNA.Id : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Name:                                       ", !string.IsNullOrEmpty(oappTemplate.OAPPTemplateDNA.Name) ? oappTemplate.OAPPTemplateDNA.Name : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Description:                                ", !string.IsNullOrEmpty(oappTemplate.OAPPTemplateDNA.Description) ? oappTemplate.OAPPTemplateDNA.Description : "None"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                         ", Enum.GetName(typeof(OAPPTemplateType), oappTemplate.OAPPTemplateDNA.OAPPTemplateType)));
-            CLIEngine.ShowMessage(string.Concat($"Created On:                                 ", oappTemplate.OAPPTemplateDNA.CreatedOn != DateTime.MinValue ? oappTemplate.OAPPTemplateDNA.CreatedOn.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Created By:                                 ", oappTemplate.OAPPTemplateDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(oappTemplate.OAPPTemplateDNA.CreatedByAvatarUsername, " (", oappTemplate.OAPPTemplateDNA.CreatedByAvatarId.ToString(), ")") : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Modified On:                                ", oappTemplate.OAPPTemplateDNA.ModifiedOn != DateTime.MinValue ? oappTemplate.OAPPTemplateDNA.CreatedOn.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Modified By:                                ", oappTemplate.OAPPTemplateDNA.ModifiedByAvatarId != Guid.Empty ? string.Concat(oappTemplate.OAPPTemplateDNA.ModifiedByAvatarUsername, " (", oappTemplate.OAPPTemplateDNA.ModifiedByAvatarId.ToString(), ")") : "None"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Path:                         ", !string.IsNullOrEmpty(oappTemplate.OAPPTemplateDNA.SourcePath) ? oappTemplate.OAPPTemplateDNA.SourcePath : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Published On:                               ", oappTemplate.OAPPTemplateDNA.PublishedOn != DateTime.MinValue ? oappTemplate.OAPPTemplateDNA.PublishedOn.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Published By:                               ", oappTemplate.OAPPTemplateDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(oappTemplate.OAPPTemplateDNA.PublishedByAvatarUsername, " (", oappTemplate.OAPPTemplateDNA.PublishedByAvatarId.ToString(), ")") : "None"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Published Path:               ", !string.IsNullOrEmpty(oappTemplate.OAPPTemplateDNA.PublishedPath) ? oappTemplate.OAPPTemplateDNA.PublishedPath : "None"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Filesize:                     ", oappTemplate.OAPPTemplateDNA.FileSize.ToString()));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Published On STARNET:         ", oappTemplate.OAPPTemplateDNA.PublishedOnSTARNET ? "True" : "False"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Published To Cloud:           ", oappTemplate.OAPPTemplateDNA.PublishedToCloud ? "True" : "False"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Published To OASIS Provider:  ", Enum.GetName(typeof(ProviderType), oappTemplate.OAPPTemplateDNA.PublishedProviderType)));
-            CLIEngine.ShowMessage(string.Concat($"Launch Target:                              ", oappTemplate.OAPPTemplateDNA.LaunchTarget));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Version:                      ", oappTemplate.OAPPTemplateDNA.Version));
-            CLIEngine.ShowMessage(string.Concat($"Version Sequence:                           ", oappTemplate.OAPPTemplateDNA.VersionSequence));
-            CLIEngine.ShowMessage(string.Concat($"Number Of Versions:                         ", oappTemplate.OAPPTemplateDNA.NumberOfVersions));
+            CLIEngine.ShowMessage(string.Concat($"Id:                                         ", oappTemplate.OAPPSystemHolonDNA.Id != Guid.Empty ? oappTemplate.OAPPSystemHolonDNA.Id : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Name:                                       ", !string.IsNullOrEmpty(oappTemplate.OAPPSystemHolonDNA.Name) ? oappTemplate.OAPPSystemHolonDNA.Name : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Description:                                ", !string.IsNullOrEmpty(oappTemplate.OAPPSystemHolonDNA.Description) ? oappTemplate.OAPPSystemHolonDNA.Description : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                         ", Enum.GetName(typeof(OAPPTemplateType), oappTemplate.OAPPSystemHolonDNA.OAPPTemplateType)));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                         ", Enum.GetName(typeof(OAPPTemplateType), oappTemplate.OAPPSystemHolonDNA.OAPPSystemHolonType)));
+            CLIEngine.ShowMessage(string.Concat($"Created On:                                 ", oappTemplate.OAPPSystemHolonDNA.CreatedOn != DateTime.MinValue ? oappTemplate.OAPPSystemHolonDNA.CreatedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Created By:                                 ", oappTemplate.OAPPSystemHolonDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(oappTemplate.OAPPSystemHolonDNA.CreatedByAvatarUsername, " (", oappTemplate.OAPPSystemHolonDNA.CreatedByAvatarId.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Modified On:                                ", oappTemplate.OAPPSystemHolonDNA.ModifiedOn != DateTime.MinValue ? oappTemplate.OAPPSystemHolonDNA.CreatedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Modified By:                                ", oappTemplate.OAPPSystemHolonDNA.ModifiedByAvatarId != Guid.Empty ? string.Concat(oappTemplate.OAPPSystemHolonDNA.ModifiedByAvatarUsername, " (", oappTemplate.OAPPSystemHolonDNA.ModifiedByAvatarId.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Path:                         ", !string.IsNullOrEmpty(oappTemplate.OAPPSystemHolonDNA.SourcePath) ? oappTemplate.OAPPSystemHolonDNA.SourcePath : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published On:                               ", oappTemplate.OAPPSystemHolonDNA.PublishedOn != DateTime.MinValue ? oappTemplate.OAPPSystemHolonDNA.PublishedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published By:                               ", oappTemplate.OAPPSystemHolonDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(oappTemplate.OAPPSystemHolonDNA.PublishedByAvatarUsername, " (", oappTemplate.OAPPSystemHolonDNA.PublishedByAvatarId.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Published Path:               ", !string.IsNullOrEmpty(oappTemplate.OAPPSystemHolonDNA.PublishedPath) ? oappTemplate.OAPPSystemHolonDNA.PublishedPath : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Filesize:                     ", oappTemplate.OAPPSystemHolonDNA.FileSize.ToString()));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Published On STARNET:         ", oappTemplate.OAPPSystemHolonDNA.PublishedOnSTARNET ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Published To Cloud:           ", oappTemplate.OAPPSystemHolonDNA.PublishedToCloud ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Published To OASIS Provider:  ", Enum.GetName(typeof(ProviderType), oappTemplate.OAPPSystemHolonDNA.PublishedProviderType)));
+            CLIEngine.ShowMessage(string.Concat($"Launch Target:                              ", oappTemplate.OAPPSystemHolonDNA.LaunchTarget));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Version:                      ", oappTemplate.OAPPSystemHolonDNA.Version));
+            CLIEngine.ShowMessage(string.Concat($"Version Sequence:                           ", oappTemplate.OAPPSystemHolonDNA.VersionSequence));
+            CLIEngine.ShowMessage(string.Concat($"Number Of Versions:                         ", oappTemplate.OAPPSystemHolonDNA.NumberOfVersions));
             //CLIEngine.ShowMessage(string.Concat($"OASIS Holon Version:                        ", oappTemplate.Version));
             //CLIEngine.ShowMessage(string.Concat($"OASIS Holon VersionId:                      ", oappTemplate.VersionId));
             //CLIEngine.ShowMessage(string.Concat($"OASIS Holon PreviousVersionId:              ", oappTemplate.PreviousVersionId));
-            CLIEngine.ShowMessage(string.Concat($"Downloads:                                  ", oappTemplate.OAPPTemplateDNA.Downloads));
-            CLIEngine.ShowMessage(string.Concat($"Installs:                                   ", oappTemplate.OAPPTemplateDNA.Installs));
-            CLIEngine.ShowMessage(string.Concat($"Total Downloads:                            ", oappTemplate.OAPPTemplateDNA.TotalDownloads));
-            CLIEngine.ShowMessage(string.Concat($"Total Installs:                             ", oappTemplate.OAPPTemplateDNA.TotalInstalls));
+            CLIEngine.ShowMessage(string.Concat($"Downloads:                                  ", oappTemplate.OAPPSystemHolonDNA.Downloads));
+            CLIEngine.ShowMessage(string.Concat($"Installs:                                   ", oappTemplate.OAPPSystemHolonDNA.Installs));
+            CLIEngine.ShowMessage(string.Concat($"Total Downloads:                            ", oappTemplate.OAPPSystemHolonDNA.TotalDownloads));
+            CLIEngine.ShowMessage(string.Concat($"Total Installs:                             ", oappTemplate.OAPPSystemHolonDNA.TotalInstalls));
             CLIEngine.ShowMessage(string.Concat($"Active:                                     ", oappTemplate.MetaData != null && oappTemplate.MetaData.ContainsKey("Active") && oappTemplate.MetaData["Active"] != null && oappTemplate.MetaData["Active"].ToString() == "1" ? "True" : "False"));
 
             if (showDetailedInfo)
@@ -1403,7 +1418,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowWorkingMessage("Loading OAPP Template...");
                     result = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(id, STAR.BeamedInAvatar.AvatarId, 0, providerType);
 
-                    if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.OAPPTemplateDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
+                    if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.OAPPSystemHolonDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
                     {
                         CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this OAPP Template. It was created by another avatar.");
                         result.Result = null;
@@ -1443,18 +1458,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         CLIEngine.ShowErrorMessage($"An error occured calling STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync. Reason: {searchResults.Message}");
                 }
 
-                if (result.Result != null && result.Result.OAPPTemplateDNA != null)
+                if (result.Result != null && result.Result.OAPPSystemHolonDNA != null)
                 {
                     ShowOAPPTemplate(result.Result);
 
-                    if (result.Result.OAPPTemplateDNA.NumberOfVersions > 1)
+                    if (result.Result.OAPPSystemHolonDNA.NumberOfVersions > 1)
                     {
-                        if ((operationName == "view" && CLIEngine.GetConfirmation($"{result.Result.OAPPTemplateDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
-                            (!CLIEngine.GetConfirmation($"{result.Result.OAPPTemplateDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.OAPPTemplateDNA.Version})?")))
+                        if ((operationName == "view" && CLIEngine.GetConfirmation($"{result.Result.OAPPSystemHolonDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
+                            (!CLIEngine.GetConfirmation($"{result.Result.OAPPSystemHolonDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.OAPPSystemHolonDNA.Version})?")))
                         {
                             Console.WriteLine("");
                             CLIEngine.ShowWorkingMessage("Loading OAPP Template Versions...");
-                            OASISResult<IEnumerable<IOAPPTemplate>> versionsResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateVersionsAsync(result.Result.OAPPTemplateDNA.Id, providerType);
+                            OASISResult<IEnumerable<IOAPPTemplate>> versionsResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateVersionsAsync(result.Result.OAPPSystemHolonDNA.Id, providerType);
                             ListOAPPTemplates(versionsResult);
 
                             if (operationName != "view" && versionsResult != null && versionsResult.Result != null && !versionsResult.IsError && versionsResult.Result.Count() > 0)
@@ -1498,20 +1513,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             if (result != null && result.Result != null)
                             {
-                                OASISResult<bool> oappInstalledResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, result.Result.OAPPTemplateDNA.Id, result.Result.OAPPTemplateDNA.Version, providerType);
+                                OASISResult<bool> oappInstalledResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
 
                                 if (oappInstalledResult != null && !oappInstalledResult.IsError)
                                 {
                                     if (oappInstalledResult.Result)
                                     {
                                         Console.WriteLine("");
-                                        CLIEngine.ShowWarningMessage($"You have already installed this version ({result.Result.OAPPTemplateDNA.Version}).");
+                                        CLIEngine.ShowWarningMessage($"You have already installed this version ({result.Result.OAPPSystemHolonDNA.Version}).");
 
                                         if (CLIEngine.GetConfirmation("Would you like to uninstall and re-install now?"))
                                         {
                                             Console.WriteLine("");
                                             CLIEngine.ShowWorkingMessage("Uninstalling OAPP Template...");
-                                            OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result.OAPPTemplateDNA.Id, result.Result.OAPPTemplateDNA.Version, providerType);
+                                            OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
 
                                             if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
                                             {
@@ -1609,7 +1624,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowWorkingMessage("Loading OAPP Template...");
                     result = STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplate(id, STAR.BeamedInAvatar.Id, 0, providerType);
 
-                    if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.OAPPTemplateDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
+                    if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.OAPPSystemHolonDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
                     {
                         CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this OAPP Template. It was created by another avatar.");
                         result.Result = null;
@@ -1649,18 +1664,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         CLIEngine.ShowErrorMessage($"An error occured calling STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync. Reason: {searchResults.Message}");
                 }
 
-                if (result.Result != null && result.Result.OAPPTemplateDNA != null)
+                if (result.Result != null && result.Result.OAPPSystemHolonDNA != null)
                 {
                     ShowOAPPTemplate(result.Result);
 
-                    if (result.Result.OAPPTemplateDNA.NumberOfVersions > 1)
+                    if (result.Result.OAPPSystemHolonDNA.NumberOfVersions > 1)
                     {
-                        if ((operationName == "view" && CLIEngine.GetConfirmation($"{result.Result.OAPPTemplateDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
-                            (!CLIEngine.GetConfirmation($"{result.Result.OAPPTemplateDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.OAPPTemplateDNA.Version})?")))
+                        if ((operationName == "view" && CLIEngine.GetConfirmation($"{result.Result.OAPPSystemHolonDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
+                            (!CLIEngine.GetConfirmation($"{result.Result.OAPPSystemHolonDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.OAPPSystemHolonDNA.Version})?")))
                         {
                             Console.WriteLine("");
                             CLIEngine.ShowWorkingMessage("Loading OAPP Template Versions...");
-                            OASISResult<IEnumerable<IOAPPTemplate>> versionsResult = STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateVersions(result.Result.OAPPTemplateDNA.Id, providerType);
+                            OASISResult<IEnumerable<IOAPPTemplate>> versionsResult = STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateVersions(result.Result.OAPPSystemHolonDNA.Id, providerType);
                             ListOAPPTemplates(versionsResult);
 
                             if (operationName != "view" && versionsResult != null && versionsResult.Result != null && !versionsResult.IsError && versionsResult.Result.Count() > 0)
@@ -1704,20 +1719,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             if (result != null && result.Result != null)
                             {
-                                OASISResult<bool> oappInstalledResult = STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalled(STAR.BeamedInAvatar.Id, result.Result.OAPPTemplateDNA.Id, result.Result.OAPPTemplateDNA.Version, providerType);
+                                OASISResult<bool> oappInstalledResult = STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalled(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
 
                                 if (oappInstalledResult != null && !oappInstalledResult.IsError)
                                 {
                                     if (oappInstalledResult.Result)
                                     {
                                         Console.WriteLine("");
-                                        CLIEngine.ShowWarningMessage($"You have already installed this version ({result.Result.OAPPTemplateDNA.Version}).");
+                                        CLIEngine.ShowWarningMessage($"You have already installed this version ({result.Result.OAPPSystemHolonDNA.Version}).");
 
                                         if (CLIEngine.GetConfirmation("Would you like to uninstall and re-install now?"))
                                         {
                                             Console.WriteLine("");
                                             CLIEngine.ShowWorkingMessage("Uninstalling OAPP Template...");
-                                            OASISResult<IInstalledOAPPTemplate> uninstallResult = STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result.OAPPTemplateDNA.Id, result.Result.OAPPTemplateDNA.Version, providerType);
+                                            OASISResult<IInstalledOAPPTemplate> uninstallResult = STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
 
                                             if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
                                             {
@@ -1786,8 +1801,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (installMode != InstallMode.DownloadOnly)
                 {
-                    //OASISResult<bool> installedResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, id, OAPPTemplate.OAPPTemplateDNA.Version, providerType);
-                    OASISResult<bool> installedResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, OAPPTemplate.OAPPTemplateDNA.Id, OAPPTemplate.OAPPTemplateDNA.Version, providerType);
+                    //OASISResult<bool> installedResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, id, OAPPTemplate.OAPPSystemHolonDNA.Version, providerType);
+                    OASISResult<bool> installedResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, OAPPTemplate.OAPPSystemHolonDNA.Id, OAPPTemplate.OAPPSystemHolonDNA.Version, providerType);
 
                     if (installedResult != null && !installedResult.IsError)
                     {
@@ -1798,7 +1813,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             if (CLIEngine.GetConfirmation("Do you wish to uninstall the OAPP Template now? Press 'Y' for Yes or 'N' for No."))
                             {
-                                OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, OAPPTemplate.OAPPTemplateDNA.Id, OAPPTemplate.OAPPTemplateDNA.Version, providerType);
+                                OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, OAPPTemplate.OAPPSystemHolonDNA.Id, OAPPTemplate.OAPPSystemHolonDNA.Version, providerType);
 
                                 if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
                                 {
@@ -1806,7 +1821,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                     installMode = InstallMode.DownloadAndReInstall;
                                 }
                                 else
-                                    OASISErrorHandling.HandleError(ref installResult, $"Error occured uninstalling the OAPP Template with id {OAPPTemplate.OAPPTemplateDNA.Id} calling STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync. Reason: {uninstallResult.Message}");
+                                    OASISErrorHandling.HandleError(ref installResult, $"Error occured uninstalling the OAPP Template with id {OAPPTemplate.OAPPSystemHolonDNA.Id} calling STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync. Reason: {uninstallResult.Message}");
                             }
                             else
                             {
@@ -1841,7 +1856,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (downloadResult != null && downloadResult.Result != null && !downloadResult.IsError)
                 {
-                    result.Result = new InstalledOAPPTemplate() { OAPPTemplateDNA = downloadResult.Result.OAPPTemplateDNA };
+                    result.Result = new InstalledOAPPTemplate() { OAPPSystemHolonDNA = downloadResult.Result.OAPPSystemHolonDNA };
                     //result.Result.DownloadedOAPPTemplate = downloadResult.Result;
                     result.Result.DownloadedOn = downloadResult.Result.DownloadedOn;
                     result.Result.DownloadedBy = downloadResult.Result.DownloadedBy;
@@ -1858,6 +1873,65 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
+        private static void OAPPTemplates_OnOAPPSystemHolonPublishStatusChanged(object sender, OAPPSystemHolonPublishStatusEventArgs e)
+        {
+            switch (e.Status)
+            {
+                case OAPPSystemHolonPublishStatus.Uploading:
+                    CLIEngine.ShowMessage("Uploading...");
+                    Console.WriteLine("");
+                    break;
+
+                case OAPPSystemHolonPublishStatus.Published:
+                    CLIEngine.ShowSuccessMessage("OAPP Template Published Successfully");
+                    break;
+
+                case OAPPSystemHolonPublishStatus.Error:
+                    CLIEngine.ShowErrorMessage(e.ErrorMessage);
+                    break;
+
+                default:
+                    CLIEngine.ShowWorkingMessage($"{Enum.GetName(typeof(OAPPTemplatePublishStatus), e.Status)}...");
+                    break;
+            }
+        }
+
+        private static void OAPPTemplates_OnOAPPSystemHolonUploadStatusChanged(object sender, OAPPSystemHolonUploadProgressEventArgs e)
+        {
+            CLIEngine.ShowProgressBar((double)e.Progress / (double)100);
+        }
+
+        private static void OAPPTemplates_OnOAPPSystemHolonInstallStatusChanged(object sender, OAPPSystemHolonInstallStatusEventArgs e)
+        {
+            switch (e.Status)
+            {
+                case OAPPSystemHolonInstallStatus.Downloading:
+                    //CLIEngine.BeginWorkingMessage("Downloading...");
+                    //Console.WriteLine("");
+                    CLIEngine.ShowMessage("Downloading...");
+                    Console.WriteLine("");
+                    break;
+
+                case OAPPSystemHolonInstallStatus.Installed:
+                    CLIEngine.ShowSuccessMessage("OAPP Template Installed Successfully");
+                    break;
+
+                case OAPPSystemHolonInstallStatus.Error:
+                    CLIEngine.ShowErrorMessage(e.ErrorMessage);
+                    break;
+
+                default:
+                    CLIEngine.ShowWorkingMessage($"{Enum.GetName(typeof(OAPPInstallStatus), e.Status)}...");
+                    break;
+            }
+        }
+
+        private static void OAPPTemplates_OnOAPPSystemHolonDownloadStatusChanged(object sender, OAPPSystemHolonDownloadProgressEventArgs e)
+        {
+            CLIEngine.ShowProgressBar((double)e.Progress / (double)100);
+        }
+
+        /*
         private static void OAPPTemplates_OnOAPPTemplatePublishStatusChanged(object sender, OAPPTemplatePublishStatusEventArgs e)
         {
             switch (e.Status)
@@ -1919,6 +1993,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             //CLIEngine.UpdateWorkingMessage($"Downloading... {e.Progress}%");
             CLIEngine.ShowProgressBar((double)e.Progress / (double)100);
-        }
+        }*/
     }
 }

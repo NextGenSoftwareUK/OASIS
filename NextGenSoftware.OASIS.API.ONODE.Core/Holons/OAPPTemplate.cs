@@ -17,32 +17,32 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
             this.HolonType = HolonType.OAPPTemplate; 
         }
 
-        public IOAPPTemplateDNA OAPPTemplateDNA
-        {
-            get
-            {
-                return (IOAPPTemplateDNA)base.OAPPSystemHolonDNA;
-            }
-            set
-            {
-               base.OAPPSystemHolonDNA = value;
-            }
-        }
+        //public IOAPPTemplateDNA OAPPTemplateDNA
+        //{
+        //    get
+        //    {
+        //        return (IOAPPTemplateDNA)base.OAPPSystemHolonDNA;
+        //    }
+        //    set
+        //    {
+        //       base.OAPPSystemHolonDNA = value;
+        //    }
+        //}
 
-        //byte[] PublishedOAPPSystemHolon { get; set; }
+        ////byte[] PublishedOAPPSystemHolon { get; set; }
 
-        [CustomOASISProperty()]
-        public byte[] PublishedOAPPTemplate
-        {
-            get
-            {
-                return PublishedOAPPSystemHolon;
-            }
-            set
-            {
-                PublishedOAPPSystemHolon = value;
-            }
-        }
+        //[CustomOASISProperty()]
+        //public byte[] PublishedOAPPTemplate
+        //{
+        //    get
+        //    {
+        //        return PublishedOAPPSystemHolon;
+        //    }
+        //    set
+        //    {
+        //        PublishedOAPPSystemHolon = value;
+        //    }
+        //}
 
             //[CustomOASISProperty]
             //public OAPPTemplateType OAPPTemplateType { get; set; }
