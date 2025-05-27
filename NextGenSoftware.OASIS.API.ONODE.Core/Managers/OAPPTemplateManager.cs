@@ -9,7 +9,6 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONode.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 
@@ -28,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             "OAPPTemplateType", 
             "oapptemplate", 
             "oasis_oapptemplates", 
-            "OAPPTemplateDNA.json") { Init(); }
+            "OAPPTemplateDNA.json") { }
 
         public OAPPTemplateManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA,
             HolonType.OAPPTemplate, 
@@ -39,60 +38,60 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             "OAPPTemplateType", 
             "oapptemplate", 
             "oasis_oapptemplates", 
-            "OAPPTemplateDNA.json") { Init(); }
+            "OAPPTemplateDNA.json") { }
 
-        public delegate void OAPPTemplatePublishStatusChanged(object sender, OAPPTemplatePublishStatusEventArgs e);
-        public delegate void OAPPTemplateInstallStatusChanged(object sender, OAPPTemplateInstallStatusEventArgs e);
-        public delegate void OAPPTemplateUploadStatusChanged(object sender, OAPPTemplateUploadProgressEventArgs e);
-        public delegate void OAPPTemplateDownloadStatusChanged(object sender, OAPPTemplateDownloadProgressEventArgs e);
+        //public delegate void OAPPTemplatePublishStatusChanged(object sender, OAPPTemplatePublishStatusEventArgs e);
+        //public delegate void OAPPTemplateInstallStatusChanged(object sender, OAPPTemplateInstallStatusEventArgs e);
+        //public delegate void OAPPTemplateUploadStatusChanged(object sender, OAPPTemplateUploadProgressEventArgs e);
+        //public delegate void OAPPTemplateDownloadStatusChanged(object sender, OAPPTemplateDownloadProgressEventArgs e);
 
-        /// <summary>
-        /// Fired when there is a change in the OAPP Template publish status.
-        /// </summary>
-        public event OAPPTemplatePublishStatusChanged OnOAPPTemplatePublishStatusChanged;
+        ///// <summary>
+        ///// Fired when there is a change in the OAPP Template publish status.
+        ///// </summary>
+        //public event OAPPTemplatePublishStatusChanged OnOAPPTemplatePublishStatusChanged;
 
-        /// <summary>
-        /// Fired when there is a change to the OAPP Template Install status.
-        /// </summary>
-        public event OAPPTemplateInstallStatusChanged OnOAPPTemplateInstallStatusChanged;
+        ///// <summary>
+        ///// Fired when there is a change to the OAPP Template Install status.
+        ///// </summary>
+        //public event OAPPTemplateInstallStatusChanged OnOAPPTemplateInstallStatusChanged;
 
-        /// <summary>
-        /// Fired when there is a change in the OAPP Template upload status.
-        /// </summary>
-        public event OAPPTemplateUploadStatusChanged OnOAPPTemplateUploadStatusChanged;
+        ///// <summary>
+        ///// Fired when there is a change in the OAPP Template upload status.
+        ///// </summary>
+        //public event OAPPTemplateUploadStatusChanged OnOAPPTemplateUploadStatusChanged;
 
-        /// <summary>
-        /// Fired when there is a change in the OAPP Template download status.
-        /// </summary>
-        public event OAPPTemplateDownloadStatusChanged OnOAPPTemplateDownloadStatusChanged;
+        ///// <summary>
+        ///// Fired when there is a change in the OAPP Template download status.
+        ///// </summary>
+        //public event OAPPTemplateDownloadStatusChanged OnOAPPTemplateDownloadStatusChanged;
 
-        private void Init()
-        {
-            base.OnOAPPSystemHolonDownloadStatusChanged += OAPPTemplateManager_OnOAPPSystemHolonDownloadStatusChanged;
-            base.OnOAPPSystemHolonInstallStatusChanged += OAPPTemplateManager_OnOAPPSystemHolonInstallStatusChanged;
-            base.OnOAPPSystemHolonUploadStatusChanged += OAPPTemplateManager_OnOAPPSystemHolonUploadStatusChanged;
-            base.OnOAPPSystemHolonPublishStatusChanged += OAPPTemplateManager_OnOAPPSystemHolonPublishStatusChanged;
-        }
+        //private void Init()
+        //{
+        //    base.OnOAPPSystemHolonDownloadStatusChanged += OAPPTemplateManager_OnOAPPSystemHolonDownloadStatusChanged;
+        //    base.OnOAPPSystemHolonInstallStatusChanged += OAPPTemplateManager_OnOAPPSystemHolonInstallStatusChanged;
+        //    base.OnOAPPSystemHolonUploadStatusChanged += OAPPTemplateManager_OnOAPPSystemHolonUploadStatusChanged;
+        //    base.OnOAPPSystemHolonPublishStatusChanged += OAPPTemplateManager_OnOAPPSystemHolonPublishStatusChanged;
+        //}
 
-        private void OAPPTemplateManager_OnOAPPSystemHolonUploadStatusChanged(object sender, OAPPSystemHolonUploadProgressEventArgs e)
-        {
-            OnOAPPTemplateUploadStatusChanged?.Invoke(sender, new OAPPTemplateUploadProgressEventArgs() { OAPPTemplateDNA = (IOAPPTemplateDNA)e.OAPPSystemHolonDNA, Progress = e.Progress, Status = (Enums.OAPPTemplateUploadStatus)e.Status, ErrorMessage = e.ErrorMessage });
-        }
+        //private void OAPPTemplateManager_OnOAPPSystemHolonUploadStatusChanged(object sender, OAPPSystemHolonUploadProgressEventArgs e)
+        //{
+        //    OnOAPPTemplateUploadStatusChanged?.Invoke(sender, new OAPPTemplateUploadProgressEventArgs() { OAPPTemplateDNA = e.OAPPSystemHolonDNA, Progress = e.Progress, Status = (Enums.OAPPTemplateUploadStatus)e.Status, ErrorMessage = e.ErrorMessage });
+        //}
 
-        private void OAPPTemplateManager_OnOAPPSystemHolonInstallStatusChanged(object sender, OAPPSystemHolonInstallStatusEventArgs e)
-        {
-            OnOAPPTemplateInstallStatusChanged?.Invoke(sender, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = (IOAPPTemplateDNA)e.OAPPSystemHolonDNA, Status = (Enums.OAPPTemplateInstallStatus)e.Status, ErrorMessage = e.ErrorMessage });
-        }
+        //private void OAPPTemplateManager_OnOAPPSystemHolonInstallStatusChanged(object sender, OAPPSystemHolonInstallStatusEventArgs e)
+        //{
+        //    OnOAPPTemplateInstallStatusChanged?.Invoke(sender, new OAPPTemplateInstallStatusEventArgs() { OAPPTemplateDNA = e.OAPPSystemHolonDNA, Status = (Enums.OAPPTemplateInstallStatus)e.Status, ErrorMessage = e.ErrorMessage });
+        //}
 
-        private void OAPPTemplateManager_OnOAPPSystemHolonDownloadStatusChanged(object sender, OAPPSystemHolonDownloadProgressEventArgs e)
-        {
-            OnOAPPTemplateDownloadStatusChanged?.Invoke(sender, new OAPPTemplateDownloadProgressEventArgs() { OAPPTemplateDNA = (IOAPPTemplateDNA)e.OAPPSystemHolonDNA, Progress = e.Progress, Status = (Enums.OAPPTemplateDownloadStatus)e.Status, ErrorMessage = e.ErrorMessage });
-        }
+        //private void OAPPTemplateManager_OnOAPPSystemHolonDownloadStatusChanged(object sender, OAPPSystemHolonDownloadProgressEventArgs e)
+        //{
+        //    OnOAPPTemplateDownloadStatusChanged?.Invoke(sender, new OAPPTemplateDownloadProgressEventArgs() { OAPPTemplateDNA = e.OAPPSystemHolonDNA, Progress = e.Progress, Status = (Enums.OAPPTemplateDownloadStatus)e.Status, ErrorMessage = e.ErrorMessage });
+        //}
 
-        private void OAPPTemplateManager_OnOAPPSystemHolonPublishStatusChanged(object sender, OAPPSystemHolonPublishStatusEventArgs e)
-        {
-            OnOAPPTemplatePublishStatusChanged?.Invoke(sender, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = (IOAPPTemplateDNA)e.OAPPSystemHolonDNA, Status = (Enums.OAPPTemplatePublishStatus)e.Status, ErrorMessage = e.ErrorMessage });
-        }
+        //private void OAPPTemplateManager_OnOAPPSystemHolonPublishStatusChanged(object sender, OAPPSystemHolonPublishStatusEventArgs e)
+        //{
+        //    OnOAPPTemplatePublishStatusChanged?.Invoke(sender, new OAPPTemplatePublishStatusEventArgs() { OAPPTemplateDNA = e.OAPPSystemHolonDNA, Status = (Enums.OAPPTemplatePublishStatus)e.Status, ErrorMessage = e.ErrorMessage });
+        //}
 
         public async Task<OASISResult<IOAPPTemplate>> CreateOAPPTemplateAsync(string name, string description, OAPPTemplateType OAPPTemplateType, Guid avatarId, string fullPathToOAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
@@ -196,12 +195,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return ProcessResult(base.LoadVersion(OAPPTemplateId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> EditOAPPTemplateAsync(Guid OAPPTemplateId, IOAPPTemplateDNA newOAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> EditOAPPTemplateAsync(Guid OAPPTemplateId, IOAPPSystemHolonDNA newOAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.EditAsync(OAPPTemplateId, newOAPPTemplateDNA, avatarId, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> EditOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, IOAPPTemplateDNA newOAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> EditOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, IOAPPSystemHolonDNA newOAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.EditAsync(avatarId, (OAPPTemplate)OAPPTemplate, newOAPPTemplateDNA, providerType));
         }
@@ -236,12 +235,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return ProcessResult(base.Unpublish(avatarId, OAPPTemplateId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA    , ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(Guid avatarId, IOAPPSystemHolonDNA OAPPTemplateDNA    , ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.UnpublishAsync(avatarId, OAPPTemplateDNA, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(Guid avatarId, IOAPPSystemHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Unpublish(avatarId, OAPPTemplateDNA, providerType));
         }
@@ -256,12 +255,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return ProcessResult(base.Republish(avatarId, (OAPPTemplate)OAPPTemplate, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(Guid avatarId, IOAPPSystemHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.RepublishAsync(avatarId, OAPPTemplateDNA, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(Guid avatarId, IOAPPSystemHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Republish(avatarId, OAPPTemplateDNA, providerType));
         }
@@ -296,12 +295,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return ProcessResult(base.Deactivate(avatarId, OAPPTemplateId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(Guid avatarId, IOAPPSystemHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.DeactivateAsync(avatarId, OAPPTemplateDNA, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(Guid avatarId, IOAPPSystemHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Deactivate(avatarId, OAPPTemplateDNA, providerType));
         }
@@ -316,12 +315,12 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return ProcessResult(base.Activate((OAPPTemplate)OAPPTemplate, avatarId, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(Guid avatarId, IOAPPSystemHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.ActivateAsync(OAPPTemplateDNA, avatarId, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(Guid avatarId, IOAPPTemplateDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(Guid avatarId, IOAPPSystemHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Activate(avatarId, OAPPTemplateDNA, providerType));
         }
@@ -351,10 +350,21 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return ProcessResult(await base.DownloadAndInstallAsync(avatarId, (OAPPTemplate)OAPPTemplate, fullDownloadPath, fullDownloadPath, createOAPPTemplateDirectory, reInstall, providerType));
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> DownloadAndInstallOAPPTemplate(Guid avatarId, IOAPPTemplate OAPPTemplate, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledOAPPTemplate> DownloadAndInstallOAPPTemplate(Guid avatarId, IOAPPTemplate OAPPTemplate, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.DownloadAndInstall(avatarId, (OAPPTemplate)OAPPTemplate, fullDownloadPath, fullDownloadPath, createOAPPTemplateDirectory, reInstall, providerType));
         }
+
+        public async Task<OASISResult<IInstalledOAPPTemplate>> DownloadAndInstallAsyncOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, int version, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, OAPPTemplateId, version, fullInstallPath, fullDownloadPath, createOAPPTemplateDirectory, reInstall, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledOAPPTemplate>> DownloadAndInstallAsyncOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, int version, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.DownloadAndInstall(avatarId, OAPPTemplateId, version, fullInstallPath, fullDownloadPath, createOAPPTemplateDirectory, reInstall, providerType));
+        }
+
 
         public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, string fullPathToPublishedOAPPTemplateFile, string fullInstallPath, bool createOAPPTemplateDirectory = true, IDownloadedOAPPTemplate downloadedOAPPTemplate = null, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
@@ -366,15 +376,22 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return ProcessResult(base.Install(avatarId, fullPathToPublishedOAPPTemplateFile, fullInstallPath, createOAPPTemplateDirectory, downloadedOAPPTemplate, reInstall, providerType));
         }
 
-        public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, int version, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(await base.InstallAsync(avatarId, OAPPTemplateId, version, fullInstallPath, fullDownloadPath, createOAPPTemplateDirectory, reInstall, providerType));
-        }
+       
 
-        public OASISResult<IInstalledOAPPTemplate> InstallOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, int version, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(base.Install(avatarId, OAPPTemplateId, version, fullInstallPath, fullDownloadPath, createOAPPTemplateDirectory, reInstall, providerType));
-        }
+        //public OASISResult<IInstalledOAPPTemplate> DownloadAndInstallAsyncOAPPTemplate(Guid avatarId, IOAPPTemplate OAPPTemplate, int version, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(base.DownloadAndInstall(avatarId, OAPPTemplate, version, fullInstallPath, fullDownloadPath, createOAPPTemplateDirectory, reInstall, providerType));
+        //}
+
+        //public async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(Guid avatarId, IOAPPTemplate OAPPTemplate, int version, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(await base.InstallAsync(avatarId, OAPPTemplate, version, fullInstallPath, fullDownloadPath, createOAPPTemplateDirectory, reInstall, providerType));
+        //}
+
+        //public OASISResult<IInstalledOAPPTemplate> InstallOAPPTemplate(Guid avatarId, Guid OAPPTemplateId, int version, string fullInstallPath, string fullDownloadPath = "", bool createOAPPTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(base.Install(avatarId, OAPPTemplateId, version, fullInstallPath, fullDownloadPath, createOAPPTemplateDirectory, reInstall, providerType));
+        //}
 
         public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(IInstalledOAPPTemplate installedOAPPTemplate, Guid avatarId, string errorMessage, ProviderType providerType)
         {
@@ -611,22 +628,32 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return ProcessResult(base.OpenOAPPSystemHolonFolder(avatarId, OAPPTemplateId, version, providerType));
         }
 
-        public async Task<OASISResult<bool>> WriteOAPPTemplateDNAAsync(IOAPPTemplateDNA OAPPTemplateDNA, string fullPathToOAPPTemplate)
+        //public async Task<OASISResult<bool>> WriteOAPPTemplateDNAAsync(IOAPPSystemHolonDNA OAPPTemplateDNA, string fullPathToOAPPTemplate)
+        //{
+        //    return await base.WriteOAPPSystemHolonDNAAsync(OAPPTemplateDNA, fullPathToOAPPTemplate);
+        //}
+
+        //public OASISResult<bool> WriteOAPPTemplateDNA(IOAPPSystemHolonDNA OAPPTemplateDNA, string fullPathToOAPPTemplate)
+        //{
+        //    return base.WriteOAPPSystemHolonDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
+        //}
+
+        public async Task<OASISResult<bool>> WriteOAPPTemplateDNAAsync(IOAPPSystemHolonDNA OAPPTemplateDNA, string fullPathToOAPPTemplate)
         {
             return await base.WriteOAPPSystemHolonDNAAsync(OAPPTemplateDNA, fullPathToOAPPTemplate);
         }
 
-        public OASISResult<bool> WriteOAPPTemplateDNA(IOAPPTemplateDNA OAPPTemplateDNA, string fullPathToOAPPTemplate)
+        public OASISResult<bool> WriteOAPPTemplateDNA(IOAPPSystemHolonDNA OAPPTemplateDNA, string fullPathToOAPPTemplate)
         {
             return base.WriteOAPPSystemHolonDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
         }
 
-        public async Task<OASISResult<IOAPPTemplateDNA>> ReadOAPPTemplateDNAAsync(string fullPathToOAPPTemplate)
+        public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadOAPPTemplateDNAAsync(string fullPathToOAPPTemplate)
         {
             return ProcessResult(await base.ReadOAPPSystemHolonDNAAsync(fullPathToOAPPTemplate));
         }
 
-        public OASISResult<IOAPPTemplateDNA> ReadOAPPTemplateDNA(string fullPathToOAPPTemplate)
+        public OASISResult<IOAPPSystemHolonDNA> ReadOAPPTemplateDNA(string fullPathToOAPPTemplate)
         {
             return ProcessResult(base.ReadOAPPSystemHolonDNA(fullPathToOAPPTemplate));
         }
@@ -692,10 +719,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        private OASISResult<IOAPPTemplateDNA> ProcessResult(OASISResult<IOAPPSystemHolonDNA> operationResult)
+        private OASISResult<IOAPPSystemHolonDNA> ProcessResult(OASISResult<IOAPPSystemHolonDNA> operationResult)
         {
-            OASISResult<IOAPPTemplateDNA> result = new OASISResult<IOAPPTemplateDNA>();
-            result.Result = (IOAPPTemplateDNA)operationResult.Result;
+            OASISResult<IOAPPSystemHolonDNA> result = new OASISResult<IOAPPSystemHolonDNA>();
+            result.Result = (IOAPPSystemHolonDNA)operationResult.Result;
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
             return result;
         }

@@ -107,7 +107,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                         return;
 
                                     CLIEngine.ShowWorkingMessage("Searching STARNET...");
-                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(OAPPTemplateName, STAR.BeamedInAvatar.Id, false, false, 0, providerType), OAPPTemplateName);
+                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.OASISAPI.OAPPTemplates.SearchOAPPTemplatesAsync(STAR.BeamedInAvatar.Id, OAPPTemplateName, false, false, 0, providerType), OAPPTemplateName);
                                 }
                                 else
                                 {
@@ -1276,7 +1276,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                OASISResult<IOAPPTemplate> unpublishResult = await STAR.OASISAPI.OAPPTemplates.RepublishOAPPTemplateAsync(result.Result, STAR.BeamedInAvatar.Id, providerType);
+                OASISResult<IOAPPTemplate> unpublishResult = await STAR.OASISAPI.OAPPTemplates.RepublishOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, providerType);
 
                 if (unpublishResult != null && !unpublishResult.IsError && unpublishResult.Result != null)
                 {
@@ -1294,7 +1294,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                OASISResult<IOAPPTemplate> unpublishResult = await STAR.OASISAPI.OAPPTemplates.UnpublishOAPPTemplateAsync(result.Result, STAR.BeamedInAvatar.Id, providerType);
+                OASISResult<IOAPPTemplate> unpublishResult = await STAR.OASISAPI.OAPPTemplates.UnpublishOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, providerType);
 
                 if (unpublishResult != null && !unpublishResult.IsError && unpublishResult.Result != null)
                 {
@@ -1312,7 +1312,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                OASISResult<IOAPPTemplate> unpublishResult = await STAR.OASISAPI.OAPPTemplates.RepublishOAPPTemplateAsync(result.Result, STAR.BeamedInAvatar.Id, providerType);
+                OASISResult<IOAPPTemplate> unpublishResult = await STAR.OASISAPI.OAPPTemplates.RepublishOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result, providerType);
 
                 if (unpublishResult != null && !unpublishResult.IsError && unpublishResult.Result != null)
                 {
@@ -1357,7 +1357,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         //if (template != null && template.MetaData != null && template.MetaData.ContainsKey("OAPPTemplateId") && template.MetaData.ContainsKey("OAPPTemplateId") != null && Guid.TryParse(template.MetaData.ContainsKey("OAPPTemplateId").ToString(), out id))
                         if (template != null)
                         {
-                            OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, template.OAPPTemplateDNA.Id, template.OAPPTemplateDNA.VersionSequence, template.InstalledPath, template.DownloadedPath, true, true, providerType);
+                            OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, template, template.InstalledPath, template.DownloadedPath, true, true, providerType);
                             //OASISResult<IInstalledOAPPTemplate> installResult = await DownloadAndInstallOAPPTemplateAsync(result.Result.ElementAt(number - 1).Id.ToString(), InstallMode.DownloadAndReInstall, providerType);
 
                             if (installResult != null && !installResult.IsError && installResult.Result != null)
@@ -1413,7 +1413,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (template != null)
                         {
-                            OASISResult<IOAPPTemplate> republishResult = await STAR.OASISAPI.OAPPTemplates.RepublishOAPPTemplateAsync(template, STAR.BeamedInAvatar.Id, providerType);
+                            OASISResult<IOAPPTemplate> republishResult = await STAR.OASISAPI.OAPPTemplates.RepublishOAPPTemplateAsync(STAR.BeamedInAvatar.Id, template, providerType);
 
                             if (republishResult != null && !republishResult.IsError && republishResult.Result != null)
                             {
@@ -1466,7 +1466,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (template != null)
                         {
-                            OASISResult<IOAPPTemplate> activateResult = await STAR.OASISAPI.OAPPTemplates.ActivateOAPPTemplateAsync(template, STAR.BeamedInAvatar.Id, providerType);
+                            OASISResult<IOAPPTemplate> activateResult = await STAR.OASISAPI.OAPPTemplates.ActivateOAPPTemplateAsync(STAR.BeamedInAvatar.Id, template, providerType);
 
                             if (activateResult != null && !activateResult.IsError && activateResult.Result != null)
                             {
@@ -1509,7 +1509,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     ShowOAPPTemplate(oappTemplateResults.Result.FirstOrDefault());
 
                     if (CLIEngine.GetConfirmation("Do you wish to use this OAPP Template?"))
-                        OAPPTemplateId = oappTemplateResults.Result.FirstOrDefault().OAPPTemplateDNA.Id;
+                        OAPPTemplateId = oappTemplateResults.Result.FirstOrDefault().OAPPSystemHolonDNA.Id;
                 }
                 else
                     CLIEngine.ShowMessage($"No results were found for '{searchTerm}'.");

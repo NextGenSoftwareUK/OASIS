@@ -1,54 +1,56 @@
-﻿using System;
-using System.Text.Json;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
 {
-    public class DownloadedOAPPTemplate : Holon, IDownloadedOAPPTemplate //TODO: Do we want to use Holon? What was the reason again?! ;-) Think so can be used with Data API and HolonManager?
+    public class DownloadedOAPPTemplate : DownloadedOAPPSystemHolon, IDownloadedOAPPTemplate //TODO: Do we want to use Holon? What was the reason again?! ;-) Think so can be used with Data API and HolonManager?
     {
-        private IOAPPTemplateDNA _OAPPTemplateDNA;
+        //private IOAPPTemplateDNA _OAPPTemplateDNA;
 
         public DownloadedOAPPTemplate()
         {
             this.HolonType = HolonType.DownloadedOAPPTemplate;
         }
 
-        //[CustomOASISProperty]
-        //public Guid OAPPId { get; set; }
-
-        // [CustomOASISProperty(StoreAsJsonString = true)] //TODO: Get this working later on so we dont need to do the manual code below.
-        //public IOAPPDNA OAPPDNA { get; set; }
-
         public IOAPPTemplateDNA OAPPTemplateDNA
         {
             get
             {
-                if (_OAPPTemplateDNA == null && MetaData["OAPPTemplateDNAJSON"] != null && !string.IsNullOrEmpty(MetaData["OAPPTemplateDNAJSON"].ToString()))
-                    _OAPPTemplateDNA = JsonSerializer.Deserialize<OAPPTemplateDNA>(MetaData["OAPPTemplateDNAJSON"].ToString());
-
-                return _OAPPTemplateDNA;
+                return (IOAPPTemplateDNA)base.OAPPSystemHolonDNA;
             }
             set
             {
-                _OAPPTemplateDNA = value;
-                MetaData["OAPPTemplateDNAJSON"] = JsonSerializer.Serialize(OAPPTemplateDNA);
+                base.OAPPSystemHolonDNA = value;
             }
         }
 
-        [CustomOASISProperty]
-        public string DownloadedPath { get; set; }
+        //public IOAPPTemplateDNA OAPPTemplateDNA
+        //{
+        //    get
+        //    {
+        //        if (_OAPPTemplateDNA == null && MetaData["OAPPTemplateDNAJSON"] != null && !string.IsNullOrEmpty(MetaData["OAPPTemplateDNAJSON"].ToString()))
+        //            _OAPPTemplateDNA = JsonSerializer.Deserialize<OAPPTemplateDNA>(MetaData["OAPPTemplateDNAJSON"].ToString());
 
-        [CustomOASISProperty]
-        public DateTime DownloadedOn { get; set; }
+        //        return _OAPPTemplateDNA;
+        //    }
+        //    set
+        //    {
+        //        _OAPPTemplateDNA = value;
+        //        MetaData["OAPPTemplateDNAJSON"] = JsonSerializer.Serialize(OAPPTemplateDNA);
+        //    }
+        //}
 
-        [CustomOASISProperty]
-        public Guid DownloadedBy { get; set; }
+        //[CustomOASISProperty]
+        //public string DownloadedPath { get; set; }
 
-        [CustomOASISProperty]
-        public string DownloadedByAvatarUsername { get; set; }
+        //[CustomOASISProperty]
+        //public DateTime DownloadedOn { get; set; }
+
+        //[CustomOASISProperty]
+        //public Guid DownloadedBy { get; set; }
+
+        //[CustomOASISProperty]
+        //public string DownloadedByAvatarUsername { get; set; }
     }
 }

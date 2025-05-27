@@ -12,6 +12,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         string CreatedByAvatarUsername { get; set; }
         DateTime CreatedOn { get; set; }
 
+        object OAPPSystemHolonType { get; set; }
+
         //OAPPTemplateType OAPPTemplateType { get; set; }
         string SourcePath { get; set; } //Source  Path
         string PublishedPath { get; set; }

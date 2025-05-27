@@ -367,7 +367,7 @@ namespace NextGenSoftware.OASIS.STAR
 
             IsDetailedCOSMICOutputsEnabled = STARDNA.DetailedCOSMICOutputEnabled;
             IsDetailedStatusUpdatesEnabled = STARDNA.DetailedSTARStatusOutputEnabled;
-            
+
             Status = StarStatus.BootingOASIS;
             OASISResult<bool> oasisResult = BootOASIS(OASISDNAPath);
 
@@ -384,6 +384,7 @@ namespace NextGenSoftware.OASIS.STAR
                 OnOASISBooted?.Invoke(null, new OASISBootedEventArgs() { Message = result.Message });
 
             Status = StarStatus.OASISBooted;
+            BeamedInAvatar = AvatarManager.LoggedInAvatar;
 
             // If the starId is passed in and is valid then convert to Guid, otherwise get it from the STARDNA file.
             if (!string.IsNullOrEmpty(starId) && !string.IsNullOrWhiteSpace(starId))
@@ -2647,27 +2648,27 @@ namespace NextGenSoftware.OASIS.STAR
                 }
 
                 //Copy the correct runtimes to the OAPP folder.
-                if (Directory.Exists(Path.Combine(OASISRunTimePath, installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion)))
+                if (Directory.Exists(Path.Combine(OASISRunTimePath, installedOAPPTemplateResult.Result.OAPPSystemHolonDNA.OASISVersion)))
                     DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
                 else
                 {
-                    CLIEngine.ShowWarningMessage($"The target OASIS Runtime v{installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion} is not installed!");
+                    CLIEngine.ShowWarningMessage($"The target OASIS Runtime v{installedOAPPTemplateResult.Result.OAPPSystemHolonDNA.OASISVersion} is not installed!");
                     
                     if (CLIEngine.GetConfirmation("Do you wish to download & install now?"))
                     {
-                        OASISResult<IInstalledRuntime> installResult = await OASISAPI.Runtimes.InstallRuntimeAsync(BeamedInAvatar.Id, API.Core.RuntimeType.OASIS, installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion, STARDNA.DefaultRuntimesInstalledOASISPath, providerType);
+                        OASISResult<IInstalledRuntime> installResult = await OASISAPI.Runtimes.InstallRuntimeAsync(BeamedInAvatar.Id, API.Core.RuntimeType.OASIS, installedOAPPTemplateResult.Result.OAPPSystemHolonDNA.OASISVersion, STARDNA.DefaultRuntimesInstalledOASISPath, providerType);
 
                         if (installResult != null && installResult.Result != null && !installResult.IsError)
                             DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
                         else
                         {
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the OASIS Runtime v{installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion}. Reason: {installResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the OASIS Runtime v{installedOAPPTemplateResult.Result.OAPPSystemHolonDNA.OASISVersion}. Reason: {installResult.Message}");
                             return result;
                         }
                     }
                     else
                     {
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The target OASIS Runtime v{installedOAPPTemplateResult.Result.OAPPTemplateDNA.OASISVersion} is not installed!");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The target OASIS Runtime v{installedOAPPTemplateResult.Result.OAPPSystemHolonDNA.OASISVersion} is not installed!");
                         return result;
                     }
                 }
