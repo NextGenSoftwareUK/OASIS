@@ -280,11 +280,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             //OASISResult<IOAPPTemplateDNA> OAPPTemplateDNAResult = await STAR.OASISAPI.OAPPTemplates.ReadOAPPTemplateDNAAsync(oappTemplatePath);
-            OASISResult<IOAPPSystemHolonDNA> OAPPTemplateDNAResult = await STAR.OASISAPI.OAPPTemplates.ReadOAPPTemplateDNAAsync(oappTemplatePath);
+            OASISResult<IOAPPSystemHolonDNA> OAPPTemplateDNAResult = await STAR.OASISAPI.OAPPTemplates.ReadOAPPTemplateDNAFromSourceOrInstalledFolderAsync(oappTemplatePath);
 
             if (OAPPTemplateDNAResult != null && OAPPTemplateDNAResult.Result != null && !OAPPTemplateDNAResult.IsError)
             {
-                OASISResult<IOAPPTemplate> OAPPTemplateResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(OAPPTemplateDNAResult.Result.Id, STAR.BeamedInAvatar.Id, 0, providerType);
+                OASISResult<IOAPPTemplate> OAPPTemplateResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(STAR.BeamedInAvatar.Id, OAPPTemplateDNAResult.Result.Id, 0, providerType);
 
                 if (OAPPTemplateResult != null && OAPPTemplateResult.Result != null && !OAPPTemplateResult.IsError)
                 {
@@ -300,8 +300,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     Console.WriteLine("");
 
-                    //switch (OAPPTemplateDNAResult.Result.OAPPTemplateType)
-                    switch (OAPPTemplateDNAResult.Result.OAPPSystemHolonType) //TODO: Will this work?
+                    object templateType = Enum.Parse(typeof(OAPPTemplateType), OAPPTemplateDNAResult.Result.OAPPSystemHolonType.ToString());
+                    OAPPTemplateType OAPPTemplateType = (OAPPTemplateType)templateType;
+
+                    //switch (OAPPTemplateDNAResult.Result.OAPPSystemHolonType)
+                    switch (OAPPTemplateType)
                     {
                         case OAPPTemplateType.Console:
                         case OAPPTemplateType.WPF:
@@ -408,7 +411,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"The OAPPTemplate could not be found for id {OAPPTemplateDNAResult.Result.Id} found in the OAPPSystemHolonDNA.json file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new OAPP Template.");
+                    CLIEngine.ShowErrorMessage($"The OAPPTemplate could not be found for id {OAPPTemplateDNAResult.Result.Id} found in the OAPPTemplateDNA.json file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new OAPP Template.");
             }
             else
                 CLIEngine.ShowErrorMessage("The OAPPSystemHolonDNA.json file could not be found! Please ensure it is in the folder you specified.");
@@ -565,7 +568,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (result.MetaData != null && result.MetaData.ContainsKey("Reinstall") && !string.IsNullOrEmpty(result.MetaData["Reinstall"]) && result.MetaData["Reinstall"] == "1" && installMode == InstallMode.DownloadAndInstall)
                         installMode = InstallMode.DownloadAndReInstall;
                     
-                    installResult = await CheckIfInstalledAndInstallOAPPTemplateAsync(result.Result, downloadPath, installPath, installMode, providerType);
+                    installResult = await CheckIfInstalledAndInstallOAPPTemplateAsync(result.Result, downloadPath, installPath, installMode, "", providerType);
                 }
             }
             else
@@ -579,18 +582,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (oappPath == "exit")
                         return installResult;
 
-                    OASISResult<IOAPPSystemHolonDNA> oappTemplateDNAResult = await STAR.OASISAPI.OAPPTemplates.ReadOAPPTemplateDNAAsync(oappPath);
+                    OASISResult<IOAPPSystemHolonDNA> oappTemplateDNAResult = await STAR.OASISAPI.OAPPTemplates.ReadOAPPTemplateDNAFromPublishedOAPPTemplateFileAsync(oappPath);
 
                     if (oappTemplateDNAResult != null && oappTemplateDNAResult.Result != null && !oappTemplateDNAResult.IsError)
                     {
-                        OASISResult<IOAPPTemplate> oappTemplateResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(oappTemplateDNAResult.Result.Id, STAR.BeamedInAvatar.Id, 0, providerType);
+                        OASISResult<IOAPPTemplate> oappTemplateResult = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappTemplateDNAResult.Result.Id, 0, providerType);
 
                         if (oappTemplateResult != null && oappTemplateResult.Result != null && !oappTemplateResult.IsError)
                         {
-                            if (oappTemplateResult.MetaData != null && oappTemplateResult.MetaData.ContainsKey("Reinstall") && !string.IsNullOrEmpty(oappTemplateResult.MetaData["Reinstall"]) && oappTemplateResult.MetaData["Reinstall"] == "1" && installMode == InstallMode.DownloadAndInstall)
-                                installMode = InstallMode.DownloadAndReInstall;
+                            installMode = InstallMode.InstallOnly;
 
-                            installResult = await CheckIfInstalledAndInstallOAPPTemplateAsync(oappTemplateResult.Result, downloadPath, installPath, installMode, providerType);
+                            if (oappTemplateResult.MetaData != null && oappTemplateResult.MetaData.ContainsKey("Reinstall") && !string.IsNullOrEmpty(oappTemplateResult.MetaData["Reinstall"]) && oappTemplateResult.MetaData["Reinstall"] == "1")
+                                installMode = InstallMode.ReInstall;
+
+                            installResult = await CheckIfInstalledAndInstallOAPPTemplateAsync(oappTemplateResult.Result, downloadPath, installPath, installMode, oappPath, providerType);
                         }
                         else
                             CLIEngine.ShowErrorMessage($"The OAPPTemplate could not be found for id {oappTemplateDNAResult.Result.Id} found in the OAPPSystemHolonDNA.json file. It could be corrupt or the id could be wrong, please check and try again, or create a new OAPP Template.");
@@ -610,7 +615,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (result.MetaData != null && result.MetaData.ContainsKey("Reinstall") && !string.IsNullOrEmpty(result.MetaData["Reinstall"]) && result.MetaData["Reinstall"] == "1" && installMode == InstallMode.DownloadAndInstall)
                             installMode = InstallMode.DownloadAndReInstall;
 
-                        installResult = await CheckIfInstalledAndInstallOAPPTemplateAsync(result.Result, downloadPath, installPath, installMode, providerType);
+                        installResult = await CheckIfInstalledAndInstallOAPPTemplateAsync(result.Result, downloadPath, installPath, installMode, "", providerType);
                     }
                     else
                     {
@@ -1200,7 +1205,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Name:                                       ", !string.IsNullOrEmpty(oappTemplate.OAPPSystemHolonDNA.Name) ? oappTemplate.OAPPSystemHolonDNA.Name : "None"));
             CLIEngine.ShowMessage(string.Concat($"Description:                                ", !string.IsNullOrEmpty(oappTemplate.OAPPSystemHolonDNA.Description) ? oappTemplate.OAPPSystemHolonDNA.Description : "None"));
             //CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                         ", Enum.GetName(typeof(OAPPTemplateType), oappTemplate.OAPPSystemHolonDNA.OAPPTemplateType)));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                         ", Enum.GetName(typeof(OAPPTemplateType), oappTemplate.OAPPSystemHolonDNA.OAPPSystemHolonType)));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                         ", Enum.GetName(typeof(OAPPTemplateType), oappTemplate.OAPPSystemHolonDNA.OAPPSystemHolonType)));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                         ", oappTemplate.OAPPSystemHolonDNA.OAPPSystemHolonType));
             CLIEngine.ShowMessage(string.Concat($"Created On:                                 ", oappTemplate.OAPPSystemHolonDNA.CreatedOn != DateTime.MinValue ? oappTemplate.OAPPSystemHolonDNA.CreatedOn.ToString() : "None"));
             CLIEngine.ShowMessage(string.Concat($"Created By:                                 ", oappTemplate.OAPPSystemHolonDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(oappTemplate.OAPPSystemHolonDNA.CreatedByAvatarUsername, " (", oappTemplate.OAPPSystemHolonDNA.CreatedByAvatarId.ToString(), ")") : "None"));
             CLIEngine.ShowMessage(string.Concat($"Modified On:                                ", oappTemplate.OAPPSystemHolonDNA.ModifiedOn != DateTime.MinValue ? oappTemplate.OAPPSystemHolonDNA.CreatedOn.ToString() : "None"));
@@ -1513,44 +1519,54 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             if (result != null && result.Result != null)
                             {
-                                OASISResult<bool> oappInstalledResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
+                                OASISResult<IOAPPTemplate> checkResult = await CheckIfAlreadyInstalledAsync(result.Result, providerType);
 
-                                if (oappInstalledResult != null && !oappInstalledResult.IsError)
+                                if (checkResult != null && checkResult.Result != null && !checkResult.IsError)
                                 {
-                                    if (oappInstalledResult.Result)
-                                    {
-                                        Console.WriteLine("");
-                                        CLIEngine.ShowWarningMessage($"You have already installed this version ({result.Result.OAPPSystemHolonDNA.Version}).");
-
-                                        if (CLIEngine.GetConfirmation("Would you like to uninstall and re-install now?"))
-                                        {
-                                            Console.WriteLine("");
-                                            CLIEngine.ShowWorkingMessage("Uninstalling OAPP Template...");
-                                            OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
-
-                                            if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
-                                            {
-                                                CLIEngine.ShowSuccessMessage("OAPP Template Successfully Uninstalled.");
-                                                result.MetaData["Reinstall"] = "1";
-                                            }
-                                            else
-                                            {
-                                                CLIEngine.ShowErrorMessage($"Error occured uninstalling the OAPP Template! Reason: {uninstallResult.Message}");
-                                                result.Result = null;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            result.Result = null;
-                                            Console.WriteLine("");
-                                        }
-                                    }
+                                    if (result.MetaData != null && result.MetaData.ContainsKey("Reinstall"))
+                                        result.MetaData["Reinstall"] = checkResult.MetaData["Reinstall"];
                                 }
                                 else
-                                {
-                                    CLIEngine.ShowErrorMessage($"Error occured checking if the OAPP Template is already installed! Reason: {oappInstalledResult.Message}");
                                     result.Result = null;
-                                }
+
+                                //OASISResult<bool> oappInstalledResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
+
+                                //if (oappInstalledResult != null && !oappInstalledResult.IsError)
+                                //{
+                                //    if (oappInstalledResult.Result)
+                                //    {
+                                //        Console.WriteLine("");
+                                //        CLIEngine.ShowWarningMessage($"You have already installed this version ({result.Result.OAPPSystemHolonDNA.Version}).");
+
+                                //        if (CLIEngine.GetConfirmation("Would you like to uninstall and re-install now?"))
+                                //        {
+                                //            Console.WriteLine("");
+                                //            CLIEngine.ShowWorkingMessage("Uninstalling OAPP Template...");
+                                //            OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
+
+                                //            if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
+                                //            {
+                                //                CLIEngine.ShowSuccessMessage("OAPP Template Successfully Uninstalled.");
+                                //                result.MetaData["Reinstall"] = "1";
+                                //            }
+                                //            else
+                                //            {
+                                //                CLIEngine.ShowErrorMessage($"Error occured uninstalling the OAPP Template! Reason: {uninstallResult.Message}");
+                                //                result.Result = null;
+                                //            }
+                                //        }
+                                //        else
+                                //        {
+                                //            result.Result = null;
+                                //            Console.WriteLine("");
+                                //        }
+                                //    }
+                                //}
+                                //else
+                                //{
+                                //    CLIEngine.ShowErrorMessage($"Error occured checking if the OAPP Template is already installed! Reason: {oappInstalledResult.Message}");
+                                //    result.Result = null;
+                                //}
                             }
                             else
                             {
@@ -1719,44 +1735,54 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             if (result != null && result.Result != null)
                             {
-                                OASISResult<bool> oappInstalledResult = STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalled(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
+                                OASISResult<IOAPPTemplate> checkResult = CheckIfAlreadyInstalled(result.Result, providerType);
 
-                                if (oappInstalledResult != null && !oappInstalledResult.IsError)
+                                if (checkResult != null && checkResult.Result != null && !checkResult.IsError)
                                 {
-                                    if (oappInstalledResult.Result)
-                                    {
-                                        Console.WriteLine("");
-                                        CLIEngine.ShowWarningMessage($"You have already installed this version ({result.Result.OAPPSystemHolonDNA.Version}).");
-
-                                        if (CLIEngine.GetConfirmation("Would you like to uninstall and re-install now?"))
-                                        {
-                                            Console.WriteLine("");
-                                            CLIEngine.ShowWorkingMessage("Uninstalling OAPP Template...");
-                                            OASISResult<IInstalledOAPPTemplate> uninstallResult = STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
-
-                                            if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
-                                            {
-                                                CLIEngine.ShowSuccessMessage("OAPP Template Successfully Uninstalled.");
-                                                result.MetaData["Reinstall"] = "1";
-                                            }
-                                            else
-                                            {
-                                                CLIEngine.ShowErrorMessage($"Error occured uninstalling the OAPP Template! Reason: {uninstallResult.Message}");
-                                                result.Result = null;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            result.Result = null;
-                                            Console.WriteLine("");
-                                        }
-                                    }
+                                    if (result.MetaData != null && result.MetaData.ContainsKey("Reinstall"))
+                                        result.MetaData["Reinstall"] = checkResult.MetaData["Reinstall"];
                                 }
                                 else
-                                {
-                                    CLIEngine.ShowErrorMessage($"Error occured checking if the OAPP Template is already installed! Reason: {oappInstalledResult.Message}");
                                     result.Result = null;
-                                }
+
+                                //OASISResult<bool> oappInstalledResult = STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalled(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
+
+                                //if (oappInstalledResult != null && !oappInstalledResult.IsError)
+                                //{
+                                //    if (oappInstalledResult.Result)
+                                //    {
+                                //        Console.WriteLine("");
+                                //        CLIEngine.ShowWarningMessage($"You have already installed this version (v{result.Result.OAPPSystemHolonDNA.Version}). Please uninstall before attempting to re-install.");
+
+                                //        if (CLIEngine.GetConfirmation("Do you wish to uninstall the OAPP Template now? Press 'Y' for Yes or 'N' for No."))
+                                //        {
+                                //            Console.WriteLine("");
+                                //            CLIEngine.ShowWorkingMessage("Uninstalling OAPP Template...");
+                                //            OASISResult<IInstalledOAPPTemplate> uninstallResult = STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
+
+                                //            if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
+                                //            {
+                                //                CLIEngine.ShowSuccessMessage("OAPP Template Successfully Uninstalled.");
+                                //                result.MetaData["Reinstall"] = "1";
+                                //            }
+                                //            else
+                                //            {
+                                //                CLIEngine.ShowErrorMessage($"Error occured uninstalling the OAPP Template! Reason: {uninstallResult.Message}");
+                                //                result.Result = null;
+                                //            }
+                                //        }
+                                //        else
+                                //        {
+                                //            result.Result = null;
+                                //            Console.WriteLine("");
+                                //        }
+                                //    }
+                                //}
+                                //else
+                                //{
+                                //    CLIEngine.ShowErrorMessage($"Error occured checking if the OAPP Template is already installed! Reason: {oappInstalledResult.Message}");
+                                //    result.Result = null;
+                                //}
                             }
                             else
                             {
@@ -1789,85 +1815,274 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private static async Task<OASISResult<IInstalledOAPPTemplate>> CheckIfInstalledAndInstallOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, string downloadPath, string installPath, InstallMode installMode, ProviderType providerType = ProviderType.Default)
+        private static async Task<OASISResult<IOAPPTemplate>> CheckIfAlreadyInstalledAsync(IOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>(OAPPTemplate);
+            OASISResult<bool> oappInstalledResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, OAPPTemplate.OAPPSystemHolonDNA.Id, OAPPTemplate.OAPPSystemHolonDNA.Version, providerType);
+
+            if (oappInstalledResult != null && !oappInstalledResult.IsError)
+            {
+                if (oappInstalledResult.Result)
+                {
+                    Console.WriteLine("");
+                    CLIEngine.ShowWarningMessage($"You have already installed this version (v{OAPPTemplate.OAPPSystemHolonDNA.Version}). Please uninstall before attempting to re-install.");
+
+                    if (CLIEngine.GetConfirmation("Do you wish to uninstall the OAPP Template now? Press 'Y' for Yes or 'N' for No."))
+                    {
+                        Console.WriteLine("");
+                        CLIEngine.ShowWorkingMessage("Uninstalling OAPP Template...");
+                        OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
+
+                        if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage("OAPP Template Successfully Uninstalled.");
+                            result.MetaData["Reinstall"] = "1";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"Error occured uninstalling the OAPP Template! Reason: {uninstallResult.Message}");
+                            //result.Result = null;
+                        }
+                    }
+                    else
+                    {
+                        result.IsError = true;
+                        result.Message = "User Denied Uninstall";
+                        //result.Result = null;
+                        Console.WriteLine("");
+                    }
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, ($"Error occured checking if the OAPP Template is already installed! Reason: {oappInstalledResult.Message}"));
+                //result.Result = null;
+            }
+
+            return result;
+        }
+
+        private static OASISResult<IOAPPTemplate> CheckIfAlreadyInstalled(IOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOAPPTemplate> result = new OASISResult<IOAPPTemplate>(OAPPTemplate);
+            OASISResult<bool> oappInstalledResult = STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalled(STAR.BeamedInAvatar.Id, OAPPTemplate.OAPPSystemHolonDNA.Id, OAPPTemplate.OAPPSystemHolonDNA.Version, providerType);
+
+            if (oappInstalledResult != null && !oappInstalledResult.IsError)
+            {
+                if (oappInstalledResult.Result)
+                {
+                    Console.WriteLine("");
+                    CLIEngine.ShowWarningMessage($"You have already installed this version (v{OAPPTemplate.OAPPSystemHolonDNA.Version}). Please uninstall before attempting to re-install.");
+
+                    if (CLIEngine.GetConfirmation("Do you wish to uninstall the OAPP Template now? Press 'Y' for Yes or 'N' for No."))
+                    {
+                        Console.WriteLine("");
+                        CLIEngine.ShowWorkingMessage("Uninstalling OAPP Template...");
+                        OASISResult<IInstalledOAPPTemplate> uninstallResult = STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplate(STAR.BeamedInAvatar.Id, result.Result.OAPPSystemHolonDNA.Id, result.Result.OAPPSystemHolonDNA.Version, providerType);
+
+                        if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage("OAPP Template Successfully Uninstalled.");
+                            result.MetaData["Reinstall"] = "1";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"Error occured uninstalling the OAPP Template! Reason: {uninstallResult.Message}");
+                            //result.Result = null;
+                        }
+                    }
+                    else
+                    {
+                        result.IsError = true;
+                        result.Message = "User Denied Uninstall";
+                        //result.Result = null;
+                        Console.WriteLine("");
+                    }
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, ($"Error occured checking if the OAPP Template is already installed! Reason: {oappInstalledResult.Message}"));
+                //result.Result = null;
+            }
+
+            return result;
+        }
+
+        private static async Task<OASISResult<IInstalledOAPPTemplate>> CheckIfInstalledAndInstallOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedOAPPTemplateFile = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> installResult = new OASISResult<IInstalledOAPPTemplate>();
             bool continueInstall = false;
-            //Guid id = Guid.Empty;
-            //bool reInstall = false;
 
-            //if (OAPPTemplate != null && OAPPTemplate.MetaData != null && OAPPTemplate.MetaData.ContainsKey("OAPPTemplateId") && OAPPTemplate.MetaData["OAPPTemplateId"] != null && Guid.TryParse(OAPPTemplate.MetaData["OAPPTemplateId"].ToString(), out id))
             if (OAPPTemplate != null)
             {
                 if (installMode != InstallMode.DownloadOnly)
                 {
-                    //OASISResult<bool> installedResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, id, OAPPTemplate.OAPPSystemHolonDNA.Version, providerType);
-                    OASISResult<bool> installedResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, OAPPTemplate.OAPPSystemHolonDNA.Id, OAPPTemplate.OAPPSystemHolonDNA.Version, providerType);
+                    OASISResult<IOAPPTemplate> checkResult = await CheckIfAlreadyInstalledAsync(OAPPTemplate, providerType);
 
-                    if (installedResult != null && !installedResult.IsError)
-                    {
-                        if (installedResult.Result)
-                        {
-                            string errorMessage = "The OAPP Template is already installed! Please uninstall before attempting to re-install.";
-                            CLIEngine.ShowErrorMessage(errorMessage);
-
-                            if (CLIEngine.GetConfirmation("Do you wish to uninstall the OAPP Template now? Press 'Y' for Yes or 'N' for No."))
-                            {
-                                OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, OAPPTemplate.OAPPSystemHolonDNA.Id, OAPPTemplate.OAPPSystemHolonDNA.Version, providerType);
-
-                                if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
-                                {
-                                    continueInstall = true;
-                                    installMode = InstallMode.DownloadAndReInstall;
-                                }
-                                else
-                                    OASISErrorHandling.HandleError(ref installResult, $"Error occured uninstalling the OAPP Template with id {OAPPTemplate.OAPPSystemHolonDNA.Id} calling STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync. Reason: {uninstallResult.Message}");
-                            }
-                            else
-                            {
-                                Console.WriteLine("");
-                                installedResult.Message = errorMessage;
-                                installedResult.IsError = true;
-                            }
-                        }
-                        else
-                            continueInstall = true;
-                    }
+                    if (checkResult != null && checkResult.Result != null && !checkResult.IsError)
+                        continueInstall = true;
                     else
-                        CLIEngine.ShowErrorMessage($"Error checking if the OAPP Template is already installed!");
+                        CLIEngine.ShowErrorMessage($"Error checking if the OAPP Template is already installed! Reason: {checkResult.MetaData}");
+
+                    //OASISResult<bool> installedResult = await STAR.OASISAPI.OAPPTemplates.IsOAPPTemplateInstalledAsync(STAR.BeamedInAvatar.Id, OAPPTemplate.OAPPSystemHolonDNA.Id, OAPPTemplate.OAPPSystemHolonDNA.Version, providerType);
+
+                    //if (installedResult != null && !installedResult.IsError)
+                    //{
+                    //    if (installedResult.Result)
+                    //    {
+                    //        string errorMessage = $"You have already installed this version (v{OAPPTemplate.OAPPSystemHolonDNA.Version}). Please uninstall before attempting to re-install.";
+                    //        CLIEngine.ShowWarningMessage(errorMessage);
+
+                    //        if (CLIEngine.GetConfirmation("Do you wish to uninstall the OAPP Template now? Press 'Y' for Yes or 'N' for No."))
+                    //        {
+                    //            Console.WriteLine("");
+                    //            CLIEngine.ShowWorkingMessage("Uninstalling OAPP Template...");
+                    //            OASISResult<IInstalledOAPPTemplate> uninstallResult = await STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, OAPPTemplate.OAPPSystemHolonDNA.Id, OAPPTemplate.OAPPSystemHolonDNA.Version, providerType);
+
+                    //            if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
+                    //            {
+                    //                CLIEngine.ShowSuccessMessage("OAPP Template Succesfully Uninstalled.");
+                    //                continueInstall = true;
+                    //                installMode = InstallMode.DownloadAndReInstall;
+                    //            }
+                    //            else
+                    //                OASISErrorHandling.HandleError(ref installResult, $"Error occured uninstalling the OAPP Template with id {OAPPTemplate.OAPPSystemHolonDNA.Id} calling STAR.OASISAPI.OAPPTemplates.UninstallOAPPTemplateAsync. Reason: {uninstallResult.Message}");
+                    //        }
+                    //        else
+                    //        {
+                    //            Console.WriteLine("");
+                    //            installedResult.Message = errorMessage;
+                    //            installedResult.IsError = true;
+                    //        }
+                    //    }
+                    //    else
+                    //        continueInstall = true;
+                    //}
+                    //else
+                    //    CLIEngine.ShowErrorMessage($"Error checking if the OAPP Template is already installed!");
                 }
             }
 
             if (continueInstall)
-                installResult = await InstallOAPPTemplateAsync(OAPPTemplate, downloadPath, installPath, installMode, providerType);
+                installResult = await InstallOAPPTemplateAsync(OAPPTemplate, downloadPath, installPath, installMode, fullPathToPublishedOAPPTemplateFile, providerType);
 
             return installResult;
         }
 
-        private static async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(IOAPPTemplate oappTemplate, string downloadPath, string installPath, InstallMode installMode, ProviderType providerType = ProviderType.Default)
+        private static OASISResult<IInstalledOAPPTemplate> CheckIfInstalledAndInstallOAPPTemplate(IOAPPTemplate OAPPTemplate, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedOAPPTemplateFile = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPPTemplate> installResult = new OASISResult<IInstalledOAPPTemplate>();
+            bool continueInstall = false;
+
+            if (OAPPTemplate != null)
+            {
+                if (installMode != InstallMode.DownloadOnly)
+                {
+                    OASISResult<IOAPPTemplate> checkResult = CheckIfAlreadyInstalled(OAPPTemplate, providerType);
+
+                    if (checkResult != null && checkResult.Result != null && !checkResult.IsError)
+                        continueInstall = true;
+                    else
+                        CLIEngine.ShowErrorMessage($"Error checking if the OAPP Template is already installed! Reason: {checkResult.MetaData}");
+                }
+            }
+
+            if (continueInstall)
+                installResult = InstallOAPPTemplate(OAPPTemplate, downloadPath, installPath, installMode, fullPathToPublishedOAPPTemplateFile, providerType);
+
+            return installResult;
+        }
+
+        private static async Task<OASISResult<IInstalledOAPPTemplate>> InstallOAPPTemplateAsync(IOAPPTemplate oappTemplate, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedOAPPTemplateFile = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
 
-            if (installMode != InstallMode.DownloadOnly)
-                result = await STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappTemplate, installPath, downloadPath, true, installMode == InstallMode.DownloadAndReInstall, providerType);
-            else
+            switch (installMode)
             {
-                OASISResult<IDownloadedOAPPTemplate> downloadResult = await STAR.OASISAPI.OAPPTemplates.DownloadOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappTemplate, downloadPath, installMode == InstallMode.DownloadAndReInstall, providerType);
+                case InstallMode.DownloadAndInstall:
+                    result = await STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappTemplate, installPath, downloadPath, true, false, providerType);
+                    break;
 
-                if (downloadResult != null && downloadResult.Result != null && !downloadResult.IsError)
-                {
-                    result.Result = new InstalledOAPPTemplate() { OAPPSystemHolonDNA = downloadResult.Result.OAPPSystemHolonDNA };
-                    //result.Result.DownloadedOAPPTemplate = downloadResult.Result;
-                    result.Result.DownloadedOn = downloadResult.Result.DownloadedOn;
-                    result.Result.DownloadedBy = downloadResult.Result.DownloadedBy;
-                    result.Result.DownloadedByAvatarUsername = downloadResult.Result.DownloadedByAvatarUsername;
-                    result.Result.DownloadedPath = downloadResult.Result.DownloadedPath;
-                }
-                else
-                {
-                    result.Message = downloadResult.Message;
-                    result.IsError = true;
-                }
+                case InstallMode.DownloadOnly:
+                    {
+                        OASISResult<IDownloadedOAPPTemplate> downloadResult = await STAR.OASISAPI.OAPPTemplates.DownloadOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappTemplate, downloadPath, false, providerType);
+
+                        if (downloadResult != null && downloadResult.Result != null && !downloadResult.IsError)
+                        {
+                            result.Result = new InstalledOAPPTemplate() { OAPPSystemHolonDNA = downloadResult.Result.OAPPSystemHolonDNA };
+                            //result.Result.DownloadedOAPPTemplate = downloadResult.Result;
+                            result.Result.DownloadedOn = downloadResult.Result.DownloadedOn;
+                            result.Result.DownloadedBy = downloadResult.Result.DownloadedBy;
+                            result.Result.DownloadedByAvatarUsername = downloadResult.Result.DownloadedByAvatarUsername;
+                            result.Result.DownloadedPath = downloadResult.Result.DownloadedPath;
+                        }
+                        else
+                        {
+                            result.Message = downloadResult.Message;
+                            result.IsError = true;
+                        }
+                    }
+                    break;
+
+                case InstallMode.InstallOnly:
+                    result = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, fullPathToPublishedOAPPTemplateFile, installPath, true, null, false, providerType);
+                    break;
+
+                case InstallMode.DownloadAndReInstall:
+                    result = await STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappTemplate, installPath, downloadPath, true, true, providerType);
+                    break;
+
+                case InstallMode.ReInstall:
+                    result = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, fullPathToPublishedOAPPTemplateFile, installPath, true, null, true, providerType);
+                    break;
+            }
+
+            return result;
+        }
+
+        private static OASISResult<IInstalledOAPPTemplate> InstallOAPPTemplate(IOAPPTemplate oappTemplate, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedOAPPTemplateFile = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
+
+            switch (installMode)
+            {
+                case InstallMode.DownloadAndInstall:
+                    result = STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplate(STAR.BeamedInAvatar.Id, oappTemplate, installPath, downloadPath, true, false, providerType);
+                    break;
+
+                case InstallMode.DownloadOnly:
+                    {
+                        OASISResult<IDownloadedOAPPTemplate> downloadResult = STAR.OASISAPI.OAPPTemplates.DownloadOAPPTemplate(STAR.BeamedInAvatar.Id, oappTemplate, downloadPath, false, providerType);
+
+                        if (downloadResult != null && downloadResult.Result != null && !downloadResult.IsError)
+                        {
+                            result.Result = new InstalledOAPPTemplate() { OAPPSystemHolonDNA = downloadResult.Result.OAPPSystemHolonDNA };
+                            //result.Result.DownloadedOAPPTemplate = downloadResult.Result;
+                            result.Result.DownloadedOn = downloadResult.Result.DownloadedOn;
+                            result.Result.DownloadedBy = downloadResult.Result.DownloadedBy;
+                            result.Result.DownloadedByAvatarUsername = downloadResult.Result.DownloadedByAvatarUsername;
+                            result.Result.DownloadedPath = downloadResult.Result.DownloadedPath;
+                        }
+                        else
+                        {
+                            result.Message = downloadResult.Message;
+                            result.IsError = true;
+                        }
+                    }
+                    break;
+
+                case InstallMode.InstallOnly:
+                    result = STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplate(STAR.BeamedInAvatar.Id, fullPathToPublishedOAPPTemplateFile, installPath, true, null, false, providerType);
+                    break;
+
+                case InstallMode.DownloadAndReInstall:
+                    result = STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplate(STAR.BeamedInAvatar.Id, oappTemplate, installPath, downloadPath, true, true, providerType);
+                    break;
+
+                case InstallMode.ReInstall:
+                    result = STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplate(STAR.BeamedInAvatar.Id, fullPathToPublishedOAPPTemplateFile, installPath, true, null, true, providerType);
+                    break;
             }
 
             return result;
