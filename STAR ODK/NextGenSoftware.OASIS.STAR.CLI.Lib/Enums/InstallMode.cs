@@ -5,6 +5,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib.Enums
     {
         DownloadOnly,
         DownloadAndInstall,
-        DownloadAndReInstall
+        InstallOnly,
+        DownloadAndReInstall,
+        ReInstall
     }
 }

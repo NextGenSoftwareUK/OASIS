@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
         public OAPPSystemManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA) { }
 
-        public OAPPSystemManagerBase(Guid avatarId, OASISDNA OASISDNA = null, HolonType OAPPSystemHolonType = HolonType.OAPPSystemHolon, HolonType OAPPSystemInstalledHolonType = HolonType.InstalledOAPPSystemHolon, string OAPPSystemHolonUIName = "OAPP System Holon", string OAPPSystemHolonIdName = "OAPPSystemHolonId", string OAPPSystemHolonNameName = "OAPPSystemHolonName", string OAPPSystemHolonTypeName = "OAPPSystemHolonType", string OAPPSystemHolonFileExtention = "oappsystemholon", string OAPPSystemHolonGoogleBucket = "oasis_oappsystemholons", string OAPPSystemHolonDNAFileName = "OAPPSystemHolonDNA.json") : base(avatarId, OASISDNA)
+        public OAPPSystemManagerBase(Guid avatarId, OASISDNA OASISDNA = null, HolonType OAPPSystemHolonType = HolonType.OAPPSystemHolon, HolonType OAPPSystemInstalledHolonType = HolonType.InstalledOAPPSystemHolon, string OAPPSystemHolonUIName = "OAPP System Holon", string OAPPSystemHolonIdName = "OAPPSystemHolonId", string OAPPSystemHolonNameName = "OAPPSystemHolonName", string OAPPSystemHolonTypeName = "OAPPSystemHolonType", string OAPPSystemHolonFileExtention = "oappsystemholon", string OAPPSystemHolonGoogleBucket = "oasis_oappsystemholons", string OAPPSystemHolonDNAFileName = "OAPPSystemHolonDNA.json", string OAPPSystemHolonDNAJSONName = "OAPPSystemHolonDNAJSON") : base(avatarId, OASISDNA)
         {
             this.OAPPSystemHolonType = OAPPSystemHolonType;
             this.OAPPSystemInstalledHolonType = OAPPSystemInstalledHolonType;
@@ -51,9 +51,10 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             this.OAPPSystemHolonFileExtention = OAPPSystemHolonFileExtention;
             this.OAPPSystemHolonGoogleBucket = OAPPSystemHolonGoogleBucket;
             this.OAPPSystemHolonDNAFileName = OAPPSystemHolonDNAFileName;
+            this.OAPPSystemHolonDNAJSONName = OAPPSystemHolonDNAJSONName;
         }
 
-        public OAPPSystemManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null, HolonType OAPPSystemHolonType = HolonType.OAPPSystemHolon, HolonType OAPPSystemInstalledHolonType = HolonType.InstalledOAPPSystemHolon, string OAPPSystemHolonUIName = "OAPP System Holon", string OAPPSystemHolonIdName = "OAPPSystemHolonId", string OAPPSystemHolonNameName = "OAPPSystemHolonName", string OAPPSystemHolonTypeName = "OAPPSystemHolonType", string OAPPSystemHolonFileExtention = "oappsystemholon", string OAPPSystemHolonGoogleBucket = "oasis_oappsystemholons", string OAPPSystemHolonDNAFileName = "OAPPSystemHolonDNA.json") : base(OASISStorageProvider, avatarId, OASISDNA)
+        public OAPPSystemManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null, HolonType OAPPSystemHolonType = HolonType.OAPPSystemHolon, HolonType OAPPSystemInstalledHolonType = HolonType.InstalledOAPPSystemHolon, string OAPPSystemHolonUIName = "OAPP System Holon", string OAPPSystemHolonIdName = "OAPPSystemHolonId", string OAPPSystemHolonNameName = "OAPPSystemHolonName", string OAPPSystemHolonTypeName = "OAPPSystemHolonType", string OAPPSystemHolonFileExtention = "oappsystemholon", string OAPPSystemHolonGoogleBucket = "oasis_oappsystemholons", string OAPPSystemHolonDNAFileName = "OAPPSystemHolonDNA.json", string OAPPSystemHolonDNAJSONName = "OAPPSystemHolonDNAJSON") : base(OASISStorageProvider, avatarId, OASISDNA)
         {
             this.OAPPSystemHolonType = OAPPSystemHolonType;
             this.OAPPSystemInstalledHolonType = OAPPSystemInstalledHolonType;
@@ -64,6 +65,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             this.OAPPSystemHolonFileExtention = OAPPSystemHolonFileExtention;
             this.OAPPSystemHolonGoogleBucket = OAPPSystemHolonGoogleBucket;
             this.OAPPSystemHolonDNAFileName = OAPPSystemHolonDNAFileName;
+            this.OAPPSystemHolonDNAJSONName = OAPPSystemHolonDNAJSONName;
         }
 
         public delegate void OAPPSystemHolonPublishStatusChanged(object sender, OAPPSystemHolonPublishStatusEventArgs e);
@@ -100,6 +102,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         public string OAPPSystemHolonFileExtention { get; set; } = "oappsystemholon";
         public string OAPPSystemHolonGoogleBucket { get; set; } = "oasis_oappsystemholons";
         public string OAPPSystemHolonDNAFileName { get; set; } = "OAPPSystemHolonDNA.json";
+        public string OAPPSystemHolonDNAJSONName { get; set; } = "OAPPSystemHolonDNAJSON";
 
         public virtual async Task<OASISResult<T1>> CreateAsync(string name, string description, object holonSubType, Guid avatarId, string fullPathToT, ProviderType providerType = ProviderType.Default)
         {
@@ -152,7 +155,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         Id = holon.Id,
                         Name = name,
                         Description = description,
-                        //OAPPSystemHolonType = OAPPSystemHolonType,
+                        OAPPSystemHolonType = Enum.GetName(holonSubTypeType, holonSubType),
                         CreatedByAvatarId = avatarId,
                         CreatedByAvatarUsername = avatarResult.Result.Username,
                         CreatedOn = DateTime.Now,
@@ -293,7 +296,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             if (!Directory.Exists(holon.OAPPSystemHolonDNA.SourcePath))
                 Directory.CreateDirectory(holon.OAPPSystemHolonDNA.SourcePath);
 
-            holon.MetaData["OAPPSystemHolonDNAJSON"] = JsonSerializer.Serialize(holon.OAPPSystemHolonDNA);
+            holon.MetaData[OAPPSystemHolonDNAJSONName] = JsonSerializer.Serialize(holon.OAPPSystemHolonDNA);
 
             OASISResult<T1> saveResult = await SaveHolonAsync<T1>(holon, avatarId, providerType, "OAPPSystemManagerBase.SaveAsync<T>");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
@@ -308,7 +311,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             if (!Directory.Exists(holon.OAPPSystemHolonDNA.SourcePath))
                 Directory.CreateDirectory(holon.OAPPSystemHolonDNA.SourcePath);
 
-            holon.MetaData["OAPPSystemHolonDNAJSON"] = JsonSerializer.Serialize(holon.OAPPSystemHolonDNA);
+            holon.MetaData[OAPPSystemHolonDNAJSONName] = JsonSerializer.Serialize(holon.OAPPSystemHolonDNA);
 
             OASISResult<T1> saveResult = SaveHolon<T1>(holon, avatarId, providerType, "OAPPSystemManagerBase.Save<T>");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
@@ -323,7 +326,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             if (!Directory.Exists(holon.OAPPSystemHolonDNA.SourcePath))
                 Directory.CreateDirectory(holon.OAPPSystemHolonDNA.SourcePath);
 
-            holon.MetaData["OAPPSystemHolonDNAJSON"] = JsonSerializer.Serialize(holon.OAPPSystemHolonDNA);
+            holon.MetaData[OAPPSystemHolonDNAJSONName] = JsonSerializer.Serialize(holon.OAPPSystemHolonDNA);
 
             OASISResult<T3> saveResult = await SaveHolonAsync<T3>(holon, avatarId, providerType, "OAPPSystemManagerBase.SaveAsync<T>");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
@@ -338,7 +341,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             if (!Directory.Exists(holon.OAPPSystemHolonDNA.SourcePath))
                 Directory.CreateDirectory(holon.OAPPSystemHolonDNA.SourcePath);
 
-            holon.MetaData["OAPPSystemHolonDNAJSON"] = JsonSerializer.Serialize(holon.OAPPSystemHolonDNA);
+            holon.MetaData[OAPPSystemHolonDNAJSONName] = JsonSerializer.Serialize(holon.OAPPSystemHolonDNA);
 
             OASISResult<T3> saveResult = SaveHolon<T3>(holon, avatarId, providerType, "OAPPSystemManagerBase.Save<T>");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
@@ -722,7 +725,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             //OASISResult<IEnumerable<T>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<T>("OAPPSystemHolonId", OAPPSystemHolonId.ToString(), HolonType.T, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
             OASISResult<IEnumerable<T1>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<T1>(new Dictionary<string, string>() 
             { 
-                { "OAPPSystemHolonId", id.ToString() },
+                { OAPPSystemHolonIdName, id.ToString() },
                 { "Active", "1" }
             }, MetaKeyValuePairMatchMode.All, OAPPSystemHolonType, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
 
@@ -739,7 +742,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             //OASISResult<IEnumerable<T>> loadHolonsResult = Data.LoadHolonsByMetaData<T>("OAPPSystemHolonId", OAPPSystemHolonId.ToString(), HolonType.T, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
             OASISResult<IEnumerable<T1>> loadHolonsResult = Data.LoadHolonsByMetaData<T1>(new Dictionary<string, string>()
             {
-                { "OAPPSystemHolonId", id.ToString() },
+                { OAPPSystemHolonIdName, id.ToString() },
                 { "Active", "1" }
             }, MetaKeyValuePairMatchMode.All, OAPPSystemHolonType, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
 
@@ -753,7 +756,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> loadHolonResult = await Data.LoadHolonByMetaDataAsync<T1>(new Dictionary<string, string>()
             {
-                 { "OAPPSystemHolonId", id.ToString() },
+                 { OAPPSystemHolonIdName, id.ToString() },
                  { "Version", version },
                  { "Active", "1" }
             }, MetaKeyValuePairMatchMode.All, OAPPSystemHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
@@ -777,7 +780,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> loadHolonResult = Data.LoadHolonByMetaData<T1>(new Dictionary<string, string>()
             {
-                 { "OAPPSystemHolonId", id.ToString() },
+                 { OAPPSystemHolonIdName, id.ToString() },
                  { "Version", version },
                  { "Active", "1" }
             }, MetaKeyValuePairMatchMode.All, OAPPSystemHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
@@ -1136,7 +1139,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                OASISResult<IOAPPSystemHolonDNA> readOAPPSystemHolonDNAResult = await ReadOAPPSystemHolonDNAAsync(fullPathToOAPPSystemHolon);
+                OASISResult<IOAPPSystemHolonDNA> readOAPPSystemHolonDNAResult = await ReadOAPPSystemHolonDNAFromSourceOrInstallFolderAsync(fullPathToOAPPSystemHolon);
 
                 if (readOAPPSystemHolonDNAResult != null && !readOAPPSystemHolonDNAResult.IsError && readOAPPSystemHolonDNAResult.Result != null)
                 {
@@ -1147,7 +1150,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     if (loadAvatarResult != null && loadAvatarResult.Result != null && !loadAvatarResult.IsError)
                     {
                         //Load latest version.
-                        OASISResult<T1> loadOAPPSystemHolonResult = await LoadAsync(OAPPSystemHolonDNA.Id, avatarId);
+                        OASISResult<T1> loadOAPPSystemHolonResult = await LoadAsync(avatarId, OAPPSystemHolonDNA.Id);
 
                         if (loadOAPPSystemHolonResult != null && loadOAPPSystemHolonResult.Result != null && !loadOAPPSystemHolonResult.IsError)
                         {
@@ -1489,7 +1492,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
             try
             {
-                OASISResult<IOAPPSystemHolonDNA> readOAPPSystemHolonDNAResult = ReadOAPPSystemHolonDNA(fullPathToOAPPSystemHolon);
+                OASISResult<IOAPPSystemHolonDNA> readOAPPSystemHolonDNAResult = ReadOAPPSystemHolonDNAFromSourceOrInstallFolder(fullPathToOAPPSystemHolon);
 
                 if (readOAPPSystemHolonDNAResult != null && !readOAPPSystemHolonDNAResult.IsError && readOAPPSystemHolonDNAResult.Result != null)
                 {
@@ -1500,7 +1503,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     if (loadAvatarResult != null && loadAvatarResult.Result != null && !loadAvatarResult.IsError)
                     {
                         //Load latest version.
-                        OASISResult<T1> loadOAPPSystemHolonResult = Load(OAPPSystemHolonDNA.Id, avatarId);
+                        OASISResult<T1> loadOAPPSystemHolonResult = Load(avatarId, OAPPSystemHolonDNA.Id);
 
                         if (loadOAPPSystemHolonResult != null && loadOAPPSystemHolonResult.Result != null && !loadOAPPSystemHolonResult.IsError)
                         {
@@ -2296,7 +2299,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             await UpdateDownloadCountsAsync(avatarId, downloadedOAPPSystemHolon, holon.OAPPSystemHolonDNA, result, errorMessage, providerType);
 
                             downloadedOAPPSystemHolon.MetaData[OAPPSystemHolonIdName] = holon.OAPPSystemHolonDNA.Id.ToString();
-                            downloadedOAPPSystemHolon.MetaData["OAPPSystemHolonDNAJSON"] = JsonSerializer.Serialize(downloadedOAPPSystemHolon.OAPPSystemHolonDNA);
+                            downloadedOAPPSystemHolon.MetaData[OAPPSystemHolonDNAFileName] = JsonSerializer.Serialize(downloadedOAPPSystemHolon.OAPPSystemHolonDNA);
                             OASISResult<T2> saveResult = await downloadedOAPPSystemHolon.SaveAsync<T2>();
 
                             if (!(saveResult != null && saveResult.Result != null && !saveResult.IsError))
@@ -2304,7 +2307,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         }
                         else
                         {
-                            OASISResult<IEnumerable<T2>> downloadedOAPPSystemHolonResult = await Data.LoadHolonsByMetaDataAsync<T2>("OAPPSystemHolonId", holon.OAPPSystemHolonDNA.Id.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+                            OASISResult<IEnumerable<T2>> downloadedOAPPSystemHolonResult = await Data.LoadHolonsByMetaDataAsync<T2>(OAPPSystemHolonIdName, holon.OAPPSystemHolonDNA.Id.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
 
                             if (downloadedOAPPSystemHolonResult != null && !downloadedOAPPSystemHolonResult.IsError && downloadedOAPPSystemHolonResult.Result != null)
                             {
@@ -2434,7 +2437,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                             UpdateDownloadCounts(avatarId, downloadedOAPPSystemHolon, holon.OAPPSystemHolonDNA, result, errorMessage, providerType);
 
                             downloadedOAPPSystemHolon.MetaData[OAPPSystemHolonIdName] = holon.OAPPSystemHolonDNA.Id.ToString();
-                            downloadedOAPPSystemHolon.MetaData["OAPPSystemHolonDNAJSON"] = JsonSerializer.Serialize(downloadedOAPPSystemHolon.OAPPSystemHolonDNA);
+                            downloadedOAPPSystemHolon.MetaData[OAPPSystemHolonDNAJSONName] = JsonSerializer.Serialize(downloadedOAPPSystemHolon.OAPPSystemHolonDNA);
                             OASISResult<T2> saveResult = downloadedOAPPSystemHolon.Save<T2>();
 
                             if (!(saveResult != null && saveResult.Result != null && !saveResult.IsError))
@@ -2442,7 +2445,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                         }
                         else
                         {
-                            OASISResult<IEnumerable<T2>> downloadedOAPPSystemHolonResult = Data.LoadHolonsByMetaData<T2>("OAPPSystemHolonId", holon.OAPPSystemHolonDNA.Id.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+                            OASISResult<IEnumerable<T2>> downloadedOAPPSystemHolonResult = Data.LoadHolonsByMetaData<T2>(OAPPSystemHolonIdName, holon.OAPPSystemHolonDNA.Id.ToString(), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
 
                             if (downloadedOAPPSystemHolonResult != null && !downloadedOAPPSystemHolonResult.IsError && downloadedOAPPSystemHolonResult.Result != null)
                             {
@@ -2532,7 +2535,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     OASISResult<T2> downloadResult = await DownloadAsync(avatarId, holon, fullDownloadPath, reInstall, providerType);
 
                     if (!fullDownloadPath.Contains(string.Concat(".", OAPPSystemHolonFileExtention)))
-                        fullDownloadPath = Path.Combine(fullDownloadPath, string.Concat(holon.Name, "_v", holon.OAPPSystemHolonDNA.Version, ".OAPPSystemHolon"));
+                        fullDownloadPath = Path.Combine(fullDownloadPath, string.Concat(holon.Name, "_v", holon.OAPPSystemHolonDNA.Version, ".", OAPPSystemHolonFileExtention));
 
                     if (downloadResult != null && downloadResult.Result != null && !downloadResult.IsError)
                         result = await InstallAsync(avatarId, fullDownloadPath, fullInstallPath, createOAPPSystemHolonDirectory, downloadResult.Result, reInstall, providerType);
@@ -2585,7 +2588,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                     OASISResult<T2> downloadResult = Download(avatarId, holon, fullDownloadPath, reInstall, providerType);
 
                     if (!fullDownloadPath.Contains(string.Concat(".", OAPPSystemHolonFileExtention)))
-                        fullDownloadPath = Path.Combine(fullDownloadPath, string.Concat(holon.Name, "_v", holon.OAPPSystemHolonDNA.Version, ".OAPPSystemHolon"));
+                        fullDownloadPath = Path.Combine(fullDownloadPath, string.Concat(holon.Name, "_v", holon.OAPPSystemHolonDNA.Version, holon.Name, ".", OAPPSystemHolonFileExtention));
 
                     if (downloadResult != null && downloadResult.Result != null && !downloadResult.IsError)
                         result = Install(avatarId, fullDownloadPath, fullInstallPath, createOAPPSystemHolonDirectory, downloadResult.Result, reInstall, providerType);
@@ -2662,14 +2665,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 //Unzip
                 OnOAPPSystemHolonInstallStatusChanged?.Invoke(this, new OAPPSystemHolonInstallStatusEventArgs() { Status = Enums.OAPPSystemHolonInstallStatus.Decompressing });
                 ZipFile.ExtractToDirectory(fullPathToPublishedOAPPSystemHolonFile, tempPath, Encoding.Default, true);
-                OASISResult<IOAPPSystemHolonDNA> OAPPSystemHolonDNAResult = await ReadOAPPSystemHolonDNAAsync(tempPath);
+                OASISResult<IOAPPSystemHolonDNA> OAPPSystemHolonDNAResult = await ReadOAPPSystemHolonDNAFromSourceOrInstallFolderAsync(tempPath);
 
                 if (OAPPSystemHolonDNAResult != null && OAPPSystemHolonDNAResult.Result != null && !OAPPSystemHolonDNAResult.IsError)
                 {
                     //Load the T from the OASIS to make sure the OAPPSystemHolonDNA is valid (and has not been tampered with).
 
                     //TODO: Check if this works ok? What if they tamper with the VersionSequence in the DNA file?!
-                    OASISResult<T1> OAPPSystemHolonLoadResult = await LoadAsync(OAPPSystemHolonDNAResult.Result.Id, avatarId, OAPPSystemHolonDNAResult.Result.VersionSequence, providerType);
+                    OASISResult<T1> OAPPSystemHolonLoadResult = await LoadAsync(avatarId, OAPPSystemHolonDNAResult.Result.Id, OAPPSystemHolonDNAResult.Result.VersionSequence, providerType);
                     //OASISResult<IOAPPSystemHolon> OAPPSystemHolonLoadResult = await LoadOAPPSystemHolonAsync(OAPPSystemHolonDNAResult.Result.Id, false, 0, providerType);
 
                     if (OAPPSystemHolonLoadResult != null && OAPPSystemHolonLoadResult.Result != null && !OAPPSystemHolonLoadResult.IsError)
@@ -2730,7 +2733,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                                 installedOAPPSystemHolon.MetaData["Version"] = OAPPSystemHolonDNA.Version;
                                 installedOAPPSystemHolon.MetaData["VersionSequence"] = OAPPSystemHolonDNA.VersionSequence;
-                                installedOAPPSystemHolon.MetaData["OAPPSystemHolonId"] = OAPPSystemHolonDNA.Id;
+                                installedOAPPSystemHolon.MetaData[OAPPSystemHolonIdName] = OAPPSystemHolonDNA.Id;
                                 
                                 await UpdateInstallCountsAsync(avatarId, installedOAPPSystemHolon, OAPPSystemHolonDNA, result, errorMessage, providerType);
                             }
@@ -2840,14 +2843,14 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
                 //Unzip
                 OnOAPPSystemHolonInstallStatusChanged?.Invoke(this, new OAPPSystemHolonInstallStatusEventArgs() { Status = Enums.OAPPSystemHolonInstallStatus.Decompressing });
                 ZipFile.ExtractToDirectory(fullPathToPublishedOAPPSystemHolonFile, tempPath, Encoding.Default, true);
-                OASISResult<IOAPPSystemHolonDNA> OAPPSystemHolonDNAResult = ReadOAPPSystemHolonDNA(tempPath);
+                OASISResult<IOAPPSystemHolonDNA> OAPPSystemHolonDNAResult = ReadOAPPSystemHolonDNAFromSourceOrInstallFolder(tempPath);
 
                 if (OAPPSystemHolonDNAResult != null && OAPPSystemHolonDNAResult.Result != null && !OAPPSystemHolonDNAResult.IsError)
                 {
                     //Load the T from the OASIS to make sure the OAPPSystemHolonDNA is valid (and has not been tampered with).
 
                     //TODO: Check if this works ok? What if they tamper with the VersionSequence in the DNA file?!
-                    OASISResult<T1> OAPPSystemHolonLoadResult = Load(OAPPSystemHolonDNAResult.Result.Id, avatarId, OAPPSystemHolonDNAResult.Result.VersionSequence, providerType);
+                    OASISResult<T1> OAPPSystemHolonLoadResult = Load(avatarId, OAPPSystemHolonDNAResult.Result.Id, OAPPSystemHolonDNAResult.Result.VersionSequence, providerType);
                     //OASISResult<IOAPPSystemHolon> OAPPSystemHolonLoadResult = await LoadOAPPSystemHolonAsync(OAPPSystemHolonDNAResult.Result.Id, false, 0, providerType);
 
                     if (OAPPSystemHolonLoadResult != null && OAPPSystemHolonLoadResult.Result != null && !OAPPSystemHolonLoadResult.IsError)
@@ -2908,7 +2911,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                                 installedOAPPSystemHolon.MetaData["Version"] = OAPPSystemHolonDNA.Version;
                                 installedOAPPSystemHolon.MetaData["VersionSequence"] = OAPPSystemHolonDNA.VersionSequence;
-                                installedOAPPSystemHolon.MetaData["OAPPSystemHolonId"] = OAPPSystemHolonDNA.Id;
+                                installedOAPPSystemHolon.MetaData[OAPPSystemHolonIdName] = OAPPSystemHolonDNA.Id;
 
                                 UpdateInstallCounts(avatarId, installedOAPPSystemHolon, OAPPSystemHolonDNA, result, errorMessage, providerType);
                             }
@@ -4046,33 +4049,93 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadOAPPSystemHolonDNAAsync(string fullPathToOAPPSystemHolon)
+        public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadOAPPSystemHolonDNAFromSourceOrInstallFolderAsync(string fullPathToOAPPSystemHolonFolder)
         {
             OASISResult<IOAPPSystemHolonDNA> result = new OASISResult<IOAPPSystemHolonDNA>();
 
             try
             {
-                result.Result = JsonSerializer.Deserialize<OAPPSystemHolonDNA>(await File.ReadAllTextAsync(Path.Combine(fullPathToOAPPSystemHolon, OAPPSystemHolonDNAFileName)));
+                result.Result = JsonSerializer.Deserialize<OAPPSystemHolonDNA>(await File.ReadAllTextAsync(Path.Combine(fullPathToOAPPSystemHolonFolder, OAPPSystemHolonDNAFileName)));
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An error occured reading the {OAPPSystemHolonUIName} DNA in ReadOAPPSystemHolonDNAAsync: Reason: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"An error occured reading the {OAPPSystemHolonDNAFileName} in the {fullPathToOAPPSystemHolonFolder} folder in ReadOAPPSystemHolonDNAFromSourceOrInstallFolderAsync: Reason: {ex.Message}");
             }
 
             return result;
         }
 
-        public OASISResult<IOAPPSystemHolonDNA> ReadOAPPSystemHolonDNA(string fullPathToOAPPSystemHolon)
+        public OASISResult<IOAPPSystemHolonDNA> ReadOAPPSystemHolonDNAFromSourceOrInstallFolder(string fullPathToOAPPSystemHolonFolder)
         {
             OASISResult<IOAPPSystemHolonDNA> result = new OASISResult<IOAPPSystemHolonDNA>();
 
             try
             {
-                result.Result = JsonSerializer.Deserialize<OAPPSystemHolonDNA>(File.ReadAllText(Path.Combine(fullPathToOAPPSystemHolon, OAPPSystemHolonDNAFileName)));
+                result.Result = JsonSerializer.Deserialize<OAPPSystemHolonDNA>(File.ReadAllText(Path.Combine(fullPathToOAPPSystemHolonFolder, OAPPSystemHolonDNAFileName)));
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An error occured reading the {OAPPSystemHolonUIName} DNA in ReadOAPPSystemHolonDNA: Reason: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"An error occured reading the {OAPPSystemHolonDNAFileName} in the {fullPathToOAPPSystemHolonFolder} folder in ReadOAPPSystemHolonDNAFromSourceOrInstallFolder: Reason: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadOAPPSystemHolonDNAFromPublishedFileAsync(string fullPathToPublishedFile)
+        {
+            OASISResult<IOAPPSystemHolonDNA> result = new OASISResult<IOAPPSystemHolonDNA>();
+            string tempPath = "";
+
+            try
+            {
+                tempPath = Path.GetTempPath();
+                tempPath = Path.Combine(tempPath, "tmp_oapp_system_holon");
+
+                if (Directory.Exists(tempPath))
+                    Directory.Delete(tempPath, true);
+
+                ZipFile.ExtractToDirectory(fullPathToPublishedFile, tempPath, Encoding.Default, true);
+
+                result.Result = JsonSerializer.Deserialize<OAPPSystemHolonDNA>(await File.ReadAllTextAsync(Path.Combine(tempPath, OAPPSystemHolonDNAFileName)));
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"An error occured reading the {OAPPSystemHolonDNAFileName} in the {fullPathToPublishedFile} file in ReadOAPPSystemHolonDNAFromPublishedFile: Reason: {e.Message}");
+            }
+            finally
+            {
+                if (Directory.Exists(tempPath))
+                    Directory.Delete(tempPath, true);
+            }
+
+            return result;
+        }
+
+        public OASISResult<IOAPPSystemHolonDNA> ReadOAPPSystemHolonDNAFromPublishedFile(string fullPathToPublishedFile)
+        {
+            OASISResult<IOAPPSystemHolonDNA> result = new OASISResult<IOAPPSystemHolonDNA>();
+            string tempPath = "";
+
+            try
+            {
+                tempPath = Path.GetTempPath();
+                tempPath = Path.Combine(tempPath, "tmp_oapp_system_holon");
+
+                if (Directory.Exists(tempPath))
+                    Directory.Delete(tempPath, true);
+
+                ZipFile.ExtractToDirectory(fullPathToPublishedFile, tempPath, Encoding.Default, true);
+
+                result.Result = JsonSerializer.Deserialize<OAPPSystemHolonDNA>(File.ReadAllText(Path.Combine(tempPath, OAPPSystemHolonDNAFileName)));
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"An error occured reading the {OAPPSystemHolonDNAFileName} in the {fullPathToPublishedFile} file in ReadOAPPSystemHolonDNAFromPublishedFile: Reason: {e.Message}");
+            }
+            finally
+            {
+                if (Directory.Exists(tempPath))
+                    Directory.Delete(tempPath, true);
             }
 
             return result;
@@ -4392,8 +4455,8 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
 
                         foreach (T1 oappSystemHolon in results.Result)
                         {
-                            if (oappSystemHolon.MetaData != null && oappSystemHolon.MetaData.ContainsKey("OAPPSystemHolonId") && oappSystemHolon.MetaData["OAPPSystemHolonId"] != null)
-                                metaDataId = oappSystemHolon.MetaData["OAPPSystemHolonId"].ToString();
+                            if (oappSystemHolon.MetaData != null && oappSystemHolon.MetaData.ContainsKey(OAPPSystemHolonIdName) && oappSystemHolon.MetaData[OAPPSystemHolonIdName] != null)
+                                metaDataId = oappSystemHolon.MetaData[OAPPSystemHolonIdName].ToString();
 
                             latestVersion = latestVersions.ContainsKey(metaDataId) ? Convert.ToInt32(latestVersions[metaDataId].OAPPSystemHolonDNA.Version.Replace(".", "")) : 0;
                             currentVersion = Convert.ToInt32(oappSystemHolon.OAPPSystemHolonDNA.Version.Replace(".", ""));
