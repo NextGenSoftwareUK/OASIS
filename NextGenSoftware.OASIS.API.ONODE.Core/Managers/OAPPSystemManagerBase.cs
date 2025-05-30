@@ -3305,7 +3305,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         {
             OASISResult<IEnumerable<T3>> result = await Data.LoadHolonsForParentAsync<T3>(avatarId, OAPPSystemInstalledHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
 
-            if (!(result != null && !result.IsError && result.Result != null))
+            if (result != null && !result.IsError && result.Result != null)
+                result.Result = result.Result.Where(x => x.UninstalledOn == DateTime.MinValue);
+            else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPSystemManagerBase.ListInstalledAsync. Reason: Error occured calling LoadHolonsForParentAsync. Reason: {result.Message}");
 
             return result;
@@ -3315,7 +3317,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
         {
             OASISResult<IEnumerable<T3>> result = Data.LoadHolonsForParent<T3>(avatarId, OAPPSystemInstalledHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
 
-            if (!(result != null && !result.IsError && result.Result != null))
+            if (result != null && !result.IsError && result.Result != null)
+                result.Result = result.Result.Where(x => x.UninstalledOn == DateTime.MinValue);
+            else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in OAPPSystemManagerBase.ListInstalled. Reason: Error occured calling LoadHolonsForParent. Reason: {result.Message}");
 
             return result;
@@ -4226,7 +4230,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 //Update total installs for all versions.
                 foreach (T1 holonVersion in holonVersionsResult.Result)
-                    totalDownloads += holonVersion.OAPPSystemHolonDNA.Installs;
+                    totalDownloads += holonVersion.OAPPSystemHolonDNA.Downloads;
 
                 //Need to add this download (because its not saved yet).
                 totalDownloads++;
@@ -4275,7 +4279,7 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 //Update total installs for all versions.
                 foreach (T1 holonVersion in holonVersionsResult.Result)
-                    totalDownloads += holonVersion.OAPPSystemHolonDNA.Installs;
+                    totalDownloads += holonVersion.OAPPSystemHolonDNA.Downloads;
 
                 //Need to add this download (because its not saved yet).
                 totalDownloads++;
@@ -4512,36 +4516,36 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             {
                 if (edit && dnaVersion != storedVersion)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA ({dnaVersion}) is not the same as the version you are attempting to edit ({storedVersion}). They must be the same if you wish to upload new files for version {storedVersion}. Please edit the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
+                    OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is not the same as the version you are attempting to edit (v{storedVersion}). They must be the same if you wish to upload new files for version v{storedVersion}. Please edit the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
                     return result;
                 } 
                 else
                 {
                     if (!StringHelper.IsValidVersion(dnaVersion))
                     {
-                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA ({dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
+                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
                         return result;
                     }
 
                     if (dnaVersion == storedVersion)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA ({dnaVersion}) is the same as the previous version ({storedVersion}). Please make sure you increment the version in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
+                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is the same as the previous version ({storedVersion}). Please make sure you increment the version in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
                         return result;
                     }
 
                     if (!int.TryParse(dnaVersion.Replace(".", ""), out dnaVersionInt))
                     {
-                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA ({dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
+                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
                         return result;
                     }
 
                     //Should hopefully never occur! ;-)
                     if (!int.TryParse(storedVersion.Replace(".", ""), out stotedVersionInt))
-                        OASISErrorHandling.HandleWarning(ref result, $"The version stored in the OASIS ({storedVersion}) is not valid!");
+                        OASISErrorHandling.HandleWarning(ref result, $"The version stored in the OASIS (v{storedVersion}) is not valid!");
 
                     if (dnaVersionInt <= stotedVersionInt)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA ({dnaVersion}) is less than the previous version ({storedVersion}). Please make sure you increment the version in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder.");
+                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is less than the previous version (v{storedVersion}). Please make sure you increment the version in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder.");
                         return result;
                     }
                 }
