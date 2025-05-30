@@ -401,8 +401,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         if (publishResult.Message.Contains("Please make sure you increment the version"))
                         {
-                            if (CLIEngine.GetConfirmation("Do you wish to open the OAPPSystemHolonDNA.json file now?"))
-                                Process.Start("explorer.exe", Path.Combine(OAPPTemplateDNAResult.Result.SourcePath, "OAPPSystemHolonDNA.json"));
+                            if (CLIEngine.GetConfirmation("Do you wish to open the OAPPTemplateDNA.json file now?"))
+                                Process.Start("explorer.exe", Path.Combine(OAPPTemplateDNAResult.Result.SourcePath, "OAPPTemplateDNA.json"));
                         }
                         else
                             CLIEngine.ShowErrorMessage($"An error occured publishing the OAPP Template. Reason: {publishResult.Message}");
@@ -414,7 +414,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowErrorMessage($"The OAPPTemplate could not be found for id {OAPPTemplateDNAResult.Result.Id} found in the OAPPTemplateDNA.json file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new OAPP Template.");
             }
             else
-                CLIEngine.ShowErrorMessage("The OAPPSystemHolonDNA.json file could not be found! Please ensure it is in the folder you specified.");
+                CLIEngine.ShowErrorMessage("The OAPPTemplateDNA.json file could not be found! Please ensure it is in the folder you specified.");
         }
 
         public static async Task UnpublishOAPPTemplateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
@@ -1422,7 +1422,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (Guid.TryParse(idOrName, out id))
                 {
                     CLIEngine.ShowWorkingMessage("Loading OAPP Template...");
-                    result = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(id, STAR.BeamedInAvatar.AvatarId, 0, providerType);
+                    result = await STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplateAsync(STAR.BeamedInAvatar.AvatarId, id, 0, providerType);
 
                     if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.OAPPSystemHolonDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
                     {
@@ -1638,7 +1638,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (Guid.TryParse(idOrName, out id))
                 {
                     CLIEngine.ShowWorkingMessage("Loading OAPP Template...");
-                    result = STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplate(id, STAR.BeamedInAvatar.Id, 0, providerType);
+                    result = STAR.OASISAPI.OAPPTemplates.LoadOAPPTemplate(STAR.BeamedInAvatar.Id, id, 0, providerType);
 
                     if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.OAPPSystemHolonDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
                     {
