@@ -6,11 +6,11 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.ONode.Core.Enums;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib

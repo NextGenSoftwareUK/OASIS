@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using System.Drawing;
 
-namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class Building : Holon, IBuilding
     {

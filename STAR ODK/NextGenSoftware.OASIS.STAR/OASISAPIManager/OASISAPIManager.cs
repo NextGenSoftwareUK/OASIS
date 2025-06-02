@@ -2,7 +2,7 @@
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.ONode.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 {

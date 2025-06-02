@@ -3,14 +3,14 @@ using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONode.Core.Enums;
+using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
-using NextGenSoftware.OASIS.API.ONode.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.STAR.OASISAPIManager;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {

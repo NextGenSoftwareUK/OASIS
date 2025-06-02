@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {

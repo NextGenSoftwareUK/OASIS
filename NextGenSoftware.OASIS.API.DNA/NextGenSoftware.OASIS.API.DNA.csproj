@@ -5,8 +5,8 @@
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API DNA</Product>
 	  <Title>WEB4 OASIS API DNA</Title>
-	  <Summary>This module is responsible for loading and managing the OASISDNA.json config file. This is where all of the settings for the ONode are kept such as settings for each OASIS Provider configured for that ONode, which ones to use for auto-replication, auto-loadbalance, auto-failover, email, authentication, security, error handling, encryption, logging settings etc.</Summary>
-	  <Description>This module is responsible for loading and managing the OASISDNA.json config file. This is where all of the settings for the ONode are kept such as settings for each OASIS Provider configured for that ONode, which ones to use for auto-replication, auto-loadbalance, auto-failover, email, authentication, security, error handling, encryption, logging settings etc.</Description>
+	  <Summary>This module is responsible for loading and managing the OASISDNA.json config file. This is where all of the settings for the ONODE are kept such as settings for each OASIS Provider configured for that ONODE, which ones to use for auto-replication, auto-loadbalance, auto-failover, email, authentication, security, error handling, encryption, logging settings etc.</Summary>
+	  <Description>This module is responsible for loading and managing the OASISDNA.json config file. This is where all of the settings for the ONODE are kept such as settings for each OASIS Provider configured for that ONODE, which ones to use for auto-replication, auto-loadbalance, auto-failover, email, authentication, security, error handling, encryption, logging settings etc.</Description>
 	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
 	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>

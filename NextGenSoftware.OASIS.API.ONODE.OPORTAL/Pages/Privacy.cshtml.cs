@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 
-namespace NextGenSoftware.OASIS.API.ONode.OPORTAL.Pages
+namespace NextGenSoftware.OASIS.API.ONODE.OPORTAL.Pages
 {
     public class PrivacyModel : PageModel
     {

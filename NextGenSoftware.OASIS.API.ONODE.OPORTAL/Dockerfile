@@ -10,16 +10,16 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-nanoserver-1903 AS build
 WORKDIR /src
-COPY ["NextGenSoftware.OASIS.API.ONode.OPORTAL/NextGenSoftware.OASIS.API.ONode.OPORTAL.csproj", "NextGenSoftware.OASIS.API.ONode.OPORTAL/"]
-RUN dotnet restore "NextGenSoftware.OASIS.API.ONode.OPORTAL/NextGenSoftware.OASIS.API.ONode.OPORTAL.csproj"
+COPY ["NextGenSoftware.OASIS.API.ONODE.OPORTAL/NextGenSoftware.OASIS.API.ONODE.OPORTAL.csproj", "NextGenSoftware.OASIS.API.ONODE.OPORTAL/"]
+RUN dotnet restore "NextGenSoftware.OASIS.API.ONODE.OPORTAL/NextGenSoftware.OASIS.API.ONODE.OPORTAL.csproj"
 COPY . .
-WORKDIR "/src/NextGenSoftware.OASIS.API.ONode.OPORTAL"
-RUN dotnet build "NextGenSoftware.OASIS.API.ONode.OPORTAL.csproj" -c Release -o /app/build
+WORKDIR "/src/NextGenSoftware.OASIS.API.ONODE.OPORTAL"
+RUN dotnet build "NextGenSoftware.OASIS.API.ONODE.OPORTAL.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "NextGenSoftware.OASIS.API.ONode.OPORTAL.csproj" -c Release -o /app/publish
+RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.OPORTAL.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "NextGenSoftware.OASIS.API.ONode.OPORTAL.dll"]
+ENTRYPOINT ["dotnet", "NextGenSoftware.OASIS.API.ONODE.OPORTAL.dll"]

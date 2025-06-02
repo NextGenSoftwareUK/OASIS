@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Program
     {

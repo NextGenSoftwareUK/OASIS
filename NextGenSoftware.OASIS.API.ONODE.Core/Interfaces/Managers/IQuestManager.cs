@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public interface IQuestManager
     {

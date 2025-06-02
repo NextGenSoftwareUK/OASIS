@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONode.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
-namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces
 {
     public interface IMissionManager : IOASISManager
     {

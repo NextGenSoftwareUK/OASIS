@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using NextGenSoftware.OASIS.API.ONode.WebUI.MVC.Models;
+using NextGenSoftware.OASIS.API.ONODE.WebUI.MVC.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.MVC.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.MVC.Controllers
 {
     public class HomeController : Controller
     {

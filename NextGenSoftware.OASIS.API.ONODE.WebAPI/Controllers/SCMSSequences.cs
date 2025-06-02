@@ -3,10 +3,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Repositories;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Repositories;
 using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

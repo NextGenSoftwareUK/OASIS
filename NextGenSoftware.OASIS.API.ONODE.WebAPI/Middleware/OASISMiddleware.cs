@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Middleware
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 {
     public class OASISMiddleware
     {

@@ -9,13 +9,13 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Data;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using Solnet.Metaplex;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/data")]

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.HTML2.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.HTML2.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

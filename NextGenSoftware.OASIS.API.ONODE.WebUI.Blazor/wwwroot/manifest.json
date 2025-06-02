@@ -1,6 +1,6 @@
 {
-  "name": "NextGenSoftware.OASIS.API.ONode.WebUI.Blazor",
-  "short_name": "NextGenSoftware.OASIS.API.ONode.WebUI.Blazor",
+  "name": "NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor",
+  "short_name": "NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",

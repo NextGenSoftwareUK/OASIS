@@ -7,12 +7,12 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Keys;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Keys;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

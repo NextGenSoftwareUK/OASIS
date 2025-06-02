@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using System;
 
-namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public class ParkManager : OASISManager
     {
