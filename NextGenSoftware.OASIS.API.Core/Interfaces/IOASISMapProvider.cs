@@ -2,7 +2,7 @@
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
-namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public interface IOASISMapProvider
     {

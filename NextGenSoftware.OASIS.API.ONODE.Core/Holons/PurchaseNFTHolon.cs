@@ -2,7 +2,7 @@
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.Core.Holons;
 
-namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class PurchaseNFTHolon : Holon
     {

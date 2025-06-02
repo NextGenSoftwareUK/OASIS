@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "NextGenSoftware.OASIS.API.ONode.WebUI.Razor": {
+    "NextGenSoftware.OASIS.API.ONODE.WebUI.Razor": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

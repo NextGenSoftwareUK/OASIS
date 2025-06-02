@@ -2,12 +2,12 @@
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.ONode.Core.Enums;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONode.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 
@@ -381,12 +381,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     Console.WriteLine("");
                     CLIEngine.ShowWorkingMessage("Publishing OAPP Template...");
-
-                    //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplatePublishStatusChanged += OAPPTemplates_OnOAPPTemplatePublishStatusChanged;
-                    //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateUploadStatusChanged += OAPPTemplates_OnOAPPTemplateUploadStatusChanged;
                     OASISResult<IOAPPTemplate> publishResult = await STAR.OASISAPI.OAPPTemplates.PublishOAPPTemplateAsync(STAR.BeamedInAvatar.Id, oappTemplatePath, launchTarget, publishPath, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, edit, providerType, OAPPBinaryProviderType);
-                    //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplateUploadStatusChanged -= OAPPTemplates_OnOAPPTemplateUploadStatusChanged;
-                    //STAR.OASISAPI.OAPPTemplates.OnOAPPTemplatePublishStatusChanged -= OAPPTemplates_OnOAPPTemplatePublishStatusChanged;
 
                     if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
                     {
@@ -994,9 +989,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             if (!_init)
                                 Init();
 
-                            //OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, template.OAPPSystemHolonDNA.Id, template.OAPPSystemHolonDNA.VersionSequence, template.InstalledPath, template.DownloadedPath, false, true, providerType);
-                            OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, template, template.InstalledPath, template.DownloadedPath, false, true, providerType);
-                            //OASISResult<IInstalledOAPPTemplate> installResult = await DownloadAndInstallOAPPTemplateAsync(result.Result.ElementAt(number - 1).Id.ToString(), InstallMode.DownloadAndReInstall, providerType);
+                            //OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, template.OAPPSystemHolonDNA.Id, template.OAPPSystemHolonDNA.VersionSequence, template.InstalledPath, template.DownloadedPath, false, true, providerType);
+                            //OASISResult<IInstalledOAPPTemplate> installResult = await STAR.OASISAPI.OAPPTemplates.DownloadAndInstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, template, template.InstalledPath, template.DownloadedPath, false, true, providerType);
+
+                            OASISResult<IInstalledOAPPTemplate> installResult = await DownloadAndInstallOAPPTemplateAsync(template.OAPPSystemHolonDNA.Id.ToString(), InstallMode.DownloadAndReInstall, providerType);
 
                             if (installResult != null && !installResult.IsError && installResult.Result != null)
                             {

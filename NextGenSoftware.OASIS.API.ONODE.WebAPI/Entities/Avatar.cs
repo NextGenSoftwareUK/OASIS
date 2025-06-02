@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.Utilities;
 using System;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Avatar : BaseEntity
     {

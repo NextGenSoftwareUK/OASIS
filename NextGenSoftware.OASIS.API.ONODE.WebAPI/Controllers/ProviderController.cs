@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/provider")]
@@ -379,7 +379,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Enable/disable auto-load balance for all providers. If this is set to true then the OASIS will automatically switch to the fastest provider within the ONode's neighbourhood. This effectively load balances the entire internet.
+        /// Enable/disable auto-load balance for all providers. If this is set to true then the OASIS will automatically switch to the fastest provider within the ONODE's neighbourhood. This effectively load balances the entire internet.
         /// </summary>
         /// <param name="addToLoadBalanceList"></param>
         /// <returns></returns>
@@ -391,7 +391,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Enable/disable auto-load balance for providers. If this is set to true then the OASIS will automatically switch to the fastest provider within the ONode's neighbourhood. This effectively load balances the entire internet. The OASIS will continue to auto-load balance over providers in the list until this method is called again passing in false along with a list of providers to disable auto-loadbalance. NOTE: If a provider is in the list of providers to auto-loadbalance but is missing from the list when false is passed in, then it will continue to auto-loadbalance.
+        /// Enable/disable auto-load balance for providers. If this is set to true then the OASIS will automatically switch to the fastest provider within the ONODE's neighbourhood. This effectively load balances the entire internet. The OASIS will continue to auto-load balance over providers in the list until this method is called again passing in false along with a list of providers to disable auto-loadbalance. NOTE: If a provider is in the list of providers to auto-loadbalance but is missing from the list when false is passed in, then it will continue to auto-loadbalance.
         /// </summary>
         /// <param name="addToLoadBalanceList"></param>
         /// <param name="providerTypes"></param>

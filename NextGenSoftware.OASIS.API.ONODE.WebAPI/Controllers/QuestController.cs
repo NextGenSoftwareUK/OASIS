@@ -7,7 +7,7 @@
 //using NextGenSoftware.OASIS.API.Core.Managers;
 //using NextGenSoftware.OASIS.API.Core.Interfaces;
 
-//namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 //{
 //    [Route("api/quest")]
 //    [ApiController]

@@ -5,9 +5,9 @@
 //using NextGenSoftware.OASIS.API.Core.Managers;
 //using NextGenSoftware.OASIS.API.Core.Interfaces;
 //using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
-//using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
+//using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 
-//namespace NextGenSoftware.OASIS.API.ONode.Core.Holons
+//namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 //{
 //    public class PublishableHolon : Holon, IPublishableHolon
 //    {

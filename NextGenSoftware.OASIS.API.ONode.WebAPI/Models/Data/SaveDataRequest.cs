@@ -1,5 +1,5 @@
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Data
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data
 {
     public class SaveDataRequest : OASISRequest
     {

@@ -13,15 +13,15 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Data;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

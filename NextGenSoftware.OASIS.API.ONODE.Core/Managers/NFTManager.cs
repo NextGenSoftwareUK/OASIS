@@ -17,12 +17,12 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.ONode.Core.Holons;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 
-namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public class NFTManager : COSMICManagerBase, INFTManager
     {

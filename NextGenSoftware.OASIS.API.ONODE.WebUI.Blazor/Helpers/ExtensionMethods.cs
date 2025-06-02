@@ -3,7 +3,7 @@ using System;
 using System.Collections.Specialized;
 using System.Web;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.Blazor.Helpers
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor.Helpers
 {
     public static class ExtensionMethods
     {

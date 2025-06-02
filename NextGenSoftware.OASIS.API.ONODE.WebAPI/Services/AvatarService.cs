@@ -15,14 +15,14 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using BC = BCrypt.Net.BCrypt;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.Utilities;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
     //TODO: Want to phase this out, not needed, moving more and more code into AvatarManager.
     public class AvatarService : IAvatarService

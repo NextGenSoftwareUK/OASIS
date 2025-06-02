@@ -1,7 +1,7 @@
 ﻿//using System;
 //using NextGenSoftware.OASIS.API.Core.Interfaces;
 
-//namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces
+//namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces
 //{
 //    public interface IPublishableHolon : IHolon
 //    {

@@ -7,14 +7,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Filters;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Middleware;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Services;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Startup
     {
@@ -85,7 +85,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI
             // configure DI for application services
             services.AddScoped<IAvatarService, AvatarService>();
             //services.AddScoped<IEmailService, EmailService>();
-            //services.AddScoped<ISolanaService, SolanaService>(); //TODO: Not sure we need this? Want to remove this along with all other services ASAP! Use Managers in OASIS.API.Core and OASIS.API.ONode.Core instead!
+            //services.AddScoped<ISolanaService, SolanaService>(); //TODO: Not sure we need this? Want to remove this along with all other services ASAP! Use Managers in OASIS.API.Core and OASIS.API.ONODE.Core instead!
             //services.AddScoped<ICargoService, CargoService>();
             //services.AddScoped<INftService, NftService>();
             //services.AddScoped<IOlandService, OlandService>();
@@ -208,7 +208,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI
 //using Microsoft.Extensions.Logging;
 //using Microsoft.Extensions.Options;
 
-//namespace NextGenSoftware.OASIS.API.ONode.WebAPI
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 //{
 //    public class Startup
 //    {

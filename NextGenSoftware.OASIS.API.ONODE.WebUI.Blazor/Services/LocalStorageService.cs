@@ -2,7 +2,7 @@ using Microsoft.JSInterop;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.Blazor.Services
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor.Services
 {
     public interface ILocalStorageService
     {

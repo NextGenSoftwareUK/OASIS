@@ -1,5 +1,5 @@
 ﻿//using NextGenSoftware.OASIS.API.Core.Enums;
-//namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Objects
+//namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Objects
 //{
 //    public interface ICreateNftTransactionRequest
 //    {

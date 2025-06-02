@@ -2,7 +2,7 @@
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Apollo.Server;
-using NextGenSoftware.OASIS.API.ONode.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Native.EndPoint

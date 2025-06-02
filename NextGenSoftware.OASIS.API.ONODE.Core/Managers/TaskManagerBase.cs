@@ -7,11 +7,11 @@
 //using NextGenSoftware.OASIS.API.Core.Interfaces;
 //using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 //using NextGenSoftware.OASIS.API.DNA;
-//using NextGenSoftware.OASIS.API.ONode.Core.Holons;
+//using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 //using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 //using NextGenSoftware.OASIS.Common;
 
-//namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
+//namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 //{
 //    public abstract class TaskManagerBase : OASISManager
 //    {

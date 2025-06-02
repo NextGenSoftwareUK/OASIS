@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.So
 using NextGenSoftware.OASIS.Common;
 using Solnet.Metaplex;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

@@ -1,6 +1,6 @@
 ﻿using MongoDB.Driver;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class MongoDbContext
     {

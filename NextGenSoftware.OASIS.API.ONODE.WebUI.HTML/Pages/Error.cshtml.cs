@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.HTML2.Pages
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.HTML2.Pages
 {
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public class ErrorModel : PageModel

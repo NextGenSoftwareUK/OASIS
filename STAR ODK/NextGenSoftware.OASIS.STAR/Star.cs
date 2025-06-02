@@ -27,7 +27,7 @@ using NextGenSoftware.OASIS.STAR.EventArgs;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.Enums;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
