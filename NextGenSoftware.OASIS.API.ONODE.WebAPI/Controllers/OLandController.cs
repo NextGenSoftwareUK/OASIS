@@ -69,9 +69,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize(AvatarType.Wizard)]
         [HttpPost]
         [Route("delete-oland/{olandId}")]
-        public async Task<OASISResult<IHolon>> DeleteOlandAsync(Guid olandId)
+        public async Task<OASISResult<IHolon>> DeleteOlandAsync(Guid avatarId, Guid olandId)
         {
-            return await OLandManager.DeleteOlandAsync(olandId);
+            return await OLandManager.DeleteOlandAsync(olandId, avatarId);
         }
 
         [Authorize(AvatarType.Wizard)]

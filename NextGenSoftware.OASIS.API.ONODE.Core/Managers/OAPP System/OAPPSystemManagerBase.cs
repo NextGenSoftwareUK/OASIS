@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         protected string OAPPSystemHolonDNAFileName { get; set; } = "OAPPSystemHolonDNA.json";
         protected string OAPPSystemHolonDNAJSONName { get; set; } = "OAPPSystemHolonDNAJSON";
 
-        protected virtual async Task<OASISResult<T1>> CreateAsync(string name, string description, object holonSubType, Guid avatarId, string fullPathToT, ProviderType providerType = ProviderType.Default)
+        protected virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPSystemManagerBase.CreateAsync, Reason:";
@@ -164,7 +164,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion,
                         COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion,
                         DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion,
-                        SourcePath = fullPathToT
+                        SourcePath = fullPathToT,
+                        MetaData = metaData
                     };
 
                     OASISResult<bool> writeOAPPSystemHolonDNAResult = await WriteOAPPSystemHolonDNAAsync(OAPPSystemHolonDNA, fullPathToT);
@@ -196,7 +197,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        protected virtual OASISResult<T1> Create(string name, string description, object holonSubType, Guid avatarId, string fullPathToT, ProviderType providerType = ProviderType.Default)
+        protected virtual OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPSystemManagerBase.Create, Reason:";
@@ -256,7 +257,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion,
                         COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion,
                         DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion,
-                        SourcePath = fullPathToT
+                        SourcePath = fullPathToT,
+                        MetaData = metaData
                     };
 
                     OASISResult<bool> writeOAPPSystemHolonDNAResult = WriteOAPPSystemHolonDNA(OAPPSystemHolonDNA, fullPathToT);
@@ -377,12 +379,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        protected async Task<OASISResult<IEnumerable<T1>>> LoadAllAsync(Guid avatarId, object holonSubType, bool loadAllTTypes = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        protected async Task<OASISResult<IEnumerable<T1>>> LoadAllAsync(Guid avatarId, object holonSubType, bool loadAllTTypes = true, bool showAllVersions = false, int version = 0, HolonType OAPPSystemHolonType = HolonType.Default, string OAPPSystemHolonTypeName = "Default", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             OASISResult<IEnumerable<T1>> loadHolonsResult = null;
 
-            //if (OAPPSystemHolonType == OAPPSystemHolonType.All)
+            if (OAPPSystemHolonType == HolonType.Default)
+                OAPPSystemHolonType = this.OAPPSystemHolonType;
+
+            if (OAPPSystemHolonTypeName == "Default")
+                OAPPSystemHolonTypeName = this.OAPPSystemHolonTypeName;
+
             if (loadAllTTypes)
                 loadHolonsResult = await Data.LoadAllHolonsAsync<T1>(OAPPSystemHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
             else
@@ -391,12 +398,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        protected OASISResult<IEnumerable<T1>> LoadAll(Guid avatarId, object holonSubType, bool loadAllTTypes = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        protected OASISResult<IEnumerable<T1>> LoadAll(Guid avatarId, object holonSubType, bool loadAllTTypes = true, bool showAllVersions = false, int version = 0, HolonType OAPPSystemHolonType = HolonType.Default, string OAPPSystemHolonTypeName = "Default", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             OASISResult<IEnumerable<T1>> loadHolonsResult = null;
 
-            //if (OAPPSystemHolonType == OAPPSystemHolonType.All)
+            if (OAPPSystemHolonType == HolonType.Default)
+                OAPPSystemHolonType = this.OAPPSystemHolonType;
+
+            if (OAPPSystemHolonTypeName == "Default")
+                OAPPSystemHolonTypeName = this.OAPPSystemHolonTypeName;
+
             if (loadAllTTypes)
                 loadHolonsResult = Data.LoadAllHolons<T1>(OAPPSystemHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
             else
