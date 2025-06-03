@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
-namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
+namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    public class OAPPDNA : OAPPSystemHolonDNA, IOAPPDNA
+    public interface IOAPPDNA : IOAPPSystemHolonDNA
     {
         public string SelfContainedPublishedPath { get; set; } //Contains the STAR & OASIS runtimes.
         public string SelfContainedFullPublishedPath { get; set; } //Contains the STAR, OASIS & .NET Runtimes.
@@ -19,7 +18,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public bool SourcePublishedOnSTARNET { get; set; }
         public bool SourcePublicOnSTARNET { get; set; }
         public long SourceFileSize { get; set; }
-        public bool IsActive { get; set; }
         public OAPPType OAPPType { get; set; }
         public OAPPTemplateType OAPPTemplateType { get; set; }
         public GenesisType GenesisType { get; set; }
@@ -50,7 +48,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
                 return (TotalDownloads + TotalSelfContainedDownloads + TotalSelfContainedFullDownloads + TotalSourceDownloads);
             }
         }
-
 
         public int SelfContainedInstalls { get; set; } //Is IOAPP better place for these?
         public int SelfContainedFullInstalls { get; set; } //Is IOAPP better place for these?

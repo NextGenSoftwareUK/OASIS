@@ -41,14 +41,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "OAPPTemplateDNAJSON")
         { }
 
-        public async Task<OASISResult<IOAPPTemplate>> CreateOAPPTemplateAsync(string name, string description, OAPPTemplateType OAPPTemplateType, Guid avatarId, string fullPathToOAPPTemplate, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> CreateOAPPTemplateAsync(Guid avatarId, string name, string description, OAPPTemplateType OAPPTemplateType, string fullPathToOAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.CreateAsync(name, description, OAPPTemplateType, avatarId, fullPathToOAPPTemplate, providerType));
+            return ProcessResult(await base.CreateAsync(avatarId, name, description, OAPPTemplateType, fullPathToOAPPTemplate, null, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> CreateOAPPTemplate(string name, string description, OAPPTemplateType OAPPTemplateType, Guid avatarId, string fullPathToOAPPTemplate, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> CreateOAPPTemplate(Guid avatarId, string name, string description, OAPPTemplateType OAPPTemplateType, string fullPathToOAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Create(name, description, OAPPTemplateType, avatarId, fullPathToOAPPTemplate, providerType));
+            return ProcessResult(base.Create(avatarId, name, description, OAPPTemplateType, fullPathToOAPPTemplate, null, providerType));
         }
 
         #region COSMICManagerBase
@@ -74,12 +74,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> LoadAllOAPPTemplatesAsync(Guid avatarId, OAPPTemplateType OAPPTemplateType = OAPPTemplateType.All, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResults(await base.LoadAllAsync(avatarId, OAPPTemplateType, OAPPTemplateType == OAPPTemplateType.All, showAllVersions, version, providerType));
+            return ProcessResults(await base.LoadAllAsync(avatarId, OAPPTemplateType, OAPPTemplateType == OAPPTemplateType.All, showAllVersions, version, HolonType.OAPPTemplate, "OAPPTemplate", providerType));
         }
 
         public OASISResult<IEnumerable<IOAPPTemplate>> LoadAllOAPPTemplates(Guid avatarId, OAPPTemplateType OAPPTemplateType = OAPPTemplateType.All, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResults(base.LoadAll(avatarId, OAPPTemplateType, OAPPTemplateType == OAPPTemplateType.All, showAllVersions, version, providerType));
+            return ProcessResults(base.LoadAll(avatarId, OAPPTemplateType, OAPPTemplateType == OAPPTemplateType.All, showAllVersions, version, HolonType.OAPPTemplate, "OAPPTemplate", providerType));
         }
 
         public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> LoadAllOAPPTemplatesForAvatarAsync(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
@@ -571,24 +571,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadOAPPTemplateDNAFromSourceOrInstalledFolderAsync(string fullPathToOAPPTemplateFolder)
         {
-            return ProcessResult(await base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolderAsync(fullPathToOAPPTemplateFolder));
+            return await base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolderAsync(fullPathToOAPPTemplateFolder);
         }
 
         public OASISResult<IOAPPSystemHolonDNA> ReadOAPPTemplateDNAFromSourceOrInstalledFolder(string fullPathToOAPPTemplateFolder)
         {
-            return ProcessResult(base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolder(fullPathToOAPPTemplateFolder));
+            return base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolder(fullPathToOAPPTemplateFolder);
         }
 
         public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadOAPPTemplateDNAFromPublishedOAPPTemplateFileAsync(string fullPathToOAPPTemplateFolder)
         {
-            return ProcessResult(await base.ReadOAPPSystemHolonDNAFromPublishedFileAsync(fullPathToOAPPTemplateFolder));
+            return await base.ReadOAPPSystemHolonDNAFromPublishedFileAsync(fullPathToOAPPTemplateFolder);
         }
 
         public OASISResult<IOAPPSystemHolonDNA> ReadOAPPTemplateDNAFromPublishedOAPPTemplateFile(string fullPathToOAPPTemplateFolder)
         {
-            return ProcessResult(base.ReadOAPPSystemHolonDNAFromPublishedFile(fullPathToOAPPTemplateFolder));
+            return base.ReadOAPPSystemHolonDNAFromPublishedFile(fullPathToOAPPTemplateFolder);
         }
-
 
         private OASISResult<IEnumerable<IOAPPTemplate>> ProcessResults(OASISResult<IEnumerable<OAPPTemplate>> operationResult)
         {
@@ -646,14 +645,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             result.Result = operationResult.Result;
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
-            return result;
-        }
-
-        private OASISResult<IOAPPSystemHolonDNA> ProcessResult(OASISResult<IOAPPSystemHolonDNA> operationResult)
-        {
-            OASISResult<IOAPPSystemHolonDNA> result = new OASISResult<IOAPPSystemHolonDNA>();
-            result.Result = (IOAPPSystemHolonDNA)operationResult.Result;
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
             return result;
         }
