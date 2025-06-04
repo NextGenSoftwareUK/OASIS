@@ -2,14 +2,13 @@
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -90,7 +89,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 Console.WriteLine("");
                 CLIEngine.ShowWorkingMessage("Generating OAPP Template...");
-                OASISResult<IOAPPTemplate> oappTemplateResult = await STAR.OASISAPI.OAPPTemplates.CreateOAPPTemplateAsync(OAPPTemplateName, OAPPTemplateDesc, OAPPTemplateType, STAR.BeamedInAvatar.Id, oappTemplatePath, providerType);
+                OASISResult<IOAPPTemplate> oappTemplateResult = await STAR.OASISAPI.OAPPTemplates.CreateOAPPTemplateAsync(STAR.BeamedInAvatar.Id, OAPPTemplateName, OAPPTemplateDesc, OAPPTemplateType, oappTemplatePath, providerType);
 
                 if (oappTemplateResult != null)
                 {

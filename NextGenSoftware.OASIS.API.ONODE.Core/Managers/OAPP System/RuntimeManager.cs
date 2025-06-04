@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.Core;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -41,552 +42,552 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "RuntimeDNAJSON")
         { }
 
-        public async Task<OASISResult<IRuntime>> CreateRuntimeTemplateAsync(string name, string description, RuntimeType runtimeType, Guid avatarId, string fullPathToRuntimeTemplate, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> CreateRuntimeAsync(Guid avatarId, string name, string description, RuntimeType runtimeType, string fullPathToRuntime, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.CreateAsync(name, description, runtimeType, avatarId, fullPathToRuntimeTemplate, providerType));
+            return ProcessResult(await base.CreateAsync(avatarId, name, description, runtimeType, fullPathToRuntime, null, providerType));
         }
 
-        public OASISResult<IRuntime> CreateRuntimeTemplate(string name, string description, RuntimeType runtimeType, Guid avatarId, string fullPathToRuntimeTemplate, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> CreateRuntime(Guid avatarId, string name, string description, RuntimeType runtimeType, string fullPathToRuntime, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Create(name, description, runtimeType, avatarId, fullPathToRuntimeTemplate, providerType));
+            return ProcessResult(base.Create(avatarId, name, description, runtimeType, fullPathToRuntime, null, providerType));
         }
 
         #region COSMICManagerBase
-        public async Task<OASISResult<IRuntime>> SaveRuntimeTemplateAsync(Guid avatarId, IRuntime oappTemplate, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> SaveRuntimeAsync(Guid avatarId, IRuntime oappTemplate, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.SaveAsync(avatarId, (Runtime)oappTemplate, providerType));
         }
 
-        public OASISResult<IRuntime> SaveRuntimeTemplate(Guid avatarId, IRuntime oappTemplate, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> SaveRuntime(Guid avatarId, IRuntime oappTemplate, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Save(avatarId, (Runtime)oappTemplate, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> LoadRuntimeTemplateAsync(Guid avatarId, Guid RuntimeTemplateId, int version = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> LoadRuntimeAsync(Guid avatarId, Guid RuntimeId, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.LoadAsync(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(await base.LoadAsync(avatarId, RuntimeId, version, providerType));
         }
 
-        public OASISResult<IRuntime> LoadRuntimeTemplate(Guid avatarId, Guid RuntimeTemplateId, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> LoadRuntime(Guid avatarId, Guid RuntimeId, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Load(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(base.Load(avatarId, RuntimeId, version, providerType));
         }
 
-        public async Task<OASISResult<IEnumerable<IRuntime>>> LoadAllRuntimeTemplatesAsync(Guid avatarId, RuntimeType runtimeType = RuntimeType.All, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IRuntime>>> LoadAllRuntimesAsync(Guid avatarId, RuntimeType runtimeType = RuntimeType.STAR, bool loadAllTypes = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResults(await base.LoadAllAsync(avatarId, runtimeType, RuntimeType == RuntimeType.All, showAllVersions, version, providerType));
+            return ProcessResults(await base.LoadAllAsync(avatarId, runtimeType, loadAllTypes, showAllVersions, version, HolonType.Default, "Default", providerType));
         }
 
-        public OASISResult<IEnumerable<IRuntime>> LoadAllRuntimeTemplates(Guid avatarId, runtimeType RuntimeType = RuntimeType.All, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IRuntime>> LoadAllRuntimes(Guid avatarId, RuntimeType runtimeType = RuntimeType.STAR, bool loadAllTypes = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResults(base.LoadAll(avatarId, RuntimeType, RuntimeType == RuntimeType.All, showAllVersions, version, providerType));
+            return ProcessResults(base.LoadAll(avatarId, runtimeType, showAllVersions, showAllVersions, version, HolonType.Default, "Default", providerType));
         }
 
-        public async Task<OASISResult<IEnumerable<IRuntime>>> LoadAllRuntimeTemplatesForAvatarAsync(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IRuntime>>> LoadAllRuntimesForAvatarAsync(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResults(await base.LoadAllForAvatarAsync(avatarId, showAllVersions, version, providerType));
         }
 
-        public OASISResult<IEnumerable<IRuntime>> LoadAllRuntimeTemplatesForAvatar(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IRuntime>> LoadAllRuntimesForAvatar(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResults(base.LoadAllForAvatar(avatarId, showAllVersions, version, providerType));
         }
 
-        public async Task<OASISResult<IEnumerable<IRuntime>>> SearchRuntimeTemplatesAsync(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IRuntime>>> SearchRuntimesAsync(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResults(await base.SearchAsync(avatarId, searchTerm, HolonType.Runtime, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
         }
 
-        public OASISResult<IEnumerable<IRuntime>> SearchRuntimeTemplates(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IRuntime>> SearchRuntimes(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResults(base.Search(avatarId, searchTerm, HolonType.Runtime, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> DeleteRuntimeTemplateAsync(Guid avatarId, Guid oappTemplateId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> DeleteRuntimeAsync(Guid avatarId, Guid oappTemplateId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.DeleteAsync(avatarId, oappTemplateId, version, softDelete, deleteDownload, deleteInstall, providerType));
         }
 
-        public OASISResult<IRuntime> DeleteRuntimeTemplate(Guid avatarId, Guid oappTemplateId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> DeleteRuntime(Guid avatarId, Guid oappTemplateId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Delete(avatarId, oappTemplateId, version, softDelete, deleteDownload, deleteInstall, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> DeleteRuntimeTemplateAsync(Guid avatarId, IRuntime oappTemplate, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> DeleteRuntimeAsync(Guid avatarId, IRuntime oappTemplate, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.DeleteAsync(avatarId, oappTemplate, version, softDelete, deleteDownload, deleteInstall, providerType));
         }
 
-        public OASISResult<IRuntime> DeleteRuntimeTemplate(Guid avatarId, IRuntime oappTemplate, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> DeleteRuntime(Guid avatarId, IRuntime oappTemplate, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Delete(avatarId, oappTemplate, version, softDelete, deleteDownload, deleteInstall, providerType));
         }
         #endregion
 
-        public async Task<OASISResult<IEnumerable<IRuntime>>> LoadRuntimeTemplateVersionsAsync(Guid RuntimeTemplateId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IRuntime>>> LoadRuntimeVersionsAsync(Guid RuntimeId, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResults(await base.LoadVersionsAsync(RuntimeTemplateId, providerType));
+            return ProcessResults(await base.LoadVersionsAsync(RuntimeId, providerType));
         }
 
-        public OASISResult<IEnumerable<IRuntime>> LoadRuntimeTemplateVersions(Guid RuntimeTemplateId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IRuntime>> LoadRuntimeVersions(Guid RuntimeId, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResults(base.LoadVersions(RuntimeTemplateId, providerType));
+            return ProcessResults(base.LoadVersions(RuntimeId, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> LoadRuntimeTemplateVersionAsync(Guid RuntimeTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> LoadRuntimeVersionAsync(Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.LoadVersionAsync(RuntimeTemplateId, version, providerType));
+            return ProcessResult(await base.LoadVersionAsync(RuntimeId, version, providerType));
         }
 
-        public OASISResult<IRuntime> LoadRuntimeTemplateVersion(Guid RuntimeTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> LoadRuntimeVersion(Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.LoadVersion(RuntimeTemplateId, version, providerType));
+            return ProcessResult(base.LoadVersion(RuntimeId, version, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> EditRuntimeTemplateAsync(Guid RuntimeTemplateId, IOAPPSystemHolonDNA newRuntimeTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> EditRuntimeAsync(Guid RuntimeId, IOAPPSystemHolonDNA newRuntimeDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.EditAsync(RuntimeTemplateId, newRuntimeTemplateDNA, avatarId, providerType));
+            return ProcessResult(await base.EditAsync(RuntimeId, newRuntimeDNA, avatarId, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> EditRuntimeTemplateAsync(IRuntime Runtime, IOAPPSystemHolonDNA newRuntimeTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> EditRuntimeAsync(IRuntime Runtime, IOAPPSystemHolonDNA newRuntimeDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.EditAsync(avatarId, (Runtime)Runtime, newRuntimeTemplateDNA, providerType));
+            return ProcessResult(await base.EditAsync(avatarId, (Runtime)Runtime, newRuntimeDNA, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> PublishRuntimeTemplateAsync(Guid avatarId, string fullPathToRuntimeTemplate, string launchTarget, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateRuntimeTemplateBinary = true, bool uploadRuntimeTemplateToCloud = false, bool edit = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
+        public async Task<OASISResult<IRuntime>> PublishRuntimeAsync(Guid avatarId, string fullPathToRuntime, string launchTarget, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateRuntimeBinary = true, bool uploadRuntimeToCloud = false, bool edit = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
         {
-            return ProcessResult(await base.PublishAsync(avatarId, fullPathToRuntimeTemplate, launchTarget, fullPathToPublishTo, registerOnSTARNET, generateRuntimeTemplateBinary, uploadRuntimeTemplateToCloud, edit, providerType, oappBinaryProviderType));
+            return ProcessResult(await base.PublishAsync(avatarId, fullPathToRuntime, launchTarget, fullPathToPublishTo, registerOnSTARNET, generateRuntimeBinary, uploadRuntimeToCloud, edit, providerType, oappBinaryProviderType));
         }
 
-        public async Task<OASISResult<IRuntime>> PublishRuntimeTemplate(Guid avatarId, string fullPathToRuntimeTemplate, string launchTarget, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateRuntimeTemplateBinary = true, bool uploadRuntimeTemplateToCloud = false, bool edit = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
+        public OASISResult<IRuntime> PublishRuntime(Guid avatarId, string fullPathToRuntime, string launchTarget, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateRuntimeBinary = true, bool uploadRuntimeToCloud = false, bool edit = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
         {
-            return ProcessResult(base.Publish(avatarId, fullPathToRuntimeTemplate, launchTarget, fullPathToPublishTo, registerOnSTARNET, generateRuntimeTemplateBinary, uploadRuntimeTemplateToCloud, edit, providerType, oappBinaryProviderType));
+            return ProcessResult(base.Publish(avatarId, fullPathToRuntime, launchTarget, fullPathToPublishTo, registerOnSTARNET, generateRuntimeBinary, uploadRuntimeToCloud, edit, providerType, oappBinaryProviderType));
         }
 
-        public async Task<OASISResult<IRuntime>> UnpublishRuntimeTemplateAsync(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> UnpublishRuntimeAsync(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.UnpublishAsync(avatarId, (Runtime)Runtime, providerType));
         }
 
-        public OASISResult<IRuntime> UnpublishRuntimeTemplate(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> UnpublishRuntime(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Unpublish(avatarId, (Runtime)Runtime, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> UnpublishRuntimeTemplateAsync(Guid avatarId, Guid RuntimeTemplateId, int version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> UnpublishRuntimeAsync(Guid avatarId, Guid RuntimeId, int version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.UnpublishAsync(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(await base.UnpublishAsync(avatarId, RuntimeId, version, providerType));
         }
 
-        public OASISResult<IRuntime> UnpublishRuntimeTemplate(Guid avatarId, Guid RuntimeTemplateId, int version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> UnpublishRuntime(Guid avatarId, Guid RuntimeId, int version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Unpublish(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(base.Unpublish(avatarId, RuntimeId, version, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> UnpublishRuntimeTemplateAsync(Guid avatarId, IOAPPSystemHolonDNA RuntimeTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> UnpublishRuntimeAsync(Guid avatarId, IOAPPSystemHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.UnpublishAsync(avatarId, RuntimeTemplateDNA, providerType));
+            return ProcessResult(await base.UnpublishAsync(avatarId, RuntimeDNA, providerType));
         }
 
-        public OASISResult<IRuntime> UnpublishRuntimeTemplate(Guid avatarId, IOAPPSystemHolonDNA RuntimeTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> UnpublishRuntime(Guid avatarId, IOAPPSystemHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Unpublish(avatarId, RuntimeTemplateDNA, providerType));
+            return ProcessResult(base.Unpublish(avatarId, RuntimeDNA, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> RepublishRuntimeTemplateAsync(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> RepublishRuntimeAsync(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.RepublishAsync(avatarId, (Runtime)Runtime, providerType));
         }
 
-        public OASISResult<IRuntime> RepublishRuntimeTemplate(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> RepublishRuntime(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Republish(avatarId, (Runtime)Runtime, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> RepublishRuntimeTemplateAsync(Guid avatarId, IOAPPSystemHolonDNA RuntimeTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> RepublishRuntimeAsync(Guid avatarId, IOAPPSystemHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.RepublishAsync(avatarId, RuntimeTemplateDNA, providerType));
+            return ProcessResult(await base.RepublishAsync(avatarId, RuntimeDNA, providerType));
         }
 
-        public OASISResult<IRuntime> RepublishRuntimeTemplate(Guid avatarId, IOAPPSystemHolonDNA RuntimeTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> RepublishRuntime(Guid avatarId, IOAPPSystemHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Republish(avatarId, RuntimeTemplateDNA, providerType));
+            return ProcessResult(base.Republish(avatarId, RuntimeDNA, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> RepublishRuntimeTemplateAsync(Guid RuntimeTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> RepublishRuntimeAsync(Guid RuntimeId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.RepublishAsync(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(await base.RepublishAsync(avatarId, RuntimeId, version, providerType));
         }
 
-        public OASISResult<IRuntime> RepublishRuntimeTemplate(Guid RuntimeTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> RepublishRuntime(Guid RuntimeId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Republish(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(base.Republish(avatarId, RuntimeId, version, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> DeactivateRuntimeTemplateAsync(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> DeactivateRuntimeAsync(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.DeactivateAsync(avatarId, (Runtime)Runtime, providerType));
         }
 
-        public OASISResult<IRuntime> DeactivateRuntimeTemplate(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> DeactivateRuntime(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Deactivate(avatarId, (Runtime)Runtime, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> DeactivateRuntimeTemplateAsync(Guid RuntimeTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> DeactivateRuntimeAsync(Guid RuntimeId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.DeactivateAsync(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(await base.DeactivateAsync(avatarId, RuntimeId, version, providerType));
         }
 
-        public OASISResult<IRuntime> DeactivateRuntimeTemplate(Guid RuntimeTemplateId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> DeactivateRuntime(Guid RuntimeId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Deactivate(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(base.Deactivate(avatarId, RuntimeId, version, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> DeactivateRuntimeTemplateAsync(Guid avatarId, IOAPPSystemHolonDNA RuntimeTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> DeactivateRuntimeAsync(Guid avatarId, IOAPPSystemHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.DeactivateAsync(avatarId, RuntimeTemplateDNA, providerType));
+            return ProcessResult(await base.DeactivateAsync(avatarId, RuntimeDNA, providerType));
         }
 
-        public OASISResult<IRuntime> DeactivateRuntimeTemplate(Guid avatarId, IOAPPSystemHolonDNA RuntimeTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> DeactivateRuntime(Guid avatarId, IOAPPSystemHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Deactivate(avatarId, RuntimeTemplateDNA, providerType));
+            return ProcessResult(base.Deactivate(avatarId, RuntimeDNA, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> ActivateRuntimeTemplateAsync(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> ActivateRuntimeAsync(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.ActivateAsync((Runtime)Runtime, avatarId, providerType));
         }
 
-        public OASISResult<IRuntime> ActivateRuntimeTemplate(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> ActivateRuntime(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Activate((Runtime)Runtime, avatarId, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> ActivateRuntimeTemplateAsync(Guid avatarId, IOAPPSystemHolonDNA RuntimeTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> ActivateRuntimeAsync(Guid avatarId, IOAPPSystemHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.ActivateAsync(RuntimeTemplateDNA, avatarId, providerType));
+            return ProcessResult(await base.ActivateAsync(RuntimeDNA, avatarId, providerType));
         }
 
-        public OASISResult<IRuntime> ActivateRuntimeTemplate(Guid avatarId, IOAPPSystemHolonDNA RuntimeTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> ActivateRuntime(Guid avatarId, IOAPPSystemHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Activate(avatarId, RuntimeTemplateDNA, providerType));
+            return ProcessResult(base.Activate(avatarId, RuntimeDNA, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> ActivateRuntimeTemplateAsync(Guid avatarId, Guid RuntimeTemplateId, int version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> ActivateRuntimeAsync(Guid avatarId, Guid RuntimeId, int version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.ActivateAsync(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(await base.ActivateAsync(avatarId, RuntimeId, version, providerType));
         }
 
-        public OASISResult<IRuntime> ActivateRuntimeTemplate(Guid avatarId, Guid RuntimeTemplateId, int version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> ActivateRuntime(Guid avatarId, Guid RuntimeId, int version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Activate(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(base.Activate(avatarId, RuntimeId, version, providerType));
         }
 
-        public async Task<OASISResult<IDownloadedRuntime>> DownloadRuntimeTemplateAsync(Guid avatarId, IRuntime Runtime, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IDownloadedRuntime>> DownloadRuntimeAsync(Guid avatarId, IRuntime Runtime, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.DownloadAsync(avatarId, (Runtime)Runtime, fullDownloadPath, reInstall, providerType));
         }
 
-        public OASISResult<IDownloadedRuntime> DownloadRuntimeTemplate(Guid avatarId, IRuntime Runtime, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IDownloadedRuntime> DownloadRuntime(Guid avatarId, IRuntime Runtime, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Download(avatarId, (Runtime)Runtime, fullDownloadPath, reInstall, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallRuntimeTemplateAsync(Guid avatarId, IRuntime Runtime, string fullInstallPath, string fullDownloadPath = "", bool createRuntimeTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallRuntimeAsync(Guid avatarId, IRuntime Runtime, string fullInstallPath, string fullDownloadPath = "", bool createRuntimeDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, (Runtime)Runtime, fullInstallPath, fullDownloadPath, createRuntimeTemplateDirectory, reInstall, providerType));
+            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, (Runtime)Runtime, fullInstallPath, fullDownloadPath, createRuntimeDirectory, reInstall, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> DownloadAndInstallRuntimeTemplate(Guid avatarId, IRuntime Runtime, string fullInstallPath, string fullDownloadPath = "", bool createRuntimeTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> DownloadAndInstallRuntime(Guid avatarId, IRuntime Runtime, string fullInstallPath, string fullDownloadPath = "", bool createRuntimeDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.DownloadAndInstall(avatarId, (Runtime)Runtime, fullInstallPath, fullDownloadPath, createRuntimeTemplateDirectory, reInstall, providerType));
+            return ProcessResult(base.DownloadAndInstall(avatarId, (Runtime)Runtime, fullInstallPath, fullDownloadPath, createRuntimeDirectory, reInstall, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallRuntimeTemplateAsync(Guid avatarId, Guid RuntimeTemplateId, int version, string fullInstallPath, string fullDownloadPath = "", bool createRuntimeTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallRuntimeAsync(Guid avatarId, Guid RuntimeId, int version, string fullInstallPath, string fullDownloadPath = "", bool createRuntimeDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, RuntimeTemplateId, version, fullInstallPath, fullDownloadPath, createRuntimeTemplateDirectory, reInstall, providerType));
+            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, RuntimeId, version, fullInstallPath, fullDownloadPath, createRuntimeDirectory, reInstall, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallRuntimeTemplate(Guid avatarId, Guid RuntimeTemplateId, int version, string fullInstallPath, string fullDownloadPath = "", bool createRuntimeTemplateDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallRuntime(Guid avatarId, Guid RuntimeId, int version, string fullInstallPath, string fullDownloadPath = "", bool createRuntimeDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.DownloadAndInstall(avatarId, RuntimeTemplateId, version, fullInstallPath, fullDownloadPath, createRuntimeTemplateDirectory, reInstall, providerType));
+            return ProcessResult(base.DownloadAndInstall(avatarId, RuntimeId, version, fullInstallPath, fullDownloadPath, createRuntimeDirectory, reInstall, providerType));
         }
 
 
-        public async Task<OASISResult<IInstalledRuntime>> InstallRuntimeTemplateAsync(Guid avatarId, string fullPathToPublishedRuntimeTemplateFile, string fullInstallPath, bool createRuntimeTemplateDirectory = true, IDownloadedRuntime downloadedRuntimeTemplate = null, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> InstallRuntimeAsync(Guid avatarId, string fullPathToPublishedRuntimeFile, string fullInstallPath, bool createRuntimeDirectory = true, IDownloadedRuntime downloadedRuntime = null, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.InstallAsync(avatarId, fullPathToPublishedRuntimeTemplateFile, fullInstallPath, createRuntimeTemplateDirectory, downloadedRuntimeTemplate, reInstall, providerType));
+            return ProcessResult(await base.InstallAsync(avatarId, fullPathToPublishedRuntimeFile, fullInstallPath, createRuntimeDirectory, downloadedRuntime, reInstall, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> InstallRuntimeTemplate(Guid avatarId, string fullPathToPublishedRuntimeTemplateFile, string fullInstallPath, bool createRuntimeTemplateDirectory = true, IDownloadedRuntime downloadedRuntimeTemplate = null, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> InstallRuntime(Guid avatarId, string fullPathToPublishedRuntimeFile, string fullInstallPath, bool createRuntimeDirectory = true, IDownloadedRuntime downloadedRuntime = null, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Install(avatarId, fullPathToPublishedRuntimeTemplateFile, fullInstallPath, createRuntimeTemplateDirectory, downloadedRuntimeTemplate, reInstall, providerType));
+            return ProcessResult(base.Install(avatarId, fullPathToPublishedRuntimeFile, fullInstallPath, createRuntimeDirectory, downloadedRuntime, reInstall, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeTemplateAsync(IInstalledRuntime installedRuntimeTemplate, Guid avatarId, string errorMessage, ProviderType providerType)
+        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeAsync(IInstalledRuntime installedRuntime, Guid avatarId, string errorMessage, ProviderType providerType)
         {
-            return ProcessResult(await base.UninstallAsync(avatarId, (InstalledRuntime)installedRuntimeTemplate, errorMessage, providerType));
+            return ProcessResult(await base.UninstallAsync(avatarId, (InstalledRuntime)installedRuntime, errorMessage, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> UninstallRuntimeTemplate(Guid avatarId, IInstalledRuntime installedRuntimeTemplate, string errorMessage, ProviderType providerType)
+        public OASISResult<IInstalledRuntime> UninstallRuntime(Guid avatarId, IInstalledRuntime installedRuntime, string errorMessage, ProviderType providerType)
         {
-            return ProcessResult(base.Uninstall(avatarId, (InstalledRuntime)installedRuntimeTemplate, errorMessage, providerType));
+            return ProcessResult(base.Uninstall(avatarId, (InstalledRuntime)installedRuntime, errorMessage, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeTemplateAsync(Guid avatarId, Guid RuntimeTemplateId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeAsync(Guid avatarId, Guid RuntimeId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.UninstallAsync(avatarId, RuntimeTemplateId, versionSequence, providerType));
+            return ProcessResult(await base.UninstallAsync(avatarId, RuntimeId, versionSequence, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> UninstallRuntimeTemplate(Guid avatarId, Guid RuntimeTemplateId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> UninstallRuntime(Guid avatarId, Guid RuntimeId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Uninstall(avatarId, RuntimeTemplateId, versionSequence, providerType));
+            return ProcessResult(base.Uninstall(avatarId, RuntimeId, versionSequence, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeTemplateAsync(Guid avatarId, Guid RuntimeTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeAsync(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.UninstallAsync(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(await base.UninstallAsync(avatarId, RuntimeId, version, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> UninstallRuntimeTemplate(Guid avatarId, Guid RuntimeTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> UninstallRuntime(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Uninstall(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(base.Uninstall(avatarId, RuntimeId, version, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeTemplateAsync(Guid avatarId, string RuntimeTemplateName, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeAsync(Guid avatarId, string RuntimeName, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.UninstallAsync(avatarId, RuntimeTemplateName, versionSequence, providerType));
+            return ProcessResult(await base.UninstallAsync(avatarId, RuntimeName, versionSequence, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> UninstallRuntimeTemplate(Guid avatarId, string RuntimeTemplateName, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> UninstallRuntime(Guid avatarId, string RuntimeName, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Uninstall(avatarId, RuntimeTemplateName, versionSequence, providerType));
+            return ProcessResult(base.Uninstall(avatarId, RuntimeName, versionSequence, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeTemplateAsync(Guid avatarId, string RuntimeTemplateName, string version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeAsync(Guid avatarId, string RuntimeName, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.UninstallAsync(avatarId, RuntimeTemplateName, version, providerType));
+            return ProcessResult(await base.UninstallAsync(avatarId, RuntimeName, version, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> UninstallRuntimeTemplate(Guid avatarId, string RuntimeTemplateName, string version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> UninstallRuntime(Guid avatarId, string RuntimeName, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Uninstall(avatarId, RuntimeTemplateName, version, providerType));
+            return ProcessResult(base.Uninstall(avatarId, RuntimeName, version, providerType));
         }
 
-        public async Task<OASISResult<IEnumerable<IInstalledRuntime>>> ListInstalledRuntimeTemplatesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IInstalledRuntime>>> ListInstalledRuntimesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResults(await base.ListInstalledAsync(avatarId, providerType));
         }
 
-        public OASISResult<IEnumerable<IInstalledRuntime>> ListInstalledRuntimeTemplates(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IInstalledRuntime>> ListInstalledRuntimes(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResults(base.ListInstalled(avatarId, providerType));
         }
 
-        public async Task<OASISResult<IEnumerable<IInstalledRuntime>>> ListUnInstalledRuntimeTemplatesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IInstalledRuntime>>> ListUnInstalledRuntimesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResults(await base.ListUninstalledAsync(avatarId, providerType));
         }
 
-        public OASISResult<IEnumerable<IInstalledRuntime>> ListUnInstalledRuntimeTemplates(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IInstalledRuntime>> ListUnInstalledRuntimes(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResults(base.ListUninstalled(avatarId, providerType));
         }
 
-        public async Task<OASISResult<IEnumerable<IRuntime>>> ListUnpublishedRuntimeTemplatesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IRuntime>>> ListUnpublishedRuntimesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResults(await base.ListUnpublishedAsync(avatarId, providerType));
         }
 
-        public OASISResult<IEnumerable<IRuntime>> ListUnpublishedRuntimeTemplates(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IRuntime>> ListUnpublishedRuntimes(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResults(base.ListUnpublished(avatarId, providerType));
         }
 
-        public async Task<OASISResult<IEnumerable<IRuntime>>> ListDeactivatedRuntimeTemplatesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IRuntime>>> ListDeactivatedRuntimesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResults(await base.ListDeactivatedAsync(avatarId, providerType));
         }
 
-        public OASISResult<IEnumerable<IRuntime>> ListDeactivatedRuntimeTemplates(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IRuntime>> ListDeactivatedRuntimes(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResults(base.ListDeactivated(avatarId, providerType));
         }
 
-        public async Task<OASISResult<bool>> IsRuntimeTemplateInstalledAsync(Guid avatarId, Guid RuntimeTemplateId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> IsRuntimeInstalledAsync(Guid avatarId, Guid RuntimeId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return await base.IsInstalledAsync(avatarId, RuntimeTemplateId, versionSequence, providerType);
+            return await base.IsInstalledAsync(avatarId, RuntimeId, versionSequence, providerType);
         }
 
-        public OASISResult<bool> IsRuntimeTemplateInstalled(Guid avatarId, Guid RuntimeTemplateId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<bool> IsRuntimeInstalled(Guid avatarId, Guid RuntimeId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return base.IsInstalled(avatarId, RuntimeTemplateId, versionSequence, providerType);
+            return base.IsInstalled(avatarId, RuntimeId, versionSequence, providerType);
         }
 
-        public async Task<OASISResult<bool>> IsRuntimeTemplateInstalledAsync(Guid avatarId, Guid RuntimeTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> IsRuntimeInstalledAsync(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return await base.IsInstalledAsync(avatarId, RuntimeTemplateId, version, providerType);
+            return await base.IsInstalledAsync(avatarId, RuntimeId, version, providerType);
         }
 
-        public OASISResult<bool> IsRuntimeTemplateInstalled(Guid avatarId, Guid RuntimeTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<bool> IsRuntimeInstalled(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return base.IsInstalled(avatarId, RuntimeTemplateId, version, providerType);
+            return base.IsInstalled(avatarId, RuntimeId, version, providerType);
         }
 
-        public async Task<OASISResult<bool>> IsRuntimeTemplateInstalledAsync(Guid avatarId, string RuntimeTemplateName, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> IsRuntimeInstalledAsync(Guid avatarId, string RuntimeName, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return await base.IsInstalledAsync(avatarId, RuntimeTemplateName, versionSequence, providerType);
+            return await base.IsInstalledAsync(avatarId, RuntimeName, versionSequence, providerType);
         }
 
-        public OASISResult<bool> IsRuntimeTemplateInstalled(Guid avatarId, string RuntimeTemplateName, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<bool> IsRuntimeInstalled(Guid avatarId, string RuntimeName, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return base.IsInstalled(avatarId, RuntimeTemplateName, versionSequence, providerType);
+            return base.IsInstalled(avatarId, RuntimeName, versionSequence, providerType);
         }
 
-        public async Task<OASISResult<bool>> IsRuntimeTemplateInstalledAsync(Guid avatarId, string RuntimeTemplateName, string version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> IsRuntimeInstalledAsync(Guid avatarId, string RuntimeName, string version, ProviderType providerType = ProviderType.Default)
         {
-            return await base.IsInstalledAsync(avatarId, RuntimeTemplateName, version, providerType);
+            return await base.IsInstalledAsync(avatarId, RuntimeName, version, providerType);
         }
 
-        public OASISResult<bool> IsRuntimeTemplateInstalled(Guid avatarId, string RuntimeTemplateName, string version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<bool> IsRuntimeInstalled(Guid avatarId, string RuntimeName, string version, ProviderType providerType = ProviderType.Default)
         {
-            return base.IsInstalled(avatarId, RuntimeTemplateName, version, providerType);
+            return base.IsInstalled(avatarId, RuntimeName, version, providerType);
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeTemplateAsync(Guid avatarId, Guid RuntimeTemplateId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, Guid RuntimeId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeTemplateId, versionSequence, providerType));
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeId, versionSequence, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> LoadInstalledRuntimeTemplate(Guid avatarId, Guid RuntimeTemplateId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, Guid RuntimeId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.LoadInstalled(avatarId, RuntimeTemplateId, versionSequence, providerType));
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeId, versionSequence, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeTemplateAsync(Guid avatarId, string RuntimeTemplateName, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, string RuntimeName, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeTemplateName, versionSequence, providerType));
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeName, versionSequence, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> LoadInstalledRuntimeTemplate(Guid avatarId, string RuntimeTemplateName, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, string RuntimeName, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.LoadInstalled(avatarId, RuntimeTemplateName, versionSequence, providerType));
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeName, versionSequence, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeTemplateAsync(Guid avatarId, Guid RuntimeTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeId, version, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> LoadInstalledRuntimeTemplate(Guid avatarId, Guid RuntimeTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.LoadInstalled(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeId, version, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeTemplateAsync(Guid avatarId, string RuntimeTemplateName, string version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, string RuntimeName, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeTemplateName, version, providerType));
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeName, version, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> LoadInstalledRuntimeTemplate(Guid avatarId, string RuntimeTemplateName, string version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, string RuntimeName, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.LoadInstalled(avatarId, RuntimeTemplateName, version, providerType));
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeName, version, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeTemplateAsync(Guid avatarId, Guid RuntimeTemplateId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, Guid RuntimeId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeTemplateId, active, versionSequence, providerType));
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeId, active, versionSequence, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> LoadInstalledRuntimeTemplate(Guid avatarId, Guid RuntimeTemplateId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, Guid RuntimeId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.LoadInstalled(avatarId, RuntimeTemplateId, active, versionSequence, providerType));
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeId, active, versionSequence, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeTemplateAsync(Guid avatarId, string RuntimeTemplateName, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, string RuntimeName, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeTemplateName, active, versionSequence, providerType));
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeName, active, versionSequence, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> LoadInstalledRuntimeTemplate(Guid avatarId, string RuntimeTemplateName, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, string RuntimeName, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.LoadInstalled(avatarId, RuntimeTemplateName, active, versionSequence, providerType));
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeName, active, versionSequence, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeTemplateAsync(Guid avatarId, Guid RuntimeTemplateId, string version, bool active, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, Guid RuntimeId, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeTemplateId, version, active, providerType));
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeId, version, active, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> LoadInstalledRuntimeTemplate(Guid avatarId, Guid RuntimeTemplateId, string version, bool active, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, Guid RuntimeId, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.LoadInstalled(avatarId, RuntimeTemplateId, version, active, providerType));
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeId, version, active, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeTemplateAsync(Guid avatarId, string RuntimeTemplateName, string version, bool active, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, string RuntimeName, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeTemplateName, version, active, providerType));
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeName, version, active, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> LoadInstalledRuntimeTemplate(Guid avatarId, string RuntimeTemplateName, string version, bool active, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, string RuntimeName, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.LoadInstalled(avatarId, RuntimeTemplateName, version, active, providerType));
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeName, version, active, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> OpenRuntimeTemplateFolder(Guid avatarId, IInstalledRuntime Runtime)
+        public OASISResult<IInstalledRuntime> OpenRuntimeFolder(Guid avatarId, IInstalledRuntime Runtime)
         {
             return ProcessResult(base.OpenOAPPSystemHolonFolder(avatarId, (InstalledRuntime)Runtime));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> OpenRuntimeTemplateFolderAsync(Guid avatarId, Guid RuntimeTemplateId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> OpenRuntimeFolderAsync(Guid avatarId, Guid RuntimeId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.OpenOAPPSystemHolonFolderAsync(avatarId, RuntimeTemplateId, versionSequence, providerType));
+            return ProcessResult(await base.OpenOAPPSystemHolonFolderAsync(avatarId, RuntimeId, versionSequence, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> OpenRuntimeTemplateFolder(Guid avatarId, Guid RuntimeTemplateId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> OpenRuntimeFolder(Guid avatarId, Guid RuntimeId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.OpenOAPPSystemHolonFolder(avatarId, RuntimeTemplateId, versionSequence, providerType));
+            return ProcessResult(base.OpenOAPPSystemHolonFolder(avatarId, RuntimeId, versionSequence, providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> OpenRuntimeTemplateFolderAsync(Guid avatarId, Guid RuntimeTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> OpenRuntimeFolderAsync(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.OpenOAPPSystemHolonFolderAsync(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(await base.OpenOAPPSystemHolonFolderAsync(avatarId, RuntimeId, version, providerType));
         }
 
-        public OASISResult<IInstalledRuntime> OpenRuntimeTemplateFolder(Guid avatarId, Guid RuntimeTemplateId, string version, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> OpenRuntimeFolder(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.OpenOAPPSystemHolonFolder(avatarId, RuntimeTemplateId, version, providerType));
+            return ProcessResult(base.OpenOAPPSystemHolonFolder(avatarId, RuntimeId, version, providerType));
         }
 
-        public async Task<OASISResult<bool>> WriteRuntimeTemplateDNAAsync(IOAPPSystemHolonDNA RuntimeTemplateDNA, string fullPathToRuntimeTemplate)
+        public async Task<OASISResult<bool>> WriteRuntimeDNAAsync(IOAPPSystemHolonDNA RuntimeDNA, string fullPathToRuntime)
         {
-            return await base.WriteOAPPSystemHolonDNAAsync(RuntimeTemplateDNA, fullPathToRuntimeTemplate);
+            return await base.WriteOAPPSystemHolonDNAAsync(RuntimeDNA, fullPathToRuntime);
         }
 
-        public OASISResult<bool> WriteRuntimeTemplateDNA(IOAPPSystemHolonDNA RuntimeTemplateDNA, string fullPathToRuntimeTemplate)
+        public OASISResult<bool> WriteRuntimeDNA(IOAPPSystemHolonDNA RuntimeDNA, string fullPathToRuntime)
         {
-            return base.WriteOAPPSystemHolonDNA(RuntimeTemplateDNA, fullPathToRuntimeTemplate);
+            return base.WriteOAPPSystemHolonDNA(RuntimeDNA, fullPathToRuntime);
         }
 
-        public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadRuntimeTemplateDNAFromSourceOrInstalledFolderAsync(string fullPathToRuntimeTemplateFolder)
+        public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadRuntimeDNAFromSourceOrInstalledFolderAsync(string fullPathToRuntimeFolder)
         {
-            return await base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolderAsync(fullPathToRuntimeTemplateFolder);
+            return await base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolderAsync(fullPathToRuntimeFolder);
         }
 
-        public OASISResult<IOAPPSystemHolonDNA> ReadRuntimeTemplateDNAFromSourceOrInstalledFolder(string fullPathToRuntimeTemplateFolder)
+        public OASISResult<IOAPPSystemHolonDNA> ReadRuntimeDNAFromSourceOrInstalledFolder(string fullPathToRuntimeFolder)
         {
-            return base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolder(fullPathToRuntimeTemplateFolder);
+            return base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolder(fullPathToRuntimeFolder);
         }
 
-        public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadRuntimeTemplateDNAFromPublishedRuntimeTemplateFileAsync(string fullPathToRuntimeTemplateFolder)
+        public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadRuntimeDNAFromPublishedRuntimeFileAsync(string fullPathToRuntimeFolder)
         {
-            return await base.ReadOAPPSystemHolonDNAFromPublishedFileAsync(fullPathToRuntimeTemplateFolder);
+            return await base.ReadOAPPSystemHolonDNAFromPublishedFileAsync(fullPathToRuntimeFolder);
         }
 
-        public OASISResult<IOAPPSystemHolonDNA> ReadRuntimeTemplateDNAFromPublishedRuntimeTemplateFile(string fullPathToRuntimeTemplateFolder)
+        public OASISResult<IOAPPSystemHolonDNA> ReadRuntimeDNAFromPublishedRuntimeFile(string fullPathToRuntimeFolder)
         {
-            return base.ReadOAPPSystemHolonDNAFromPublishedFile(fullPathToRuntimeTemplateFolder);
+            return base.ReadOAPPSystemHolonDNAFromPublishedFile(fullPathToRuntimeFolder);
         }
 
         private OASISResult<IEnumerable<IRuntime>> ProcessResults(OASISResult<IEnumerable<Runtime>> operationResult)
