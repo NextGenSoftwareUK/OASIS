@@ -1,37 +1,31 @@
 ﻿using System;
-using System.IO;
-using System.Text;
-using System.Linq;
-using PinataNET;
-using PinataNET.Models;
-using Pinata.Client;
-using System.Net.Http;
-using System.Net.Mime;
-using SharpCompress.Common;
-using System.Text.Json;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Google.Cloud.Storage.V1;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
 using NextGenSoftware.CLI.Engine;
-using NextGenSoftware.Utilities;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Events;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public abstract class OAPPSystemManagerBase<T1, T2, T3> : PublishManagerBase where T1 : IOAPPSystemHolon, new() where T2: IDownloadedOAPPSystemHolon, new() where T3: IInstalledOAPPSystemHolon, new()
+    public abstract class OAPPSystemManagerBase<T1, T2, T3> : PublishManagerBase where T1 : IOAPPSystemHolon, new() where T2 : IDownloadedOAPPSystemHolon, new() where T3 : IInstalledOAPPSystemHolon, new()
     {
         private int _progress = 0;
         private long _fileLength = 0;
@@ -289,7 +283,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             return result;
         }
-        
+
         #region COSMICManagerBase
         protected async Task<OASISResult<T1>> SaveAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
         {
@@ -467,7 +461,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 result = await DeleteAsync(avatarId, loadResult.Result, version, softDelete, deleteDownload, deleteInstall, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the {OAPPSystemHolonUIName} with Id {id} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadResult.Message}");
- 
+
             return result;
         }
 
@@ -735,8 +729,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             //TODO: Currently we pass in 0 for version (which means the OASIS will return the latest version) but we need to be able to query for all versions (-1)
             //OASISResult<IEnumerable<T>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<T>("OAPPSystemHolonId", OAPPSystemHolonId.ToString(), HolonType.T, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
-            OASISResult<IEnumerable<T1>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<T1>(new Dictionary<string, string>() 
-            { 
+            OASISResult<IEnumerable<T1>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<T1>(new Dictionary<string, string>()
+            {
                 { OAPPSystemHolonIdName, id.ToString() },
                 { "Active", "1" }
             }, MetaKeyValuePairMatchMode.All, OAPPSystemHolonType, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
@@ -962,7 +956,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                         if (templateSaveResult != null && templateSaveResult.Result != null && !templateSaveResult.IsError)
                         {
-                           
+
                         }
                         else
                             OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured calling SaveAsync updating the OAPPSystemHolonDNA for {OAPPSystemHolonUIName} with Id {holonVersion.Id} for provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {templateSaveResult.Message}");
@@ -1214,65 +1208,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                         OAPPSystemHolonDNA.PublishedProviderType = binaryProviderType;
                                     }
 
-                                    //if (generateSelfContainedBinary)
-                                    //{
-                                    //    OAPPDNA.SelfContainedPublishedPath = Path.Combine(fullPathToPublishTo, publishedOAPPSelfContainedFileName);
-                                    //    OAPPDNA.SelfContainedPublishedToCloud = registerOnSTARNET && uploadOAPPSelfContainedToCloud;
-                                    //    OAPPDNA.SelfContainedPublishedProviderType = oappSelfContainedBinaryProviderType;
-                                    //}
-
-                                    //if (generateSelfContainedFullBinary)
-                                    //{
-                                    //    OAPPDNA.SelfContainedFullPublishedPath = Path.Combine(fullPathToPublishTo, publishedOAPPSelfContainedFullFileName);
-                                    //    OAPPDNA.SelfContainedFullPublishedToCloud = registerOnSTARNET && uploadOAPPSelfContainedFullToCloud;
-                                    //    OAPPDNA.SelfContainedFullPublishedProviderType = oappSelfContainedFullBinaryProviderType;
-                                    //}
-
-                                    //if (generateSource)
-                                    //{
-                                    //    OAPPDNA.SourcePublishedPath = Path.Combine(fullPathToPublishTo, publishedOAPPSourceFileName);
-                                    //    OAPPDNA.SourcePublishedOnSTARNET = registerOnSTARNET && uploadOAPPSourceToSTARNET;
-                                    //    OAPPDNA.SourcePublicOnSTARNET = makeOAPPSourcePublic;
-                                    //}
-
                                     WriteOAPPSystemHolonDNA(OAPPSystemHolonDNA, fullPathToSource);
                                     OnOAPPSystemHolonPublishStatusChanged?.Invoke(this, new OAPPSystemHolonPublishStatusEventArgs() { OAPPSystemHolonDNA = OAPPSystemHolonDNA, Status = Enums.OAPPSystemHolonPublishStatus.Compressing });
 
                                     if (generateBinary)
                                         GenerateCompressedFile(fullPathToSource, OAPPSystemHolonDNA.PublishedPath);
-
-                                    //if (generateSelfContainedBinary)
-                                    //{
-                                    //    if (File.Exists(OAPPDNA.SelfContainedPublishedPath))
-                                    //        File.Delete(OAPPDNA.SelfContainedPublishedPath);
-
-                                    //    ZipFile.CreateFromDirectory(fullPathToSource, OAPPSystemHolonDNA.SelfContainedPublishedPath);
-                                    //}
-
-                                    //if (generateSelfContainedFullBinary)
-                                    //{
-                                    //    if (File.Exists(OAPPSystemHolonDNA.SelfContainedFullPublishedPath))
-                                    //        File.Delete(OAPPSystemHolonDNA.SelfContainedFullPublishedPath);
-
-                                    //    ZipFile.CreateFromDirectory(fullPathToSource, OAPPSystemHolonDNA.SelfContainedFullPublishedPath);
-                                    //}
-
-                                    //if (generateSource)
-                                    //{
-                                    //    tempPath = Path.Combine(Path.GetTempPath(), OAPPDNA.OAPPName);
-
-                                    //    if (File.Exists(OAPPDNA.SourcePublishedPath))
-                                    //        File.Delete(OAPPDNA.SourcePublishedPath);
-
-                                    //    if (Directory.Exists(tempPath))
-                                    //        Directory.Delete(tempPath, true);
-
-                                    //    DirectoryHelper.CopyFilesRecursively(fullPathToSource, tempPath);
-                                    //    Directory.Delete(Path.Combine(tempPath, "bin"), true);
-                                    //    Directory.Delete(Path.Combine(tempPath, "obj"), true);
-
-                                    //    ZipFile.CreateFromDirectory(tempPath, OAPPDNA.SourcePublishedPath);
-                                    //}
 
                                     //TODO: Currently the filesize will NOT be in the compressed .OAPPSystemHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPSystemHolonDNA inside it...
                                     if (!string.IsNullOrEmpty(OAPPSystemHolonDNA.PublishedPath) && File.Exists(OAPPSystemHolonDNA.PublishedPath))
@@ -1284,135 +1224,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                     if (registerOnSTARNET)
                                     {
                                         if (uploadToCloud)
-                                        {
-                                            try
-                                            {
-                                                OnOAPPSystemHolonPublishStatusChanged?.Invoke(this, new OAPPSystemHolonPublishStatusEventArgs() { OAPPSystemHolonDNA = readOAPPSystemHolonDNAResult.Result, Status = Enums.OAPPSystemHolonPublishStatus.Uploading });
-                                                StorageClient storage = await StorageClient.CreateAsync();
-                                                //var bucket = storage.CreateBucket("oasis", "OAPPSystemHolons");
-
-                                                // set minimum chunksize just to see progress updating
-                                                var uploadObjectOptions = new UploadObjectOptions
-                                                {
-                                                    ChunkSize = UploadObjectOptions.MinimumChunkSize
-                                                };
-
-                                                var progressReporter = new Progress<Google.Apis.Upload.IUploadProgress>(OnUploadProgress);
-                                                using (var fileStream = File.OpenRead(OAPPSystemHolonDNA.PublishedPath))
-                                                {
-                                                    _fileLength = fileStream.Length;
-                                                    _progress = 0;
-
-                                                    await storage.UploadObjectAsync(OAPPSystemHolonGoogleBucket, publishedOAPPSystemHolonFileName, "", fileStream, uploadObjectOptions, progress: progressReporter);
-                                                }
-
-                                                _progress = 100;
-                                                OnOAPPSystemHolonUploadStatusChanged?.Invoke(this, new OAPPSystemHolonUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPSystemHolonUploadStatus.Uploading });
-                                                CLIEngine.DisposeProgressBar(false);
-                                                Console.WriteLine("");
-
-                                                //HttpClient client = new HttpClient();
-                                                //string pinataApiKey = "33e4469830a51af0171b";
-                                                //string pinataSecretApiKey = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs";
-                                                //string pinataUrl = "https://api.pinata.cloud/pinning/pinFileToIPFS";
-                                                //string filePath = OAPPSystemHolonDNA.PublishedPath;
-
-                                                //using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-                                                //using (var content = new MultipartFormDataContent())
-                                                //{
-                                                //    content.Add(new StreamContent(fileStream), "file", Path.GetFileName(filePath));
-                                                //    client.DefaultRequestHeaders.Add("pinata_api_key", pinataApiKey);
-                                                //    client.DefaultRequestHeaders.Add("pinata_secret_api_key", pinataSecretApiKey);
-
-                                                //    var response = await client.PostAsync(pinataUrl, content);
-                                                //    response.EnsureSuccessStatusCode();
-
-                                                //    var responseBody = await response.Content.ReadAsStringAsync();
-                                                //    //return responseBody;
-                                                //}
-
-
-                                                //                           var config = new Config
-                                                //                           {
-                                                //                               ApiKey = "33e4469830a51af0171b",
-                                                //                               ApiSecret = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs"
-                                                //                           };
-
-                                                //                           Pinata.Client.PinataClient pinClient = new Pinata.Client.PinataClient(config);
-
-                                                //                           //var html = @"
-                                                //                           //    <html>
-                                                //                           //       <head>
-                                                //                           //          <title>Hello IPFS!</title>
-                                                //                           //       </head>
-                                                //                           //       <body>
-                                                //                           //          <h1>Hello World</h1>
-                                                //                           //       </body>
-                                                //                           //    </html>
-                                                //                           //    ";
-
-                                                //                           var metadata = new PinataMetadata // optional
-                                                //                           {
-                                                //                               KeyValues =
-                                                //{
-                                                //   {"Author", "David Ellams"}
-                                                //}
-                                                //                           };
-
-                                                //                           var options = new PinataOptions(); // optional
-
-                                                //                           options.CustomPinPolicy.AddOrUpdateRegion("NYC1", desiredReplicationCount: 1);
-
-                                                //                           //var response = await client.Pinning.PinFileToIpfsAsync()
-
-                                                //                           byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
-                                                //                           using (var content = new MultipartFormDataContent())
-                                                //                           {
-                                                //                               var fileContent = new ByteArrayContent(fileBytes);
-                                                //                               content.Add(fileContent, "file", Path.GetFileName(filePath));
-                                                //                           }
-
-                                                //                           var response = await pinClient.Pinning.PinFileToIpfsAsync(content =>
-                                                //                           {
-                                                //                               //var file = new StringContent(, Encoding.UTF8, MediaTypeNames.Application.Zip);
-                                                //                               var file = new StreamContent(fileStream), "file", Path.GetFileName(filePath));
-
-                                                //                               content.AddPinataFile(file, "index.html");
-                                                //                           },
-                                                //                              metadata,
-                                                //                              options);
-
-                                                //                           if (response.IsSuccess)
-                                                //                           {
-                                                //                               //File uploaded to Pinata Cloud and can be accessed on IPFS!
-                                                //                               var hash = response.IpfsHash; // QmR9HwzakHVr67HFzzgJHoRjwzTTt4wtD6KU4NFe2ArYuj
-                                                //                           }
-
-                                                //var pinataClient = new PinataClient("33e4469830a51af0171b");
-                                                //PinFileResponse pinFileResponse = await pinataClient.PinFileToIPFSAsync(OAPPSystemHolonDNA.PublishedPath);
-
-                                                //if (pinFileResponse != null && !string.IsNullOrEmpty(pinFileResponse.IpfsHash))
-                                                //{
-                                                //    OAPPSystemHolonDNA.PinataIPFSHash = pinFileResponse.IpfsHash;
-                                                //    OAPPSystemHolonDNA.OAPPSystemHolonPublishedOnSTARNET = true;
-                                                //    OAPPSystemHolonDNA.OAPPSystemHolonPublishedToPinata = true;
-                                                //}
-                                                //else
-                                                //{
-                                                //    OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the T to Pinata.");
-                                                //    OAPPSystemHolonDNA.OAPPSystemHolonPublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
-                                                //}
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                CLIEngine.DisposeProgressBar(false);
-                                                Console.WriteLine("");
-
-                                                OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the {OAPPSystemHolonUIName} to cloud storage. Reason: {ex}");
-                                                OAPPSystemHolonDNA.PublishedOnSTARNET = registerOnSTARNET && binaryProviderType != ProviderType.None;
-                                                OAPPSystemHolonDNA.PublishedToCloud = false;
-                                            }
-                                        }
+                                            result = await UploadToCloudAsync<T1>(OAPPSystemHolonDNA, publishedOAPPSystemHolonFileName, registerOnSTARNET, binaryProviderType);
 
                                         if (binaryProviderType != ProviderType.None)
                                         {
@@ -1552,7 +1364,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //}
 
         //copied
-        protected OASISResult<T1> Publish(Guid avatarId, string fullPathToOAPPSystemHolon, string launchTarget, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateOAPPSystemHolonBinary = true, bool uploadOAPPSystemHolonToCloud = false, bool edit = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
+        protected OASISResult<T1> Publish(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateBinary = true, bool uploadToCloud = false, bool edit = false, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPSystemManagerBase.Publish. Reason: ";
@@ -1561,7 +1373,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                OASISResult<IOAPPSystemHolonDNA> readOAPPSystemHolonDNAResult = ReadOAPPSystemHolonDNAFromSourceOrInstallFolder<IOAPPSystemHolonDNA>(fullPathToOAPPSystemHolon);
+                OASISResult<IOAPPSystemHolonDNA> readOAPPSystemHolonDNAResult = ReadOAPPSystemHolonDNAFromSourceOrInstallFolder<IOAPPSystemHolonDNA>(fullPathToSource);
 
                 if (readOAPPSystemHolonDNAResult != null && !readOAPPSystemHolonDNAResult.IsError && readOAPPSystemHolonDNAResult.Result != null)
                 {
@@ -1578,7 +1390,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         {
                             if (loadOAPPSystemHolonResult.Result.OAPPSystemHolonDNA.CreatedByAvatarId == avatarId)
                             {
-                                OASISResult<bool> validateVersionResult = ValidateVersion(OAPPSystemHolonDNA.Version, loadOAPPSystemHolonResult.Result.OAPPSystemHolonDNA.Version, fullPathToOAPPSystemHolon, OAPPSystemHolonDNA.PublishedOn == DateTime.MinValue, edit);
+                                OASISResult<bool> validateVersionResult = ValidateVersion(OAPPSystemHolonDNA.Version, loadOAPPSystemHolonResult.Result.OAPPSystemHolonDNA.Version, fullPathToSource, OAPPSystemHolonDNA.PublishedOn == DateTime.MinValue, edit);
 
                                 if (validateVersionResult != null && validateVersionResult.Result && !validateVersionResult.IsError)
                                 {
@@ -1597,7 +1409,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                     string publishedOAPPSystemHolonFileName = string.Concat(OAPPSystemHolonDNA.Name, "_v", OAPPSystemHolonDNA.Version, ".", OAPPSystemHolonFileExtention);
 
                                     if (string.IsNullOrEmpty(fullPathToPublishTo))
-                                        fullPathToPublishTo = Path.Combine(fullPathToOAPPSystemHolon, "Published");
+                                        fullPathToPublishTo = Path.Combine(fullPathToSource, "Published");
 
                                     if (!Directory.Exists(fullPathToPublishTo))
                                         Directory.CreateDirectory(fullPathToPublishTo);
@@ -1615,172 +1427,44 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                         OAPPSystemHolonDNA.ModifiedByAvatarUsername = loadAvatarResult.Result.Username;
                                     }
 
-                                    OAPPSystemHolonDNA.PublishedOnSTARNET = registerOnSTARNET && (oappBinaryProviderType != ProviderType.None || uploadOAPPSystemHolonToCloud);
+                                    OAPPSystemHolonDNA.PublishedOnSTARNET = registerOnSTARNET && (binaryProviderType != ProviderType.None || uploadToCloud);
 
-                                    if (generateOAPPSystemHolonBinary)
+                                    if (generateBinary)
                                     {
                                         OAPPSystemHolonDNA.PublishedPath = Path.Combine(fullPathToPublishTo, publishedOAPPSystemHolonFileName);
-                                        OAPPSystemHolonDNA.PublishedToCloud = registerOnSTARNET && uploadOAPPSystemHolonToCloud;
-                                        OAPPSystemHolonDNA.PublishedProviderType = oappBinaryProviderType;
+                                        OAPPSystemHolonDNA.PublishedToCloud = registerOnSTARNET && uploadToCloud;
+                                        OAPPSystemHolonDNA.PublishedProviderType = binaryProviderType;
                                     }
 
-                                    WriteOAPPSystemHolonDNA(OAPPSystemHolonDNA, fullPathToOAPPSystemHolon);
+                                    WriteOAPPSystemHolonDNA(OAPPSystemHolonDNA, fullPathToSource);
                                     OnOAPPSystemHolonPublishStatusChanged?.Invoke(this, new OAPPSystemHolonPublishStatusEventArgs() { OAPPSystemHolonDNA = OAPPSystemHolonDNA, Status = Enums.OAPPSystemHolonPublishStatus.Compressing });
 
-                                    if (generateOAPPSystemHolonBinary)
+                                    if (generateBinary)
                                     {
                                         if (File.Exists(OAPPSystemHolonDNA.PublishedPath))
                                             File.Delete(OAPPSystemHolonDNA.PublishedPath);
 
-                                        ZipFile.CreateFromDirectory(fullPathToOAPPSystemHolon, OAPPSystemHolonDNA.PublishedPath);
+                                        ZipFile.CreateFromDirectory(fullPathToSource, OAPPSystemHolonDNA.PublishedPath);
                                     }
 
                                     //TODO: Currently the filesize will NOT be in the compressed .OAPPSystemHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPSystemHolonDNA inside it...
                                     if (!string.IsNullOrEmpty(OAPPSystemHolonDNA.PublishedPath) && File.Exists(OAPPSystemHolonDNA.PublishedPath))
                                         OAPPSystemHolonDNA.FileSize = new FileInfo(OAPPSystemHolonDNA.PublishedPath).Length;
 
-                                    WriteOAPPSystemHolonDNA(OAPPSystemHolonDNA, fullPathToOAPPSystemHolon);
+                                    WriteOAPPSystemHolonDNA(OAPPSystemHolonDNA, fullPathToSource);
                                     loadOAPPSystemHolonResult.Result.OAPPSystemHolonDNA = OAPPSystemHolonDNA;
 
                                     if (registerOnSTARNET)
                                     {
-                                        if (uploadOAPPSystemHolonToCloud)
-                                        {
-                                            try
-                                            {
-                                                OnOAPPSystemHolonPublishStatusChanged?.Invoke(this, new OAPPSystemHolonPublishStatusEventArgs() { OAPPSystemHolonDNA = readOAPPSystemHolonDNAResult.Result, Status = Enums.OAPPSystemHolonPublishStatus.Uploading });
-                                                StorageClient storage = StorageClient.Create();
-                                                //var bucket = storage.CreateBucket("oasis", "OAPPSystemHolons");
+                                        if (uploadToCloud)
+                                            result = UploadToCloud<T1>(OAPPSystemHolonDNA, publishedOAPPSystemHolonFileName, registerOnSTARNET, binaryProviderType);
 
-                                                // set minimum chunksize just to see progress updating
-                                                var uploadObjectOptions = new UploadObjectOptions
-                                                {
-                                                    ChunkSize = UploadObjectOptions.MinimumChunkSize
-                                                };
-
-                                                var progressReporter = new Progress<Google.Apis.Upload.IUploadProgress>(OnUploadProgress);
-                                                using (var fileStream = File.OpenRead(OAPPSystemHolonDNA.PublishedPath))
-                                                {
-                                                    _fileLength = fileStream.Length;
-                                                    _progress = 0;
-
-                                                    storage.UploadObject(OAPPSystemHolonGoogleBucket, publishedOAPPSystemHolonFileName, "", fileStream, uploadObjectOptions, progress: progressReporter);
-                                                }
-
-                                                _progress = 100;
-                                                OnOAPPSystemHolonUploadStatusChanged?.Invoke(this, new OAPPSystemHolonUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPSystemHolonUploadStatus.Uploading });
-                                                CLIEngine.DisposeProgressBar(false);
-                                                Console.WriteLine("");
-
-                                                //HttpClient client = new HttpClient();
-                                                //string pinataApiKey = "33e4469830a51af0171b";
-                                                //string pinataSecretApiKey = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs";
-                                                //string pinataUrl = "https://api.pinata.cloud/pinning/pinFileToIPFS";
-                                                //string filePath = OAPPSystemHolonDNA.PublishedPath;
-
-                                                //using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-                                                //using (var content = new MultipartFormDataContent())
-                                                //{
-                                                //    content.Add(new StreamContent(fileStream), "file", Path.GetFileName(filePath));
-                                                //    client.DefaultRequestHeaders.Add("pinata_api_key", pinataApiKey);
-                                                //    client.DefaultRequestHeaders.Add("pinata_secret_api_key", pinataSecretApiKey);
-
-                                                //    var response = await client.PostAsync(pinataUrl, content);
-                                                //    response.EnsureSuccessStatusCode();
-
-                                                //    var responseBody = await response.Content.ReadAsStringAsync();
-                                                //    //return responseBody;
-                                                //}
-
-
-                                                //                           var config = new Config
-                                                //                           {
-                                                //                               ApiKey = "33e4469830a51af0171b",
-                                                //                               ApiSecret = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs"
-                                                //                           };
-
-                                                //                           Pinata.Client.PinataClient pinClient = new Pinata.Client.PinataClient(config);
-
-                                                //                           //var html = @"
-                                                //                           //    <html>
-                                                //                           //       <head>
-                                                //                           //          <title>Hello IPFS!</title>
-                                                //                           //       </head>
-                                                //                           //       <body>
-                                                //                           //          <h1>Hello World</h1>
-                                                //                           //       </body>
-                                                //                           //    </html>
-                                                //                           //    ";
-
-                                                //                           var metadata = new PinataMetadata // optional
-                                                //                           {
-                                                //                               KeyValues =
-                                                //{
-                                                //   {"Author", "David Ellams"}
-                                                //}
-                                                //                           };
-
-                                                //                           var options = new PinataOptions(); // optional
-
-                                                //                           options.CustomPinPolicy.AddOrUpdateRegion("NYC1", desiredReplicationCount: 1);
-
-                                                //                           //var response = await client.Pinning.PinFileToIpfsAsync()
-
-                                                //                           byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
-                                                //                           using (var content = new MultipartFormDataContent())
-                                                //                           {
-                                                //                               var fileContent = new ByteArrayContent(fileBytes);
-                                                //                               content.Add(fileContent, "file", Path.GetFileName(filePath));
-                                                //                           }
-
-                                                //                           var response = await pinClient.Pinning.PinFileToIpfsAsync(content =>
-                                                //                           {
-                                                //                               //var file = new StringContent(, Encoding.UTF8, MediaTypeNames.Application.Zip);
-                                                //                               var file = new StreamContent(fileStream), "file", Path.GetFileName(filePath));
-
-                                                //                               content.AddPinataFile(file, "index.html");
-                                                //                           },
-                                                //                              metadata,
-                                                //                              options);
-
-                                                //                           if (response.IsSuccess)
-                                                //                           {
-                                                //                               //File uploaded to Pinata Cloud and can be accessed on IPFS!
-                                                //                               var hash = response.IpfsHash; // QmR9HwzakHVr67HFzzgJHoRjwzTTt4wtD6KU4NFe2ArYuj
-                                                //                           }
-
-                                                //var pinataClient = new PinataClient("33e4469830a51af0171b");
-                                                //PinFileResponse pinFileResponse = await pinataClient.PinFileToIPFSAsync(OAPPSystemHolonDNA.PublishedPath);
-
-                                                //if (pinFileResponse != null && !string.IsNullOrEmpty(pinFileResponse.IpfsHash))
-                                                //{
-                                                //    OAPPSystemHolonDNA.PinataIPFSHash = pinFileResponse.IpfsHash;
-                                                //    OAPPSystemHolonDNA.OAPPSystemHolonPublishedOnSTARNET = true;
-                                                //    OAPPSystemHolonDNA.OAPPSystemHolonPublishedToPinata = true;
-                                                //}
-                                                //else
-                                                //{
-                                                //    OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the T to Pinata.");
-                                                //    OAPPSystemHolonDNA.OAPPSystemHolonPublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
-                                                //}
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                CLIEngine.DisposeProgressBar(false);
-                                                Console.WriteLine("");
-
-                                                OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the {OAPPSystemHolonUIName} to cloud storage. Reason: {ex}");
-                                                OAPPSystemHolonDNA.PublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
-                                                OAPPSystemHolonDNA.PublishedToCloud = false;
-                                            }
-                                        }
-
-                                        if (oappBinaryProviderType != ProviderType.None)
+                                        if (binaryProviderType != ProviderType.None)
                                         {
                                             loadOAPPSystemHolonResult.Result.PublishedOAPPSystemHolon = File.ReadAllBytes(OAPPSystemHolonDNA.PublishedPath);
 
                                             //TODO: We could use HoloOASIS and other large file storage providers in future...
-                                            OASISResult<T1> saveLargeOAPPSystemHolonResult = Save(avatarId, loadOAPPSystemHolonResult.Result, oappBinaryProviderType);
+                                            OASISResult<T1> saveLargeOAPPSystemHolonResult = Save(avatarId, loadOAPPSystemHolonResult.Result, binaryProviderType);
 
                                             if (saveLargeOAPPSystemHolonResult != null && !saveLargeOAPPSystemHolonResult.IsError && saveLargeOAPPSystemHolonResult.Result != null)
                                             {
@@ -1789,8 +1473,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                             }
                                             else
                                             {
-                                                OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published {OAPPSystemHolonUIName} binary to STARNET using the {oappBinaryProviderType} provider. Reason: {saveLargeOAPPSystemHolonResult.Message}");
-                                                OAPPSystemHolonDNA.PublishedOnSTARNET = registerOnSTARNET && uploadOAPPSystemHolonToCloud;
+                                                OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published {OAPPSystemHolonUIName} binary to STARNET using the {binaryProviderType} provider. Reason: {saveLargeOAPPSystemHolonResult.Message}");
+                                                OAPPSystemHolonDNA.PublishedOnSTARNET = registerOnSTARNET && uploadToCloud;
                                                 OAPPSystemHolonDNA.PublishedProviderType = ProviderType.None;
                                             }
                                         }
@@ -1876,6 +1560,276 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
+        protected async Task<OASISResult<T>> UploadToCloudAsync<T>(IOAPPSystemHolonDNA OAPPSystemHolonDNA, string publishedOAPPSystemHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType)
+        {
+            OASISResult<T> result = new OASISResult<T>();
+
+            try
+            {
+                OnOAPPSystemHolonPublishStatusChanged?.Invoke(this, new OAPPSystemHolonPublishStatusEventArgs() { OAPPSystemHolonDNA = OAPPSystemHolonDNA, Status = Enums.OAPPSystemHolonPublishStatus.Uploading });
+                StorageClient storage = await StorageClient.CreateAsync();
+                //var bucket = storage.CreateBucket("oasis", "OAPPSystemHolons");
+
+                // set minimum chunksize just to see progress updating
+                var uploadObjectOptions = new UploadObjectOptions
+                {
+                    ChunkSize = UploadObjectOptions.MinimumChunkSize
+                };
+
+                var progressReporter = new Progress<Google.Apis.Upload.IUploadProgress>(OnUploadProgress);
+                using (var fileStream = File.OpenRead(OAPPSystemHolonDNA.PublishedPath))
+                {
+                    _fileLength = fileStream.Length;
+                    _progress = 0;
+
+                    await storage.UploadObjectAsync(OAPPSystemHolonGoogleBucket, publishedOAPPSystemHolonFileName, "", fileStream, uploadObjectOptions, progress: progressReporter);
+                }
+
+                _progress = 100;
+                OnOAPPSystemHolonUploadStatusChanged?.Invoke(this, new OAPPSystemHolonUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPSystemHolonUploadStatus.Uploading });
+                CLIEngine.DisposeProgressBar(false);
+                Console.WriteLine("");
+
+                //HttpClient client = new HttpClient();
+                //string pinataApiKey = "33e4469830a51af0171b";
+                //string pinataSecretApiKey = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs";
+                //string pinataUrl = "https://api.pinata.cloud/pinning/pinFileToIPFS";
+                //string filePath = OAPPSystemHolonDNA.PublishedPath;
+
+                //using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                //using (var content = new MultipartFormDataContent())
+                //{
+                //    content.Add(new StreamContent(fileStream), "file", Path.GetFileName(filePath));
+                //    client.DefaultRequestHeaders.Add("pinata_api_key", pinataApiKey);
+                //    client.DefaultRequestHeaders.Add("pinata_secret_api_key", pinataSecretApiKey);
+
+                //    var response = await client.PostAsync(pinataUrl, content);
+                //    response.EnsureSuccessStatusCode();
+
+                //    var responseBody = await response.Content.ReadAsStringAsync();
+                //    //return responseBody;
+                //}
+
+
+                //                           var config = new Config
+                //                           {
+                //                               ApiKey = "33e4469830a51af0171b",
+                //                               ApiSecret = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs"
+                //                           };
+
+                //                           Pinata.Client.PinataClient pinClient = new Pinata.Client.PinataClient(config);
+
+                //                           //var html = @"
+                //                           //    <html>
+                //                           //       <head>
+                //                           //          <title>Hello IPFS!</title>
+                //                           //       </head>
+                //                           //       <body>
+                //                           //          <h1>Hello World</h1>
+                //                           //       </body>
+                //                           //    </html>
+                //                           //    ";
+
+                //                           var metadata = new PinataMetadata // optional
+                //                           {
+                //                               KeyValues =
+                //{
+                //   {"Author", "David Ellams"}
+                //}
+                //                           };
+
+                //                           var options = new PinataOptions(); // optional
+
+                //                           options.CustomPinPolicy.AddOrUpdateRegion("NYC1", desiredReplicationCount: 1);
+
+                //                           //var response = await client.Pinning.PinFileToIpfsAsync()
+
+                //                           byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
+                //                           using (var content = new MultipartFormDataContent())
+                //                           {
+                //                               var fileContent = new ByteArrayContent(fileBytes);
+                //                               content.Add(fileContent, "file", Path.GetFileName(filePath));
+                //                           }
+
+                //                           var response = await pinClient.Pinning.PinFileToIpfsAsync(content =>
+                //                           {
+                //                               //var file = new StringContent(, Encoding.UTF8, MediaTypeNames.Application.Zip);
+                //                               var file = new StreamContent(fileStream), "file", Path.GetFileName(filePath));
+
+                //                               content.AddPinataFile(file, "index.html");
+                //                           },
+                //                              metadata,
+                //                              options);
+
+                //                           if (response.IsSuccess)
+                //                           {
+                //                               //File uploaded to Pinata Cloud and can be accessed on IPFS!
+                //                               var hash = response.IpfsHash; // QmR9HwzakHVr67HFzzgJHoRjwzTTt4wtD6KU4NFe2ArYuj
+                //                           }
+
+                //var pinataClient = new PinataClient("33e4469830a51af0171b");
+                //PinFileResponse pinFileResponse = await pinataClient.PinFileToIPFSAsync(OAPPSystemHolonDNA.PublishedPath);
+
+                //if (pinFileResponse != null && !string.IsNullOrEmpty(pinFileResponse.IpfsHash))
+                //{
+                //    OAPPSystemHolonDNA.PinataIPFSHash = pinFileResponse.IpfsHash;
+                //    OAPPSystemHolonDNA.OAPPSystemHolonPublishedOnSTARNET = true;
+                //    OAPPSystemHolonDNA.OAPPSystemHolonPublishedToPinata = true;
+                //}
+                //else
+                //{
+                //    OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the T to Pinata.");
+                //    OAPPSystemHolonDNA.OAPPSystemHolonPublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
+                //}
+            }
+            catch (Exception e)
+            {
+                CLIEngine.DisposeProgressBar(false);
+                Console.WriteLine("");
+
+                OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the {OAPPSystemHolonUIName} to cloud storage. Reason: {e}");
+                OAPPSystemHolonDNA.PublishedOnSTARNET = registerOnSTARNET && binaryProviderType != ProviderType.None;
+                OAPPSystemHolonDNA.PublishedToCloud = false;
+            }
+
+            return result;
+        }
+
+        protected OASISResult<T> UploadToCloud<T>(IOAPPSystemHolonDNA OAPPSystemHolonDNA, string publishedOAPPSystemHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType)
+        {
+            OASISResult<T> result = new OASISResult<T>();
+
+            try
+            {
+                OnOAPPSystemHolonPublishStatusChanged?.Invoke(this, new OAPPSystemHolonPublishStatusEventArgs() { OAPPSystemHolonDNA = OAPPSystemHolonDNA, Status = Enums.OAPPSystemHolonPublishStatus.Uploading });
+                StorageClient storage = StorageClient.Create();
+                //var bucket = storage.CreateBucket("oasis", "OAPPSystemHolons");
+
+                // set minimum chunksize just to see progress updating
+                var uploadObjectOptions = new UploadObjectOptions
+                {
+                    ChunkSize = UploadObjectOptions.MinimumChunkSize
+                };
+
+                var progressReporter = new Progress<Google.Apis.Upload.IUploadProgress>(OnUploadProgress);
+                using (var fileStream = File.OpenRead(OAPPSystemHolonDNA.PublishedPath))
+                {
+                    _fileLength = fileStream.Length;
+                    _progress = 0;
+
+                    storage.UploadObject(OAPPSystemHolonGoogleBucket, publishedOAPPSystemHolonFileName, "", fileStream, uploadObjectOptions, progress: progressReporter);
+                }
+
+                _progress = 100;
+                OnOAPPSystemHolonUploadStatusChanged?.Invoke(this, new OAPPSystemHolonUploadProgressEventArgs() { Progress = _progress, Status = Enums.OAPPSystemHolonUploadStatus.Uploading });
+                CLIEngine.DisposeProgressBar(false);
+                Console.WriteLine("");
+
+                //HttpClient client = new HttpClient();
+                //string pinataApiKey = "33e4469830a51af0171b";
+                //string pinataSecretApiKey = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs";
+                //string pinataUrl = "https://api.pinata.cloud/pinning/pinFileToIPFS";
+                //string filePath = OAPPSystemHolonDNA.PublishedPath;
+
+                //using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                //using (var content = new MultipartFormDataContent())
+                //{
+                //    content.Add(new StreamContent(fileStream), "file", Path.GetFileName(filePath));
+                //    client.DefaultRequestHeaders.Add("pinata_api_key", pinataApiKey);
+                //    client.DefaultRequestHeaders.Add("pinata_secret_api_key", pinataSecretApiKey);
+
+                //    var response = await client.PostAsync(pinataUrl, content);
+                //    response.EnsureSuccessStatusCode();
+
+                //    var responseBody = await response.Content.ReadAsStringAsync();
+                //    //return responseBody;
+                //}
+
+
+                //                           var config = new Config
+                //                           {
+                //                               ApiKey = "33e4469830a51af0171b",
+                //                               ApiSecret = "ff57367b2b125bf5f06f79b30b466890c84eed101c12af064459d88d8bb8d8a0\r\nJWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjMzZTQ0Njk4MzBhNTFhZjAxNzFiIiwic2NvcGVkS2V5U2VjcmV0IjoiZmY1NzM2N2IyYjEyNWJmNWYwNmY3OWIzMGI0NjY4OTBjODRlZWQxMDFjMTJhZjA2NDQ1OWQ4OGQ4YmI4ZDhhMCIsImV4cCI6MTc3Mzc4NDAzNX0.L-6_BPMsvhN3Es72Q5lZAFKpBEDF9kEibOGdWd_PxHs"
+                //                           };
+
+                //                           Pinata.Client.PinataClient pinClient = new Pinata.Client.PinataClient(config);
+
+                //                           //var html = @"
+                //                           //    <html>
+                //                           //       <head>
+                //                           //          <title>Hello IPFS!</title>
+                //                           //       </head>
+                //                           //       <body>
+                //                           //          <h1>Hello World</h1>
+                //                           //       </body>
+                //                           //    </html>
+                //                           //    ";
+
+                //                           var metadata = new PinataMetadata // optional
+                //                           {
+                //                               KeyValues =
+                //{
+                //   {"Author", "David Ellams"}
+                //}
+                //                           };
+
+                //                           var options = new PinataOptions(); // optional
+
+                //                           options.CustomPinPolicy.AddOrUpdateRegion("NYC1", desiredReplicationCount: 1);
+
+                //                           //var response = await client.Pinning.PinFileToIpfsAsync()
+
+                //                           byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
+                //                           using (var content = new MultipartFormDataContent())
+                //                           {
+                //                               var fileContent = new ByteArrayContent(fileBytes);
+                //                               content.Add(fileContent, "file", Path.GetFileName(filePath));
+                //                           }
+
+                //                           var response = await pinClient.Pinning.PinFileToIpfsAsync(content =>
+                //                           {
+                //                               //var file = new StringContent(, Encoding.UTF8, MediaTypeNames.Application.Zip);
+                //                               var file = new StreamContent(fileStream), "file", Path.GetFileName(filePath));
+
+                //                               content.AddPinataFile(file, "index.html");
+                //                           },
+                //                              metadata,
+                //                              options);
+
+                //                           if (response.IsSuccess)
+                //                           {
+                //                               //File uploaded to Pinata Cloud and can be accessed on IPFS!
+                //                               var hash = response.IpfsHash; // QmR9HwzakHVr67HFzzgJHoRjwzTTt4wtD6KU4NFe2ArYuj
+                //                           }
+
+                //var pinataClient = new PinataClient("33e4469830a51af0171b");
+                //PinFileResponse pinFileResponse = await pinataClient.PinFileToIPFSAsync(OAPPSystemHolonDNA.PublishedPath);
+
+                //if (pinFileResponse != null && !string.IsNullOrEmpty(pinFileResponse.IpfsHash))
+                //{
+                //    OAPPSystemHolonDNA.PinataIPFSHash = pinFileResponse.IpfsHash;
+                //    OAPPSystemHolonDNA.OAPPSystemHolonPublishedOnSTARNET = true;
+                //    OAPPSystemHolonDNA.OAPPSystemHolonPublishedToPinata = true;
+                //}
+                //else
+                //{
+                //    OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the T to Pinata.");
+                //    OAPPSystemHolonDNA.OAPPSystemHolonPublishedOnSTARNET = registerOnSTARNET && oappBinaryProviderType != ProviderType.None;
+                //}
+            }
+            catch (Exception e)
+            {
+                CLIEngine.DisposeProgressBar(false);
+                Console.WriteLine("");
+
+                OASISErrorHandling.HandleWarning(ref result, $"An error occured publishing the {OAPPSystemHolonUIName} to cloud storage. Reason: {e}");
+                OAPPSystemHolonDNA.PublishedOnSTARNET = registerOnSTARNET && binaryProviderType != ProviderType.None;
+                OAPPSystemHolonDNA.PublishedToCloud = false;
+            }
+
+            return result;
+        }
+
         protected async Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
@@ -1890,7 +1844,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             OASISResult<T1> oappResult = await SaveAsync(avatarId, holon, providerType);
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
-            { 
+            {
                 result.Result = oappResult.Result; //ConvertOAPPSystemHolonToOAPPSystemHolonDNA(T);
                 result.Message = $"{OAPPSystemHolonUIName} Unpublished";
             }
@@ -2803,7 +2757,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                 installedOAPPSystemHolon.MetaData["Version"] = OAPPSystemHolonDNA.Version;
                                 installedOAPPSystemHolon.MetaData["VersionSequence"] = OAPPSystemHolonDNA.VersionSequence;
                                 installedOAPPSystemHolon.MetaData[OAPPSystemHolonIdName] = OAPPSystemHolonDNA.Id;
-                                
+
                                 await UpdateInstallCountsAsync(avatarId, installedOAPPSystemHolon, OAPPSystemHolonDNA, result, errorMessage, providerType);
                             }
                             else
@@ -3142,27 +3096,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             //if (!result.IsError)
             //{
-                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType, 0);
+            OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType, 0);
 
-                if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+            if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+            {
+                installedOAPPSystemHolon.UninstalledBy = avatarId;
+                installedOAPPSystemHolon.UninstalledOn = DateTime.Now;
+                installedOAPPSystemHolon.UninstalledByAvatarUsername = avatarResult.Result.Username;
+                installedOAPPSystemHolon.Active = "0";
+
+                OASISResult<T3> saveIntalledOAPPSystemHolonResult = await installedOAPPSystemHolon.SaveAsync<T3>();
+
+                if (saveIntalledOAPPSystemHolonResult != null && !saveIntalledOAPPSystemHolonResult.IsError && saveIntalledOAPPSystemHolonResult.Result != null)
                 {
-                    installedOAPPSystemHolon.UninstalledBy = avatarId;
-                    installedOAPPSystemHolon.UninstalledOn = DateTime.Now;
-                    installedOAPPSystemHolon.UninstalledByAvatarUsername = avatarResult.Result.Username;
-                    installedOAPPSystemHolon.Active = "0";
-
-                    OASISResult<T3> saveIntalledOAPPSystemHolonResult = await installedOAPPSystemHolon.SaveAsync<T3>();
-
-                    if (saveIntalledOAPPSystemHolonResult != null && !saveIntalledOAPPSystemHolonResult.IsError && saveIntalledOAPPSystemHolonResult.Result != null)
-                    {
-                        result.Message = $"{OAPPSystemHolonUIName} Uninstalled";
-                        result.Result = saveIntalledOAPPSystemHolonResult.Result;
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync. Reason: {saveIntalledOAPPSystemHolonResult.Message}");
+                    result.Message = $"{OAPPSystemHolonUIName} Uninstalled";
+                    result.Result = saveIntalledOAPPSystemHolonResult.Result;
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync. Reason: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveAsync. Reason: {saveIntalledOAPPSystemHolonResult.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync. Reason: {avatarResult.Message}");
             //}
 
             return result;
@@ -3423,7 +3377,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             string errorMessage = "Error occured in OAPPSystemManagerBase.ListUnpublishedAsync. Reason: ";
             result = await Data.LoadHolonsForParentAsync<T1>(avatarId, OAPPSystemHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
-            
+
             if (result != null && !result.IsError && result.Result != null)
                 result.Result = result.Result.Where(x => x.OAPPSystemHolonDNA.PublishedOn == DateTime.MinValue && x.OAPPSystemHolonDNA.FileSize > 0);
             else
@@ -3462,7 +3416,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        protected async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, Guid OAPPSystemHolonId, int versionSequence, ProviderType providerType = ProviderType.Default) 
+        protected async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, Guid OAPPSystemHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             string errorMessage = "Error occured in OAPPSystemManagerBase.IsInstalledAsync. Reason: ";
@@ -3933,7 +3887,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 { "Active", active == true ? "1" : "0" }
 
             }, MetaKeyValuePairMatchMode.All, OAPPSystemInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
-            
+
             if (installedOAPPSystemHolonsResult != null && !installedOAPPSystemHolonsResult.IsError && installedOAPPSystemHolonsResult.Result != null)
                 result.Result = installedOAPPSystemHolonsResult.Result;
             else
@@ -4306,7 +4260,56 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<T1>> UpdateNumberOfVersionCountsAsync(Guid avatarId, OASISResult<T1> result, string errorMessage, ProviderType providerType = ProviderType.Default)
+        protected OASISResult<bool> ValidateVersion(string dnaVersion, string storedVersion, string fullPathToOAPPSystemHolonFolder, bool firstPublish, bool edit)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            int dnaVersionInt = 0;
+            int stotedVersionInt = 0;
+
+            if (!firstPublish)
+            {
+                if (edit && dnaVersion != storedVersion)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is not the same as the version you are attempting to edit (v{storedVersion}). They must be the same if you wish to upload new files for version v{storedVersion}. Please edit the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
+                    return result;
+                }
+                else
+                {
+                    if (!StringHelper.IsValidVersion(dnaVersion))
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
+                        return result;
+                    }
+
+                    if (dnaVersion == storedVersion)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is the same as the previous version ({storedVersion}). Please make sure you increment the version in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
+                        return result;
+                    }
+
+                    if (!int.TryParse(dnaVersion.Replace(".", ""), out dnaVersionInt))
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
+                        return result;
+                    }
+
+                    //Should hopefully never occur! ;-)
+                    if (!int.TryParse(storedVersion.Replace(".", ""), out stotedVersionInt))
+                        OASISErrorHandling.HandleWarning(ref result, $"The version stored in the OASIS (v{storedVersion}) is not valid!");
+
+                    if (dnaVersionInt <= stotedVersionInt)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is less than the previous version (v{storedVersion}). Please make sure you increment the version in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder.");
+                        return result;
+                    }
+                }
+            }
+
+            result.Result = true;
+            return result;
+        }
+
+        protected async Task<OASISResult<T1>> UpdateNumberOfVersionCountsAsync(Guid avatarId, OASISResult<T1> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> versionsResult = await LoadVersionsAsync(result.Result.OAPPSystemHolonDNA.Id, providerType);
 
@@ -4344,7 +4347,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private OASISResult<T1> UpdateNumberOfVersionCounts(Guid avatarId, OASISResult<T1> result, string errorMessage, ProviderType providerType = ProviderType.Default)
+        protected OASISResult<T1> UpdateNumberOfVersionCounts(Guid avatarId, OASISResult<T1> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> versionsResult = LoadVersions(result.Result.OAPPSystemHolonDNA.Id, providerType);
 
@@ -4382,7 +4385,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<T2>> UpdateDownloadCountsAsync(Guid avatarId, T2 downloadedOAPPSystemHolon, IOAPPSystemHolonDNA OAPPSystemHolonDNA, OASISResult<T2> result, string errorMessage, ProviderType providerType = ProviderType.Default)
+        protected async Task<OASISResult<T2>> UpdateDownloadCountsAsync(Guid avatarId, T2 downloadedOAPPSystemHolon, IOAPPSystemHolonDNA OAPPSystemHolonDNA, OASISResult<T2> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
             int totalDownloads = 0;
             OASISResult<IEnumerable<T1>> holonVersionsResult = await LoadVersionsAsync(OAPPSystemHolonDNA.Id, providerType);
@@ -4431,7 +4434,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private OASISResult<T2> UpdateDownloadCounts(Guid avatarId, T2 downloadedOAPPSystemHolon, IOAPPSystemHolonDNA OAPPSystemHolonDNA, OASISResult<T2> result, string errorMessage, ProviderType providerType = ProviderType.Default)
+        protected OASISResult<T2> UpdateDownloadCounts(Guid avatarId, T2 downloadedOAPPSystemHolon, IOAPPSystemHolonDNA OAPPSystemHolonDNA, OASISResult<T2> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
             int totalDownloads = 0;
             OASISResult<IEnumerable<T1>> holonVersionsResult = LoadVersions(OAPPSystemHolonDNA.Id, providerType);
@@ -4480,7 +4483,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<T3>> UpdateInstallCountsAsync(Guid avatarId, T3 installedOAPPSystemHolon, IOAPPSystemHolonDNA OAPPSystemHolonDNA, OASISResult<T3> result, string errorMessage, ProviderType providerType = ProviderType.Default)
+        protected async Task<OASISResult<T3>> UpdateInstallCountsAsync(Guid avatarId, T3 installedOAPPSystemHolon, IOAPPSystemHolonDNA OAPPSystemHolonDNA, OASISResult<T3> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
             int totalInstalls = 0;
             OASISResult<IEnumerable<T1>> holonVersionsResult = await LoadVersionsAsync(OAPPSystemHolonDNA.Id, providerType);
@@ -4546,7 +4549,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private OASISResult<T3> UpdateInstallCounts(Guid avatarId, T3 installedOAPPSystemHolon, IOAPPSystemHolonDNA OAPPSystemHolonDNA, OASISResult<T3> result, string errorMessage, ProviderType providerType = ProviderType.Default)
+        protected OASISResult<T3> UpdateInstallCounts(Guid avatarId, T3 installedOAPPSystemHolon, IOAPPSystemHolonDNA OAPPSystemHolonDNA, OASISResult<T3> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
             int totalInstalls = 0;
             OASISResult<IEnumerable<T1>> holonVersionsResult = LoadVersions(OAPPSystemHolonDNA.Id, providerType);
@@ -4617,7 +4620,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             OASISResult<T3> result = new OASISResult<T3>();
 
             if (installedOAPPSystemHolonResult != null && !installedOAPPSystemHolonResult.IsError && installedOAPPSystemHolonResult.Result != null)
-                result = await UninstallAsync(avatarId, installedOAPPSystemHolonResult.Result, errorMessage, providerType); 
+                result = await UninstallAsync(avatarId, installedOAPPSystemHolonResult.Result, errorMessage, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedOAPPSystemHolonResult.Message}");
 
@@ -4691,62 +4694,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 if (oappSystemHolon.OAPPSystemHolonDNA.CreatedByAvatarId == avatarId)
                     templates.Add(oappSystemHolon);
-                
+
                 else if (oappSystemHolon.OAPPSystemHolonDNA.PublishedOn != DateTime.MinValue)
                     templates.Add(oappSystemHolon);
             }
 
             result.Result = templates;
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(results, result);
-            return result;
-        }
-
-        private OASISResult<bool> ValidateVersion(string dnaVersion, string storedVersion, string fullPathToOAPPSystemHolonFolder, bool firstPublish, bool edit)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-            int dnaVersionInt = 0;
-            int stotedVersionInt = 0;
-
-            if (!firstPublish)
-            {
-                if (edit && dnaVersion != storedVersion)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is not the same as the version you are attempting to edit (v{storedVersion}). They must be the same if you wish to upload new files for version v{storedVersion}. Please edit the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
-                    return result;
-                } 
-                else
-                {
-                    if (!StringHelper.IsValidVersion(dnaVersion))
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
-                        return result;
-                    }
-
-                    if (dnaVersion == storedVersion)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is the same as the previous version ({storedVersion}). Please make sure you increment the version in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
-                        return result;
-                    }
-
-                    if (!int.TryParse(dnaVersion.Replace(".", ""), out dnaVersionInt))
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is not valid! Please make sure you enter a valid version in the form of MM.mm.rr (Major.Minor.Revision) in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder ({fullPathToOAPPSystemHolonFolder}).");
-                        return result;
-                    }
-
-                    //Should hopefully never occur! ;-)
-                    if (!int.TryParse(storedVersion.Replace(".", ""), out stotedVersionInt))
-                        OASISErrorHandling.HandleWarning(ref result, $"The version stored in the OASIS (v{storedVersion}) is not valid!");
-
-                    if (dnaVersionInt <= stotedVersionInt)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"The version in the {OAPPSystemHolonUIName} DNA (v{dnaVersion}) is less than the previous version (v{storedVersion}). Please make sure you increment the version in the {OAPPSystemHolonDNAFileName} file found in the root of your {OAPPSystemHolonUIName} folder.");
-                        return result;
-                    }
-                }
-            }
-
-            result.Result = true;
             return result;
         }
 
