@@ -560,35 +560,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.OpenOAPPSystemHolonFolder(avatarId, RuntimeId, version, providerType));
         }
 
-        public async Task<OASISResult<bool>> WriteRuntimeDNAAsync(IOAPPSystemHolonDNA RuntimeDNA, string fullPathToRuntime)
-        {
-            return await base.WriteOAPPSystemHolonDNAAsync(RuntimeDNA, fullPathToRuntime);
-        }
+        //public async Task<OASISResult<bool>> WriteRuntimeDNAAsync(IOAPPSystemHolonDNA RuntimeDNA, string fullPathToRuntime)
+        //{
+        //    return await base.WriteOAPPSystemHolonDNAAsync(RuntimeDNA, fullPathToRuntime);
+        //}
 
-        public OASISResult<bool> WriteRuntimeDNA(IOAPPSystemHolonDNA RuntimeDNA, string fullPathToRuntime)
-        {
-            return base.WriteOAPPSystemHolonDNA(RuntimeDNA, fullPathToRuntime);
-        }
+        //public OASISResult<bool> WriteRuntimeDNA(IOAPPSystemHolonDNA RuntimeDNA, string fullPathToRuntime)
+        //{
+        //    return base.WriteOAPPSystemHolonDNA(RuntimeDNA, fullPathToRuntime);
+        //}
 
-        public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadRuntimeDNAFromSourceOrInstalledFolderAsync(string fullPathToRuntimeFolder)
-        {
-            return await base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolderAsync(fullPathToRuntimeFolder);
-        }
+        //public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadRuntimeDNAFromSourceOrInstalledFolderAsync(string fullPathToRuntimeFolder)
+        //{
+        //    return await base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolderAsync(fullPathToRuntimeFolder);
+        //}
 
-        public OASISResult<IOAPPSystemHolonDNA> ReadRuntimeDNAFromSourceOrInstalledFolder(string fullPathToRuntimeFolder)
-        {
-            return base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolder(fullPathToRuntimeFolder);
-        }
+        //public OASISResult<IOAPPSystemHolonDNA> ReadRuntimeDNAFromSourceOrInstalledFolder(string fullPathToRuntimeFolder)
+        //{
+        //    return base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolder(fullPathToRuntimeFolder);
+        //}
 
-        public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadRuntimeDNAFromPublishedRuntimeFileAsync(string fullPathToRuntimeFolder)
-        {
-            return await base.ReadOAPPSystemHolonDNAFromPublishedFileAsync(fullPathToRuntimeFolder);
-        }
+        //public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadRuntimeDNAFromPublishedRuntimeFileAsync(string fullPathToRuntimeFolder)
+        //{
+        //    return await base.ReadOAPPSystemHolonDNAFromPublishedFileAsync(fullPathToRuntimeFolder);
+        //}
 
-        public OASISResult<IOAPPSystemHolonDNA> ReadRuntimeDNAFromPublishedRuntimeFile(string fullPathToRuntimeFolder)
-        {
-            return base.ReadOAPPSystemHolonDNAFromPublishedFile(fullPathToRuntimeFolder);
-        }
+        //public OASISResult<IOAPPSystemHolonDNA> ReadRuntimeDNAFromPublishedRuntimeFile(string fullPathToRuntimeFolder)
+        //{
+        //    return base.ReadOAPPSystemHolonDNAFromPublishedFile(fullPathToRuntimeFolder);
+        //}
 
         private OASISResult<IEnumerable<IRuntime>> ProcessResults(OASISResult<IEnumerable<Runtime>> operationResult)
         {
