@@ -15,10 +15,11 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using System.Diagnostics;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class OAPPManager : OAPPSystemManagerBase<OAPP, DownloadedOAPP, InstalledOAPP>
+    public class OAPPManager : STARManagerBase<OAPP, DownloadedOAPP, InstalledOAPP>
     {
         public OAPPManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA,
             HolonType.OAPP,
@@ -189,12 +190,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.LoadVersion(OAPPId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPP>> EditOAPPAsync(Guid OAPPId, IOAPPSystemHolonDNA newOAPPDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> EditOAPPAsync(Guid OAPPId, ISTARHolonDNA newOAPPDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.EditAsync(OAPPId, newOAPPDNA, avatarId, providerType));
         }
 
-        public async Task<OASISResult<IOAPP>> EditOAPPAsync(IOAPP OAPP, IOAPPSystemHolonDNA newOAPPDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> EditOAPPAsync(IOAPP OAPP, ISTARHolonDNA newOAPPDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.EditAsync(avatarId, (OAPP)OAPP, newOAPPDNA, providerType));
         }
@@ -208,11 +209,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         //    try
         //    {
-        //        OASISResult<IOAPPDNA> readOAPPSystemHolonDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<IOAPPDNA>(fullPathToSource);
+        //        OASISResult<IOAPPDNA> readSTARHolonDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<IOAPPDNA>(fullPathToSource);
 
-        //        if (readOAPPSystemHolonDNAResult != null && !readOAPPSystemHolonDNAResult.IsError && readOAPPSystemHolonDNAResult.Result != null)
+        //        if (readSTARHolonDNAResult != null && !readSTARHolonDNAResult.IsError && readSTARHolonDNAResult.Result != null)
         //        {
-        //            OAPPDNA = readOAPPSystemHolonDNAResult.Result;
+        //            OAPPDNA = readSTARHolonDNAResult.Result;
         //            OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Packaging });
         //            OASISResult<IAvatar> loadAvatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
@@ -223,15 +224,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         //                if (loadOAPPResult != null && loadOAPPResult.Result != null && !loadOAPPResult.IsError)
         //                {
-        //                    if (loadOAPPResult.Result.OAPPSystemHolonDNA.CreatedByAvatarId == avatarId)
+        //                    if (loadOAPPResult.Result.STARHolonDNA.CreatedByAvatarId == avatarId)
         //                    {
-        //                        OASISResult<bool> validateVersionResult = ValidateVersion(OAPPDNA.Version, loadOAPPResult.Result.OAPPSystemHolonDNA.Version, fullPathToSource, OAPPDNA.PublishedOn == DateTime.MinValue, edit);
+        //                        OASISResult<bool> validateVersionResult = ValidateVersion(OAPPDNA.Version, loadOAPPResult.Result.STARHolonDNA.Version, fullPathToSource, OAPPDNA.PublishedOn == DateTime.MinValue, edit);
 
         //                        if (validateVersionResult != null && validateVersionResult.Result && !validateVersionResult.IsError)
         //                        {
         //                            //TODO: Maybe add check to make sure the DNA has not been tampered with?
-        //                            loadOAPPResult.Result.OAPPSystemHolonDNA.Version = OAPPDNA.Version; //Set the new version set in the DNA (JSON file).
-        //                            OAPPDNA = (IOAPPDNA)loadOAPPResult.Result.OAPPSystemHolonDNA; //Make sure it has not been tampered with by using the stored version.
+        //                            loadOAPPResult.Result.STARHolonDNA.Version = OAPPDNA.Version; //Set the new version set in the DNA (JSON file).
+        //                            OAPPDNA = (IOAPPDNA)loadOAPPResult.Result.STARHolonDNA; //Make sure it has not been tampered with by using the stored version.
 
         //                            if (!edit)
         //                            {
@@ -241,9 +242,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         //                            OAPPDNA.LaunchTarget = launchTarget;
 
-        //                            string publishedFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".", OAPPSystemHolonFileExtention);
-        //                            string publishedSelfContainedFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", OAPPSystemHolonFileExtention);
-        //                            string publishedSelfContainedFullFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", OAPPSystemHolonFileExtention);
+        //                            string publishedFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".", STARHolonFileExtention);
+        //                            string publishedSelfContainedFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARHolonFileExtention);
+        //                            string publishedSelfContainedFullFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARHolonFileExtention);
         //                            string publishedSourceFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".oappsource");
 
         //                            if (string.IsNullOrEmpty(fullPathToPublishTo))
@@ -321,12 +322,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //                                GenerateCompressedFile(fullPathToSource, OAPPDNA.SourcePublishedPath);
         //                            }
 
-        //                            //TODO: Currently the filesize will NOT be in the compressed .OAPPSystemHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPSystemHolonDNA inside it...
+        //                            //TODO: Currently the filesize will NOT be in the compressed .STARHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARHolonDNA inside it...
         //                            if (!string.IsNullOrEmpty(OAPPDNA.PublishedPath) && File.Exists(OAPPDNA.PublishedPath))
         //                                OAPPDNA.FileSize = new FileInfo(OAPPDNA.PublishedPath).Length;
 
         //                            WriteDNA(OAPPDNA, fullPathToSource);
-        //                            loadOAPPResult.Result.OAPPSystemHolonDNA = OAPPDNA;
+        //                            loadOAPPResult.Result.STARHolonDNA = OAPPDNA;
 
         //                            if (registerOnSTARNET)
         //                            {
@@ -335,19 +336,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         //                                if (binaryProviderType != ProviderType.None)
         //                                {
-        //                                    result.Result.PublishedOAPPSystemHolon = File.ReadAllBytes(OAPPDNA.PublishedPath);
+        //                                    result.Result.PublishedSTARHolon = File.ReadAllBytes(OAPPDNA.PublishedPath);
 
         //                                    //TODO: We could use HoloOASIS and other large file storage providers in future...
-        //                                    OASISResult<OAPP> saveLargeOAPPSystemHolonResult = await SaveAsync(avatarId, (OAPP)result.Result, binaryProviderType);
+        //                                    OASISResult<OAPP> saveLargeSTARHolonResult = await SaveAsync(avatarId, (OAPP)result.Result, binaryProviderType);
 
-        //                                    if (saveLargeOAPPSystemHolonResult != null && !saveLargeOAPPSystemHolonResult.IsError && saveLargeOAPPSystemHolonResult.Result != null)
+        //                                    if (saveLargeSTARHolonResult != null && !saveLargeSTARHolonResult.IsError && saveLargeSTARHolonResult.Result != null)
         //                                    {
-        //                                        result.Result = saveLargeOAPPSystemHolonResult.Result;
+        //                                        result.Result = saveLargeSTARHolonResult.Result;
         //                                        result.IsSaved = true;
         //                                    }
         //                                    else
         //                                    {
-        //                                        OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published {OAPPSystemHolonUIName} binary to STARNET using the {binaryProviderType} provider. Reason: {saveLargeOAPPSystemHolonResult.Message}");
+        //                                        OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published {STARHolonUIName} binary to STARNET using the {binaryProviderType} provider. Reason: {saveLargeSTARHolonResult.Message}");
         //                                        OAPPDNA.PublishedOnSTARNET = registerOnSTARNET && uploadToCloud;
         //                                        OAPPDNA.PublishedProviderType = ProviderType.None;
         //                                    }
@@ -360,11 +361,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //                            if (OAPPDNA.Version != "1.0.0" && !edit)
         //                            {
         //                                //If the ID has not been set then store the original id now.
-        //                                if (!loadOAPPResult.Result.MetaData.ContainsKey(OAPPSystemHolonIdName))
-        //                                    loadOAPPResult.Result.MetaData[OAPPSystemHolonIdName] = loadOAPPResult.Result.Id;
+        //                                if (!loadOAPPResult.Result.MetaData.ContainsKey(STARHolonIdName))
+        //                                    loadOAPPResult.Result.MetaData[STARHolonIdName] = loadOAPPResult.Result.Id;
 
-        //                                loadOAPPResult.Result.MetaData["Version"] = loadOAPPResult.Result.OAPPSystemHolonDNA.Version;
-        //                                loadOAPPResult.Result.MetaData["VersionSequence"] = loadOAPPResult.Result.OAPPSystemHolonDNA.VersionSequence;
+        //                                loadOAPPResult.Result.MetaData["Version"] = loadOAPPResult.Result.STARHolonDNA.Version;
+        //                                loadOAPPResult.Result.MetaData["VersionSequence"] = loadOAPPResult.Result.STARHolonDNA.VersionSequence;
 
         //                                //Blank fields so it creates a new version.
         //                                loadOAPPResult.Result.Id = Guid.Empty;
@@ -373,51 +374,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //                                loadOAPPResult.Result.ModifiedDate = DateTime.MinValue;
         //                                loadOAPPResult.Result.CreatedByAvatarId = Guid.Empty;
         //                                loadOAPPResult.Result.ModifiedByAvatarId = Guid.Empty;
-        //                                loadOAPPResult.Result.OAPPSystemHolonDNA.Downloads = 0;
-        //                                loadOAPPResult.Result.OAPPSystemHolonDNA.Installs = 0;
+        //                                loadOAPPResult.Result.STARHolonDNA.Downloads = 0;
+        //                                loadOAPPResult.Result.STARHolonDNA.Installs = 0;
         //                            }
 
-        //                            OASISResult<OAPP> saveOAPPSystemHolonResult = await SaveAsync(avatarId, loadOAPPResult.Result, providerType);
+        //                            OASISResult<OAPP> saveSTARHolonResult = await SaveAsync(avatarId, loadOAPPResult.Result, providerType);
 
-        //                            if (saveOAPPSystemHolonResult != null && !saveOAPPSystemHolonResult.IsError && saveOAPPSystemHolonResult.Result != null)
+        //                            if (saveSTARHolonResult != null && !saveSTARHolonResult.IsError && saveSTARHolonResult.Result != null)
         //                            {
-        //                                saveOAPPSystemHolonResult = await UpdateNumberOfVersionCountsAsync(avatarId, saveOAPPSystemHolonResult, errorMessage, providerType);
+        //                                saveSTARHolonResult = await UpdateNumberOfVersionCountsAsync(avatarId, saveSTARHolonResult, errorMessage, providerType);
         //                                result.IsSaved = true;
-        //                                result.Result = saveOAPPSystemHolonResult.Result; //TODO:Check if this is needed?
+        //                                result.Result = saveSTARHolonResult.Result; //TODO:Check if this is needed?
 
-        //                                if (readOAPPSystemHolonDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
-        //                                    OASISErrorHandling.HandleWarning(ref result, $" The STAR ODK Version {readOAPPSystemHolonDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+        //                                if (readSTARHolonDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
+        //                                    OASISErrorHandling.HandleWarning(ref result, $" The STAR ODK Version {readSTARHolonDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
-        //                                if (readOAPPSystemHolonDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
-        //                                    OASISErrorHandling.HandleWarning(ref result, $" The OASIS Version {readOAPPSystemHolonDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+        //                                if (readSTARHolonDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
+        //                                    OASISErrorHandling.HandleWarning(ref result, $" The OASIS Version {readSTARHolonDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
-        //                                if (readOAPPSystemHolonDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
-        //                                    OASISErrorHandling.HandleWarning(ref result, $" The COSMIC Version {readOAPPSystemHolonDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+        //                                if (readSTARHolonDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
+        //                                    OASISErrorHandling.HandleWarning(ref result, $" The COSMIC Version {readSTARHolonDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
 
         //                                if (result.IsWarning)
-        //                                    result.Message = $"{OAPPSystemHolonUIName} successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+        //                                    result.Message = $"{STARHolonUIName} successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
         //                                else
-        //                                    result.Message = "{OAPPSystemHolonUIName} Successfully Published";
+        //                                    result.Message = "{STARHolonUIName} Successfully Published";
 
         //                                OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Published });
         //                            }
         //                            else
-        //                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveOAPPSystemHolonAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveOAPPSystemHolonResult.Message}");
+        //                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling SaveSTARHolonAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveSTARHolonResult.Message}");
         //                        }
         //                        else
         //                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling ValidateResult. Reason: {validateVersionResult.Message}");
         //                    }
         //                    else
-        //                        OASISErrorHandling.HandleError(ref result, $"Permission Denied! The {OAPPSystemHolonUIName} with id {OAPPDNA.Id} was created by a different avatar with id {OAPPDNA.CreatedByAvatarId}. The current avatar has an id of {avatarId}.");
+        //                        OASISErrorHandling.HandleError(ref result, $"Permission Denied! The {STARHolonUIName} with id {OAPPDNA.Id} was created by a different avatar with id {OAPPDNA.CreatedByAvatarId}. The current avatar has an id of {avatarId}.");
         //                }
         //                else
-        //                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadOAPPSystemHolonAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadOAPPResult.Message}");
+        //                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadSTARHolonAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadOAPPResult.Message}");
         //            }
         //            else
         //                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {loadAvatarResult.Message}");
         //        }
         //        else
-        //            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling ReadOAPPSystemHolonDNAAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {readOAPPSystemHolonDNAResult.Message}");
+        //            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling ReadSTARHolonDNAAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {readSTARHolonDNAResult.Message}");
         //    }
         //    catch (Exception ex)
         //    {
@@ -430,7 +431,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //    }
 
         //    //if (result.IsError)
-        //    //    OnOAPPSystemHolonPublishStatusChanged?.Invoke(this, new OAPPSystemHolonPublishStatusEventArgs() { OAPPSystemHolonDNA = OAPPSystemHolonDNA, Status = Enums.OAPPSystemHolonPublishStatus.Error, ErrorMessage = result.Message });
+        //    //    OnSTARHolonPublishStatusChanged?.Invoke(this, new STARHolonPublishStatusEventArgs() { STARHolonDNA = STARHolonDNA, Status = Enums.STARHolonPublishStatus.Error, ErrorMessage = result.Message });
 
         //    return result;
         //}
@@ -438,18 +439,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<IOAPP>> PublishOAPPAsync(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool dotnetPublish = true, bool generateSource = true, bool uploadSourceToSTARNET = true, bool makeSourcePublic = false, bool generateBinary = true, bool generateSelfContainedBinary = false, bool generateSelfContainedFullBinary = false, bool uploadToCloud = false, bool uploadSelfContainedToCloud = false, bool uploadSelfContainedFullToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS, ProviderType selfContainedBinaryProviderType = ProviderType.None, ProviderType selfContainedFullBinaryProviderType = ProviderType.None)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
-            string errorMessage = "Error occured in OAPPManager.PublishAsync. Reason: ";
             IOAPPDNA OAPPDNA = null;
-            string tempPath = "";
 
             OASISResult<OAPP> validateResult = await BeginPublishAsync(avatarId, fullPathToSource, launchTarget, fullPathToPublishTo, edit, providerType);
 
             if (validateResult != null && validateResult.Result != null && !validateResult.IsError)
             {
-                OAPPDNA = (IOAPPDNA)validateResult.Result.OAPPSystemHolonDNA;
-                string publishedFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".", OAPPSystemHolonFileExtention);
-                string publishedSelfContainedFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", OAPPSystemHolonFileExtention);
-                string publishedSelfContainedFullFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", OAPPSystemHolonFileExtention);
+                OAPPDNA = (IOAPPDNA)validateResult.Result.STARHolonDNA;
+                string publishedFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".", STARHolonFileExtention);
+                string publishedSelfContainedFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARHolonFileExtention);
+                string publishedSelfContainedFullFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARHolonFileExtention);
                 string publishedSourceFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".oappsource");
 
                 OAPPDNA.PublishedOnSTARNET = registerOnSTARNET && (binaryProviderType != ProviderType.None || uploadToCloud || selfContainedBinaryProviderType != ProviderType.None || uploadSelfContainedToCloud || selfContainedFullBinaryProviderType != ProviderType.None || uploadSelfContainedFullToCloud);
@@ -541,12 +540,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         OASISErrorHandling.HandleWarning(ref result, $" Error occured calling GenerateSource. Reason: {generateSourceResult.Message}");
                 }
 
-                //TODO: Currently the filesize will NOT be in the compressed .OAPPSystemHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPSystemHolonDNA inside it...
+                //TODO: Currently the filesize will NOT be in the compressed .STARHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARHolonDNA inside it...
                 if (!string.IsNullOrEmpty(OAPPDNA.PublishedPath) && File.Exists(OAPPDNA.PublishedPath))
                     OAPPDNA.FileSize = new FileInfo(OAPPDNA.PublishedPath).Length;
 
                 WriteDNA(OAPPDNA, fullPathToSource);
-                validateResult.Result.OAPPSystemHolonDNA = OAPPDNA;
+                validateResult.Result.STARHolonDNA = OAPPDNA;
 
                 if (registerOnSTARNET)
                 {
@@ -601,18 +600,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public OASISResult<IOAPP> PublishOAPP(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool dotnetPublish = true, bool generateSource = true, bool uploadSourceToSTARNET = true, bool makeSourcePublic = false, bool generateBinary = true, bool generateSelfContainedBinary = false, bool generateSelfContainedFullBinary = false, bool uploadToCloud = false, bool uploadSelfContainedToCloud = false, bool uploadSelfContainedFullToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS, ProviderType selfContainedBinaryProviderType = ProviderType.None, ProviderType selfContainedFullBinaryProviderType = ProviderType.None)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
-            string errorMessage = "Error occured in OAPPManager.PublishAsync. Reason: ";
             IOAPPDNA OAPPDNA = null;
-            string tempPath = "";
 
             OASISResult<OAPP> validateResult = BeginPublish(avatarId, fullPathToSource, launchTarget, fullPathToPublishTo, edit, providerType);
 
             if (validateResult != null && validateResult.Result != null && !validateResult.IsError)
             {
-                OAPPDNA = (IOAPPDNA)validateResult.Result.OAPPSystemHolonDNA;
-                string publishedFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".", OAPPSystemHolonFileExtention);
-                string publishedSelfContainedFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", OAPPSystemHolonFileExtention);
-                string publishedSelfContainedFullFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", OAPPSystemHolonFileExtention);
+                OAPPDNA = (IOAPPDNA)validateResult.Result.STARHolonDNA;
+                string publishedFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".", STARHolonFileExtention);
+                string publishedSelfContainedFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARHolonFileExtention);
+                string publishedSelfContainedFullFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARHolonFileExtention);
                 string publishedSourceFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".oappsource");
 
                 OAPPDNA.PublishedOnSTARNET = registerOnSTARNET && (binaryProviderType != ProviderType.None || uploadToCloud || selfContainedBinaryProviderType != ProviderType.None || uploadSelfContainedToCloud || selfContainedFullBinaryProviderType != ProviderType.None || uploadSelfContainedFullToCloud);
@@ -704,12 +701,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         OASISErrorHandling.HandleWarning(ref result, $" Error occured calling GenerateSource. Reason: {generateSourceResult.Message}");
                 }
 
-                //TODO: Currently the filesize will NOT be in the compressed .OAPPSystemHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the OAPPSystemHolonDNA inside it...
+                //TODO: Currently the filesize will NOT be in the compressed .STARHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARHolonDNA inside it...
                 if (!string.IsNullOrEmpty(OAPPDNA.PublishedPath) && File.Exists(OAPPDNA.PublishedPath))
                     OAPPDNA.FileSize = new FileInfo(OAPPDNA.PublishedPath).Length;
 
                 WriteDNA(OAPPDNA, fullPathToSource);
-                validateResult.Result.OAPPSystemHolonDNA = OAPPDNA;
+                validateResult.Result.STARHolonDNA = OAPPDNA;
 
                 if (registerOnSTARNET)
                 {
@@ -781,12 +778,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Unpublish(avatarId, OAPPId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPP>> UnpublishOAPPAsync(Guid avatarId, IOAPPSystemHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> UnpublishOAPPAsync(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.UnpublishAsync(avatarId, OAPPDNA, providerType));
         }
 
-        public OASISResult<IOAPP> UnpublishOAPP(Guid avatarId, IOAPPSystemHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPP> UnpublishOAPP(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Unpublish(avatarId, OAPPDNA, providerType));
         }
@@ -801,12 +798,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Republish(avatarId, (OAPP)OAPP, providerType));
         }
 
-        public async Task<OASISResult<IOAPP>> RepublishOAPPAsync(Guid avatarId, IOAPPSystemHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> RepublishOAPPAsync(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.RepublishAsync(avatarId, OAPPDNA, providerType));
         }
 
-        public OASISResult<IOAPP> RepublishOAPP(Guid avatarId, IOAPPSystemHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPP> RepublishOAPP(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Republish(avatarId, OAPPDNA, providerType));
         }
@@ -841,12 +838,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Deactivate(avatarId, OAPPId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPP>> DeactivateOAPPAsync(Guid avatarId, IOAPPSystemHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> DeactivateOAPPAsync(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.DeactivateAsync(avatarId, OAPPDNA, providerType));
         }
 
-        public OASISResult<IOAPP> DeactivateOAPP(Guid avatarId, IOAPPSystemHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPP> DeactivateOAPP(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Deactivate(avatarId, OAPPDNA, providerType));
         }
@@ -861,12 +858,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Activate((OAPP)OAPP, avatarId, providerType));
         }
 
-        public async Task<OASISResult<IOAPP>> ActivateOAPPAsync(Guid avatarId, IOAPPSystemHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> ActivateOAPPAsync(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.ActivateAsync(OAPPDNA, avatarId, providerType));
         }
 
-        public OASISResult<IOAPP> ActivateOAPP(Guid avatarId, IOAPPSystemHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPP> ActivateOAPP(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Activate(avatarId, OAPPDNA, providerType));
         }
@@ -1134,57 +1131,57 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public OASISResult<IInstalledOAPP> OpenOAPPFolder(Guid avatarId, IInstalledOAPP OAPP)
         {
-            return ProcessResult(base.OpenOAPPSystemHolonFolder(avatarId, (InstalledOAPP)OAPP));
+            return ProcessResult(base.OpenSTARHolonFolder(avatarId, (InstalledOAPP)OAPP));
         }
 
         public async Task<OASISResult<IInstalledOAPP>> OpenOAPPFolderAsync(Guid avatarId, Guid OAPPId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.OpenOAPPSystemHolonFolderAsync(avatarId, OAPPId, versionSequence, providerType));
+            return ProcessResult(await base.OpenSTARHolonFolderAsync(avatarId, OAPPId, versionSequence, providerType));
         }
 
         public OASISResult<IInstalledOAPP> OpenOAPPFolder(Guid avatarId, Guid OAPPId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.OpenOAPPSystemHolonFolder(avatarId, OAPPId, versionSequence, providerType));
+            return ProcessResult(base.OpenSTARHolonFolder(avatarId, OAPPId, versionSequence, providerType));
         }
 
         public async Task<OASISResult<IInstalledOAPP>> OpenOAPPFolderAsync(Guid avatarId, Guid OAPPId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.OpenOAPPSystemHolonFolderAsync(avatarId, OAPPId, version, providerType));
+            return ProcessResult(await base.OpenSTARHolonFolderAsync(avatarId, OAPPId, version, providerType));
         }
 
         public OASISResult<IInstalledOAPP> OpenOAPPFolder(Guid avatarId, Guid OAPPId, string version, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.OpenOAPPSystemHolonFolder(avatarId, OAPPId, version, providerType));
+            return ProcessResult(base.OpenSTARHolonFolder(avatarId, OAPPId, version, providerType));
         }
 
-        //public async Task<OASISResult<bool>> WriteOAPPDNAAsync(IOAPPSystemHolonDNA OAPPDNA, string fullPathToOAPP)
+        //public async Task<OASISResult<bool>> WriteOAPPDNAAsync(ISTARHolonDNA OAPPDNA, string fullPathToOAPP)
         //{
         //    return await base.WritenDNAAsync(OAPPDNA, fullPathToOAPP);
         //}
 
-        //public OASISResult<bool> WriteOAPPDNA(IOAPPSystemHolonDNA OAPPDNA, string fullPathToOAPP)
+        //public OASISResult<bool> WriteOAPPDNA(ISTARHolonDNA OAPPDNA, string fullPathToOAPP)
         //{
-        //    return base.WriteOAPPSystemHolonDNA(OAPPDNA, fullPathToOAPP);
+        //    return base.WriteSTARHolonDNA(OAPPDNA, fullPathToOAPP);
         //}
 
-        //public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadOAPPDNAFromSourceOrInstalledFolderAsync(string fullPathToOAPPFolder)
+        //public async Task<OASISResult<ISTARHolonDNA>> ReadOAPPDNAFromSourceOrInstalledFolderAsync(string fullPathToOAPPFolder)
         //{
-        //    return await base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolderAsync(fullPathToOAPPFolder);
+        //    return await base.ReadSTARHolonDNAFromSourceOrInstallFolderAsync(fullPathToOAPPFolder);
         //}
 
-        //public OASISResult<IOAPPSystemHolonDNA> ReadOAPPDNAFromSourceOrInstalledFolder(string fullPathToOAPPFolder)
+        //public OASISResult<ISTARHolonDNA> ReadOAPPDNAFromSourceOrInstalledFolder(string fullPathToOAPPFolder)
         //{
-        //    return base.ReadOAPPSystemHolonDNAFromSourceOrInstallFolder(fullPathToOAPPFolder);
+        //    return base.ReadSTARHolonDNAFromSourceOrInstallFolder(fullPathToOAPPFolder);
         //}
 
-        //public async Task<OASISResult<IOAPPSystemHolonDNA>> ReadOAPPDNAFromPublishedOAPPFileAsync(string fullPathToOAPPFolder)
+        //public async Task<OASISResult<ISTARHolonDNA>> ReadOAPPDNAFromPublishedOAPPFileAsync(string fullPathToOAPPFolder)
         //{
-        //    return await base.ReadOAPPSystemHolonDNAFromPublishedFileAsync(fullPathToOAPPFolder);
+        //    return await base.ReadSTARHolonDNAFromPublishedFileAsync(fullPathToOAPPFolder);
         //}
 
-        //public OASISResult<IOAPPSystemHolonDNA> ReadOAPPDNAFromPublishedOAPPFile(string fullPathToOAPPFolder)
+        //public OASISResult<ISTARHolonDNA> ReadOAPPDNAFromPublishedOAPPFile(string fullPathToOAPPFolder)
         //{
-        //    return base.ReadOAPPSystemHolonDNAFromPublishedFile(fullPathToOAPPFolder);
+        //    return base.ReadSTARHolonDNAFromPublishedFile(fullPathToOAPPFolder);
         //}
 
         private OASISResult<bool> PublishToDotNet(string fullPathToSource, IOAPPDNA OAPPDNA)

@@ -1,8 +1,6 @@
-﻿
-
-namespace NextGenSoftware.OASIS.API.ONODE.Core.Enums
+﻿namespace NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARHolon
 {
-    public enum OAPPSystemHolonInstallStatus
+    public enum STARHolonInstallStatus
     {
         Downloading,
         Decompressing,

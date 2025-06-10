@@ -1,7 +1,7 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
-    public interface IInstalledRuntime : IRuntime, IInstalledOAPPSystemHolon
+    public interface IInstalledRuntime : IRuntime, IInstalledSTARHolon
     {
 
     }

@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    public interface IOAPPSystemHolonDNA
+    public interface ISTARHolonDNA
     {
         Guid Id { get; set; }
         string Name { get; set; }
@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         Guid CreatedByAvatarId { get; set; }
         string CreatedByAvatarUsername { get; set; }
         DateTime CreatedOn { get; set; }
-        object OAPPSystemHolonType { get; set; }
+        object STARHolonType { get; set; }
         Dictionary<string, object> MetaData { get; set; }
         string SourcePath { get; set; }
         string PublishedPath { get; set; }

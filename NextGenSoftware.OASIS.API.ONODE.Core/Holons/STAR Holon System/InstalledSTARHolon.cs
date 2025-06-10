@@ -5,15 +5,20 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public abstract class InstalledOAPPSystemHolon : OAPPSystemHolon, IInstalledOAPPSystemHolon
+    public class InstalledSTARHolon : STARHolon, IInstalledSTARHolon
     {
-        public InstalledOAPPSystemHolon(string OAPPSystemHolonDNAJSONName = "OAPPSystemHolonDNAJSON") : base(OAPPSystemHolonDNAJSONName)
+        public InstalledSTARHolon()
         {
-            this.HolonType = HolonType.InstalledOAPPSystemHolon;
+            this.HolonType = HolonType.InstalledSTARHolon;
+        }
+
+        public InstalledSTARHolon(string STARHolonDNAJSONName = "STARHolonDNAJSON") : base(STARHolonDNAJSONName)
+        {
+            this.HolonType = HolonType.InstalledSTARHolon;
         }
 
         [CustomOASISProperty]
-        public Guid DownloadedOAPPSystemHolonId { get; set; }
+        public Guid DownloadedSTARHolonId { get; set; }
 
         [CustomOASISProperty]
         public string DownloadedPath { get; set; }

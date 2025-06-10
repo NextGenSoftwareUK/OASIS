@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 
-namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
     public class PublishManagerBase : COSMICManagerBase
     {

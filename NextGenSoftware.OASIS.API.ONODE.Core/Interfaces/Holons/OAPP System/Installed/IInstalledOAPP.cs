@@ -1,7 +1,7 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
-    public interface IInstalledOAPP : IOAPP, IInstalledOAPPSystemHolon
+    public interface IInstalledOAPP : IOAPP, IInstalledSTARHolon
     {
 
     }

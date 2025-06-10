@@ -21,6 +21,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -1372,7 +1373,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         return CreateERC721Json(request);
 
                     case NFTStandardType.ERC1155:
-                        return CreateERC721Json(request);
+                        return CreateERC1155Json(request);
                 }
             }
 
@@ -1624,19 +1625,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private OASISResult<IOASISNFT> DecodeNFTMetaData(OASISResult<IHolon> holonResult, OASISResult<IOASISNFT> result, string errorMessage)
         {
             if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
-            {
-                //TODO: Finish removing NFT.OASISNFT...
-                //result.Result.Discount = Convert.ToDecimal(holonResult.Result.MetaData["NFT.Discount"]);
-                //result.Result.Description = holonResult.Result.MetaData["NFT.Description"].ToString();
-                //result.Result.Hash = holonResult.Result.MetaData["Hash"].ToString();
-                //result.Result.Id = new Guid(holonResult.Result.MetaData["Id"].ToString());
-                //result.Result.Image = (byte[])holonResult.Result.MetaData["Image"];
-                //result.Result.ImageUrl = holonResult.Result.MetaData["ImageURL"].ToString();
-                //result.Result.MemoText = holonResult.Result.MetaData["MemoText"].ToString();
-                //result.Result.MetaData = JsonSerializer.Deserialize(holonResult.Result.MetaData["MetaData"], typeof(Dictionary<string, object>));
-
                 result.Result = (IOASISNFT)JsonSerializer.Deserialize(holonResult.Result.MetaData["NFT.OASISNFT"].ToString(), typeof(OASISNFT));
-            }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {holonResult.Message}");
 
@@ -1646,9 +1635,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private OASISResult<IOASISGeoSpatialNFT> DecodeGeoNFTMetaData(OASISResult<IHolon> holonResult, OASISResult<IOASISGeoSpatialNFT> result, string errorMessage)
         {
             if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
-            {
                 result.Result = (OASISGeoSpatialNFT)JsonSerializer.Deserialize(holonResult.Result.MetaData["GEONFT.OASISGEONFT"].ToString(), typeof(OASISGeoSpatialNFT));
-            }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading holon metadata. Reason: {holonResult.Message}");
 
