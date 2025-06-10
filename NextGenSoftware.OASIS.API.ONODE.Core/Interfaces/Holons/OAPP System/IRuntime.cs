@@ -1,7 +1,7 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
-    public interface IRuntime : IOAPPSystemHolon
+    public interface IRuntime : ISTARHolon
     {
         //byte[] PublishedRuntime { get; set; }
         //IRuntimeDNA RuntimeDNA { get; set; }

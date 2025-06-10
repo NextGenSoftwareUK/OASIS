@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    public interface IOAPPTemplateDNA : IOAPPSystemHolonDNA
+    public interface IOAPPTemplateDNA : ISTARHolonDNA
     {
         OAPPTemplateType OAPPTemplateType { get; set; }
     }

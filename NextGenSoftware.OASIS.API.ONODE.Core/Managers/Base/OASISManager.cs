@@ -6,12 +6,12 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
     public abstract class OASISManager : IOASISManager
     {
         public HolonManager Data { get; set; }
-        public OASISDNA OASISDNA {get; set; }
+        public OASISDNA OASISDNA { get; set; }
         public Guid AvatarId { get; set; }
 
         public OASISManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null)
@@ -40,10 +40,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (OASISDNAManager.OASISDNA == null)
                     await OASISDNAManager.LoadDNAAsync();
 
-                this.OASISDNA = OASISDNAManager.OASISDNA;
+                OASISDNA = OASISDNAManager.OASISDNA;
             }
             else
-                this.OASISDNA = dna;
+                OASISDNA = dna;
         }
     }
 }

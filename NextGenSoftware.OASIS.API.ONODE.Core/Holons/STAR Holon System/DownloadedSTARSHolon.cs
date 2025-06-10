@@ -5,11 +5,16 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public abstract class DownloadedOAPPSystemHolon : OAPPSystemHolon, IDownloadedOAPPSystemHolon
+    public class DownloadedSTARHolon : STARHolon, IDownloadedSTARHolon
     {
-        public DownloadedOAPPSystemHolon(string OAPPSystemHolonDNAJSONName = "OAPPSystemHolonDNAJSON") : base(OAPPSystemHolonDNAJSONName)
+        public DownloadedSTARHolon()
         {
-            this.HolonType = HolonType.DownloadedOAPPSystemHolon;
+            this.HolonType = HolonType.DownloadedSTARHolon;
+        }
+
+        public DownloadedSTARHolon(string STARHolonDNAJSONName = "STARHolonDNAJSON") : base(STARHolonDNAJSONName)
+        {
+            this.HolonType = HolonType.DownloadedSTARHolon;
         }
 
         [CustomOASISProperty]

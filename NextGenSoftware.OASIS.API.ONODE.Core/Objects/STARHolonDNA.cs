@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
-namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects
 {
-    public class OAPPSystemHolonDNA : IOAPPSystemHolonDNA
+    public class STARHolonDNA : ISTARHolonDNA
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public object OAPPSystemHolonType { get; set; }
+        public object STARHolonType { get; set; }
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
         public Guid CreatedByAvatarId { get; set; }
         public string CreatedByAvatarUsername { get; set; }

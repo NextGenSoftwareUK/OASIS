@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class OAPPDNA : OAPPSystemHolonDNA, IOAPPDNA
+    public class OAPPDNA : STARHolonDNA, IOAPPDNA
     {
         public string SelfContainedPublishedPath { get; set; } //Contains the STAR & OASIS runtimes.
         public string SelfContainedFullPublishedPath { get; set; } //Contains the STAR, OASIS & .NET Runtimes.

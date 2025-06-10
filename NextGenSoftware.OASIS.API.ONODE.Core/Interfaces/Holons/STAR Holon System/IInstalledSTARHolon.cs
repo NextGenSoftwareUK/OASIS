@@ -2,9 +2,9 @@
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
-    public interface IInstalledOAPPSystemHolon : IOAPPSystemHolon
+    public interface IInstalledSTARHolon : ISTARHolon
     {
-        public Guid DownloadedOAPPSystemHolonId { get; set; }
+        public Guid DownloadedSTARHolonId { get; set; }
         public string DownloadedPath { get; set; }
         public DateTime DownloadedOn { get; set; }
         public Guid DownloadedBy { get; set; }

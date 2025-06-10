@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class DownloadedOAPP : DownloadedOAPPSystemHolon, IDownloadedOAPP
+    public class DownloadedOAPP : DownloadedSTARHolon, IDownloadedOAPP
     {
         public DownloadedOAPP() : base("OAPPTemplateDNAJSON")
         {

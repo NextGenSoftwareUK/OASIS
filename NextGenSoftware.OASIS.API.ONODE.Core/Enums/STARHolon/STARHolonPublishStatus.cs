@@ -1,8 +1,6 @@
-﻿
-
-namespace NextGenSoftware.OASIS.API.ONODE.Core.Enums
+﻿namespace NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARHolon
 {
-    public enum OAPPSystemHolonPublishStatus
+    public enum STARHolonPublishStatus
     {
         Packaging,
         Compressing,

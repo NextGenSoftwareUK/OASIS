@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class DownloadedRuntime : DownloadedOAPPSystemHolon, IDownloadedRuntime
+    public class DownloadedRuntime : DownloadedSTARHolon, IDownloadedRuntime
     {
         public DownloadedRuntime() : base("RuntimeDNAJSON")
         {
