@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
-using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces
 {
@@ -20,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces
         string STARHolonGoogleBucket { get; set; }
         string STARHolonIdName { get; set; }
         string STARHolonNameName { get; set; }
+        Type STARHolonSubType { get; set; }
         HolonType STARHolonType { get; set; }
         string STARHolonTypeName { get; set; }
         string STARHolonUIName { get; set; }
@@ -32,10 +33,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces
 
         OASISResult<T1> Activate(Guid avatarId, Guid id, int version, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Activate(Guid avatarId, ISTARHolonDNA STARHolonDNA, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> Activate(T1 holon, Guid avatarId, ProviderType providerType = ProviderType.Default);
+        OASISResult<T1> Activate(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> ActivateAsync(Guid avatarId, Guid id, int version, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> ActivateAsync(ISTARHolonDNA STARHolonDNA, Guid avatarId, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> ActivateAsync(T1 holon, Guid avatarId, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> ActivateAsync(Guid avatarId, ISTARHolonDNA STARHolonDNA, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> ActivateAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> BeginPublish(Guid avatarId, string fullPathToSource, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType);
         Task<OASISResult<T1>> BeginPublishAsync(Guid avatarId, string fullPathToSource, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType);
         OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, ProviderType providerType = ProviderType.Default);
@@ -80,8 +81,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces
         OASISResult<IEnumerable<T1>> ListUnpublished(Guid avatarId, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IEnumerable<T1>>> ListUnpublishedAsync(Guid avatarId, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Load(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default);
-        OASISResult<IEnumerable<T1>> LoadAll(Guid avatarId, object holonSubType, bool loadAllTTypes = true, bool showAllVersions = false, int version = 0, HolonType STARHolonType = HolonType.Default, string STARHolonTypeName = "Default", ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IEnumerable<T1>>> LoadAllAsync(Guid avatarId, object holonSubType, bool loadAllTTypes = true, bool showAllVersions = false, int version = 0, HolonType STARHolonType = HolonType.Default, string STARHolonTypeName = "Default", ProviderType providerType = ProviderType.Default);
+        OASISResult<IEnumerable<T1>> LoadAll(Guid avatarId, object holonSubType, bool loadAllTypes = true, bool showAllVersions = false, int version = 0, HolonType STARHolonType = HolonType.Default, string STARHolonTypeName = "Default", ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IEnumerable<T1>>> LoadAllAsync(Guid avatarId, object holonSubType, bool loadAllTypes = true, bool showAllVersions = false, int version = 0, HolonType STARHolonType = HolonType.Default, string STARHolonTypeName = "Default", ProviderType providerType = ProviderType.Default);
         OASISResult<IEnumerable<T1>> LoadAllForAvatar(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IEnumerable<T1>>> LoadAllForAvatarAsync(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> LoadAsync(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default);
@@ -126,8 +127,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces
         OASISResult<T3> Save(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> SaveAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T3>> SaveAsync(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default);
-        OASISResult<IEnumerable<T1>> Search(Guid avatarId, string searchTerm, HolonType holonType, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IEnumerable<T1>>> SearchAsync(Guid avatarId, string searchTerm, HolonType holonType, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default);
+        OASISResult<IEnumerable<T1>> Search(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IEnumerable<T1>>> SearchAsync(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default);
         OASISResult<T3> Uninstall(Guid avatarId, Guid STARHolonId, int versionSequence, ProviderType providerType = ProviderType.Default);
         OASISResult<T3> Uninstall(Guid avatarId, Guid STARHolonId, string version, ProviderType providerType = ProviderType.Default);
         OASISResult<T3> Uninstall(Guid avatarId, string STARHolonName, int versionSequence, ProviderType providerType = ProviderType.Default);

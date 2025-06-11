@@ -17,7 +17,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public class OAPPTemplateManager : STARManagerBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate>
     {
-        public OAPPTemplateManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA, 
+        public OAPPTemplateManager(Guid avatarId, OASISDNA OASISDNA = null) : base(
+            avatarId, 
+            typeof(OAPPTemplateType), 
+            OASISDNA, 
             HolonType.OAPPTemplate, 
             HolonType.InstalledOAPPTemplate, 
             "OAPP Template", 
@@ -29,7 +32,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "OAPPTemplateDNA.json",
             "OAPPTemplateDNAJSON") { }
 
-        public OAPPTemplateManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA,
+        public OAPPTemplateManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(
+            OASISStorageProvider, 
+            avatarId,
+            typeof(OAPPTemplateType),
+            OASISDNA,
             HolonType.OAPPTemplate, 
             HolonType.InstalledOAPPTemplate,
             "OAPP Template",
@@ -261,12 +268,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(Guid avatarId, IOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Activate((OAPPTemplate)OAPPTemplate, avatarId, providerType));
+            return ProcessResult(base.Activate(avatarId, (OAPPTemplate)OAPPTemplate, providerType));
         }
 
         public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(Guid avatarId, ISTARHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.ActivateAsync(OAPPTemplateDNA, avatarId, providerType));
+            return ProcessResult(await base.ActivateAsync(avatarId, OAPPTemplateDNA, providerType));
         }
 
         public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(Guid avatarId, ISTARHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)

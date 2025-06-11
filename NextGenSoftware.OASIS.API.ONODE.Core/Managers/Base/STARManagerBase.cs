@@ -26,8 +26,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
-    public class STARManagerBase<T1, T2, T3> : PublishManagerBase,
-        ISTARManagerBase1<T1, T2, T3> where T1 : ISTARHolon, new()
+    public class STARManagerBase<T1, T2, T3> : PublishManagerBase, ISTARManagerBase<T1, T2, T3> where T1 : ISTARHolon, new()
         where T2 : IDownloadedSTARHolon, new()
         where T3 : IInstalledSTARHolon, new()
     {
@@ -36,9 +35,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
         public STARManagerBase(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA) { }
 
-        public STARManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA) { }
+        public STARManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, Type STARHolonSubType, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA) { }
 
-        public STARManagerBase(Guid avatarId, OASISDNA OASISDNA = null, HolonType STARHolonType = HolonType.STARHolon, HolonType STARInstalledHolonType = HolonType.InstalledSTARHolon, string STARHolonUIName = "OAPP System Holon", string STARHolonIdName = "STARHolonId", string STARHolonNameName = "STARHolonName", string STARHolonTypeName = "STARHolonType", string STARHolonFileExtention = "oappsystemholon", string STARHolonGoogleBucket = "oasis_oappsystemholons", string STARHolonDNAFileName = "STARHolonDNA.json", string STARHolonDNAJSONName = "STARHolonDNAJSON") : base(avatarId, OASISDNA)
+        public STARManagerBase(Guid avatarId, Type STARHolonSubType, OASISDNA OASISDNA = null, HolonType STARHolonType = HolonType.STARHolon, HolonType STARInstalledHolonType = HolonType.InstalledSTARHolon, string STARHolonUIName = "OAPP System Holon", string STARHolonIdName = "STARHolonId", string STARHolonNameName = "STARHolonName", string STARHolonTypeName = "STARHolonType", string STARHolonFileExtention = "oappsystemholon", string STARHolonGoogleBucket = "oasis_oappsystemholons", string STARHolonDNAFileName = "STARHolonDNA.json", string STARHolonDNAJSONName = "STARHolonDNAJSON") : base(avatarId, OASISDNA)
         {
             this.STARHolonType = STARHolonType;
             this.STARInstalledHolonType = STARInstalledHolonType;
@@ -50,9 +49,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             this.STARHolonGoogleBucket = STARHolonGoogleBucket;
             this.STARHolonDNAFileName = STARHolonDNAFileName;
             this.STARHolonDNAJSONName = STARHolonDNAJSONName;
+            this.STARHolonSubType = STARHolonSubType;
         }
 
-        public STARManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null, HolonType STARHolonType = HolonType.STARHolon, HolonType STARInstalledHolonType = HolonType.InstalledSTARHolon, string STARHolonUIName = "OAPP System Holon", string STARHolonIdName = "STARHolonId", string STARHolonNameName = "STARHolonName", string STARHolonTypeName = "STARHolonType", string STARHolonFileExtention = "oappsystemholon", string STARHolonGoogleBucket = "oasis_oappsystemholons", string STARHolonDNAFileName = "STARHolonDNA.json", string STARHolonDNAJSONName = "STARHolonDNAJSON") : base(OASISStorageProvider, avatarId, OASISDNA)
+        public STARManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, Type STARHolonSubType, OASISDNA OASISDNA = null, HolonType STARHolonType = HolonType.STARHolon, HolonType STARInstalledHolonType = HolonType.InstalledSTARHolon, string STARHolonUIName = "OAPP System Holon", string STARHolonIdName = "STARHolonId", string STARHolonNameName = "STARHolonName", string STARHolonTypeName = "STARHolonType", string STARHolonFileExtention = "oappsystemholon", string STARHolonGoogleBucket = "oasis_oappsystemholons", string STARHolonDNAFileName = "STARHolonDNA.json", string STARHolonDNAJSONName = "STARHolonDNAJSON") : base(OASISStorageProvider, avatarId, OASISDNA)
         {
             this.STARHolonType = STARHolonType;
             this.STARInstalledHolonType = STARInstalledHolonType;
@@ -64,6 +64,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             this.STARHolonGoogleBucket = STARHolonGoogleBucket;
             this.STARHolonDNAFileName = STARHolonDNAFileName;
             this.STARHolonDNAJSONName = STARHolonDNAJSONName;
+            this.STARHolonSubType = STARHolonSubType;
         }
 
         public delegate void PublishStatusChanged(object sender, STARHolonPublishStatusEventArgs e);
@@ -101,6 +102,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public string STARHolonGoogleBucket { get; set; } = "oasis_oappsystemholons";
         public string STARHolonDNAFileName { get; set; } = "STARHolonDNA.json";
         public string STARHolonDNAJSONName { get; set; } = "STARHolonDNAJSON";
+        public Type STARHolonSubType { get; set; }
 
         public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, ProviderType providerType = ProviderType.Default)
         {
@@ -377,7 +379,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T1>>> LoadAllAsync(Guid avatarId, object holonSubType, bool loadAllTTypes = true, bool showAllVersions = false, int version = 0, HolonType STARHolonType = HolonType.Default, string STARHolonTypeName = "Default", ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<T1>>> LoadAllAsync(Guid avatarId, object holonSubType, bool loadAllTypes = true, bool showAllVersions = false, int version = 0, HolonType STARHolonType = HolonType.Default, string STARHolonTypeName = "Default", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             OASISResult<IEnumerable<T1>> loadHolonsResult = null;
@@ -388,7 +390,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             if (STARHolonTypeName == "Default")
                 STARHolonTypeName = this.STARHolonTypeName;
 
-            if (loadAllTTypes)
+            if (loadAllTypes)
                 loadHolonsResult = await Data.LoadAllHolonsAsync<T1>(STARHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
             else
                 loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<T1>(STARHolonTypeName, Enum.GetName(holonSubType.GetType(), holonSubType), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0);
@@ -396,7 +398,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public OASISResult<IEnumerable<T1>> LoadAll(Guid avatarId, object holonSubType, bool loadAllTTypes = true, bool showAllVersions = false, int version = 0, HolonType STARHolonType = HolonType.Default, string STARHolonTypeName = "Default", ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<T1>> LoadAll(Guid avatarId, object holonSubType, bool loadAllTypes = true, bool showAllVersions = false, int version = 0, HolonType STARHolonType = HolonType.Default, string STARHolonTypeName = "Default", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             OASISResult<IEnumerable<T1>> loadHolonsResult = null;
@@ -407,7 +409,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             if (STARHolonTypeName == "Default")
                 STARHolonTypeName = this.STARHolonTypeName;
 
-            if (loadAllTTypes)
+            if (loadAllTypes)
                 loadHolonsResult = Data.LoadAllHolons<T1>(STARHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
             else
                 loadHolonsResult = Data.LoadHolonsByMetaData<T1>(STARHolonTypeName, Enum.GetName(holonSubType.GetType(), holonSubType), HolonType.All, true, true, 0, true, false, 0, HolonType.All, 0);
@@ -441,17 +443,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public async Task<OASISResult<IEnumerable<T1>>> SearchAsync(Guid avatarId, string searchTerm, HolonType holonType, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<T1>>> SearchAsync(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
-            OASISResult<IEnumerable<T1>> loadHolonsResult = await SearchHolonsAsync<T1>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "STARManagerBase.SearchAsync", holonType);
+            OASISResult<IEnumerable<T1>> loadHolonsResult = await SearchHolonsAsync<T1>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "STARManagerBase.SearchAsync", STARHolonType);
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public OASISResult<IEnumerable<T1>> Search(Guid avatarId, string searchTerm, HolonType holonType, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<T1>> Search(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
-            OASISResult<IEnumerable<T1>> loadHolonsResult = SearchHolons<T1>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "STARManagerBase.Search", holonType);
+            OASISResult<IEnumerable<T1>> loadHolonsResult = SearchHolons<T1>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "STARManagerBase.Search", STARHolonType);
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
@@ -2166,7 +2168,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> ActivateAsync(T1 holon, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> ActivateAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in ActivateAsync. Reason: ";
@@ -2194,7 +2196,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> Activate(T1 holon, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> Activate(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in Activate. Reason: ";
@@ -2222,14 +2224,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> ActivateAsync(ISTARHolonDNA STARHolonDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> ActivateAsync(Guid avatarId, ISTARHolonDNA STARHolonDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T1> oappResult = await LoadAsync(STARHolonDNA.Id, avatarId, STARHolonDNA.VersionSequence, providerType);
+            OASISResult<T1> oappResult = await LoadAsync(avatarId, STARHolonDNA.Id, STARHolonDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in ActivateAsync. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
-                result = await ActivateAsync(oappResult.Result, avatarId, providerType);
+                result = await ActivateAsync(avatarId, oappResult.Result, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the {STARHolonUIName} with the LoadSTARHolonAsync method, reason: {oappResult.Message}");
 
@@ -2239,11 +2241,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T1> Activate(Guid avatarId, ISTARHolonDNA STARHolonDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T1> oappResult = Load(STARHolonDNA.Id, avatarId, STARHolonDNA.VersionSequence, providerType);
+            OASISResult<T1> oappResult = Load(avatarId, STARHolonDNA.Id, STARHolonDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in Activate. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
-                result = Activate(oappResult.Result, avatarId, providerType);
+                result = Activate(avatarId, oappResult.Result, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading the {STARHolonUIName} with the Load method, reason: {oappResult.Message}");
 
@@ -2253,10 +2255,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public async Task<OASISResult<T1>> ActivateAsync(Guid avatarId, Guid id, int version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T1> loadResult = await LoadAsync(id, avatarId, version, providerType);
+            OASISResult<T1> loadResult = await LoadAsync(avatarId, id, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
-                result = await ActivateAsync(loadResult.Result, avatarId, providerType);
+                result = await ActivateAsync(avatarId, loadResult.Result, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateAsync loading the T with the LoadAsync method, reason: {loadResult.Message}");
 
@@ -2269,7 +2271,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             OASISResult<T1> loadResult = Load(id, avatarId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
-                result = Activate(loadResult.Result, avatarId, providerType);
+                result = Activate(avatarId, loadResult.Result, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in Activate loading the {STARHolonUIName} with the Load method, reason: {loadResult.Message}");
 
