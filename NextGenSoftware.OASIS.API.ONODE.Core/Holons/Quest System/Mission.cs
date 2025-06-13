@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
@@ -10,7 +8,8 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     //public class Mission : TaskBase, IMission, ITaskBase, IPublishableHolon //TODO: SOOOOOO wish we could extend both PublishableHolon and TaskBase! :(
-    public class Mission : PublishableHolon, IMission, ITaskBase, IPublishableHolon
+    //public class Mission : PublishableHolon, IMission, ITaskBase, IPublishableHolon
+    public class Mission : STARHolon, IMission, ITaskBase, ISTARHolon
     {
         //private IAvatar _publishedByAvatar = null;
 

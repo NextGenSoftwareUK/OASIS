@@ -1,353 +1,67 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    //TODO: Make a QuestBaseManager and TaskBaseManager to extend from so lots of the same generic code is re-used.
-    public class ChapterManager : OASISManager//, IChapterManager
+    public class ChapterManager : STARManagerBase<Chapter, DownloadedChapter, InstalledChapter>
     {
-        //QuestManager _questManager = null;
-        //NFTManager _nftManager = null;
+        public ChapterManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, 
+            typeof(RuntimeType),
+            OASISDNA,
+            HolonType.Chapter,
+            HolonType.InstalledChapter,
+            "Runtime",
+            "RuntimeId",
+            "RuntimeName",
+            "RuntimeType",
+            "runtime",
+            "oasis_runtimes",
+            "RuntimeDNA.json",
+            "RuntimeDNAJSON")
+        { }
 
-        ////TODO: May remove NFTManager and QuestManager DI (only used for adding quests to a chapter with the questId (they can use the other overload that takes the IQuest)
-        //private NFTManager NFTManager
-        //{
-        //    get
-        //    {
-        //        if (_nftManager == null)
-        //            _nftManager = new NFTManager(AvatarId, OASISDNA);
+        public ChapterManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            typeof(RuntimeType),
+            OASISDNA,
+            HolonType.Runtime,
+            HolonType.InstalledRuntime,
+            "Runtime",
+            "RuntimeId",
+            "RuntimeName",
+            "RuntimeType",
+            "oapp",
+            "oasis_oapps",
+            "RuntimeDNA.json",
+            "RuntimeDNAJSON")
+        { }
 
-        //        return _nftManager;
-        //    }
-        //}
 
-        //private QuestManager QuestManager
-        //{
-        //    get
-        //    {
-        //        if (_questManager == null)
-        //            _questManager = new QuestManager(AvatarId, NFTManager, OASISDNA);
-
-        //        return _questManager;
-        //    }
-        //}
-
-        //public ChapterManager(Guid avatarId, QuestManager questManager, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
-        //{
-        //    _questManager = questManager;
-        //}
-
-        //public ChapterManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, QuestManager questManager, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
-        //{
-        //    _questManager = questManager;
-        //}
-
-        public ChapterManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
-        {
-            //_questManager = questManager;
-        }
-
-        public ChapterManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
-        {
-            //_questManager = questManager;
-        }
-
-        public async Task<OASISResult<IChapter>> CreateChapterAsync(string name, string description, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IChapter> result = new OASISResult<IChapter>();
-            string errorMessage = "Error occured in ChapterManager.CreateChapterAsync. Reason:";
-
-            try
-            {
-                IChapter chapter = new Chapter()
-                {
-                    Name = name,
-                    Description = description,
-                    StartedBy = avatarId,
-                    StartedOn = DateTime.Now,
-                    CreatedByAvatarId = avatarId,
-                    CreatedDate = DateTime.Now
-                };
-
-                OASISResult<Chapter> saveHolonResult = await Data.SaveHolonAsync<Chapter>(chapter, true, true, 0, true, false, providerType);
-
-                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                {
-                    result.Result = saveHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the chapter with Data.SaveHolonAsync. Reason: {saveHolonResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IChapter> CreateChapter(string name, string description, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IChapter> result = new OASISResult<IChapter>();
-            string errorMessage = "Error occured in ChapterManager.CreateChapter. Reason:";
-
-            try
-            {
-                IChapter chapter = new Chapter()
-                {
-                    Name = name,
-                    Description = description,
-                    StartedBy = avatarId,
-                    StartedOn = DateTime.Now,
-                    CreatedByAvatarId = avatarId,
-                    CreatedDate = DateTime.Now
-                };
-
-                OASISResult<Chapter> saveHolonResult = Data.SaveHolon<Chapter>(chapter, true, true, 0, true, false, providerType);
-
-                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                {
-                    result.Result = saveHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the chapter with Data.SaveHolon. Reason: {saveHolonResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IChapter>> UpdateChapterAsync(IChapter chapter, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IChapter> result = new OASISResult<IChapter>();
-            string errorMessage = "Error occured in ChapterManager.UpdateChapterAsync. Reason:";
-
-            try
-            {
-                OASISResult<Chapter> saveHolonResult = await chapter.SaveAsync<Chapter>();
-
-                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                {
-                    result.Result = saveHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the chapter with chapter.SaveAsync. Reason: {saveHolonResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IChapter> UpdateChapter(IChapter chapter, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IChapter> result = new OASISResult<IChapter>();
-            string errorMessage = "Error occured in ChapterManager.UpdateChapter. Reason:";
-
-            try
-            {
-                OASISResult<Chapter> saveHolonResult = chapter.Save<Chapter>();
-
-                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                {
-                    result.Result = saveHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the chapter with chapter.Save. Reason: {saveHolonResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IChapter>> LoadChapterAsync(Guid chapterId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IChapter> result = new OASISResult<IChapter>();
-            string errorMessage = "Error occured in ChapterManager.LoadChapterAsync. Reason:";
-
-            try
-            {
-                OASISResult<Chapter> loadHolonResult = await Data.LoadHolonAsync<Chapter>(chapterId, true, true, 0, true, false, HolonType.All, 0, providerType);
-
-                if (loadHolonResult != null && loadHolonResult.Result != null && !loadHolonResult.IsError)
-                {
-                    result.Result = loadHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the chapter with Data.LoadHolonAsync. Reason: {loadHolonResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IChapter> LoadChapter(Guid chapterId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IChapter> result = new OASISResult<IChapter>();
-            string errorMessage = "Error occured in ChapterManager.LoadChapterAsync. Reason:";
-
-            try
-            {
-                OASISResult<Chapter> loadHolonResult = Data.LoadHolon<Chapter>(chapterId, true, true, 0, true, false, HolonType.All, 0, providerType);
-
-                if (loadHolonResult != null && loadHolonResult.Result != null && !loadHolonResult.IsError)
-                {
-                    result.Result = loadHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the chapter with Data.LoadHolon. Reason: {loadHolonResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IEnumerable<IChapter>>> LoadAllChaptersAsync(ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IChapter>> result = new OASISResult<IEnumerable<IChapter>>();
-            string errorMessage = "Error occured in ChapterManager.LoadAllChaptersAsync. Reason:";
-
-            try
-            {
-                OASISResult<IEnumerable<Chapter>> loadHolonsResult = await Data.LoadAllHolonsAsync<Chapter>(HolonType.Chapter, true, true, 0, true, false, HolonType.All, 0, providerType);
-
-                if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
-                {
-                    result.Result = loadHolonsResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the chapter with Data.LoadAllHolonsAsync. Reason: {loadHolonsResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IEnumerable<IChapter>> LoadAllChapters(ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IChapter>> result = new OASISResult<IEnumerable<IChapter>>();
-            string errorMessage = "Error occured in ChapterManager.LoadAllChaptersAsync. Reason:";
-
-            try
-            {
-                OASISResult<IEnumerable<Chapter>> loadHolonsResult = Data.LoadAllHolons<Chapter>(HolonType.Chapter, true, true, 0, true, false, HolonType.All, 0, providerType);
-
-                if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
-                {
-                    result.Result = loadHolonsResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the chapter with Data.LoadAllChapters. Reason: {loadHolonsResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IEnumerable<IChapter>>> LoadAllChaptersForAvatarAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IChapter>> result = new OASISResult<IEnumerable<IChapter>>();
-            string errorMessage = "Error occured in ChapterManager.LoadAllChaptersForAvatarAsync. Reason:";
-
-            try
-            {
-                OASISResult<IEnumerable<Chapter>> loadHolonsResult = await Data.LoadHolonsForParentAsync<Chapter>(avatarId, HolonType.Chapter, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
-
-                if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
-                {
-                    result.Result = loadHolonsResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the chapter with Data.LoadHolonsForParentAsync. Reason: {loadHolonsResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IEnumerable<IChapter>> LoadAllChaptersForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IChapter>> result = new OASISResult<IEnumerable<IChapter>>();
-            string errorMessage = "Error occured in ChapterManager.LoadAllChaptersForAvatar. Reason:";
-
-            try
-            {
-                OASISResult<IEnumerable<Chapter>> loadHolonsResult = Data.LoadHolonsForParent<Chapter>(avatarId, HolonType.Chapter, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
-
-                if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
-                {
-                    result.Result = loadHolonsResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the chapter with Data.LoadAllChaptersForAvatar. Reason: {loadHolonsResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IChapter>> CompleteChapterAsync(Guid chapterId, Guid avatarId, ProviderType providerType)
+        public async Task<OASISResult<IChapter>> CompleteChapterAsync(Guid avatarId, Guid chapterId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IChapter> result = new OASISResult<IChapter>();
             string errorMessage = "Error occured in ChapterManager.CompleteChapterAsync. Reason:";
 
             try
             {
-                OASISResult<IChapter> loadResult = await LoadChapterAsync(chapterId, providerType);
+                OASISResult<Chapter> loadResult = await LoadAsync(avatarId, chapterId, providerType: providerType);
 
                 if (loadResult != null && !loadResult.IsError && loadResult.Result != null)
                 {
                     loadResult.Result.CompletedOn = DateTime.Now;
                     loadResult.Result.CompletedBy = avatarId;
 
-                    result = await UpdateChapterAsync(loadResult.Result, avatarId, providerType);
+                    result = await UpdateAsync(avatarId, loadResult.Result, providerType);
 
                     if (!(result != null && result.Result != null && !result.IsError))
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the chapter with ChapterManager.UpdateChapterAsync. Reason: {result.Message}");
@@ -538,64 +252,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IChapter>> DeleteChapterAsync(Guid chapterId, Guid avatarId, bool softDelete = true, bool deleteSubChapters = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IChapter> result = new OASISResult<IChapter>();
-            string errorMessage = "Error occured in ChapterManager.DeleteChapterAsync. Reason:";
-
-            try
-            {
-                OASISResult<IHolon> deleteResult = await Data.DeleteHolonAsync(chapterId, avatarId, softDelete, providerType);
-                //TODO:Delete sub-chapters, hotspots and nfts etc
-
-                if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
-                {
-                    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(deleteResult, result);
-                    result.Result = (IChapter)deleteResult.Result;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured deleting the chapter with Data.DeleteHolonAsync. Reason: {deleteResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IChapter> DeleteChapter(Guid chapterId, Guid avatarId, bool softDelete = true, bool deleteSubChapters = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IChapter> result = new OASISResult<IChapter>();
-            string errorMessage = "Error occured in ChapterManager.DeleteChapter. Reason:";
-
-            try
-            {
-                //TODO:Delete sub-chapters, hotspots and nfts etc
-                OASISResult<IHolon> deleteResult = Data.DeleteHolon(chapterId, avatarId, softDelete, providerType);
-
-                if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
-                {
-                    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(deleteResult, result);
-                    result.Result = (IChapter)deleteResult.Result;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured deleting the chapter with Data.DeleteHolon. Reason: {deleteResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IQuest>> GetCurentQuestForChapterAsync(Guid chapterId)
+        public async Task<OASISResult<IQuest>> GetCurentQuestForChapterAsync(Guid avatarId, Guid chapterId, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in ChapterManager.GetCurentQuestForChapterAsync. Reason:";
 
-            OASISResult<IChapter> loadResult = await LoadChapterAsync(chapterId);
+            OASISResult<Chapter> loadResult = await LoadAsync(avatarId, chapterId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
             {
@@ -620,12 +282,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public OASISResult<IQuest> GetCurentQuestForChapter(Guid chapterId)
+        public OASISResult<IQuest> GetCurentQuestForChapter(Guid avatarId, Guid chapterId, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in ChapterManager.GetCurentQuestForChapter. Reason:";
 
-            OASISResult<IChapter> loadResult = LoadChapter(chapterId);
+            OASISResult<Chapter> loadResult = Load(avatarId, chapterId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
             {
@@ -650,11 +312,620 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IList<IChapter>>> GetAllCurrentChaptersForAvatarAsync(Guid avatarId)
-        {
-            OASISResult<IList<IChapter>> result = new OASISResult<IList<IChapter>>();
+        //public async Task<OASISResult<IList<IChapter>>> GetAllCurrentChaptersForAvatarAsync(Guid avatarId)
+        //{
+        //    OASISResult<IList<IChapter>> result = new OASISResult<IList<IChapter>>();
 
+        //    return result;
+        //}
+
+        /*
+        public async Task<OASISResult<IRuntime>> CreateRuntimeAsync(Guid avatarId, string name, string description, RuntimeType runtimeType, string fullPathToRuntime, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.CreateAsync(avatarId, name, description, runtimeType, fullPathToRuntime, null, providerType));
+        }
+
+        public OASISResult<IRuntime> CreateRuntime(Guid avatarId, string name, string description, RuntimeType runtimeType, string fullPathToRuntime, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Create(avatarId, name, description, runtimeType, fullPathToRuntime, null, providerType));
+        }
+
+        #region COSMICManagerBase
+        public async Task<OASISResult<IRuntime>> SaveRuntimeAsync(Guid avatarId, IRuntime oappTemplate, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.SaveAsync(avatarId, (Runtime)oappTemplate, providerType));
+        }
+
+        public OASISResult<IRuntime> SaveRuntime(Guid avatarId, IRuntime oappTemplate, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Save(avatarId, (Runtime)oappTemplate, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> LoadRuntimeAsync(Guid avatarId, Guid RuntimeId, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.LoadAsync(avatarId, RuntimeId, version, providerType));
+        }
+
+        public OASISResult<IRuntime> LoadRuntime(Guid avatarId, Guid RuntimeId, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Load(avatarId, RuntimeId, version, providerType));
+        }
+
+        public async Task<OASISResult<IEnumerable<IRuntime>>> LoadAllRuntimesAsync(Guid avatarId, RuntimeType runtimeType = RuntimeType.STAR, bool loadAllTypes = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(await base.LoadAllAsync(avatarId, runtimeType, loadAllTypes, showAllVersions, version, HolonType.Default, "Default", providerType));
+        }
+
+        public OASISResult<IEnumerable<IRuntime>> LoadAllRuntimes(Guid avatarId, RuntimeType runtimeType = RuntimeType.STAR, bool loadAllTypes = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(base.LoadAll(avatarId, runtimeType, showAllVersions, showAllVersions, version, HolonType.Default, "Default", providerType));
+        }
+
+        public async Task<OASISResult<IEnumerable<IRuntime>>> LoadAllRuntimesForAvatarAsync(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(await base.LoadAllForAvatarAsync(avatarId, showAllVersions, version, providerType));
+        }
+
+        public OASISResult<IEnumerable<IRuntime>> LoadAllRuntimesForAvatar(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(base.LoadAllForAvatar(avatarId, showAllVersions, version, providerType));
+        }
+
+        public async Task<OASISResult<IEnumerable<IRuntime>>> SearchRuntimesAsync(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(await base.SearchAsync(avatarId, searchTerm, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
+        }
+
+        public OASISResult<IEnumerable<IRuntime>> SearchRuntimes(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(base.Search(avatarId, searchTerm, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> DeleteRuntimeAsync(Guid avatarId, Guid oappTemplateId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.DeleteAsync(avatarId, oappTemplateId, version, softDelete, deleteDownload, deleteInstall, providerType));
+        }
+
+        public OASISResult<IRuntime> DeleteRuntime(Guid avatarId, Guid oappTemplateId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Delete(avatarId, oappTemplateId, version, softDelete, deleteDownload, deleteInstall, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> DeleteRuntimeAsync(Guid avatarId, IRuntime oappTemplate, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.DeleteAsync(avatarId, oappTemplate, version, softDelete, deleteDownload, deleteInstall, providerType));
+        }
+
+        public OASISResult<IRuntime> DeleteRuntime(Guid avatarId, IRuntime oappTemplate, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Delete(avatarId, oappTemplate, version, softDelete, deleteDownload, deleteInstall, providerType));
+        }
+        #endregion
+
+        public async Task<OASISResult<IEnumerable<IRuntime>>> LoadRuntimeVersionsAsync(Guid RuntimeId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(await base.LoadVersionsAsync(RuntimeId, providerType));
+        }
+
+        public OASISResult<IEnumerable<IRuntime>> LoadRuntimeVersions(Guid RuntimeId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(base.LoadVersions(RuntimeId, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> LoadRuntimeVersionAsync(Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.LoadVersionAsync(RuntimeId, version, providerType));
+        }
+
+        public OASISResult<IRuntime> LoadRuntimeVersion(Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.LoadVersion(RuntimeId, version, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> EditRuntimeAsync(Guid RuntimeId, ISTARHolonDNA newRuntimeDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.EditAsync(RuntimeId, newRuntimeDNA, avatarId, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> EditRuntimeAsync(IRuntime Runtime, ISTARHolonDNA newRuntimeDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.EditAsync(avatarId, (Runtime)Runtime, newRuntimeDNA, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> PublishRuntimeAsync(Guid avatarId, string fullPathToRuntime, string launchTarget, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateRuntimeBinary = true, bool uploadRuntimeToCloud = false, bool edit = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
+        {
+            return ProcessResult(await base.PublishAsync(avatarId, fullPathToRuntime, launchTarget, fullPathToPublishTo, registerOnSTARNET, generateRuntimeBinary, uploadRuntimeToCloud, edit, providerType, oappBinaryProviderType));
+        }
+
+        public OASISResult<IRuntime> PublishRuntime(Guid avatarId, string fullPathToRuntime, string launchTarget, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool generateRuntimeBinary = true, bool uploadRuntimeToCloud = false, bool edit = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS)
+        {
+            return ProcessResult(base.Publish(avatarId, fullPathToRuntime, launchTarget, fullPathToPublishTo, registerOnSTARNET, generateRuntimeBinary, uploadRuntimeToCloud, edit, providerType, oappBinaryProviderType));
+        }
+
+        public async Task<OASISResult<IRuntime>> UnpublishRuntimeAsync(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.UnpublishAsync(avatarId, (Runtime)Runtime, providerType));
+        }
+
+        public OASISResult<IRuntime> UnpublishRuntime(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Unpublish(avatarId, (Runtime)Runtime, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> UnpublishRuntimeAsync(Guid avatarId, Guid RuntimeId, int version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.UnpublishAsync(avatarId, RuntimeId, version, providerType));
+        }
+
+        public OASISResult<IRuntime> UnpublishRuntime(Guid avatarId, Guid RuntimeId, int version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Unpublish(avatarId, RuntimeId, version, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> UnpublishRuntimeAsync(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.UnpublishAsync(avatarId, RuntimeDNA, providerType));
+        }
+
+        public OASISResult<IRuntime> UnpublishRuntime(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Unpublish(avatarId, RuntimeDNA, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> RepublishRuntimeAsync(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.RepublishAsync(avatarId, (Runtime)Runtime, providerType));
+        }
+
+        public OASISResult<IRuntime> RepublishRuntime(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Republish(avatarId, (Runtime)Runtime, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> RepublishRuntimeAsync(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.RepublishAsync(avatarId, RuntimeDNA, providerType));
+        }
+
+        public OASISResult<IRuntime> RepublishRuntime(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Republish(avatarId, RuntimeDNA, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> RepublishRuntimeAsync(Guid RuntimeId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.RepublishAsync(avatarId, RuntimeId, version, providerType));
+        }
+
+        public OASISResult<IRuntime> RepublishRuntime(Guid RuntimeId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Republish(avatarId, RuntimeId, version, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> DeactivateRuntimeAsync(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.DeactivateAsync(avatarId, (Runtime)Runtime, providerType));
+        }
+
+        public OASISResult<IRuntime> DeactivateRuntime(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Deactivate(avatarId, (Runtime)Runtime, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> DeactivateRuntimeAsync(Guid RuntimeId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.DeactivateAsync(avatarId, RuntimeId, version, providerType));
+        }
+
+        public OASISResult<IRuntime> DeactivateRuntime(Guid RuntimeId, int version, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Deactivate(avatarId, RuntimeId, version, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> DeactivateRuntimeAsync(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.DeactivateAsync(avatarId, RuntimeDNA, providerType));
+        }
+
+        public OASISResult<IRuntime> DeactivateRuntime(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Deactivate(avatarId, RuntimeDNA, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> ActivateRuntimeAsync(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.ActivateAsync(avatarId, (Runtime)Runtime, providerType));
+        }
+
+        public OASISResult<IRuntime> ActivateRuntime(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Activate(avatarId, (Runtime)Runtime, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> ActivateRuntimeAsync(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.ActivateAsync(avatarId, RuntimeDNA, providerType));
+        }
+
+        public OASISResult<IRuntime> ActivateRuntime(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Activate(avatarId, RuntimeDNA, providerType));
+        }
+
+        public async Task<OASISResult<IRuntime>> ActivateRuntimeAsync(Guid avatarId, Guid RuntimeId, int version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.ActivateAsync(avatarId, RuntimeId, version, providerType));
+        }
+
+        public OASISResult<IRuntime> ActivateRuntime(Guid avatarId, Guid RuntimeId, int version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Activate(avatarId, RuntimeId, version, providerType));
+        }
+
+        public async Task<OASISResult<IDownloadedRuntime>> DownloadRuntimeAsync(Guid avatarId, IRuntime Runtime, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.DownloadAsync(avatarId, (Runtime)Runtime, fullDownloadPath, reInstall, providerType));
+        }
+
+        public OASISResult<IDownloadedRuntime> DownloadRuntime(Guid avatarId, IRuntime Runtime, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Download(avatarId, (Runtime)Runtime, fullDownloadPath, reInstall, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallRuntimeAsync(Guid avatarId, IRuntime Runtime, string fullInstallPath, string fullDownloadPath = "", bool createRuntimeDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, (Runtime)Runtime, fullInstallPath, fullDownloadPath, createRuntimeDirectory, reInstall, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> DownloadAndInstallRuntime(Guid avatarId, IRuntime Runtime, string fullInstallPath, string fullDownloadPath = "", bool createRuntimeDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.DownloadAndInstall(avatarId, (Runtime)Runtime, fullInstallPath, fullDownloadPath, createRuntimeDirectory, reInstall, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallRuntimeAsync(Guid avatarId, Guid RuntimeId, int version, string fullInstallPath, string fullDownloadPath = "", bool createRuntimeDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, RuntimeId, version, fullInstallPath, fullDownloadPath, createRuntimeDirectory, reInstall, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallRuntime(Guid avatarId, Guid RuntimeId, int version, string fullInstallPath, string fullDownloadPath = "", bool createRuntimeDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.DownloadAndInstall(avatarId, RuntimeId, version, fullInstallPath, fullDownloadPath, createRuntimeDirectory, reInstall, providerType));
+        }
+
+
+        public async Task<OASISResult<IInstalledRuntime>> InstallRuntimeAsync(Guid avatarId, string fullPathToPublishedRuntimeFile, string fullInstallPath, bool createRuntimeDirectory = true, IDownloadedRuntime downloadedRuntime = null, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.InstallAsync(avatarId, fullPathToPublishedRuntimeFile, fullInstallPath, createRuntimeDirectory, downloadedRuntime, reInstall, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> InstallRuntime(Guid avatarId, string fullPathToPublishedRuntimeFile, string fullInstallPath, bool createRuntimeDirectory = true, IDownloadedRuntime downloadedRuntime = null, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Install(avatarId, fullPathToPublishedRuntimeFile, fullInstallPath, createRuntimeDirectory, downloadedRuntime, reInstall, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeAsync(IInstalledRuntime installedRuntime, Guid avatarId, string errorMessage, ProviderType providerType)
+        {
+            return ProcessResult(await base.UninstallAsync(avatarId, (InstalledRuntime)installedRuntime, errorMessage, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> UninstallRuntime(Guid avatarId, IInstalledRuntime installedRuntime, string errorMessage, ProviderType providerType)
+        {
+            return ProcessResult(base.Uninstall(avatarId, (InstalledRuntime)installedRuntime, errorMessage, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeAsync(Guid avatarId, Guid RuntimeId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.UninstallAsync(avatarId, RuntimeId, versionSequence, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> UninstallRuntime(Guid avatarId, Guid RuntimeId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Uninstall(avatarId, RuntimeId, versionSequence, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeAsync(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.UninstallAsync(avatarId, RuntimeId, version, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> UninstallRuntime(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Uninstall(avatarId, RuntimeId, version, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeAsync(Guid avatarId, string RuntimeName, int versionSequence, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.UninstallAsync(avatarId, RuntimeName, versionSequence, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> UninstallRuntime(Guid avatarId, string RuntimeName, int versionSequence, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Uninstall(avatarId, RuntimeName, versionSequence, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> UninstallRuntimeAsync(Guid avatarId, string RuntimeName, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.UninstallAsync(avatarId, RuntimeName, version, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> UninstallRuntime(Guid avatarId, string RuntimeName, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Uninstall(avatarId, RuntimeName, version, providerType));
+        }
+
+        public async Task<OASISResult<IEnumerable<IInstalledRuntime>>> ListInstalledRuntimesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(await base.ListInstalledAsync(avatarId, providerType));
+        }
+
+        public OASISResult<IEnumerable<IInstalledRuntime>> ListInstalledRuntimes(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(base.ListInstalled(avatarId, providerType));
+        }
+
+        public async Task<OASISResult<IEnumerable<IInstalledRuntime>>> ListUnInstalledRuntimesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(await base.ListUninstalledAsync(avatarId, providerType));
+        }
+
+        public OASISResult<IEnumerable<IInstalledRuntime>> ListUnInstalledRuntimes(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(base.ListUninstalled(avatarId, providerType));
+        }
+
+        public async Task<OASISResult<IEnumerable<IRuntime>>> ListUnpublishedRuntimesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(await base.ListUnpublishedAsync(avatarId, providerType));
+        }
+
+        public OASISResult<IEnumerable<IRuntime>> ListUnpublishedRuntimes(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(base.ListUnpublished(avatarId, providerType));
+        }
+
+        public async Task<OASISResult<IEnumerable<IRuntime>>> ListDeactivatedRuntimesAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(await base.ListDeactivatedAsync(avatarId, providerType));
+        }
+
+        public OASISResult<IEnumerable<IRuntime>> ListDeactivatedRuntimes(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResults(base.ListDeactivated(avatarId, providerType));
+        }
+
+        public async Task<OASISResult<bool>> IsRuntimeInstalledAsync(Guid avatarId, Guid RuntimeId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        {
+            return await base.IsInstalledAsync(avatarId, RuntimeId, versionSequence, providerType);
+        }
+
+        public OASISResult<bool> IsRuntimeInstalled(Guid avatarId, Guid RuntimeId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        {
+            return base.IsInstalled(avatarId, RuntimeId, versionSequence, providerType);
+        }
+
+        public async Task<OASISResult<bool>> IsRuntimeInstalledAsync(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return await base.IsInstalledAsync(avatarId, RuntimeId, version, providerType);
+        }
+
+        public OASISResult<bool> IsRuntimeInstalled(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return base.IsInstalled(avatarId, RuntimeId, version, providerType);
+        }
+
+        public async Task<OASISResult<bool>> IsRuntimeInstalledAsync(Guid avatarId, string RuntimeName, int versionSequence, ProviderType providerType = ProviderType.Default)
+        {
+            return await base.IsInstalledAsync(avatarId, RuntimeName, versionSequence, providerType);
+        }
+
+        public OASISResult<bool> IsRuntimeInstalled(Guid avatarId, string RuntimeName, int versionSequence, ProviderType providerType = ProviderType.Default)
+        {
+            return base.IsInstalled(avatarId, RuntimeName, versionSequence, providerType);
+        }
+
+        public async Task<OASISResult<bool>> IsRuntimeInstalledAsync(Guid avatarId, string RuntimeName, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return await base.IsInstalledAsync(avatarId, RuntimeName, version, providerType);
+        }
+
+        public OASISResult<bool> IsRuntimeInstalled(Guid avatarId, string RuntimeName, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return base.IsInstalled(avatarId, RuntimeName, version, providerType);
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, Guid RuntimeId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeId, versionSequence, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, Guid RuntimeId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeId, versionSequence, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, string RuntimeName, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeName, versionSequence, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, string RuntimeName, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeName, versionSequence, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeId, version, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeId, version, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, string RuntimeName, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeName, version, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, string RuntimeName, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeName, version, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, Guid RuntimeId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeId, active, versionSequence, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, Guid RuntimeId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeId, active, versionSequence, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, string RuntimeName, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeName, active, versionSequence, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, string RuntimeName, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeName, active, versionSequence, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, Guid RuntimeId, string version, bool active, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeId, version, active, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, Guid RuntimeId, string version, bool active, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeId, version, active, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> LoadInstalledRuntimeAsync(Guid avatarId, string RuntimeName, string version, bool active, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.LoadInstalledAsync(avatarId, RuntimeName, version, active, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> LoadInstalledRuntime(Guid avatarId, string RuntimeName, string version, bool active, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.LoadInstalled(avatarId, RuntimeName, version, active, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> OpenRuntimeFolder(Guid avatarId, IInstalledRuntime Runtime)
+        {
+            return ProcessResult(base.OpenSTARHolonFolder(avatarId, (InstalledRuntime)Runtime));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> OpenRuntimeFolderAsync(Guid avatarId, Guid RuntimeId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.OpenSTARHolonFolderAsync(avatarId, RuntimeId, versionSequence, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> OpenRuntimeFolder(Guid avatarId, Guid RuntimeId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.OpenSTARHolonFolder(avatarId, RuntimeId, versionSequence, providerType));
+        }
+
+        public async Task<OASISResult<IInstalledRuntime>> OpenRuntimeFolderAsync(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.OpenSTARHolonFolderAsync(avatarId, RuntimeId, version, providerType));
+        }
+
+        public OASISResult<IInstalledRuntime> OpenRuntimeFolder(Guid avatarId, Guid RuntimeId, string version, ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.OpenSTARHolonFolder(avatarId, RuntimeId, version, providerType));
+        }
+
+        //public async Task<OASISResult<bool>> WriteRuntimeDNAAsync(ISTARHolonDNA RuntimeDNA, string fullPathToRuntime)
+        //{
+        //    return await base.WriteSTARHolonDNAAsync(RuntimeDNA, fullPathToRuntime);
+        //}
+
+        //public OASISResult<bool> WriteRuntimeDNA(ISTARHolonDNA RuntimeDNA, string fullPathToRuntime)
+        //{
+        //    return base.WriteSTARHolonDNA(RuntimeDNA, fullPathToRuntime);
+        //}
+
+        //public async Task<OASISResult<ISTARHolonDNA>> ReadRuntimeDNAFromSourceOrInstalledFolderAsync(string fullPathToRuntimeFolder)
+        //{
+        //    return await base.ReadSTARHolonDNAFromSourceOrInstallFolderAsync(fullPathToRuntimeFolder);
+        //}
+
+        //public OASISResult<ISTARHolonDNA> ReadRuntimeDNAFromSourceOrInstalledFolder(string fullPathToRuntimeFolder)
+        //{
+        //    return base.ReadSTARHolonDNAFromSourceOrInstallFolder(fullPathToRuntimeFolder);
+        //}
+
+        //public async Task<OASISResult<ISTARHolonDNA>> ReadRuntimeDNAFromPublishedRuntimeFileAsync(string fullPathToRuntimeFolder)
+        //{
+        //    return await base.ReadSTARHolonDNAFromPublishedFileAsync(fullPathToRuntimeFolder);
+        //}
+
+        //public OASISResult<ISTARHolonDNA> ReadRuntimeDNAFromPublishedRuntimeFile(string fullPathToRuntimeFolder)
+        //{
+        //    return base.ReadSTARHolonDNAFromPublishedFile(fullPathToRuntimeFolder);
+        //}
+
+        private OASISResult<IEnumerable<IRuntime>> ProcessResults(OASISResult<IEnumerable<Runtime>> operationResult)
+        {
+            OASISResult<IEnumerable<IRuntime>> result = new OASISResult<IEnumerable<IRuntime>>();
+
+            if (operationResult != null && operationResult.Result != null && !operationResult.IsError && operationResult.Result.Count() > 0)
+            {
+                List<IRuntime> oappTemplates = new List<IRuntime>();
+
+                foreach (IRuntime template in operationResult.Result)
+                    oappTemplates.Add(template);
+
+                result.Result = oappTemplates;
+            }
+
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
             return result;
         }
+
+        private OASISResult<IEnumerable<IInstalledRuntime>> ProcessResults(OASISResult<IEnumerable<InstalledRuntime>> operationResult)
+        {
+            OASISResult<IEnumerable<IInstalledRuntime>> result = new OASISResult<IEnumerable<IInstalledRuntime>>();
+
+            if (operationResult != null && operationResult.Result != null && !operationResult.IsError && operationResult.Result.Count() > 0)
+            {
+                List<IInstalledRuntime> oappTemplates = new List<IInstalledRuntime>();
+
+                foreach (IInstalledRuntime template in operationResult.Result)
+                    oappTemplates.Add(template);
+
+                result.Result = oappTemplates;
+            }
+
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+            return result;
+        }
+
+        private OASISResult<IRuntime> ProcessResult(OASISResult<Runtime> operationResult)
+        {
+            OASISResult<IRuntime> result = new OASISResult<IRuntime>();
+            result.Result = operationResult.Result;
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+            return result;
+        }
+
+        private OASISResult<IDownloadedRuntime> ProcessResult(OASISResult<DownloadedQuest> operationResult)
+        {
+            OASISResult<IDownloadedRuntime> result = new OASISResult<IDownloadedRuntime>();
+            result.Result = operationResult.Result;
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+            return result;
+        }
+
+        private OASISResult<IInstalledRuntime> ProcessResult(OASISResult<InstalledRuntime> operationResult)
+        {
+            OASISResult<IInstalledRuntime> result = new OASISResult<IInstalledRuntime>();
+            result.Result = operationResult.Result;
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+            return result;
+        }*/
     }
 }

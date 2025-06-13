@@ -1,9 +1,8 @@
 ﻿using System;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
-    public interface ITaskBase : IHolon
+    public interface ITaskBase : ISTARHolon //: IHolon
     {
         Guid StartedBy { get; set; }
         DateTime StartedOn { get; set; }

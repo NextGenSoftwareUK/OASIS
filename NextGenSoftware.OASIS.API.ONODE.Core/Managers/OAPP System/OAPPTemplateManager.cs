@@ -15,7 +15,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class OAPPTemplateManager : STARManagerBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate>
+    public class OAPPTemplateManager : STARManagerBase<OAPPTemplate, DownloadedMission, InstalledMission>
     {
         public OAPPTemplateManager(Guid avatarId, OASISDNA OASISDNA = null) : base(
             avatarId, 
@@ -49,6 +49,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "OAPPTemplateDNAJSON")
         { }
 
+        /*
         public async Task<OASISResult<IOAPPTemplate>> CreateOAPPTemplateAsync(Guid avatarId, string name, string description, OAPPTemplateType OAPPTemplateType, string fullPathToOAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, OAPPTemplateType, fullPathToOAPPTemplate, null, providerType));
@@ -102,12 +103,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public async Task<OASISResult<IEnumerable<IOAPPTemplate>>> SearchOAPPTemplatesAsync(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResults(await base.SearchAsync(avatarId, searchTerm, HolonType.OAPPTemplate, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
+            return ProcessResults(await base.SearchAsync(avatarId, searchTerm, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
         }
 
         public OASISResult<IEnumerable<IOAPPTemplate>> SearchOAPPTemplates(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResults(base.Search(avatarId, searchTerm, HolonType.OAPPTemplate, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
+            return ProcessResults(base.Search(avatarId, searchTerm, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
         }
 
         public async Task<OASISResult<IOAPPTemplate>> DeleteOAPPTemplateAsync(Guid avatarId, Guid oappTemplateId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
@@ -263,7 +264,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(Guid avatarId, IOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.ActivateAsync((OAPPTemplate)OAPPTemplate, avatarId, providerType));
+            return ProcessResult(await base.ActivateAsync(avatarId, (OAPPTemplate)OAPPTemplate, providerType));
         }
 
         public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(Guid avatarId, IOAPPTemplate OAPPTemplate, ProviderType providerType = ProviderType.Default)
@@ -334,12 +335,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(IInstalledOAPPTemplate installedOAPPTemplate, Guid avatarId, string errorMessage, ProviderType providerType)
         {
-            return ProcessResult(await base.UninstallAsync(avatarId, (InstalledOAPPTemplate)installedOAPPTemplate, errorMessage, providerType));
+            return ProcessResult(await base.UninstallAsync(avatarId, (InstalledMission)installedOAPPTemplate, errorMessage, providerType));
         }
 
         public OASISResult<IInstalledOAPPTemplate> UninstallOAPPTemplate(Guid avatarId, IInstalledOAPPTemplate installedOAPPTemplate, string errorMessage, ProviderType providerType)
         {
-            return ProcessResult(base.Uninstall(avatarId, (InstalledOAPPTemplate)installedOAPPTemplate, errorMessage, providerType));
+            return ProcessResult(base.Uninstall(avatarId, (InstalledMission)installedOAPPTemplate, errorMessage, providerType));
         }
 
         public async Task<OASISResult<IInstalledOAPPTemplate>> UninstallOAPPTemplateAsync(Guid avatarId, Guid OAPPTemplateId, int versionSequence, ProviderType providerType = ProviderType.Default)
@@ -544,7 +545,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public OASISResult<IInstalledOAPPTemplate> OpenOAPPTemplateFolder(Guid avatarId, IInstalledOAPPTemplate OAPPTemplate)
         {
-            return ProcessResult(base.OpenSTARHolonFolder(avatarId, (InstalledOAPPTemplate)OAPPTemplate));
+            return ProcessResult(base.OpenSTARHolonFolder(avatarId, (InstalledMission)OAPPTemplate));
         }
 
         public async Task<OASISResult<IInstalledOAPPTemplate>> OpenOAPPTemplateFolderAsync(Guid avatarId, Guid OAPPTemplateId, int versionSequence, ProviderType providerType = ProviderType.Default)
@@ -567,36 +568,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.OpenSTARHolonFolder(avatarId, OAPPTemplateId, version, providerType));
         }
 
-        //public async Task<OASISResult<bool>> WriteOAPPTemplateDNAAsync(ISTARHolonDNA OAPPTemplateDNA, string fullPathToOAPPTemplate)
-        //{
-        //    return await base.WriteSTARHolonDNAAsync(OAPPTemplateDNA, fullPathToOAPPTemplate);
-        //}
-
-        //public OASISResult<bool> WriteOAPPTemplateDNA(ISTARHolonDNA OAPPTemplateDNA, string fullPathToOAPPTemplate)
-        //{
-        //    return base.WriteSTARHolonDNA(OAPPTemplateDNA, fullPathToOAPPTemplate);
-        //}
-
-        //public async Task<OASISResult<ISTARHolonDNA>> ReadOAPPTemplateDNAFromSourceOrInstalledFolderAsync(string fullPathToOAPPTemplateFolder)
-        //{
-        //    return await base.ReadSTARHolonDNAFromSourceOrInstallFolderAsync(fullPathToOAPPTemplateFolder);
-        //}
-
-        //public OASISResult<ISTARHolonDNA> ReadOAPPTemplateDNAFromSourceOrInstalledFolder(string fullPathToOAPPTemplateFolder)
-        //{
-        //    return base.ReadSTARHolonDNAFromSourceOrInstallFolder(fullPathToOAPPTemplateFolder);
-        //}
-
-        //public async Task<OASISResult<ISTARHolonDNA>> ReadOAPPTemplateDNAFromPublishedOAPPTemplateFileAsync(string fullPathToOAPPTemplateFolder)
-        //{
-        //    return await base.ReadSTARHolonDNAFromPublishedFileAsync(fullPathToOAPPTemplateFolder);
-        //}
-
-        //public OASISResult<ISTARHolonDNA> ReadOAPPTemplateDNAFromPublishedOAPPTemplateFile(string fullPathToOAPPTemplateFolder)
-        //{
-        //    return base.ReadSTARHolonDNAFromPublishedFile(fullPathToOAPPTemplateFolder);
-        //}
-
         private OASISResult<IEnumerable<IOAPPTemplate>> ProcessResults(OASISResult<IEnumerable<OAPPTemplate>> operationResult)
         {
             OASISResult<IEnumerable<IOAPPTemplate>> result = new OASISResult<IEnumerable<IOAPPTemplate>>();
@@ -615,7 +586,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private OASISResult<IEnumerable<IInstalledOAPPTemplate>> ProcessResults(OASISResult<IEnumerable<InstalledOAPPTemplate>> operationResult)
+        private OASISResult<IEnumerable<IInstalledOAPPTemplate>> ProcessResults(OASISResult<IEnumerable<InstalledMission>> operationResult)
         {
             OASISResult<IEnumerable<IInstalledOAPPTemplate>> result = new OASISResult<IEnumerable<IInstalledOAPPTemplate>>();
 
@@ -641,7 +612,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private OASISResult<IDownloadedOAPPTemplate> ProcessResult(OASISResult<DownloadedOAPPTemplate> operationResult)
+        private OASISResult<IDownloadedOAPPTemplate> ProcessResult(OASISResult<DownloadedMission> operationResult)
         {
             OASISResult<IDownloadedOAPPTemplate> result = new OASISResult<IDownloadedOAPPTemplate>();
             result.Result = operationResult.Result;
@@ -649,12 +620,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private OASISResult<IInstalledOAPPTemplate> ProcessResult(OASISResult<InstalledOAPPTemplate> operationResult)
+        private OASISResult<IInstalledOAPPTemplate> ProcessResult(OASISResult<InstalledMission> operationResult)
         {
             OASISResult<IInstalledOAPPTemplate> result = new OASISResult<IInstalledOAPPTemplate>();
             result.Result = operationResult.Result;
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
             return result;
-        }
+        }*/
     }
 }

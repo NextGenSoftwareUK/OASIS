@@ -73,25 +73,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public delegate void DownloadStatusChanged(object sender, STARHolonDownloadProgressEventArgs e);
 
         /// <summary>
-        /// Fired when there is a change in the OAPP publish status.
+        /// Fired when there is a change in the publish status.
         /// </summary>
         public event PublishStatusChanged OnPublishStatusChanged;
 
         /// <summary>
-        /// Fired when there is a change to the OAPP Install status.
+        /// Fired when there is a change to the Install status.
         /// </summary>
         public event InstallStatusChanged OnInstallStatusChanged;
 
         /// <summary>
-        /// Fired when there is a change in the OAPP upload status.
+        /// Fired when there is a change in the upload status.
         /// </summary>
         public event UploadStatusChanged OnUploadStatusChanged;
 
         /// <summary>
-        /// Fired when there is a change in the OAPP download status.
+        /// Fired when there is a change in the download status.
         /// </summary>
         public event DownloadStatusChanged OnDownloadStatusChanged;
 
+        //public bool IsInstallable { get; set; } = true; //TODO: Make this configurable in the DNA?
         public HolonType STARHolonType { get; set; } = HolonType.STARHolon;
         public HolonType STARInstalledHolonType { get; set; } = HolonType.InstalledSTARHolon;
         public string STARHolonUIName { get; set; } = "OAPP System Holon";
@@ -291,7 +292,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         }
 
         #region COSMICManagerBase
-        public async Task<OASISResult<T1>> SaveAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> SaveAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
 
@@ -321,7 +322,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> SaveAsync(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> SaveAsync(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
 
@@ -351,7 +352,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> LoadAsync(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> LoadAsync(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<IEnumerable<T1>> loadResult = await Data.LoadHolonsByMetaDataAsync<T1>(STARHolonIdName, id.ToString(), STARHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
@@ -379,7 +380,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T1>>> LoadAllAsync(Guid avatarId, object holonSubType, bool loadAllTypes = true, bool showAllVersions = false, int version = 0, HolonType STARHolonType = HolonType.Default, string STARHolonTypeName = "Default", ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T1>>> LoadAllAsync(Guid avatarId, object holonSubType, bool loadAllTypes = true, bool showAllVersions = false, int version = 0, HolonType STARHolonType = HolonType.Default, string STARHolonTypeName = "Default", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             OASISResult<IEnumerable<T1>> loadHolonsResult = null;
@@ -417,7 +418,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public async Task<OASISResult<IEnumerable<T1>>> LoadAllForAvatarAsync(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T1>>> LoadAllForAvatarAsync(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             OASISResult<IEnumerable<T1>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<T1>(new Dictionary<string, string>()
@@ -443,7 +444,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public async Task<OASISResult<IEnumerable<T1>>> SearchAsync(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T1>>> SearchAsync(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             OASISResult<IEnumerable<T1>> loadHolonsResult = await SearchHolonsAsync<T1>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "STARManagerBase.SearchAsync", STARHolonType);
@@ -457,7 +458,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public async Task<OASISResult<T1>> DeleteAsync(Guid avatarId, Guid id, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> DeleteAsync(Guid avatarId, Guid id, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in DeleteAsync. Reason: ";
@@ -485,7 +486,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> DeleteAsync(Guid avatarId, ISTARHolon oappSystemHolon, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> DeleteAsync(Guid avatarId, ISTARHolon oappSystemHolon, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in DeleteAsync. Reason: ";
@@ -656,7 +657,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
         /*
         #region PublishManagerBase
-        public async Task<OASISResult<ISTARHolon>> PublishSTARHolonAsync(Guid STARHolonId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<ISTARHolon>> PublishSTARHolonAsync(Guid STARHolonId, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ISTARHolon> result = new OASISResult<ISTARHolon>();
             OASISResult<T> saveResult = await PublishHolonAsync<T>(STARHolonId, avatarId, "STARManagerBase.PublishSTARHolonAsync", providerType);
@@ -674,7 +675,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<ISTARHolon>> PublishSTARHolonAsync(ISTARHolon T, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<ISTARHolon>> PublishSTARHolonAsync(ISTARHolon T, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ISTARHolon> result = new OASISResult<ISTARHolon>();
             OASISResult<T> saveResult = await PublishHolonAsync<T>(T, avatarId, "STARManagerBase.PublishSTARHolonAsync", providerType);
@@ -692,7 +693,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<ISTARHolon>> UnpublishSTARHolonAsync(Guid STARHolonId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<ISTARHolon>> UnpublishSTARHolonAsync(Guid STARHolonId, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ISTARHolon> result = new OASISResult<ISTARHolon>();
             OASISResult<T> saveResult = await UnpublishHolonAsync<T>(STARHolonId, avatarId, "STARManagerBase.UnpublishSTARHolonAsync", providerType);
@@ -710,7 +711,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<ISTARHolon>> UnpublishSTARHolonAsync(ISTARHolon T, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<ISTARHolon>> UnpublishSTARHolonAsync(ISTARHolon T, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ISTARHolon> result = new OASISResult<ISTARHolon>();
             OASISResult<T> saveResult = await UnpublishHolonAsync<T>(T, avatarId, "STARManagerBase.UnpublishSTARHolonAsync", providerType);
@@ -729,7 +730,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         }
         #endregion*/
 
-        public async Task<OASISResult<IEnumerable<T1>>> LoadVersionsAsync(Guid id, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T1>>> LoadVersionsAsync(Guid id, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
 
@@ -763,7 +764,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> LoadVersionAsync(Guid id, string version, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> LoadVersionAsync(Guid id, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> loadHolonResult = await Data.LoadHolonByMetaDataAsync<T1>(new Dictionary<string, string>()
@@ -811,7 +812,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        //public async Task<OASISResult<T1>> EditAsync<T1, T2>(Guid id, ISTARHolonDNA newSTARHolonDNA, Guid avatarId, ProviderType providerType = ProviderType.Default) where T1 : ISTARHolon, new() where T2 : IInstalledSTARHolon, new()
+        //public virtual async Task<OASISResult<T1>> EditAsync<T1, T2>(Guid id, ISTARHolonDNA newSTARHolonDNA, Guid avatarId, ProviderType providerType = ProviderType.Default) where T1 : ISTARHolon, new() where T2 : IInstalledSTARHolon, new()
         //{
         //    OASISResult<T1> result = new OASISResult<T1>();
         //    OASISResult<T1> loadResult = await LoadAsync<T1>(id, avatarId, providerType: providerType);
@@ -824,7 +825,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    return result;
         //}
 
-        public async Task<OASISResult<T1>> EditAsync(Guid id, ISTARHolonDNA newSTARHolonDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> EditAsync(Guid id, ISTARHolonDNA newSTARHolonDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> loadResult = await LoadAsync(id, avatarId, providerType: providerType);
@@ -837,7 +838,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> EditAsync(Guid avatarId, T1 holon, ISTARHolonDNA newSTARHolonDNA, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> EditAsync(Guid avatarId, T1 holon, ISTARHolonDNA newSTARHolonDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in STARManagerBase.EditAsync. Reason: ";
@@ -1085,7 +1086,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> PublishAsync(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool generateBinary = true, bool uploadToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS)
+        public virtual async Task<OASISResult<T1>> PublishAsync(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool generateBinary = true, bool uploadToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             ISTARHolonDNA STARHolonDNA = null;
@@ -1270,7 +1271,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    }
         //}
 
-        public async Task<OASISResult<T1>> BeginPublishAsync(Guid avatarId, string fullPathToSource, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType)
+        public virtual async Task<OASISResult<T1>> BeginPublishAsync(Guid avatarId, string fullPathToSource, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string userName = "Unknown";
@@ -1424,7 +1425,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T>> UploadToCloudAsync<T>(ISTARHolonDNA STARHolonDNA, string publishedSTARHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType)
+        public virtual async Task<OASISResult<T>> UploadToCloudAsync<T>(ISTARHolonDNA STARHolonDNA, string publishedSTARHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType)
         {
             OASISResult<T> result = new OASISResult<T>();
 
@@ -1694,7 +1695,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> UploadToOASISAsync(Guid avatarId, ISTARHolonDNA STARHolonDNA, string publishedPath, bool registerOnSTARNET, bool uploadToCloud, ProviderType binaryProviderType)
+        public virtual async Task<OASISResult<T1>> UploadToOASISAsync(Guid avatarId, ISTARHolonDNA STARHolonDNA, string publishedPath, bool registerOnSTARNET, bool uploadToCloud, ProviderType binaryProviderType)
         {
             OASISResult<T1> result = new OASISResult<T1>();
 
@@ -1742,7 +1743,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> FininalizePublishAsync(Guid avatarId, T1 holon, bool edit, ProviderType providerType)
+        public virtual async Task<OASISResult<T1>> FininalizePublishAsync(Guid avatarId, T1 holon, bool edit, ProviderType providerType)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "";
@@ -1854,7 +1855,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in UnpublishAsync. Reason: ";
@@ -1902,7 +1903,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, Guid STARHolonId, int version, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, Guid STARHolonId, int version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> loadResult = await LoadAsync(STARHolonId, avatarId, version, providerType);
@@ -1928,7 +1929,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, ISTARHolonDNA STARHolonDNA, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, ISTARHolonDNA STARHolonDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> oappResult = await LoadAsync(STARHolonDNA.Id, avatarId, STARHolonDNA.VersionSequence, providerType);
@@ -1956,7 +1957,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> RepublishAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> RepublishAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in RepublishAsync. Reason: ";
@@ -2018,7 +2019,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> RepublishAsync(Guid avatarId, ISTARHolonDNA STARHolonDNA, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> RepublishAsync(Guid avatarId, ISTARHolonDNA STARHolonDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> oappResult = await LoadAsync(STARHolonDNA.Id, avatarId, STARHolonDNA.VersionSequence, providerType);
@@ -2046,7 +2047,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> RepublishAsync(Guid avatarId, Guid STARHolonId, int version, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> RepublishAsync(Guid avatarId, Guid STARHolonId, int version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> loadResult = await LoadAsync(STARHolonId, avatarId, version, providerType);
@@ -2072,7 +2073,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> DeactivateAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> DeactivateAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in DeactivateAsync. Reason: ";
@@ -2114,7 +2115,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> DeactivateAsync(Guid avatarId, Guid STARHolonId, int version, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> DeactivateAsync(Guid avatarId, Guid STARHolonId, int version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> loadResult = await LoadAsync(STARHolonId, avatarId, version, providerType);
@@ -2140,7 +2141,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> DeactivateAsync(Guid avatarId, ISTARHolonDNA STARHolonDNA, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> DeactivateAsync(Guid avatarId, ISTARHolonDNA STARHolonDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> oappResult = await LoadAsync(STARHolonDNA.Id, avatarId, STARHolonDNA.VersionSequence, providerType);
@@ -2168,7 +2169,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> ActivateAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> ActivateAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in ActivateAsync. Reason: ";
@@ -2224,7 +2225,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> ActivateAsync(Guid avatarId, ISTARHolonDNA STARHolonDNA, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> ActivateAsync(Guid avatarId, ISTARHolonDNA STARHolonDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> oappResult = await LoadAsync(avatarId, STARHolonDNA.Id, STARHolonDNA.VersionSequence, providerType);
@@ -2252,7 +2253,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> ActivateAsync(Guid avatarId, Guid id, int version, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> ActivateAsync(Guid avatarId, Guid id, int version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T1> loadResult = await LoadAsync(avatarId, id, version, providerType);
@@ -2278,7 +2279,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T2>> DownloadAsync(Guid avatarId, T1 holon, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T2>> DownloadAsync(Guid avatarId, T1 holon, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T2> result = new OASISResult<T2>();
             string errorMessage = "Error occured in STARManagerBase.DownloadAsync. Reason: ";
@@ -2554,7 +2555,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> DownloadAndInstallAsync(Guid avatarId, T1 holon, string fullInstallPath, string fullDownloadPath = "", bool createSTARHolonDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> DownloadAndInstallAsync(Guid avatarId, T1 holon, string fullInstallPath, string fullDownloadPath = "", bool createSTARHolonDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.DownloadAndInstallAsync. Reason: ";
@@ -2659,7 +2660,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> DownloadAndInstallAsync(Guid avatarId, Guid STARHolonId, int version, string fullInstallPath, string fullDownloadPath = "", bool createSTARHolonDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> DownloadAndInstallAsync(Guid avatarId, Guid STARHolonId, int version, string fullInstallPath, string fullDownloadPath = "", bool createSTARHolonDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             OASISResult<T1> STARHolonResult = await LoadAsync(STARHolonId, avatarId, version, providerType);
@@ -2692,7 +2693,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> InstallAsync(Guid avatarId, string fullPathToPublishedSTARHolonFile, string fullInstallPath, bool createSTARHolonDirectory = true, IDownloadedSTARHolon downloadedSTARHolon = null, bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> InstallAsync(Guid avatarId, string fullPathToPublishedSTARHolonFile, string fullInstallPath, bool createSTARHolonDirectory = true, IDownloadedSTARHolon downloadedSTARHolon = null, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.InstallAsync. Reason: ";
@@ -3105,7 +3106,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    return result;
         //}
 
-        public async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, T3 installedSTARHolon, string errorMessage, ProviderType providerType)
+        public virtual async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, T3 installedSTARHolon, string errorMessage, ProviderType providerType)
         {
             OASISResult<T3> result = new OASISResult<T3>();
 
@@ -3188,7 +3189,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, Guid STARHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, Guid STARHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.UninstallAsync. Reason: ";
@@ -3228,7 +3229,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, Guid STARHolonId, string version, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, Guid STARHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.UninstallAsync. Reason: ";
@@ -3268,7 +3269,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, string STARHolonName, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, string STARHolonName, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.UninstallAsync. Reason: ";
@@ -3308,7 +3309,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, string STARHolonName, string version, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, string STARHolonName, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.UninstallAsync. Reason: ";
@@ -3348,7 +3349,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T3>>> ListInstalledAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T3>>> ListInstalledAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T3>> result = await Data.LoadHolonsForParentAsync<T3>(avatarId, STARInstalledHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
 
@@ -3372,7 +3373,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T3>>> ListUninstalledAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T3>>> ListUninstalledAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T3>> result = await Data.LoadHolonsForParentAsync<T3>(avatarId, STARInstalledHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
 
@@ -3396,7 +3397,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T1>>> ListUnpublishedAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T1>>> ListUnpublishedAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             string errorMessage = "Error occured in STARManagerBase.ListUnpublishedAsync. Reason: ";
@@ -3424,7 +3425,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T1>>> ListDeactivatedAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T1>>> ListDeactivatedAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
             string errorMessage = "Error occured in STARManagerBase.ListDeactivatedAsync. Reason: ";
@@ -3440,7 +3441,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, Guid STARHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, Guid STARHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             string errorMessage = "Error occured in STARManagerBase.IsInstalledAsync. Reason: ";
@@ -3485,7 +3486,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, Guid STARHolonId, string version, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, Guid STARHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             string errorMessage = "Error occured in STARManagerBase.IsInstalledAsync. Reason: ";
@@ -3533,7 +3534,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, string name, int versionSequence, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, string name, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             string errorMessage = "Error occured in STARManagerBase.IsInstalledAsync. Reason: ";
@@ -3581,7 +3582,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, string name, string version, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, string name, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             string errorMessage = "Error occured in STARManagerBase.IsInstalledAsync. Reason: ";
@@ -3629,7 +3630,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARHolonId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARHolonId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
@@ -3667,7 +3668,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string name, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string name, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
@@ -3705,7 +3706,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARHolonId, string version, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
@@ -3743,7 +3744,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string name, string version, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string name, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
@@ -3781,7 +3782,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARHolonId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARHolonId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
@@ -3821,7 +3822,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string name, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string name, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
@@ -3860,7 +3861,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARHolonId, string version, bool active, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARHolonId, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
@@ -3900,7 +3901,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string STARHolonName, string version, bool active, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string STARHolonName, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
@@ -3966,7 +3967,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> OpenSTARHolonFolderAsync(Guid avatarId, Guid STARHolonId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> OpenSTARHolonFolderAsync(Guid avatarId, Guid STARHolonId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "An error occured in STARManagerBase.OpenSTARHolonFolderAsync. Reason:";
@@ -3994,7 +3995,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> OpenSTARHolonFolderAsync(Guid avatarId, Guid STARHolonId, string version, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> OpenSTARHolonFolderAsync(Guid avatarId, Guid STARHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "An error occured in STARManagerBase.OpenSTARHolonFolderAsync. Reason:";
@@ -4054,7 +4055,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    return STARHolonDNA;
         //}
 
-        public async Task<OASISResult<bool>> WriteDNAAsync<T>(T STARHolonDNA, string fullPathToSTARHolon)
+        public virtual async Task<OASISResult<bool>> WriteDNAAsync<T>(T STARHolonDNA, string fullPathToSTARHolon)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -4100,7 +4101,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        //public async Task<OASISResult<ISTARHolonDNA>> ReadDNAFromSourceOrInstallFolderAsync(string fullPathToSTARHolonFolder)
+        //public virtual async Task<OASISResult<ISTARHolonDNA>> ReadDNAFromSourceOrInstallFolderAsync(string fullPathToSTARHolonFolder)
         //{
         //    OASISResult<ISTARHolonDNA> result = new OASISResult<ISTARHolonDNA>();
 
@@ -4132,7 +4133,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    return result;
         //}
 
-        //public async Task<OASISResult<ISTARHolonDNA>> ReadSTARHolonDNAFromPublishedFileAsync(string fullPathToPublishedFile)
+        //public virtual async Task<OASISResult<ISTARHolonDNA>> ReadSTARHolonDNAFromPublishedFileAsync(string fullPathToPublishedFile)
         //{
         //    OASISResult<ISTARHolonDNA> result = new OASISResult<ISTARHolonDNA>();
         //    string tempPath = "";
@@ -4192,7 +4193,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    return result;
         //}
 
-        public async Task<OASISResult<T>> ReadDNAFromSourceOrInstallFolderAsync<T>(string fullPathToSTARHolonFolder)
+        public virtual async Task<OASISResult<T>> ReadDNAFromSourceOrInstallFolderAsync<T>(string fullPathToSTARHolonFolder)
         {
             OASISResult<T> result = new OASISResult<T>();
 
@@ -4224,7 +4225,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T>> ReadDNAFromPublishedFileAsync<T>(string fullPathToPublishedFile)
+        public virtual async Task<OASISResult<T>> ReadDNAFromPublishedFileAsync<T>(string fullPathToPublishedFile)
         {
             OASISResult<T> result = new OASISResult<T>();
             string tempPath = "";
@@ -4333,7 +4334,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> UpdateNumberOfVersionCountsAsync(Guid avatarId, OASISResult<T1> result, string errorMessage, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> UpdateNumberOfVersionCountsAsync(Guid avatarId, OASISResult<T1> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> versionsResult = await LoadVersionsAsync(result.Result.STARHolonDNA.Id, providerType);
 
@@ -4409,7 +4410,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T2>> UpdateDownloadCountsAsync(Guid avatarId, T2 downloadedSTARHolon, ISTARHolonDNA STARHolonDNA, OASISResult<T2> result, string errorMessage, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T2>> UpdateDownloadCountsAsync(Guid avatarId, T2 downloadedSTARHolon, ISTARHolonDNA STARHolonDNA, OASISResult<T2> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
             int totalDownloads = 0;
             OASISResult<IEnumerable<T1>> holonVersionsResult = await LoadVersionsAsync(STARHolonDNA.Id, providerType);
@@ -4507,7 +4508,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T3>> UpdateInstallCountsAsync(Guid avatarId, T3 installedSTARHolon, ISTARHolonDNA STARHolonDNA, OASISResult<T3> result, string errorMessage, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> UpdateInstallCountsAsync(Guid avatarId, T3 installedSTARHolon, ISTARHolonDNA STARHolonDNA, OASISResult<T3> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
             int totalInstalls = 0;
             OASISResult<IEnumerable<T1>> holonVersionsResult = await LoadVersionsAsync(STARHolonDNA.Id, providerType);

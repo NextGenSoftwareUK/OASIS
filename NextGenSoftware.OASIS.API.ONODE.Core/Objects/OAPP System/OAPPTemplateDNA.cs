@@ -6,6 +6,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class OAPPTemplateDNA : STARHolonDNA, IOAPPTemplateDNA
     {
-        public OAPPTemplateType OAPPTemplateType { get; set; }
+        //public OAPPTemplateType OAPPTemplateType { get; set; }
     }
 }
