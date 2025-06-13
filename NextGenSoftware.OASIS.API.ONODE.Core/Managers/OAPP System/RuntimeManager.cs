@@ -4,20 +4,22 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class RuntimeManager : STARManagerBase<Runtime, DownloadedRuntime, InstalledRuntime>
+    public class RuntimeManager : STARManagerBase<Runtime, DownloadedQuest, InstalledRuntime>
     {
-        public RuntimeManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA,
+        public RuntimeManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, 
+            typeof(RuntimeType),
+            OASISDNA,
             HolonType.Runtime,
             HolonType.InstalledRuntime,
             "Runtime",
@@ -30,7 +32,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "RuntimeDNAJSON")
         { }
 
-        public RuntimeManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA,
+        public RuntimeManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            typeof(RuntimeType),
+            OASISDNA,
             HolonType.Runtime,
             HolonType.InstalledRuntime,
             "Runtime",
@@ -43,6 +47,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "RuntimeDNAJSON")
         { }
 
+        /*
         public async Task<OASISResult<IRuntime>> CreateRuntimeAsync(Guid avatarId, string name, string description, RuntimeType runtimeType, string fullPathToRuntime, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, runtimeType, fullPathToRuntime, null, providerType));
@@ -96,12 +101,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public async Task<OASISResult<IEnumerable<IRuntime>>> SearchRuntimesAsync(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResults(await base.SearchAsync(avatarId, searchTerm, HolonType.Runtime, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
+            return ProcessResults(await base.SearchAsync(avatarId, searchTerm, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
         }
 
         public OASISResult<IEnumerable<IRuntime>> SearchRuntimes(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResults(base.Search(avatarId, searchTerm, HolonType.Runtime, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
+            return ProcessResults(base.Search(avatarId, searchTerm, searchOnlyForCurrentAvatar, showAllVersions, version, providerType));
         }
 
         public async Task<OASISResult<IRuntime>> DeleteRuntimeAsync(Guid avatarId, Guid oappTemplateId, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default)
@@ -257,17 +262,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public async Task<OASISResult<IRuntime>> ActivateRuntimeAsync(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.ActivateAsync((Runtime)Runtime, avatarId, providerType));
+            return ProcessResult(await base.ActivateAsync(avatarId, (Runtime)Runtime, providerType));
         }
 
         public OASISResult<IRuntime> ActivateRuntime(Guid avatarId, IRuntime Runtime, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.Activate((Runtime)Runtime, avatarId, providerType));
+            return ProcessResult(base.Activate(avatarId, (Runtime)Runtime, providerType));
         }
 
         public async Task<OASISResult<IRuntime>> ActivateRuntimeAsync(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.ActivateAsync(RuntimeDNA, avatarId, providerType));
+            return ProcessResult(await base.ActivateAsync(avatarId, RuntimeDNA, providerType));
         }
 
         public OASISResult<IRuntime> ActivateRuntime(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
@@ -635,7 +640,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private OASISResult<IDownloadedRuntime> ProcessResult(OASISResult<DownloadedRuntime> operationResult)
+        private OASISResult<IDownloadedRuntime> ProcessResult(OASISResult<DownloadedQuest> operationResult)
         {
             OASISResult<IDownloadedRuntime> result = new OASISResult<IDownloadedRuntime>();
             result.Result = operationResult.Result;
@@ -649,6 +654,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             result.Result = operationResult.Result;
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
             return result;
-        }
+        }*/
     }
 }

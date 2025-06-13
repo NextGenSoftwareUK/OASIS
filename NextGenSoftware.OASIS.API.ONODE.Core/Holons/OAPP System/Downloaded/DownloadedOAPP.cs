@@ -5,7 +5,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class DownloadedOAPP : DownloadedSTARHolon, IDownloadedOAPP
     {
-        public DownloadedOAPP() : base("OAPPTemplateDNAJSON")
+        public DownloadedOAPP() : base("OAPPDNAJSON")
         {
             this.HolonType = HolonType.DownloadedOAPP;
         }

@@ -12,28 +12,27 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public static class STARUIBase<T1, T2, T3>
+    public class STARUIBase<T1, T2, T3>
         where T1 : ISTARHolon, new()
         where T2 : IDownloadedSTARHolon, new()
         where T3 : IInstalledSTARHolon, new()
     {
 
-        public static ISTARManagerBase<T1, T2, T3> STARManager { get; set; }
-        public static bool IsInit { get; set; }
-        public static string CreateHeader { get; set; }
-        public static List<string> CreateIntroParagraphs { get; set; }
-        public static string SourcePath { get; set; }
-        public static string SourceSTARDNAKey { get; set; }
-        public static string PublishedPath { get; set; }
-        public static string PublishedSTARDNAKey { get; set; }
-        public static string DownloadedPath { get; set; }
-        public static string DownloadSTARDNAKey { get; set; }
-        public static string InstalledPath { get; set; }
-        public static string InstalledSTARDNAKey { get; set; }
+        public ISTARManagerBase<T1, T2, T3> STARManager { get; set; }
+        public bool IsInit { get; set; }
+        public string CreateHeader { get; set; }
+        public List<string> CreateIntroParagraphs { get; set; }
+        public string SourcePath { get; set; }
+        public string SourceSTARDNAKey { get; set; }
+        public string PublishedPath { get; set; }
+        public string PublishedSTARDNAKey { get; set; }
+        public string DownloadedPath { get; set; }
+        public string DownloadSTARDNAKey { get; set; }
+        public string InstalledPath { get; set; }
+        public string InstalledSTARDNAKey { get; set; }
         
 
-        public static void Init(ISTARManagerBase<T1, T2, T3> starManager, string createHeader, List<string> createIntroParagraphs, string sourcePath, string sourceSTARDNAKey, string publishedPath, string publishedSTARDNAKey, string downloadedPath, string downloadSTARDNAKey, string installedPath, string installedSTARDNAKey)
-        //public static void Init(ISTARManagerBase<T1, T2, T3> starManager)
+        public STARUIBase(ISTARManagerBase<T1, T2, T3> starManager, string createHeader, List<string> createIntroParagraphs, string sourcePath = "", string sourceSTARDNAKey = "", string publishedPath = "", string publishedSTARDNAKey = "", string downloadedPath = "", string downloadSTARDNAKey = "", string installedPath = "", string installedSTARDNAKey = "")
         {
             starManager.OnDownloadStatusChanged += OnDownloadStatusChanged;
             starManager.OnInstallStatusChanged += OnInstallStatusChanged;
@@ -54,7 +53,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             InstalledSTARDNAKey = installedSTARDNAKey;
         }
 
-        public static void Dispose()
+        public void Dispose()
         {
             STARManager.OnDownloadStatusChanged -= OnDownloadStatusChanged;
             STARManager.OnInstallStatusChanged -= OnInstallStatusChanged;
@@ -62,7 +61,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STARManager.OnUploadStatusChanged -= OnUploadStatusChanged;
         }
 
-        public static async Task CreateAsync(object createParams, ProviderType providerType = ProviderType.Default)
+        public async Task CreateAsync(object createParams, ProviderType providerType = ProviderType.Default)
         {
             ShowHeader();
 
@@ -121,7 +120,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task EditAsync(string idOrName = "", object editParams = null, ProviderType providerType = ProviderType.Default)
+        public async Task EditAsync(string idOrName = "", object editParams = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> loadResult = await LoadAsync(idOrName, "edit", true, providerType);
             bool changesMade = false;
@@ -201,7 +200,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task DeleteAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task DeleteAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "delete", true, providerType);
 
@@ -233,7 +232,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARManager.STARHolonUIName}. Reason: {result.Message}");
         }
 
-        public static async Task PublishAsync(string sourcePath = "", bool edit = false, ProviderType providerType = ProviderType.Default)
+        public async Task PublishAsync(string sourcePath = "", bool edit = false, ProviderType providerType = ProviderType.Default)
         {
             bool generateOAPP = true;
             bool uploadOAPPToCloud = true;
@@ -384,7 +383,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"The {STARManager.STARHolonDNAFileName} file could not be found! Please ensure it is in the folder you specified.");
         }
 
-        public static async Task UnpublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public async Task UnpublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "unpublish", true, providerType);
 
@@ -402,7 +401,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task RepublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public async Task RepublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "republish", true, providerType);
 
@@ -420,7 +419,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task ActivateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public async Task ActivateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "activate", true, providerType);
 
@@ -443,7 +442,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }   
         }
 
-        public static async Task DeactivateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public async Task DeactivateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "deactivate", true, providerType);
 
@@ -466,7 +465,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public static async Task<OASISResult<T3>> DownloadAndInstallAsync(string idOrName = "", InstallMode installMode = InstallMode.DownloadAndInstall, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T3>> DownloadAndInstallAsync(string idOrName = "", InstallMode installMode = InstallMode.DownloadAndInstall, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> installResult = new OASISResult<T3>();
             string downloadPath = "";
@@ -604,7 +603,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return installResult;
         }
 
-        public static OASISResult<T3> DownloadAndInstall(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public OASISResult<T3> DownloadAndInstall(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> installResult = new OASISResult<T3>();
             string downloadPath = "";
@@ -666,7 +665,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     Console.WriteLine("");
                     CLIEngine.ShowWorkingMessage($"Loading {STARManager.STARHolonUIName}s...");
-                    OASISResult<IEnumerable<T1>> starHolonsResult = ListStarHolonsAll();
+                    OASISResult<IEnumerable<T1>> starHolonsResult = ListAll();
 
                     if (starHolonsResult != null && starHolonsResult.Result != null && !starHolonsResult.IsError && starHolonsResult.Result.Count() > 0)
                     {
@@ -707,7 +706,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return installResult;
         }
 
-        public static async Task UninstallAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public async Task UninstallAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "uninstall", true, providerType);
 
@@ -732,7 +731,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARManager.STARHolonUIName}. Reason: {result.Message}");
         }
 
-        public static void Uninstall(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public void Uninstall(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = Load(idOrName, "uninstall", true, providerType);
 
@@ -757,21 +756,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARManager.STARHolonUIName}. Reason: {result.Message}");
         }
 
-        public static async Task<OASISResult<IEnumerable<T1>>> ListStarHolonsAllsAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<T1>>> ListAllsAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading {STARManager.STARHolonUIName}'s...");
             return ListStarHolons(await STARManager.LoadAllAsync(STAR.BeamedInAvatar.Id, null, true, showAllVersions, 0, providerType: providerType));
         }
 
-        public static OASISResult<IEnumerable<T1>> ListStarHolonsAll(bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<T1>> ListAll(bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading {STARManager.STARHolonUIName}'s...");
             return  ListStarHolons(STARManager.LoadAll(STAR.BeamedInAvatar.Id, null, true, showAllVersions, version, providerType: providerType));
         }
 
-        public static async Task ListStarHolonsCreatedByBeamedInAvatarAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
+        public async Task ListAllCreatedByBeamedInAvatarAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
         {
             if (STAR.BeamedInAvatar != null)
             {
@@ -783,7 +782,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
         }
 
-        public static async Task<OASISResult<IEnumerable<T3>>> ListStarHolonssInstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<T3>>> ListAllInstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T3>> result = new OASISResult<IEnumerable<T3>>();
 
@@ -800,7 +799,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public static async Task<OASISResult<IEnumerable<T3>>> ListStarHolonsUninstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<T3>>> ListAllUninstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T3>> result = new OASISResult<IEnumerable<T3>>();
 
@@ -854,7 +853,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public static async Task<OASISResult<IEnumerable<T1>>> ListStarHolonsUnpublishedForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<T1>>> ListAllUnpublishedForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
 
@@ -907,7 +906,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public static async Task<OASISResult<IEnumerable<T1>>> ListStarHolonssDeactivatedForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<T1>>> ListAllDeactivatedForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
 
@@ -960,7 +959,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public static async Task SearchsAsync(string searchTerm = "", bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
+        public async Task SearchsAsync(string searchTerm = "", bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
         {            
             if (string.IsNullOrEmpty(searchTerm) || searchTerm == "forallavatars" || searchTerm == "forallavatars")
             { 
@@ -973,7 +972,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             ListStarHolons(await STARManager.SearchAsync(STAR.BeamedInAvatar.Id, searchTerm, !showForAllAvatars, showAllVersions, 0, providerType));
         }
 
-        public static async Task ShowAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public async Task ShowAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "view", true, providerType);
 
@@ -983,7 +982,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARManager.STARHolonUIName}. Reason: {result.Message}");
         }
 
-        public static void Show(T1 starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false)
+        public void Show(T1 starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false)
         {
             if (showHeader)
                 CLIEngine.ShowDivider();
@@ -1029,7 +1028,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowDivider();
         }
 
-        public static void ShowInstalled(T3 starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showUninstallInfo = false, bool showDetailedInfo = false)
+        public void ShowInstalled(T3 starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showUninstallInfo = false, bool showDetailedInfo = false)
         {
             //Show((T1)starHolon, showHeader, false, showNumbers, number, showDetailedInfo);
             Show(ConvertFromT3ToT1(starHolon), showHeader, false, showNumbers, number, showDetailedInfo);
@@ -1050,7 +1049,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowDivider();
         }
 
-        private static OASISResult<IEnumerable<T1>> ListStarHolons(OASISResult<IEnumerable<T1>> starHolons, bool showNumbers = false)
+        private OASISResult<IEnumerable<T1>> ListStarHolons(OASISResult<IEnumerable<T1>> starHolons, bool showNumbers = false)
         {
             if (starHolons != null)
             {
@@ -1080,7 +1079,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return starHolons;
         }
 
-        private static void ListStarHolonsInstalled(OASISResult<IEnumerable<T3>> starHolons, bool showNumbers = false, bool showUninstallInfo = false)
+        private void ListStarHolonsInstalled(OASISResult<IEnumerable<T3>> starHolons, bool showNumbers = false, bool showUninstallInfo = false)
         {
             if (starHolons != null)
             {
@@ -1108,7 +1107,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"Unknown error occured loading {STARManager.STARHolonUIName}'s.");
         }
 
-        private static async Task<OASISResult<T1>> LoadForProviderAsync(string idOrName, string operationName, bool showOnlyForCurrentAvatar, ProviderType providerType, bool addSpace = true, bool simpleWizard = true)
+        private async Task<OASISResult<T1>> LoadForProviderAsync(string idOrName, string operationName, bool showOnlyForCurrentAvatar, ProviderType providerType, bool addSpace = true, bool simpleWizard = true)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             ProviderType largeFileProviderType = ProviderType.IPFSOASIS;
@@ -1140,7 +1139,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private static OASISResult<T1> LoadForProvider(string idOrName, string operationName, bool showOnlyForCurrentAvatar, ProviderType providerType, bool addSpace = true, bool simpleWizard = true)
+        private OASISResult<T1> LoadForProvider(string idOrName, string operationName, bool showOnlyForCurrentAvatar, ProviderType providerType, bool addSpace = true, bool simpleWizard = true)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             ProviderType largeFileProviderType = ProviderType.IPFSOASIS;
@@ -1172,7 +1171,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private static async Task<OASISResult<T1>> LoadAsync(string idOrName, string operationName, bool showOnlyForCurrentAvatar, ProviderType providerType = ProviderType.Default, bool addSpace = true)
+        private async Task<OASISResult<T1>> LoadAsync(string idOrName, string operationName, bool showOnlyForCurrentAvatar, ProviderType providerType = ProviderType.Default, bool addSpace = true)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             Guid id = Guid.Empty;
@@ -1346,7 +1345,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private static OASISResult<T1> Load(string idOrName, string operationName, bool showOnlyForCurrentAvatar, ProviderType providerType = ProviderType.Default, bool addSpace = true)
+        private OASISResult<T1> Load(string idOrName, string operationName, bool showOnlyForCurrentAvatar, ProviderType providerType = ProviderType.Default, bool addSpace = true)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             Guid id = Guid.Empty;
@@ -1519,7 +1518,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private static async Task<OASISResult<T1>> CheckIfAlreadyInstalledAsync(T1 holon, ProviderType providerType = ProviderType.Default)
+        private async Task<OASISResult<T1>> CheckIfAlreadyInstalledAsync(T1 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<bool> oappInstalledResult = await STARManager.IsInstalledAsync(STAR.BeamedInAvatar.Id, holon.STARHolonDNA.Id, holon.STARHolonDNA.Version, providerType);
@@ -1559,7 +1558,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private static OASISResult<T1> CheckIfAlreadyInstalled(T1 holon, ProviderType providerType = ProviderType.Default)
+        private OASISResult<T1> CheckIfAlreadyInstalled(T1 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<bool> oappInstalledResult = STARManager.IsInstalled(STAR.BeamedInAvatar.Id, holon.STARHolonDNA.Id, holon.STARHolonDNA.Version, providerType);
@@ -1599,7 +1598,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private static async Task<OASISResult<T3>> CheckIfInstalledAndInstallAsync(T1 holon, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedFile = "", ProviderType providerType = ProviderType.Default)
+        private async Task<OASISResult<T3>> CheckIfInstalledAndInstallAsync(T1 holon, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedFile = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> installResult = new OASISResult<T3>();
             bool continueInstall = false;
@@ -1623,7 +1622,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return installResult;
         }
 
-        private static OASISResult<T3> CheckIfInstalledAndInstall(T1 holon, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedFile = "", ProviderType providerType = ProviderType.Default)
+        private OASISResult<T3> CheckIfInstalledAndInstall(T1 holon, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedFile = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> installResult = new OASISResult<T3>();
             bool continueInstall = false;
@@ -1647,7 +1646,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return installResult;
         }
 
-        private static async Task<OASISResult<T3>> InstallAsync(T1 starHolon, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedFile = "", ProviderType providerType = ProviderType.Default)
+        private async Task<OASISResult<T3>> InstallAsync(T1 starHolon, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedFile = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
 
@@ -1693,7 +1692,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private static OASISResult<T3> Install(T1 starHolon, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedFile = "", ProviderType providerType = ProviderType.Default)
+        private OASISResult<T3> Install(T1 starHolon, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedFile = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
 
@@ -1739,7 +1738,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private static void ShowHeader()
+        private void ShowHeader()
         {
             CLIEngine.ShowDivider();
             CLIEngine.ShowMessage(CreateHeader);
@@ -1752,14 +1751,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowDivider();
         }
 
-        private static T1 ConvertFromT3ToT1(T3 holon)
+        private T1 ConvertFromT3ToT1(T3 holon)
         {
             T1 newHolon = new T1();
             newHolon.STARHolonDNA = holon.STARHolonDNA;
             return newHolon;
         }
 
-        private static void OnPublishStatusChanged(object sender, STARHolonPublishStatusEventArgs e)
+        private void OnPublishStatusChanged(object sender, STARHolonPublishStatusEventArgs e)
         {
             switch (e.Status)
             {
@@ -1782,12 +1781,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        private static void OnUploadStatusChanged(object sender, STARHolonUploadProgressEventArgs e)
+        private void OnUploadStatusChanged(object sender, STARHolonUploadProgressEventArgs e)
         {
             CLIEngine.ShowProgressBar((double)e.Progress / (double)100);
         }
 
-        private static void OnInstallStatusChanged(object sender, STARHolonInstallStatusEventArgs e)
+        private void OnInstallStatusChanged(object sender, STARHolonInstallStatusEventArgs e)
         {
             switch (e.Status)
             {
@@ -1810,7 +1809,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        private static void OnDownloadStatusChanged(object sender, STARHolonDownloadProgressEventArgs e)
+        private void OnDownloadStatusChanged(object sender, STARHolonDownloadProgressEventArgs e)
         {
             CLIEngine.ShowProgressBar((double)e.Progress / (double)100);
         }

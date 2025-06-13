@@ -5,7 +5,8 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public abstract class TaskBase : Holon, ITaskBase
+    //public abstract class TaskBase : Holon, ITaskBase
+    public abstract class TaskBase : STARHolon, ITaskBase
     {
         [CustomOASISProperty()]
         public DateTime StartedOn { get; set; }

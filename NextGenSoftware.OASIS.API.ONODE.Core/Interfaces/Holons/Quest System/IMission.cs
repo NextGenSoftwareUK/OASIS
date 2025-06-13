@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces
 {
-    public interface IMission : ITaskBase, IPublishableHolon
+    public interface IMission : ITaskBase, ISTARHolon//, IPublishableHolon
     {
         //DateTime PublishedOn { get; set; }
         //Guid PublishedByAvatarId { get; set; }
