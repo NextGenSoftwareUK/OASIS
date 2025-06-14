@@ -21,8 +21,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
             {
                 if (CompletedOn != DateTime.MinValue)
                 {
-                    if (SubQuests != null && SubQuests.Count > 0)
-                        return SubQuests.OrderBy(x => x.Order).FirstOrDefault(x => x.CompletedOn == DateTime.MinValue);
+                    if (Quests != null && Quests.Count > 0)
+                        return Quests.OrderBy(x => x.Order).FirstOrDefault(x => x.CompletedOn == DateTime.MinValue);
                 }
 
                 return null;
@@ -44,11 +44,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         {
             get
             {
-                return $"Quest {CurrentSubQuestNumber}/{SubQuests.Count}";
+                return $"Quest {CurrentSubQuestNumber}/{Quests.Count}";
             }
         }
 
         [CustomOASISProperty()]
-        public IList<IQuest> SubQuests { get; set; }
+        public IList<IQuest> Quests { get; set; }
     }
 }

@@ -123,12 +123,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces
         Task<OASISResult<T1>> RepublishAsync(Guid avatarId, Guid STARHolonId, int version, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> RepublishAsync(Guid avatarId, ISTARHolonDNA STARHolonDNA, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> RepublishAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> Save(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
-        OASISResult<T3> Save(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> SaveAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T3>> SaveAsync(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default);
         OASISResult<IEnumerable<T1>> Search(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IEnumerable<T1>>> SearchAsync(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default);
+        OASISResult<T1> Update(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
+        OASISResult<T3> Update(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> UpdateAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T3>> UpdateAsync(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default);
         OASISResult<T3> Uninstall(Guid avatarId, Guid STARHolonId, int versionSequence, ProviderType providerType = ProviderType.Default);
         OASISResult<T3> Uninstall(Guid avatarId, Guid STARHolonId, string version, ProviderType providerType = ProviderType.Default);
         OASISResult<T3> Uninstall(Guid avatarId, string STARHolonName, int versionSequence, ProviderType providerType = ProviderType.Default);

@@ -1,13 +1,11 @@
 ﻿using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class GeoHotSpot : PublishableHolon, IGeoHotSpot
+    public class GeoHotSpot : STARHolon, IGeoHotSpot
     {
         public GeoHotSpot()
         {
@@ -18,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public GeoHotSpotTriggeredType TriggerType { get; set; } = GeoHotSpotTriggeredType.WhenArrivedAtGeoLocation;
 
         [CustomOASISProperty]
-        public int TimeInSecondsNeedToBeAtLocationToTriggerHotSpot { get; set; } //Optional (only applicable if TriggerType is WhenAtGeoLocationForXSeconds).
+        public int TimeInSecondsNeedToBeAtLocationToTriggerHotSpot { get; set; } = 3; //Optional (only applicable if TriggerType is WhenAtGeoLocationForXSeconds).
 
         [CustomOASISProperty]
         public double Lat { get; set; }

@@ -3,11 +3,11 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class InstalledRuntime : InstalledSTARHolon, IInstalledRuntime
+    public class InstalledQuest : InstalledSTARHolon, IInstalledQuest
     {
-        public InstalledRuntime() : base("RuntimeDNAJSON")
+        public InstalledQuest() : base("QuestDNAJSON")
         {
-            this.HolonType = HolonType.InstalledRuntime;
+            this.HolonType = HolonType.InstalledQuest;
         }
     }
 }

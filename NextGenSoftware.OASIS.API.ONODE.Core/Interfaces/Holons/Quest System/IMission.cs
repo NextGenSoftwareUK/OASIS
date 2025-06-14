@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces
         //DateTime PublishedOn { get; set; }
         //Guid PublishedByAvatarId { get; set; }
         //IAvatar PublishedByAvatar { get; }
-        IList<IQuest> Quests { get; set; }
+        //IList<IQuest> Quests { get; set; }
         IList<IChapter> Chapters { get; set; } //optional (large collection of quests can be broken into chapters.)
     }
 }
