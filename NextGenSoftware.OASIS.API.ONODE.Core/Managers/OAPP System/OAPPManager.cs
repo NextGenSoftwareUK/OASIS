@@ -22,8 +22,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
     public class OAPPManager : STARManagerBase<OAPP, DownloadedOAPP, InstalledChapter>
     {
         public OAPPManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+             OASISDNA,
             typeof(OAPPType),
-            OASISDNA,
             HolonType.OAPP,
             HolonType.InstalledOAPP,
             "OAPP",
@@ -37,8 +37,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         { }
 
         public OAPPManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
-            typeof(OAPPType),
             OASISDNA,
+            typeof(OAPPType),
             HolonType.OAPP,
             HolonType.InstalledOAPP,
             "OAPP",
@@ -85,7 +85,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 { "GenesisType", genesisType.ToString() },
                 { "CelestialBody", celestialBody },
                 { "Zomes", zomes }
-            }, 
+            },
+            new OAPP()
+            {
+                OAPPType = OAPPType
+            },
             providerType));
         }
 
@@ -99,8 +103,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 { "CelestialBody", celestialBody },
                 { "Zomes", zomes }
             },
+            new OAPP()
+            {
+                OAPPType = OAPPType
+            },
             providerType));
         }
+
         /*
         #region COSMICManagerBase
         public async Task<OASISResult<IOAPP>> SaveOAPPAsync(Guid avatarId, IOAPP oappTemplate, ProviderType providerType = ProviderType.Default)
@@ -527,6 +536,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
+        /*
         public async Task<OASISResult<IOAPP>> UnpublishOAPPAsync(Guid avatarId, IOAPP OAPP, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.UnpublishAsync(avatarId, (OAPP)OAPP, providerType));
@@ -952,6 +962,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //{
         //    return base.ReadSTARHolonDNAFromPublishedFile(fullPathToOAPPFolder);
         //}
+        */
 
         private OASISResult<bool> PublishToDotNet(string fullPathToSource, IOAPPDNA OAPPDNA)
         {

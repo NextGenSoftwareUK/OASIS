@@ -1,8 +1,7 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+﻿using System;
 using NextGenSoftware.Utilities;
-using System;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
 {

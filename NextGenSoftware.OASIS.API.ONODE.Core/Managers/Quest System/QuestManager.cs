@@ -1,22 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
-using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
-using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    //TODO: Make a QuestBaseManager and TaskBaseManager to extend from so lots of the same generic code is re-used.
-    public class QuestManager : COSMICManagerBase, IQuestManager
+    public class QuestManager : QuestManagerBase<Quest, DownloadedQuest, InstalledQuest>
     {
         NFTManager _nftManager = null;
 
@@ -31,232 +28,54 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
         }
 
-        public QuestManager(Guid avatarId, NFTManager nftManager = null, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
-        {
+        public QuestManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+            OASISDNA,
+            typeof(QuestType),
+            HolonType.Quest,
+            HolonType.InstalledQuest,
+            "Quest",
+            "QuestId",
+            "QuestName",
+            "QuestType",
+            "quest",
+            "oasis_quests",
+            "QuestDNA.json",
+            "QuestDNAJSON")
+        { }
 
+        public QuestManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            OASISDNA,
+            typeof(QuestType),
+            HolonType.Quest,
+            HolonType.InstalledQuest,
+            "Quest",
+            "QuestId",
+            "QuestName",
+            "QuestType",
+            "quest",
+            "oasis_quests",
+            "QuestDNA.json",
+            "QuestDNAJSON")
+        { }
+
+        public async Task<OASISResult<IQuest>> CreateQuestForMissionAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId,  ProviderType providerType = ProviderType.Default)
+        {
+            return await CreateQuestInternalAsync(avatarId, name, description, questType, fullPathToQuest, parentMissionId, default, providerType);
         }
 
-        public QuestManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, NFTManager nftManager = null, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
+        public OASISResult<IQuest> CreateQuestForMission(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId, ProviderType providerType = ProviderType.Default)
         {
-
+            return CreateQuestInternal(avatarId, name, description, questType, fullPathToQuest, parentMissionId, default, providerType);
         }
 
-        public async Task<OASISResult<IQuest>> CreateQuestAsync(string name, string description, QuestType questType, Guid avatarId, Guid missionId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IQuest>> CreateSubQuestForQuestAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentQuestId, ProviderType providerType = ProviderType.Default)
         {
-            return await CreateQuestInternalAsync(name, description, questType, avatarId, missionId, default, providerType);
+            return await CreateQuestInternalAsync(avatarId, name, description, questType, fullPathToQuest, default, parentQuestId, providerType);
         }
 
-        public OASISResult<IQuest> CreateQuest(string name, string description, QuestType questType, Guid avatarId, Guid missionId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IQuest> CreateSubQuestForQuest(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentQuestId, ProviderType providerType = ProviderType.Default)
         {
-            return CreateQuestInternal(name, description, questType, avatarId, missionId, default, providerType);
-        }
-
-        public async Task<OASISResult<IQuest>> UpdateQuestAsync(IQuest quest, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.UpdateQuestAsync. Reason:";
-
-            try
-            {
-                //TODO: Double check this is done automatically (it is in the PreparetoSaveHolon method in HolonManager but because this Manager can also be used in the REST API we need to pass the avatarId in to every method call to make sure the avatarId is correct).
-                quest.ModifiedByAvatarId = avatarId;
-                quest.ModifiedDate = DateTime.Now;
-
-                OASISResult<Quest> saveHolonResult = await Data.SaveHolonAsync<Quest>(quest, true, true, 0, true, false, providerType);
-
-                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                {
-                    result.Result = saveHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with Data.SaveHolonAsync. Reason: {saveHolonResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IQuest> UpdateQuest(IQuest quest, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.UpdateQuest. Reason:";
-
-            try
-            {
-                //TODO: Double check this is done automatically (it is in the PreparetoSaveHolon method in HolonManager but because this Manager can also be used in the REST API we need to pass the avatarId in to every method call to make sure the avatarId is correct).
-                quest.ModifiedByAvatarId = avatarId;
-                quest.ModifiedDate = DateTime.Now;
-
-                OASISResult<Quest> saveHolonResult = Data.SaveHolon<Quest>(quest, true, true, 0, true, false, providerType);
-
-                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                {
-                    result.Result = saveHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with Data.SaveHolon. Reason: {saveHolonResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IQuest>> LoadQuestAsync(Guid questId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.LoadQuestAsync. Reason:";
-
-            try
-            {
-                OASISResult<Quest> loadHolonResult = await Data.LoadHolonAsync<Quest>(questId, true, true, 0, true, false, HolonType.All, 0, providerType);
-
-                if (loadHolonResult != null && loadHolonResult.Result != null && !loadHolonResult.IsError)
-                {
-                    result.Result = loadHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with Data.LoadHolonAsync. Reason: {loadHolonResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IQuest> LoadQuest(Guid questId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.LoadQuestAsync. Reason:";
-
-            try
-            {
-                OASISResult<Quest> loadHolonResult = Data.LoadHolon<Quest>(questId, true, true, 0, true, false, HolonType.All, 0, providerType);
-
-                if (loadHolonResult != null && loadHolonResult.Result != null && !loadHolonResult.IsError)
-                {
-                    result.Result = loadHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with Data.LoadHolon. Reason: {loadHolonResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsAsync(ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IQuest>> result = new OASISResult<IEnumerable<IQuest>>();
-            string errorMessage = "Error occured in QuestManager.LoadAllQuestsAsync. Reason:";
-
-            try
-            {
-                OASISResult<IEnumerable<Quest>> loadHolonsResult = await Data.LoadAllHolonsAsync<Quest>(HolonType.Quest, true, true, 0, true, false, HolonType.All, 0, providerType);
-
-                if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
-                {
-                    result.Result = loadHolonsResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with Data.LoadAllHolonsAsync. Reason: {loadHolonsResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IEnumerable<IQuest>> LoadAllQuests(ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IQuest>> result = new OASISResult<IEnumerable<IQuest>>();
-            string errorMessage = "Error occured in QuestManager.LoadAllQuestsAsync. Reason:";
-
-            try
-            {
-                OASISResult<IEnumerable<Quest>> loadHolonsResult = Data.LoadAllHolons<Quest>(HolonType.Quest, true, true, 0, true, false, HolonType.All, 0, providerType);
-
-                if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
-                {
-                    result.Result = loadHolonsResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with Data.LoadAllQuests. Reason: {loadHolonsResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForAvatarAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IQuest>> result = new OASISResult<IEnumerable<IQuest>>();
-            string errorMessage = "Error occured in QuestManager.LoadAllQuestsForAvatarAsync. Reason:";
-
-            try
-            {
-                OASISResult<IEnumerable<Quest>> loadHolonsResult = await Data.LoadHolonsForParentAsync<Quest>(avatarId, HolonType.Quest, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
-
-                if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
-                {
-                    result.Result = loadHolonsResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with Data.LoadHolonsForParentAsync. Reason: {loadHolonsResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IEnumerable<IQuest>> LoadAllQuestsForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IQuest>> result = new OASISResult<IEnumerable<IQuest>>();
-            string errorMessage = "Error occured in QuestManager.LoadAllQuestsForAvatar. Reason:";
-
-            try
-            {
-                OASISResult<IEnumerable<Quest>> loadHolonsResult = Data.LoadHolonsForParent<Quest>(avatarId, HolonType.Quest, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
-
-                if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
-                {
-                    result.Result = loadHolonsResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with Data.LoadAllQuestsForAvatar. Reason: {loadHolonsResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
+            return CreateQuestInternal(avatarId, name, description, questType, fullPathToQuest, default, parentQuestId, providerType);
         }
 
         public async Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForMissionAsync(Guid missionId, ProviderType providerType = ProviderType.Default)
@@ -309,325 +128,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<IQuest>> SearchQuests(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IQuest>> result = new OASISResult<IEnumerable<IQuest>>();
-            OASISResult<IEnumerable<Quest>> loadHolonsResult = SearchHolons<Quest>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "QuestManager.SearchQuests", HolonType.Quest);
-            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-            result.Result = loadHolonsResult.Result;
-            return result;
-        }
-
-        public async Task<OASISResult<IEnumerable<IQuest>>> SearchQuestsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IQuest>> result = new OASISResult<IEnumerable<IQuest>>();
-            OASISResult<IEnumerable<Quest>> loadHolonsResult = await SearchHolonsAsync<Quest>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "QuestManager.SearchQuestsAsync", HolonType.Quest);
-            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-            result.Result = loadHolonsResult.Result;
-            return result;
-        }
-
-        //public async Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForOAPPAsync(Guid OAPPId, ProviderType providerType = ProviderType.Default)
-        //{
-        //    OASISResult<IEnumerable<IQuest>> result = new OASISResult<IEnumerable<IQuest>>();
-        //    string errorMessage = "Error occured in QuestManager.LoadAllQuestsForAvatarAsync. Reason:";
-
-        //    try
-        //    {
-        //        OASISResult<IEnumerable<Quest>> loadHolonsResult = await Data.LoadHolonsForParentAsync<Quest>(avatarId, HolonType.Quest, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
-
-        //        if (loadHolonsResult != null && loadHolonsResult.Result != null && !loadHolonsResult.IsError)
-        //        {
-        //            result.Result = loadHolonsResult.Result;
-        //            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadHolonsResult, result);
-        //        }
-        //        else
-        //            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with Data.LoadHolonsForParentAsync. Reason: {loadHolonsResult.Message}");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-        //    }
-
-        //    return result;
-        //}
-
-        public async Task<OASISResult<IQuest>> CompleteQuestAsync(Guid questId, Guid avatarId, ProviderType providerType)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.CompleteQuestAsync. Reason:";
-
-            try
-            {
-                OASISResult<IQuest> loadResult = await LoadQuestAsync(questId, providerType);
-
-                if (loadResult != null && !loadResult.IsError && loadResult.Result != null)
-                {
-                    loadResult.Result.CompletedOn = DateTime.Now;
-                    loadResult.Result.CompletedBy = avatarId;
-
-                    result = await UpdateQuestAsync(loadResult.Result, avatarId, providerType);
-
-                    if (!(result != null && result.Result != null && !result.IsError))
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with QuestManager.UpdateQuestAsync. Reason: {result.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IQuest> CompleteQuest(Guid questId, Guid avatarId, ProviderType providerType)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.CompleteQuest. Reason:";
-
-            try
-            {
-                OASISResult<IQuest> loadResult = LoadQuest(questId, providerType);
-
-                if (loadResult != null && !loadResult.IsError && loadResult.Result != null)
-                {
-                    loadResult.Result.CompletedOn = DateTime.Now;
-                    loadResult.Result.CompletedBy = avatarId;
-
-                    result = UpdateQuest(loadResult.Result, avatarId, providerType);
-
-                    if (!(result != null && result.Result != null && !result.IsError))
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with QuestManager.UpdateQuest. Reason: {result.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IQuest>> AddSubQuestToQuestAsync(Guid parentQuestId, IQuest quest, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.AddSubQuestToQuestAsync. Reason:";
-
-            try
-            {
-                if (quest != null)
-                {
-                    OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
-
-                    if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
-                    {
-                        parentQuestResult.Result.SubQuests.Add(quest);
-                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuestAsync. Reason: {parentQuestResult.Message}");
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} quest param is null!");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IQuest> AddSubQuestToQuest(Guid parentQuestId, IQuest quest, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.AddSubQuestToQuest. Reason:";
-
-            try
-            {
-                if (quest != null)
-                {
-                    OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
-
-                    if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
-                    {
-                        parentQuestResult.Result.SubQuests.Add(quest);
-                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuest. Reason: {parentQuestResult.Message}");
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} quest param is null!");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IQuest>> AddSubQuestToQuestAsync(Guid parentQuestId, string name, string description, QuestType questType, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.AddSubQuestToQuestAsync. Reason:";
-
-            try
-            {
-                OASISResult<IQuest> subQuestResult = await CreateQuestInternalAsync(name, description, questType, avatarId, default, parentQuestId, providerType);
-
-                if (subQuestResult != null && subQuestResult.Result != null && !subQuestResult.IsError)
-                    result = await AddSubQuestToQuestAsync(parentQuestId, subQuestResult.Result, avatarId, providerType);
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured creating the sub-quest with QuestManager.CreateQuestInternalAsync. Reason: {subQuestResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IQuest> AddSubQuestToQuest(Guid parentQuestId, string name, string description, QuestType questType, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.AddSubQuestToQuest. Reason:";
-
-            try
-            {
-                OASISResult<IQuest> subQuestResult = CreateQuestInternal(name, description, questType, avatarId, default, parentQuestId, providerType);
-
-                if (subQuestResult != null && subQuestResult.Result != null && !subQuestResult.IsError)
-                    result = AddSubQuestToQuest(parentQuestId, subQuestResult.Result, avatarId, providerType);
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured creating the sub-quest with QuestManager.CreateQuestInternal. Reason: {subQuestResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IQuest>> AddSubQuestToQuestAsync(Guid parentQuestId, Guid subQuestId, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.AddSubQuestToQuestAsync. Reason:";
-
-            try
-            {
-                OASISResult<IQuest> subQuestResult = await LoadQuestAsync(subQuestId, providerType);
-
-                if (subQuestResult != null && subQuestResult.Result != null && !subQuestResult.IsError)
-                    result = await AddSubQuestToQuestAsync(parentQuestId, subQuestResult.Result, avatarId, providerType);
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the sub-quest with QuestManager.LoadQuestAsync. Reason: {subQuestResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IQuest> AddSubQuestToQuest(Guid parentQuestId, Guid subQuestId, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.AddSubQuestToQuest. Reason:";
-
-            try
-            {
-                OASISResult<IQuest> subQuestResult = LoadQuest(subQuestId, providerType);
-
-                if (subQuestResult != null && subQuestResult.Result != null && !subQuestResult.IsError)
-                    result = AddSubQuestToQuest(parentQuestId, subQuestResult.Result, avatarId, providerType);
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the sub-quest with QuestManager.LoadQuest. Reason: {subQuestResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IQuest>> RemoveSubQuestFromQuestAsync(Guid parentQuestId, Guid subQuestId, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.RemoveSubQuestFromQuestAsync. Reason:";
-
-            try
-            {
-                OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
-
-                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
-                {
-                    IQuest subQuest = parentQuestResult.Result.SubQuests.FirstOrDefault(x => x.Id == subQuestId);
-
-                    if (subQuest != null)
-                    {
-                        parentQuestResult.Result.SubQuests.Remove(subQuest);
-                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No sub-quest could be found for the id {subQuestId}");
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuestAsync. Reason: {parentQuestResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IQuest> RemoveSubQuestFromQuest(Guid parentQuestId, Guid subQuestId, Guid avatarId, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.RemoveSubQuestFromQuest. Reason:";
-
-            try
-            {
-                OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
-
-                if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
-                {
-                    IQuest subQuest = parentQuestResult.Result.SubQuests.FirstOrDefault(x => x.Id == subQuestId);
-
-                    if (subQuest != null)
-                    {
-                        parentQuestResult.Result.SubQuests.Remove(subQuest);
-                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No sub-quest could be found for the id {subQuestId}");
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the quest with QuestManager.LoadQuest. Reason: {parentQuestResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IQuest>> AddGeoNFTToQuestAsync(Guid parentQuestId, Guid geoNFTId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IQuest>> AddGeoNFTToQuestAsync(Guid avatarId, Guid parentQuestId, Guid geoNFTId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManager.AddGeoNFTToQuestAsync. Reason:";
 
             try
             {
-                OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
+                OASISResult<Quest> parentQuestResult = await LoadAsync(avatarId, parentQuestId, providerType: providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {
@@ -637,7 +145,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoSpatialNFTs.Add(nftResult.Result);
                         parentQuestResult.Result.GeoSpatialNFTIds.Add(nftResult.Result.Id.ToString());
-                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
+                        result = await UpdateQuestAsync(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the geo-nft with NFTManager.LoadGeoNftAsync. Reason: {nftResult.Message}");
@@ -653,25 +161,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public OASISResult<IQuest> AddGeoNFTToQuest(Guid parentQuestId, Guid geoNFTId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IQuest> AddGeoNFTToQuest(Guid avatarId, Guid parentQuestId, Guid geoNFTId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManager.AddGeoNFTToQuest. Reason:";
 
             try
             {
-                OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
+                OASISResult<Quest> parentQuestResult = Load(avatarId, parentQuestId, providerType: providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {
-                    //OASISResult<OASISGeoSpatialNFT> nftResult = Data.LoadHolon<OASISGeoSpatialNFT>(geoNFTId); //TODO: May one day make NFTs work like Quests, HotSpots, etc so they extend Holon.
                     OASISResult<IOASISGeoSpatialNFT> nftResult = NFTManager.LoadGeoNft(geoNFTId, providerType);
 
                     if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
                     {
                         parentQuestResult.Result.GeoSpatialNFTs.Add(nftResult.Result);
                         parentQuestResult.Result.GeoSpatialNFTIds.Add(nftResult.Result.Id.ToString());
-                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
+                        result = UpdateQuest(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the geo-nft with NFTManager.LoadGeoNft. Reason: {nftResult.Message}");
@@ -687,14 +194,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IQuest>> RemoveGeoNFTFromQuestAsync(Guid parentQuestId, Guid geoNFTId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IQuest>> RemoveGeoNFTFromQuestAsync(Guid avatarId, Guid parentQuestId, Guid geoNFTId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManager.RemoveGeoNFTFromQuestAsync. Reason:";
 
             try
             {
-                OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
+                OASISResult<Quest> parentQuestResult = await LoadAsync(avatarId, parentQuestId, providerType: providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {
@@ -704,7 +211,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoSpatialNFTs.Remove(geoNFT);
                         parentQuestResult.Result.GeoSpatialNFTIds.Remove(geoNFTId.ToString());
-                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
+                        result = await UpdateQuestAsync(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} No GeoNFT could be found for the id {geoNFTId}");
@@ -720,14 +227,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public OASISResult<IQuest> RemoveGeoNFTFromQuest(Guid parentQuestId, Guid geoNFTId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IQuest> RemoveGeoNFTFromQuest(Guid avatarId, Guid parentQuestId, Guid geoNFTId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManager.RemoveGeoNFTFromQuest. Reason:";
 
             try
             {
-                OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
+                OASISResult<Quest> parentQuestResult = Load(avatarId, parentQuestId, providerType : providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {
@@ -737,7 +244,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoSpatialNFTs.Remove(geoNFT);
                         parentQuestResult.Result.GeoSpatialNFTIds.Remove(geoNFTId.ToString());
-                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
+                        result = UpdateQuest(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} No GeoNFT could be found for the id {geoNFTId}");
@@ -753,14 +260,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IQuest>> AddGeoHotSpotToQuestAsync(Guid parentQuestId, Guid geoHotSpotId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IQuest>> AddGeoHotSpotToQuestAsync(Guid avatarId, Guid parentQuestId, Guid geoHotSpotId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManager.AddGeoHotSpotToQuestAsync. Reason:";
 
             try
             {
-                OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
+                OASISResult<Quest> parentQuestResult = await LoadAsync(avatarId, parentQuestId, providerType : providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {
@@ -770,7 +277,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoHotSpots.Add(geoHotSpotResult.Result);
                         parentQuestResult.Result.GeoHotSpotIds.Add(geoHotSpotResult.Result.Id.ToString());
-                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
+                        result = await UpdateQuestAsync(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the geo-hotspot with Data.LoadHolonAsync. Reason: {geoHotSpotResult.Message}");
@@ -786,14 +293,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public OASISResult<IQuest> AddGeoHotSpotToQuest(Guid parentQuestId, Guid geoHotSpotId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IQuest> AddGeoHotSpotToQuest(Guid avatarId, Guid parentQuestId, Guid geoHotSpotId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManager.AddGeoHotSpotToQuest. Reason:";
 
             try
             {
-                OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
+                OASISResult<Quest> parentQuestResult = Load(avatarId, parentQuestId, providerType: providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {
@@ -803,7 +310,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoHotSpots.Add(geoHotSpotResult.Result);
                         parentQuestResult.Result.GeoHotSpotIds.Add(geoHotSpotResult.Result.Id.ToString());
-                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
+                        result = UpdateQuest(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the geo-hotspot with Data.LoadHolon. Reason: {geoHotSpotResult.Message}");
@@ -819,14 +326,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IQuest>> RemoveGeoHotSpotFromQuestAsync(Guid parentQuestId, Guid geoHotSpotId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IQuest>> RemoveGeoHotSpotFromQuestAsync(Guid avatarId, Guid parentQuestId, Guid geoHotSpotId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManager.RemoveGeoHotSpotFromQuestAsync. Reason:";
 
             try
             {
-                OASISResult<IQuest> parentQuestResult = await LoadQuestAsync(parentQuestId, providerType);
+                OASISResult<Quest> parentQuestResult = await LoadAsync(avatarId, parentQuestId, providerType: providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {
@@ -836,7 +343,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoHotSpots.Remove(geoHotSpot);
                         parentQuestResult.Result.GeoHotSpotIds.Remove(geoHotSpot.ToString());
-                        result = await UpdateQuestAsync(parentQuestResult.Result, avatarId, providerType);
+                        result = await UpdateQuestAsync(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} No GeoHotSpot could be found for the id {geoHotSpotId}");
@@ -852,14 +359,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public OASISResult<IQuest> RemoveGeoHotSpotFromQuest(Guid parentQuestId, Guid geoHotSpotId, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IQuest> RemoveGeoHotSpotFromQuest(Guid avatarId, Guid parentQuestId, Guid geoHotSpotId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManager.RemoveGeoHotSpotFromQuest. Reason:";
 
             try
             {
-                OASISResult<IQuest> parentQuestResult = LoadQuest(parentQuestId, providerType);
+                OASISResult<Quest> parentQuestResult = Load(avatarId, parentQuestId, providerType: providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {
@@ -869,7 +376,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoHotSpots.Remove(geoHotSpot);
                         parentQuestResult.Result.GeoHotSpotIds.Remove(geoHotSpot.ToString());
-                        result = UpdateQuest(parentQuestResult.Result, avatarId, providerType);
+                        result = UpdateQuest(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} No GeoHotSpot could be found for the id {geoHotSpotId}");
@@ -885,73 +392,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IQuest>> DeleteQuestAsync(Guid questId, Guid avatarId, bool softDelete = true, bool deleteSubQuests = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.DeleteQuestAsync. Reason:";
-
-            try
-            {
-                OASISResult<IHolon> deleteResult = await Data.DeleteHolonAsync(questId, avatarId, softDelete, providerType);
-
-                //TODO:Delete sub-quests, hotspots and nfts etc
-
-                if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
-                {
-                    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(deleteResult, result);
-                    result.Result = (IQuest)deleteResult.Result;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured deleting the quest with Data.DeleteHolonAsync. Reason: {deleteResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<IQuest> DeleteQuest(Guid questId, Guid avatarId, bool softDelete = true, bool deleteSubQuests = true, bool deleteGeoNFTs = false, bool deleteHotSpots = false, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.DeleteQuest. Reason:";
-
-            try
-            {
-                //TODO:Delete sub-quests, hotspots and nfts etc
-                OASISResult<IHolon> deleteResult = Data.DeleteHolon(questId, avatarId, softDelete, providerType);
-
-                if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
-                {
-                    result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(deleteResult, result);
-                    result.Result = (IQuest)deleteResult.Result;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured deleting the quest with Data.DeleteHolon. Reason: {deleteResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<IQuest>> GetCurentSubQuestForQuestAsync(Guid questId)
+        public async Task<OASISResult<IQuest>> GetCurentSubQuestForQuestAsync(Guid avatarId, Guid questId, ProviderType providerType)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManager.GetCurentStageForQuestAsync. Reason:";
 
-            OASISResult<IQuest> loadResult = await LoadQuestAsync(questId);
+            OASISResult<Quest> loadResult = await LoadAsync(avatarId, questId, providerType: providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
             {
                 if (loadResult.Result.CompletedOn != DateTime.MinValue)
                 {
-                    if (loadResult.Result.SubQuests != null && loadResult.Result.SubQuests.Count() > 0)
+                    if (loadResult.Result.Quests != null && loadResult.Result.Quests.Count() > 0)
                     {
-                        result.Result = loadResult.Result.SubQuests.OrderBy(x => x.Order).FirstOrDefault(x => x.CompletedOn == DateTime.MinValue);
+                        result.Result = loadResult.Result.Quests.OrderBy(x => x.Order).FirstOrDefault(x => x.CompletedOn == DateTime.MinValue);
 
                         if (result.Result == null)
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} No sub-quest was found that is not completed!");
@@ -968,20 +422,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public OASISResult<IQuest> GetCurentSubQuestForQuest(Guid questId)
+        public OASISResult<IQuest> GetCurentSubQuestForQuest(Guid avatarId, Guid questId, ProviderType providerType)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManager.GetCurentSubQuestForQuest. Reason:";
 
-            OASISResult<IQuest> loadResult = LoadQuest(questId);
+            OASISResult<Quest> loadResult = Load(avatarId, questId, providerType: providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
             {
                 if (loadResult.Result.CompletedOn != DateTime.MinValue)
                 {
-                    if (loadResult.Result.SubQuests != null && loadResult.Result.SubQuests.Count() > 0)
+                    if (loadResult.Result.Quests != null && loadResult.Result.Quests.Count() > 0)
                     {
-                        result.Result = loadResult.Result.SubQuests.OrderBy(x => x.Order).FirstOrDefault(x => x.CompletedOn == DateTime.MinValue);
+                        result.Result = loadResult.Result.Quests.OrderBy(x => x.Order).FirstOrDefault(x => x.CompletedOn == DateTime.MinValue);
 
                         if (result.Result == null)
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} No sub-quest was found that is not completed!");
@@ -1021,79 +475,68 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return new OASISResult<IQuest>();
         }
 
-        public async Task<OASISResult<IQuest>> CreateQuestInternalAsync(string name, string description, QuestType questType, Guid avatarId, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), ProviderType providerType = ProviderType.Default)
+        private async Task<OASISResult<IQuest>> CreateQuestInternalAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.CreateQuestInternalAsync. Reason:";
-
-            try
+            OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, questType, fullPathToQuest, new Dictionary<string, object>()
             {
-                IQuest quest = new Quest()
-                {
-                    ParentMissionId = parentMissionId,
-                    ParentQuestId = parentQuestId,
-                    Name = name,
-                    Description = description,
-                    QuestType = questType,
-                    StartedBy = avatarId,
-                    StartedOn = DateTime.Now,
-                    CreatedByAvatarId = avatarId,
-                    CreatedDate = DateTime.Now
-                };
-
-                OASISResult<Quest> saveHolonResult = await Data.SaveHolonAsync<Quest>(quest, true, true, 0, true, false, providerType);
-
-                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                {
-                    result.Result = saveHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with Data.SaveHolonAsync. Reason: {saveHolonResult.Message}");
-            }
-            catch (Exception ex)
+                //We could also pass in metaData this way if we wanted but because we are setting them on the GeoHotSpot object below these will automatically be converted to MetaData on the holon anyway! ;-)
+                //{ "ParentMissionId", parentMissionId.ToString() },
+                //{ "ParentQuestId", parentQuestId.ToString() }
+            }, new Quest
             {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
+                QuestType = questType,
+                ParentMissionId = parentMissionId,
+                ParentQuestId = parentQuestId
+            },
+            providerType);
+
+            OASISResult<IQuest> result = new OASISResult<IQuest>(createResult.Result);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createResult, result);
+            return result;
+        }
+
+        private OASISResult<IQuest> CreateQuestInternal(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<Quest> createResult = base.Create(avatarId, name, description, questType, fullPathToQuest, new Dictionary<string, object>()
+            {
+                //We could also pass in metaData this way if we wanted but because we are setting them on the GeoHotSpot object below these will automatically be converted to MetaData on the holon anyway! ;-)
+                //{ "ParentMissionId", parentMissionId.ToString() },
+                //{ "ParentQuestId", parentQuestId.ToString() }
+            }, new Quest
+            {
+                QuestType = questType,
+                ParentMissionId = parentMissionId,
+                ParentQuestId = parentQuestId
+            },
+           providerType);
+
+            OASISResult<IQuest> result = new OASISResult<IQuest>(createResult.Result);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createResult, result);
+            return result;
+        }
+
+        private OASISResult<IQuest> UpdateQuest(Guid avatarId, IQuest quest, OASISResult<IQuest> result, string errorMessage, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<Quest> questResult = Update(avatarId, (Quest)quest, providerType);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(questResult, result);
+
+            if (questResult != null && questResult.Result != null && !questResult.IsError)
+                result.Result = questResult.Result;
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with QuestManager.Update. Reason: {questResult.Message}");
 
             return result;
         }
 
-        public OASISResult<IQuest> CreateQuestInternal(string name, string description, QuestType questType, Guid avatarId, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), ProviderType providerType = ProviderType.Default)
+        private async Task<OASISResult<IQuest>> UpdateQuestAsync(Guid avatarId, IQuest quest, OASISResult<IQuest> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IQuest> result = new OASISResult<IQuest>();
-            string errorMessage = "Error occured in QuestManager.CreateQuestInternal. Reason:";
+            OASISResult<Quest> questResult = await UpdateAsync(avatarId, (Quest)quest, providerType);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(questResult, result);
 
-            try
-            {
-                IQuest quest = new Quest()
-                {
-                    //ParentHolonId = missionId, //If this is not set then this will normally default to the avatarId.
-                    ParentMissionId = parentMissionId,
-                    ParentQuestId = parentQuestId,
-                    Name = name,
-                    Description = description,
-                    QuestType = questType,
-                    StartedBy = avatarId,
-                    StartedOn = DateTime.Now,
-                    CreatedByAvatarId = avatarId,
-                    CreatedDate = DateTime.Now
-                };
-
-                OASISResult<Quest> saveHolonResult = Data.SaveHolon<Quest>(quest, true, true, 0, true, false, providerType);
-
-                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                {
-                    result.Result = saveHolonResult.Result;
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveHolonResult, result);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with Data.SaveHolon. Reason: {saveHolonResult.Message}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
-            }
+            if (questResult != null && questResult.Result != null && !questResult.IsError)
+                result.Result = questResult.Result;
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with QuestManager.Update. Reason: {questResult.Message}");
 
             return result;
         }

@@ -1,0 +1,126 @@
+﻿using System;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
+{
+    public class STARGeoNFTManager : STARManagerBase<STARGeoNFT, DownloadedGeoNFT, InstalledGeoNFT>
+    {
+        public STARGeoNFTManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+            OASISDNA,
+            typeof(STARGeoNFT),
+            HolonType.STARGeoNFT,
+            HolonType.InstalledGeoNFT,
+            "GeoNFT",
+            "GeoNFTId",
+            "GeoNFTName",
+            "GeoNFTType",
+            "geonft",
+            "oasis_geonfts",
+            "GeoNFTDNA.json",
+            "GeoNFTDNAJSON")
+        { }
+
+        public STARGeoNFTManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            OASISDNA,
+            typeof(STARGeoNFT),
+            HolonType.GeoNFT,
+            HolonType.InstalledGeoNFT,
+            "GeoNFT",
+            "GeoNFTId",
+            "GeoNFTName",
+            "GeoNFTType",
+            "geonft",
+            "oasis_geonfts",
+            "GeoNFTDNA.json",
+            "GeoNFTDNAJSON")
+        { }
+
+        public async Task<OASISResult<ISTARGeoNFT>> CreateGeoNFTAsync(
+            Guid avatarId, 
+            string name, 
+            string description,
+            string fullPathToGeoNFTSource,
+            NFTType nftType,
+            IOASISGeoSpatialNFT OASISGeoNFT,
+            ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToGeoNFTSource, null,
+                new STARGeoNFT()
+                {
+                    NFTType = nftType,
+                    GeoNFT = OASISGeoNFT
+                },
+            providerType));
+        }
+
+        public OASISResult<ISTARGeoNFT> CreateGeoNFT(
+            Guid avatarId,
+            string name,
+            string description,
+            string fullPathToGeoNFTSource,
+            NFTType nftType,
+            IOASISGeoSpatialNFT OASISGeoNFT,
+            ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Create(avatarId, name, description, nftType, fullPathToGeoNFTSource, null,
+                new STARGeoNFT()
+                {
+                    NFTType = nftType,
+                    GeoNFT = OASISGeoNFT
+                },
+            providerType));
+        }
+
+        public async Task<OASISResult<ISTARGeoNFT>> CreateGeoNFTAsync(
+            Guid avatarId,
+            string name,
+            string description,
+            string fullPathToGeoNFTSource,
+            NFTType nftType,
+            Guid OASISGeoNFTId,
+            ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToGeoNFTSource, null,
+                new STARGeoNFT()
+                {
+                    NFTType = nftType,
+                    GeoNFTId = OASISGeoNFTId
+                },
+            providerType));
+        }
+
+        public OASISResult<ISTARGeoNFT> CreateGeoNFT(
+            Guid avatarId,
+            string name,
+            string description,
+            string fullPathToGeoNFTSource,
+            NFTType nftType,
+            Guid OASISGeoNFTId,
+            ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Create(avatarId, name, description, nftType, fullPathToGeoNFTSource, null,
+                new STARGeoNFT()
+                {
+                    NFTType = nftType,
+                    GeoNFTId = OASISGeoNFTId
+                },
+            providerType));
+        }
+
+        private OASISResult<ISTARGeoNFT> ProcessResult(OASISResult<STARGeoNFT> operationResult)
+        {
+            OASISResult<ISTARGeoNFT> result = new OASISResult<ISTARGeoNFT>();
+            result.Result = operationResult.Result;
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+            return result;
+        }
+    }
+}

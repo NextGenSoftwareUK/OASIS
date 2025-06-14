@@ -18,6 +18,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         }
 
         [CustomOASISProperty]
+        public Guid ParentSTARHolonId { get; set; } //ParentSTARHolonId is used to link the downloaded STAR Holon to its parent STAR Holon in the OASIS and is the same across ALL versions whereas the ParentHolonId points to the specefic holon for that version.
+
+        [CustomOASISProperty]
         public string DownloadedPath { get; set; }
 
         [CustomOASISProperty]

@@ -19,8 +19,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
     {
         public OAPPTemplateManager(Guid avatarId, OASISDNA OASISDNA = null) : base(
             avatarId, 
-            typeof(OAPPTemplateType), 
-            OASISDNA, 
+            OASISDNA,
+            typeof(OAPPTemplateType),
             HolonType.OAPPTemplate, 
             HolonType.InstalledOAPPTemplate, 
             "OAPP Template", 
@@ -35,8 +35,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public OAPPTemplateManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(
             OASISStorageProvider, 
             avatarId,
-            typeof(OAPPTemplateType),
             OASISDNA,
+            typeof(OAPPTemplateType),
             HolonType.OAPPTemplate, 
             HolonType.InstalledOAPPTemplate,
             "OAPP Template",
@@ -48,6 +48,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "OAPPTemplateDNA.json",
             "OAPPTemplateDNAJSON")
         { }
+
+
 
         /*
         public async Task<OASISResult<IOAPPTemplate>> CreateOAPPTemplateAsync(Guid avatarId, string name, string description, OAPPTemplateType OAPPTemplateType, string fullPathToOAPPTemplate, ProviderType providerType = ProviderType.Default)

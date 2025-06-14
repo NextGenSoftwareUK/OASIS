@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
-    public interface IGeoHotSpot : IPublishableHolon
+    public interface IGeoHotSpot : ISTARHolon
     {
         GeoHotSpotTriggeredType TriggerType { get; set; }
         double Lat { get; set; }

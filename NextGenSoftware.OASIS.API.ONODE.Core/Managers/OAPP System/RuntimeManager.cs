@@ -18,8 +18,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
     public class RuntimeManager : STARManagerBase<Runtime, DownloadedQuest, InstalledRuntime>
     {
         public RuntimeManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, 
-            typeof(RuntimeType),
             OASISDNA,
+            typeof(RuntimeType),
             HolonType.Runtime,
             HolonType.InstalledRuntime,
             "Runtime",
@@ -33,8 +33,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         { }
 
         public RuntimeManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
-            typeof(RuntimeType),
             OASISDNA,
+            typeof(RuntimeType),
             HolonType.Runtime,
             HolonType.InstalledRuntime,
             "Runtime",
