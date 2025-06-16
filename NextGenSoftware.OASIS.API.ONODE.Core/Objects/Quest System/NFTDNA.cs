@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class NFTDNA : STARHolonDNA, INFTDNA
+    public class NFTDNA : STARNETHolonDNA, INFTDNA
     {
 
     }

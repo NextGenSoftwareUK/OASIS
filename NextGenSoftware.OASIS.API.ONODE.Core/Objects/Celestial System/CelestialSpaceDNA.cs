@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class CelestialSpaceDNA : STARHolonDNA, ICelestialSpaceDNA
+    public class CelestialSpaceDNA : STARNETHolonDNA, ICelestialSpaceDNA
     {
 
     }

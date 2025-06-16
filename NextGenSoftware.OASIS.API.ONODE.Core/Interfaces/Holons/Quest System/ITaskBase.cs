@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
-    public interface ITaskBase : ISTARHolon
+    public interface ITaskBase : ISTARNETHolon
     {
         Guid StartedBy { get; set; }
         DateTime StartedOn { get; set; }

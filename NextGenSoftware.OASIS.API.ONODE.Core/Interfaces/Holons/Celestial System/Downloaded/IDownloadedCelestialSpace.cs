@@ -1,7 +1,7 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
-    public interface IDownloadedCelestialSpace : IDownloadedSTARHolon
+    public interface IDownloadedCelestialSpace : IDownloadedSTARNETHolon
     {
 
     }

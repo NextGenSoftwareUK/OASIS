@@ -12,7 +12,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class GeoHotSpotManager : STARManagerBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot>
+    public class GeoHotSpotManager : STARNETManagerBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot>
     {
         public GeoHotSpotManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,

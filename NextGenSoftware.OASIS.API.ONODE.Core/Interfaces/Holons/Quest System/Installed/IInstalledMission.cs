@@ -1,7 +1,7 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
-    public interface IInstalledMission : IInstalledSTARHolon
+    public interface IInstalledMission : IInstalledSTARNETHolon
     {
 
     }

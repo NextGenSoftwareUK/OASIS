@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
-    public interface IInventoryItem : ISTARHolon
+    public interface IInventoryItem : ISTARNETHolon
     {
         byte[] Image2D { get; set; }
         byte[] Object3D { get; set; }

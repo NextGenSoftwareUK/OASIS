@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class STARGeoNFTManager : STARManagerBase<STARGeoNFT, DownloadedGeoNFT, InstalledGeoNFT>
+    public class STARGeoNFTManager : STARNETManagerBase<STARGeoNFT, DownloadedGeoNFT, InstalledGeoNFT>
     {
         public STARGeoNFTManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,
