@@ -19,7 +19,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class OAPPManager : STARManagerBase<OAPP, DownloadedOAPP, InstalledChapter>
+    public class OAPPManager : STARNETManagerBase<OAPP, DownloadedOAPP, InstalledChapter>
     {
         public OAPPManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
              OASISDNA,
@@ -203,12 +203,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.LoadVersion(OAPPId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPP>> EditOAPPAsync(Guid OAPPId, ISTARHolonDNA newOAPPDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> EditOAPPAsync(Guid OAPPId, ISTARNETHolonDNA newOAPPDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.EditAsync(OAPPId, newOAPPDNA, avatarId, providerType));
         }
 
-        public async Task<OASISResult<IOAPP>> EditOAPPAsync(IOAPP OAPP, ISTARHolonDNA newOAPPDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> EditOAPPAsync(IOAPP OAPP, ISTARNETHolonDNA newOAPPDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.EditAsync(avatarId, (OAPP)OAPP, newOAPPDNA, providerType));
         }
@@ -318,7 +318,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         OASISErrorHandling.HandleWarning(ref result, $" Error occured calling GenerateSource. Reason: {generateSourceResult.Message}");
                 }
 
-                //TODO: Currently the filesize will NOT be in the compressed .STARHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARHolonDNA inside it...
+                //TODO: Currently the filesize will NOT be in the compressed .STARNETHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARHolonDNA inside it...
                 if (!string.IsNullOrEmpty(OAPPDNA.PublishedPath) && File.Exists(OAPPDNA.PublishedPath))
                     OAPPDNA.FileSize = new FileInfo(OAPPDNA.PublishedPath).Length;
 
@@ -479,7 +479,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         OASISErrorHandling.HandleWarning(ref result, $" Error occured calling GenerateSource. Reason: {generateSourceResult.Message}");
                 }
 
-                //TODO: Currently the filesize will NOT be in the compressed .STARHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARHolonDNA inside it...
+                //TODO: Currently the filesize will NOT be in the compressed .STARNETHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARHolonDNA inside it...
                 if (!string.IsNullOrEmpty(OAPPDNA.PublishedPath) && File.Exists(OAPPDNA.PublishedPath))
                     OAPPDNA.FileSize = new FileInfo(OAPPDNA.PublishedPath).Length;
 
@@ -557,12 +557,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Unpublish(avatarId, OAPPId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPP>> UnpublishOAPPAsync(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> UnpublishOAPPAsync(Guid avatarId, ISTARNETHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.UnpublishAsync(avatarId, OAPPDNA, providerType));
         }
 
-        public OASISResult<IOAPP> UnpublishOAPP(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPP> UnpublishOAPP(Guid avatarId, ISTARNETHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Unpublish(avatarId, OAPPDNA, providerType));
         }
@@ -577,12 +577,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Republish(avatarId, (OAPP)OAPP, providerType));
         }
 
-        public async Task<OASISResult<IOAPP>> RepublishOAPPAsync(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> RepublishOAPPAsync(Guid avatarId, ISTARNETHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.RepublishAsync(avatarId, OAPPDNA, providerType));
         }
 
-        public OASISResult<IOAPP> RepublishOAPP(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPP> RepublishOAPP(Guid avatarId, ISTARNETHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Republish(avatarId, OAPPDNA, providerType));
         }
@@ -617,12 +617,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Deactivate(avatarId, OAPPId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPP>> DeactivateOAPPAsync(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> DeactivateOAPPAsync(Guid avatarId, ISTARNETHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.DeactivateAsync(avatarId, OAPPDNA, providerType));
         }
 
-        public OASISResult<IOAPP> DeactivateOAPP(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPP> DeactivateOAPP(Guid avatarId, ISTARNETHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Deactivate(avatarId, OAPPDNA, providerType));
         }
@@ -637,12 +637,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Activate(avatarId, (OAPP)OAPP, providerType));
         }
 
-        public async Task<OASISResult<IOAPP>> ActivateOAPPAsync(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> ActivateOAPPAsync(Guid avatarId, ISTARNETHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.ActivateAsync(avatarId, OAPPDNA, providerType));
         }
 
-        public OASISResult<IOAPP> ActivateOAPP(Guid avatarId, ISTARHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPP> ActivateOAPP(Guid avatarId, ISTARNETHolonDNA OAPPDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Activate(avatarId, OAPPDNA, providerType));
         }
@@ -933,32 +933,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.OpenSTARHolonFolder(avatarId, OAPPId, version, providerType));
         }
 
-        //public async Task<OASISResult<bool>> WriteOAPPDNAAsync(ISTARHolonDNA OAPPDNA, string fullPathToOAPP)
+        //public async Task<OASISResult<bool>> WriteOAPPDNAAsync(ISTARNETHolonDNA OAPPDNA, string fullPathToOAPP)
         //{
         //    return await base.WritenDNAAsync(OAPPDNA, fullPathToOAPP);
         //}
 
-        //public OASISResult<bool> WriteOAPPDNA(ISTARHolonDNA OAPPDNA, string fullPathToOAPP)
+        //public OASISResult<bool> WriteOAPPDNA(ISTARNETHolonDNA OAPPDNA, string fullPathToOAPP)
         //{
         //    return base.WriteSTARHolonDNA(OAPPDNA, fullPathToOAPP);
         //}
 
-        //public async Task<OASISResult<ISTARHolonDNA>> ReadOAPPDNAFromSourceOrInstalledFolderAsync(string fullPathToOAPPFolder)
+        //public async Task<OASISResult<ISTARNETHolonDNA>> ReadOAPPDNAFromSourceOrInstalledFolderAsync(string fullPathToOAPPFolder)
         //{
         //    return await base.ReadSTARHolonDNAFromSourceOrInstallFolderAsync(fullPathToOAPPFolder);
         //}
 
-        //public OASISResult<ISTARHolonDNA> ReadOAPPDNAFromSourceOrInstalledFolder(string fullPathToOAPPFolder)
+        //public OASISResult<ISTARNETHolonDNA> ReadOAPPDNAFromSourceOrInstalledFolder(string fullPathToOAPPFolder)
         //{
         //    return base.ReadSTARHolonDNAFromSourceOrInstallFolder(fullPathToOAPPFolder);
         //}
 
-        //public async Task<OASISResult<ISTARHolonDNA>> ReadOAPPDNAFromPublishedOAPPFileAsync(string fullPathToOAPPFolder)
+        //public async Task<OASISResult<ISTARNETHolonDNA>> ReadOAPPDNAFromPublishedOAPPFileAsync(string fullPathToOAPPFolder)
         //{
         //    return await base.ReadSTARHolonDNAFromPublishedFileAsync(fullPathToOAPPFolder);
         //}
 
-        //public OASISResult<ISTARHolonDNA> ReadOAPPDNAFromPublishedOAPPFile(string fullPathToOAPPFolder)
+        //public OASISResult<ISTARNETHolonDNA> ReadOAPPDNAFromPublishedOAPPFile(string fullPathToOAPPFolder)
         //{
         //    return base.ReadSTARHolonDNAFromPublishedFile(fullPathToOAPPFolder);
         //}

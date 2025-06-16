@@ -1,7 +1,7 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
-    public interface IInstalledGeoHotSpot : IInstalledSTARHolon
+    public interface IInstalledGeoHotSpot : IInstalledSTARNETHolon
     {
 
     }

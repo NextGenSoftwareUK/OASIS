@@ -13,9 +13,9 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public class STARUIBase<T1, T2, T3>
-        where T1 : ISTARHolon, new()
+        where T1 : ISTARNETHolon, new()
         where T2 : IDownloadedSTARHolon, new()
-        where T3 : IInstalledSTARHolon, new()
+        where T3 : IInstalledSTARNETHolon, new()
     {
 
         public ISTARManagerBase<T1, T2, T3> STARManager { get; set; }

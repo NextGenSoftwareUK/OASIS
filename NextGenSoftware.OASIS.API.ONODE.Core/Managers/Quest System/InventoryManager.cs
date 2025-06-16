@@ -7,7 +7,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class InventoryManager : STARManagerBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem>
+    public class InventoryManager : STARNETManagerBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem>
     {
         public InventoryManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,

@@ -15,7 +15,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class RuntimeManager : STARManagerBase<Runtime, DownloadedQuest, InstalledRuntime>
+    public class RuntimeManager : STARNETManagerBase<Runtime, DownloadedQuest, InstalledRuntime>
     {
         public RuntimeManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, 
             OASISDNA,
@@ -150,12 +150,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.LoadVersion(RuntimeId, version, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> EditRuntimeAsync(Guid RuntimeId, ISTARHolonDNA newRuntimeDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> EditRuntimeAsync(Guid RuntimeId, ISTARNETHolonDNA newRuntimeDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.EditAsync(RuntimeId, newRuntimeDNA, avatarId, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> EditRuntimeAsync(IRuntime Runtime, ISTARHolonDNA newRuntimeDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> EditRuntimeAsync(IRuntime Runtime, ISTARNETHolonDNA newRuntimeDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.EditAsync(avatarId, (Runtime)Runtime, newRuntimeDNA, providerType));
         }
@@ -190,12 +190,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Unpublish(avatarId, RuntimeId, version, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> UnpublishRuntimeAsync(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> UnpublishRuntimeAsync(Guid avatarId, ISTARNETHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.UnpublishAsync(avatarId, RuntimeDNA, providerType));
         }
 
-        public OASISResult<IRuntime> UnpublishRuntime(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> UnpublishRuntime(Guid avatarId, ISTARNETHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Unpublish(avatarId, RuntimeDNA, providerType));
         }
@@ -210,12 +210,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Republish(avatarId, (Runtime)Runtime, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> RepublishRuntimeAsync(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> RepublishRuntimeAsync(Guid avatarId, ISTARNETHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.RepublishAsync(avatarId, RuntimeDNA, providerType));
         }
 
-        public OASISResult<IRuntime> RepublishRuntime(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> RepublishRuntime(Guid avatarId, ISTARNETHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Republish(avatarId, RuntimeDNA, providerType));
         }
@@ -250,12 +250,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Deactivate(avatarId, RuntimeId, version, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> DeactivateRuntimeAsync(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> DeactivateRuntimeAsync(Guid avatarId, ISTARNETHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.DeactivateAsync(avatarId, RuntimeDNA, providerType));
         }
 
-        public OASISResult<IRuntime> DeactivateRuntime(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> DeactivateRuntime(Guid avatarId, ISTARNETHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Deactivate(avatarId, RuntimeDNA, providerType));
         }
@@ -270,12 +270,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Activate(avatarId, (Runtime)Runtime, providerType));
         }
 
-        public async Task<OASISResult<IRuntime>> ActivateRuntimeAsync(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IRuntime>> ActivateRuntimeAsync(Guid avatarId, ISTARNETHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.ActivateAsync(avatarId, RuntimeDNA, providerType));
         }
 
-        public OASISResult<IRuntime> ActivateRuntime(Guid avatarId, ISTARHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IRuntime> ActivateRuntime(Guid avatarId, ISTARNETHolonDNA RuntimeDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Activate(avatarId, RuntimeDNA, providerType));
         }
@@ -566,32 +566,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.OpenSTARHolonFolder(avatarId, RuntimeId, version, providerType));
         }
 
-        //public async Task<OASISResult<bool>> WriteRuntimeDNAAsync(ISTARHolonDNA RuntimeDNA, string fullPathToRuntime)
+        //public async Task<OASISResult<bool>> WriteRuntimeDNAAsync(ISTARNETHolonDNA RuntimeDNA, string fullPathToRuntime)
         //{
         //    return await base.WriteSTARHolonDNAAsync(RuntimeDNA, fullPathToRuntime);
         //}
 
-        //public OASISResult<bool> WriteRuntimeDNA(ISTARHolonDNA RuntimeDNA, string fullPathToRuntime)
+        //public OASISResult<bool> WriteRuntimeDNA(ISTARNETHolonDNA RuntimeDNA, string fullPathToRuntime)
         //{
         //    return base.WriteSTARHolonDNA(RuntimeDNA, fullPathToRuntime);
         //}
 
-        //public async Task<OASISResult<ISTARHolonDNA>> ReadRuntimeDNAFromSourceOrInstalledFolderAsync(string fullPathToRuntimeFolder)
+        //public async Task<OASISResult<ISTARNETHolonDNA>> ReadRuntimeDNAFromSourceOrInstalledFolderAsync(string fullPathToRuntimeFolder)
         //{
         //    return await base.ReadSTARHolonDNAFromSourceOrInstallFolderAsync(fullPathToRuntimeFolder);
         //}
 
-        //public OASISResult<ISTARHolonDNA> ReadRuntimeDNAFromSourceOrInstalledFolder(string fullPathToRuntimeFolder)
+        //public OASISResult<ISTARNETHolonDNA> ReadRuntimeDNAFromSourceOrInstalledFolder(string fullPathToRuntimeFolder)
         //{
         //    return base.ReadSTARHolonDNAFromSourceOrInstallFolder(fullPathToRuntimeFolder);
         //}
 
-        //public async Task<OASISResult<ISTARHolonDNA>> ReadRuntimeDNAFromPublishedRuntimeFileAsync(string fullPathToRuntimeFolder)
+        //public async Task<OASISResult<ISTARNETHolonDNA>> ReadRuntimeDNAFromPublishedRuntimeFileAsync(string fullPathToRuntimeFolder)
         //{
         //    return await base.ReadSTARHolonDNAFromPublishedFileAsync(fullPathToRuntimeFolder);
         //}
 
-        //public OASISResult<ISTARHolonDNA> ReadRuntimeDNAFromPublishedRuntimeFile(string fullPathToRuntimeFolder)
+        //public OASISResult<ISTARNETHolonDNA> ReadRuntimeDNAFromPublishedRuntimeFile(string fullPathToRuntimeFolder)
         //{
         //    return base.ReadSTARHolonDNAFromPublishedFile(fullPathToRuntimeFolder);
         //}

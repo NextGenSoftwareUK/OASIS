@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class OAPPDNA : STARHolonDNA, IOAPPDNA
+    public class OAPPDNA : STARNETHolonDNA, IOAPPDNA
     {
         public string SelfContainedPublishedPath { get; set; } //Contains the STAR & OASIS runtimes.
         public string SelfContainedFullPublishedPath { get; set; } //Contains the STAR, OASIS & .NET Runtimes.

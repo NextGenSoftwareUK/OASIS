@@ -15,7 +15,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class OAPPTemplateManager : STARManagerBase<OAPPTemplate, DownloadedMission, InstalledMission>
+    public class OAPPTemplateManager : STARNETManagerBase<OAPPTemplate, DownloadedMission, InstalledMission>
     {
         public OAPPTemplateManager(Guid avatarId, OASISDNA OASISDNA = null) : base(
             avatarId, 
@@ -154,12 +154,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.LoadVersion(OAPPTemplateId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> EditOAPPTemplateAsync(Guid OAPPTemplateId, ISTARHolonDNA newOAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> EditOAPPTemplateAsync(Guid OAPPTemplateId, ISTARNETHolonDNA newOAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.EditAsync(OAPPTemplateId, newOAPPTemplateDNA, avatarId, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> EditOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, ISTARHolonDNA newOAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> EditOAPPTemplateAsync(IOAPPTemplate OAPPTemplate, ISTARNETHolonDNA newOAPPTemplateDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.EditAsync(avatarId, (OAPPTemplate)OAPPTemplate, newOAPPTemplateDNA, providerType));
         }
@@ -194,12 +194,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Unpublish(avatarId, OAPPTemplateId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(Guid avatarId, ISTARHolonDNA OAPPTemplateDNA    , ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> UnpublishOAPPTemplateAsync(Guid avatarId, ISTARNETHolonDNA OAPPTemplateDNA    , ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.UnpublishAsync(avatarId, OAPPTemplateDNA, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(Guid avatarId, ISTARHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> UnpublishOAPPTemplate(Guid avatarId, ISTARNETHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Unpublish(avatarId, OAPPTemplateDNA, providerType));
         }
@@ -214,12 +214,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Republish(avatarId, (OAPPTemplate)OAPPTemplate, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(Guid avatarId, ISTARHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> RepublishOAPPTemplateAsync(Guid avatarId, ISTARNETHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.RepublishAsync(avatarId, OAPPTemplateDNA, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(Guid avatarId, ISTARHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> RepublishOAPPTemplate(Guid avatarId, ISTARNETHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Republish(avatarId, OAPPTemplateDNA, providerType));
         }
@@ -254,12 +254,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Deactivate(avatarId, OAPPTemplateId, version, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(Guid avatarId, ISTARHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> DeactivateOAPPTemplateAsync(Guid avatarId, ISTARNETHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.DeactivateAsync(avatarId, OAPPTemplateDNA, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(Guid avatarId, ISTARHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> DeactivateOAPPTemplate(Guid avatarId, ISTARNETHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Deactivate(avatarId, OAPPTemplateDNA, providerType));
         }
@@ -274,12 +274,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return ProcessResult(base.Activate(avatarId, (OAPPTemplate)OAPPTemplate, providerType));
         }
 
-        public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(Guid avatarId, ISTARHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPPTemplate>> ActivateOAPPTemplateAsync(Guid avatarId, ISTARNETHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.ActivateAsync(avatarId, OAPPTemplateDNA, providerType));
         }
 
-        public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(Guid avatarId, ISTARHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IOAPPTemplate> ActivateOAPPTemplate(Guid avatarId, ISTARNETHolonDNA OAPPTemplateDNA, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Activate(avatarId, OAPPTemplateDNA, providerType));
         }

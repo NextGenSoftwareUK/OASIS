@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class OAPPTemplateDNA : STARHolonDNA, IOAPPTemplateDNA
+    public class OAPPTemplateDNA : STARNETHolonDNA, IOAPPTemplateDNA
     {
         //public OAPPTemplateType OAPPTemplateType { get; set; }
     }
