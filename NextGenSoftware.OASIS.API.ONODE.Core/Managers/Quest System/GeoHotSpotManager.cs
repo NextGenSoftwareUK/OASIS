@@ -12,7 +12,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class GeoHotSpotManager : STARNETManagerBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot>
+    public class GeoHotSpotManager : STARNETManagerBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot>, IGeoHotSpotManager
     {
         public GeoHotSpotManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,
@@ -45,8 +45,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         { }
 
         public async Task<OASISResult<IGeoHotSpot>> CreateGeoHotSpotAsync(
-            Guid avatarId, 
-            string name, 
+            Guid avatarId,
+            string name,
             string description,
             string fullPathToGeoHotSpotSource,
             GeoHotSpotTriggeredType triggerType = GeoHotSpotTriggeredType.WhenArrivedAtGeoLocation,
@@ -57,23 +57,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             byte[] object3D = null,
             byte[] image2D = null,
             int timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot = 3,
-            IList<IInventoryItem>  rewards = null,
+            IList<IInventoryItem> rewards = null,
             IList<string> rewardIds = null,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, triggerType, fullPathToGeoHotSpotSource, new Dictionary<string, object>()
             {
                 //We could also pass in metaData this way if we wanted but because we are setting them on the GeoHotSpot object below these will automatically be converted to MetaData on the holon anyway! ;-)
-            //    { "TriggerType", triggerType },
-            //    { "TimeInSecondsNeedToBeAtLocationToTriggerHotSpot", timeInSecondsNeedToBeAtLocationToTriggerHotSpot },
-            //    { "Lat", latCoOrds },
-            //    { "Long", longCoOrds },
-            //    { "HotSpotRadiusInMetres", hotSpotRadiusInMetres },
-            //    { "Object3D", object3D },
-            //    { "Image3D", image2D },
-            //    { "TimeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot", timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot },
-            //    { "Rewards", rewards },
-            //    { "RewardIds", rewardIds }
+                //    { "TriggerType", triggerType },
+                //    { "TimeInSecondsNeedToBeAtLocationToTriggerHotSpot", timeInSecondsNeedToBeAtLocationToTriggerHotSpot },
+                //    { "Lat", latCoOrds },
+                //    { "Long", longCoOrds },
+                //    { "HotSpotRadiusInMetres", hotSpotRadiusInMetres },
+                //    { "Object3D", object3D },
+                //    { "Image3D", image2D },
+                //    { "TimeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot", timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot },
+                //    { "Rewards", rewards },
+                //    { "RewardIds", rewardIds }
             },
             new GeoHotSpot()
             {

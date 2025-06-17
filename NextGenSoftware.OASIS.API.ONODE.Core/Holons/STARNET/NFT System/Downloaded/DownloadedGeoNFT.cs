@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class DownloadedGeoNFT : DownloadedSTARHolon, IDownloadedGeoNFT
+    public class DownloadedGeoNFT : DownloadedSTARNETHolon, IDownloadedGeoNFT
     {
         public DownloadedGeoNFT() : base("GeoNFTDNAJSON")
         {

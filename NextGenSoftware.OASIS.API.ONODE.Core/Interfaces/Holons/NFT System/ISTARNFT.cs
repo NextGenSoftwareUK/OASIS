@@ -1,10 +1,11 @@
 ﻿using System;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public interface ISTARNFT
+    public interface ISTARNFT : ISTARNETHolon
     {
         public NFTType NFTType { get; set; }
         IOASISNFT OASISNFT { get; set; }

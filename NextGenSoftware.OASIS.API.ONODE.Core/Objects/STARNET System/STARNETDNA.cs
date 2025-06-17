@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Objects;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects
 {
-    public class STARNETHolonDNA : ISTARNETHolonDNA
+    public class STARNETDNA : ISTARNETDNA
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

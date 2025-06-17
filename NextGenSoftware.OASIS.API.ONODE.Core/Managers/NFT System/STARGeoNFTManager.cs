@@ -8,10 +8,11 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class STARGeoNFTManager : STARNETManagerBase<STARGeoNFT, DownloadedGeoNFT, InstalledGeoNFT>
+    public class STARGeoNFTManager : STARNETManagerBase<STARGeoNFT, DownloadedGeoNFT, InstalledGeoNFT>, ISTARGeoNFTManager
     {
         public STARGeoNFTManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,
@@ -44,8 +45,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         { }
 
         public async Task<OASISResult<ISTARGeoNFT>> CreateGeoNFTAsync(
-            Guid avatarId, 
-            string name, 
+            Guid avatarId,
+            string name,
             string description,
             string fullPathToGeoNFTSource,
             NFTType nftType,

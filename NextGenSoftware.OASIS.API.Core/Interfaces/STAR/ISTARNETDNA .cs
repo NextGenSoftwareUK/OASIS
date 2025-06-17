@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         Guid CreatedByAvatarId { get; set; }
         string CreatedByAvatarUsername { get; set; }
         DateTime CreatedOn { get; set; }
-        object STARHolonType { get; set; }
+        object STARNETHolonType { get; set; }
         Dictionary<string, object> MetaData { get; set; }
         string SourcePath { get; set; }
         string PublishedPath { get; set; }

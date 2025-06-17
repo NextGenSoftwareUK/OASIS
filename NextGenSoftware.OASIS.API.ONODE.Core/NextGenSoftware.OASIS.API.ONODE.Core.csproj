@@ -59,4 +59,8 @@
     </None>
   </ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Interfaces\Managers\COSMIC ORM\" />
+	</ItemGroup>
+
 </Project>

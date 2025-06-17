@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    public interface IOAPPDNA : ISTARHolonDNA
+    public interface IOAPPDNA : ISTARNETDNA
     {
         public string SelfContainedPublishedPath { get; set; } //Contains the STAR & OASIS runtimes.
         public string SelfContainedFullPublishedPath { get; set; } //Contains the STAR, OASIS & .NET Runtimes.

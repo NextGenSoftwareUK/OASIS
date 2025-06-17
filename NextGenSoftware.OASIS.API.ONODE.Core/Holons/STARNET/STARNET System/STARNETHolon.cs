@@ -1,55 +1,54 @@
 ﻿using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class STARNETHolon : Holon, ISTARNETHolon //PublishableHolon
+    public class STARNETHolon : Holon, ISTARNETHolon
     {
-        private string _STARNETHolonDNAJSONName = "STARNETHolonDNAJSON";
-        private ISTARNETHolonDNA _STARNETHolonDNA;
+        private string _STARNETDNAJSONName = "STARNETDNAJSON";
+        private ISTARNETDNA _STARNETDNA;
 
         public STARNETHolon()
         {
             this.HolonType = HolonType.STARNETHolon;
         }
 
-        public STARNETHolon(string STARNETHolonDNAJSONName = "STARNETHolonDNAJSON")
+        public STARNETHolon(string STARNETDNAJSONName = "STARNETDNAJSON")
         {
             this.HolonType = HolonType.STARNETHolon;
-            _STARNETHolonDNAJSONName = STARNETHolonDNAJSONName;
+            _STARNETDNAJSONName = STARNETDNAJSONName;
         }
 
         public string STARNETHolonDNAJSONName
         {
             get
             {
-                return _STARNETHolonDNAJSONName;
+                return _STARNETDNAJSONName;
             }
             set
             {
-                _STARNETHolonDNAJSONName = value;
+                _STARNETDNAJSONName = value;
             }
         }
 
-        public virtual ISTARNETHolonDNA STARNETHolonDNA
+        public virtual ISTARNETDNA STARNETDNA
         {
             get
             {
-                if (_STARNETHolonDNA == null && MetaData[_STARNETHolonDNAJSONName] != null && !string.IsNullOrEmpty(MetaData[_STARNETHolonDNAJSONName].ToString()))
-                    _STARNETHolonDNA = JsonSerializer.Deserialize<STARNETHolonDNA>(MetaData[_STARNETHolonDNAJSONName].ToString());
+                if (_STARNETDNA == null && MetaData[_STARNETDNAJSONName] != null && !string.IsNullOrEmpty(MetaData[_STARNETDNAJSONName].ToString()))
+                    _STARNETDNA = JsonSerializer.Deserialize<STARNETDNA>(MetaData[_STARNETDNAJSONName].ToString());
 
-                return _STARNETHolonDNA;
+                return _STARNETDNA;
             }
             set
             {
-                _STARNETHolonDNA = value;
-                MetaData[_STARNETHolonDNAJSONName] = JsonSerializer.Serialize(value);
+                _STARNETDNA = value;
+                MetaData[_STARNETDNAJSONName] = JsonSerializer.Serialize(value);
             }
         }
 

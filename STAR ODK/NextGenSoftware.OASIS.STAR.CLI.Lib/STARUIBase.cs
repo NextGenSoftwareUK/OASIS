@@ -2,23 +2,23 @@
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARHolon;
-using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARHolon;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-
+using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
+using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public class STARUIBase<T1, T2, T3>
         where T1 : ISTARNETHolon, new()
-        where T2 : IDownloadedSTARHolon, new()
+        where T2 : IDownloadedSTARNETHolon, new()
         where T3 : IInstalledSTARNETHolon, new()
     {
 
-        public ISTARManagerBase<T1, T2, T3> STARManager { get; set; }
+        public ISTARNETManagerBase<T1, T2, T3> STARNETManager { get; set; }
         public bool IsInit { get; set; }
         public string CreateHeader { get; set; }
         public List<string> CreateIntroParagraphs { get; set; }
@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public string InstalledSTARDNAKey { get; set; }
         
 
-        public STARUIBase(ISTARManagerBase<T1, T2, T3> starManager, string createHeader, List<string> createIntroParagraphs, string sourcePath = "", string sourceSTARDNAKey = "", string publishedPath = "", string publishedSTARDNAKey = "", string downloadedPath = "", string downloadSTARDNAKey = "", string installedPath = "", string installedSTARDNAKey = "")
+        public STARUIBase(ISTARNETManagerBase<T1, T2, T3> starManager, string createHeader, List<string> createIntroParagraphs, string sourcePath = "", string sourceSTARDNAKey = "", string publishedPath = "", string publishedSTARDNAKey = "", string downloadedPath = "", string downloadSTARDNAKey = "", string installedPath = "", string installedSTARDNAKey = "")
         {
             starManager.OnDownloadStatusChanged += OnDownloadStatusChanged;
             starManager.OnInstallStatusChanged += OnInstallStatusChanged;
@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CreateHeader = createHeader;
             CreateIntroParagraphs = createIntroParagraphs;
             IsInit = true;
-            STARManager = starManager;
+            STARNETManager = starManager;
             SourcePath = sourcePath;
             SourceSTARDNAKey = sourceSTARDNAKey;
             PublishedPath = publishedPath;
@@ -55,34 +55,34 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public void Dispose()
         {
-            STARManager.OnDownloadStatusChanged -= OnDownloadStatusChanged;
-            STARManager.OnInstallStatusChanged -= OnInstallStatusChanged;
-            STARManager.OnPublishStatusChanged -= OnPublishStatusChanged;
-            STARManager.OnUploadStatusChanged -= OnUploadStatusChanged;
+            STARNETManager.OnDownloadStatusChanged -= OnDownloadStatusChanged;
+            STARNETManager.OnInstallStatusChanged -= OnInstallStatusChanged;
+            STARNETManager.OnPublishStatusChanged -= OnPublishStatusChanged;
+            STARNETManager.OnUploadStatusChanged -= OnUploadStatusChanged;
         }
 
         public async Task CreateAsync(object createParams, ProviderType providerType = ProviderType.Default)
         {
             ShowHeader();
 
-            string holonName = CLIEngine.GetValidInput($"What is the name of the {STARManager.STARHolonUIName}?");
+            string holonName = CLIEngine.GetValidInput($"What is the name of the {STARNETManager.STARNETHolonUIName}?");
 
             if (holonName == "exit")
                 return;
 
-            string holonDesc = CLIEngine.GetValidInput($"What is the description of the {STARManager.STARHolonUIName}?");
+            string holonDesc = CLIEngine.GetValidInput($"What is the description of the {STARNETManager.STARNETHolonUIName}?");
 
             if (holonDesc == "exit")
                 return;
 
-            object holonSubType = CLIEngine.GetValidInputForEnum($"What type of {STARManager.STARHolonUIName} do you wish to create?", STARManager.STARHolonSubType);
+            object holonSubType = CLIEngine.GetValidInputForEnum($"What type of {STARNETManager.STARNETHolonUIName} do you wish to create?", STARNETManager.STARNETHolonSubType);
 
             if (holonSubType != null)
             {
                 if (holonSubType.ToString() == "exit")
                     return;
 
-                //Type STARHolonType = (Type)value;
+                //Type STARNETHolonType = (Type)value;
                 string holonPath = "";
 
                 if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.BasePath))
@@ -91,25 +91,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     holonPath = Path.Combine(STAR.STARDNA.BasePath, SourcePath);
 
 
-                if (!CLIEngine.GetConfirmation($"Do you wish to create the {STARManager.STARHolonUIName} in the default path defined in the STARDNA as '{SourceSTARDNAKey}'? The current path points to: {holonPath}"))
-                    holonPath = CLIEngine.GetValidFolder($"Where do you wish to create the {STARManager.STARHolonUIName}?");
+                if (!CLIEngine.GetConfirmation($"Do you wish to create the {STARNETManager.STARNETHolonUIName} in the default path defined in the STARDNA as '{SourceSTARDNAKey}'? The current path points to: {holonPath}"))
+                    holonPath = CLIEngine.GetValidFolder($"Where do you wish to create the {STARNETManager.STARNETHolonUIName}?");
 
                 holonPath = Path.Combine(holonPath, holonName);
 
                 Console.WriteLine("");
-                CLIEngine.ShowWorkingMessage($"Generating {STARManager.STARHolonUIName}...");
-                //OASISResult<T1> starHolonResult = await STARManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, Type, holonPath, providerType);
-                OASISResult<T1> starHolonResult =  await STARManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, holonSubType, holonPath, null, providerType);
+                CLIEngine.ShowWorkingMessage($"Generating {STARNETManager.STARNETHolonUIName}...");
+                //OASISResult<T1> starHolonResult = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, Type, holonPath, providerType);
+                OASISResult<T1> starHolonResult = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, holonSubType, holonPath, providerType: providerType);
 
                 if (starHolonResult != null)
                 {
                     if (!starHolonResult.IsError && starHolonResult.Result != null)
                     {
-                        CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Successfully Generated.");
+                        CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Generated.");
                         Show(starHolonResult.Result);
                         Console.WriteLine("");
 
-                        if (CLIEngine.GetConfirmation($"Do you wish to open the {STARManager.STARHolonUIName} folder now?"))
+                        if (CLIEngine.GetConfirmation($"Do you wish to open the {STARNETManager.STARNETHolonUIName} folder now?"))
                             Process.Start("explorer.exe", holonPath);
 
                         Console.WriteLine("");
@@ -127,35 +127,35 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
             {
-                if (CLIEngine.GetConfirmation($"Do you wish to edit the {STARManager.STARHolonUIName} Name?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to edit the {STARNETManager.STARNETHolonUIName} Name?"))
                 {
                     Console.WriteLine("");
-                    loadResult.Result.STARHolonDNA.Name = CLIEngine.GetValidInput($"What is the new name of the {STARManager.STARHolonUIName}?");
+                    loadResult.Result.STARNETDNA.Name = CLIEngine.GetValidInput($"What is the new name of the {STARNETManager.STARNETHolonUIName}?");
                     changesMade = true;
                 }
                 else
                     Console.WriteLine("");
 
-                if (CLIEngine.GetConfirmation($"Do you wish to edit the {STARManager.STARHolonUIName} Description?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to edit the {STARNETManager.STARNETHolonUIName} Description?"))
                 {
                     Console.WriteLine("");
-                    loadResult.Result.STARHolonDNA.Description = CLIEngine.GetValidInput($"What is the new description of the {STARManager.STARHolonUIName}?");
+                    loadResult.Result.STARNETDNA.Description = CLIEngine.GetValidInput($"What is the new description of the {STARNETManager.STARNETHolonUIName}?");
                     changesMade = true;
                 }
                 else
                     Console.WriteLine("");
 
-                if (CLIEngine.GetConfirmation($"Do you wish to edit the {STARManager.STARHolonUIName} Type?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to edit the {STARNETManager.STARNETHolonUIName} Type?"))
                 {
                     Console.WriteLine("");
-                    object holonSubType = CLIEngine.GetValidInputForEnum($"What is the new type of the {STARManager.STARHolonUIName}?", STARManager.STARHolonSubType);
+                    object holonSubType = CLIEngine.GetValidInputForEnum($"What is the new type of the {STARNETManager.STARNETHolonUIName}?", STARNETManager.STARNETHolonSubType);
 
                     if (holonSubType != null)
                     {
                         if (holonSubType.ToString() == "exit")
                             return;
 
-                        loadResult.Result.STARHolonDNA.STARHolonType = holonSubType;
+                        loadResult.Result.STARNETDNA.STARNETHolonType = holonSubType;
                         changesMade = true;
                     }
                 }
@@ -165,7 +165,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation("Do you wish to edit the launch target?"))
                 {
                     Console.WriteLine("");
-                    loadResult.Result.STARHolonDNA.LaunchTarget = CLIEngine.GetValidInput($"What is the new launch target of the {STARManager.STARHolonUIName}?");
+                    loadResult.Result.STARNETDNA.LaunchTarget = CLIEngine.GetValidInput($"What is the new launch target of the {STARNETManager.STARNETHolonUIName}?");
                     changesMade = true;
                 }
                 else
@@ -173,30 +173,30 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (changesMade)
                 {
-                    OASISResult<T1> result = await STARManager.EditAsync(STAR.BeamedInAvatar.Id, loadResult.Result, loadResult.Result.STARHolonDNA, providerType);
+                    OASISResult<T1> result = await STARNETManager.EditAsync(STAR.BeamedInAvatar.Id, loadResult.Result, loadResult.Result.STARNETDNA, providerType);
                     Console.WriteLine("");
-                    CLIEngine.ShowWorkingMessage($"Saving {STARManager.STARHolonUIName}...");
+                    CLIEngine.ShowWorkingMessage($"Saving {STARNETManager.STARNETHolonUIName}...");
 
                     if (result != null && !result.IsError && result.Result != null)
                     {
-                        (result, bool saveResult) = ErrorHandling.HandleResponse(result, await STARManager.WriteDNAAsync(result.Result.STARHolonDNA, result.Result.STARHolonDNA.SourcePath), "Error occured saving the STARHolonDNA. Reason: ", $"{STARManager.STARHolonUIName} Successfully Updated.");
+                        (result, bool saveResult) = ErrorHandling.HandleResponse(result, await STARNETManager.WriteDNAAsync(result.Result.STARNETDNA, result.Result.STARNETDNA.SourcePath), "Error occured saving the STARNETDNA. Reason: ", $"{STARNETManager.STARNETHolonUIName} Successfully Updated.");
 
                         if (saveResult)
                             Show(result.Result);
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"An error occured updating the {STARManager.STARHolonUIName}. Reason: {result.Message}");
+                        CLIEngine.ShowErrorMessage($"An error occured updating the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
                 }
 
-                if (loadResult.Result.STARHolonDNA.PublishedOn != DateTime.MinValue && CLIEngine.GetConfirmation($"Do you wish to upload any changes you have made in the Source folder ({loadResult.Result.STARHolonDNA.SourcePath})? The version number will remain the same ({loadResult.Result.STARHolonDNA.Version})."))
-                    await PublishAsync(loadResult.Result.STARHolonDNA.SourcePath, true, providerType);
+                if (loadResult.Result.STARNETDNA.PublishedOn != DateTime.MinValue && CLIEngine.GetConfirmation($"Do you wish to upload any changes you have made in the Source folder ({loadResult.Result.STARNETDNA.SourcePath})? The version number will remain the same ({loadResult.Result.STARNETDNA.Version})."))
+                    await PublishAsync(loadResult.Result.STARNETDNA.SourcePath, true, providerType);
                 else
                     Console.WriteLine("");
             }
             else
             {
                 Console.WriteLine("");
-                CLIEngine.ShowErrorMessage($"An error occured loading the {STARManager.STARHolonUIName}. Reason: {loadResult.Message}");
+                CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {loadResult.Message}");
             }
         }
 
@@ -206,30 +206,30 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                if (CLIEngine.GetConfirmation($"Are you sure you wish to delete this {STARManager.STARHolonUIName}? This will also delete the {STARManager.STARHolonUIName} from the Source and Published folders and remove it from the STARNET Store (if you have already published it)"))
+                if (CLIEngine.GetConfirmation($"Are you sure you wish to delete this {STARNETManager.STARNETHolonUIName}? This will also delete the {STARNETManager.STARNETHolonUIName} from the Source and Published folders and remove it from the STARNET Store (if you have already published it)"))
                 {
                     Console.WriteLine("");
-                    bool deleteDownload = CLIEngine.GetConfirmation($"Do you wish to also delete the correponding downloaded {STARManager.STARHolonUIName}? (if there is any)");
+                    bool deleteDownload = CLIEngine.GetConfirmation($"Do you wish to also delete the correponding downloaded {STARNETManager.STARNETHolonUIName}? (if there is any)");
 
                     Console.WriteLine("");
-                    bool deleteInstall = CLIEngine.GetConfirmation($"Do you wish to also delete the correponding installed {STARManager.STARHolonUIName}? (if there is any). This is different to uninstalling because uninstalled {STARManager.STARHolonUIName}s are still visible with the 'list uninstalled' sub-command and have the option to re-install. Whereas once it is deleted it is gone forever!");
+                    bool deleteInstall = CLIEngine.GetConfirmation($"Do you wish to also delete the correponding installed {STARNETManager.STARNETHolonUIName}? (if there is any). This is different to uninstalling because uninstalled {STARNETManager.STARNETHolonUIName}s are still visible with the 'list uninstalled' sub-command and have the option to re-install. Whereas once it is deleted it is gone forever!");
 
                     Console.WriteLine("");
                     if (CLIEngine.GetConfirmation("ARE YOU SURE YOU WITH TO PERMANENTLY DELETE THE OAPP TEMPLATE? IT WILL NOT BE POSSIBLE TO RECOVER AFTRWARDS!", ConsoleColor.Red))
                     {
                         Console.WriteLine("");
-                        CLIEngine.ShowWorkingMessage($"Deleting {STARManager.STARHolonUIName}...");
-                        result = await STARManager.DeleteAsync(STAR.BeamedInAvatar.Id, result.Result, result.Result.STARHolonDNA.VersionSequence, true, deleteDownload, deleteInstall, providerType);
+                        CLIEngine.ShowWorkingMessage($"Deleting {STARNETManager.STARNETHolonUIName}...");
+                        result = await STARNETManager.DeleteAsync(STAR.BeamedInAvatar.Id, result.Result, result.Result.STARNETDNA.VersionSequence, true, deleteDownload, deleteInstall, providerType);
 
                         if (result != null && !result.IsError && result.Result != null)
-                            CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Successfully Deleted.");
+                            CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Deleted.");
                         else
-                            CLIEngine.ShowErrorMessage($"An error occured deleting the {STARManager.STARHolonUIName}. Reason: {result.Message}");
+                            CLIEngine.ShowErrorMessage($"An error occured deleting the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
                     }
                 }
             }
             else
-                CLIEngine.ShowErrorMessage($"An error occured loading the {STARManager.STARHolonUIName}. Reason: {result.Message}");
+                CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
         public async Task PublishAsync(string sourcePath = "", bool edit = false, ProviderType providerType = ProviderType.Default)
@@ -248,31 +248,31 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (string.IsNullOrEmpty(sourcePath))
             {
                 Console.WriteLine("");
-                launchTargetQuestion = $"What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the {STARManager.STARHolonUIName}? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)";
-                sourcePath = CLIEngine.GetValidFolder($"What is the full path to the {STARManager.STARHolonUIName} directory?", false);
+                launchTargetQuestion = $"What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the {STARNETManager.STARNETHolonUIName}? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)";
+                sourcePath = CLIEngine.GetValidFolder($"What is the full path to the {STARNETManager.STARNETHolonUIName} directory?", false);
             }
 
-            OASISResult<ISTARHolonDNA> DNAResult = await STARManager.ReadDNAFromSourceOrInstallFolderAsync<ISTARHolonDNA>(sourcePath);
+            OASISResult<ISTARNETDNA> DNAResult = await STARNETManager.ReadDNAFromSourceOrInstallFolderAsync<ISTARNETDNA>(sourcePath);
 
             if (DNAResult != null && DNAResult.Result != null && !DNAResult.IsError)
             {
-                OASISResult<T1> loadResult = await STARManager.LoadAsync(STAR.BeamedInAvatar.Id, DNAResult.Result.Id, 0, providerType);
+                OASISResult<T1> loadResult = await STARNETManager.LoadAsync(STAR.BeamedInAvatar.Id, DNAResult.Result.Id, 0, providerType);
 
                 if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 {
-                    loadResult.Result.STARHolonDNA.Version = DNAResult.Result.Version; //Update the version from the JSON file.
+                    loadResult.Result.STARNETDNA.Version = DNAResult.Result.Version; //Update the version from the JSON file.
                     Show(loadResult.Result);
 
-                    if (!CLIEngine.GetConfirmation($"Is this the correct {STARManager.STARHolonUIName} you wish to publish?"))
+                    if (!CLIEngine.GetConfirmation($"Is this the correct {STARNETManager.STARNETHolonUIName} you wish to publish?"))
                     {
                         Console.WriteLine("");
                         return;
                     }
 
-                    launchTarget = loadResult.Result.STARHolonDNA.LaunchTarget;
+                    launchTarget = loadResult.Result.STARNETDNA.LaunchTarget;
                     Console.WriteLine("");
 
-                    //object templateType = Enum.Parse(STARManager.STARHolonSubType, DNAResult.Result.STARHolonType.ToString());
+                    //object templateType = Enum.Parse(STARNETManager.STARNETHolonSubType, DNAResult.Result.STARNETHolonType.ToString());
                     //Type Type = (Type)templateType;
 
                     //switch (Type)
@@ -304,12 +304,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, sourcePath);
 
                     Console.WriteLine("");
-                    bool registerOnSTARNET = CLIEngine.GetConfirmation($"Do you wish to publish to STARNET? If you select 'Y' to this question then your {STARManager.STARHolonUIName} will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .{STARManager.STARHolonFileExtention} install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.");
+                    bool registerOnSTARNET = CLIEngine.GetConfirmation($"Do you wish to publish to STARNET? If you select 'Y' to this question then your {STARNETManager.STARNETHolonUIName} will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .{STARNETManager.STARNETHolonFileExtention} install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.");
                     Console.WriteLine("");
 
                     if (registerOnSTARNET && !simpleWizard)
                     {
-                        CLIEngine.ShowMessage($"Do you wish to publish/upload the .{STARManager.STARHolonFileExtention} file to an OASIS Provider or to the cloud or both? Depending on which OASIS Provider is chosen such as IPFSOASIS there may issues such as speed, relialbility etc for such a large file. If you choose to upload to the cloud this could be faster and more reliable (but there is a limit of 5 OAPPs on the free plan and you will need to upgrade to upload more than 5 OAPPs). You may want to choose to use both to add an extra layer of redundancy (recommended).");
+                        CLIEngine.ShowMessage($"Do you wish to publish/upload the .{STARNETManager.STARNETHolonFileExtention} file to an OASIS Provider or to the cloud or both? Depending on which OASIS Provider is chosen such as IPFSOASIS there may issues such as speed, relialbility etc for such a large file. If you choose to upload to the cloud this could be faster and more reliable (but there is a limit of 5 OAPPs on the free plan and you will need to upgrade to upload more than 5 OAPPs). You may want to choose to use both to add an extra layer of redundancy (recommended).");
 
                         if (!CLIEngine.GetConfirmation("Do you wish to upload to the cloud?"))
                             uploadOAPPToCloud = false;
@@ -334,16 +334,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (!simpleWizard)
                     {
-                        if (!CLIEngine.GetConfirmation($"Do you wish to publish the {STARManager.STARHolonUIName} to the default publish folder defined in the STARDNA as {PublishedSTARDNAKey} : {publishPath}?"))
+                        if (!CLIEngine.GetConfirmation($"Do you wish to publish the {STARNETManager.STARNETHolonUIName} to the default publish folder defined in the STARDNA as {PublishedSTARDNAKey} : {publishPath}?"))
                         {
                             Console.WriteLine("");
 
-                            if (CLIEngine.GetConfirmation($"Do you wish to publish the {STARManager.STARHolonUIName} to: {Path.Combine(sourcePath, "Published")}?"))
+                            if (CLIEngine.GetConfirmation($"Do you wish to publish the {STARNETManager.STARNETHolonUIName} to: {Path.Combine(sourcePath, "Published")}?"))
                                 publishPath = Path.Combine(sourcePath, "Published");
                             else
                             {
                                 Console.WriteLine("");
-                                publishPath = CLIEngine.GetValidFolder($"Where do you wish to publish the {STARManager.STARHolonUIName}?", true);
+                                publishPath = CLIEngine.GetValidFolder($"Where do you wish to publish the {STARNETManager.STARNETHolonUIName}?", true);
                             }
                         }
                     }
@@ -351,15 +351,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     publishPath = new DirectoryInfo(publishPath).FullName;
 
                     Console.WriteLine("");
-                    CLIEngine.ShowWorkingMessage($"Publishing {STARManager.STARHolonUIName}...");
-                    OASISResult<T1> publishResult = await STARManager.PublishAsync(STAR.BeamedInAvatar.Id, sourcePath, launchTarget, publishPath, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, edit, providerType, OAPPBinaryProviderType);
+                    CLIEngine.ShowWorkingMessage($"Publishing {STARNETManager.STARNETHolonUIName}...");
+                    OASISResult<T1> publishResult = await STARNETManager.PublishAsync(STAR.BeamedInAvatar.Id, sourcePath, launchTarget, publishPath, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, edit, providerType, OAPPBinaryProviderType);
 
                     if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
                     {
                         Show(publishResult.Result);
 
-                        if (CLIEngine.GetConfirmation($"Do you wish to install the {STARManager.STARHolonUIName} now?"))
-                            await DownloadAndInstallAsync(publishResult.Result.STARHolonDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
+                        if (CLIEngine.GetConfirmation($"Do you wish to install the {STARNETManager.STARNETHolonUIName} now?"))
+                            await DownloadAndInstallAsync(publishResult.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
 
                         Console.WriteLine("");
                     }
@@ -367,20 +367,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         if (publishResult.Message.Contains("Please make sure you increment the version"))
                         {
-                            if (CLIEngine.GetConfirmation($"Do you wish to open the {STARManager.STARHolonDNAFileName} file now?"))
-                                Process.Start("explorer.exe", Path.Combine(DNAResult.Result.SourcePath, STARManager.STARHolonDNAFileName));
+                            if (CLIEngine.GetConfirmation($"Do you wish to open the {STARNETManager.STARNETDNAFileName} file now?"))
+                                Process.Start("explorer.exe", Path.Combine(DNAResult.Result.SourcePath, STARNETManager.STARNETDNAFileName));
                         }
                         else
-                            CLIEngine.ShowErrorMessage($"An error occured publishing the {STARManager.STARHolonUIName}. Reason: {publishResult.Message}");
+                            CLIEngine.ShowErrorMessage($"An error occured publishing the {STARNETManager.STARNETHolonUIName}. Reason: {publishResult.Message}");
 
                         Console.WriteLine("");
                     }
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"The {STARManager.STARHolonUIName} could not be found for id {DNAResult.Result.Id} found in the {STARManager.STARHolonDNAFileName} file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new {STARManager.STARHolonUIName}.");
+                    CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETHolonUIName} could not be found for id {DNAResult.Result.Id} found in the {STARNETManager.STARNETDNAFileName} file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new {STARNETManager.STARNETHolonUIName}.");
             }
             else
-                CLIEngine.ShowErrorMessage($"The {STARManager.STARHolonDNAFileName} file could not be found! Please ensure it is in the folder you specified.");
+                CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETDNAFileName} file could not be found! Please ensure it is in the folder you specified.");
         }
 
         public async Task UnpublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
@@ -389,15 +389,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                OASISResult<T1> unpublishResult = await STARManager.UnpublishAsync(STAR.BeamedInAvatar.Id, result.Result, providerType);
+                OASISResult<T1> unpublishResult = await STARNETManager.UnpublishAsync(STAR.BeamedInAvatar.Id, result.Result, providerType);
 
                 if (unpublishResult != null && !unpublishResult.IsError && unpublishResult.Result != null)
                 {
-                    CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Successfully Unpublished.");
+                    CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Unpublished.");
                     Show(result.Result);
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"An error occured unpublishing the {STARManager.STARHolonUIName}. Reason: {unpublishResult.Message}");
+                    CLIEngine.ShowErrorMessage($"An error occured unpublishing the {STARNETManager.STARNETHolonUIName}. Reason: {unpublishResult.Message}");
             }
         }
 
@@ -407,15 +407,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                OASISResult<T1> republishResult = await STARManager.RepublishAsync(STAR.BeamedInAvatar.Id, result.Result, providerType);
+                OASISResult<T1> republishResult = await STARNETManager.RepublishAsync(STAR.BeamedInAvatar.Id, result.Result, providerType);
 
                 if (republishResult != null && !republishResult.IsError && republishResult.Result != null)
                 {
-                    CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Successfully Republished.");
+                    CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Republished.");
                     Show(result.Result);
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"An error occured unpublishing the {STARManager.STARHolonUIName}. Reason: {republishResult.Message}");
+                    CLIEngine.ShowErrorMessage($"An error occured unpublishing the {STARNETManager.STARNETHolonUIName}. Reason: {republishResult.Message}");
             }
         }
 
@@ -427,18 +427,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (result.MetaData != null && result.MetaData.ContainsKey("Active") && result.MetaData["Active"] != null && result.MetaData["Active"] == "1")
                 {
-                    OASISResult<T1> activateResult = await STARManager.ActivateAsync(STAR.BeamedInAvatar.Id, result.Result, providerType);
+                    OASISResult<T1> activateResult = await STARNETManager.ActivateAsync(STAR.BeamedInAvatar.Id, result.Result, providerType);
 
                     if (activateResult != null && !activateResult.IsError && activateResult.Result != null)
                     {
-                        CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Successfully Activated.");
+                        CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Activated.");
                         Show(result.Result);
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"An error occured activating the {STARManager.STARHolonUIName}. Reason: {activateResult.Message}");
+                        CLIEngine.ShowErrorMessage($"An error occured activating the {STARNETManager.STARNETHolonUIName}. Reason: {activateResult.Message}");
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"The {STARManager.STARHolonUIName} is already activated!");
+                    CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETHolonUIName} is already activated!");
             }   
         }
 
@@ -450,18 +450,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (result.MetaData != null && result.MetaData.ContainsKey("Active") && result.MetaData["Active"] != null && result.MetaData["Active"] == "0")
                 {
-                    OASISResult<T1> deactivateResult = await STARManager.DeactivateAsync(STAR.BeamedInAvatar.Id, result.Result, providerType);
+                    OASISResult<T1> deactivateResult = await STARNETManager.DeactivateAsync(STAR.BeamedInAvatar.Id, result.Result, providerType);
 
                     if (deactivateResult != null && !deactivateResult.IsError && deactivateResult.Result != null)
                     {
-                        CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Successfully Deactivated.");
+                        CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Deactivated.");
                         Show(result.Result);
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"An error occured deactivating the {STARManager.STARHolonUIName}. Reason: {deactivateResult.Message}");
+                        CLIEngine.ShowErrorMessage($"An error occured deactivating the {STARNETManager.STARNETHolonUIName}. Reason: {deactivateResult.Message}");
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"The {STARManager.STARHolonUIName} is already deactivated!");
+                    CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETHolonUIName} is already deactivated!");
             }
         }
 
@@ -496,10 +496,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 Console.WriteLine("");
 
-                if (!CLIEngine.GetConfirmation($"Do you wish to download the {STARManager.STARHolonUIName} to the default download folder defined in the STARDNA as {DownloadSTARDNAKey} : {downloadPath}?"))
+                if (!CLIEngine.GetConfirmation($"Do you wish to download the {STARNETManager.STARNETHolonUIName} to the default download folder defined in the STARDNA as {DownloadSTARDNAKey} : {downloadPath}?"))
                 {
                     Console.WriteLine("");
-                    downloadPath = CLIEngine.GetValidFolder($"What is the full path to where you wish to download the {STARManager.STARHolonUIName}?", true);
+                    downloadPath = CLIEngine.GetValidFolder($"What is the full path to where you wish to download the {STARNETManager.STARNETHolonUIName}?", true);
                 }
 
                 downloadPath = new DirectoryInfo(downloadPath).FullName;
@@ -508,10 +508,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     Console.WriteLine("");
 
-                    if (!CLIEngine.GetConfirmation($"Do you wish to install the {STARManager.STARHolonUIName} to the default install folder defined in the STARDNA as {InstalledSTARDNAKey} : {installPath}?"))
+                    if (!CLIEngine.GetConfirmation($"Do you wish to install the {STARNETManager.STARNETHolonUIName} to the default install folder defined in the STARDNA as {InstalledSTARDNAKey} : {installPath}?"))
                     {
                         Console.WriteLine("");
-                        installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the {STARManager.STARHolonUIName}?", true);
+                        installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the {STARNETManager.STARNETHolonUIName}?", true);
                     }
 
                     installPath = new DirectoryInfo(installPath).FullName;
@@ -534,19 +534,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             else
             {
                 Console.WriteLine("");
-                if (installMode != InstallMode.DownloadOnly && CLIEngine.GetConfirmation($"Do you wish to install the {STARManager.STARHolonUIName} from a local .{STARManager.STARHolonDNAFileName} file or from STARNET? Press 'Y' for local .{STARManager.STARHolonDNAFileName} file or 'N' for STARNET."))
+                if (installMode != InstallMode.DownloadOnly && CLIEngine.GetConfirmation($"Do you wish to install the {STARNETManager.STARNETHolonUIName} from a local .{STARNETManager.STARNETDNAFileName} file or from STARNET? Press 'Y' for local .{STARNETManager.STARNETDNAFileName} file or 'N' for STARNET."))
                 {
                     Console.WriteLine("");
-                    string oappPath = CLIEngine.GetValidFile($"What is the full path to the .{STARManager.STARHolonDNAFileName} file?");
+                    string oappPath = CLIEngine.GetValidFile($"What is the full path to the .{STARNETManager.STARNETDNAFileName} file?");
 
                     if (oappPath == "exit")
                         return installResult;
 
-                    OASISResult<ISTARHolonDNA> starHolonDNAResult = await STARManager.ReadDNAFromPublishedFileAsync<ISTARHolonDNA>(oappPath);
+                    OASISResult<ISTARNETDNA> starHolonDNAResult = await STARNETManager.ReadDNAFromPublishedFileAsync<ISTARNETDNA>(oappPath);
 
                     if (starHolonDNAResult != null && starHolonDNAResult.Result != null && !starHolonDNAResult.IsError)
                     {
-                        OASISResult<T1> starHolonResult = await STARManager.LoadAsync(STAR.BeamedInAvatar.Id, starHolonDNAResult.Result.Id, 0, providerType);
+                        OASISResult<T1> starHolonResult = await STARNETManager.LoadAsync(STAR.BeamedInAvatar.Id, starHolonDNAResult.Result.Id, 0, providerType);
 
                         if (starHolonResult != null && starHolonResult.Result != null && !starHolonResult.IsError)
                         {
@@ -558,10 +558,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             installResult = await CheckIfInstalledAndInstallAsync(starHolonResult.Result, downloadPath, installPath, installMode, oappPath, providerType);
                         }
                         else
-                            CLIEngine.ShowErrorMessage($"The  could not be found for id {starHolonDNAResult.Result.Id} found in the STARHolonDNA.json file. It could be corrupt or the id could be wrong, please check and try again, or create a new {STARManager.STARHolonUIName}.");
+                            CLIEngine.ShowErrorMessage($"The  could not be found for id {starHolonDNAResult.Result.Id} found in the STARNETDNA.json file. It could be corrupt or the id could be wrong, please check and try again, or create a new {STARNETManager.STARNETHolonUIName}.");
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"The {STARManager.STARHolonUIName} could not be found or is not valid! Please ensure it is in the folder you specified.");
+                        CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETHolonUIName} could not be found or is not valid! Please ensure it is in the folder you specified.");
                 }
                 else
                 {
@@ -589,15 +589,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     ShowInstalled(installResult.Result);
 
-                    if (CLIEngine.GetConfirmation($"Do you wish to open the folder to the {STARManager.STARHolonUIName} now?"))
-                        STARManager.OpenSTARHolonFolder(STAR.BeamedInAvatar.Id, installResult.Result);
-                        //await STARManager.OpenSTARHolonFolderAsync(STAR.BeamedInAvatar.Id, installResult.Result.STARHolonDNA.Id, installResult.Result.STARHolonDNA.Version);
+                    if (CLIEngine.GetConfirmation($"Do you wish to open the folder to the {STARNETManager.STARNETHolonUIName} now?"))
+                        STARNETManager.OpenSTARNETHolonFolder(STAR.BeamedInAvatar.Id, installResult.Result);
+                        //await STARNETManager.OpenSTARNETHolonFolderAsync(STAR.BeamedInAvatar.Id, installResult.Result.STARNETDNA.Id, installResult.Result.STARNETDNA.Version);
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error {operation}ing {STARManager.STARHolonUIName}. Reason: {installResult.Message}");
+                    CLIEngine.ShowErrorMessage($"Error {operation}ing {STARNETManager.STARNETHolonUIName}. Reason: {installResult.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Error {operation}ing {STARManager.STARHolonUIName}. Reason: Unknown error occured!");
+                CLIEngine.ShowErrorMessage($"Error {operation}ing {STARNETManager.STARNETHolonUIName}. Reason: Unknown error occured!");
 
             Console.WriteLine("");
             return installResult;
@@ -622,20 +622,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
 
-            if (!CLIEngine.GetConfirmation($"Do you wish to download the {STARManager.STARHolonUIName} to the default download folder defined in the STARDNA as {DownloadSTARDNAKey} : {downloadPath}?"))
+            if (!CLIEngine.GetConfirmation($"Do you wish to download the {STARNETManager.STARNETHolonUIName} to the default download folder defined in the STARDNA as {DownloadSTARDNAKey} : {downloadPath}?"))
             {
                 Console.WriteLine("");
-                downloadPath = CLIEngine.GetValidFolder($"What is the full path to where you wish to download the {STARManager.STARHolonUIName}?", true);
+                downloadPath = CLIEngine.GetValidFolder($"What is the full path to where you wish to download the {STARNETManager.STARNETHolonUIName}?", true);
             }
 
             downloadPath = new DirectoryInfo(downloadPath).FullName;
 
             Console.WriteLine("");
 
-            if (!CLIEngine.GetConfirmation($"Do you wish to install the {STARManager.STARHolonUIName} to the default install folder defined in the STARDNA as {DownloadSTARDNAKey} : {installPath}?"))
+            if (!CLIEngine.GetConfirmation($"Do you wish to install the {STARNETManager.STARNETHolonUIName} to the default install folder defined in the STARDNA as {DownloadSTARDNAKey} : {installPath}?"))
             {
                 Console.WriteLine("");
-                installPath = CLIEngine.GetValidFolder($"What is the full path to where you wish to install the {STARManager.STARHolonUIName}?", true);
+                installPath = CLIEngine.GetValidFolder($"What is the full path to where you wish to install the {STARNETManager.STARNETHolonUIName}?", true);
             }
 
             installPath = new DirectoryInfo(installPath).FullName;
@@ -646,25 +646,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 OASISResult<T1> result = LoadForProvider(idOrName, "install", false, providerType, false);
 
                 if (result != null && result.Result != null && !result.IsError)
-                    installResult = STARManager.DownloadAndInstall(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, false, providerType);
+                    installResult = STARNETManager.DownloadAndInstall(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, false, providerType);
             }
             else
             {
                 Console.WriteLine("");
-                if (CLIEngine.GetConfirmation($"Do you wish to install the {STARManager.STARHolonUIName} from a local .{STARManager.STARHolonDNAFileName} file or from STARNET? Press 'Y' for local .{STARManager.STARHolonDNAFileName} file or 'N' for STARNET."))
+                if (CLIEngine.GetConfirmation($"Do you wish to install the {STARNETManager.STARNETHolonUIName} from a local .{STARNETManager.STARNETDNAFileName} file or from STARNET? Press 'Y' for local .{STARNETManager.STARNETDNAFileName} file or 'N' for STARNET."))
                 {
                     Console.WriteLine("");
-                    string oappPath = CLIEngine.GetValidFile($"What is the full path to the {STARManager.STARHolonDNAFileName} file?");
+                    string oappPath = CLIEngine.GetValidFile($"What is the full path to the {STARNETManager.STARNETDNAFileName} file?");
 
                     if (oappPath == "exit")
                         return installResult;
 
-                    installResult = STARManager.Install(STAR.BeamedInAvatar.Id, oappPath, installPath, true, null, false, providerType);
+                    installResult = STARNETManager.Install(STAR.BeamedInAvatar.Id, oappPath, installPath, true, null, false, providerType);
                 }
                 else
                 {
                     Console.WriteLine("");
-                    CLIEngine.ShowWorkingMessage($"Loading {STARManager.STARHolonUIName}s...");
+                    CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}s...");
                     OASISResult<IEnumerable<T1>> starHolonsResult = ListAll();
 
                     if (starHolonsResult != null && starHolonsResult.Result != null && !starHolonsResult.IsError && starHolonsResult.Result.Count() > 0)
@@ -672,7 +672,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         OASISResult<T1> result = LoadForProvider("", "install", false, providerType, false);
 
                         if (result != null && result.Result != null && !result.IsError)
-                            installResult = STARManager.DownloadAndInstall(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, false, providerType);
+                            installResult = STARNETManager.DownloadAndInstall(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, false, providerType);
                         else
                         {
                             installResult.Message = result.Message;
@@ -681,7 +681,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                     else
                     {
-                        installResult.Message = $"No {STARManager.STARHolonUIName}s found to install.";
+                        installResult.Message = $"No {STARNETManager.STARNETHolonUIName}s found to install.";
                         installResult.IsError = true;
                     }
                 }
@@ -693,14 +693,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     ShowInstalled(installResult.Result);
 
-                    if (CLIEngine.GetConfirmation($"Do you wish to open the folder to the {STARManager.STARHolonUIName} now?"))
-                        STARManager.OpenSTARHolonFolder(STAR.BeamedInAvatar.Id, installResult.Result);
+                    if (CLIEngine.GetConfirmation($"Do you wish to open the folder to the {STARNETManager.STARNETHolonUIName} now?"))
+                        STARNETManager.OpenSTARNETHolonFolder(STAR.BeamedInAvatar.Id, installResult.Result);
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error installing {STARManager.STARHolonUIName}. Reason: {installResult.Message}");
+                    CLIEngine.ShowErrorMessage($"Error installing {STARNETManager.STARNETHolonUIName}. Reason: {installResult.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Error installing {STARManager.STARHolonUIName}. Reason: Unknown error occured!");
+                CLIEngine.ShowErrorMessage($"Error installing {STARNETManager.STARNETHolonUIName}. Reason: Unknown error occured!");
 
             Console.WriteLine("");
             return installResult;
@@ -712,23 +712,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                OASISResult<T3> uninstallResult = await STARManager.UninstallAsync(STAR.BeamedInAvatar.Id, result.Result.Id, result.Result.STARHolonDNA.Version, providerType);
+                OASISResult<T3> uninstallResult = await STARNETManager.UninstallAsync(STAR.BeamedInAvatar.Id, result.Result.Id, result.Result.STARNETDNA.Version, providerType);
 
                 if (uninstallResult != null)
                 {
                     if (!uninstallResult.IsError && uninstallResult.Result != null)
                     {
-                        CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Successfully Uninstalled.");
+                        CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Uninstalled.");
                         Show(result.Result);
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"Error installing {STARManager.STARHolonUIName}. Reason: {uninstallResult.Message}");
+                        CLIEngine.ShowErrorMessage($"Error installing {STARNETManager.STARNETHolonUIName}. Reason: {uninstallResult.Message}");
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error uninstalling {STARManager.STARHolonUIName}. Reason: Unknown error occured!");
+                    CLIEngine.ShowErrorMessage($"Error uninstalling {STARNETManager.STARNETHolonUIName}. Reason: Unknown error occured!");
             }
             else
-                CLIEngine.ShowErrorMessage($"An error occured loading the {STARManager.STARHolonUIName}. Reason: {result.Message}");
+                CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
         public void Uninstall(string idOrName = "", ProviderType providerType = ProviderType.Default)
@@ -737,37 +737,37 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                OASISResult<T3> uninstallResult = STARManager.Uninstall(STAR.BeamedInAvatar.Id, result.Result.Id, result.Result.STARHolonDNA.Version, providerType);
+                OASISResult<T3> uninstallResult = STARNETManager.Uninstall(STAR.BeamedInAvatar.Id, result.Result.Id, result.Result.STARNETDNA.Version, providerType);
 
                 if (uninstallResult != null)
                 {
                     if (!uninstallResult.IsError && uninstallResult.Result != null)
                     {
-                        CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Successfully Uninstalled.");
+                        CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Uninstalled.");
                         Show(result.Result);
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"Error installing {STARManager.STARHolonUIName}. Reason: {uninstallResult.Message}");
+                        CLIEngine.ShowErrorMessage($"Error installing {STARNETManager.STARNETHolonUIName}. Reason: {uninstallResult.Message}");
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error uninstalling {STARManager.STARHolonUIName}. Reason: Unknown error occured!");
+                    CLIEngine.ShowErrorMessage($"Error uninstalling {STARNETManager.STARNETHolonUIName}. Reason: Unknown error occured!");
             }
             else
-                CLIEngine.ShowErrorMessage($"An error occured loading the {STARManager.STARHolonUIName}. Reason: {result.Message}");
+                CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
         public async Task<OASISResult<IEnumerable<T1>>> ListAllsAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
-            CLIEngine.ShowWorkingMessage($"Loading {STARManager.STARHolonUIName}'s...");
-            return ListStarHolons(await STARManager.LoadAllAsync(STAR.BeamedInAvatar.Id, null, true, showAllVersions, 0, providerType: providerType));
+            CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}'s...");
+            return ListStarHolons(await STARNETManager.LoadAllAsync(STAR.BeamedInAvatar.Id, null, true, showAllVersions, 0, providerType: providerType));
         }
 
         public OASISResult<IEnumerable<T1>> ListAll(bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
-            CLIEngine.ShowWorkingMessage($"Loading {STARManager.STARHolonUIName}'s...");
-            return  ListStarHolons(STARManager.LoadAll(STAR.BeamedInAvatar.Id, null, true, showAllVersions, version, providerType: providerType));
+            CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}'s...");
+            return  ListStarHolons(STARNETManager.LoadAll(STAR.BeamedInAvatar.Id, null, true, showAllVersions, version, providerType: providerType));
         }
 
         public async Task ListAllCreatedByBeamedInAvatarAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
@@ -775,8 +775,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (STAR.BeamedInAvatar != null)
             {
                 Console.WriteLine("");
-                CLIEngine.ShowWorkingMessage($"Loading {STARManager.STARHolonUIName}'s...");
-                ListStarHolons(await STARManager.LoadAllForAvatarAsync(STAR.BeamedInAvatar.AvatarId));
+                CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}'s...");
+                ListStarHolons(await STARNETManager.LoadAllForAvatarAsync(STAR.BeamedInAvatar.AvatarId));
             }
             else
                 CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
@@ -789,8 +789,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (STAR.BeamedInAvatar != null)
             {
                 Console.WriteLine("");
-                CLIEngine.ShowWorkingMessage($"Loading Installed {STARManager.STARHolonUIName}'s...");
-                result = await STARManager.ListInstalledAsync(STAR.BeamedInAvatar.AvatarId);
+                CLIEngine.ShowWorkingMessage($"Loading Installed {STARNETManager.STARNETHolonUIName}'s...");
+                result = await STARNETManager.ListInstalledAsync(STAR.BeamedInAvatar.AvatarId);
                 ListStarHolonsInstalled(result);
             }
             else
@@ -806,8 +806,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (STAR.BeamedInAvatar != null)
             {
                 Console.WriteLine("");
-                CLIEngine.ShowWorkingMessage($"Loading Uninstalled {STARManager.STARHolonUIName}s...");
-                result = await STARManager.ListUninstalledAsync(STAR.BeamedInAvatar.AvatarId);
+                CLIEngine.ShowWorkingMessage($"Loading Uninstalled {STARNETManager.STARNETHolonUIName}s...");
+                result = await STARNETManager.ListUninstalledAsync(STAR.BeamedInAvatar.AvatarId);
                 ListStarHolonsInstalled(result, true, true);
 
                 if (result != null && !result.IsError && result.Result != null && result.Result.Count() > 0 && CLIEngine.GetConfirmation("Would you like to re-install any of the above?"))
@@ -830,18 +830,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
     
                         if (template != null)
                         {
-                            OASISResult<T3> installResult = await DownloadAndInstallAsync(template.STARHolonDNA.Id.ToString(), InstallMode.DownloadAndReInstall, providerType);
+                            OASISResult<T3> installResult = await DownloadAndInstallAsync(template.STARNETDNA.Id.ToString(), InstallMode.DownloadAndReInstall, providerType);
 
                             if (installResult != null && !installResult.IsError && installResult.Result != null)
                             {
                                 ShowInstalled(installResult.Result);
-                                CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Successfully Re-Installed");
+                                CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Re-Installed");
                             }
                             else
-                                CLIEngine.ShowErrorMessage($"An error occured re-installing the {STARManager.STARHolonUIName}. Reason: {installResult.Message}");
+                                CLIEngine.ShowErrorMessage($"An error occured re-installing the {STARNETManager.STARNETHolonUIName}. Reason: {installResult.Message}");
                         }
                         else
-                            CLIEngine.ShowErrorMessage($"An error occured re-installing the {STARManager.STARHolonUIName}. Reason: {STARManager.STARHolonIdName} not found in the metadata!");
+                            CLIEngine.ShowErrorMessage($"An error occured re-installing the {STARNETManager.STARNETHolonUIName}. Reason: {STARNETManager.STARNETHolonIdName} not found in the metadata!");
                     }
                 }
                 else
@@ -860,8 +860,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (STAR.BeamedInAvatar != null)
             {
                 Console.WriteLine("");
-                CLIEngine.ShowWorkingMessage($"Loading Unpublished {STARManager.STARHolonUIName}'s...");
-                result = await STARManager.ListUnpublishedAsync(STAR.BeamedInAvatar.AvatarId);
+                CLIEngine.ShowWorkingMessage($"Loading Unpublished {STARNETManager.STARNETHolonUIName}'s...");
+                result = await STARNETManager.ListUnpublishedAsync(STAR.BeamedInAvatar.AvatarId);
                 ListStarHolons(result, true);
 
                 if (result != null && !result.IsError && result.Result != null && result.Result.Count() > 0 && CLIEngine.GetConfirmation("Would you like to republish any of the above?"))
@@ -885,15 +885,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (template != null)
                         {
-                            OASISResult<T1> republishResult = await STARManager.RepublishAsync(STAR.BeamedInAvatar.Id, template, providerType);
+                            OASISResult<T1> republishResult = await STARNETManager.RepublishAsync(STAR.BeamedInAvatar.Id, template, providerType);
 
                             if (republishResult != null && !republishResult.IsError && republishResult.Result != null)
                             {
                                 Show(republishResult.Result);
-                                CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Successfully Republished");
+                                CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Republished");
                             }
                             else
-                                CLIEngine.ShowErrorMessage($"An error occured republishing the {STARManager.STARHolonUIName}. Reason: {republishResult.Message}");
+                                CLIEngine.ShowErrorMessage($"An error occured republishing the {STARNETManager.STARNETHolonUIName}. Reason: {republishResult.Message}");
                         }
                     }
                 }
@@ -913,8 +913,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (STAR.BeamedInAvatar != null)
             {
                 Console.WriteLine("");
-                CLIEngine.ShowWorkingMessage($"Loading Deactivated {STARManager.STARHolonUIName}'s...");
-                result = await STARManager.ListDeactivatedAsync(STAR.BeamedInAvatar.AvatarId);
+                CLIEngine.ShowWorkingMessage($"Loading Deactivated {STARNETManager.STARNETHolonUIName}'s...");
+                result = await STARNETManager.ListDeactivatedAsync(STAR.BeamedInAvatar.AvatarId);
                 ListStarHolons(result, true);
 
                 if (result != null && !result.IsError && result.Result != null && result.Result.Count() > 0 && CLIEngine.GetConfirmation("Would you like to reactivate any of the above?"))
@@ -938,15 +938,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (template != null)
                         {
-                            OASISResult<T1> activateResult = await STARManager.ActivateAsync(STAR.BeamedInAvatar.Id, template, providerType);
+                            OASISResult<T1> activateResult = await STARNETManager.ActivateAsync(STAR.BeamedInAvatar.Id, template, providerType);
 
                             if (activateResult != null && !activateResult.IsError && activateResult.Result != null)
                             {
                                 Show(activateResult.Result);
-                                CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Successfully Reactivated");
+                                CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Reactivated");
                             }
                             else
-                                CLIEngine.ShowErrorMessage($"An error occured reactivating the {STARManager.STARHolonUIName}. Reason: {activateResult.Message}");
+                                CLIEngine.ShowErrorMessage($"An error occured reactivating the {STARNETManager.STARNETHolonUIName}. Reason: {activateResult.Message}");
                         }
                     }
                 }
@@ -964,12 +964,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (string.IsNullOrEmpty(searchTerm) || searchTerm == "forallavatars" || searchTerm == "forallavatars")
             { 
                 //Console.WriteLine("");
-                searchTerm = CLIEngine.GetValidInput($"What is the name of the {STARManager.STARHolonUIName} you wish to search for?");
+                searchTerm = CLIEngine.GetValidInput($"What is the name of the {STARNETManager.STARNETHolonUIName} you wish to search for?");
             }
 
             Console.WriteLine("");
-            CLIEngine.ShowWorkingMessage($"Searching {STARManager.STARHolonUIName}'s...");
-            ListStarHolons(await STARManager.SearchAsync(STAR.BeamedInAvatar.Id, searchTerm, !showForAllAvatars, showAllVersions, 0, providerType));
+            CLIEngine.ShowWorkingMessage($"Searching {STARNETManager.STARNETHolonUIName}'s...");
+            ListStarHolons(await STARNETManager.SearchAsync(STAR.BeamedInAvatar.Id, searchTerm, !showForAllAvatars, showAllVersions, 0, providerType));
         }
 
         public async Task ShowAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
@@ -979,7 +979,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (result != null && !result.IsError && result.Result != null)
                 Show(result.Result);
             else
-                CLIEngine.ShowErrorMessage($"An error occured loading the {STARManager.STARHolonUIName}. Reason: {result.Message}");
+                CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
         public void Show(T1 starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false)
@@ -990,33 +990,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (showNumbers)
                 CLIEngine.ShowMessage(string.Concat("Number:                                     ", number));
 
-            CLIEngine.ShowMessage(string.Concat($"Id:                                         ", starHolon.STARHolonDNA.Id != Guid.Empty ? starHolon.STARHolonDNA.Id : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Name:                                       ", !string.IsNullOrEmpty(starHolon.STARHolonDNA.Name) ? starHolon.STARHolonDNA.Name : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Description:                                ", !string.IsNullOrEmpty(starHolon.STARHolonDNA.Description) ? starHolon.STARHolonDNA.Description : "None"));
-            CLIEngine.ShowMessage(string.Concat($"{STARManager.STARHolonUIName} Type:                         ", starHolon.STARHolonDNA.STARHolonType));
-            CLIEngine.ShowMessage(string.Concat($"Created On:                                 ", starHolon.STARHolonDNA.CreatedOn != DateTime.MinValue ? starHolon.STARHolonDNA.CreatedOn.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Created By:                                 ", starHolon.STARHolonDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARHolonDNA.CreatedByAvatarUsername, " (", starHolon.STARHolonDNA.CreatedByAvatarId.ToString(), ")") : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Modified On:                                ", starHolon.STARHolonDNA.ModifiedOn != DateTime.MinValue ? starHolon.STARHolonDNA.CreatedOn.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Modified By:                                ", starHolon.STARHolonDNA.ModifiedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARHolonDNA.ModifiedByAvatarUsername, " (", starHolon.STARHolonDNA.ModifiedByAvatarId.ToString(), ")") : "None"));
-            CLIEngine.ShowMessage(string.Concat($"{STARManager.STARHolonUIName} Path:                         ", !string.IsNullOrEmpty(starHolon.STARHolonDNA.SourcePath) ? starHolon.STARHolonDNA.SourcePath : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Published On:                               ", starHolon.STARHolonDNA.PublishedOn != DateTime.MinValue ? starHolon.STARHolonDNA.PublishedOn.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Published By:                               ", starHolon.STARHolonDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARHolonDNA.PublishedByAvatarUsername, " (", starHolon.STARHolonDNA.PublishedByAvatarId.ToString(), ")") : "None"));
-            CLIEngine.ShowMessage(string.Concat($"{STARManager.STARHolonUIName} Published Path:               ", !string.IsNullOrEmpty(starHolon.STARHolonDNA.PublishedPath) ? starHolon.STARHolonDNA.PublishedPath : "None"));
-            CLIEngine.ShowMessage(string.Concat($"{STARManager.STARHolonUIName} Filesize:                     ", starHolon.STARHolonDNA.FileSize.ToString()));
-            CLIEngine.ShowMessage(string.Concat($"{STARManager.STARHolonUIName} Published On STARNET:         ", starHolon.STARHolonDNA.PublishedOnSTARNET ? "True" : "False"));
-            CLIEngine.ShowMessage(string.Concat($"{STARManager.STARHolonUIName} Published To Cloud:           ", starHolon.STARHolonDNA.PublishedToCloud ? "True" : "False"));
-            CLIEngine.ShowMessage(string.Concat($"{STARManager.STARHolonUIName} Published To OASIS Provider:  ", Enum.GetName(typeof(ProviderType), starHolon.STARHolonDNA.PublishedProviderType)));
-            CLIEngine.ShowMessage(string.Concat($"Launch Target:                              ", starHolon.STARHolonDNA.LaunchTarget));
-            CLIEngine.ShowMessage(string.Concat($"{STARManager.STARHolonUIName} Version:                      ", starHolon.STARHolonDNA.Version));
-            CLIEngine.ShowMessage(string.Concat($"Version Sequence:                           ", starHolon.STARHolonDNA.VersionSequence));
-            CLIEngine.ShowMessage(string.Concat($"Number Of Versions:                         ", starHolon.STARHolonDNA.NumberOfVersions));
+            CLIEngine.ShowMessage(string.Concat($"Id:                                         ", starHolon.STARNETDNA.Id != Guid.Empty ? starHolon.STARNETDNA.Id : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Name:                                       ", !string.IsNullOrEmpty(starHolon.STARNETDNA.Name) ? starHolon.STARNETDNA.Name : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Description:                                ", !string.IsNullOrEmpty(starHolon.STARNETDNA.Description) ? starHolon.STARNETDNA.Description : "None"));
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Type:                         ", starHolon.STARNETDNA.STARNETHolonType));
+            CLIEngine.ShowMessage(string.Concat($"Created On:                                 ", starHolon.STARNETDNA.CreatedOn != DateTime.MinValue ? starHolon.STARNETDNA.CreatedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Created By:                                 ", starHolon.STARNETDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARNETDNA.CreatedByAvatarUsername, " (", starHolon.STARNETDNA.CreatedByAvatarId.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Modified On:                                ", starHolon.STARNETDNA.ModifiedOn != DateTime.MinValue ? starHolon.STARNETDNA.CreatedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Modified By:                                ", starHolon.STARNETDNA.ModifiedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARNETDNA.ModifiedByAvatarUsername, " (", starHolon.STARNETDNA.ModifiedByAvatarId.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Path:                         ", !string.IsNullOrEmpty(starHolon.STARNETDNA.SourcePath) ? starHolon.STARNETDNA.SourcePath : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published On:                               ", starHolon.STARNETDNA.PublishedOn != DateTime.MinValue ? starHolon.STARNETDNA.PublishedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published By:                               ", starHolon.STARNETDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARNETDNA.PublishedByAvatarUsername, " (", starHolon.STARNETDNA.PublishedByAvatarId.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published Path:               ", !string.IsNullOrEmpty(starHolon.STARNETDNA.PublishedPath) ? starHolon.STARNETDNA.PublishedPath : "None"));
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Filesize:                     ", starHolon.STARNETDNA.FileSize.ToString()));
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published On STARNET:         ", starHolon.STARNETDNA.PublishedOnSTARNET ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published To Cloud:           ", starHolon.STARNETDNA.PublishedToCloud ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published To OASIS Provider:  ", Enum.GetName(typeof(ProviderType), starHolon.STARNETDNA.PublishedProviderType)));
+            CLIEngine.ShowMessage(string.Concat($"Launch Target:                              ", starHolon.STARNETDNA.LaunchTarget));
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Version:                      ", starHolon.STARNETDNA.Version));
+            CLIEngine.ShowMessage(string.Concat($"Version Sequence:                           ", starHolon.STARNETDNA.VersionSequence));
+            CLIEngine.ShowMessage(string.Concat($"Number Of Versions:                         ", starHolon.STARNETDNA.NumberOfVersions));
             //CLIEngine.ShowMessage(string.Concat($"OASIS Holon Version:                        ", starHolon.Version));
             //CLIEngine.ShowMessage(string.Concat($"OASIS Holon VersionId:                      ", starHolon.VersionId));
             //CLIEngine.ShowMessage(string.Concat($"OASIS Holon PreviousVersionId:              ", starHolon.PreviousVersionId));
-            CLIEngine.ShowMessage(string.Concat($"Downloads:                                  ", starHolon.STARHolonDNA.Downloads));
-            CLIEngine.ShowMessage(string.Concat($"Installs:                                   ", starHolon.STARHolonDNA.Installs));
-            CLIEngine.ShowMessage(string.Concat($"Total Downloads:                            ", starHolon.STARHolonDNA.TotalDownloads));
-            CLIEngine.ShowMessage(string.Concat($"Total Installs:                             ", starHolon.STARHolonDNA.TotalInstalls));
+            CLIEngine.ShowMessage(string.Concat($"Downloads:                                  ", starHolon.STARNETDNA.Downloads));
+            CLIEngine.ShowMessage(string.Concat($"Installs:                                   ", starHolon.STARNETDNA.Installs));
+            CLIEngine.ShowMessage(string.Concat($"Total Downloads:                            ", starHolon.STARNETDNA.TotalDownloads));
+            CLIEngine.ShowMessage(string.Concat($"Total Installs:                             ", starHolon.STARNETDNA.TotalInstalls));
             CLIEngine.ShowMessage(string.Concat($"Active:                                     ", starHolon.MetaData != null && starHolon.MetaData.ContainsKey("Active") && starHolon.MetaData["Active"] != null && starHolon.MetaData["Active"].ToString() == "1" ? "True" : "False"));
 
             if (showDetailedInfo)
@@ -1060,21 +1060,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         Console.WriteLine();
 
                         if (starHolons.Result.Count() == 1)
-                            CLIEngine.ShowMessage($"{starHolons.Result.Count()} {STARManager.STARHolonUIName} Found:");
+                            CLIEngine.ShowMessage($"{starHolons.Result.Count()} {STARNETManager.STARNETHolonUIName} Found:");
                         else
-                            CLIEngine.ShowMessage($"{starHolons.Result.Count()} {STARManager.STARHolonUIName}s Found:");
+                            CLIEngine.ShowMessage($"{starHolons.Result.Count()} {STARNETManager.STARNETHolonUIName}s Found:");
 
                         for (int i = 0; i < starHolons.Result.Count(); i++)
                             Show(starHolons.Result.ElementAt(i), i==0, true, showNumbers, i + 1);
                     }
                     else
-                        CLIEngine.ShowWarningMessage("No {STARManager.STARHolonUIName}s Found.");
+                        CLIEngine.ShowWarningMessage("No {STARNETManager.STARNETHolonUIName}s Found.");
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error occured loading {STARManager.STARHolonUIName}s. Reason: {starHolons.Message}");
+                    CLIEngine.ShowErrorMessage($"Error occured loading {STARNETManager.STARNETHolonUIName}s. Reason: {starHolons.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Unknown error occured loading {STARManager.STARHolonUIName}s.");
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading {STARNETManager.STARNETHolonUIName}s.");
 
             return starHolons;
         }
@@ -1090,21 +1090,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         Console.WriteLine();
 
                         if (starHolons.Result.Count() == 1)
-                            CLIEngine.ShowMessage($"{starHolons.Result.Count()} {STARManager.STARHolonUIName} Found:");
+                            CLIEngine.ShowMessage($"{starHolons.Result.Count()} {STARNETManager.STARNETHolonUIName} Found:");
                         else
-                            CLIEngine.ShowMessage($"{starHolons.Result.Count()} {STARManager.STARHolonUIName}s Found:");
+                            CLIEngine.ShowMessage($"{starHolons.Result.Count()} {STARNETManager.STARNETHolonUIName}s Found:");
 
                         for (int i = 0; i < starHolons.Result.Count(); i++)
                             ShowInstalled(starHolons.Result.ElementAt(i), i == 0, true, showNumbers, i + 1, showUninstallInfo);
                     }
                     else
-                        CLIEngine.ShowWarningMessage($"No {STARManager.STARHolonUIName}s Found.");
+                        CLIEngine.ShowWarningMessage($"No {STARNETManager.STARNETHolonUIName}s Found.");
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error occured loading {STARManager.STARHolonUIName}'s. Reason: {starHolons.Message}");
+                    CLIEngine.ShowErrorMessage($"Error occured loading {STARNETManager.STARNETHolonUIName}'s. Reason: {starHolons.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Unknown error occured loading {STARManager.STARHolonUIName}'s.");
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading {STARNETManager.STARNETHolonUIName}'s.");
         }
 
         private async Task<OASISResult<T1>> LoadForProviderAsync(string idOrName, string operationName, bool showOnlyForCurrentAvatar, ProviderType providerType, bool addSpace = true, bool simpleWizard = true)
@@ -1117,7 +1117,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (!CLIEngine.GetConfirmation("Do you wish to download from the cloud or from the OASIS? Press 'Y' for the cloud or N' for the OASIS."))
                 {
                     Console.WriteLine("");
-                    object largeProviderTypeObject = CLIEngine.GetValidInputForEnum($"What OASIS provider do you wish to install the {STARManager.STARHolonUIName} from? (The default is IPFSOASIS)", typeof(ProviderType));
+                    object largeProviderTypeObject = CLIEngine.GetValidInputForEnum($"What OASIS provider do you wish to install the {STARNETManager.STARNETHolonUIName} from? (The default is IPFSOASIS)", typeof(ProviderType));
 
                     if (largeProviderTypeObject != null)
                     {
@@ -1149,7 +1149,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (!CLIEngine.GetConfirmation("Do you wish to download from the cloud or from the OASIS? Press 'Y' for the cloud or N' for the OASIS."))
                 {
                     Console.WriteLine("");
-                    object largeProviderTypeObject = CLIEngine.GetValidInputForEnum($"What OASIS provider do you wish to install the {STARManager.STARHolonUIName} from? (The default is IPFSOASIS)", typeof(ProviderType));
+                    object largeProviderTypeObject = CLIEngine.GetValidInputForEnum($"What OASIS provider do you wish to install the {STARNETManager.STARNETHolonUIName} from? (The default is IPFSOASIS)", typeof(ProviderType));
 
                     if (largeProviderTypeObject != null)
                     {
@@ -1180,20 +1180,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (string.IsNullOrEmpty(idOrName))
                 {
-                    if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the {STARManager.STARHolonUIName} you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
+                    if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the {STARNETManager.STARNETHolonUIName} you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
                     {
                         Console.WriteLine("");
-                        CLIEngine.ShowWorkingMessage($"Loading {STARManager.STARHolonUIName}'s...");
+                        CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}'s...");
                         
                         if (showOnlyForCurrentAvatar)
-                            ListStarHolons(await STARManager.LoadAllForAvatarAsync(STAR.BeamedInAvatar.AvatarId));
+                            ListStarHolons(await STARNETManager.LoadAllForAvatarAsync(STAR.BeamedInAvatar.AvatarId));
                         else
-                            ListStarHolons(await STARManager.LoadAllAsync(STAR.BeamedInAvatar.AvatarId, null, true, false, 0, providerType: providerType));
+                            ListStarHolons(await STARNETManager.LoadAllAsync(STAR.BeamedInAvatar.AvatarId, null, true, false, 0, providerType: providerType));
                     }
                     else
                         Console.WriteLine("");
 
-                    idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the {STARManager.STARHolonUIName} you wish to {operationName}?");
+                    idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the {STARNETManager.STARNETHolonUIName} you wish to {operationName}?");
 
                     if (idOrName == "exit")
                         break;
@@ -1204,19 +1204,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (Guid.TryParse(idOrName, out id))
                 {
-                    CLIEngine.ShowWorkingMessage($"Loading {STARManager.STARHolonUIName}...");
-                    result = await STARManager.LoadAsync(STAR.BeamedInAvatar.AvatarId, id, 0, providerType);
+                    CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}...");
+                    result = await STARNETManager.LoadAsync(STAR.BeamedInAvatar.AvatarId, id, 0, providerType);
 
-                    if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.STARHolonDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
+                    if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.STARNETDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
                     {
-                        CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this {STARManager.STARHolonUIName}. It was created by another avatar.");
+                        CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this {STARNETManager.STARNETHolonUIName}. It was created by another avatar.");
                         result.Result = default;
                     }
                 }
                 else
                 {
-                    CLIEngine.ShowWorkingMessage($"Searching {STARManager.STARHolonUIName}s...");
-                    OASISResult<IEnumerable<T1>> searchResults = await STARManager.SearchAsync(STAR.BeamedInAvatar.Id, idOrName, showOnlyForCurrentAvatar, false, 0, providerType);
+                    CLIEngine.ShowWorkingMessage($"Searching {STARNETManager.STARNETHolonUIName}s...");
+                    OASISResult<IEnumerable<T1>> searchResults = await STARNETManager.SearchAsync(STAR.BeamedInAvatar.Id, idOrName, showOnlyForCurrentAvatar, false, 0, providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -1226,7 +1226,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             do
                             {
-                                int number = CLIEngine.GetValidInputForInt($"What is the number of the {STARManager.STARHolonUIName} you wish to {operationName}?");
+                                int number = CLIEngine.GetValidInputForInt($"What is the number of the {STARNETManager.STARNETHolonUIName} you wish to {operationName}?");
 
                                 if (number > 0 && number <= searchResults.Result.Count())
                                     result.Result = searchResults.Result.ElementAt(number - 1);                                 
@@ -1240,25 +1240,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         else
                         {
                             idOrName = "";
-                            CLIEngine.ShowWarningMessage($"No {STARManager.STARHolonUIName} Found!");
+                            CLIEngine.ShowWarningMessage($"No {STARNETManager.STARNETHolonUIName} Found!");
                         }
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"An error occured calling STARManager.SearchsAsync. Reason: {searchResults.Message}");
+                        CLIEngine.ShowErrorMessage($"An error occured calling STARNETManager.SearchsAsync. Reason: {searchResults.Message}");
                 }
 
-                if (result.Result != null && result.Result.STARHolonDNA != null)
+                if (result.Result != null && result.Result.STARNETDNA != null)
                 {
                     Show(result.Result);
 
-                    if (result.Result.STARHolonDNA.NumberOfVersions > 1)
+                    if (result.Result.STARNETDNA.NumberOfVersions > 1)
                     {
-                        if ((operationName == "view" && CLIEngine.GetConfirmation($"{result.Result.STARHolonDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
-                            (!CLIEngine.GetConfirmation($"{result.Result.STARHolonDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.STARHolonDNA.Version})?")))
+                        if ((operationName == "view" && CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
+                            (!CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.STARNETDNA.Version})?")))
                         {
                             Console.WriteLine("");
-                            CLIEngine.ShowWorkingMessage($"Loading {STARManager.STARHolonUIName} Versions...");
-                            OASISResult<IEnumerable<T1>> versionsResult = await STARManager.LoadVersionsAsync(result.Result.STARHolonDNA.Id, providerType);
+                            CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName} Versions...");
+                            OASISResult<IEnumerable<T1>> versionsResult = await STARNETManager.LoadVersionsAsync(result.Result.STARNETDNA.Id, providerType);
                             ListStarHolons(versionsResult);
 
                             if (operationName != "view" && versionsResult != null && versionsResult.Result != null && !versionsResult.IsError && versionsResult.Result.Count() > 0)
@@ -1296,7 +1296,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (result.Result != null && operationName != "view")
                 {
-                    if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this {STARManager.STARHolonUIName}?"))
+                    if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this {STARNETManager.STARNETHolonUIName}?"))
                     {
                         if (operationName == "install")
                         {
@@ -1314,7 +1314,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             }
                             else
                             {
-                                CLIEngine.ShowErrorMessage($"Error occured checking if the {STARManager.STARHolonUIName} is already installed! Reason: Id was not found in the metadata!");
+                                CLIEngine.ShowErrorMessage($"Error occured checking if the {STARNETManager.STARNETHolonUIName} is already installed! Reason: Id was not found in the metadata!");
                                 result.Result = default;
                             }
                         }
@@ -1324,7 +1324,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         Console.WriteLine("");
                         result.Result = default;
 
-                        if (!CLIEngine.GetConfirmation($"Do you wish to search for another {STARManager.STARHolonUIName}?"))
+                        if (!CLIEngine.GetConfirmation($"Do you wish to search for another {STARNETManager.STARNETHolonUIName}?"))
                         {
                             idOrName = "exit";
                             break;
@@ -1355,20 +1355,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (string.IsNullOrEmpty(idOrName))
                 {
-                    if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the {STARManager.STARHolonUIName} you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
+                    if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the {STARNETManager.STARNETHolonUIName} you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
                     {
                         Console.WriteLine("");
-                        CLIEngine.ShowWorkingMessage("Loading {STARManager.STARHolonUIName}s...");
+                        CLIEngine.ShowWorkingMessage("Loading {STARNETManager.STARNETHolonUIName}s...");
 
                         if (showOnlyForCurrentAvatar)
-                            ListStarHolons(STARManager.LoadAllForAvatar(STAR.BeamedInAvatar.AvatarId));
+                            ListStarHolons(STARNETManager.LoadAllForAvatar(STAR.BeamedInAvatar.AvatarId));
                         else
-                            ListStarHolons(STARManager.LoadAll(STAR.BeamedInAvatar.AvatarId, null, true, false, 0, providerType: providerType));
+                            ListStarHolons(STARNETManager.LoadAll(STAR.BeamedInAvatar.AvatarId, null, true, false, 0, providerType: providerType));
                     }
                     else
                         Console.WriteLine("");
 
-                    idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the {STARManager.STARHolonUIName} you wish to {operationName}?");
+                    idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the {STARNETManager.STARNETHolonUIName} you wish to {operationName}?");
 
                     if (idOrName == "exit")
                         break;
@@ -1379,19 +1379,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (Guid.TryParse(idOrName, out id))
                 {
-                    CLIEngine.ShowWorkingMessage($"Loading {STARManager.STARHolonUIName}...");
-                    result = STARManager.Load(STAR.BeamedInAvatar.Id, id, 0, providerType);
+                    CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}...");
+                    result = STARNETManager.Load(STAR.BeamedInAvatar.Id, id, 0, providerType);
 
-                    if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.STARHolonDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
+                    if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.STARNETDNA.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
                     {
-                        CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this {STARManager.STARHolonUIName}. It was created by another avatar.");
+                        CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this {STARNETManager.STARNETHolonUIName}. It was created by another avatar.");
                         result.Result = default;
                     }
                 }
                 else
                 {
-                    CLIEngine.ShowWorkingMessage($"Searching {STARManager.STARHolonUIName}'s...");
-                    OASISResult<IEnumerable<T1>> searchResults = STARManager.Search(STAR.BeamedInAvatar.Id, idOrName, showOnlyForCurrentAvatar, false, 0, providerType);
+                    CLIEngine.ShowWorkingMessage($"Searching {STARNETManager.STARNETHolonUIName}'s...");
+                    OASISResult<IEnumerable<T1>> searchResults = STARNETManager.Search(STAR.BeamedInAvatar.Id, idOrName, showOnlyForCurrentAvatar, false, 0, providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -1401,7 +1401,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             do
                             {
-                                int number = CLIEngine.GetValidInputForInt($"What is the number of the {STARManager.STARHolonUIName} you wish to {operationName}?");
+                                int number = CLIEngine.GetValidInputForInt($"What is the number of the {STARNETManager.STARNETHolonUIName} you wish to {operationName}?");
 
                                 if (number > 0 && number <= searchResults.Result.Count())
                                     result.Result = searchResults.Result.ElementAt(number - 1);
@@ -1415,25 +1415,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         else
                         {
                             idOrName = "";
-                            CLIEngine.ShowWarningMessage($"No {STARManager.STARHolonUIName} Found!");
+                            CLIEngine.ShowWarningMessage($"No {STARNETManager.STARNETHolonUIName} Found!");
                         }
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"An error occured calling STARManager.SearchsAsync. Reason: {searchResults.Message}");
+                        CLIEngine.ShowErrorMessage($"An error occured calling STARNETManager.SearchsAsync. Reason: {searchResults.Message}");
                 }
 
-                if (result.Result != null && result.Result.STARHolonDNA != null)
+                if (result.Result != null && result.Result.STARNETDNA != null)
                 {
                     Show(result.Result);
 
-                    if (result.Result.STARHolonDNA.NumberOfVersions > 1)
+                    if (result.Result.STARNETDNA.NumberOfVersions > 1)
                     {
-                        if ((operationName == "view" && CLIEngine.GetConfirmation($"{result.Result.STARHolonDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
-                            (!CLIEngine.GetConfirmation($"{result.Result.STARHolonDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.STARHolonDNA.Version})?")))
+                        if ((operationName == "view" && CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
+                            (!CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.STARNETDNA.Version})?")))
                         {
                             Console.WriteLine("");
-                            CLIEngine.ShowWorkingMessage("Loading {STARManager.STARHolonUIName} Versions...");
-                            OASISResult<IEnumerable<T1>> versionsResult = STARManager.LoadVersions(result.Result.STARHolonDNA.Id, providerType);
+                            CLIEngine.ShowWorkingMessage("Loading {STARNETManager.STARNETHolonUIName} Versions...");
+                            OASISResult<IEnumerable<T1>> versionsResult = STARNETManager.LoadVersions(result.Result.STARNETDNA.Id, providerType);
                             ListStarHolons(versionsResult);
 
                             if (operationName != "view" && versionsResult != null && versionsResult.Result != null && !versionsResult.IsError && versionsResult.Result.Count() > 0)
@@ -1471,7 +1471,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (result.Result != null && operationName != "view")
                 {
-                    if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this {STARManager.STARHolonUIName}?"))
+                    if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this {STARNETManager.STARNETHolonUIName}?"))
                     {
                         if (operationName == "install")
                         {
@@ -1489,7 +1489,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             }
                             else
                             {
-                                CLIEngine.ShowErrorMessage($"Error occured checking if the {STARManager.STARHolonUIName} is already installed! Reason: Id was not found in the metadata!");
+                                CLIEngine.ShowErrorMessage($"Error occured checking if the {STARNETManager.STARNETHolonUIName} is already installed! Reason: Id was not found in the metadata!");
                                 result.Result = default;
                             }
                         }
@@ -1497,7 +1497,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                     else
                     {
-                        if (CLIEngine.GetConfirmation($"Do you wish to search for another {STARManager.STARHolonUIName}?"))
+                        if (CLIEngine.GetConfirmation($"Do you wish to search for another {STARNETManager.STARNETHolonUIName}?"))
                             result.Result = default;
                         else
                             break;
@@ -1521,28 +1521,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         private async Task<OASISResult<T1>> CheckIfAlreadyInstalledAsync(T1 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<bool> oappInstalledResult = await STARManager.IsInstalledAsync(STAR.BeamedInAvatar.Id, holon.STARHolonDNA.Id, holon.STARHolonDNA.Version, providerType);
+            OASISResult<bool> oappInstalledResult = await STARNETManager.IsInstalledAsync(STAR.BeamedInAvatar.Id, holon.STARNETDNA.Id, holon.STARNETDNA.Version, providerType);
 
             if (oappInstalledResult != null && !oappInstalledResult.IsError)
             {
                 if (oappInstalledResult.Result)
                 {
                     Console.WriteLine("");
-                    CLIEngine.ShowWarningMessage($"You have already installed this version (v{holon.STARHolonDNA.Version}). Please uninstall before attempting to re-install.");
+                    CLIEngine.ShowWarningMessage($"You have already installed this version (v{holon.STARNETDNA.Version}). Please uninstall before attempting to re-install.");
 
-                    if (CLIEngine.GetConfirmation($"Do you wish to uninstall the {STARManager.STARHolonUIName} now? Press 'Y' for Yes or 'N' for No."))
+                    if (CLIEngine.GetConfirmation($"Do you wish to uninstall the {STARNETManager.STARNETHolonUIName} now? Press 'Y' for Yes or 'N' for No."))
                     {
                         Console.WriteLine("");
-                        CLIEngine.ShowWorkingMessage($"Uninstalling {STARManager.STARHolonUIName}...");
-                        OASISResult<T3> uninstallResult = await STARManager.UninstallAsync(STAR.BeamedInAvatar.Id, result.Result.STARHolonDNA.Id, result.Result.STARHolonDNA.Version, providerType);
+                        CLIEngine.ShowWorkingMessage($"Uninstalling {STARNETManager.STARNETHolonUIName}...");
+                        OASISResult<T3> uninstallResult = await STARNETManager.UninstallAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, providerType);
 
                         if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
                         {
-                            CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Successfully Uninstalled.");
+                            CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Uninstalled.");
                             result.MetaData["Reinstall"] = "1";
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"Error occured uninstalling the {STARManager.STARHolonUIName}! Reason: {uninstallResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"Error occured uninstalling the {STARNETManager.STARNETHolonUIName}! Reason: {uninstallResult.Message}");
                     }
                     else
                     {
@@ -1553,7 +1553,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
             }
             else
-                OASISErrorHandling.HandleError(ref result, ($"Error occured checking if the {STARManager.STARHolonUIName} is already installed! Reason: {oappInstalledResult.Message}"));
+                OASISErrorHandling.HandleError(ref result, ($"Error occured checking if the {STARNETManager.STARNETHolonUIName} is already installed! Reason: {oappInstalledResult.Message}"));
 
             return result;
         }
@@ -1561,28 +1561,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         private OASISResult<T1> CheckIfAlreadyInstalled(T1 holon, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<bool> oappInstalledResult = STARManager.IsInstalled(STAR.BeamedInAvatar.Id, holon.STARHolonDNA.Id, holon.STARHolonDNA.Version, providerType);
+            OASISResult<bool> oappInstalledResult = STARNETManager.IsInstalled(STAR.BeamedInAvatar.Id, holon.STARNETDNA.Id, holon.STARNETDNA.Version, providerType);
 
             if (oappInstalledResult != null && !oappInstalledResult.IsError)
             {
                 if (oappInstalledResult.Result)
                 {
                     Console.WriteLine("");
-                    CLIEngine.ShowWarningMessage($"You have already installed this version (v{holon.STARHolonDNA.Version}). Please uninstall before attempting to re-install.");
+                    CLIEngine.ShowWarningMessage($"You have already installed this version (v{holon.STARNETDNA.Version}). Please uninstall before attempting to re-install.");
 
-                    if (CLIEngine.GetConfirmation($"Do you wish to uninstall the {STARManager.STARHolonUIName} now? Press 'Y' for Yes or 'N' for No."))
+                    if (CLIEngine.GetConfirmation($"Do you wish to uninstall the {STARNETManager.STARNETHolonUIName} now? Press 'Y' for Yes or 'N' for No."))
                     {
                         Console.WriteLine("");
-                        CLIEngine.ShowWorkingMessage($"Uninstalling {STARManager.STARHolonUIName}...");
-                        OASISResult<T3> uninstallResult = STARManager.Uninstall(STAR.BeamedInAvatar.Id, result.Result.STARHolonDNA.Id, result.Result.STARHolonDNA.Version, providerType);
+                        CLIEngine.ShowWorkingMessage($"Uninstalling {STARNETManager.STARNETHolonUIName}...");
+                        OASISResult<T3> uninstallResult = STARNETManager.Uninstall(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, providerType);
 
                         if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
                         {
-                            CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Successfully Uninstalled.");
+                            CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Uninstalled.");
                             result.MetaData["Reinstall"] = "1";
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"Error occured uninstalling the {STARManager.STARHolonUIName}! Reason: {uninstallResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"Error occured uninstalling the {STARNETManager.STARNETHolonUIName}! Reason: {uninstallResult.Message}");
                     }
                     else
                     {
@@ -1593,7 +1593,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
             }
             else
-                OASISErrorHandling.HandleError(ref result, ($"Error occured checking if the {STARManager.STARHolonUIName} is already installed! Reason: {oappInstalledResult.Message}"));
+                OASISErrorHandling.HandleError(ref result, ($"Error occured checking if the {STARNETManager.STARNETHolonUIName} is already installed! Reason: {oappInstalledResult.Message}"));
 
             return result;
         }
@@ -1612,7 +1612,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (checkResult != null && checkResult.Result != null && !checkResult.IsError)
                         continueInstall = true;
                     else
-                        CLIEngine.ShowErrorMessage($"Error checking if the {STARManager.STARHolonUIName} is already installed! Reason: {checkResult.MetaData}");
+                        CLIEngine.ShowErrorMessage($"Error checking if the {STARNETManager.STARNETHolonUIName} is already installed! Reason: {checkResult.MetaData}");
                 }
             }
 
@@ -1636,7 +1636,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (checkResult != null && checkResult.Result != null && !checkResult.IsError)
                         continueInstall = true;
                     else
-                        CLIEngine.ShowErrorMessage($"Error checking if the {STARManager.STARHolonUIName} is already installed! Reason: {checkResult.MetaData}");
+                        CLIEngine.ShowErrorMessage($"Error checking if the {STARNETManager.STARNETHolonUIName} is already installed! Reason: {checkResult.MetaData}");
                 }
             }
 
@@ -1653,16 +1653,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             switch (installMode)
             {
                 case InstallMode.DownloadAndInstall:
-                    result = await STARManager.DownloadAndInstallAsync(STAR.BeamedInAvatar.Id, starHolon, installPath, downloadPath, true, false, providerType);
+                    result = await STARNETManager.DownloadAndInstallAsync(STAR.BeamedInAvatar.Id, starHolon, installPath, downloadPath, true, false, providerType);
                     break;
 
                 case InstallMode.DownloadOnly:
                     {
-                        OASISResult<T2> downloadResult = await STARManager.DownloadAsync(STAR.BeamedInAvatar.Id, starHolon, downloadPath, false, providerType);
+                        OASISResult<T2> downloadResult = await STARNETManager.DownloadAsync(STAR.BeamedInAvatar.Id, starHolon, downloadPath, false, providerType);
 
                         if (downloadResult != null && downloadResult.Result != null && !downloadResult.IsError)
                         {
-                            result.Result = new T3() { STARHolonDNA = downloadResult.Result.STARHolonDNA };
+                            result.Result = new T3() { STARNETDNA = downloadResult.Result.STARNETDNA };
                             result.Result.DownloadedOn = downloadResult.Result.DownloadedOn;
                             result.Result.DownloadedBy = downloadResult.Result.DownloadedBy;
                             result.Result.DownloadedByAvatarUsername = downloadResult.Result.DownloadedByAvatarUsername;
@@ -1677,15 +1677,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     break;
 
                 case InstallMode.InstallOnly:
-                    result = await STARManager.InstallAsync(STAR.BeamedInAvatar.Id, fullPathToPublishedFile, installPath, true, null, false, providerType);
+                    result = await STARNETManager.InstallAsync(STAR.BeamedInAvatar.Id, fullPathToPublishedFile, installPath, true, null, false, providerType);
                     break;
 
                 case InstallMode.DownloadAndReInstall:
-                    result = await STARManager.DownloadAndInstallAsync(STAR.BeamedInAvatar.Id, starHolon, installPath, downloadPath, true, true, providerType);
+                    result = await STARNETManager.DownloadAndInstallAsync(STAR.BeamedInAvatar.Id, starHolon, installPath, downloadPath, true, true, providerType);
                     break;
 
                 case InstallMode.ReInstall:
-                    result = await STARManager.InstallAsync(STAR.BeamedInAvatar.Id, fullPathToPublishedFile, installPath, true, null, true, providerType);
+                    result = await STARNETManager.InstallAsync(STAR.BeamedInAvatar.Id, fullPathToPublishedFile, installPath, true, null, true, providerType);
                     break;
             }
 
@@ -1699,16 +1699,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             switch (installMode)
             {
                 case InstallMode.DownloadAndInstall:
-                    result = STARManager.DownloadAndInstall(STAR.BeamedInAvatar.Id, starHolon, installPath, downloadPath, true, false, providerType);
+                    result = STARNETManager.DownloadAndInstall(STAR.BeamedInAvatar.Id, starHolon, installPath, downloadPath, true, false, providerType);
                     break;
 
                 case InstallMode.DownloadOnly:
                     {
-                        OASISResult<T2> downloadResult = STARManager.Download(STAR.BeamedInAvatar.Id, starHolon, downloadPath, false, providerType);
+                        OASISResult<T2> downloadResult = STARNETManager.Download(STAR.BeamedInAvatar.Id, starHolon, downloadPath, false, providerType);
 
                         if (downloadResult != null && downloadResult.Result != null && !downloadResult.IsError)
                         {
-                            result.Result = new T3() { STARHolonDNA = downloadResult.Result.STARHolonDNA };
+                            result.Result = new T3() { STARNETDNA = downloadResult.Result.STARNETDNA };
                             result.Result.DownloadedOn = downloadResult.Result.DownloadedOn;
                             result.Result.DownloadedBy = downloadResult.Result.DownloadedBy;
                             result.Result.DownloadedByAvatarUsername = downloadResult.Result.DownloadedByAvatarUsername;
@@ -1723,15 +1723,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     break;
 
                 case InstallMode.InstallOnly:
-                    result = STARManager.Install(STAR.BeamedInAvatar.Id, fullPathToPublishedFile, installPath, true, null, false, providerType);
+                    result = STARNETManager.Install(STAR.BeamedInAvatar.Id, fullPathToPublishedFile, installPath, true, null, false, providerType);
                     break;
 
                 case InstallMode.DownloadAndReInstall:
-                    result = STARManager.DownloadAndInstall(STAR.BeamedInAvatar.Id, starHolon, installPath, downloadPath, true, true, providerType);
+                    result = STARNETManager.DownloadAndInstall(STAR.BeamedInAvatar.Id, starHolon, installPath, downloadPath, true, true, providerType);
                     break;
 
                 case InstallMode.ReInstall:
-                    result = STARManager.Install(STAR.BeamedInAvatar.Id, fullPathToPublishedFile, installPath, true, null, true, providerType);
+                    result = STARNETManager.Install(STAR.BeamedInAvatar.Id, fullPathToPublishedFile, installPath, true, null, true, providerType);
                     break;
             }
 
@@ -1754,62 +1754,62 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         private T1 ConvertFromT3ToT1(T3 holon)
         {
             T1 newHolon = new T1();
-            newHolon.STARHolonDNA = holon.STARHolonDNA;
+            newHolon.STARNETDNA = holon.STARNETDNA;
             return newHolon;
         }
 
-        private void OnPublishStatusChanged(object sender, STARHolonPublishStatusEventArgs e)
+        private void OnPublishStatusChanged(object sender, STARNETHolonPublishStatusEventArgs e)
         {
             switch (e.Status)
             {
-                case STARHolonPublishStatus.Uploading:
+                case STARNETHolonPublishStatus.Uploading:
                     CLIEngine.ShowMessage("Uploading...");
                     Console.WriteLine("");
                     break;
 
-                case STARHolonPublishStatus.Published:
-                    CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Published Successfully");
+                case STARNETHolonPublishStatus.Published:
+                    CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Published Successfully");
                     break;
 
-                case STARHolonPublishStatus.Error:
+                case STARNETHolonPublishStatus.Error:
                     CLIEngine.ShowErrorMessage(e.ErrorMessage);
                     break;
 
                 default:
-                    CLIEngine.ShowWorkingMessage($"{Enum.GetName(typeof(STARHolonPublishStatus), e.Status)}...");
+                    CLIEngine.ShowWorkingMessage($"{Enum.GetName(typeof(STARNETHolonPublishStatus), e.Status)}...");
                     break;
             }
         }
 
-        private void OnUploadStatusChanged(object sender, STARHolonUploadProgressEventArgs e)
+        private void OnUploadStatusChanged(object sender, STARNETHolonUploadProgressEventArgs e)
         {
             CLIEngine.ShowProgressBar((double)e.Progress / (double)100);
         }
 
-        private void OnInstallStatusChanged(object sender, STARHolonInstallStatusEventArgs e)
+        private void OnInstallStatusChanged(object sender, STARNETHolonInstallStatusEventArgs e)
         {
             switch (e.Status)
             {
-                case STARHolonInstallStatus.Downloading:
+                case STARNETHolonInstallStatus.Downloading:
                     CLIEngine.ShowMessage("Downloading...");
                     Console.WriteLine("");
                     break;
 
-                case STARHolonInstallStatus.Installed:
-                    CLIEngine.ShowSuccessMessage($"{STARManager.STARHolonUIName} Installed Successfully");
+                case STARNETHolonInstallStatus.Installed:
+                    CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Installed Successfully");
                     break;
 
-                case STARHolonInstallStatus.Error:
+                case STARNETHolonInstallStatus.Error:
                     CLIEngine.ShowErrorMessage(e.ErrorMessage);
                     break;
 
                 default:
-                    CLIEngine.ShowWorkingMessage($"{Enum.GetName(typeof(STARHolonInstallStatus), e.Status)}...");
+                    CLIEngine.ShowWorkingMessage($"{Enum.GetName(typeof(STARNETHolonInstallStatus), e.Status)}...");
                     break;
             }
         }
 
-        private void OnDownloadStatusChanged(object sender, STARHolonDownloadProgressEventArgs e)
+        private void OnDownloadStatusChanged(object sender, STARNETHolonDownloadProgressEventArgs e)
         {
             CLIEngine.ShowProgressBar((double)e.Progress / (double)100);
         }

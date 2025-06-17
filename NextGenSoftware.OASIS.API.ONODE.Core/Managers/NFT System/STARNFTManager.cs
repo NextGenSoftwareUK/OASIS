@@ -8,10 +8,11 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class STARNFTManager : STARNETManagerBase<STARNFT, DownloadedNFT, InstalledNFT>
+    public class STARNFTManager : STARNETManagerBase<STARNFT, DownloadedNFT, InstalledNFT>, ISTARNFTManager
     {
         public STARNFTManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,
@@ -44,8 +45,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         { }
 
         public async Task<OASISResult<ISTARNFT>> CreateNFTAsync(
-            Guid avatarId, 
-            string name, 
+            Guid avatarId,
+            string name,
             string description,
             string fullPathToNFTSource,
             NFTType nftType,
