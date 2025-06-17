@@ -23,12 +23,10 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
-    //public abstract class STARManagerBase<T1, T2, T3> : PublishManagerBase, ISTARManagerBase<T1, T2, T3> 
-    public abstract class STARNETManagerBase<T1, T2, T3> : COSMICManagerBase, ISTARNETManagerBase<T1, T2, T3>
+    public abstract class STARNETManagerBase<T1, T2, T3> : COSMICManagerBase, ISTARNETManagerBase<T1, T2, T3> 
         where T1 : ISTARNETHolon, new()
         where T2 : IDownloadedSTARNETHolon, new()
         where T3 : IInstalledSTARNETHolon, new()
@@ -38,10 +36,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
         public STARNETManagerBase(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA) { }
         public STARNETManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA) { }
-        public STARNETManagerBase(Guid avatarId, OASISDNA OASISDNA = null, Type STARNETHolonSubType = null, HolonType STARNETHolonType = HolonType.STARNETHolon, HolonType STARInstalledHolonType = HolonType.InstalledSTARNETHolon, string STARNETHolonUIName = "OAPP System Holon", string STARNETHolonIdName = "STARNETHolonId", string STARNETHolonNameName = "STARNETHolonName", string STARNETHolonTypeName = "STARNETHolonType", string STARNETHolonFileExtention = "oappsystemholon", string STARNETHolonGoogleBucket = "oasis_oappsystemholons", string STARNETDNAFileName = "STARNETDNA.json", string STARNETDNAJSONName = "STARNETDNAJSON") : base(avatarId, OASISDNA)
+        public STARNETManagerBase(Guid avatarId, OASISDNA OASISDNA = null, Type STARNETHolonSubType = null, HolonType STARNETHolonType = HolonType.STARNETHolon, HolonType STARNETHolonInstalledHolonType = HolonType.InstalledSTARNETHolon, string STARNETHolonUIName = "OAPP System Holon", string STARNETHolonIdName = "STARNETHolonId", string STARNETHolonNameName = "STARNETHolonName", string STARNETHolonTypeName = "STARNETHolonType", string STARNETHolonFileExtention = "oappsystemholon", string STARNETHolonGoogleBucket = "oasis_oappsystemholons", string STARNETDNAFileName = "STARNETDNA.json", string STARNETDNAJSONName = "STARNETDNAJSON") : base(avatarId, OASISDNA)
         {
             this.STARNETHolonType = STARNETHolonType;
-            this.STARNETInstalledHolonType = STARInstalledHolonType;
+            this.STARNETHolonInstalledHolonType = STARNETHolonInstalledHolonType;
             this.STARNETHolonUIName = STARNETHolonUIName;
             this.STARNETHolonIdName = STARNETHolonIdName;
             this.STARNETHolonNameName = STARNETHolonNameName;
@@ -53,10 +51,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             this.STARNETHolonSubType = STARNETHolonSubType;
         }
 
-        public STARNETManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null, Type STARNETHolonSubType = null, HolonType STARNETHolonType = HolonType.STARNETHolon, HolonType STARInstalledHolonType = HolonType.InstalledSTARNETHolon, string STARNETHolonUIName = "OAPP System Holon", string STARNETHolonIdName = "STARNETHolonId", string STARNETHolonNameName = "STARNETHolonName", string STARNETHolonTypeName = "STARNETHolonType", string STARNETHolonFileExtention = "oappsystemholon", string STARNETHolonGoogleBucket = "oasis_oappsystemholons", string STARNETDNAFileName = "STARNETDNA.json", string STARNETDNAJSONName = "STARNETDNAJSON") : base(OASISStorageProvider, avatarId, OASISDNA)
+        public STARNETManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null, Type STARNETHolonSubType = null, HolonType STARNETHolonType = HolonType.STARNETHolon, HolonType STARNETHolonInstalledHolonType = HolonType.InstalledSTARNETHolon, string STARNETHolonUIName = "OAPP System Holon", string STARNETHolonIdName = "STARNETHolonId", string STARNETHolonNameName = "STARNETHolonName", string STARNETHolonTypeName = "STARNETHolonType", string STARNETHolonFileExtention = "oappsystemholon", string STARNETHolonGoogleBucket = "oasis_oappsystemholons", string STARNETDNAFileName = "STARNETDNA.json", string STARNETDNAJSONName = "STARNETDNAJSON") : base(OASISStorageProvider, avatarId, OASISDNA)
         {
             this.STARNETHolonType = STARNETHolonType;
-            this.STARNETInstalledHolonType = STARInstalledHolonType;
+            this.STARNETHolonInstalledHolonType = STARNETHolonInstalledHolonType;
             this.STARNETHolonUIName = STARNETHolonUIName;
             this.STARNETHolonIdName = STARNETHolonIdName;
             this.STARNETHolonNameName = STARNETHolonNameName;
@@ -95,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
         //public bool IsInstallable { get; set; } = true; //TODO: Make this configurable in the DNA?
         public HolonType STARNETHolonType { get; set; } = HolonType.STARNETHolon;
-        public HolonType STARNETInstalledHolonType { get; set; } = HolonType.InstalledSTARNETHolon;
+        public HolonType STARNETHolonInstalledHolonType { get; set; } = HolonType.InstalledSTARNETHolon;
         public string STARNETHolonUIName { get; set; } = "OAPP System Holon";
         public string STARNETHolonIdName { get; set; } = "STARNETHolonId";
         public string STARNETHolonNameName { get; set; } = "STARNETHolonName";
@@ -295,7 +293,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                 if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
                 {
-                    STARNETDNA STARNETDNA = new STARNETDNA()
+                    ISTARNETDNA STARNETDNA = new STARNETDNA()
                     {
                         Id = holon.Id,
                         Name = name,
@@ -3119,7 +3117,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
                 { "VersionSequene", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await UninstallAsync(avatarId, loadResult.Result, errorMessage, providerType);
@@ -3139,7 +3137,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
                 { "VersionSequene", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, false, HolonType.All);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, false, HolonType.All);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = Uninstall(avatarId, loadResult.Result, errorMessage, providerType);
@@ -3159,7 +3157,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await UninstallAsync(avatarId, loadResult.Result, errorMessage, providerType);
@@ -3179,7 +3177,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, false, HolonType.All);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, false, HolonType.All);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = Uninstall(avatarId, loadResult.Result, errorMessage, providerType);
@@ -3199,7 +3197,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonNameName, STARNETHolonName },
                 { "VersionSequene", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await UninstallAsync(avatarId, loadResult.Result, errorMessage, providerType);
@@ -3219,7 +3217,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonNameName, STARNETHolonName},
                 { "VersionSequene", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, false, HolonType.All);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, false, HolonType.All);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = Uninstall(avatarId, loadResult.Result, errorMessage, providerType);
@@ -3239,7 +3237,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonNameName, STARNETHolonName },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await UninstallAsync(avatarId, loadResult.Result, errorMessage, providerType);
@@ -3259,7 +3257,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonNameName, STARNETHolonName},
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, false, HolonType.All);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, false, HolonType.All);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = Uninstall(avatarId, loadResult.Result, errorMessage, providerType);
@@ -3271,7 +3269,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
         public virtual async Task<OASISResult<IEnumerable<T3>>> ListInstalledAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<T3>> result = await Data.LoadHolonsForParentAsync<T3>(avatarId, STARInstalledHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+            OASISResult<IEnumerable<T3>> result = await Data.LoadHolonsForParentAsync<T3>(avatarId, STARNETHolonInstalledHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
                 result.Result = result.Result.Where(x => x.UninstalledOn == DateTime.MinValue);
@@ -3283,7 +3281,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
         public OASISResult<IEnumerable<T3>> ListInstalled(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<T3>> result = Data.LoadHolonsForParent<T3>(avatarId, STARInstalledHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+            OASISResult<IEnumerable<T3>> result = Data.LoadHolonsForParent<T3>(avatarId, STARNETHolonInstalledHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
                 result.Result = result.Result.Where(x => x.UninstalledOn == DateTime.MinValue);
@@ -3295,7 +3293,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
         public virtual async Task<OASISResult<IEnumerable<T3>>> ListUninstalledAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<T3>> result = await Data.LoadHolonsForParentAsync<T3>(avatarId, STARInstalledHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+            OASISResult<IEnumerable<T3>> result = await Data.LoadHolonsForParentAsync<T3>(avatarId, STARNETHolonInstalledHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
                 result.Result = result.Result.Where(x => x.UninstalledOn != DateTime.MinValue);
@@ -3307,7 +3305,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
         public OASISResult<IEnumerable<T3>> ListUninstalled(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<T3>> result = Data.LoadHolonsForParent<T3>(avatarId, STARInstalledHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
+            OASISResult<IEnumerable<T3>> result = Data.LoadHolonsForParent<T3>(avatarId, STARNETHolonInstalledHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
                 result.Result = result.Result.Where(x => x.UninstalledOn != DateTime.MinValue);
@@ -3372,7 +3370,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError)
             {
@@ -3396,7 +3394,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = true;
@@ -3417,7 +3415,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "Version", version },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError)
             {
@@ -3441,7 +3439,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "Version", version },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError)
             {
@@ -3465,7 +3463,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError)
             {
@@ -3489,7 +3487,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError)
             {
@@ -3513,7 +3511,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "Version", version.ToString() },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError)
             {
@@ -3537,7 +3535,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "Version", version },
                 { "Active", "1" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError)
             {
@@ -3559,7 +3557,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
                 { "VersionSequence", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3578,7 +3576,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
                 { "VersionSequence", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, version: versionSequence, providerType: providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, version: versionSequence, providerType: providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3597,7 +3595,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonNameName, name },
                 { "VersionSequence", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3616,7 +3614,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonNameName, name },
                 { "VersionSequence", versionSequence.ToString() }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, version: versionSequence, providerType: providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, version: versionSequence, providerType: providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3635,7 +3633,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3654,7 +3652,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, providerType: providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, providerType: providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3673,7 +3671,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonNameName, name },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3692,7 +3690,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { STARNETHolonNameName, name },
                 { "Version", version }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, providerType: providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, providerType: providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3712,7 +3710,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3732,7 +3730,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3752,7 +3750,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
             else
@@ -3771,7 +3769,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "VersionSequence", versionSequence.ToString() },
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3791,7 +3789,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "Version", version},
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3811,7 +3809,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "Version", version },
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3831,7 +3829,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "Version", version },
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;
@@ -3851,7 +3849,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 { "Version", version },
                 { "Active", active == true ? "1" : "0" }
 
-            }, MetaKeyValuePairMatchMode.All, STARInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
+            }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, false, HolonType.All, 0, providerType);
 
             if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
                 result.Result = installedSTARNETHolonsResult.Result;

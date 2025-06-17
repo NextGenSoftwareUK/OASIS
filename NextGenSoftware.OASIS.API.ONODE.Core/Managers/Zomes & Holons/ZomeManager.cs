@@ -6,14 +6,14 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class ZomeManager : STARNETManagerBase<STARZome, DownloadedZome, InstalledZome>
+    public class ZomeManager : STARNETManagerBase<STARZome, DownloadedZome, InstalledZome>, IZomeManager
     {
-        public ZomeManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, 
+        public ZomeManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,
             typeof(ZomeType),
             HolonType.STARZome,

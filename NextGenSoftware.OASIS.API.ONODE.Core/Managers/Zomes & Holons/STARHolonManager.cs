@@ -10,9 +10,9 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class HolonManager : STARNETManagerBase<STARHolon, DownloadedHolon, InstalledHolon>
+    public class STARHolonManager : STARNETManagerBase<STARHolon, DownloadedHolon, InstalledHolon>, ISTARHolonManager
     {
-        public HolonManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, 
+        public STARHolonManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,
             typeof(HolonType),
             HolonType.STARHolon,
@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "HolonDNAJSON")
         { }
 
-        public HolonManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+        public STARHolonManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
             OASISDNA,
             typeof(HolonType),
             HolonType.STARHolon,

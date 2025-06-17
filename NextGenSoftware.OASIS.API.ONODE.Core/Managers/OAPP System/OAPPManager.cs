@@ -1,25 +1,23 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using NextGenSoftware.Utilities;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using System.Diagnostics;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class OAPPManager : STARNETManagerBase<OAPP, DownloadedOAPP, InstalledChapter>
+    public class OAPPManager : STARNETManagerBase<OAPP, DownloadedOAPP, InstalledOAPP>, IOAPPManager
     {
         public OAPPManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
              OASISDNA,
@@ -79,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<IOAPP>> CreateOAPPAsync(Guid avatarId, string name, string description, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPId, GenesisType genesisType, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, OAPPType, fullPathToOAPP, new Dictionary<string, object>()
-            { 
+            {
                 { "OAPPTemplateType", OAPPTemplateType },
                 { "OAPPId", OAPPId.ToString() },
                 { "GenesisType", genesisType.ToString() },
@@ -223,10 +221,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             if (validateResult != null && validateResult.Result != null && !validateResult.IsError)
             {
-                OAPPDNA = (IOAPPDNA)validateResult.Result.STARHolonDNA;
-                string publishedFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".", STARHolonFileExtention);
-                string publishedSelfContainedFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARHolonFileExtention);
-                string publishedSelfContainedFullFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARHolonFileExtention);
+                OAPPDNA = (IOAPPDNA)validateResult.Result.STARNETDNA;
+                string publishedFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".", STARNETHolonFileExtention);
+                string publishedSelfContainedFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARNETHolonFileExtention);
+                string publishedSelfContainedFullFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARNETHolonFileExtention);
                 string publishedSourceFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".oappsource");
 
                 OAPPDNA.PublishedOnSTARNET = registerOnSTARNET && (binaryProviderType != ProviderType.None || uploadToCloud || selfContainedBinaryProviderType != ProviderType.None || uploadSelfContainedToCloud || selfContainedFullBinaryProviderType != ProviderType.None || uploadSelfContainedFullToCloud);
@@ -323,7 +321,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     OAPPDNA.FileSize = new FileInfo(OAPPDNA.PublishedPath).Length;
 
                 WriteDNA(OAPPDNA, fullPathToSource);
-                validateResult.Result.STARHolonDNA = OAPPDNA;
+                validateResult.Result.STARNETDNA = OAPPDNA;
 
                 if (registerOnSTARNET)
                 {
@@ -367,7 +365,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         OAPPDNA.SelfContainedFullPublishedProviderType = ProviderType.None;
                 }
 
-                OASISResult<OAPP> finalResult = await FininalizePublishAsync(avatarId, validateResult.Result, edit, providerType);                
+                OASISResult<OAPP> finalResult = await FininalizePublishAsync(avatarId, validateResult.Result, edit, providerType);
                 OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(finalResult, result);
                 result.Result = finalResult.Result;
             }
@@ -384,10 +382,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             if (validateResult != null && validateResult.Result != null && !validateResult.IsError)
             {
-                OAPPDNA = (IOAPPDNA)validateResult.Result.STARHolonDNA;
-                string publishedFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".", STARHolonFileExtention);
-                string publishedSelfContainedFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARHolonFileExtention);
-                string publishedSelfContainedFullFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARHolonFileExtention);
+                OAPPDNA = (IOAPPDNA)validateResult.Result.STARNETDNA;
+                string publishedFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".", STARNETHolonFileExtention);
+                string publishedSelfContainedFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARNETHolonFileExtention);
+                string publishedSelfContainedFullFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARNETHolonFileExtention);
                 string publishedSourceFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".oappsource");
 
                 OAPPDNA.PublishedOnSTARNET = registerOnSTARNET && (binaryProviderType != ProviderType.None || uploadToCloud || selfContainedBinaryProviderType != ProviderType.None || uploadSelfContainedToCloud || selfContainedFullBinaryProviderType != ProviderType.None || uploadSelfContainedFullToCloud);
@@ -484,7 +482,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     OAPPDNA.FileSize = new FileInfo(OAPPDNA.PublishedPath).Length;
 
                 WriteDNA(OAPPDNA, fullPathToSource);
-                validateResult.Result.STARHolonDNA = OAPPDNA;
+                validateResult.Result.STARNETDNA = OAPPDNA;
 
                 if (registerOnSTARNET)
                 {
@@ -993,7 +991,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private OASISResult<bool> GenerateSource(IOAPPDNA OAPPDNA, string fullPathToSource)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string tempPath = string.Empty; 
+            string tempPath = string.Empty;
 
             try
             {
@@ -1021,41 +1019,41 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private OASISResult<IEnumerable<IOAPP>> ProcessResults(OASISResult<IEnumerable<OAPP>> operationResult)
-        {
-            OASISResult<IEnumerable<IOAPP>> result = new OASISResult<IEnumerable<IOAPP>>();
+        //private OASISResult<IEnumerable<IOAPP>> ProcessResults(OASISResult<IEnumerable<OAPP>> operationResult)
+        //{
+        //    OASISResult<IEnumerable<IOAPP>> result = new OASISResult<IEnumerable<IOAPP>>();
 
-            if (operationResult != null && operationResult.Result != null && !operationResult.IsError && operationResult.Result.Count() > 0)
-            {
-                List<IOAPP> oappTemplates = new List<IOAPP>();
+        //    if (operationResult != null && operationResult.Result != null && !operationResult.IsError && operationResult.Result.Count() > 0)
+        //    {
+        //        List<IOAPP> oappTemplates = new List<IOAPP>();
 
-                foreach (IOAPP template in operationResult.Result)
-                    oappTemplates.Add(template);
+        //        foreach (IOAPP template in operationResult.Result)
+        //            oappTemplates.Add(template);
 
-                result.Result = oappTemplates;
-            }
+        //        result.Result = oappTemplates;
+        //    }
 
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
-            return result;
-        }
+        //    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+        //    return result;
+        //}
 
-        private OASISResult<IEnumerable<IInstalledOAPP>> ProcessResults(OASISResult<IEnumerable<InstalledChapter>> operationResult)
-        {
-            OASISResult<IEnumerable<IInstalledOAPP>> result = new OASISResult<IEnumerable<IInstalledOAPP>>();
+        //private OASISResult<IEnumerable<IInstalledOAPP>> ProcessResults(OASISResult<IEnumerable<InstalledChapter>> operationResult)
+        //{
+        //    OASISResult<IEnumerable<IInstalledOAPP>> result = new OASISResult<IEnumerable<IInstalledOAPP>>();
 
-            if (operationResult != null && operationResult.Result != null && !operationResult.IsError && operationResult.Result.Count() > 0)
-            {
-                List<IInstalledOAPP> oappTemplates = new List<IInstalledOAPP>();
+        //    if (operationResult != null && operationResult.Result != null && !operationResult.IsError && operationResult.Result.Count() > 0)
+        //    {
+        //        List<IInstalledOAPP> oappTemplates = new List<IInstalledOAPP>();
 
-                foreach (IInstalledOAPP template in operationResult.Result)
-                    oappTemplates.Add(template);
+        //        foreach (IInstalledOAPP template in operationResult.Result)
+        //            oappTemplates.Add(template);
 
-                result.Result = oappTemplates;
-            }
+        //        result.Result = oappTemplates;
+        //    }
 
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
-            return result;
-        }
+        //    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+        //    return result;
+        //}
 
         private OASISResult<IOAPP> ProcessResult(OASISResult<OAPP> operationResult)
         {
@@ -1065,20 +1063,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private OASISResult<IDownloadedOAPP> ProcessResult(OASISResult<DownloadedOAPP> operationResult)
-        {
-            OASISResult<IDownloadedOAPP> result = new OASISResult<IDownloadedOAPP>();
-            result.Result = operationResult.Result;
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
-            return result;
-        }
+        //private OASISResult<IDownloadedOAPP> ProcessResult(OASISResult<DownloadedOAPP> operationResult)
+        //{
+        //    OASISResult<IDownloadedOAPP> result = new OASISResult<IDownloadedOAPP>();
+        //    result.Result = operationResult.Result;
+        //    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+        //    return result;
+        //}
 
-        private OASISResult<IInstalledOAPP> ProcessResult(OASISResult<InstalledChapter> operationResult)
-        {
-            OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
-            result.Result = operationResult.Result;
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
-            return result;
-        }
+        //private OASISResult<IInstalledOAPP> ProcessResult(OASISResult<InstalledChapter> operationResult)
+        //{
+        //    OASISResult<IInstalledOAPP> result = new OASISResult<IInstalledOAPP>();
+        //    result.Result = operationResult.Result;
+        //    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+        //    return result;
+        //}
     }
 }

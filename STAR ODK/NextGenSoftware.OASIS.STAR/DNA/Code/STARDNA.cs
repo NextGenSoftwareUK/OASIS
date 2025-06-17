@@ -70,20 +70,79 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultSuperStarId { get; set; }
         public string DefaultStarId { get; set; }
         public string DefaultPlanetId { get; set; }
+
         public string DefaultOAPPsSourcePath { get; set; } = "OAPPs\\Source"; //Use to be the Genesis folder above. Not sure what sounds better? Source or Genesis?
         public string DefaultOAPPsPublishedPath { get; set; } = "OAPPs\\Published";
         public string DefaultOAPPsDownloadedPath { get; set; } = "OAPPs\\Downloaded";
         public string DefaultOAPPsInstalledPath { get; set; } = "OAPPs\\Installed";
+
         public string DefaultOAPPTemplatesSourcePath { get; set; } = "OAPPTemplates\\Source";
         public string DefaultOAPPTemplatesPublishedPath { get; set; } = "OAPPTemplates\\Published";
         public string DefaultOAPPTemplatesDownloadedPath { get; set; } = "OAPPTemplates\\Downloaded";
         public string DefaultOAPPTemplatesInstalledPath { get; set; } = "OAPPTemplates\\Installed";
+
         public string DefaultRuntimesSourcePath { get; set; } = "Runtimes\\Source";
         public string DefaultRuntimesPublishedPath { get; set; } = "Runtimes\\Published";
         public string DefaultRuntimesDownloadedPath { get; set; } = "Runtimes\\Downloaded";
         public string DefaultRuntimesInstalledPath { get; set; } = "Runtimes\\Installed\\Other";
-        public string DefaultRuntimesInstalledOASISPath { get; set; } = "Runtimes\\OASIS";
-        public string DefaultRuntimesInstalledSTARPath { get; set; } = "Runtimes\\STAR";
+        public string DefaultRuntimesInstalledOASISPath { get; set; } = "Runtimes\\Installed\\OASIS";
+        public string DefaultRuntimesInstalledSTARPath { get; set; } = "Runtimes\\Installed\\STAR";
+
+        public string DefaultChaptersSourcePath { get; set; } = "Chapters\\Source";
+        public string DefaultChaptersPublishedPath { get; set; } = "Chapters\\Published";
+        public string DefaultChaptersDownloadedPath { get; set; } = "Chapters\\Downloaded";
+        public string DefaultChaptersInstalledPath { get; set; } = "Chapters\\Installed";
+
+        public string DefaultMissionsSourcePath { get; set; } = "Missions\\Source";
+        public string DefaultMissionsPublishedPath { get; set; } = "Missions\\Published";
+        public string DefaultMissionsDownloadedPath { get; set; } = "Missions\\Downloaded";
+        public string DefaultMissionsInstalledPath { get; set; } = "Missions\\Installed";
+
+        public string DefaultQuestsSourcePath { get; set; } = "Quests\\Source";
+        public string DefaultQuestsPublishedPath { get; set; } = "Quests\\Published";
+        public string DefaultQuestsDownloadedPath { get; set; } = "Quests\\Downloaded";
+        public string DefaultQuestsInstalledPath { get; set; } = "Quests\\Installed";
+
+        public string DefaultNFTsSourcePath { get; set; } = "NFTs\\Source";
+        public string DefaultNFTsPublishedPath { get; set; } = "NFTs\\Published";
+        public string DefaultNFTsDownloadedPath { get; set; } = "NFTs\\Downloaded";
+        public string DefaultNFTsInstalledPath { get; set; } = "NFTs\\Installed";
+
+        public string DefaultGeoNFTsSourcePath { get; set; } = "GeoNFTs\\Source";
+        public string DefaultGeoNFTsPublishedPath { get; set; } = "GeoNFTs\\Published";
+        public string DefaultGeoNFTsDownloadedPath { get; set; } = "GeoNFTs\\Downloaded";
+        public string DefaultGeoNFTsInstalledPath { get; set; } = "GeoNFTs\\Installed";
+
+        public string DefaultGeoHotSpotsSourcePath { get; set; } = "GeoHotSpots\\Source";
+        public string DefaultGeoHotSpotsPublishedPath { get; set; } = "GeoHotSpots\\Published";
+        public string DefaultGeoHotSpotsDownloadedPath { get; set; } = "GeoHotSpots\\Downloaded";
+        public string DefaultGeoHotSpotsInstalledPath { get; set; } = "GeoHotSpots\\Installed";
+
+        public string DefaultInventoryItemsSourcePath { get; set; } = "InventoryItems\\Source";
+        public string DefaultInventoryItemsPublishedPath { get; set; } = "InventoryItems\\Published";
+        public string DefaultInventoryItemsDownloadedPath { get; set; } = "InventoryItems\\Downloaded";
+        public string DefaultInventoryItemsInstalledPath { get; set; } = "InventoryItems\\Installed";
+
+        public string DefaultCelestialSpacesSourcePath { get; set; } = "CelestialSpaces\\Source";
+        public string DefaultCelestialSpacesPublishedPath { get; set; } = "CelestialSpaces\\Published";
+        public string DefaultCelestialSpacesDownloadedPath { get; set; } = "CelestialSpaces\\Downloaded";
+        public string DefaultCelestialSpacesInstalledPath { get; set; } = "CelestialSpaces\\Installed";
+
+        public string DefaultCelestialBodiesSourcePath { get; set; } = "CelestialBodies\\Source";
+        public string DefaultCelestialBodiesPublishedPath { get; set; } = "CelestialBodies\\Published";
+        public string DefaultCelestialBodiesDownloadedPath { get; set; } = "CelestialBodies\\Downloaded";
+        public string DefaultCelestialBodiesInstalledPath { get; set; } = "CelestialBodies\\Installed";
+
+        public string DefaultZomesSourcePath { get; set; } = "Zomes\\Source";
+        public string DefaultZomesPublishedPath { get; set; } = "Zomes\\Published";
+        public string DefaultZomesDownloadedPath { get; set; } = "Zomes\\Downloaded";
+        public string DefaultZomesInstalledPath { get; set; } = "Zomes\\Installed";
+
+        public string DefaultHolonsSourcePath { get; set; } = "Holons\\Source";
+        public string DefaultHolonsPublishedPath { get; set; } = "Holons\\Published";
+        public string DefaultHolonsDownloadedPath { get; set; } = "Holons\\Downloaded";
+        public string DefaultHolonsInstalledPath { get; set; } = "Holons\\Installed";
+
         public bool DetailedCOSMICOutputEnabled { get; set; } = false;
         public bool DetailedSTARStatusOutputEnabled { get; set; } = false;
         public bool DetailedLoggingEnabled { get; set; } = false;

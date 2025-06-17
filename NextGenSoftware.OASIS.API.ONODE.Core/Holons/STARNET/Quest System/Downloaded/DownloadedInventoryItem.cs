@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class DownloadedInventoryItem : DownloadedSTARHolon, IDownloadedInventoryItem
+    public class DownloadedInventoryItem : DownloadedSTARNETHolon, IDownloadedInventoryItem
     {
         public DownloadedInventoryItem() : base("InventoryItemDNAJSON")
         {

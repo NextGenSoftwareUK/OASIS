@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class DownloadedNFT : DownloadedSTARHolon, IDownloadedNFT
+    public class DownloadedNFT : DownloadedSTARNETHolon, IDownloadedNFT
     {
         public DownloadedNFT() : base("NFTDNAJSON")
         {

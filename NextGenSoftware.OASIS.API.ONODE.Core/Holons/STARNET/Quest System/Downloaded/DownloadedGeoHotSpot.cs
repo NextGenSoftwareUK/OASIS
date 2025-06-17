@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class DownloadedGeoHotSpot : DownloadedSTARHolon
+    public class DownloadedGeoHotSpot : DownloadedSTARNETHolon
     {
         public DownloadedGeoHotSpot() : base("GeoHotSpotDNAJSON")
         {

@@ -13,7 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class QuestManager : QuestManagerBase<Quest, DownloadedQuest, InstalledQuest>
+    public class QuestManager : QuestManagerBase<Quest, DownloadedQuest, InstalledQuest>, IQuestManager
     {
         NFTManager _nftManager = null;
 
@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "QuestDNAJSON")
         { }
 
-        public async Task<OASISResult<IQuest>> CreateQuestForMissionAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId,  ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IQuest>> CreateQuestForMissionAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId, ProviderType providerType = ProviderType.Default)
         {
             return await CreateQuestInternalAsync(avatarId, name, description, questType, fullPathToQuest, parentMissionId, default, providerType);
         }
@@ -234,7 +234,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                OASISResult<Quest> parentQuestResult = Load(avatarId, parentQuestId, providerType : providerType);
+                OASISResult<Quest> parentQuestResult = Load(avatarId, parentQuestId, providerType: providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {
@@ -267,7 +267,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                OASISResult<Quest> parentQuestResult = await LoadAsync(avatarId, parentQuestId, providerType : providerType);
+                OASISResult<Quest> parentQuestResult = await LoadAsync(avatarId, parentQuestId, providerType: providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {

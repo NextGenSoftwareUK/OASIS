@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public abstract class QuestManagerBase<T1, T2, T3> : TaskManagerBase<T1, T2, T3>
+    public abstract class QuestManagerBase<T1, T2, T3> : TaskManagerBase<T1, T2, T3>, IQuestManagerBase<T1> 
         where T1 : IQuestBase, new()
         where T2 : IDownloadedSTARNETHolon, new()
         where T3 : IInstalledSTARNETHolon, new()

@@ -56,22 +56,79 @@
     "DefaultSuperStarId": "",
     "DefaultStarId": "",
     "DefaultPlanetId": "",
+
     "DefaultOAPPsSourcePath": "OAPPs\\Source", //Can be releative to BasePath above or absolute.
     "DefaultOAPPsPublishedPath": "OAPPs\\Published", //Can be releative to BasePath above or absolute.
     "DefaultOAPPsDownloadedPath": "OAPPs\\Downloaded", //Can be releative to BasePath above or absolute.
     "DefaultOAPPsInstalledPath": "OAPPs\\Installed", //Can be releative to BasePath above or absolute.
+
     "DefaultOAPPTemplatesSourcePath": "OAPPTemplates\\Source", //Can be releative to BasePath above or absolute.
     "DefaultOAPPTemplatesPublishedPath": "OAPPTemplates\\Published", //Can be releative to BasePath above or absolute.
     "DefaultOAPPTemplatesDownloadedPath": "OAPPTemplates\\Downloaded", //Can be releative to BasePath above or absolute.
     "DefaultOAPPTemplatesInstalledPath": "OAPPTemplates\\Installed", //Can be releative to BasePath above or absolute.
-    "DefaultRuntimesSourcePath": "Runtimes\\Source", //Can be releative to BasePath above or absolute.": null,
-    "DefaultRuntimePublishedPath": "Runtimes\\Published", //Can be releative to BasePath above or absolute.": null,
-    "DefaultRuntimeDownloadedPath": "Runtimes\\Downloaded", //Can be releative to BasePath above or absolute.": null,
+
+    "DefaultRuntimesSourcePath": "Runtimes\\Source", //Can be releative to BasePath above or absolute.
+    "DefaultRuntimePublishedPath": "Runtimes\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultRuntimeDownloadedPath": "Runtimes\\Downloaded", //Can be releative to BasePath above or absolute.
     "DefaultRuntimeInstalledPath": "Runtimes\\Installed\\Other", //Can be releative to BasePath above or absolute.
-    //"DefaultInstalledOASISRuntimePath": "Runtimes\\Installed\\OASIS Runtimes", //Can be releative to BasePath above or absolute.
-    //"DefaultInstalledSTARRuntimePath": "Runtimes\\Installed\\STAR Runtimes" //Can be releative to BasePath above or absolute.
-    "DefaultRuntimeInstalledOASISPath": "Runtimes\\Installed\\OASIS", //TEMP TILL I CAN CHANGE THE FOLDER STRUCTURE TO ABOVE...
-    "DefaultRuntimeInstalledSTARPath": "Runtimes\\Installed\\STAR", //TEMP TILL I CAN CHANGE THE FOLDER STRUCTURE TO ABOVE...
+    "DefaultRuntimeInstalledOASISPath": "Runtimes\\Installed\\OASIS", //Can be releative to BasePath above or absolute.
+    "DefaultRuntimeInstalledSTARPath": "Runtimes\\Installed\\STAR", //Can be releative to BasePath above or absolute.
+
+    "DefaultChaptersSourcePath": "Chapters\\Source", //Can be releative to BasePath above or absolute.
+    "DefaultChaptersPublishedPath": "Chapters\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultChaptersDownloadedPath": "Chapters\\Downloaded", //Can be releative to BasePath above or absolute.
+    "DefaultChaptersInstalledPath": "Chapters\\Installed", //Can be releative to BasePath above or absolute.
+
+    "DefaultMissionsSourcePath": "Missions\\Source", //Can be releative to BasePath above or absolute.
+    "DefaultMissionsPublishedPath": "Missions\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultMissionsDownloadedPath": "Missions\\Downloaded", //Can be releative to BasePath above or absolute.
+    "DefaultMissionsInstalledPath": "Missions\\Installed", //Can be releative to BasePath above or absolute.
+
+    "DefaultQuestsSourcePath": "Quests\\Source", //Can be releative to BasePath above or absolute.
+    "DefaultQuestsPublishedPath": "Quests\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultQuestsDownloadedPath": "Quests\\Downloaded", //Can be releative to BasePath above or absolute.
+    "DefaultQuestsInstalledPath": "Quests\\Installed", //Can be releative to BasePath above or absolute.
+
+    "DefaultNFTsSourcePath": "NFTs\\Source", //Can be releative to BasePath above or absolute.
+    "DefaultNFTsPublishedPath": "NFTs\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultNFTsDownloadedPath": "NFTs\\Downloaded", //Can be releative to BasePath above or absolute.
+    "DefaultNFTsInstalledPath": "NFTs\\Installed", //Can be releative to BasePath above or absolute.
+
+    "DefaultGeoNFTsSourcePath": "GeoNFTs\\Source", //Can be releative to BasePath above or absolute.
+    "DefaultGeoNFTsPublishedPath": "GeoNFTs\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultGeoNFTsDownloadedPath": "GeoNFTs\\Downloaded", //Can be releative to BasePath above or absolute.
+    "DefaultGeoNFTsInstalledPath": "GeoNFTs\\Installed", //Can be releative to BasePath above or absolute.
+
+    "DefaultGeoHotSpotsSourcePath": "GeoHotSpots\\Source", //Can be releative to BasePath above or absolute.
+    "DefaultGeoHotSpotsPublishedPath": "GeoHotSpots\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultGeoHotSpotsDownloadedPath": "GeoHotSpots\\Downloaded", //Can be releative to BasePath above or absolute.
+    "DefaultGeoHotSpotsInstalledPath": "GeoHotSpots\\Installed", //Can be releative to BasePath above or absolute.
+
+    "DefaultInventoryItemsSourcePath": "InventoryItems\\Source", //Can be releative to BasePath above or absolute.
+    "DefaultInventoryItemsPublishedPath": "InventoryItems\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultInventoryItemsDownloadedPath": "InventoryItems\\Downloaded", //Can be releative to BasePath above or absolute.
+    "DefaultInventoryItemsInstalledPath": "InventoryItems\\Installed", //Can be releative to BasePath above or absolute.
+
+    "DefaultCelestialSpacesSourcePath": "CelestialSpaces\\Source", //Can be releative to BasePath above or absolute.
+    "DefaultCelestialSpacesPublishedPath": "CelestialSpaces\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultCelestialSpacesDownloadedPath": "CelestialSpaces\\Downloaded", //Can be releative to BasePath above or absolute.
+    "DefaultCelestialSpacesInstalledPath": "CelestialSpaces\\Installed", //Can be releative to BasePath above or absolute.
+
+    "DefaultCelestialBodiesSourcePath": "CelestialBodies\\Source", //Can be releative to BasePath above or absolute.
+    "DefaultCelestialBodiesPublishedPath": "CelestialBodies\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultCelestialBodiesDownloadedPath": "CelestialBodies\\Downloaded", //Can be releative to BasePath above or absolute.
+    "DefaultCelestialBodiesInstalledPath": "CelestialBodies\\Installed", //Can be releative to BasePath above or absolute.
+
+    "DefaultZomesSourcePath": "Zomes\\Source", //Can be releative to BasePath above or absolute.
+    "DefaultZomesPublishedPath": "Zomes\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultZomesDownloadedPath": "Zomes\\Downloaded", //Can be releative to BasePath above or absolute.
+    "DefaultZomesInstalledPath": "Zomes\\Installed", //Can be releative to BasePath above or absolute.
+
+    "DefaultHolonsSourcePath": "Holons\\Source", //Can be releative to BasePath above or absolute.
+    "DefaultHolonsPublishedPath": "Holons\\Published", //Can be releative to BasePath above or absolute.
+    "DefaultHolonsDownloadedPath": "Holons\\Downloaded", //Can be releative to BasePath above or absolute.
+    "DefaultHolonsInstalledPath": "Holons\\Installed", //Can be releative to BasePath above or absolute.
+
     "DetailedCOSMICOutputEnabled": false,
     "DetailedSTARStatusOutputEnabled": false,
     "DetailedLoggingEnabled": false
