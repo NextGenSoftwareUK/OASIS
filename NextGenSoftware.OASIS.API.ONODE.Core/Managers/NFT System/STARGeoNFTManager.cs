@@ -44,84 +44,102 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "GeoNFTDNAJSON")
         { }
 
-        public async Task<OASISResult<ISTARGeoNFT>> CreateGeoNFTAsync(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToGeoNFTSource,
-            NFTType nftType,
-            IOASISGeoSpatialNFT OASISGeoNFT,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToGeoNFTSource, null,
-                new STARGeoNFT()
-                {
-                    NFTType = nftType,
-                    GeoNFT = OASISGeoNFT
-                },
-            providerType));
-        }
+        //public new async Task<OASISResult<ISTARGeoNFT>> CreateAsync(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToGeoNFTSource,
+        //    NFTType nftType,
+        //    IOASISGeoSpatialNFT OASISGeoNFT,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToGeoNFTSource, null,
+        //        new STARGeoNFT()
+        //        {
+        //            NFTType = nftType,
+        //            GeoNFT = OASISGeoNFT
+        //        },
+        //    providerType));
+        //}
 
-        public OASISResult<ISTARGeoNFT> CreateGeoNFT(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToGeoNFTSource,
-            NFTType nftType,
-            IOASISGeoSpatialNFT OASISGeoNFT,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(base.Create(avatarId, name, description, nftType, fullPathToGeoNFTSource, null,
-                new STARGeoNFT()
-                {
-                    NFTType = nftType,
-                    GeoNFT = OASISGeoNFT
-                },
-            providerType));
-        }
+        //public async Task<OASISResult<ISTARGeoNFT>> CreateGeoNFTAsync(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToGeoNFTSource,
+        //    NFTType nftType,
+        //    IOASISGeoSpatialNFT OASISGeoNFT,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToGeoNFTSource, null,
+        //        new STARGeoNFT()
+        //        {
+        //            NFTType = nftType,
+        //            GeoNFT = OASISGeoNFT
+        //        },
+        //    providerType));
+        //}
 
-        public async Task<OASISResult<ISTARGeoNFT>> CreateGeoNFTAsync(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToGeoNFTSource,
-            NFTType nftType,
-            Guid OASISGeoNFTId,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToGeoNFTSource, null,
-                new STARGeoNFT()
-                {
-                    NFTType = nftType,
-                    GeoNFTId = OASISGeoNFTId
-                },
-            providerType));
-        }
+        //public OASISResult<ISTARGeoNFT> CreateGeoNFT(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToGeoNFTSource,
+        //    NFTType nftType,
+        //    IOASISGeoSpatialNFT OASISGeoNFT,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(base.Create(avatarId, name, description, nftType, fullPathToGeoNFTSource, null,
+        //        new STARGeoNFT()
+        //        {
+        //            NFTType = nftType,
+        //            GeoNFT = OASISGeoNFT
+        //        },
+        //    providerType));
+        //}
 
-        public OASISResult<ISTARGeoNFT> CreateGeoNFT(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToGeoNFTSource,
-            NFTType nftType,
-            Guid OASISGeoNFTId,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(base.Create(avatarId, name, description, nftType, fullPathToGeoNFTSource, null,
-                new STARGeoNFT()
-                {
-                    NFTType = nftType,
-                    GeoNFTId = OASISGeoNFTId
-                },
-            providerType));
-        }
+        //public async Task<OASISResult<ISTARGeoNFT>> CreateGeoNFTAsync(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToGeoNFTSource,
+        //    NFTType nftType,
+        //    Guid OASISGeoNFTId,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToGeoNFTSource, null,
+        //        new STARGeoNFT()
+        //        {
+        //            NFTType = nftType,
+        //            GeoNFTId = OASISGeoNFTId
+        //        },
+        //    providerType));
+        //}
 
-        private OASISResult<ISTARGeoNFT> ProcessResult(OASISResult<STARGeoNFT> operationResult)
-        {
-            OASISResult<ISTARGeoNFT> result = new OASISResult<ISTARGeoNFT>();
-            result.Result = operationResult.Result;
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
-            return result;
-        }
+        //public OASISResult<ISTARGeoNFT> CreateGeoNFT(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToGeoNFTSource,
+        //    NFTType nftType,
+        //    Guid OASISGeoNFTId,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(base.Create(avatarId, name, description, nftType, fullPathToGeoNFTSource, null,
+        //        new STARGeoNFT()
+        //        {
+        //            NFTType = nftType,
+        //            GeoNFTId = OASISGeoNFTId
+        //        },
+        //    providerType));
+        //}
+
+        //private OASISResult<ISTARGeoNFT> ProcessResult(OASISResult<STARGeoNFT> operationResult)
+        //{
+        //    OASISResult<ISTARGeoNFT> result = new OASISResult<ISTARGeoNFT>();
+        //    result.Result = operationResult.Result;
+        //    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+        //    return result;
+        //}
     }
 }

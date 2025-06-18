@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 "The wizard will create an empty folder with a OAPPTemplateDNA.json file in it. You then simply place any files/folders you need into this folder.",
                 "Finally you run the sub-command 'oapp template publish' to convert the folder containing the OAPP Template (can contain any number of files and sub-folders) into a OAPP Template file (.oapptemplate) as well as optionally upload to STARNET.",
                 "You can then share the .oapptemplate file with others across any platform or OS, who can then install the OAPP Template from the file using the sub-command 'oapp template install'. You can also optionally choose to upload the .oapptemplate file to STARNET so others can search, download and install the OAPP Template. They can then create OAPP's from the template.",
+                "You can also optionally choose to upload the .oapptemplate file to the STARNET store so others can search, download and install the quest."
             },
             STAR.STARDNA.DefaultOAPPTemplatesSourcePath, "DefaultOAPPTemplatesSourcePath",
             STAR.STARDNA.DefaultOAPPTemplatesPublishedPath, "DefaultOAPPTemplatesPublishedPath",
