@@ -18,18 +18,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         where T3 : IInstalledSTARNETHolon, new()
     {
 
-        public ISTARNETManagerBase<T1, T2, T3> STARNETManager { get; set; }
-        public bool IsInit { get; set; }
-        public string CreateHeader { get; set; }
-        public List<string> CreateIntroParagraphs { get; set; }
-        public string SourcePath { get; set; }
-        public string SourceSTARDNAKey { get; set; }
-        public string PublishedPath { get; set; }
-        public string PublishedSTARDNAKey { get; set; }
-        public string DownloadedPath { get; set; }
-        public string DownloadSTARDNAKey { get; set; }
-        public string InstalledPath { get; set; }
-        public string InstalledSTARDNAKey { get; set; }
+        public virtual ISTARNETManagerBase<T1, T2, T3> STARNETManager { get; set; }
+        public virtual bool IsInit { get; set; }
+        public virtual string CreateHeader { get; set; }
+        public virtual List<string> CreateIntroParagraphs { get; set; }
+        public virtual string SourcePath { get; set; }
+        public virtual string SourceSTARDNAKey { get; set; }
+        public virtual string PublishedPath { get; set; }
+        public virtual string PublishedSTARDNAKey { get; set; }
+        public virtual string DownloadedPath { get; set; }
+        public virtual string DownloadSTARDNAKey { get; set; }
+        public virtual string InstalledPath { get; set; }
+        public virtual string InstalledSTARDNAKey { get; set; }
         
 
         public STARUIBase(ISTARNETManagerBase<T1, T2, T3> starManager, string createHeader, List<string> createIntroParagraphs, string sourcePath = "", string sourceSTARDNAKey = "", string publishedPath = "", string publishedSTARDNAKey = "", string downloadedPath = "", string downloadSTARDNAKey = "", string installedPath = "", string installedSTARDNAKey = "")
@@ -61,7 +61,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STARNETManager.OnUploadStatusChanged -= OnUploadStatusChanged;
         }
 
-        public async Task CreateAsync(object createParams, ProviderType providerType = ProviderType.Default)
+        public virtual async Task CreateAsync(object createParams, T1 newHolon = default, ProviderType providerType = ProviderType.Default)
         {
             ShowHeader();
 
@@ -99,7 +99,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
                 CLIEngine.ShowWorkingMessage($"Generating {STARNETManager.STARNETHolonUIName}...");
                 //OASISResult<T1> starHolonResult = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, Type, holonPath, providerType);
-                OASISResult<T1> starHolonResult = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, holonSubType, holonPath, providerType: providerType);
+                OASISResult<T1> starHolonResult = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, holonSubType, holonPath, newHolon: newHolon, providerType: providerType);
 
                 if (starHolonResult != null)
                 {
@@ -120,7 +120,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public async Task EditAsync(string idOrName = "", object editParams = null, ProviderType providerType = ProviderType.Default)
+        public virtual async Task EditAsync(string idOrName = "", object editParams = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> loadResult = await LoadAsync(idOrName, "edit", true, providerType);
             bool changesMade = false;
@@ -200,7 +200,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public async Task DeleteAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task DeleteAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "delete", true, providerType);
 
@@ -232,7 +232,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
-        public async Task PublishAsync(string sourcePath = "", bool edit = false, ProviderType providerType = ProviderType.Default)
+        public virtual async Task PublishAsync(string sourcePath = "", bool edit = false, ProviderType providerType = ProviderType.Default)
         {
             bool generateOAPP = true;
             bool uploadOAPPToCloud = true;
@@ -383,7 +383,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETDNAFileName} file could not be found! Please ensure it is in the folder you specified.");
         }
 
-        public async Task UnpublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public virtual async Task UnpublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "unpublish", true, providerType);
 
@@ -401,7 +401,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public async Task RepublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public virtual async Task RepublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "republish", true, providerType);
 
@@ -419,7 +419,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public async Task ActivateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public virtual async Task ActivateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "activate", true, providerType);
 
@@ -442,7 +442,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }   
         }
 
-        public async Task DeactivateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public virtual async Task DeactivateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "deactivate", true, providerType);
 
@@ -465,7 +465,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public async Task<OASISResult<T3>> DownloadAndInstallAsync(string idOrName = "", InstallMode installMode = InstallMode.DownloadAndInstall, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> DownloadAndInstallAsync(string idOrName = "", InstallMode installMode = InstallMode.DownloadAndInstall, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> installResult = new OASISResult<T3>();
             string downloadPath = "";
@@ -603,7 +603,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return installResult;
         }
 
-        public OASISResult<T3> DownloadAndInstall(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public virtual OASISResult<T3> DownloadAndInstall(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> installResult = new OASISResult<T3>();
             string downloadPath = "";
@@ -706,7 +706,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return installResult;
         }
 
-        public async Task UninstallAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public virtual async Task UninstallAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "uninstall", true, providerType);
 
@@ -731,7 +731,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
-        public void Uninstall(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public virtual void Uninstall(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = Load(idOrName, "uninstall", true, providerType);
 
@@ -756,21 +756,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
-        public async Task<OASISResult<IEnumerable<T1>>> ListAllsAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T1>>> ListAllsAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}'s...");
             return ListStarHolons(await STARNETManager.LoadAllAsync(STAR.BeamedInAvatar.Id, null, true, showAllVersions, 0, providerType: providerType));
         }
 
-        public OASISResult<IEnumerable<T1>> ListAll(bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public virtual OASISResult<IEnumerable<T1>> ListAll(bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}'s...");
             return  ListStarHolons(STARNETManager.LoadAll(STAR.BeamedInAvatar.Id, null, true, showAllVersions, version, providerType: providerType));
         }
 
-        public async Task ListAllCreatedByBeamedInAvatarAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
+        public virtual async Task ListAllCreatedByBeamedInAvatarAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
         {
             if (STAR.BeamedInAvatar != null)
             {
@@ -782,7 +782,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
         }
 
-        public async Task<OASISResult<IEnumerable<T3>>> ListAllInstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T3>>> ListAllInstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T3>> result = new OASISResult<IEnumerable<T3>>();
 
@@ -799,7 +799,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T3>>> ListAllUninstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T3>>> ListAllUninstalledForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T3>> result = new OASISResult<IEnumerable<T3>>();
 
@@ -853,7 +853,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T1>>> ListAllUnpublishedForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T1>>> ListAllUnpublishedForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
 
@@ -906,7 +906,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T1>>> ListAllDeactivatedForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T1>>> ListAllDeactivatedForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
 
@@ -959,7 +959,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task SearchsAsync(string searchTerm = "", bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task SearchsAsync(string searchTerm = "", bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
         {            
             if (string.IsNullOrEmpty(searchTerm) || searchTerm == "forallavatars" || searchTerm == "forallavatars")
             { 
@@ -972,7 +972,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             ListStarHolons(await STARNETManager.SearchAsync(STAR.BeamedInAvatar.Id, searchTerm, !showForAllAvatars, showAllVersions, 0, providerType));
         }
 
-        public async Task ShowAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public virtual async Task ShowAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await LoadAsync(idOrName, "view", true, providerType);
 
@@ -982,7 +982,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
-        public void Show(T1 starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false)
+        public virtual void Show(T1 starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false)
         {
             if (showHeader)
                 CLIEngine.ShowDivider();
@@ -1028,7 +1028,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowDivider();
         }
 
-        public void ShowInstalled(T3 starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showUninstallInfo = false, bool showDetailedInfo = false)
+        public virtual void ShowInstalled(T3 starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showUninstallInfo = false, bool showDetailedInfo = false)
         {
             //Show((T1)starHolon, showHeader, false, showNumbers, number, showDetailedInfo);
             Show(ConvertFromT3ToT1(starHolon), showHeader, false, showNumbers, number, showDetailedInfo);
