@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
     {
         public InstalledSTARNETHolon()
         {
-            this.HolonType = HolonType.InstalledSTARHolon;
+            this.HolonType = HolonType.InstalledSTARNETHolon;
         }
 
         public InstalledSTARNETHolon(string STARNETHolonDNAJSONName = "STARNETHolonDNAJSON") : base(STARNETHolonDNAJSONName)

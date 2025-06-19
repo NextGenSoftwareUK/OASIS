@@ -1,0 +1,18 @@
+﻿using System;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
+{
+    public interface ISTARZomeManager : ISTARNETManagerBase<STARZome, DownloadedZome, InstalledZome>
+    {
+        OASISResult<ISTARZome> CreateZome(Guid avatarId, string name, string description, string fullPathToZomeSource, ZomeType zomeType, Guid zomeId, ProviderType providerType = ProviderType.Default);
+        OASISResult<ISTARZome> CreateZome(Guid avatarId, string name, string description, string fullPathToZomeSource, ZomeType zomeType, IZome zome, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<ISTARZome>> CreateZomeAsync(Guid avatarId, string name, string description, string fullPathToZomeSource, ZomeType zomeType, Guid zomeId, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<ISTARZome>> CreateZomeAsync(Guid avatarId, string name, string description, string fullPathToZomeSource, ZomeType zomeType, IZome zome, ProviderType providerType = ProviderType.Default);
+    }
+}

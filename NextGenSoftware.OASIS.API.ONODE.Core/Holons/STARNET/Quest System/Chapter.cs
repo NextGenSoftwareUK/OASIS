@@ -1,5 +1,5 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         {
             get
             {
-                return $"{ChapterDisplayName} {CurrentSubQuestNumber}/{SubQuests.Count}";
+                return $"{ChapterDisplayName} {CurrentSubQuestNumber}/{Quests.Count}";
             }
         }
 
