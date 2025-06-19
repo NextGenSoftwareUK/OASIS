@@ -464,11 +464,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 case "seed":
-                                    await STARCLI.PublishOAPPAsync();
+                                    await STARCLI.OAPPs.PublishAsync();
                                     break;
 
                                 case "unseed":
-                                    await STARCLI.UnPublishOAPPAsync();
+                                    await STARCLI.OAPPs.UnpublishAsync();
                                     break;
 
                                 case "twinkle":
@@ -532,7 +532,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 case "net":
-                                    await STARCLI.LaunchSTARNETAsync();
+                                    {
+                                        CLIEngine.ShowMessage("Coming soon...");
+                                    }
                                     break;
 
                                 case "oapp":
@@ -552,7 +554,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                         if (inputArgs.Length > 3 && inputArgs[3].ToLower() == "dotnetpublish")
                                                             dotNetPublish = true;
 
-                                                        await STARCLI.PublishOAPPAsync(oappPath, dotNetPublish);
+                                                        await STARCLI.OAPPs.PublishAsync(oappPath, dotNetPublish);
                                                     }
                                                     break;
 
@@ -778,7 +780,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static async Task ShowSubCommandAsync(string[] inputArgs, 
             string subCommand = "",
             string subCommandPlural = "",
-            Func<object, ProviderType, Task> createPredicate = null, 
+            Func<object, object, ProviderType, Task> createPredicate = null, 
             Func<string, object, ProviderType, Task> updatePredicate = null, 
             Func<string, bool, ProviderType, Task> deletePredicate = null,
             Func<string, InstallMode, ProviderType, Task> downloadAndInstallPredicate = null,
@@ -857,7 +859,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             if (showCreate)
                             {
                                 if (createPredicate != null)
-                                    await createPredicate(null, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                    await createPredicate(null, null, providerType); //TODO: Pass in params in a object or dynamic obj.
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
@@ -1208,7 +1210,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "beamin":
                         {
                             if (STAR.BeamedInAvatar == null)
-                                await STARCLI.BeamInAvatar();
+                                await STARCLI.Avatars.BeamInAvatar();
                             else
                                 CLIEngine.ShowErrorMessage($"Avatar {STAR.BeamedInAvatar.Username} Already Beamed In. Please Beam Out First!");
                         }
@@ -1248,12 +1250,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             if (inputArgs.Length > 2)
                             {
                                 if (inputArgs[2] == "me")
-                                    STARCLI.ShowAvatar(STAR.BeamedInAvatar, STAR.BeamedInAvatarDetail);
+                                    STARCLI.Avatars.ShowAvatar(STAR.BeamedInAvatar, STAR.BeamedInAvatarDetail);
                                 else
-                                    await STARCLI.ShowAvatar(inputArgs[2]);
+                                    await STARCLI.Avatars.ShowAvatar(inputArgs[2]);
                             }
                             else
-                                await STARCLI.ShowAvatar();
+                                await STARCLI.Avatars.ShowAvatar();
                         }
                         break;
 
@@ -1270,27 +1272,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "list":
                         {
                             if (inputArgs.Length > 2 && inputArgs[2] == "detailed")
-                                await STARCLI.ListAvatarDetailsAsync();
+                                await STARCLI.Avatars.ListAvatarDetailsAsync();
                             else
-                                await STARCLI.ListAvatarsAsync();
+                                await STARCLI.Avatars.ListAvatarsAsync();
                         }
                         break;
 
                     case "search":
                         {
-                            await STARCLI.SearchAvatarsAsync();
+                            await STARCLI.Avatars.SearchAvatarsAsync();
                         }
                         break;
 
                     case "forgotpassword":
                         {
-                            await STARCLI.ForgotPasswordAsync();
+                            await STARCLI.Avatars.ForgotPasswordAsync();
                         }
                         break;
 
                     case "resetpassword":
                         {
-                            await STARCLI.ResetPasswordAsync();
+                            await STARCLI.Avatars.ResetPasswordAsync();
                         }
                         break;
 
@@ -1649,16 +1651,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 switch (inputArgs[1].ToLower())
                 {
                     case "mint":
-                        await STARCLI.MintNFTAsync(null);
+                    case "create":
+                        await STARCLI.NFTs.CreateAsync(null);
                         break;
 
                     case "send":
-                        await STARCLI.SendNFTAsync();
+                        await STARCLI.NFTs.SendNFTAsync();
                         break;
 
                     case "update":
                         {
-                            CLIEngine.ShowMessage("Coming soon...");
+                            await STARCLI.NFTs.EditAsync(inputArgs.Length > 2 ? inputArgs[2] : null);
                         }
                         break;
 
@@ -1670,28 +1673,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "publish":
                         {
-                            CLIEngine.ShowMessage("Coming soon...");
+                            await STARCLI.NFTs.PublishAsync();
                         }
                         break;
 
                     case "unpublish":
                         {
-                            CLIEngine.ShowMessage("Coming soon...");
+                            await STARCLI.NFTs.UnpublishAsync();
                         }
                         break;
 
                     case "show":
                         {
-                            await STARCLI.ShowNFTAsync();
+                            await STARCLI.NFTs.ListAllsAsync();
                         }
                         break;
 
                     case "list":
                         {
                             if (inputArgs.Length > 2 && inputArgs[2] != null && inputArgs[2].ToLower() == "all")
-                                await STARCLI.ListAllNFTsAsync();
+                                await STARCLI.NFTs.ListAllsAsync();
                             else
-                                await STARCLI.ListNFTsForBeamedInAvatarAsync();
+                                await STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync();
                         }
                         break;
 
@@ -1739,7 +1742,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 switch (inputArgs[1].ToLower())
                 {
                     case "mint":
-                        await STARCLI.MintGeoNFTAsync(null);
+                    case "create":
+                        await STARCLI.OAPPs.CreateAsync(null);
                         break;
 
                     case "send":
@@ -1747,7 +1751,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         break;
 
                     case "place":
-                        await STARCLI.PlaceGeoNFTAsync();
+                        await STARCLI.OAPPs.PublishAsync();
                         break;
 
                     case "update":
@@ -1765,7 +1769,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "publish":
                         {
                             CLIEngine.ShowMessage("Coming soon...");
-                            //await STARCLI.Pub
                         }
                         break;
 
@@ -1777,16 +1780,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "show":
                         {
-                            await STARCLI.ShowGeoNFTAsync();
+                            await STARCLI.GeoNFTs.ShowAsync();
                         }
                         break;
 
                     case "list":
                         {
                             if (inputArgs.Length > 2 && inputArgs[2] != null && inputArgs[2].ToLower() == "all")
-                                await STARCLI.ListAllGeoNFTsAsync();
+                                await STARCLI.GeoNFTs.ListAllsAsync();
                             else
-                                await STARCLI.ListAllGeoNFTsForBeamedInAvatarAsync();
+                                await STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync();
                         }
                         break;
 
@@ -1826,7 +1829,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 switch (inputArgs[1].ToLower())
                 {
                     case "link":
-                        await STARCLI.MintGeoNFTAsync(null); //Todo: Pass in params.
+                        CLIEngine.ShowMessage("Coming soon...");
                         break;
 
                     case "list":
@@ -1856,7 +1859,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 switch (inputArgs[1].ToLower())
                 {
                     case "list":
-                        STAR.OASISAPI.Avatar.ShowKarmaThresholds();
+                        STAR.OASISAPI.Avatars.ShowKarmaThresholds();
                         break;
 
                     default:

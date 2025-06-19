@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class OAPPTemplates : STARUIBase<OAPPTemplate, DownloadedMission, InstalledMission>
+    public class OAPPTemplates : STARUIBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate>
     {
         public OAPPTemplates(Guid avatarId) : base(new API.ONODE.Core.Managers.OAPPTemplateManager(avatarId),
             "Welcome to the OAPP Template Wizard", new List<string> 

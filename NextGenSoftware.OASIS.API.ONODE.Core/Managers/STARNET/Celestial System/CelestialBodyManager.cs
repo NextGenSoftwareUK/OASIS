@@ -1,0 +1,128 @@
+﻿using System;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
+{
+    public class CelestialBodyManager : STARNETManagerBase<STARCelestialBody, DownloadedCelestialBody, InstalledCelestialBody>, ICelestialBodyManager
+    {
+        public CelestialBodyManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+            OASISDNA,
+            typeof(CelestialBodyType),
+            HolonType.STARCelestialBody,
+            HolonType.InstalledCelestialBody,
+            "CelestialBody",
+            "CelestialBodyId",
+            "CelestialBodyName",
+            "CelestialBodyType",
+            "celestialbody",
+            "oasis_celestialbodes",
+            "CelestialBodyDNA.json",
+            "CelestialBodyDNAJSON")
+        { }
+
+        public CelestialBodyManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            OASISDNA,
+            typeof(CelestialBodyType),
+            HolonType.STARCelestialBody,
+            HolonType.InstalledCelestialBody,
+            "CelestialBody",
+            "CelestialBodyId",
+            "CelestialBodyName",
+            "CelestialBodyType",
+            "celestialbody",
+            "oasis_celestialbodies",
+            "CelestialBodyDNA.json",
+            "CelestialBodyDNAJSON")
+        { }
+
+        public async Task<OASISResult<ISTARCelestialBody>> CreateCelestialBodyAsync(
+            Guid avatarId,
+            string name,
+            string description,
+            string fullPathToCelestialBodySource,
+            CelestialBodyType celestialBodyType,
+            ICelestialBody celestialBody,
+            ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
+                new STARCelestialBody()
+                {
+                    CelestialBodyType = celestialBodyType,
+                    CelestialBody = celestialBody
+                },
+            providerType));
+        }
+
+        public OASISResult<ISTARCelestialBody> CreateCelestialBody(
+            Guid avatarId,
+            string name,
+            string description,
+            string fullPathToCelestialBodySource,
+            CelestialBodyType celestialBodyType,
+            ICelestialBody celestialBody,
+            ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Create(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
+                new STARCelestialBody()
+                {
+                    CelestialBodyType = celestialBodyType,
+                    CelestialBody = celestialBody
+                },
+            providerType));
+        }
+
+        public async Task<OASISResult<ISTARCelestialBody>> CreateCelestialBodyAsync(
+            Guid avatarId,
+            string name,
+            string description,
+            string fullPathToCelestialBodySource,
+            CelestialBodyType celestialBodyType,
+            Guid celestialBodyId,
+            ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
+                new STARCelestialBody()
+                {
+                    CelestialBodyType = celestialBodyType,
+                    CelestialBodyId = celestialBodyId
+                },
+            providerType));
+        }
+
+        public OASISResult<ISTARCelestialBody> CreateCelestialBody(
+            Guid avatarId,
+            string name,
+            string description,
+            string fullPathToCelestialBodySource,
+            CelestialBodyType celestialBodyType,
+            Guid celestialBodyId,
+            ProviderType providerType = ProviderType.Default)
+        {
+            return ProcessResult(base.Create(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
+                new STARCelestialBody()
+                {
+                    CelestialBodyType = celestialBodyType,
+                    CelestialBodyId = celestialBodyId
+                },
+            providerType));
+        }
+
+        private OASISResult<ISTARCelestialBody> ProcessResult(OASISResult<STARCelestialBody> operationResult)
+        {
+            OASISResult<ISTARCelestialBody> result = new OASISResult<ISTARCelestialBody>();
+            result.Result = (ISTARCelestialBody)operationResult.Result;
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+            return result;
+        }
+    }
+}

@@ -1,0 +1,42 @@
+﻿using System;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
+{
+    public class InventoryItemManager : STARNETManagerBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem>
+    {
+        public InventoryItemManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+            OASISDNA,
+            typeof(InventoryItemType),
+            HolonType.InventoryItem,
+            HolonType.InstalledInventoryItem,
+            "Inventory Item",
+            "InventoryItemId",
+            "InventoryItemName",
+            "InventoryItemType",
+            "inventoryitem",
+            "oasis_inventoryitems",
+            "InventoryItemDNA.json",
+            "InventoryItemDNAJSON")
+        { }
+
+        public InventoryItemManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            OASISDNA,
+            typeof(InventoryItemType),
+            HolonType.InventoryItem,
+            HolonType.InstalledInventoryItem,
+            "Inventory Item",
+            "InventoryItemId",
+            "InventoryItemName",
+            "InventoryItemType",
+            "inventoryitem",
+            "oasis_inventoryitems",
+            "InventoryItemDNA.json",
+            "InventoryItemDNAJSON")
+        { }
+    }
+}

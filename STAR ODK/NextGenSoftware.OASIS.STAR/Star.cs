@@ -1,35 +1,35 @@
 ﻿using System;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
-using NextGenSoftware.Utilities.ExtentionMethods;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.Utilities.ExtentionMethods;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.STAR.CelestialSpace;
 using NextGenSoftware.OASIS.STAR.DNA;
-using NextGenSoftware.OASIS.STAR.OASISAPIManager;
+using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.EventArgs;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
-using NextGenSoftware.OASIS.STAR.Enums;
+using NextGenSoftware.OASIS.STAR.CelestialSpace;
+using NextGenSoftware.OASIS.STAR.CelestialBodies;
+using NextGenSoftware.OASIS.API.ONODE.Core;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.CLI.Engine;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -182,16 +182,20 @@ namespace NextGenSoftware.OASIS.STAR
         public static IAvatar BeamedInAvatar { get; set; }
         public static IAvatarDetail BeamedInAvatarDetail { get; set; }
 
-        public static OASISAPI OASISAPI
-        {
-            get
-            {
-                if (_OASISAPI == null)
-                    _OASISAPI = new OASISAPI();
+        //public static OASISAPI OASISAPI
+        //{
+        //    get
+        //    {
+        //        if (_OASISAPI == null)
+        //            _OASISAPI = new OASISAPI();
 
-                return _OASISAPI;
-            }
-        }
+        //        return _OASISAPI;
+        //    }
+        //}
+
+        public static OASISAPI OASISAPI { get; set; }
+        public static STARAPI STARAPI { get; set; }
+       
 
         //public static IMapper Mapper { get; set; }
 
@@ -263,7 +267,7 @@ namespace NextGenSoftware.OASIS.STAR
         //public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         //public static event DataReceived OnDataReceived;
 
-        public static async Task<OASISResult<IOmiverse>> IgniteStarAsync(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null, ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<IOmiverse>> IgniteStarAsync(string userName = "", string password = "", string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
             Status = StarStatus.Igniting;
@@ -291,7 +295,7 @@ namespace NextGenSoftware.OASIS.STAR
 
             ValidateSTARDNA(STARDNA);
             Status = StarStatus.BootingOASIS;
-            OASISResult<bool> oasisResult = await BootOASISAsync(OASISDNAPath);
+            OASISResult<bool> oasisResult = await BootOASISAsync(userName, password, OASISDNAPath);
 
             if (oasisResult.IsError)
             {
@@ -337,7 +341,7 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public static OASISResult<IOmiverse> IgniteStar(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null, ProviderType providerType = ProviderType.Default)
+        public static OASISResult<IOmiverse> IgniteStar(string userName = "", string password = "", string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
             Status = StarStatus.Igniting;
@@ -369,7 +373,7 @@ namespace NextGenSoftware.OASIS.STAR
             IsDetailedStatusUpdatesEnabled = STARDNA.DetailedSTARStatusOutputEnabled;
 
             Status = StarStatus.BootingOASIS;
-            OASISResult<bool> oasisResult = BootOASIS(OASISDNAPath);
+            OASISResult<bool> oasisResult = BootOASIS(userName, password, OASISDNAPath);
 
             if (oasisResult.IsError)
             {
@@ -468,7 +472,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsStarIgnited)
                 IgniteStar();
 
-            return OASISAPI.Avatar.Register(title, firstName, lastName, email, password, username, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
+            return OASISAPI.Avatars.Register(title, firstName, lastName, email, password, username, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
         }
 
         public static async Task<OASISResult<IAvatar>> CreateAvatarAsync(string title, string firstName, string lastName, string email, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green, ProviderType providerType = ProviderType.Default)
@@ -476,7 +480,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsStarIgnited)
                 await IgniteStarAsync();
 
-            return await OASISAPI.Avatar.RegisterAsync(title, firstName, lastName, email, password, username, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
+            return await OASISAPI.Avatars.RegisterAsync(title, firstName, lastName, email, password, username, AvatarType.User, OASISType.STARCLI, cliColour, favColour);
         }
 
         public static async Task<OASISResult<IAvatar>> BeamInAsync(string username, string password, ProviderType providerType = ProviderType.Default)
@@ -487,12 +491,12 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsStarIgnited)
                 await IgniteStarAsync();
 
-            OASISResult<IAvatar> result = await OASISAPI.Avatar.AuthenticateAsync(username, password, IPAddress);
+            OASISResult<IAvatar> result = await OASISAPI.Avatars.AuthenticateAsync(username, password, IPAddress);
 
             if (!result.IsError)
             {
                 BeamedInAvatar = (Avatar)result.Result;
-                OASISAPI.LogAvatarIntoOASISManagers(); //TODO: Is there a better way of doing this?
+                //OASISAPI.LogAvatarIntoOASISManagers(); //TODO: Is there a better way of doing this?
 
                 //BeamedInAvatarDetail = new AvatarDetail()
                 //{
@@ -500,12 +504,16 @@ namespace NextGenSoftware.OASIS.STAR
                 //};
 
                 //TODO: Fix later! Gifts property de-serialiazed issue in MongoDBOASIS
-                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = await OASISAPI.Avatar.LoadAvatarDetailAsync(BeamedInAvatar.Id);
+                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = await OASISAPI.Avatars.LoadAvatarDetailAsync(BeamedInAvatar.Id);
 
                 if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
                     BeamedInAvatarDetail = loggedInAvatarDetailResult.Result;
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error Occured In BeamInAsync Calling LoadAvatarDetailAsync. Reason: {loggedInAvatarDetailResult.Message}");
+
+                //TODO: NEED TO FIX LATER!
+                //await STARAPI.BootSTARAPIAsync(username, password);
+                //await STARAPI.InitManagers(username, password);
             }
 
             return result;
@@ -523,13 +531,13 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsStarIgnited)
                 IgniteStar();
 
-            OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress);
+            OASISResult<IAvatar> result = OASISAPI.Avatars.Authenticate(username, password, IPAddress);
 
             if (!result.IsError)
             {
                 BeamedInAvatar = (Avatar)result.Result;
 
-                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = OASISAPI.Avatar.LoadAvatarDetail(BeamedInAvatar.Id);
+                OASISResult<IAvatarDetail> loggedInAvatarDetailResult = OASISAPI.Avatars.LoadAvatarDetail(BeamedInAvatar.Id);
 
                 if (!loggedInAvatarDetailResult.IsError && loggedInAvatarDetailResult.Result != null)
                     BeamedInAvatarDetail = loggedInAvatarDetailResult.Result;
@@ -1248,10 +1256,10 @@ namespace NextGenSoftware.OASIS.STAR
 
 
             //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
-            OASISResult<IOAPP> OAPPResult = await OASISAPI.OAPPs.CreateOAPPAsync(BeamedInAvatar.AvatarId, OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, OAPPFolder, newBody, zomes);
+            OASISResult<IOAPP> OAPPResult = await STARAPI.OAPPs.CreateOAPPAsync(BeamedInAvatar.AvatarId, OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, OAPPFolder, newBody, zomes);
 
             if (OAPPResult != null && !OAPPResult.IsError && OAPPResult.Result != null)
-                result.Result.OAPPDNA = (IOAPPDNA)OAPPResult.Result.OAPPSystemHolonDNA;
+                result.Result.OAPPDNA = (IOAPPDNA)OAPPResult.Result.STARNETDNA;
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An Error Occured Calling OASISAPI.OAPPs.CreateOAPPAsync. Reason: {OAPPResult.Message}");
 
@@ -1400,22 +1408,22 @@ namespace NextGenSoftware.OASIS.STAR
         //Publish
         public static async Task<OASISResult<IOAPP>> SeedAsync(string fullPathToOAPP, string launchTarget, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool dotnetPublish = true, bool generateOAPPSource = true, bool uploadOAPPSourceToSTARNET = true, bool makeOAPPSourcePublic = false, bool generateOAPPBinary = true, bool generateOAPPSelfContainedBinary = false, bool generateOAPPSelfContainedFullBinary = false, bool uploadOAPPToCloud = false, bool uploadOAPPSelfContainedToCloud = false, bool uploadOAPPSelfContainedFullToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS, ProviderType oappSelfContainedBinaryProviderType = ProviderType.None, ProviderType oappSelfContainedFullBinaryProviderType = ProviderType.None)
         {
-            return await OASISAPI.OAPPs.PublishOAPPAsync(BeamedInAvatar.AvatarId, fullPathToOAPP, launchTarget, fullPathToPublishTo, registerOnSTARNET, dotnetPublish, generateOAPPSource, uploadOAPPSourceToSTARNET, makeOAPPSourcePublic, generateOAPPBinary, generateOAPPSelfContainedBinary, generateOAPPSelfContainedFullBinary, uploadOAPPToCloud, uploadOAPPSelfContainedToCloud, uploadOAPPSelfContainedFullToCloud, providerType, oappBinaryProviderType, oappSelfContainedBinaryProviderType, oappSelfContainedFullBinaryProviderType);
+            return await STARAPI.OAPPs.PublishOAPPAsync(BeamedInAvatar.AvatarId, fullPathToOAPP, launchTarget, fullPathToPublishTo, false, registerOnSTARNET, dotnetPublish, generateOAPPSource, uploadOAPPSourceToSTARNET, makeOAPPSourcePublic, generateOAPPBinary, generateOAPPSelfContainedBinary, generateOAPPSelfContainedFullBinary, uploadOAPPToCloud, uploadOAPPSelfContainedToCloud, uploadOAPPSelfContainedFullToCloud, providerType, oappBinaryProviderType, oappSelfContainedBinaryProviderType, oappSelfContainedFullBinaryProviderType);
         }
 
         public static OASISResult<IOAPP> Seed(string fullPathToOAPP, string launchTarget, string fullPathToPublishTo = "", bool registerOnSTARNET = true, bool dotnetPublish = true, bool generateOAPPSource = true, bool uploadOAPPSourceToSTARNET = true, bool makeOAPPSourcePublic = false, bool generateOAPPBinary = true, bool generateOAPPSelfContainedBinary = false, bool generateOAPPSelfContainedFullBinary = false, bool uploadOAPPToCloud = false, bool uploadOAPPSelfContainedToCloud = false, bool uploadOAPPSelfContainedFullToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType oappBinaryProviderType = ProviderType.IPFSOASIS, ProviderType oappSelfContainedBinaryProviderType = ProviderType.None, ProviderType oappSelfContainedFullBinaryProviderType = ProviderType.None)
         {
-            return OASISAPI.OAPPs.PublishOAPP(BeamedInAvatar.AvatarId, fullPathToOAPP, launchTarget, fullPathToPublishTo, registerOnSTARNET, dotnetPublish, generateOAPPSource, uploadOAPPSourceToSTARNET, makeOAPPSourcePublic, generateOAPPBinary, generateOAPPSelfContainedBinary, generateOAPPSelfContainedFullBinary, uploadOAPPToCloud, uploadOAPPSelfContainedToCloud, uploadOAPPSelfContainedFullToCloud, providerType, oappBinaryProviderType, oappSelfContainedBinaryProviderType, oappSelfContainedFullBinaryProviderType);
+            return STARAPI.OAPPs.PublishOAPP(BeamedInAvatar.AvatarId, fullPathToOAPP, launchTarget, fullPathToPublishTo, false, registerOnSTARNET, dotnetPublish, generateOAPPSource, uploadOAPPSourceToSTARNET, makeOAPPSourcePublic, generateOAPPBinary, generateOAPPSelfContainedBinary, generateOAPPSelfContainedFullBinary, uploadOAPPToCloud, uploadOAPPSelfContainedToCloud, uploadOAPPSelfContainedFullToCloud, providerType, oappBinaryProviderType, oappSelfContainedBinaryProviderType, oappSelfContainedFullBinaryProviderType);
         }
 
-        public static async Task<OASISResult<IOAPPDNA>> UnSeedAsync(Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<OAPP>> UnSeedAsync(Guid OAPPId, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return await OASISAPI.OAPPs.UnPublishOAPPAsync(OAPPId, providerType);
+            return await STARAPI.OAPPs.UnpublishAsync(BeamedInAvatar.Id, OAPPId, version, providerType);
         }
 
-        public static OASISResult<IOAPPDNA> UnSeed(Guid OAPPId, ProviderType providerType = ProviderType.Default)
+        public static OASISResult<OAPP> UnSeed(Guid OAPPId, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            return OASISAPI.OAPPs.UnPublishOAPP(OAPPId, providerType);
+            return STARAPI.OAPPs.Unpublish(BeamedInAvatar.Id, OAPPId, version, providerType);
         }
 
         // Run Tests
@@ -1766,22 +1774,24 @@ namespace NextGenSoftware.OASIS.STAR
             }
         }
 
-        private static OASISResult<bool> BootOASIS(string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
+        private static OASISResult<bool> BootOASIS(string userName = "", string password = "", string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
         {
             STAR.OASISDNAPath = OASISDNAPath;
 
             if (!OASISAPI.IsOASISBooted)
-                return OASISAPI.BootOASIS(STAR.OASISDNAPath);
+                //return OASISAPI.BootOASIS(userName, password, STAR.OASISDNAPath);
+                return STARAPI.BootSTARAPI(userName, password, STAR.OASISDNAPath);
             else
                 return new OASISResult<bool>() { Message = "OASIS Already Booted" };
         }
 
-        private static async Task<OASISResult<bool>> BootOASISAsync(string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
+        private static async Task<OASISResult<bool>> BootOASISAsync(string userName = "", string password = "", string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
         {
             STAR.OASISDNAPath = OASISDNAPath;
 
             if (!OASISAPI.IsOASISBooted)
-                return await OASISAPI.BootOASISAsync(STAR.OASISDNAPath);
+                //return await OASISAPI.BootOASISAsync(userName, password, STAR.OASISDNAPath);
+                return await STARAPI.BootSTARAPIAsync(userName, password, STAR.OASISDNAPath);
             else
                 return new OASISResult<bool>() { Message = "OASIS Already Booted" };
         }
@@ -2628,7 +2638,7 @@ namespace NextGenSoftware.OASIS.STAR
 
                 Directory.CreateDirectory(OAPPFolder);
 
-                OASISResult<IInstalledOAPPTemplate> installedOAPPTemplateResult = await OASISAPI.OAPPTemplates.LoadInstalledOAPPTemplateAsync(BeamedInAvatar.Id, OAPPTemplateId, true, 0, providerType);
+                OASISResult<InstalledOAPPTemplate> installedOAPPTemplateResult = await STARAPI.OAPPTemplates.LoadInstalledAsync(BeamedInAvatar.Id, OAPPTemplateId, true, 0, providerType);
 
                 if (installedOAPPTemplateResult != null && installedOAPPTemplateResult.Result != null && !installedOAPPTemplateResult.IsError)
                     CopyFolder(genesisNameSpace, new DirectoryInfo(installedOAPPTemplateResult.Result.InstalledPath), new DirectoryInfo(OAPPFolder));
@@ -2648,27 +2658,28 @@ namespace NextGenSoftware.OASIS.STAR
                 }
 
                 //Copy the correct runtimes to the OAPP folder.
-                if (Directory.Exists(Path.Combine(OASISRunTimePath, installedOAPPTemplateResult.Result.OAPPSystemHolonDNA.OASISVersion)))
+                if (Directory.Exists(Path.Combine(OASISRunTimePath, installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion)))
                     DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
                 else
                 {
-                    CLIEngine.ShowWarningMessage($"The target OASIS Runtime v{installedOAPPTemplateResult.Result.OAPPSystemHolonDNA.OASISVersion} is not installed!");
+                    CLIEngine.ShowWarningMessage($"The target OASIS Runtime v{installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion} is not installed!");
                     
                     if (CLIEngine.GetConfirmation("Do you wish to download & install now?"))
                     {
-                        OASISResult<IInstalledRuntime> installResult = await OASISAPI.Runtimes.InstallRuntimeAsync(BeamedInAvatar.Id, API.Core.RuntimeType.OASIS, installedOAPPTemplateResult.Result.OAPPSystemHolonDNA.OASISVersion, STARDNA.DefaultRuntimesInstalledOASISPath, providerType);
+                        //OASISResult<IInstalledRuntime> installResult = await OASISAPI.Runtimes.InstallAsync(BeamedInAvatar.Id, API.Core.RuntimeType.OASIS, installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion, STARDNA.DefaultRuntimesInstalledOASISPath, providerType);
+                        OASISResult<IInstalledRuntime> installResult = await STARAPI.Runtimes.DownloadAndInstallOASISRuntimeAsync(BeamedInAvatar.Id, installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion, STARDNA.DefaultRuntimesInstalledOASISPath, providerType);
 
                         if (installResult != null && installResult.Result != null && !installResult.IsError)
                             DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
                         else
                         {
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the OASIS Runtime v{installedOAPPTemplateResult.Result.OAPPSystemHolonDNA.OASISVersion}. Reason: {installResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the OASIS Runtime v{installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion}. Reason: {installResult.Message}");
                             return result;
                         }
                     }
                     else
                     {
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The target OASIS Runtime v{installedOAPPTemplateResult.Result.OAPPSystemHolonDNA.OASISVersion} is not installed!");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The target OASIS Runtime v{installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion} is not installed!");
                         return result;
                     }
                 }
