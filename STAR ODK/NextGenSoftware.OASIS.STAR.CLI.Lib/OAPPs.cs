@@ -1,4 +1,11 @@
-﻿using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+﻿using System.Diagnostics;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -28,5 +35,773 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultOAPPsDownloadedPath, "DefaultOAPPsDownloadedPath",
             STAR.STARDNA.DefaultOAPPsInstalledPath, "DefaultOAPPsInstalledPath")
         { }
+
+        public async Task PublishAsync(string sourcePath = "", bool edit = false, bool dotNetPublish = false, ProviderType providerType = ProviderType.Default)
+        {
+            //TODO: Merge the code from the method below into this ASAP! :)
+            await base.PublishAsync(sourcePath, edit, providerType);
+        }
+
+        //public static async Task PublishOAPPAsync(string sourcePath = "", bool publishDotNot = false, ProviderType providerType = ProviderType.Default)
+        ////public static async Task PublishOAPPAsync(string oappPath = "", ProviderType providerType = ProviderType.Default)
+        //{
+        //    bool generateOAPPSource = false;
+        //    bool uploadOAPPSource = false;
+        //    bool generateOAPP = true;
+        //    //bool uploadOAPP = true;
+        //    bool uploadOAPPToCloud = false;
+        //    bool generateOAPPSelfContained = false;
+        //    //bool uploadOAPPSelfContained = false;
+        //    bool uploadOAPPSelfContainedToCloud = false;
+        //    bool generateOAPPSelfContainedFull = false;
+        //    //bool uploadOAPPSelfContainedFull = false;
+        //    bool uploadOAPPSelfContainedFullToCloud = false;
+        //    bool makeOAPPSourcePublic = false;
+        //    ProviderType OAPPBinaryProviderType = providerType; //ProviderType.IPFSOASIS;
+        //    ProviderType OAPPSelfContainedBinaryProviderType = ProviderType.IPFSOASIS; //ProviderType.IPFSOASIS;
+        //    ProviderType OAPPSelfContainedFullBinaryProviderType = ProviderType.IPFSOASIS; //ProviderType.IPFSOASIS;
+        //    string launchTarget = "";
+        //    string publishPath = "";
+        //    string launchTargetQuestion = "";
+        //    // bool publishDotNot = false;
+
+        //    if (string.IsNullOrEmpty(oappPath))
+        //    {
+        //        string OAPPPathQuestion = "What is the full path to the (dotnet) published output for the OAPP you wish to publish?";
+        //        launchTargetQuestion = "What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the OAPP? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)";
+
+        //        if (!CLIEngine.GetConfirmation("Have you already published the OAPP within Visual Studio (VS), Visual Studio Code (VSCode) or using the dotnet command? (If your OAPP is using a non dotnet template you can answer 'N')."))
+        //        {
+        //            OAPPPathQuestion = "What is the full path to the OAPP you wish to publish?";
+        //            publishDotNot = true;
+        //            Console.WriteLine();
+        //            CLIEngine.ShowMessage("No worries, we will do that for you (if it's a dotnet OAPP)! ;-)");
+        //        }
+        //        else
+        //            Console.WriteLine();
+
+        //        oappPath = CLIEngine.GetValidFolder(OAPPPathQuestion, false);
+        //    }
+
+        //    OASISResult<IOAPPDNA> OAPPDNAResult = await STAR.OASISAPI.OAPPs.ReadOAPPDNAAsync(oappPath);
+
+        //    if (OAPPDNAResult != null && OAPPDNAResult.Result != null && !OAPPDNAResult.IsError)
+        //    {
+        //        switch (OAPPDNAResult.Result.OAPPTemplateType)
+        //        {
+        //            case OAPPTemplateType.Console:
+        //            case OAPPTemplateType.WPF:
+        //            case OAPPTemplateType.WinForms:
+        //                launchTarget = $"{OAPPDNAResult.Result.OAPPName}.exe"; //TODO: For this line to work need to remove the namespace question so it just uses the OAPPName as the namespace. //TODO: Eventually this will be set in the OAPPTemplate and/or can also be set when I add the command line dotnet publish integration.
+        //                                                                       //launchTarget = $"bin\\Release\\net8.0\\{OAPPDNAResult.Result.OAPPName}.exe"; //TODO: For this line to work need to remove the namespace question so it just uses the OAPPName as the namespace. //TODO: Eventually this will be set in the OAPPTemplate and/or can also be set when I add the command line dotnet publish integration.
+        //                break;
+
+        //            case OAPPTemplateType.Blazor:
+        //            case OAPPTemplateType.MAUI:
+        //            case OAPPTemplateType.WebMVC:
+        //                //launchTarget = $"bin\\Release\\net8.0\\index.html"; 
+        //                launchTarget = $"index.html";
+        //                break;
+        //        }
+
+        //        if (!string.IsNullOrEmpty(launchTarget))
+        //        {
+        //            if (!CLIEngine.GetConfirmation($"{launchTargetQuestion} Do you wish to use the following default launch target: {launchTarget}?"))
+        //                launchTarget = CLIEngine.GetValidFile("What launch target do you wish to use? ", oappPath);
+        //            else
+        //                launchTarget = Path.Combine(oappPath, launchTarget);
+        //        }
+        //        else
+        //            launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, oappPath);
+
+        //        Console.WriteLine("");
+        //        if (CLIEngine.GetConfirmation("Do you wish to generate the standard .oapp file? (Recommended). This file contains only the built & published OAPP source code. NOTE: You will need to make sure the target machine that runs this OAPP has both the appropriate OASIS & STAR ODK Runtimes installed along with the appropriate .NET Runtime."))
+        //        {
+        //            generateOAPP = true;
+
+        //            if (CLIEngine.GetConfirmation("Do you wish to upload/publish the .oapp file to STARNET?"))
+        //            {
+        //                if (CLIEngine.GetConfirmation("Do you wish to upload/publish the .oapp file to cloud storage?"))
+        //                    uploadOAPPToCloud = true;
+
+        //                object OAPPBinaryProviderTypeObject = CLIEngine.GetValidInputForEnum("Do you wish to upload/publish the .oapp file to The OASIS? If so what provider do you wish to upload to? If you do not wish to then enter 'None'.", typeof(ProviderType));
+
+        //                if (OAPPBinaryProviderTypeObject != null)
+        //                {
+        //                    if (OAPPBinaryProviderTypeObject.ToString() == "exit")
+        //                        return;
+        //                    else
+        //                        OAPPBinaryProviderType = (ProviderType)OAPPBinaryProviderTypeObject;
+        //                }
+        //            }
+        //        }
+
+        //        Console.WriteLine("");
+        //        if (CLIEngine.GetConfirmation("Do you wish to generate the self-contained .oapp file? This file contains the built & published OAPP source code along with the OASIS & STAR ODK Runtimes. NOTE: You will need to make sure the target machine that runs this OAPP has the appropriate .NET runtime installed. The file will be a minimum of 250 MB."))
+        //        {
+        //            generateOAPPSelfContained = true;
+
+        //            if (CLIEngine.GetConfirmation("Do you wish to upload/publish the self-contained .oapp file to STARNET?"))
+        //            {
+        //                if (CLIEngine.GetConfirmation("Do you wish to upload/publish the .oapp file to cloud storage?"))
+        //                    uploadOAPPToCloud = true;
+
+        //                object OAPPBinaryProviderTypeObject = CLIEngine.GetValidInputForEnum("Do you wish to upload/publish the .oapp file to The OASIS? If so what provider do you wish to upload to? If you do not wish to then enter 'None'.", typeof(ProviderType));
+
+        //                if (OAPPBinaryProviderTypeObject != null)
+        //                {
+        //                    if (OAPPBinaryProviderTypeObject.ToString() == "exit")
+        //                        return;
+        //                    else
+        //                        OAPPBinaryProviderType = (ProviderType)OAPPBinaryProviderTypeObject;
+        //                }
+        //            }
+        //        }
+
+        //        Console.WriteLine("");
+        //        if (CLIEngine.GetConfirmation("Do you wish to generate the self-contained (full) .oapp file? This file contains the built & published OAPP source code along with the OASIS, STAR ODK & .NET Runtimes. NOTE: The file will be a minimum of 500 MB."))
+        //        {
+        //            generateOAPPSelfContained = true;
+
+        //            if (CLIEngine.GetConfirmation("Do you wish to upload/publish the self-contained (full) .oapp file to STARNET?"))
+        //            {
+        //                if (CLIEngine.GetConfirmation("Do you wish to upload/publish the .oapp file to cloud storage?"))
+        //                    uploadOAPPToCloud = true;
+
+        //                object OAPPBinaryProviderTypeObject = CLIEngine.GetValidInputForEnum("Do you wish to upload/publish the .oapp file to The OASIS? If so what provider do you wish to upload to? If you do not wish to then enter 'None'.", typeof(ProviderType));
+
+        //                if (OAPPBinaryProviderTypeObject != null)
+        //                {
+        //                    if (OAPPBinaryProviderTypeObject.ToString() == "exit")
+        //                        return;
+        //                    else
+        //                        OAPPBinaryProviderType = (ProviderType)OAPPBinaryProviderTypeObject;
+        //                }
+        //            }
+        //        }
+
+        //        if (!uploadOAPPToCloud && OAPPBinaryProviderType == ProviderType.None)
+        //            CLIEngine.ShowMessage("Since you did not select to upload to the cloud or OASIS storage the oapp will not be published to STARNET.");
+
+        //        Console.WriteLine("");
+        //        if (CLIEngine.GetConfirmation("Do you wish to generate a .oappsource file? This file will contain only the source files with no dependencies such as the OASIS or STAR runtimes (around 203MB). These will automatically be restored via nuget when the OAPP is built and/or published. You can optionally choose to upload this .oappsource file to STARNET from which others can download and then build to install and run your OAPP. NOTE: The full .oapp file is pre-built and published and is around 250MB minimum. You can optionally choose to also upload this file to STARNET (but you MUST upload either the .oappsource and make public or the full .oapp file if you want people to to be able to download and install your OAPP.) The advantage of the full .oapp file is that the OAPP is pre-built with all dependencies and so is guaranteed to install and run without any issues. It can also verify the launch target exists in the pre-built OAPP. If an OAPP is installed from the smaller .oappsource file (if you choose to upload and make public) there may be problems with restoring all dependencies etc so there are pros and cons to both approaches with the oapp taking longer to publish/upload and download over the .oappsource (as well as taking up more storage space) but has the advantage of being fully self contained and guaranteed to install & run fine."))
+        //        {
+        //            generateOAPPSource = true;
+
+        //            if (CLIEngine.GetConfirmation("Do you wish to upload the .oappsource file to STARNET? The next question will ask if you wish to make this public. You may choose to upload and keep private as an extra backup for your code for example."))
+        //            {
+        //                uploadOAPPSource = true;
+
+        //                if (CLIEngine.GetConfirmation("Do you wish to make the .oappsource public? People will be able to view your code so only do this if you are happy with this. NOTE: If you select 'N' to this question then people will not be able to download, build, publish and install your OAPP from your .oappsource file. You will need to upload the full pre-built & published .oapp file below if you want people to be able to download and install your OAPP from STARNET. If you wish people to be able to download and install from your .oappsource file then select 'Y' to this question and the next."))
+        //                    makeOAPPSourcePublic = true;
+        //            }
+        //        }
+
+        //        Console.WriteLine("");
+        //        bool registerOnSTARNET = CLIEngine.GetConfirmation("Do you wish to publish to STARNET? If you select 'Y' to this question then your OAPP will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .oapp install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.");
+
+        //        if (registerOnSTARNET)
+        //        {
+        //            Console.WriteLine("");
+        //            bool uploadOAPP = true;
+
+        //            if (makeOAPPSourcePublic)
+        //            {
+        //                if (!(CLIEngine.GetConfirmation("You have selected to generate, upload and make public your .oappsource file from which people can download, build, publish & install your OAPP (as long as the dependencies are restored fine and the launch target is found). You can also choose to upload the full .oapp file to STARNET giving people the option of which download and install process they prefer as well as an extra layer of redundancy. Do you wish to upload the .oapp file now?")))
+        //                    uploadOAPP = false;
+        //            }
+
+        //            if (uploadOAPP)
+        //            {
+        //                CLIEngine.ShowMessage("Do you wish to publish/upload the.oapp file to an OASIS Provider or to the cloud or both? Depending on which OASIS Provider is chosen such as IPFSOASIS there may issues such as speed, relialbility etc for such a large file. If you choose to upload to the cloud this could be faster and more reliable (but there is a limit of 5 OAPPs on the free plan and you will need to upgrade to upload more than 5 OAPPs). You may want to choose to use both to add an extra layer of redundancy (recommended).");
+
+        //                //if (CLIEngine.GetConfirmation("Do you wish to upload to the cloud?"))
+        //                //    uploadToCloud = true;
+
+        //                //if (CLIEngine.GetConfirmation("Do you wish to upload to an OASIS Provider? Make sure you select a provider that can handle large files such as IPFSOASIS, HoloOASIS etc. Also remember the OASIS Hyperdrive will only be able to auto-replicate to other providers that also support large files and are free or cost effective. By default it will NOT auto-replicate large files, you will need to manually configure this in your OASIS Profile settings."))
+        //                //{
+        //                //    object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to publish the OAPP to? (The default is IPFSOASIS)", typeof(ProviderType));
+
+        //                //    if (largeProviderTypeObject != null)
+        //                //        largeFileProviderType = (ProviderType)largeProviderTypeObject;
+        //                //}
+        //            }
+        //        }
+        //        else
+        //            Console.WriteLine("");
+
+        //        if (Path.IsPathRooted(STAR.STARDNA.DefaultOAPPsPublishedPath))
+        //            publishPath = STAR.STARDNA.DefaultOAPPsPublishedPath;
+        //        else
+        //            publishPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPsPublishedPath);
+
+        //        //Console.WriteLine("");
+        //        if (!CLIEngine.GetConfirmation($"Do you wish to publish the OAPP to the default publish folder defined in the STARDNA as DefaultOAPPsPublishedPath : {publishPath}?"))
+        //        {
+        //            if (CLIEngine.GetConfirmation($"Do you wish to publish the OAPP to: {Path.Combine(oappPath, "Published")}?"))
+        //                publishPath = Path.Combine(oappPath, "Published");
+        //            else
+        //                publishPath = CLIEngine.GetValidFolder("Where do you wish to publish the OAPP?", true);
+        //        }
+
+        //        Console.WriteLine("");
+        //        CLIEngine.ShowWorkingMessage("Publishing OAPP...");
+
+        //        STAR.OASISAPI.OAPPs.OnOAPPPublishStatusChanged += OAPPs_OnOAPPPublishStatusChanged;
+        //        STAR.OASISAPI.OAPPs.OnOAPPUploadStatusChanged += OAPPs_OnOAPPUploadStatusChanged;
+        //        OASISResult<IOAPPDNA> publishResult = await STAR.OASISAPI.OAPPs.PublishOAPPAsync(oappPath, launchTarget, STAR.BeamedInAvatar.Id, publishDotNot, publishPath, registerOnSTARNET, generateOAPPSource, uploadOAPPSource, makeOAPPSourcePublic, generateOAPP, generateOAPPSelfContained, generateOAPPSelfContainedFull, uploadOAPPToCloud, uploadOAPPSelfContainedToCloud, uploadOAPPSelfContainedFullToCloud, providerType, OAPPBinaryProviderType, OAPPSelfContainedBinaryProviderType, OAPPSelfContainedFullBinaryProviderType);
+        //        STAR.OASISAPI.OAPPs.OnOAPPUploadStatusChanged -= OAPPs_OnOAPPUploadStatusChanged;
+        //        STAR.OASISAPI.OAPPs.OnOAPPPublishStatusChanged -= OAPPs_OnOAPPPublishStatusChanged;
+
+        //        if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
+        //        {
+        //            CLIEngine.ShowSuccessMessage("OAPP Successfully Published.");
+        //            ShowOAPP(publishResult.Result);
+
+        //            if (CLIEngine.GetConfirmation("Do you wish to install the OAPP now?"))
+        //                await InstallOAPPAsync(publishResult.Result.OAPPId.ToString());
+
+        //            Console.WriteLine("");
+        //        }
+        //        else
+        //            CLIEngine.ShowErrorMessage($"An error occured publishing the OAPP. Reason: {publishResult.Message}");
+        //    }
+        //    else
+        //        CLIEngine.ShowErrorMessage("The OAPPDNA.json file could not be found! Please ensure it is in the folder you specified.");
+        //}
+
+
+        public async Task LightWizardAsync(object createParams, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<CoronalEjection> lightResult = null;
+            object enumValue = null;
+            OAPPType OAPPType = OAPPType.OAPPTemplate;
+            OAPPTemplateType OAPPTemplateType = OAPPTemplateType.Console;
+            Guid OAPPTemplateId = Guid.Empty;
+            long ourWorldLat = 0;
+            long ourWorldLong = 0;
+            long oneWorlddLat = 0;
+            long oneWorldLong = 0;
+            string ourWorld3dObjectPath = "";
+            byte[] ourWorld3dObject = null;
+            Uri ourWorld3dObjectURI = null;
+            string ourWorld2dSpritePath = "";
+            byte[] ourWorld2dSprite = null;
+            Uri ourWorld2dSpriteURI = null;
+            string oneWorld3dObjectPath = "";
+            byte[] oneWorld3dObject = null;
+            Uri oneWorld3dObjectURI = null;
+            string oneWorld2dSpritePath = "";
+            byte[] oneWorld2dSprite = null;
+            Uri oneWorld2dSpriteURI = null;
+
+            CLIEngine.ShowDivider();
+            CLIEngine.ShowMessage("Welcome to the OASIS Omniverse/MagicVerse Light Wizard!");
+            CLIEngine.ShowDivider();
+            Console.WriteLine();
+            CLIEngine.ShowMessage("This wizard will allow you create an OAPP (Moon, Planet, Star & More) which will appear in the MagicVerse within the OASIS Omniverse.", false);
+            CLIEngine.ShowMessage("The OAPP will also optionally appear within the AR geo-location Our World/AR World platform/game in your desired geo-location.");
+            CLIEngine.ShowMessage("The OAPP will also optionally appear within the One World (Open World MMORPG) game/platform. VR support is also provided.");
+            CLIEngine.ShowMessage("The OAPP can have as many interfaces/lenses (way to visualize/represent the data of your OAPP) as you like, for example you can also have a 2D web view as well as a 3D view, Metaverse/Omniverse view, etc.");
+            CLIEngine.ShowMessage("Each OAPP is composed of zomes (re-usable/composable modules containing collections of holons) & holons (generic/composable re-usable OASIS Data Objects). This means the zomes and holons can be shared and re-used with other OAPPs within the STARNET Library. Different zomes and holons can be plugged together to form unique combinations for new OAPPs saving lots of time!");
+            CLIEngine.ShowMessage("Each OAPP is built/generated on top of a powerful easy to use ORM called (WEB5) COSMIC (The Worlds ORM because it aggregrates all of the worlds data into a simple to use ORM) which allows very easy data management across all of web2 and web3 making data interoperability and interchange very simple and makes silos a thing of the past!");
+            CLIEngine.ShowMessage("COSMIC is built on top of the powerful WEB4 OASIS API so each OAPP also has easy to use API's for manging keys, wallets, data, nfts, geo-nfts, providers, avatars, karma & much more!");
+            CLIEngine.ShowMessage("A OAPP can be anything you want such as a website, game, app, service, api, protocol or anything else that a template exists for!");
+            CLIEngine.ShowMessage("Data can be shared between OAPP's but you are always in full control of your data, you own your data and you can choose exactly who and how that data is shared. You have full data sovereignty.");
+            CLIEngine.ShowMessage("Due to your OAPP being built on the OASIS API you also benefit from many other advanced features such as auto-replication, auto-failover and auto-load balancing so if one node goes down in your local area it will automatically find the next fastest one in your area irrespective of network.");
+            CLIEngine.ShowMessage("The more users your OAPP has the larger that celestial body (moon, planet or star) will appear within The MagicVerse. The higher the karma score of the owner (can be a individual or company/organisation) of the OAPP becomes the closer that celestial bodies orbit will be to it's parent so if it's a moon it will get closer and closer to the planet and if it's a planet it will get closer and closer to it's star.");
+            CLIEngine.ShowDivider();
+
+            string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
+
+            if (OAPPName == "exit")
+                return;
+
+            string OAPPDesc = CLIEngine.GetValidInput("What is the description of the OAPP?");
+
+            if (OAPPDesc == "exit")
+                return;
+
+            if (CLIEngine.GetConfirmation("Do you want to create the OAPP from an OAPP Template or do you want to generate the code only? Select 'Y' for OAPPTemplate or 'N' for Generated Code Only."))
+            {
+                Console.WriteLine("");
+                enumValue = CLIEngine.GetValidInputForEnum("What type of OAPP Template do you wish to use?", typeof(OAPPTemplateType));
+
+                if (enumValue != null)
+                {
+                    if (enumValue.ToString() == "exit")
+                        return;
+                    else
+                    {
+                        OAPPTemplateType = (OAPPTemplateType)enumValue;
+                        bool templateInstalled = false;
+
+                        do
+                        {
+                            if (CLIEngine.GetConfirmation("Do you know the GUID/ID of the OAPP Template?"))
+                            {
+                                Console.WriteLine("");
+                                OAPPTemplateId = CLIEngine.GetValidInputForGuid("What is the GUID/ID?");
+                            }
+                            else
+                            {
+                                Console.WriteLine("");
+
+                                if (CLIEngine.GetConfirmation("Do you know the name of the OAPP Template?"))
+                                {
+                                    Console.WriteLine("");
+                                    string OAPPTemplateName = CLIEngine.GetValidInput("What is the name?");
+
+                                    if (OAPPTemplateName == "exit")
+                                        return;
+
+                                    CLIEngine.ShowWorkingMessage("Searching STARNET...");
+                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.STARAPI.OAPPTemplates.SearchAsync(STAR.BeamedInAvatar.Id, OAPPTemplateName, false, false, 0, providerType), OAPPTemplateName);
+                                }
+                                else
+                                {
+                                    Console.WriteLine("");
+                                    CLIEngine.ShowWorkingMessage("Searching STARNET...");
+                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.STARAPI.OAPPTemplates.LoadAllAsync(STAR.BeamedInAvatar.Id, OAPPTemplateType), string.Concat("type ", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)));
+                                }
+                            }
+
+                            if (OAPPTemplateId != Guid.Empty)
+                            {
+                                OASISResult<bool> oappTemplateInstalledResult = STAR.STARAPI.OAPPTemplates.IsInstalled(STAR.BeamedInAvatar.Id, OAPPTemplateId, 0, providerType);
+
+                                if (oappTemplateInstalledResult != null && !oappTemplateInstalledResult.IsError)
+                                {
+                                    if (!oappTemplateInstalledResult.Result)
+                                    {
+                                        if (CLIEngine.GetConfirmation($"The selected OAPP Template is not currently installed. Do you wish to install it now?"))
+                                        {
+                                            //STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, OAPPTemplateId, providerType);
+                                            OASISResult<InstalledOAPPTemplate> installResult = await STARCLI.OAPPTemplates.DownloadAndInstallAsync(OAPPTemplateId.ToString(), InstallMode.DownloadAndInstall, providerType);
+
+                                            if (installResult.Result != null && !installResult.IsError)
+                                                templateInstalled = true;
+                                        }
+                                    }
+                                }
+                                else
+                                    CLIEngine.ShowErrorMessage($"Error occured checking if OAPP Template is installed. Reason: {oappTemplateInstalledResult.Message}");
+                            }
+                        }
+                        while (!templateInstalled);
+                    }
+                }
+            }
+            else
+                OAPPType = OAPPType.GeneratedCodeOnly;
+
+            //TODO: I think star bang was going to be used to create non OAPP Celestial bodies or spaces outside of the magic verse.
+            //if (CLIEngine.GetConfirmation("Do you wish the OAPP to be part of the MagicVerse within the OASIS Omniverse (will optionally appear in Our World/AR World)? If you say yes then new avatars will only be able to create moons that orbit Our World until you reach karma level 33 where you will then be able to create planets, when you reach level 77 you can create stars. If you select no then you can create whatever you like outside of the MagicVerse but it will still be within the OASIS Omniverse."))
+            //{
+
+            //}
+
+            if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the AR geo-location Our World/AR World game/platform? (recommeneded)"))
+            {
+                Console.WriteLine("");
+                ourWorldLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in Our World/AR World?");
+
+                if (ourWorldLat == -1)
+                    return;
+
+                ourWorldLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your OAPP to appear in Our World/AR World?");
+
+                if (ourWorldLong == -1)
+                    return;
+
+                if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your OAPP? Press Y for 3D or N for 2D."))
+                {
+                    Console.WriteLine("");
+
+                    if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
+                    {
+                        Console.WriteLine("");
+                        ourWorld3dObjectPath = CLIEngine.GetValidFile("What is the full path to the local 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                        if (ourWorld3dObjectPath == "exit")
+                            return;
+
+                        ourWorld3dObject = File.ReadAllBytes(ourWorld3dObjectPath);
+
+                    }
+                    else
+                    {
+                        Console.WriteLine("");
+                        ourWorld3dObjectURI = await CLIEngine.GetValidURIAsync("What is the URI to the 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                        if (ourWorld3dObjectURI == null)
+                            return;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("");
+
+                    if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
+                    {
+                        Console.WriteLine("");
+                        ourWorld2dSpritePath = CLIEngine.GetValidFile("What is the full path to the local 2d sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+
+                        if (ourWorld2dSpritePath == "exit")
+                            return;
+
+                        ourWorld2dSprite = File.ReadAllBytes(ourWorld2dSpritePath);
+                    }
+                    else
+                    {
+                        Console.WriteLine("");
+                        ourWorld2dSpriteURI = await CLIEngine.GetValidURIAsync("What is the URI to the 2D sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+
+                        if (ourWorld3dObjectURI == null)
+                            return;
+                    }
+                }
+            }
+            else
+                Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the Open World MMORPG One World game/platform? (recommeneded)"))
+            {
+                Console.WriteLine("");
+                oneWorlddLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in One World?");
+
+                if (oneWorlddLat == -1)
+                    return;
+
+                oneWorldLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your OAPP to appear in One World?");
+
+                if (oneWorldLong == -1)
+                    return;
+
+                if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your OAPP within One World? Press Y for 3D or N for 2D."))
+                {
+                    Console.WriteLine("");
+
+                    if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
+                    {
+                        Console.WriteLine("");
+                        oneWorld3dObjectPath = CLIEngine.GetValidFile("What is the full path to the local 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                        if (oneWorld3dObjectPath == "exit")
+                            return;
+
+                        oneWorld3dObject = File.ReadAllBytes(oneWorld3dObjectPath);
+                    }
+                    else
+                    {
+                        Console.WriteLine("");
+                        oneWorld3dObjectURI = await CLIEngine.GetValidURIAsync("What is the URI to the 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                        if (oneWorld3dObjectURI == null)
+                            return;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("");
+
+                    if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
+                    {
+                        Console.WriteLine("");
+                        oneWorld2dSpritePath = CLIEngine.GetValidFile("What is the full path to the local 2d sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+
+                        if (oneWorld2dSpritePath == "exit")
+                            return;
+
+                        oneWorld2dSprite = File.ReadAllBytes(oneWorld2dSpritePath);
+                    }
+                    else
+                    {
+                        Console.WriteLine("");
+                        oneWorld2dSpriteURI = await CLIEngine.GetValidURIAsync("What is the URI to the 2D sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+
+                        if (oneWorld2dSpriteURI == null)
+                            return;
+                    }
+                }
+            }
+            else
+                Console.WriteLine("");
+
+            enumValue = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create? (New avatars will only be able to create moons that orbit Our World until you reach karma level 33 where you will then be able to create planets, when you reach level 77 you can create stars & beyond 77 you can create Galaxies and even entire Universes in your jounrey to become fully God realised!.)", typeof(GenesisType));
+
+            if (enumValue != null)
+            {
+                if (enumValue.ToString() == "exit")
+                    return;
+
+                GenesisType genesisType = (GenesisType)enumValue;
+                string dnaFolder = "";
+
+                //if (CLIEngine.GetConfirmation("Do you wish to create the CelestialBody/Zomes/Holons DNA now? (Enter 'n' if you already have a folder containing the DNA)."))
+                //{
+                //    //string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
+                //    //string holonName = CLIEngine.GetValidInput("What is the name of the Holon (OASIS Data Object)?");
+                //    //string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
+                //    //object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(HolonPropType));
+
+                //    //TODO:Come back to this.
+                //}
+                //else
+                dnaFolder = CLIEngine.GetValidFolder("What is the path to the CelestialBody/Zomes/Holons DNA?", false);
+
+                if (dnaFolder == "exit")
+                    return;
+
+                if (Directory.Exists(dnaFolder) && Directory.GetFiles(dnaFolder).Length > 0)
+                {
+                    string oappPath = "";
+
+                    if (!string.IsNullOrEmpty(STAR.STARDNA.BasePath))
+                        oappPath = Path.Combine(STAR.STARDNA.BasePath, STAR.STARDNA.DefaultOAPPsSourcePath);
+                    else
+                        oappPath = STAR.STARDNA.DefaultOAPPsSourcePath;
+
+                    if (!CLIEngine.GetConfirmation($"Do you wish to create the OAPP in the default path defined in the STARDNA as 'DefaultOAPPsSourcePath'? The current path points to: {oappPath}"))
+                        oappPath = CLIEngine.GetValidFolder("Where do you wish to create the OAPP?");
+
+                    if (oappPath == "exit") return;
+
+                    //oappPath = Path.Combine(oappPath, OAPPTemplateName);
+
+                    //string genesisFolder = CLIEngine.GetValidFolder("What is the path to the GenesisFolder (where the OAPP will be generated)?");
+
+
+                    string genesisNamespace = OAPPName;
+
+                    if (!CLIEngine.GetConfirmation("Do you wish to use the OAPP Name for the Genesis Namespace (the OAPP namespace)? (Recommended)"))
+                    {
+                        Console.WriteLine();
+                        genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace (the OAPP namespace)?");
+                        if (genesisNamespace == "exit") return;
+                    }
+                    else
+                        Console.WriteLine();
+
+                    Guid parentId = Guid.Empty;
+
+                    //bool multipleHolonInstances = CLIEngine.GetConfirmation("Do you want holons to create multiple instances of themselves?");
+
+                    if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody? (e.g. if it's a moon, what planet does it orbit or if it's a planet what star does it orbit? Only possible for avatars over level 33. Pressing N will add the OAPP (Moon) to the default planet (Our World))"))
+                    {
+                        if (STAR.BeamedInAvatarDetail.Level > 33)
+                        {
+                            Console.WriteLine("");
+                            parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+                            if (parentId == Guid.Empty) return;
+
+                            CLIEngine.ShowWorkingMessage("Generating OAPP...");
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, dnaFolder, oappPath, genesisNamespace, parentId, providerType);
+                        }
+                        else
+                        {
+                            Console.WriteLine("");
+                            CLIEngine.ShowErrorMessage($"You are only level {STAR.BeamedInAvatarDetail.Level}. You need to be at least level 33 to be able to change the parent celestialbody. Using the default of Our World.");
+                            Console.WriteLine("");
+                            CLIEngine.ShowWorkingMessage("Generating OAPP...");
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("");
+                        CLIEngine.ShowWorkingMessage("Generating OAPP...");
+                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
+                    }
+
+                    if (lightResult != null)
+                    {
+                        if (!lightResult.IsError && lightResult.Result != null)
+                        {
+                            CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                            ShowOAPP(lightResult.Result.OAPPDNA, lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
+                            Console.WriteLine("");
+
+                            if (CLIEngine.GetConfirmation("Do you wish to open the OAPP now?"))
+                                Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(OAPPName, " OAPP"), string.Concat(genesisNamespace, ".csproj")));
+
+                            Console.WriteLine("");
+
+                            if (CLIEngine.GetConfirmation("Do you wish to open the OAPP folder now?"))
+                                Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(OAPPName, " OAPP")));
+
+                            Console.WriteLine("");
+                        }
+                        else
+                            CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                    }
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"The DnaFolder {dnaFolder} Is Not Valid. It Does Mot Contain Any Files!");
+            }
+        }
+
+        public static void ShowOAPP(IOAPPDNA oapp, List<IZome> zomes = null)
+        {
+            //CLIEngine.ShowMessage(string.Concat($"Id: ", oapp.OAPPId != Guid.Empty ? oapp.OAPPId : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Name: ", !string.IsNullOrEmpty(oapp.OAPPName) ? oapp.OAPPName : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Description: ", !string.IsNullOrEmpty(oapp.Description) ? oapp.Description : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Type: ", Enum.GetName(typeof(OAPPType), oapp.OAPPType)));
+            //CLIEngine.ShowMessage(string.Concat($"Genesis Type: ", Enum.GetName(typeof(GenesisType), oapp.GenesisType)));
+            //CLIEngine.ShowMessage(string.Concat($"Celestial Body Id: ", oapp.CelestialBodyId != Guid.Empty ? oapp.CelestialBodyId : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Celestial Body Name: ", !string.IsNullOrEmpty(oapp.CelestialBodyName) ? oapp.CelestialBodyName : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Celestial Body Type: ", Enum.GetName(typeof(HolonType), oapp.CelestialBodyType)));
+            //CLIEngine.ShowMessage(string.Concat($"Created On: ", oapp.CreatedOn != DateTime.MinValue ? oapp.CreatedOn.ToString() : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Created By: ", oapp.CreatedByAvatarId != Guid.Empty ? string.Concat(oapp.CreatedByAvatarUsername, " (", oapp.CreatedByAvatarId.ToString(), ")") : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Published On: ", oapp.PublishedOn != DateTime.MinValue ? oapp.PublishedOn.ToString() : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Published By: ", oapp.PublishedByAvatarId != Guid.Empty ? string.Concat(oapp.PublishedByAvatarUsername, " (", oapp.PublishedByAvatarId.ToString(), ")") : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Published Path: ", !string.IsNullOrEmpty(oapp.OAPPPublishedPath) ? oapp.OAPPPublishedPath : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Filesize: ", oapp.OAPPFileSize.ToString()));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published Path: ", !string.IsNullOrEmpty(oapp.OAPPWithSTARAndOASISRunTimePublishedPath) ? oapp.OAPPPublishedPath : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Filesize: ", oapp.OAPPWithSTARAndOASISRunTimeFileSize.ToString()));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published Path: ", !string.IsNullOrEmpty(oapp.OAPPWithSTARAndOASISRunTimeAndDotNetPublishedPath) ? oapp.OAPPPublishedPath : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Filesize: ", oapp.OAPPWithSTARAndOASISRunTimeAndDotNetFileSize.ToString()));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Published On STARNET: ", oapp.OAPPPublishedOnSTARNET ? "True" : "False"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Published To Cloud: ", oapp.OAPPPublishedToCloud ? "True" : "False"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Published To OASIS Provider: ", Enum.GetName(typeof(ProviderType), oapp.OAPPPublishedProviderType)));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To Cloud: ", oapp.OAPPWithSTARAndOASISRunTimePublishedToCloud ? "True" : "False"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To OASIS Provider: ", Enum.GetName(typeof(ProviderType), oapp.OAPPWithSTARAndOASISRunTimePublishedProviderType)));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To Cloud: ", oapp.OAPPWithSTARAndOASISRunTimeAndDotNetPublishedToCloud ? "True" : "False"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To OASIS Provider: ", Enum.GetName(typeof(ProviderType), oapp.OAPPWithSTARAndOASISRunTimeAndDotNetPublishedProviderType)));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Source Published Path: ", !string.IsNullOrEmpty(oapp.OAPPSourcePublishedPath) ? oapp.OAPPSourcePublishedPath : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Source Filesize: ", oapp.OAPPSourceFileSize.ToString()));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Source Published On STARNET: ", oapp.OAPPSourcePublishedOnSTARNET ? "True" : "False"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Source Public On STARNET: ", oapp.OAPPSourcePublicOnSTARNET ? "True" : "False"));
+            //CLIEngine.ShowMessage(string.Concat($"Launch Target: ", !string.IsNullOrEmpty(oapp.LaunchTarget) ? oapp.LaunchTarget : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Version: ", oapp.Version));
+            //CLIEngine.ShowMessage(string.Concat($"STAR ODK Version: ", oapp.STARODKVersion));
+            //CLIEngine.ShowMessage(string.Concat($"OASIS Version: ", oapp.OASISVersion));
+            //CLIEngine.ShowMessage(string.Concat($"COSMIC Version: ", oapp.COSMICVersion));
+
+            //CLIEngine.ShowMessage("");
+            //CLIEngine.ShowMessage("");
+            //CLIEngine.ShowMessage(string.Concat($"Id:                                                   ", oapp.OAPPId != Guid.Empty ? oapp.OAPPId : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Name:                                                 ", !string.IsNullOrEmpty(oapp.OAPPName) ? oapp.OAPPName : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Description:                                          ", !string.IsNullOrEmpty(oapp.Description) ? oapp.Description : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Type:                                            ", Enum.GetName(typeof(OAPPType), oapp.OAPPType)));
+            //CLIEngine.ShowMessage(string.Concat($"Genesis Type:                                         ", Enum.GetName(typeof(GenesisType), oapp.GenesisType)));
+            //CLIEngine.ShowMessage(string.Concat($"Celestial Body Id:                                    ", oapp.CelestialBodyId != Guid.Empty ? oapp.CelestialBodyId : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Celestial Body Name:                                  ", !string.IsNullOrEmpty(oapp.CelestialBodyName) ? oapp.CelestialBodyName : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Celestial Body Type:                                  ", Enum.GetName(typeof(HolonType), oapp.CelestialBodyType)));
+            //CLIEngine.ShowMessage(string.Concat($"Created On:                                           ", oapp.CreatedOn != DateTime.MinValue ? oapp.CreatedOn.ToString() : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Created By:                                           ", oapp.CreatedByAvatarId != Guid.Empty ? string.Concat(oapp.CreatedByAvatarUsername, " (", oapp.CreatedByAvatarId.ToString(), ")") : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Published On:                                         ", oapp.PublishedOn != DateTime.MinValue ? oapp.PublishedOn.ToString() : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Published By:                                         ", oapp.PublishedByAvatarId != Guid.Empty ? string.Concat(oapp.PublishedByAvatarUsername, " (", oapp.PublishedByAvatarId.ToString(), ")") : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Published Path:                                  ", !string.IsNullOrEmpty(oapp.OAPPPublishedPath) ? oapp.OAPPPublishedPath : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Filesize:                                        ", oapp.OAPPFileSize.ToString()));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published Path:                   ", !string.IsNullOrEmpty(oapp.OAPPWithSTARAndOASISRunTimePublishedPath) ? oapp.OAPPPublishedPath : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Filesize:                         ", oapp.OAPPWithSTARAndOASISRunTimeFileSize.ToString()));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published Path:              ", !string.IsNullOrEmpty(oapp.OAPPWithSTARAndOASISRunTimeAndDotNetPublishedPath) ? oapp.OAPPPublishedPath : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Filesize:                    ", oapp.OAPPWithSTARAndOASISRunTimeAndDotNetFileSize.ToString()));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Published On STARNET:                            ", oapp.OAPPPublishedOnSTARNET ? "True" : "False"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Published To Cloud:                              ", oapp.OAPPPublishedToCloud ? "True" : "False"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Published To OASIS Provider:                     ", Enum.GetName(typeof(ProviderType), oapp.OAPPPublishedProviderType)));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To Cloud:               ", oapp.OAPPWithSTARAndOASISRunTimePublishedToCloud ? "True" : "False"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To OASIS Provider:      ", Enum.GetName(typeof(ProviderType), oapp.OAPPWithSTARAndOASISRunTimePublishedProviderType)));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To Cloud:          ", oapp.OAPPWithSTARAndOASISRunTimeAndDotNetPublishedToCloud ? "True" : "False"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To OASIS Provider: ", Enum.GetName(typeof(ProviderType), oapp.OAPPWithSTARAndOASISRunTimeAndDotNetPublishedProviderType)));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Source Published Path:                           ", !string.IsNullOrEmpty(oapp.OAPPSourcePublishedPath) ? oapp.OAPPSourcePublishedPath : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Source Filesize:                                 ", oapp.OAPPSourceFileSize.ToString()));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Source Published On STARNET:                     ", oapp.OAPPSourcePublishedOnSTARNET ? "True" : "False"));
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Source Public On STARNET:                        ", oapp.OAPPSourcePublicOnSTARNET ? "True" : "False"));
+            //CLIEngine.ShowMessage(string.Concat($"Launch Target:                                        ", !string.IsNullOrEmpty(oapp.LaunchTarget) ? oapp.LaunchTarget : "None"));
+            //CLIEngine.ShowMessage(string.Concat($"Version:                                              ", oapp.Version));
+            //CLIEngine.ShowMessage(string.Concat($"STAR ODK Version:                                     ", oapp.STARODKVersion));
+            //CLIEngine.ShowMessage(string.Concat($"OASIS Version:                                        ", oapp.OASISVersion));
+            //CLIEngine.ShowMessage(string.Concat($"COSMIC Version:                                       ", oapp.COSMICVersion));
+            //CLIEngine.ShowMessage(string.Concat($".NET Version:                                         ", oapp.DotNetVersion));
+
+            CLIEngine.ShowMessage(string.Concat($"Id:                                                   ", oapp.Id != Guid.Empty ? oapp.Id : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Name:                                                 ", !string.IsNullOrEmpty(oapp.Name) ? oapp.Name : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Description:                                          ", !string.IsNullOrEmpty(oapp.Description) ? oapp.Description : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Type:                                            ", Enum.GetName(typeof(OAPPType), oapp.OAPPType)));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                                   ", Enum.GetName(typeof(OAPPTemplateType), oapp.OAPPTemplateType)));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Id:                                     ", oapp.OAPPTemplateId));
+            CLIEngine.ShowMessage(string.Concat($"Genesis Type:                                         ", Enum.GetName(typeof(GenesisType), oapp.GenesisType)));
+            CLIEngine.ShowMessage(string.Concat($"Celestial Body Id:                                    ", oapp.CelestialBodyId != Guid.Empty ? oapp.CelestialBodyId : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Celestial Body Name:                                  ", !string.IsNullOrEmpty(oapp.CelestialBodyName) ? oapp.CelestialBodyName : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Celestial Body Type:                                  ", Enum.GetName(typeof(HolonType), oapp.CelestialBodyType)));
+            CLIEngine.ShowMessage(string.Concat($"Created On:                                           ", oapp.CreatedOn != DateTime.MinValue ? oapp.CreatedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Created By:                                           ", oapp.CreatedByAvatarId != Guid.Empty ? string.Concat(oapp.CreatedByAvatarUsername, " (", oapp.CreatedByAvatarId.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published On:                                         ", oapp.PublishedOn != DateTime.MinValue ? oapp.PublishedOn.ToString() : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Published By:                                         ", oapp.PublishedByAvatarId != Guid.Empty ? string.Concat(oapp.PublishedByAvatarUsername, " (", oapp.PublishedByAvatarId.ToString(), ")") : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Published Path:                                  ", !string.IsNullOrEmpty(oapp.PublishedPath) ? oapp.PublishedPath : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Filesize:                                        ", oapp.FileSize.ToString()));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published Path:                   ", !string.IsNullOrEmpty(oapp.SelfContainedPublishedPath) ? oapp.PublishedPath : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Filesize:                         ", oapp.SelfContainedFileSize.ToString()));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published Path:              ", !string.IsNullOrEmpty(oapp.SelfContainedFullPublishedPath) ? oapp.PublishedPath : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Filesize:                    ", oapp.SelfContainedFullFileSize.ToString()));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Published On STARNET:                            ", oapp.PublishedOnSTARNET ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Published To Cloud:                              ", oapp.PublishedToCloud ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Published To OASIS Provider:                     ", Enum.GetName(typeof(ProviderType), oapp.PublishedProviderType)));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To Cloud:               ", oapp.SelfContainedPublishedToCloud ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To OASIS Provider:      ", Enum.GetName(typeof(ProviderType), oapp.SelfContainedPublishedProviderType)));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To Cloud:          ", oapp.SelfContainedFullPublishedToCloud ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To OASIS Provider: ", Enum.GetName(typeof(ProviderType), oapp.SelfContainedFullPublishedProviderType)));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Source Published Path:                           ", !string.IsNullOrEmpty(oapp.SourcePublishedPath) ? oapp.SourcePublishedPath : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Source Filesize:                                 ", oapp.SourceFileSize.ToString()));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Source Published On STARNET:                     ", oapp.SourcePublishedOnSTARNET ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"OAPP Source Public On STARNET:                        ", oapp.SourcePublicOnSTARNET ? "True" : "False"));
+            CLIEngine.ShowMessage(string.Concat($"Launch Target:                                        ", !string.IsNullOrEmpty(oapp.LaunchTarget) ? oapp.LaunchTarget : "None"));
+            CLIEngine.ShowMessage(string.Concat($"Version:                                              ", oapp.Version));
+            CLIEngine.ShowMessage(string.Concat($"STAR ODK Version:                                     ", oapp.STARODKVersion));
+            CLIEngine.ShowMessage(string.Concat($"OASIS Version:                                        ", oapp.OASISVersion));
+            CLIEngine.ShowMessage(string.Concat($"COSMIC Version:                                       ", oapp.COSMICVersion));
+            CLIEngine.ShowMessage(string.Concat($".NET Version:                                         ", oapp.DotNetVersion));
+
+
+            if (zomes != null && zomes.Count > 0)
+            {
+                Console.WriteLine("");
+                STARCLI.Zomes.ShowZomesAndHolons(zomes);
+            }
+
+            //TODO: Come back to this.
+            //if (oapp.CelestialBody != null && oapp.CelestialBody.CelestialBodyCore != null && oapp.CelestialBody.CelestialBodyCore.Zomes != null)
+            //    ShowZomesAndHolons(oapp.CelestialBody.CelestialBodyCore.Zomes);
+
+            //else if (oapp.Zomes != null)
+            //    ShowZomesAndHolons(oapp.Zomes);
+
+            CLIEngine.ShowDivider();
+        }
+
+        private static Guid ProcessOAPPTemplateResults(OASISResult<IEnumerable<OAPPTemplate>> oappTemplateResults, string searchTerm)
+        {
+            Guid OAPPTemplateId = Guid.Empty;
+
+            if (oappTemplateResults != null && oappTemplateResults.Result != null && !oappTemplateResults.IsError)
+            {
+                if (oappTemplateResults.Result.Count() > 1)
+                {
+                    CLIEngine.ShowMessage($"The following OAPP Template's were found for '{searchTerm}':");
+
+                    foreach (OAPPTemplate oappTemplate in oappTemplateResults.Result)
+                        STARCLI.OAPPTemplates.Show(oappTemplate);
+
+                    if (CLIEngine.GetConfirmation("Do you wish to use any of these OAPP Templates?"))
+                        OAPPTemplateId = CLIEngine.GetValidInputForGuid($"Which OAPP Template do you wish to use? Please enter the GUID/ID of the OAPP Template.");
+                }
+                else if (oappTemplateResults.Result.Count() == 1)
+                {
+                    CLIEngine.ShowMessage($"The following OAPP Template was found for '{searchTerm}':");
+                    STARCLI.OAPPTemplates.Show(oappTemplateResults.Result.FirstOrDefault());
+
+                    if (CLIEngine.GetConfirmation("Do you wish to use this OAPP Template?"))
+                        OAPPTemplateId = oappTemplateResults.Result.FirstOrDefault().STARNETDNA.Id;
+                }
+                else
+                    CLIEngine.ShowMessage($"No results were found for '{searchTerm}'.");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error occured searching for OAPP Templates: Reason: {oappTemplateResults.Message}");
+
+            return OAPPTemplateId;
+        }
     }
 }

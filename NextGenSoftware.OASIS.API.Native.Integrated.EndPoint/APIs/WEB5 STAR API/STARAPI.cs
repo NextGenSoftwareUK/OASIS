@@ -4,11 +4,14 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
-namespace NextGenSoftware.OASIS.API.ONODE.Core
+namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {
     public class STARAPI
     {
+        //private IOmiverse _omiverse = null;
+        //private COSMICManager _cosmicManager = null;
         private MissionManager _missions = null;
         private ChapterManager _chapters = null;
         private QuestManager _quests = null;
@@ -29,7 +32,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core
 
         public STARAPI(OASISAPI OASISAPI = null) 
         {
-            this.OASISAPI = OASISAPI;
+            if (OASISAPI != null)
+                this.OASISAPI = OASISAPI;
         }
 
         //public static async Task<STARAPI> CreateAsync(string userName, string password, OASISDNA OASISDNA, bool startApolloServer = true)
@@ -80,14 +84,54 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core
         //    }
         //}
 
-        public AvatarManager Avatars
-        {
-            get
-            {
-                return OASISAPI.Avatars;
-            }
-        }
+        //public AvatarManager Avatars
+        //{
+        //    get
+        //    {
+        //        return OASISAPI.Avatars;
+        //    }
+        //}
 
+        //public COSMICManager COSMIC
+        //{
+        //    get
+        //    {
+        //        if (_cosmicManager == null)
+        //        {
+        //            if (!OASISAPI.IsOASISBooted)
+        //                throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the COSMIC property!");
+
+        //            else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISDNA.OASIS.OASISSystemAccountId))
+        //                throw new OASISException("No avatar is beamed in. Please beam in before accessing the COSMIC property!");
+
+        //            else
+        //                _cosmicManager = new COSMICManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //        }
+
+        //        return _cosmicManager;
+        //    }
+        //}
+
+
+        //public IOmiverse Omniverse
+        //{
+        //    get
+        //    {
+        //        if (_omiverse == null)
+        //        {
+        //            if (!OASISAPI.IsOASISBooted)
+        //                throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Missions property!");
+
+        //            else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISDNA.OASIS.OASISSystemAccountId))
+        //                throw new OASISException("No avatar is beamed in. Please beam in before accessing the Missions property!");
+
+        //            else
+        //                _omiverse = AvatarManager.LoggedInAvatar.O
+        //        }
+
+        //        return _omiverse;
+        //    }
+        //}
         public MissionManager Missions
         {
             get

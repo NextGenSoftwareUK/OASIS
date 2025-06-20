@@ -1,11 +1,39 @@
 ﻿using NextGenSoftware.CLI.Engine;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public static class ErrorHandling
     {
+        public static void HandleBooleansResponse(bool isSuccess, string successMessage, string errorMessage)
+        {
+            if (isSuccess)
+                CLIEngine.ShowSuccessMessage(successMessage);
+            else
+                CLIEngine.ShowErrorMessage(errorMessage);
+        }
+
+        public static void HandleOASISResponse<T>(OASISResult<T> result, string successMessage, string errorMessage)
+        {
+            if (!result.IsError && result.Result != null)
+                CLIEngine.ShowSuccessMessage(successMessage);
+            else
+                CLIEngine.ShowErrorMessage($"{errorMessage}Reason: {result.Message}");
+        }
+
+        public static void HandleHolonsOASISResponse(OASISResult<IEnumerable<IHolon>> result)
+        {
+            if (!result.IsError && result.Result != null)
+            {
+                CLIEngine.ShowSuccessMessage($"{result.Result.Count()} Holon(s) Loaded:");
+                STARCLI.Holons.ShowHolons(result.Result, false);
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error Loading Holons. Reason: {result.Message}");
+        }
+
         public static (OASISResult<T1>, T2) HandleResponse<T1, T2>(OASISResult<T1> parentResult, OASISResult<T2> result, string errorMessage, string successMessage = "")
         {
             ProcessSuccessMessage(result, successMessage);

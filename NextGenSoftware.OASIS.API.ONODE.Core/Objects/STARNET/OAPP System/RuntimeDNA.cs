@@ -1,5 +1,4 @@
-﻿
-using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+﻿using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects
 {

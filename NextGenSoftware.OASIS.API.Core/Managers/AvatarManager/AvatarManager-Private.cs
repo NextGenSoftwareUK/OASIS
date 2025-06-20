@@ -227,8 +227,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatarDetail.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
 
                 avatarDetail.HumanDesign.Type = "Generator";
-                avatarDetail.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
-                avatarDetail.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
+                //avatarDetail.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
+                //avatarDetail.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
 
                 avatarDetail.Spells.Add(new Spell() { Name = "Super Spell" });
                 avatarDetail.Spells.Add(new Spell() { Name = "Super Speed Spell" });
