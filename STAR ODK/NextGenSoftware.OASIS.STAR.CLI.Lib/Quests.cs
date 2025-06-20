@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public Quests(Guid avatarId) : base(new API.ONODE.Core.Managers.QuestManager(avatarId),
             "Welcome to the Quest Wizard", new List<string> 
             {
-                "This wizard will allow you create a Quest which contains Quest's. Larger Quest's can be broken into Chapter's.",
+                "This wizard will allow you create a Quest which contains Sub-Quest's. Larger Quest's can be broken into Chapter's.",
                 "Quest's can contain both Quest's and Chapter's. Quest's can also have sub-quests.",
                 "Quest's contain GeoNFT's & GeoHotSpot's which can reward you various InventoryItem's for the avatar who completes the quest, triggers the GeoHotSpot or collects the GeoNFT.",
                 "Quest's can optionally be linked to OAPP's.",

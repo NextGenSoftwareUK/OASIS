@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core
 {
     public class OASISAPI
     {
-        private AvatarManager _avatars = null;
+        private AvatarManager _avatar = null;
         private NFTManager _nfts = null;
         private OLandManager _olands = null;
 
@@ -42,15 +42,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core
         {
             get
             {
-                if (_avatars == null)
+                if (_avatar == null)
                 {
                     if (IsOASISBooted)
-                        _avatars = new AvatarManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        _avatar = new AvatarManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
-                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Avatars property!");
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Avatar property!");
                 }
 
-                return _avatars;
+                return _avatar;
             }
         }
 
