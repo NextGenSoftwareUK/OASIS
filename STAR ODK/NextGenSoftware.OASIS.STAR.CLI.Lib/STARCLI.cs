@@ -4,7 +4,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
     public static class STARCLI
     {
         public static Avatars Avatars { get; } = new Avatars(STAR.BeamedInAvatar.Id);
-        public static Data Data { get; } = new Data(STAR.BeamedInAvatar.Id);
+        //public static Data Data { get; } = new Data(STAR.BeamedInAvatar.Id);
         public static Zomes Zomes { get; } = new Zomes(STAR.BeamedInAvatar.Id);
         public static Holons Holons { get; } = new Holons(STAR.BeamedInAvatar.Id);
         public static CelestialBodies CelestialBodies { get; } = new CelestialBodies(STAR.BeamedInAvatar.Id);

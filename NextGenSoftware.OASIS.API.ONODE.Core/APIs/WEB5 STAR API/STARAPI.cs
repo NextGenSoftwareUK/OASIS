@@ -2,8 +2,8 @@
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core
 {
@@ -20,8 +20,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core
         private OAPPManager _oapps = null;
         private OAPPTemplateManager _oappTemplates = null;
         private RuntimeManager _runtimes = null;
+        private STARNFTManager _nfts = null;
+        private STARGeoNFTManager _geoNFTs = null;
+        private CelestialBodyManager _celestialBodies = null;
+        private CelestialSpaceManager _celestialSpaces = null;
+        private STARZomeManager _zomes = null;
+        private STARHolonManager _holons = null;
 
-        private STARAPI() { }
+        public STARAPI(OASISAPI OASISAPI = null) 
+        {
+            this.OASISAPI = OASISAPI;
+        }
 
         //public static async Task<STARAPI> CreateAsync(string userName, string password, OASISDNA OASISDNA, bool startApolloServer = true)
         //{
@@ -53,10 +62,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core
 
         OASISAPI OASISAPI { get; set; } = new OASISAPI();
         public bool IsOASISBooted { get; set; }
-        public string OASISVersion { get; set; } //TODO: NEED TO FIX LATER!
-        public OASISDNA OASISDNA { get; set; } //TODO: NEED TO FIX LATER!
-        public AvatarManager Avatar { get; set; } //TODO: NEED TO FIX LATER!
-        //public MissionManager Missions { get; set; } //TODO: NEED TO FIX LATER!
+        public string OASISVersion { get; set; }
+        public OASISDNA OASISDNA { get; set; }
+
+        //public AvatarManager Avatar
+        //{
+        //    get
+        //    {
+        //        if (_avatar == null)
+        //        {
+        //            if (OASISAPI.IsOASISBooted)
+        //                _avatar = new AvatarManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //            else
+        //                throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Avatar property!");
+        //        }
+        //        return _avatar;
+        //    }
+        //}
+
+        public AvatarManager Avatars
+        {
+            get
+            {
+                return OASISAPI.Avatars;
+            }
+        }
 
         public MissionManager Missions
         {
@@ -64,16 +94,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core
             {
                 if (_missions == null)
                 {
-                    if (OASISAPI.IsOASISBooted)
-                        _missions = new MissionManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
-                    else
+                    if (!OASISAPI.IsOASISBooted)
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Missions property!");
+
+                    else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISDNA.OASIS.OASISSystemAccountId))
+                        throw new OASISException("No avatar is beamed in. Please beam in before accessing the Missions property!");
+
+                    else
+                        _missions = new MissionManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                 }
 
                 return _missions;
             }
         }
 
+        //TODO: Make all other properties like Missions ASAP! :)
         public ChapterManager Chapters
         {
             get
@@ -142,15 +177,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core
         {
             get
             {
-                if (_geoHotSpots == null)
+                if (_nfts == null)
                 {
                     if (OASISAPI.IsOASISBooted)
-                        _geoHotSpots = new GeoHotSpotManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        _nfts = new STARNFTManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
-                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the GeoHotSpots property!");
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the NFTs property!");
                 }
 
-                return _geoHotSpots;
+                return _nfts;
             }
         }
 
@@ -159,15 +194,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core
         {
             get
             {
-                if (_geoHotSpots == null)
+                if (_geoNFTs == null)
                 {
                     if (OASISAPI.IsOASISBooted)
-                        _geoHotSpots = new GeoHotSpotManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        _geoNFTs = new STARGeoNFTManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
-                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the GeoHotSpots property!");
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the GeoNFTs property!");
                 }
 
-                return _geoHotSpots;
+                return _geoNFTs;
             }
         }
 
@@ -271,15 +306,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core
         {
             get
             {
-                if (_runtimes == null)
+                if (_celestialBodies == null)
                 {
                     if (OASISAPI.IsOASISBooted)
-                        _runtimes = new RuntimeManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        _celestialBodies = new CelestialBodyManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
-                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Runtimes property!");
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the CelestialBodies property!");
                 }
 
-                return _runtimes;
+                return _celestialBodies;
             }
         }
 
@@ -287,15 +322,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core
         {
             get
             {
-                if (_runtimes == null)
+                if (_celestialSpaces == null)
                 {
                     if (OASISAPI.IsOASISBooted)
-                        _runtimes = new RuntimeManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        _celestialSpaces = new CelestialSpaceManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
-                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Runtimes property!");
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the CelestialSpaces property!");
                 }
 
-                return _runtimes;
+                return _celestialSpaces;
             }
         }
 
@@ -303,15 +338,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core
         {
             get
             {
-                if (_runtimes == null)
+                if (_zomes == null)
                 {
                     if (OASISAPI.IsOASISBooted)
-                        _runtimes = new RuntimeManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        _zomes = new STARZomeManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
-                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Runtimes property!");
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Zomes property!");
                 }
 
-                return _runtimes;
+                return _zomes;
             }
         }
 
@@ -319,87 +354,117 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core
         {
             get
             {
-                if (_runtimes == null)
+                if (_holons == null)
                 {
                     if (OASISAPI.IsOASISBooted)
-                        _runtime  s = new RuntimeManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        _holons = new STARHolonManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
-                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Runtimes property!");
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Holons property!");
                 }
 
-                return _runtimes;
+                return _holons;
             }
         }
 
-        public OASISResult<bool> BootSTARAPI(string userName, string password, OASISDNA OASISDNA, bool startApolloServer = true)
+        public OASISResult<bool> BootOASISAPI(string userName, string password, OASISDNA OASISDNA, bool startApolloServer = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            result = OASISAPI.BootOASIS(OASISDNA, userName, password, startApolloServer);
-
-            if (result != null && result.Result != null && !result.IsError)
-                InitManagers();
-
-            return result;
+           return OASISAPI.BootOASIS(OASISDNA, userName, password, startApolloServer);
         }
 
         public async Task<OASISResult<bool>> BootSTARAPIAsync(string userName, string password, OASISDNA OASISDNA, bool startApolloServer = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            result = await OASISAPI.BootOASISAsync(OASISDNA, userName, password, startApolloServer);
-
-            if (result != null && result.Result != null && !result.IsError)
-                InitManagers();
-
-            return result;
+            return await OASISAPI.BootOASISAsync(OASISDNA, userName, password, startApolloServer);
         }
 
-        public OASISResult<bool> BootSTARAPI(string userName, string password, string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
+        public OASISResult<bool> BootOASISAPI(string userName, string password, string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            result = OASISAPI.BootOASIS(userName, password, OASISDNAPath, startApolloServer);
-
-            if (result != null && result.Result != null && !result.IsError)
-                InitManagers();
-
-            return result;
+            return OASISAPI.BootOASIS(userName, password, OASISDNAPath, startApolloServer);
         }
 
-        public async Task<OASISResult<bool>> BootSTARAPIAsync(string userName, string password, string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
+        public async Task<OASISResult<bool>> BootOASISAsync(string userName, string password, string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            result = await OASISAPI.BootOASISAsync(userName, password, OASISDNAPath, startApolloServer);
-
-            if (result != null && result.Result != null && !result.IsError)
-                InitManagers();
-
-            return result;
+            return await OASISAPI.BootOASISAsync(userName, password, OASISDNAPath, startApolloServer);
         }
 
-        public static OASISResult<bool> ShutdownSTARAPI()
+        public static OASISResult<bool> ShutdownOASIS()
         {
             return OASISBootLoader.OASISBootLoader.ShutdownOASIS();
         }
 
-        public static async Task<OASISResult<bool>> ShutdownSTARAPIAsync()
+        public static async Task<OASISResult<bool>> ShutdownOASISAsync()
         {
             return await OASISBootLoader.OASISBootLoader.ShutdownOASISAsync();
         }
 
-        private void InitManagers() 
-        {
-            //These are the OASIS.API.ONODE.Core Managers.
-            ////NFTs = new NFTManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
-            //GeoHotSpots = new GeoHotSpotManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
-            //Map = new MapManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
-            //Chapters = new ChapterManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
-            //Missions = new MissionManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
-            //Quests = new QuestManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, NFTs, OASISBootLoader.OASISBootLoader.OASISDNA);
-            //Parks = new ParkManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
-            //OLAND = new OLandManager(NFTs, ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
-            //OAPPs = new OAPPManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
-            //OAPPTemplates = new OAPPTemplateManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
-            //InventoryItems = new InventoryItemManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
-            //Runtimes = new RuntimeManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
-        }
+        //public OASISResult<bool> BootSTARAPI(string userName, string password, OASISDNA OASISDNA, bool startApolloServer = true)
+        //{
+        //    OASISResult<bool> result = new OASISResult<bool>();
+        //    result = OASISAPI.BootOASIS(OASISDNA, userName, password, startApolloServer);
+
+        //    if (result != null && result.Result != null && !result.IsError)
+        //        InitManagers();
+
+        //    return result;
+        //}
+
+        //public async Task<OASISResult<bool>> BootSTARAPIAsync(string userName, string password, OASISDNA OASISDNA, bool startApolloServer = true)
+        //{
+        //    OASISResult<bool> result = new OASISResult<bool>();
+        //    result = await OASISAPI.BootOASISAsync(OASISDNA, userName, password, startApolloServer);
+
+        //    if (result != null && result.Result != null && !result.IsError)
+        //        InitManagers();
+
+        //    return result;
+        //}
+
+        //public OASISResult<bool> BootSTARAPI(string userName, string password, string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
+        //{
+        //    OASISResult<bool> result = new OASISResult<bool>();
+        //    result = OASISAPI.BootOASIS(userName, password, OASISDNAPath, startApolloServer);
+
+        //    if (result != null && result.Result != null && !result.IsError)
+        //        InitManagers();
+
+        //    return result;
+        //}
+
+        //public async Task<OASISResult<bool>> BootSTARAPIAsync(string userName, string password, string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
+        //{
+        //    OASISResult<bool> result = new OASISResult<bool>();
+        //    result = await OASISAPI.BootOASISAsync(userName, password, OASISDNAPath, startApolloServer);
+
+        //    if (result != null && result.Result != null && !result.IsError)
+        //        InitManagers();
+
+        //    return result;
+        //}
+
+        //public static OASISResult<bool> ShutdownSTARAPI()
+        //{
+        //    return OASISBootLoader.OASISBootLoader.ShutdownOASIS();
+        //}
+
+        //public static async Task<OASISResult<bool>> ShutdownSTARAPIAsync()
+        //{
+        //    return await OASISBootLoader.OASISBootLoader.ShutdownOASISAsync();
+        //}
+
+        //private void InitManagers() 
+        //{
+        //    //These are the OASIS.API.ONODE.Core Managers.
+        //    ////NFTs = new NFTManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //    //GeoHotSpots = new GeoHotSpotManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //    //Map = new MapManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //    //Chapters = new ChapterManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //    //Missions = new MissionManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //    //Quests = new QuestManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, NFTs, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //    //Parks = new ParkManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //    //OLAND = new OLandManager(NFTs, ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //    //OAPPs = new OAPPManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //    //OAPPTemplates = new OAPPTemplateManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //    //InventoryItems = new InventoryItemManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //    //Runtimes = new RuntimeManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //}
     }
 }
