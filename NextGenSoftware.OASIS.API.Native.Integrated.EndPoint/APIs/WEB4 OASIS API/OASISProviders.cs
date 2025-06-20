@@ -20,7 +20,7 @@ using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 
-namespace NextGenSoftware.OASIS.API.ONODE.Core
+namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {
     public class OASISProviders
     {

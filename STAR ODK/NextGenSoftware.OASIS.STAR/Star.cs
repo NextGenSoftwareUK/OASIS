@@ -30,6 +30,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -41,6 +42,7 @@ namespace NextGenSoftware.OASIS.STAR
         private static StarStatus _status;
         private static Guid _starId = Guid.Empty;
         private static OASISAPI _OASISAPI = null;
+        private static STARAPI _STARAPI = null;
         private static IPlanet _defaultPlanet = null;
         private static ISuperStar _defaultSuperStar = null;
         private static IGrandSuperStar _defaultGrandSuperStar = null;
@@ -193,9 +195,27 @@ namespace NextGenSoftware.OASIS.STAR
         //    }
         //}
 
-        public static OASISAPI OASISAPI { get; set; }
-        public static STARAPI STARAPI { get; set; }
-       
+        public static OASISAPI OASISAPI
+        {
+            get
+            {
+                if (_OASISAPI == null)
+                    _OASISAPI = new OASISAPI();
+
+                return _OASISAPI;
+            }
+        }
+
+        public static STARAPI STARAPI
+        {
+            get
+            {
+                if (_STARAPI == null)
+                    _STARAPI = new STARAPI(OASISAPI);
+
+                return _STARAPI;
+            }
+        }
 
         //public static IMapper Mapper { get; set; }
 
@@ -1780,7 +1800,7 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (!OASISAPI.IsOASISBooted)
                 //return OASISAPI.BootOASIS(userName, password, STAR.OASISDNAPath);
-                return STARAPI.BootSTARAPI(userName, password, STAR.OASISDNAPath);
+                return STARAPI.BootOASISAPI(userName, password, STAR.OASISDNAPath);
             else
                 return new OASISResult<bool>() { Message = "OASIS Already Booted" };
         }
@@ -1791,7 +1811,7 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (!OASISAPI.IsOASISBooted)
                 //return await OASISAPI.BootOASISAsync(userName, password, STAR.OASISDNAPath);
-                return await STARAPI.BootSTARAPIAsync(userName, password, STAR.OASISDNAPath);
+                return await STARAPI.BootOASISAsync(userName, password, STAR.OASISDNAPath);
             else
                 return new OASISResult<bool>() { Message = "OASIS Already Booted" };
         }
@@ -2023,7 +2043,7 @@ namespace NextGenSoftware.OASIS.STAR
             //The 3rd Dimension will contain the UniversePrime and MagicVerse.
             //It will also create the GreatGrandCentralStar in the centre of the Omniverse and also a GrandCentralStar at the centre of the Multiverse.
             Omniverse omniverse = new Omniverse();
-           celestialSpaceResult = await omniverse.SaveAsync();
+            celestialSpaceResult = await omniverse.SaveAsync();
             OASISResultHelper.CopyResult(celestialSpaceResult, result);
             result.Result = (IOmiverse)celestialSpaceResult.Result;
 

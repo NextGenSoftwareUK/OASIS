@@ -60,26 +60,37 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STARNETManager.OnUploadStatusChanged -= OnUploadStatusChanged;
         }
 
-        public virtual async Task CreateAsync(object createParams, T1 newHolon = default, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> CreateAsync(object createParams, T1 newHolon = default, ProviderType providerType = ProviderType.Default)
         {
+            OASISResult<T1> result = new OASISResult<T1>();
             ShowHeader();
 
             string holonName = CLIEngine.GetValidInput($"What is the name of the {STARNETManager.STARNETHolonUIName}?");
 
             if (holonName == "exit")
-                return;
+            {
+                result.Message = "User Exited";
+                return result;
+            }
+               
 
             string holonDesc = CLIEngine.GetValidInput($"What is the description of the {STARNETManager.STARNETHolonUIName}?");
 
             if (holonDesc == "exit")
-                return;
+            {
+                result.Message = "User Exited";
+                return result;
+            }
 
             object holonSubType = CLIEngine.GetValidInputForEnum($"What type of {STARNETManager.STARNETHolonUIName} do you wish to create?", STARNETManager.STARNETHolonSubType);
 
             if (holonSubType != null)
             {
                 if (holonSubType.ToString() == "exit")
-                    return;
+                {
+                    result.Message = "User Exited";
+                    return result;
+                }
 
                 //Type STARNETHolonType = (Type)value;
                 string holonPath = "";
@@ -98,14 +109,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
                 CLIEngine.ShowWorkingMessage($"Generating {STARNETManager.STARNETHolonUIName}...");
                 //OASISResult<T1> starHolonResult = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, Type, holonPath, providerType);
-                OASISResult<T1> starHolonResult = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, holonSubType, holonPath, newHolon: newHolon, providerType: providerType);
+                result = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, holonSubType, holonPath, newHolon: newHolon, providerType: providerType);
 
-                if (starHolonResult != null)
+                if (result != null)
                 {
-                    if (!starHolonResult.IsError && starHolonResult.Result != null)
+                    if (!result.IsError && result.Result != null)
                     {
                         CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Generated.");
-                        Show(starHolonResult.Result);
+                        Show(result.Result);
                         Console.WriteLine("");
 
                         if (CLIEngine.GetConfirmation($"Do you wish to open the {STARNETManager.STARNETHolonUIName} folder now?"))
@@ -117,6 +128,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     CLIEngine.ShowErrorMessage($"Unknown Error Occured.");
             }
+
+            return result;
         }
 
         public virtual async Task EditAsync(string idOrName = "", object editParams = null, ProviderType providerType = ProviderType.Default)
@@ -755,7 +768,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
-        public virtual async Task<OASISResult<IEnumerable<T1>>> ListAllsAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T1>>> ListAllAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}'s...");
@@ -1067,7 +1080,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             Show(starHolons.Result.ElementAt(i), i==0, true, showNumbers, i + 1);
                     }
                     else
-                        CLIEngine.ShowWarningMessage("No {STARNETManager.STARNETHolonUIName}s Found.");
+                        CLIEngine.ShowWarningMessage($"No {STARNETManager.STARNETHolonUIName}s Found.");
                 }
                 else
                     CLIEngine.ShowErrorMessage($"Error occured loading {STARNETManager.STARNETHolonUIName}s. Reason: {starHolons.Message}");

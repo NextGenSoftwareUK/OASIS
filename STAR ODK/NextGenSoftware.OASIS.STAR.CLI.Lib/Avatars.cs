@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowWorkingMessage("Checking if email already in use...");
                     CLIEngine.SupressConsoleLogging = true;
 
-                    OASISResult<bool> checkIfEmailAlreadyInUseResult = STAR.OASISAPI.Avatar.CheckIfEmailIsAlreadyInUse(email);
+                    OASISResult<bool> checkIfEmailAlreadyInUseResult = STAR.OASISAPI.Avatars.CheckIfEmailIsAlreadyInUse(email);
                     CLIEngine.SupressConsoleLogging = false;
 
                     //if (!checkIfEmailAlreadyInUseResult.Result)
@@ -75,7 +75,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowWorkingMessage("Checking if email already in use...");
                 CLIEngine.SupressConsoleLogging = true;
 
-                OASISResult<bool> checkIfEmailAlreadyInUseResult = STAR.OASISAPI.Avatar.CheckIfEmailIsAlreadyInUse(email);
+                OASISResult<bool> checkIfEmailAlreadyInUseResult = STAR.OASISAPI.Avatars.CheckIfEmailIsAlreadyInUse(email);
                 CLIEngine.SupressConsoleLogging = false;
 
                 if (checkIfEmailAlreadyInUseResult.Result)
@@ -106,7 +106,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowWorkingMessage("Checking if username already in use...");
                     CLIEngine.SupressConsoleLogging = true;
 
-                    OASISResult<bool> checkIfUsernameAlreadyInUseResult = STAR.OASISAPI.Avatar.CheckIfUsernameIsAlreadyInUse(username);
+                    OASISResult<bool> checkIfUsernameAlreadyInUseResult = STAR.OASISAPI.Avatars.CheckIfUsernameIsAlreadyInUse(username);
                     CLIEngine.SupressConsoleLogging = false;
 
                     //if (!checkIfUsernameAlreadyInUseResult.Result)
@@ -214,7 +214,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             string token = CLIEngine.GetValidInput("Enter validation token: ");
                             CLIEngine.ShowWorkingMessage("Verifying Token...");
-                            OASISResult<bool> verifyEmailResult = STAR.OASISAPI.Avatar.VerifyEmail(token);
+                            OASISResult<bool> verifyEmailResult = STAR.OASISAPI.Avatars.VerifyEmail(token);
 
                             if (verifyEmailResult.IsError)
                                 CLIEngine.ShowErrorMessage(verifyEmailResult.Message);
@@ -553,11 +553,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (id == Guid.Empty)
                 id = CLIEngine.GetValidInputForGuid("What is the ID/GUID for the avatar you wish to view?");
 
-            OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatar.LoadAvatarAsync(id);
+            OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatars.LoadAvatarAsync(id);
 
             if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
             {
-                OASISResult<IAvatarDetail> avatarDetailResult = await STAR.OASISAPI.Avatar.LoadAvatarDetailAsync(id);
+                OASISResult<IAvatarDetail> avatarDetailResult = await STAR.OASISAPI.Avatars.LoadAvatarDetailAsync(id);
 
                 if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
                     ShowAvatar(avatarResult.Result, avatarDetailResult.Result);
@@ -579,11 +579,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 await ShowAvatar(id);
             else
             {
-                OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatar.LoadAvatarAsync(idOrUsername);
+                OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatars.LoadAvatarAsync(idOrUsername);
 
                 if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
                 {
-                    OASISResult<IAvatarDetail> avatarDetailResult = await STAR.OASISAPI.Avatar.LoadAvatarDetailByUsernameAsync(idOrUsername);
+                    OASISResult<IAvatarDetail> avatarDetailResult = await STAR.OASISAPI.Avatars.LoadAvatarDetailByUsernameAsync(idOrUsername);
 
                     if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
                         ShowAvatar(avatarResult.Result, avatarDetailResult.Result);
@@ -605,7 +605,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             OASISResult<bool> result = new OASISResult<bool>();
             string email = GetValidExistingEmail("Enter your email: ", providerType);
-            ErrorHandling.HandleResponseWithDefaultErrorMessage(result, await STAR.OASISAPI.Avatar.ForgotPasswordAsync(email, providerType), "Error occured sending Forgot Password email. Reason: ", "Successfully Sent Forgot Password Email, Please Check Your Email.");
+            ErrorHandling.HandleResponseWithDefaultErrorMessage(result, await STAR.OASISAPI.Avatars.ForgotPasswordAsync(email, providerType), "Error occured sending Forgot Password email. Reason: ", "Successfully Sent Forgot Password Email, Please Check Your Email.");
 
             if (result != null && result.Result != null && !result.IsError && CLIEngine.GetConfirmation("Would you like to enter the token you received in the email to reset your password now?"))
             {
@@ -622,11 +622,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             string token = CLIEngine.GetValidInput("What is the token you received in the Forgotten Password email you received?");
             string oldPassword = CLIEngine.ReadPassword("Enter your old password: ");
             string newPassword = CLIEngine.GetValidPassword("Enter your new password: ");
-            ErrorHandling.HandleResponseWithDefaultErrorMessage(result, await STAR.OASISAPI.Avatar.ResetPasswordAsync(token, oldPassword, newPassword, providerType), "ResetPasswordAsync", "Successfully Reset Password");
+            ErrorHandling.HandleResponseWithDefaultErrorMessage(result, await STAR.OASISAPI.Avatars.ResetPasswordAsync(token, oldPassword, newPassword, providerType), "ResetPasswordAsync", "Successfully Reset Password");
 
             if (result != null && result.Result != null && !result.IsError)
             {
-                OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatar.LoadAvatarAsync(STAR.BeamedInAvatar.Id);
+                OASISResult<IAvatar> avatarResult = await STAR.OASISAPI.Avatars.LoadAvatarAsync(STAR.BeamedInAvatar.Id);
 
                 if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
                     STAR.BeamedInAvatar = avatarResult.Result;
@@ -645,7 +645,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
 
             CLIEngine.ShowWorkingMessage("Searching Avatars...");
-            ListAvatars(await STAR.OASISAPI.Avatar.SearchAvatarsAsync(searchTerm, providerType));
+            ListAvatars(await STAR.OASISAPI.Avatars.SearchAvatarsAsync(searchTerm, providerType));
         }
 
         public void SearchAvatars(string searchTerm = "", ProviderType providerType = ProviderType.Default)
@@ -658,14 +658,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage("Searching Avatars...");
-            ListAvatars(STAR.OASISAPI.Avatar.SearchAvatars(searchTerm, providerType));
+            ListAvatars(STAR.OASISAPI.Avatars.SearchAvatars(searchTerm, providerType));
         }
 
         public async Task<OASISResult<IEnumerable<IAvatar>>> ListAvatarsAsync(ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage("Listing Avatars...");
-            return await ListAvatars(await STAR.OASISAPI.Avatar.LoadAllAvatarsAsync(providerType: providerType));
+            return await ListAvatars(await STAR.OASISAPI.Avatars.LoadAllAvatarsAsync(providerType: providerType));
         }
 
         public async Task<OASISResult<IEnumerable<IAvatarDetail>>> ListAvatarDetailsAsync(ProviderType providerType = ProviderType.Default)
@@ -675,11 +675,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage("Listing Avatar Details...");
-            OASISResult<IEnumerable<IAvatar>> avatarResults = await STAR.OASISAPI.Avatar.LoadAllAvatarsAsync(providerType: providerType);
+            OASISResult<IEnumerable<IAvatar>> avatarResults = await STAR.OASISAPI.Avatars.LoadAllAvatarsAsync(providerType: providerType);
 
             if (avatarResults != null && avatarResults.Result != null && !avatarResults.IsError)
             {
-                OASISResult<IEnumerable<IAvatarDetail>> avatarDetailResults = await STAR.OASISAPI.Avatar.LoadAllAvatarDetailsAsync(providerType: providerType);
+                OASISResult<IEnumerable<IAvatarDetail>> avatarDetailResults = await STAR.OASISAPI.Avatars.LoadAllAvatarDetailsAsync(providerType: providerType);
 
                 if (avatarDetailResults != null && avatarDetailResults.Result != null && !avatarDetailResults.IsError)
                 {

@@ -42,7 +42,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
         public static string OASISVersion { get; set; } = "v3.4.0";
         public static string COSMICVersion { get; set; } = "v2.0.1";
-        public static string STARODKVersion { get; set; } = "v2.3.0";
+        public static string STARODKVersion { get; set; } = "v3.0.0";
+        public static string STARNETVersion { get; set; } = "v1.1.1";
+
         public static string DotNetVersion
         {
             get
@@ -298,6 +300,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         LoggingManager.Log($"OASIS RUNTIME VERSION: {OASISVersion}.", LogType.Info);
                         LoggingManager.Log($"COSMIC ORM RUNTIME VERSION: {COSMICVersion}.", LogType.Info);
                         LoggingManager.Log($"STAR ODK VERSION: {STARODKVersion}.", LogType.Info);
+                        LoggingManager.Log($"STARNET VERSION: {STARNETVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (LIVE): {OASISDNA.OASIS.CurrentLiveVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (STAGING): {OASISDNA.OASIS.CurrentStagingVersion}.", LogType.Info);
                     }

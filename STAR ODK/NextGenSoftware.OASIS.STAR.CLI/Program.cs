@@ -23,6 +23,7 @@ using System.Threading;
 using ConsoleTables;
 using BetterConsoleTables;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 {
@@ -123,8 +124,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     DEFAULT_DNA_FOLDER = STAR.STARDNA.CelestialBodyDNA;
                     DEFAULT_GENESIS_FOLDER = STAR.STARDNA.DefaultOAPPsSourcePath;
 
-                    await STARCLI.BeamInAvatar();
-                    await ReadyPlayerOne();
+                    await STARCLI.Avatars.BeamInAvatar();
+                    await ReadyPlayerOne(); //TODO: May allow this to be called with a different provider in future.
                 }
             }
             catch (Exception ex)
@@ -160,12 +161,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             if (STAR.IsDetailedCOSMICOutputsEnabled)
             {
                 IHolon holon = Mapper<ICelestialBody, Holon>.MapBaseHolonProperties(e.Result.Result);
-                STARCLI.ShowHolonProperties(holon);
+                STARCLI.Holons.ShowHolonProperties(holon);
             }
             //ShowHolonProperties((IHolon)e.Result);
         }
 
-        private static async Task ReadyPlayerOne()
+        private static async Task ReadyPlayerOne(ProviderType providerType = ProviderType.Default)
         {
             //ShowAvatarStats(); //TODO: Temp, put back in after testing! ;-)
 
@@ -293,7 +294,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         if (inputArgs.Length > 1)
                                         {
                                             if (inputArgs[1].ToLower() == "wiz")
-                                                await STARCLI.LightWizardAsync(null);
+                                                await STARCLI.OAPPs.LightWizardAsync(null);
                                             else
                                             {
                                                 CLIEngine.ShowWorkingMessage("Generating OAPP...");
@@ -365,7 +366,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                             if (CLIEngine.GetConfirmation("Do you wish to start the wizard?"))
                                             {
                                                 Console.WriteLine("");
-                                                await STARCLI.LightWizardAsync(null);
+                                                await STARCLI.OAPPs.LightWizardAsync(null);
                                             }
                                             else
                                                 Console.WriteLine("");
@@ -414,8 +415,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                                     while (!providersSelected)
                                                     {
-                                                        object providerType = CLIEngine.GetValidInputForEnum("What provider do you wish to add?", typeof(ProviderType));
-                                                        providers.Add((ProviderType)providerType);
+                                                        object objProviderType = CLIEngine.GetValidInputForEnum("What provider do you wish to add?", typeof(ProviderType));
+                                                        providers.Add((ProviderType)objProviderType);
 
                                                         if (!CLIEngine.GetConfirmation("Do you wish to add any other providers?"))
                                                             providersSelected = true;
@@ -559,7 +560,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                     break;
 
                                                 case "template":
-                                                    await ShowSubCommandAsync(inputArgs, "OAPP TEMPLATE", "", STARCLI.OAPPTemplates.CreateAsync, STARCLI.OAPPTemplates.EditAsync, STARCLI.OAPPTemplates.DeleteAsync, STARCLI.OAPPTemplates.DownloadAndInstallAsync, STARCLI.OAPPTemplates.UninstallAsync, STARCLI.OAPPTemplates.PublishAsync, STARCLI.OAPPTemplates.UnpublishAsync, STARCLI.OAPPTemplates.RepublishAsync, STARCLI.OAPPTemplates.ActivateAsync, STARCLI.OAPPTemplates.DeactivateAsync, STARCLI.OAPPTemplates.ShowAsync, STARCLI.OAPPTemplates.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAll, STARCLI.OAPPTemplates.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.SearchsAsync, ProviderType.Default, true);
+                                                    await ShowSubCommandAsync<OAPPTemplate>(inputArgs, "OAPP TEMPLATE", "", STARCLI.OAPPTemplates.CreateAsync, STARCLI.OAPPTemplates.EditAsync, STARCLI.OAPPTemplates.DeleteAsync, STARCLI.OAPPTemplates.DownloadAndInstallAsync, STARCLI.OAPPTemplates.UninstallAsync, STARCLI.OAPPTemplates.PublishAsync, STARCLI.OAPPTemplates.UnpublishAsync, STARCLI.OAPPTemplates.RepublishAsync, STARCLI.OAPPTemplates.ActivateAsync, STARCLI.OAPPTemplates.DeactivateAsync, STARCLI.OAPPTemplates.ShowAsync, STARCLI.OAPPTemplates.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllAsync, STARCLI.OAPPTemplates.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.SearchsAsync, true, providerType: providerType);
                                                     break;
                                             }
                                         }
@@ -575,7 +576,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                             showSubCommand = true;
 
                                         if (showSubCommand)
-                                            await ShowSubCommandAsync(inputArgs, "OAPP", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.RepublishOAPPAsync, STARCLI.ActivateOAPPAsync, STARCLI.DeactivateOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPsUninstalledForBeamedInAvatarAsync, STARCLI.ListOAPPsUnpublishedForBeamedInAvatarAsync, STARCLI.ListOAPPsDeactivatedForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true);
+                                            await ShowSubCommandAsync<OAPP>(inputArgs, "OAPP", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchsAsync, true, providerType: providerType);
 
                                         break;
                                     }
@@ -597,46 +598,47 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                         if (inputArgs.Length > 3 && inputArgs[3].ToLower() == "dotnetpublish")
                                                             dotNetPublish = true;
 
-                                                        await STARCLI.PublishOAPPAsync(oappPath, dotNetPublish); //TODO: Implement PublishHappAsync ASAP!
+                                                        await STARCLI.OAPPs.PublishAsync(oappPath, dotNetPublish); //TODO: Implement PublishHappAsync ASAP!
                                                     }
                                                     break;
                                             }
                                         }
 
-                                        await ShowSubCommandAsync(inputArgs, "hApp", "", STARCLI.LightWizardAsync, STARCLI.EditOAPPAsync, STARCLI.DeleteOAPPAsync, STARCLI.InstallOAPPAsync, STARCLI.UnInstallOAPPAsync, null, STARCLI.UnPublishOAPPAsync, STARCLI.RepublishOAPPAsync, STARCLI.ActivateOAPPAsync, STARCLI.DeactivateOAPPAsync, STARCLI.ShowOAPPAsync, STARCLI.ListOAPPsCreatedByBeamedInAvatarAsync, STARCLI.ListAllOAPPsAsync, STARCLI.ListOAPPsInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUninstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUnpublishedForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesDeactivatedForBeamedInAvatarAsync, STARCLI.SearchOAPPsAsync, ProviderType.Default, true, true);
+                                        //TODO: Make a hAPP STARManager ASAP! ;-) I think!
+                                        await ShowSubCommandAsync<OAPP>(inputArgs, "hApp", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchsAsync, true, providerType: providerType);
                                         break;
                                     }
 
                                 case "runtime":  
-                                    await ShowSubCommandAsync(inputArgs, "runtime", "", STARCLI.CreateRuntimeAsync, STARCLI.EditRuntimeAsync, STARCLI.DeleteRuntimeAsync, STARCLI.InstallRuntimeAsync, STARCLI.UnInstallRuntimeAsync, null, STARCLI.UnPublishRuntimeAsync, STARCLI.RepublishRuntimeAsync, STARCLI.ActivateRuntimeAsync, STARCLI.DeactivateRuntimeAsync, STARCLI.ShowRuntimeAsync, STARCLI.ListRuntimesCreatedByBeamedInAvatarAsync, STARCLI.ListAllRuntimesAsync, STARCLI.ListRuntimesInstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUninstalledForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesUnpublishedForBeamedInAvatarAsync, STARCLI.ListOAPPTemplatesDeactivatedForBeamedInAvatarAsync, STARCLI.SearchRuntimesAsync, ProviderType.Default, true, true);
+                                    await ShowSubCommandAsync<Runtime>(inputArgs, "runtime", "", STARCLI.Runtimes.CreateAsync, STARCLI.Runtimes.EditAsync, STARCLI.Runtimes.DeleteAsync, STARCLI.Runtimes.DownloadAndInstallAsync, STARCLI.Runtimes.UninstallAsync, STARCLI.Runtimes.PublishAsync, STARCLI.Runtimes.UnpublishAsync, STARCLI.Runtimes.RepublishAsync, STARCLI.Runtimes.ActivateAsync, STARCLI.Runtimes.DeactivateAsync, STARCLI.Runtimes.ShowAsync, STARCLI.Runtimes.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Runtimes.ListAllAsync, STARCLI.Runtimes.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Runtimes.SearchsAsync, providerType: providerType);
                                     break;
 
                                 case "celestialspace":
-                                    await ShowSubCommandAsync(inputArgs, "celestial space");
+                                    await ShowSubCommandAsync<STARCelestialSpace>(inputArgs, "celestial space");
                                     break;
 
                                 case "celestialbody":
-                                    await ShowSubCommandAsync(inputArgs, "celestial body", "celestial bodies");
+                                    await ShowSubCommandAsync<STARCelestialBody>(inputArgs, "celestial body", "celestial bodies");
                                     break;
 
                                 case "zome":
-                                    await ShowSubCommandAsync(inputArgs);
+                                    await ShowSubCommandAsync<STARZome>(inputArgs);
                                     break;
 
                                 case "holon":
-                                    await ShowSubCommandAsync(inputArgs, "", "", STARCLI.CreateHolonAsync, STARCLI.UpdateHolonAsync, STARCLI.DeleteHolonAsync, null, null, null, null, null, null, null, STARCLI.ShowHolonAsync, STARCLI.ListAllHolonsForForBeamedInAvatar, STARCLI.ListAllHolonsAsync, null, null, null, null, null, ProviderType.Default);
+                                    await ShowSubCommandAsync<STARHolon>(inputArgs, "", "", STARCLI.Holons.CreateAsync, STARCLI.Holons.EditAsync, STARCLI.Holons.DeleteAsync, STARCLI.Holons.DownloadAndInstallAsync, STARCLI.Holons.UninstallAsync, STARCLI.Holons.PublishAsync, STARCLI.Holons.UnpublishAsync, STARCLI.Holons.RepublishAsync, STARCLI.Holons.ActivateAsync, STARCLI.Holons.DeactivateAsync, STARCLI.Holons.ShowAsync, STARCLI.Holons.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Holons.ListAllAsync, STARCLI.Holons.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Holons.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Holons.SearchsAsync, providerType: providerType);
                                     break;
 
                                 case "chapter":
-                                    await ShowSubCommandAsync(inputArgs);
+                                    await ShowSubCommandAsync<Chapter>(inputArgs);
                                     break;
 
                                 case "mission":
-                                    await ShowSubCommandAsync(inputArgs);
+                                    await ShowSubCommandAsync<Mission>(inputArgs);
                                     break;
 
                                 case "quest":
-                                    await ShowSubCommandAsync(inputArgs);
+                                    await ShowSubCommandAsync<Quest>(inputArgs);
                                     break;
 
                                 case "nft":
@@ -644,15 +646,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 case "geonft":
-                                    await ShowGeoNftSubCommandAsync(inputArgs);
+                                    await ShowGeoNftSubCommandAsync(inputArgs, providerType);
                                     break;
 
                                 case "geohotspot":
-                                    await ShowSubCommandAsync(inputArgs);
+                                    await ShowSubCommandAsync<GeoHotSpot>(inputArgs);
                                     break;
 
                                 case "inventoryitem":
-                                    await ShowSubCommandAsync(inputArgs);
+                                    await ShowSubCommandAsync<InventoryItem>(inputArgs);
                                     break;
 
                                 case "avatar":
@@ -744,12 +746,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         else
                                             CLIEngine.ShowWorkingMessage($"GenesisFolder Specified: {genesisFolder}");
 
-                                        await STARCLI.RunCOSMICTests(OAPPType, OAPPTemplateType, OAPPTemplateId, dnaFolder, genesisFolder);
+                                        await STARCLI.STARTests.RunCOSMICTests(OAPPType, OAPPTemplateType, OAPPTemplateId, dnaFolder, genesisFolder);
                                     }
                                     break;
 
                                 case "runoasisapitests":
-                                    await STARCLI.RunOASISAPTests();
+                                    await STARCLI.STARTests.RunOASISAPTests();
                                     break;
 
                                 default:
@@ -777,10 +779,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.ForegroundColor = ConsoleColor.White;
         }
 
-        private static async Task ShowSubCommandAsync(string[] inputArgs, 
+        private static async Task ShowSubCommandAsync<T>(string[] inputArgs, 
             string subCommand = "",
             string subCommandPlural = "",
-            Func<object, object, ProviderType, Task> createPredicate = null, 
+            Func<object, T, ProviderType, Task> createPredicate = null, 
             Func<string, object, ProviderType, Task> updatePredicate = null, 
             Func<string, bool, ProviderType, Task> deletePredicate = null,
             Func<string, InstallMode, ProviderType, Task> downloadAndInstallPredicate = null,
@@ -799,12 +801,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<ProviderType, Task> listUnpublishedPredicate = null,
             Func<ProviderType, Task> listDeactivatedPredicate = null,
             Func<string, bool, bool, ProviderType, Task> searchPredicate = null, 
-            ProviderType providerType = ProviderType.Default,
             bool isOAPPOrHappOrRuntime = false,
             bool ishApp = false,
             bool showCreate = true,
             bool showUpdate = true,
-            bool showDelete = true)
+            bool showDelete = true,
+            ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon
         {
             string subCommandParam = "";
             string subCommandParam2 = "";
@@ -859,7 +861,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             if (showCreate)
                             {
                                 if (createPredicate != null)
-                                    await createPredicate(null, null, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                    await createPredicate(null, default, providerType); //TODO: Pass in params in a object or dynamic obj.
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
@@ -1685,14 +1687,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "show":
                         {
-                            await STARCLI.NFTs.ListAllsAsync();
+                            await STARCLI.NFTs.ListAllAsync();
                         }
                         break;
 
                     case "list":
                         {
                             if (inputArgs.Length > 2 && inputArgs[2] != null && inputArgs[2].ToLower() == "all")
-                                await STARCLI.NFTs.ListAllsAsync();
+                                await STARCLI.NFTs.ListAllAsync();
                             else
                                 await STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync();
                         }
@@ -1714,7 +1716,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"NFT SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    mint                  Mints a OASIS NFT for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    mint/create           Mints a OASIS NFT for the currently beamed in avatar.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    update     {id/name}  Updates a OASIS NFT for the given {id} or {name}.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    burn                  Burn's a OASIS NFT for the given {id} or {name}.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    send                  Send a OASIS NFT for the given {id} or {name} to another wallet cross-chain.", ConsoleColor.Green, false);
@@ -1727,7 +1729,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
         }
 
-        private static async Task ShowGeoNftSubCommandAsync(string[] inputArgs)
+        private static async Task ShowGeoNftSubCommandAsync(string[] inputArgs, ProviderType providerType)
         {
             if (inputArgs.Length > 1)
             {
@@ -1743,7 +1745,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 {
                     case "mint":
                     case "create":
-                        await STARCLI.OAPPs.CreateAsync(null);
+                        await STARCLI.GeoNFTs.CreateAsync(null);
                         break;
 
                     case "send":
@@ -1751,13 +1753,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         break;
 
                     case "place":
-                        await STARCLI.OAPPs.PublishAsync();
+                        await STARCLI.GeoNFTs.PublishAsync();
                         break;
 
                     case "update":
-                        {
-                            CLIEngine.ShowMessage("Coming soon...");
-                        }
+                        await STARCLI.GeoNFTs.EditAsync(providerType: providerType);
                         break;
 
                     case "burn":
@@ -1767,36 +1767,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         break;
 
                     case "publish":
-                        {
-                            CLIEngine.ShowMessage("Coming soon...");
-                        }
+                        await STARCLI.GeoNFTs.PublishAsync(providerType: providerType);
                         break;
 
                     case "unpublish":
-                        {
-                            CLIEngine.ShowMessage("Coming soon...");
-                        }
+                        await STARCLI.GeoNFTs.UnpublishAsync(providerType: providerType);
                         break;
 
                     case "show":
-                        {
-                            await STARCLI.GeoNFTs.ShowAsync();
-                        }
+                        await STARCLI.GeoNFTs.ShowAsync(providerType: providerType);
                         break;
 
                     case "list":
                         {
                             if (inputArgs.Length > 2 && inputArgs[2] != null && inputArgs[2].ToLower() == "all")
-                                await STARCLI.GeoNFTs.ListAllsAsync();
+                                await STARCLI.GeoNFTs.ListAllAsync();
                             else
                                 await STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync();
                         }
                         break;
 
                     case "search":
-                        {
-                            CLIEngine.ShowMessage("Coming soon...");
-                        }
+                        await STARCLI.GeoNFTs.SearchsAsync(providerType: providerType);
                         break;
 
                     default:
@@ -1809,14 +1801,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"GEONFT SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    mint                  Mints a OASIS Geo-NFT and places in Our World/AR World for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    update     {id/name}  Updates a OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    burn       {id/name}  Burn's a OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    send       {id/name}  Send a OASIS Geo-NFT for the given {id} or {name} to another wallet cross-chain.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    publish    {id/name}  Publishes a OASIS Geo-NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    unpublish  {id/name}  Unpublishes a OASIS Geo-NFT for the given {id} or {name} from the STARNET store.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    show       {id/name}  Shows the OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    list       [all]      List all OASIS Geo-NFT's that have been created. If the [all] flag is omitted it will list only your Geo-NFT's otherwise it will list all published Geo-NFT's as well as yours.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    mint/create            Mints a OASIS Geo-NFT and places in Our World/AR World for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    update      {id/name}  Updates a OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    burn        {id/name}  Burn's a OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    send        {id/name}  Send a OASIS Geo-NFT for the given {id} or {name} to another wallet cross-chain.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    publish     {id/name}  Publishes a OASIS Geo-NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    unpublish   {id/name}  Unpublishes a OASIS Geo-NFT for the given {id} or {name} from the STARNET store.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    show        {id/name}  Shows the OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list        [all]      List all OASIS Geo-NFT's that have been created. If the [all] flag is omitted it will list only your Geo-NFT's otherwise it will list all published Geo-NFT's as well as yours.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    search                Search for OASIS Geo-NFT's that match certain criteria and belong to the currently beamed in avatar.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }

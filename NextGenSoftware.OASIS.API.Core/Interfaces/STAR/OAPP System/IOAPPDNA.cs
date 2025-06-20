@@ -6,6 +6,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     public interface IOAPPDNA : ISTARNETDNA
     {
+        public Guid OAPPTemplateId { get; set; }
         public string SelfContainedPublishedPath { get; set; } //Contains the STAR & OASIS runtimes.
         public string SelfContainedFullPublishedPath { get; set; } //Contains the STAR, OASIS & .NET Runtimes.
         public bool SelfContainedPublishedToCloud { get; set; }

@@ -7,7 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 
-namespace NextGenSoftware.OASIS.API.ONODE.Core
+namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {
     public class OASISAPI
     {
