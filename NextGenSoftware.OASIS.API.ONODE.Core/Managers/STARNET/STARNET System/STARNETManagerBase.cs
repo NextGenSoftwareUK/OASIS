@@ -14,11 +14,11 @@ using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
@@ -1252,7 +1252,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             try
             {
-                OASISResult<ISTARNETDNA> readSTARNETDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<ISTARNETDNA>(fullPathToSource);
+                OASISResult<STARNETDNA> readSTARNETDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<STARNETDNA>(fullPathToSource);
 
                 if (readSTARNETDNAResult != null && !readSTARNETDNAResult.IsError && readSTARNETDNAResult.Result != null)
                 {
@@ -3052,7 +3052,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 //Unzip
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Decompressing });
                 ZipFile.ExtractToDirectory(fullPathToPublishedOrDownloadedSTARNETHolonFile, tempPath, Encoding.Default, true);
-                OASISResult<ISTARNETDNA> STARNETDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<ISTARNETDNA>(tempPath);
+                OASISResult<STARNETDNA> STARNETDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<STARNETDNA>(tempPath);
 
                 if (STARNETDNAResult != null && STARNETDNAResult.Result != null && !STARNETDNAResult.IsError)
                 {

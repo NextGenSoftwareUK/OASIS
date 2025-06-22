@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 
@@ -38,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             get
             {
                 if (_STARNETDNA == null && MetaData[_STARNETDNAJSONName] != null && !string.IsNullOrEmpty(MetaData[_STARNETDNAJSONName].ToString()))
-                    _STARNETDNA = JsonSerializer.Deserialize<ISTARNETDNA>(MetaData[_STARNETDNAJSONName].ToString());
+                    _STARNETDNA = JsonSerializer.Deserialize<STARNETDNA>(MetaData[_STARNETDNAJSONName].ToString());
 
                 return _STARNETDNA;
             }

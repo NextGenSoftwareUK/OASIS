@@ -2,12 +2,13 @@
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -264,7 +265,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 sourcePath = CLIEngine.GetValidFolder($"What is the full path to the {STARNETManager.STARNETHolonUIName} directory?", false);
             }
 
-            OASISResult<ISTARNETDNA> DNAResult = await STARNETManager.ReadDNAFromSourceOrInstallFolderAsync<ISTARNETDNA>(sourcePath);
+            OASISResult<STARNETDNA> DNAResult = await STARNETManager.ReadDNAFromSourceOrInstallFolderAsync<STARNETDNA>(sourcePath);
 
             if (DNAResult != null && DNAResult.Result != null && !DNAResult.IsError)
             {
@@ -1321,7 +1322,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                     if (result.MetaData != null && result.MetaData.ContainsKey("Reinstall"))
                                         result.MetaData["Reinstall"] = checkResult.MetaData["Reinstall"];
                                 }
-                                else
+                                else if (checkResult.IsError)
                                     result.Result = default;
                             }
                             else
@@ -1444,7 +1445,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             (!CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.STARNETDNA.Version})?")))
                         {
                             Console.WriteLine("");
-                            CLIEngine.ShowWorkingMessage("Loading {STARNETManager.STARNETHolonUIName} Versions...");
+                            CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName} Versions...");
                             OASISResult<IEnumerable<T1>> versionsResult = STARNETManager.LoadVersions(result.Result.STARNETDNA.Id, providerType);
                             ListStarHolons(versionsResult);
 
@@ -1496,7 +1497,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                     if (result.MetaData != null && result.MetaData.ContainsKey("Reinstall"))
                                         result.MetaData["Reinstall"] = checkResult.MetaData["Reinstall"];
                                 }
-                                else
+                                else if (checkResult.IsError)
                                     result.Result = default;
                             }
                             else
@@ -1621,7 +1622,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     OASISResult<T1> checkResult = await CheckIfAlreadyInstalledAsync(holon, providerType);
 
-                    if (checkResult != null && checkResult.Result != null && !checkResult.IsError)
+                    if (checkResult != null && !checkResult.IsError)
                         continueInstall = true;
                     else
                         CLIEngine.ShowErrorMessage($"Error checking if the {STARNETManager.STARNETHolonUIName} is already installed! Reason: {checkResult.MetaData}");
@@ -1645,7 +1646,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     OASISResult<T1> checkResult = CheckIfAlreadyInstalled(holon, providerType);
 
-                    if (checkResult != null && checkResult.Result != null && !checkResult.IsError)
+                    if (checkResult != null && !checkResult.IsError)
                         continueInstall = true;
                     else
                         CLIEngine.ShowErrorMessage($"Error checking if the {STARNETManager.STARNETHolonUIName} is already installed! Reason: {checkResult.MetaData}");
