@@ -1060,10 +1060,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual async Task<OASISResult<T1>> PublishAsync(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool generateBinary = true, bool uploadToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS)
+        public virtual async Task<OASISResult<T1>> PublishAsync(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool generateBinary = true, bool uploadToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             ISTARNETDNA STARNETDNA = null;
+            string errorMessage = "Error occured in STARManagerBase.PublishAsync. Reason:";
 
             OASISResult<T1> validateResult = await BeginPublishAsync(avatarId, fullPathToSource, launchTarget, fullPathToPublishTo, edit, providerType);
 
@@ -1106,7 +1107,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 if (registerOnSTARNET)
                 {
                     if (uploadToCloud)
-                        result = await UploadToCloudAsync<T1>(STARNETDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+                    {
+                        OASISResult<T1> uploadToCloudResult = await UploadToCloudAsync<T1>(STARNETDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+
+                        if (uploadToCloudResult != null && uploadToCloudResult.Result != null && !uploadToCloudResult.IsError)
+                            result.Result = uploadToCloudResult.Result;
+                        else
+                            OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToCloudAsync. Reason: {uploadToCloudResult.Message}");
+                    }
 
                     if (binaryProviderType != ProviderType.None)
                     {
@@ -1125,14 +1133,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(finalResult, result);
                 result.Result = finalResult.Result;
             }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in BeginPublishAsync. Reason: {validateResult.Message}");
 
             return result;
         }
 
-        public OASISResult<T1> Publish(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool generateBinary = true, bool uploadToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS)
+        public OASISResult<T1> Publish(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool generateBinary = true, bool uploadToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             ISTARNETDNA STARNETDNA = null;
+            string errorMessage = "Error occured in STARManagerBase.PublishAsync. Reason:";
 
             OASISResult<T1> validateResult = BeginPublish(avatarId, fullPathToSource, launchTarget, fullPathToPublishTo, edit, providerType);
 
@@ -1175,7 +1186,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 if (registerOnSTARNET)
                 {
                     if (uploadToCloud)
-                        result = UploadToCloud<T1>(STARNETDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+                    {
+                        OASISResult<T1> uploadToCloudResult = UploadToCloud<T1>(STARNETDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+
+                        if (uploadToCloudResult != null && uploadToCloudResult.Result != null && !uploadToCloudResult.IsError)
+                            result.Result = uploadToCloudResult.Result;
+                        else
+                            OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToCloud. Reason: {uploadToCloudResult.Message}");
+                    }
 
                     if (binaryProviderType != ProviderType.None)
                     {
@@ -1189,6 +1207,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     else
                         STARNETDNA.PublishedProviderType = ProviderType.None;
                 }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in BeginPublish. Reason: {validateResult.Message}");
+
 
                 OASISResult<T1> finalResult = FininalizePublish(avatarId, validateResult.Result, edit, providerType);
                 OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(finalResult, result);
@@ -1249,6 +1270,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string userName = "Unknown";
+            string errorMessage = "Error occured in STARManagerBase.BeginPublishAsync. Reason:";
 
             try
             {
@@ -1309,10 +1331,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                                     result.Result.STARNETDNA = STARNETDNA;
                                 }
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in ValidateVersion. Reason: {validateVersionResult.Message}");
                             }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The Permssion Denied! The beamed in avatar id {avatarId} does not match the avatar id {loadOAPPResult.Result.STARNETDNA.CreatedByAvatarId} who created this {this.STARNETHolonUIName}.");
                         }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in LoadAsync. Reason: {loadOAPPResult.Message}");
                     }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in LoadAvatarAsync. Reason: {loadAvatarResult.Message}");
                 }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in ReadDNAFromSourceOrInstallFolderAsync. Reason: {readSTARNETDNAResult.Message}");
             }
             catch (Exception e)
             {
@@ -1326,6 +1358,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string userName = "Unknown";
+            string errorMessage = "Error occured in STARManagerBase.BeginPublishAsync. Reason:";
 
             try
             {
@@ -1386,10 +1419,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                                     result.Result.STARNETDNA = STARNETDNA;
                                 }
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in ValidateVersion. Reason: {validateVersionResult.Message}");
                             }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The Permssion Denied! The beamed in avatar id {avatarId} does not match the avatar id {loadOAPPResult.Result.STARNETDNA.CreatedByAvatarId} who created this {this.STARNETHolonUIName}.");
                         }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in Load. Reason: {loadOAPPResult.Message}");
                     }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in LoadAvatar. Reason: {loadAvatarResult.Message}");
                 }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in ReadDNAFromSourceOrInstallFolder. Reason: {readSTARNETDNAResult.Message}");
             }
             catch (Exception e)
             {
@@ -2532,7 +2575,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                             downloadedSTARNETHolon = new T2()
                             {
-                                ParentHolonId = holon.Id,
+                                //ParentHolonId = holon.Id, //TODO: Later want to fix this so the parent holon id is the original source holon. We need to fix the listInstalled method to load from this id instead.
                                 ParentSTARNETHolonId = holon.STARNETDNA.Id,
                                 Name = string.Concat(holon.STARNETDNA.Name, " Downloaded Holon"),
                                 Description = string.Concat(holon.STARNETDNA.Description, " Downloaded Holon"),
@@ -2672,7 +2715,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                             downloadedSTARNETHolon = new T2()
                             {
-                                ParentHolonId = holon.Id,
+                                //ParentHolonId = holon.Id,
                                 ParentSTARNETHolonId = holon.STARNETDNA.Id,
                                 Name = string.Concat(holon.STARNETDNA.Name, " Downloaded Holon"),
                                 Description = string.Concat(holon.STARNETDNA.Description, " Downloaded Holon"),
@@ -3097,7 +3140,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                                 installedSTARNETHolon = new T3()
                                 {
-                                    ParentHolonId = STARNETHolonLoadResult.Result.Id,
+                                    //ParentHolonId = STARNETHolonLoadResult.Result.Id,
                                     ParentSTARNETHolonId = STARNETDNA.Id,
                                     Name = string.Concat(STARNETDNA.Name, " Installed Holon"),
                                     Description = string.Concat(STARNETDNA.Description, " Installed Holon"),
@@ -3277,7 +3320,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                                 installedSTARNETHolon = new T3()
                                 {
-                                    ParentHolonId = STARNETHolonLoadResult.Result.Id,
+                                    //ParentHolonId = STARNETHolonLoadResult.Result.Id,
                                     ParentSTARNETHolonId = STARNETDNA.Id,
                                     Name = string.Concat(STARNETDNA.Name, " Installed Holon"),
                                     Description = string.Concat(STARNETDNA.Description, " Installed Holon"),
