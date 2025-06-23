@@ -365,7 +365,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     Console.WriteLine("");
                     CLIEngine.ShowWorkingMessage($"Publishing {STARNETManager.STARNETHolonUIName}...");
-                    OASISResult<T1> publishResult = await STARNETManager.PublishAsync(STAR.BeamedInAvatar.Id, sourcePath, launchTarget, publishPath, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, edit, providerType, OAPPBinaryProviderType);
+                    OASISResult<T1> publishResult = await STARNETManager.PublishAsync(STAR.BeamedInAvatar.Id, sourcePath, launchTarget, publishPath, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
 
                     if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
                     {

@@ -1083,8 +1083,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             List<IHolon> restoredHolons = new List<IHolon>();
 
-            foreach (IHolon holon in holons)
-                restoredHolons.Add(RestoreCelesialBodies(holon));
+            if (holons != null)
+            {
+                foreach (IHolon holon in holons)
+                    restoredHolons.Add(RestoreCelesialBodies(holon));
+            }
+            //else
+            //    LoggingManager.Log("The list of holons to restore celestial bodies for is null.", LogType.Warning);
 
             return restoredHolons;
         }
@@ -1093,8 +1098,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             List<T> restoredHolons = new List<T>();
 
-            foreach (T holon in holons)
-                restoredHolons.Add(RestoreCelesialBodies(holon));
+            if (holons != null)
+            {
+                foreach (T holon in holons)
+                    restoredHolons.Add(RestoreCelesialBodies(holon));
+            }
+            //else
+            //    LoggingManager.Log("The list of holons to restore celestial bodies for is null.", LogType.Warning);
 
             return restoredHolons;
         }
