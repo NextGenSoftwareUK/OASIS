@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -250,6 +251,120 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             bool generateOAPP = true;
             bool uploadOAPPToCloud = true;
             ProviderType OAPPBinaryProviderType = ProviderType.None;  
+            //string launchTarget = "";
+            string publishPath = "";
+            //string launchTargetQuestion = "";
+           // bool simpleWizard = false;
+
+            //if (CLIEngine.GetConfirmation("Do you wish to launch the Simple or Advanced Wizard? The Simple Wizard will use defaults (recommended) but the Advanced Wizard will allow greater control and customisation. Press 'Y' for Simple or 'N' for Advanced."))
+            //    simpleWizard = true;
+
+            //if (string.IsNullOrEmpty(sourcePath))
+            //{
+            //    Console.WriteLine("");
+            //    launchTargetQuestion = $"What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the {STARNETManager.STARNETHolonUIName}? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)";
+            //    sourcePath = CLIEngine.GetValidFolder($"What is the full path to the {STARNETManager.STARNETHolonUIName} directory?", false);
+            //}
+
+            //OASISResult<STARNETDNA> DNAResult = await STARNETManager.ReadDNAFromSourceOrInstallFolderAsync<STARNETDNA>(sourcePath);
+
+            //if (DNAResult != null && DNAResult.Result != null && !DNAResult.IsError)
+            //{
+            //    OASISResult<T1> loadResult = await STARNETManager.LoadAsync(STAR.BeamedInAvatar.Id, DNAResult.Result.Id, 0, providerType);
+
+            //    if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+            //    {
+            //        loadResult.Result.STARNETDNA.Version = DNAResult.Result.Version; //Update the version from the JSON file.
+            //        Show(loadResult.Result);
+
+            //        if (!CLIEngine.GetConfirmation($"Is this the correct {STARNETManager.STARNETHolonUIName} you wish to publish?"))
+            //        {
+            //            Console.WriteLine("");
+            //            return;
+            //        }
+
+            //        launchTarget = loadResult.Result.STARNETDNA.LaunchTarget;
+            //        Console.WriteLine("");
+
+            //        //object templateType = Enum.Parse(STARNETManager.STARNETHolonSubType, DNAResult.Result.STARNETHolonType.ToString());
+            //        //Type Type = (Type)templateType;
+
+            //        //switch (Type)
+            //        //{
+            //        //    case Type.Console:
+            //        //    case Type.WPF:
+            //        //    case Type.WinForms:
+            //        //        launchTarget = $"{DNAResult.Result.Name}.exe"; //TODO: For this line to work need to remove the namespace question so it just uses the OAPPName as the namespace. //TODO: Eventually this will be set in the  and/or can also be set when I add the command line dotnet publish integration.
+            //        //        break;
+
+            //        //    case Type.Blazor:
+            //        //    case Type.MAUI:
+            //        //    case Type.WebMVC:
+            //        //        launchTarget = $"index.html";
+            //        //        break;
+            //        //}
+
+            //        if (!string.IsNullOrEmpty(launchTarget))
+            //        {
+            //            if (!CLIEngine.GetConfirmation($"{launchTargetQuestion} Do you wish to use the following default launch target: {launchTarget}?"))
+            //            {
+            //                Console.WriteLine("");
+            //                launchTarget = CLIEngine.GetValidFile("What launch target do you wish to use? ", sourcePath);
+            //            }
+            //            else
+            //                launchTarget = Path.Combine(sourcePath, launchTarget);
+            //        }
+            //        else
+            //            launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, sourcePath);
+
+
+            OASISResult<BeginPublishResult> beginPublishResult = await BeginPublishingAsync(sourcePath, providerType);
+
+            if (beginPublishResult != null && !beginPublishResult.IsError && beginPublishResult.Result != null)
+            {
+                Console.WriteLine("");
+                bool registerOnSTARNET = CLIEngine.GetConfirmation($"Do you wish to publish to STARNET? If you select 'Y' to this question then your {STARNETManager.STARNETHolonUIName} will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .{STARNETManager.STARNETHolonFileExtention} install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.");
+                Console.WriteLine("");
+
+                if (registerOnSTARNET && !beginPublishResult.Result.SimpleWizard)
+                {
+                    CLIEngine.ShowMessage($"Do you wish to publish/upload the .{STARNETManager.STARNETHolonFileExtention} file to an OASIS Provider or to the cloud or both? Depending on which OASIS Provider is chosen such as IPFSOASIS there may issues such as speed, relialbility etc for such a large file. If you choose to upload to the cloud this could be faster and more reliable (but there is a limit of 5 OAPPs on the free plan and you will need to upgrade to upload more than 5 OAPPs). You may want to choose to use both to add an extra layer of redundancy (recommended).");
+
+                    if (!CLIEngine.GetConfirmation("Do you wish to upload to the cloud?"))
+                        uploadOAPPToCloud = false;
+
+                    Console.WriteLine("");
+                    if (CLIEngine.GetConfirmation("Do you wish to upload to an OASIS Provider? Make sure you select a provider that can handle large files such as IPFSOASIS, HoloOASIS etc. Also remember the OASIS Hyperdrive will only be able to auto-replicate to other providers that also support large files and are free or cost effective. By default it will NOT auto-replicate large files, you will need to manually configure this in your OASIS Profile settings."))
+                    {
+                        Console.WriteLine("");
+                        object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to publish the OAPP to? (The default is IPFSOASIS)", typeof(ProviderType));
+
+                        if (largeProviderTypeObject != null)
+                            OAPPBinaryProviderType = (ProviderType)largeProviderTypeObject;
+                    }
+                    else
+                        Console.WriteLine("");
+                }
+
+                OASISResult<T1> publishResult = await FininaliazePublishingAsync(beginPublishResult.Result.SimpleWizard, sourcePath, publishPath, beginPublishResult.Result.LaunchTarget, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error Occured: {beginPublishResult.Message}");
+
+            //}
+            //    else
+            //        CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETHolonUIName} could not be found for id {DNAResult.Result.Id} found in the {STARNETManager.STARNETDNAFileName} file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new {STARNETManager.STARNETHolonUIName}.");
+            //}
+            //else
+            //    CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETDNAFileName} file could not be found! Please ensure it is in the folder you specified.");
+        }
+
+        protected async Task<OASISResult<BeginPublishResult>> BeginPublishingAsync(string sourcePath, ProviderType providerType)
+        {
+            OASISResult<BeginPublishResult> result = new OASISResult<BeginPublishResult>();
+            bool generateOAPP = true;
+            bool uploadOAPPToCloud = true;
+            ProviderType OAPPBinaryProviderType = ProviderType.None;
             string launchTarget = "";
             string publishPath = "";
             string launchTargetQuestion = "";
@@ -279,7 +394,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (!CLIEngine.GetConfirmation($"Is this the correct {STARNETManager.STARNETHolonUIName} you wish to publish?"))
                     {
                         Console.WriteLine("");
-                        return;
+                        result.Message = "User Exited";
+                        result.IsError = true;
+                        return result;
                     }
 
                     launchTarget = loadResult.Result.STARNETDNA.LaunchTarget;
@@ -315,86 +432,83 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                     else
                         launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, sourcePath);
-
-                    Console.WriteLine("");
-                    bool registerOnSTARNET = CLIEngine.GetConfirmation($"Do you wish to publish to STARNET? If you select 'Y' to this question then your {STARNETManager.STARNETHolonUIName} will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .{STARNETManager.STARNETHolonFileExtention} install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.");
-                    Console.WriteLine("");
-
-                    if (registerOnSTARNET && !simpleWizard)
-                    {
-                        CLIEngine.ShowMessage($"Do you wish to publish/upload the .{STARNETManager.STARNETHolonFileExtention} file to an OASIS Provider or to the cloud or both? Depending on which OASIS Provider is chosen such as IPFSOASIS there may issues such as speed, relialbility etc for such a large file. If you choose to upload to the cloud this could be faster and more reliable (but there is a limit of 5 OAPPs on the free plan and you will need to upgrade to upload more than 5 OAPPs). You may want to choose to use both to add an extra layer of redundancy (recommended).");
-
-                        if (!CLIEngine.GetConfirmation("Do you wish to upload to the cloud?"))
-                            uploadOAPPToCloud = false;
-
-                        Console.WriteLine("");
-                        if (CLIEngine.GetConfirmation("Do you wish to upload to an OASIS Provider? Make sure you select a provider that can handle large files such as IPFSOASIS, HoloOASIS etc. Also remember the OASIS Hyperdrive will only be able to auto-replicate to other providers that also support large files and are free or cost effective. By default it will NOT auto-replicate large files, you will need to manually configure this in your OASIS Profile settings."))
-                        {
-                            Console.WriteLine("");
-                            object largeProviderTypeObject = CLIEngine.GetValidInputForEnum("What provider do you wish to publish the OAPP to? (The default is IPFSOASIS)", typeof(ProviderType));
-
-                            if (largeProviderTypeObject != null)
-                                OAPPBinaryProviderType = (ProviderType)largeProviderTypeObject;
-                        }
-                        else
-                            Console.WriteLine("");
-                    }
-
-                    if (Path.IsPathRooted(PublishedPath) || string.IsNullOrEmpty(STAR.STARDNA.BasePath))
-                        publishPath = PublishedPath;
-                    else
-                        publishPath = Path.Combine(STAR.STARDNA.BasePath, PublishedPath);
-
-                    if (!simpleWizard)
-                    {
-                        if (!CLIEngine.GetConfirmation($"Do you wish to publish the {STARNETManager.STARNETHolonUIName} to the default publish folder defined in the STARDNA as {PublishedSTARDNAKey} : {publishPath}?"))
-                        {
-                            Console.WriteLine("");
-
-                            if (CLIEngine.GetConfirmation($"Do you wish to publish the {STARNETManager.STARNETHolonUIName} to: {Path.Combine(sourcePath, "Published")}?"))
-                                publishPath = Path.Combine(sourcePath, "Published");
-                            else
-                            {
-                                Console.WriteLine("");
-                                publishPath = CLIEngine.GetValidFolder($"Where do you wish to publish the {STARNETManager.STARNETHolonUIName}?", true);
-                            }
-                        }
-                    }
-
-                    publishPath = new DirectoryInfo(publishPath).FullName;
-
-                    Console.WriteLine("");
-                    CLIEngine.ShowWorkingMessage($"Publishing {STARNETManager.STARNETHolonUIName}...");
-                    OASISResult<T1> publishResult = await STARNETManager.PublishAsync(STAR.BeamedInAvatar.Id, sourcePath, launchTarget, publishPath, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
-
-                    if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
-                    {
-                        Show(publishResult.Result);
-
-                        if (CLIEngine.GetConfirmation($"Do you wish to install the {STARNETManager.STARNETHolonUIName} now?"))
-                            await DownloadAndInstallAsync(publishResult.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
-
-                        Console.WriteLine("");
-                    }
-                    else
-                    {
-                        if (publishResult.Message.Contains("Please make sure you increment the version"))
-                        {
-                            if (CLIEngine.GetConfirmation($"Do you wish to open the {STARNETManager.STARNETDNAFileName} file now?"))
-                                Process.Start("explorer.exe", Path.Combine(DNAResult.Result.SourcePath, STARNETManager.STARNETDNAFileName));
-                        }
-                        else
-                            CLIEngine.ShowErrorMessage($"An error occured publishing the {STARNETManager.STARNETHolonUIName}. Reason: {publishResult.Message}");
-
-                        Console.WriteLine("");
-                    }
                 }
                 else
                     CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETHolonUIName} could not be found for id {DNAResult.Result.Id} found in the {STARNETManager.STARNETDNAFileName} file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new {STARNETManager.STARNETHolonUIName}.");
             }
             else
                 CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETDNAFileName} file could not be found! Please ensure it is in the folder you specified.");
+
+            result.Result = new BeginPublishResult() { LaunchTarget = launchTarget, SimpleWizard = simpleWizard };
+            return result;
         }
+
+
+        protected async Task<OASISResult<T1>> FininaliazePublishingAsync(bool simpleWizard, string sourcePath, string publishPath, string launchTarget, bool edit, bool registerOnSTARNET, bool generateOAPP, bool uploadOAPPToCloud, ProviderType providerType, ProviderType OAPPBinaryProviderType)
+        {
+            await PreFininaliazePublishingAsync(simpleWizard, sourcePath, publishPath, launchTarget, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
+            OASISResult<T1> publishResult = await STARNETManager.PublishAsync(STAR.BeamedInAvatar.Id, sourcePath, launchTarget, publishPath, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
+            await PostFininaliazePublishingAsync(publishResult, sourcePath, providerType);
+            return publishResult;
+        }
+
+        protected async Task PreFininaliazePublishingAsync(bool simpleWizard, string sourcePath, string publishPath, string launchTarget, bool edit, bool registerOnSTARNET, bool generateOAPP, bool uploadOAPPToCloud, ProviderType providerType, ProviderType OAPPBinaryProviderType)
+        {
+            if (Path.IsPathRooted(PublishedPath) || string.IsNullOrEmpty(STAR.STARDNA.BasePath))
+                publishPath = PublishedPath;
+            else
+                publishPath = Path.Combine(STAR.STARDNA.BasePath, PublishedPath);
+
+            if (!simpleWizard)
+            {
+                if (!CLIEngine.GetConfirmation($"Do you wish to publish the {STARNETManager.STARNETHolonUIName} to the default publish folder defined in the STARDNA as {PublishedSTARDNAKey} : {publishPath}?"))
+                {
+                    Console.WriteLine("");
+
+                    if (CLIEngine.GetConfirmation($"Do you wish to publish the {STARNETManager.STARNETHolonUIName} to: {Path.Combine(sourcePath, "Published")}?"))
+                        publishPath = Path.Combine(sourcePath, "Published");
+                    else
+                    {
+                        Console.WriteLine("");
+                        publishPath = CLIEngine.GetValidFolder($"Where do you wish to publish the {STARNETManager.STARNETHolonUIName}?", true);
+                    }
+                }
+            }
+
+            publishPath = new DirectoryInfo(publishPath).FullName;
+
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Publishing {STARNETManager.STARNETHolonUIName}...");
+        }
+
+        protected async Task<OASISResult<T1>> PostFininaliazePublishingAsync(OASISResult<T1> publishResult, string sourcePath, ProviderType providerType)
+        {
+
+            if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
+            {
+                Show(publishResult.Result);
+
+                if (CLIEngine.GetConfirmation($"Do you wish to install the {STARNETManager.STARNETHolonUIName} now?"))
+                    await DownloadAndInstallAsync(publishResult.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
+
+                Console.WriteLine("");
+            }
+            else
+            {
+                if (publishResult.Message.Contains("Please make sure you increment the version"))
+                {
+                    if (CLIEngine.GetConfirmation($"Do you wish to open the {STARNETManager.STARNETDNAFileName} file now?"))
+                        Process.Start("explorer.exe", Path.Combine(sourcePath, STARNETManager.STARNETDNAFileName));
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"An error occured publishing the {STARNETManager.STARNETHolonUIName}. Reason: {publishResult.Message}");
+
+                Console.WriteLine("");
+            }
+
+            return publishResult;
+        }
+
 
         public virtual async Task UnpublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
@@ -1062,6 +1176,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowDivider();
         }
 
+        public void ShowHeader()
+        {
+            CLIEngine.ShowDivider();
+            CLIEngine.ShowMessage(CreateHeader);
+            CLIEngine.ShowDivider();
+            Console.WriteLine();
+
+            for (int i = 0; i < CreateIntroParagraphs.Count; i++)
+                CLIEngine.ShowMessage(CreateIntroParagraphs[i]);
+
+            CLIEngine.ShowDivider();
+        }
+
         private OASISResult<IEnumerable<T1>> ListStarHolons(OASISResult<IEnumerable<T1>> starHolons, bool showNumbers = false)
         {
             if (starHolons != null)
@@ -1659,7 +1786,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return installResult;
         }
 
-        private async Task<OASISResult<T3>> InstallAsync(T1 starHolon, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedFile = "", ProviderType providerType = ProviderType.Default)
+        protected async Task<OASISResult<T3>> InstallAsync(T1 starHolon, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedFile = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
 
@@ -1749,19 +1876,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             return result;
-        }
-
-        private void ShowHeader()
-        {
-            CLIEngine.ShowDivider();
-            CLIEngine.ShowMessage(CreateHeader);
-            CLIEngine.ShowDivider();
-            Console.WriteLine();
-
-            for (int i = 0; i < CreateIntroParagraphs.Count; i++)
-                CLIEngine.ShowMessage(CreateIntroParagraphs[i]);
-
-            CLIEngine.ShowDivider();
         }
 
         private T1 ConvertFromT3ToT1(T3 holon)
