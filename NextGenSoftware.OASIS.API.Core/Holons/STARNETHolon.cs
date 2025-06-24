@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
+    //public class STARNETHolon<T> : Holon, ISTARNETHolon where T : ISTARNETDNA //TODO: Implement this properly so that it can be used with any type of STARNETDNA.
     public class STARNETHolon : Holon, ISTARNETHolon
     {
         private string _STARNETDNAJSONName = "STARNETDNAJSON";

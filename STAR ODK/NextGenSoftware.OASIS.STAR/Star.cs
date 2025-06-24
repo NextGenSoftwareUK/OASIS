@@ -1279,7 +1279,7 @@ namespace NextGenSoftware.OASIS.STAR
             OASISResult<IOAPP> OAPPResult = await STARAPI.OAPPs.CreateOAPPAsync(BeamedInAvatar.AvatarId, OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, OAPPFolder, newBody, zomes);
 
             if (OAPPResult != null && !OAPPResult.IsError && OAPPResult.Result != null)
-                result.Result.OAPPDNA = (IOAPPDNA)OAPPResult.Result.STARNETDNA;
+                result.Result.OAPP = OAPPResult.Result;
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An Error Occured Calling OASISAPI.OAPPs.CreateOAPPAsync. Reason: {OAPPResult.Message}");
 

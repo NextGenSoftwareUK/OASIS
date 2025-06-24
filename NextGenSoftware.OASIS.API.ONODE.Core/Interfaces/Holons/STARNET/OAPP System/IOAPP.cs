@@ -1,10 +1,10 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+﻿//using NextGenSoftware.OASIS.API.Core.Enums;
+//using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
-namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
-{
-    public interface IOAPP : ISTARNETHolon
-    {
-        public OAPPType OAPPType { get; set; }
-    }
-}
+//namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
+//{
+//    public interface IOAPP : ISTARNETHolon
+//    {
+//        public OAPPType OAPPType { get; set; }
+//    }
+//}
