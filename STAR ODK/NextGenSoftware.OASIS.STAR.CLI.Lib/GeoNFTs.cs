@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class GeoNFTs : STARUIBase<STARGeoNFT, DownloadedGeoNFT, InstalledGeoNFT>
+    public class GeoNFTs : STARNETUIBase<STARGeoNFT, DownloadedGeoNFT, InstalledGeoNFT>
     {
         public NFTCommon NFTCommon { get; set; } = new NFTCommon();
 

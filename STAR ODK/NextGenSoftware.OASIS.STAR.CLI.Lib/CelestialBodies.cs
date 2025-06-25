@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class CelestialBodies : STARUIBase<STARCelestialBody, DownloadedCelestialBody, InstalledCelestialBody>
+    public class CelestialBodies : STARNETUIBase<STARCelestialBody, DownloadedCelestialBody, InstalledCelestialBody>
     {
         public CelestialBodies(Guid avatarId) : base(new API.ONODE.Core.Managers.CelestialBodyManager(avatarId),
             "Welcome to the Celestial Bodies Wizard", new List<string> 

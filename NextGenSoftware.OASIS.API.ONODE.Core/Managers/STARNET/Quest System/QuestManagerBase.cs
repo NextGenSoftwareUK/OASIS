@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -28,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                OASISResult<T1> parentChapterResult = await LoadAsync(avatarId, parentId, providerType: providerType);
+                OASISResult<T1> parentChapterResult = await LoadAsync<T1>(avatarId, parentId, providerType: providerType);
 
                 if (parentChapterResult != null && parentChapterResult.Result != null && !parentChapterResult.IsError)
                 {
@@ -106,7 +107,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                OASISResult<T1> parentChapterResult = await LoadAsync(avatarId, questId, providerType: providerType);
+                OASISResult<T1> parentChapterResult = await LoadAsync<T1>(avatarId, questId, providerType: providerType);
 
                 if (parentChapterResult != null && parentChapterResult.Result != null && !parentChapterResult.IsError)
                 {
@@ -196,7 +197,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManagerBase.GetCurentQuestAsync. Reason:";
 
-            OASISResult<T1> loadResult = await LoadAsync(avatarId, chapterId, version, providerType);
+            OASISResult<T1> loadResult = await LoadAsync<T1>(avatarId, chapterId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
             {

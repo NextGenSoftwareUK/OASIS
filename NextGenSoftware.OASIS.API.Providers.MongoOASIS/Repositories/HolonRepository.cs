@@ -586,7 +586,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 if (holonType == HolonType.All)
                     filter = Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue);
 
-                holons = _dbContext.Holon.Find(filter).ToList();
+                holons = await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
                 List<Holon> matchedHolons = new List<Holon>();
                 int matchedKeys = 0;
 
@@ -640,6 +640,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 if (holonType == HolonType.All)
                     filter = Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue);
 
+                holons = _dbContext.Holon.Find(filter).ToList();
                 List<Holon> matchedHolons = new List<Holon>();
                 int matchedKeys = 0;
 

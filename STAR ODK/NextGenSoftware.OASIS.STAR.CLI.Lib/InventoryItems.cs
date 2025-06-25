@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class InventoryItems : STARUIBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem>
+    public class InventoryItems : STARNETUIBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem>
     {
         public InventoryItems(Guid avatarId) : base(new API.ONODE.Core.Managers.InventoryItemManager(avatarId),
             "Welcome to the Geo-HotSpot Wizard", new List<string> 

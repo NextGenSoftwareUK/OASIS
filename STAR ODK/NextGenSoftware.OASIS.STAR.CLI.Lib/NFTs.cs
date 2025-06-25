@@ -10,7 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class NFTs : STARUIBase<STARNFT, DownloadedNFT, InstalledNFT>
+    public class NFTs : STARNETUIBase<STARNFT, DownloadedNFT, InstalledNFT>
     {
         public NFTCommon NFTCommon { get; set; } = new NFTCommon();
 

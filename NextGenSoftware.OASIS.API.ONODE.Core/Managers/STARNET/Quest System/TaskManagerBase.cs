@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                OASISResult<T1> loadResult = await LoadAsync(avatarId, chapterId, providerType: providerType);
+                OASISResult<T1> loadResult = await LoadAsync<T1>(avatarId, chapterId, providerType: providerType);
 
                 if (loadResult != null && !loadResult.IsError && loadResult.Result != null)
                 {

@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Quests : STARUIBase<Quest, DownloadedQuest, InstalledQuest>
+    public class Quests : STARNETUIBase<Quest, DownloadedQuest, InstalledQuest>
     {
         public Quests(Guid avatarId) : base(new API.ONODE.Core.Managers.QuestManager(avatarId),
             "Welcome to the Quest Wizard", new List<string> 
