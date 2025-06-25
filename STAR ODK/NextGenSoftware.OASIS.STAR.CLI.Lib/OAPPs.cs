@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class OAPPs : STARUIBase<OAPP, DownloadedOAPP, InstalledOAPP>
+    public class OAPPs : STARNETUIBase<OAPP, DownloadedOAPP, InstalledOAPP>
     {
         public OAPPs(Guid avatarId) : base(new API.ONODE.Core.Managers.OAPPManager(avatarId),
             "Welcome to the OASIS Omniverse/MagicVerse Light Wizard!", new List<string> 
@@ -130,40 +130,43 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         do
                         {
-                            if (CLIEngine.GetConfirmation("Do you know the GUID/ID of the OAPP Template?"))
+                            //if (CLIEngine.GetConfirmation("Do you know the GUID/ID of the OAPP Template?"))
+                            //{
+                            //    Console.WriteLine("");
+                            //    OAPPTemplateId = CLIEngine.GetValidInputForGuid("What is the GUID/ID?");
+                            //}
+                            //else
+                            //{
+                            //    Console.WriteLine("");
+
+                            //    if (CLIEngine.GetConfirmation("Do you know the name of the OAPP Template?"))
+                            //    {
+                            //        Console.WriteLine("");
+                            //        string OAPPTemplateName = CLIEngine.GetValidInput("What is the name?");
+
+                            //        if (OAPPTemplateName == "exit")
+                            //        {
+                            //            lightResult.Message = "User Exited";
+                            //            return lightResult;
+                            //        }
+
+                            //        CLIEngine.ShowWorkingMessage("Searching STARNET...");
+                            //        OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.STARAPI.OAPPTemplates.SearchAsync(STAR.BeamedInAvatar.Id, OAPPTemplateName, false, false, 0, providerType), OAPPTemplateName);
+                            //    }
+                            //    else
+                            //    {
+                            //        Console.WriteLine("");
+                            //        CLIEngine.ShowWorkingMessage("Searching STARNET...");
+                            //        OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.STARAPI.OAPPTemplates.LoadAllAsync(STAR.BeamedInAvatar.Id, OAPPTemplateType), string.Concat("type ", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)));
+                            //    }
+                            //}
+
+                            //OASISResult<OAPPTemplate> templateResult = await FindAsync<OAPPTemplate>("use", STARNETHolonUIName: "OAPP Template", providerType: providerType);
+                            OASISResult<OAPPTemplate> templateResult = await STARCLI.OAPPTemplates.FindAsync<OAPPTemplate>("use", providerType: providerType);
+
+                            if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
                             {
-                                Console.WriteLine("");
-                                OAPPTemplateId = CLIEngine.GetValidInputForGuid("What is the GUID/ID?");
-                            }
-                            else
-                            {
-                                Console.WriteLine("");
-
-                                if (CLIEngine.GetConfirmation("Do you know the name of the OAPP Template?"))
-                                {
-                                    Console.WriteLine("");
-                                    string OAPPTemplateName = CLIEngine.GetValidInput("What is the name?");
-
-                                    if (OAPPTemplateName == "exit")
-                                    {
-                                        lightResult.Message = "User Exited";
-                                        return lightResult;
-                                    }
-
-                                    CLIEngine.ShowWorkingMessage("Searching STARNET...");
-                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.STARAPI.OAPPTemplates.SearchAsync(STAR.BeamedInAvatar.Id, OAPPTemplateName, false, false, 0, providerType), OAPPTemplateName);
-                                }
-                                else
-                                {
-                                    Console.WriteLine("");
-                                    CLIEngine.ShowWorkingMessage("Searching STARNET...");
-                                    OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.STARAPI.OAPPTemplates.LoadAllAsync(STAR.BeamedInAvatar.Id, OAPPTemplateType), string.Concat("type ", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)));
-                                }
-                            }
-
-                            if (OAPPTemplateId != Guid.Empty)
-                            {
-                                OASISResult<bool> oappTemplateInstalledResult = STAR.STARAPI.OAPPTemplates.IsInstalled(STAR.BeamedInAvatar.Id, OAPPTemplateId, 0, providerType);
+                                OASISResult<bool> oappTemplateInstalledResult = await STAR.STARAPI.OAPPTemplates.IsInstalledAsync(STAR.BeamedInAvatar.Id, templateResult.Result.STARNETDNA.Id, templateResult.Result.STARNETDNA.VersionSequence, providerType);
 
                                 if (oappTemplateInstalledResult != null && !oappTemplateInstalledResult.IsError)
                                 {
@@ -171,19 +174,85 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                     {
                                         if (CLIEngine.GetConfirmation($"The selected OAPP Template is not currently installed. Do you wish to install it now?"))
                                         {
-                                            //STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, OAPPTemplateId, providerType);
-                                            OASISResult<InstalledOAPPTemplate> installResult = await STARCLI.OAPPTemplates.DownloadAndInstallAsync(OAPPTemplateId.ToString(), InstallMode.DownloadAndInstall, providerType);
+                                            OASISResult<InstalledOAPPTemplate> installResult = await STARCLI.OAPPTemplates.DownloadAndInstallAsync(templateResult.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
 
                                             if (installResult.Result != null && !installResult.IsError)
+                                            {
                                                 templateInstalled = true;
+                                                OAPPTemplateId = installResult.Result.STARNETDNA.Id;
+                                            }
                                         }
+                                    }
+                                    else
+                                    {
+                                        templateInstalled = true;
+                                        OAPPTemplateId = templateResult.Result.STARNETDNA.Id;
                                     }
                                 }
                                 else
                                     CLIEngine.ShowErrorMessage($"Error occured checking if OAPP Template is installed. Reason: {oappTemplateInstalledResult.Message}");
                             }
+                            else
+                                CLIEngine.ShowErrorMessage($"Error occured finding OAPP Template. Reason: {templateResult.Message}");
                         }
                         while (!templateInstalled);
+
+                        //do
+                        //{
+                        //    if (CLIEngine.GetConfirmation("Do you know the GUID/ID of the OAPP Template?"))
+                        //    {
+                        //        Console.WriteLine("");
+                        //        OAPPTemplateId = CLIEngine.GetValidInputForGuid("What is the GUID/ID?");
+                        //    }
+                        //    else
+                        //    {
+                        //        Console.WriteLine("");
+
+                        //        if (CLIEngine.GetConfirmation("Do you know the name of the OAPP Template?"))
+                        //        {
+                        //            Console.WriteLine("");
+                        //            string OAPPTemplateName = CLIEngine.GetValidInput("What is the name?");
+
+                        //            if (OAPPTemplateName == "exit")
+                        //            {
+                        //                lightResult.Message = "User Exited";
+                        //                return lightResult;
+                        //            }
+
+                        //            CLIEngine.ShowWorkingMessage("Searching STARNET...");
+                        //            OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.STARAPI.OAPPTemplates.SearchAsync(STAR.BeamedInAvatar.Id, OAPPTemplateName, false, false, 0, providerType), OAPPTemplateName);
+                        //        }
+                        //        else
+                        //        {
+                        //            Console.WriteLine("");
+                        //            CLIEngine.ShowWorkingMessage("Searching STARNET...");
+                        //            OAPPTemplateId = ProcessOAPPTemplateResults(await STAR.STARAPI.OAPPTemplates.LoadAllAsync(STAR.BeamedInAvatar.Id, OAPPTemplateType), string.Concat("type ", Enum.GetName(typeof(OAPPTemplateType), OAPPTemplateType)));
+                        //        }
+                        //    }
+
+                        //    if (OAPPTemplateId != Guid.Empty)
+                        //    {
+                        //        OASISResult<bool> oappTemplateInstalledResult = STAR.STARAPI.OAPPTemplates.IsInstalled(STAR.BeamedInAvatar.Id, OAPPTemplateId, 0, providerType);
+
+                        //        if (oappTemplateInstalledResult != null && !oappTemplateInstalledResult.IsError)
+                        //        {
+                        //            if (!oappTemplateInstalledResult.Result)
+                        //            {
+                        //                if (CLIEngine.GetConfirmation($"The selected OAPP Template is not currently installed. Do you wish to install it now?"))
+                        //                {
+                        //                    //STAR.OASISAPI.OAPPTemplates.InstallOAPPTemplateAsync(STAR.BeamedInAvatar.Id, OAPPTemplateId, providerType);
+                        //                    OASISResult<InstalledOAPPTemplate> installResult = await STARCLI.OAPPTemplates.DownloadAndInstallAsync(OAPPTemplateId.ToString(), InstallMode.DownloadAndInstall, providerType);
+
+                        //                    if (installResult.Result != null && !installResult.IsError)
+                        //                        templateInstalled = true;
+                        //                }
+                        //            }
+                        //        }
+                        //        else
+                        //            CLIEngine.ShowErrorMessage($"Error occured checking if OAPP Template is installed. Reason: {oappTemplateInstalledResult.Message}");
+                        //    }
+                        //}
+                        //while (!templateInstalled);
                     }
                 }
             }
@@ -447,7 +516,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             }
 
                             CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, dnaFolder, oappPath, genesisNamespace, parentId, providerType);
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId , genesisType, dnaFolder, oappPath, genesisNamespace, parentId, providerType);
                         }
                         else
                         {
@@ -699,7 +768,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public override void Show(OAPP oapp, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false)
+        //public override void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false)
+        //{
+        //    base.Show(starHolon, showHeader, showFooter, showNumbers, number, showDetailedInfo);
+        //}
+
+        public override void Show<OAPP>(OAPP oapp, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false)
         {
             IOAPPDNA OAPPDNA = (IOAPPDNA)oapp.STARNETDNA;
 
@@ -889,37 +963,37 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowDivider();
         }
 
-        private static Guid ProcessOAPPTemplateResults(OASISResult<IEnumerable<OAPPTemplate>> oappTemplateResults, string searchTerm)
-        {
-            Guid OAPPTemplateId = Guid.Empty;
+        //private static IOAPPTemplate ProcessOAPPTemplateResults(OASISResult<IEnumerable<OAPPTemplate>> oappTemplateResults, string searchTerm)
+        //{
+        //    IOAPPTemplate OAPPTemplate = null;
 
-            if (oappTemplateResults != null && oappTemplateResults.Result != null && !oappTemplateResults.IsError)
-            {
-                if (oappTemplateResults.Result.Count() > 1)
-                {
-                    CLIEngine.ShowMessage($"The following OAPP Template's were found for '{searchTerm}':");
+        //    if (oappTemplateResults != null && oappTemplateResults.Result != null && !oappTemplateResults.IsError)
+        //    {
+        //        if (oappTemplateResults.Result.Count() > 1)
+        //        {
+        //            CLIEngine.ShowMessage($"The following OAPP Template's were found for '{searchTerm}':");
 
-                    foreach (OAPPTemplate oappTemplate in oappTemplateResults.Result)
-                        STARCLI.OAPPTemplates.Show(oappTemplate);
+        //            foreach (OAPPTemplate oappTemplate in oappTemplateResults.Result)
+        //                STARCLI.OAPPTemplates.Show(oappTemplate);
 
-                    if (CLIEngine.GetConfirmation("Do you wish to use any of these OAPP Templates?"))
-                        OAPPTemplateId = CLIEngine.GetValidInputForGuid($"Which OAPP Template do you wish to use? Please enter the GUID/ID of the OAPP Template.");
-                }
-                else if (oappTemplateResults.Result.Count() == 1)
-                {
-                    CLIEngine.ShowMessage($"The following OAPP Template was found for '{searchTerm}':");
-                    STARCLI.OAPPTemplates.Show(oappTemplateResults.Result.FirstOrDefault());
+        //            if (CLIEngine.GetConfirmation("Do you wish to use any of these OAPP Templates?"))
+        //                OAPPTemplate = CLIEngine.GetValidInputForGuid($"Which OAPP Template do you wish to use? Please enter the VersionSequence of the OAPP Template you wish to use.");
+        //        }
+        //        else if (oappTemplateResults.Result.Count() == 1)
+        //        {
+        //            CLIEngine.ShowMessage($"The following OAPP Template was found for '{searchTerm}':");
+        //            STARCLI.OAPPTemplates.Show(oappTemplateResults.Result.FirstOrDefault());
 
-                    if (CLIEngine.GetConfirmation("Do you wish to use this OAPP Template?"))
-                        OAPPTemplateId = oappTemplateResults.Result.FirstOrDefault().STARNETDNA.Id;
-                }
-                else
-                    CLIEngine.ShowMessage($"No results were found for '{searchTerm}'.");
-            }
-            else
-                CLIEngine.ShowErrorMessage($"Error occured searching for OAPP Templates: Reason: {oappTemplateResults.Message}");
+        //            if (CLIEngine.GetConfirmation("Do you wish to use this OAPP Template?"))
+        //                OAPPTemplate = oappTemplateResults.Result.FirstOrDefault();
+        //        }
+        //        else
+        //            CLIEngine.ShowMessage($"No results were found for '{searchTerm}'.");
+        //    }
+        //    else
+        //        CLIEngine.ShowErrorMessage($"Error occured searching for OAPP Templates: Reason: {oappTemplateResults.Message}");
 
-            return OAPPTemplateId;
-        }
+        //    return OAPPTemplate;
+        //}
     }
 }

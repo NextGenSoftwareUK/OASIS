@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Chapters : STARUIBase<Chapter, DownloadedChapter, InstalledChapter>
+    public class Chapters : STARNETUIBase<Chapter, DownloadedChapter, InstalledChapter>
     {
         public Chapters(Guid avatarId) : base(new API.ONODE.Core.Managers.ChapterManager(avatarId),
             "Welcome to the Chapter Wizard", new List<string> 

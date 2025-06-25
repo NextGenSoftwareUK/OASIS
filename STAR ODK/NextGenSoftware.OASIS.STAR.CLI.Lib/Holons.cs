@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Holons : STARUIBase<STARHolon, DownloadedHolon, InstalledHolon>
+    public class Holons : STARNETUIBase<STARHolon, DownloadedHolon, InstalledHolon>
     {
         public Holons(Guid avatarId) : base(new API.ONODE.Core.Managers.STARHolonManager(avatarId),
             "Welcome to the Holon Wizard", new List<string> 

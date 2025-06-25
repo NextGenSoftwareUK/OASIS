@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class GeoHotSpots : STARUIBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot>
+    public class GeoHotSpots : STARNETUIBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot>
     {
         public GeoHotSpots(Guid avatarId) : base(new API.ONODE.Core.Managers.GeoHotSpotManager(avatarId),
             "Welcome to the Geo-HotSpot Wizard", new List<string> 

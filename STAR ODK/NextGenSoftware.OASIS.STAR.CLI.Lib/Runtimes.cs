@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Runtimes : STARUIBase<Runtime, DownloadedQuest, InstalledRuntime>
+    public class Runtimes : STARNETUIBase<Runtime, DownloadedQuest, InstalledRuntime>
     {
         public Runtimes(Guid avatarId) : base(new API.ONODE.Core.Managers.RuntimeManager(avatarId),
             "Welcome to the Runtime Wizard", new List<string> 

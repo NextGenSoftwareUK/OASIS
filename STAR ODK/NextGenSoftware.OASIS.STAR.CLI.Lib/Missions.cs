@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Missions : STARUIBase<Mission, DownloadedMission, InstalledMission>
+    public class Missions : STARNETUIBase<Mission, DownloadedMission, InstalledMission>
     {
         public Missions(Guid avatarId) : base(new API.ONODE.Core.Managers.MissionManager(avatarId),
             "Welcome to the Mission Wizard", new List<string> 

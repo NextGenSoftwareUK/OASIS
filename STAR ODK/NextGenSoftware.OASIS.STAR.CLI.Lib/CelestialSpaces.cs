@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class CelestialSpaces : STARUIBase<STARCelestialSpace, DownloadedCelestialSpace, InstalledCelestialSpace>
+    public class CelestialSpaces : STARNETUIBase<STARCelestialSpace, DownloadedCelestialSpace, InstalledCelestialSpace>
     {
         public CelestialSpaces(Guid avatarId) : base(new API.ONODE.Core.Managers.CelestialSpaceManager(avatarId),
             "Welcome to the Celestial Spaces Wizard", new List<string> 
